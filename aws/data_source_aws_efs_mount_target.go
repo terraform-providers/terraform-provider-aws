@@ -18,7 +18,6 @@ func dataSourceAwsEfsMountTarget() *schema.Resource {
 			"mount_target_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"file_system_arn": {
 				Type:     schema.TypeString,
@@ -35,7 +34,6 @@ func dataSourceAwsEfsMountTarget() *schema.Resource {
 			"security_groups": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Computed: true,
 			},
 			"subnet_id": {
@@ -50,19 +48,35 @@ func dataSourceAwsEfsMountTarget() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"mount_target_dns_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"availability_zone_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"availability_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"owner_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) error {
-	efsconn := meta.(*AWSClient).efsconn
+	conn := meta.(*AWSClient).efsconn
 
 	describeEfsOpts := &efs.DescribeMountTargetsInput{
 		MountTargetId: aws.String(d.Get("mount_target_id").(string)),
 	}
 
 	log.Printf("[DEBUG] Reading EFS Mount Target: %s", describeEfsOpts)
-	resp, err := efsconn.DescribeMountTargets(describeEfsOpts)
+	resp, err := conn.DescribeMountTargets(describeEfsOpts)
 	if err != nil {
 		return fmt.Errorf("Error retrieving EFS Mount Target: %s", err)
 	}
@@ -74,7 +88,7 @@ func dataSourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Found EFS mount target: %#v", mt)
 
-	d.SetId(*mt.MountTargetId)
+	d.SetId(aws.StringValue(mt.MountTargetId))
 
 	fsARN := arn.ARN{
 		AccountID: meta.(*AWSClient).accountid,
@@ -89,21 +103,23 @@ func dataSourceAwsEfsMountTargetRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("ip_address", mt.IpAddress)
 	d.Set("subnet_id", mt.SubnetId)
 	d.Set("network_interface_id", mt.NetworkInterfaceId)
+	d.Set("availability_zone_name", mt.AvailabilityZoneName)
+	d.Set("availability_zone_id", mt.AvailabilityZoneId)
+	d.Set("owner_id", mt.OwnerId)
 
-	sgResp, err := efsconn.DescribeMountTargetSecurityGroups(&efs.DescribeMountTargetSecurityGroupsInput{
+	sgResp, err := conn.DescribeMountTargetSecurityGroups(&efs.DescribeMountTargetSecurityGroupsInput{
 		MountTargetId: aws.String(d.Id()),
 	})
 	if err != nil {
 		return err
 	}
-	err = d.Set("security_groups", schema.NewSet(schema.HashString, flattenStringList(sgResp.SecurityGroups)))
+	err = d.Set("security_groups", flattenStringSet(sgResp.SecurityGroups))
 	if err != nil {
 		return err
 	}
 
-	if err := d.Set("dns_name", resourceAwsEfsMountTargetDnsName(*mt.FileSystemId, meta.(*AWSClient).region, meta.(*AWSClient).dnsSuffix)); err != nil {
-		return fmt.Errorf("Error setting dns_name error: %#v", err)
-	}
+	d.Set("dns_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.efs", aws.StringValue(mt.FileSystemId))))
+	d.Set("mount_target_dns_name", meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.%s.efs", aws.StringValue(mt.AvailabilityZoneName), aws.StringValue(mt.FileSystemId))))
 
 	return nil
 }

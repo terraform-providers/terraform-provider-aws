@@ -42,6 +42,11 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								waf.WafActionTypeAllow,
+								waf.WafActionTypeBlock,
+								waf.WafActionTypeCount,
+							}, false),
 						},
 					},
 				},
@@ -53,8 +58,9 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"log_destination": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArn,
 						},
 						"redacted_fields": {
 							Type:     schema.TypeList,
@@ -74,6 +80,15 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 												"type": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														waf.MatchFieldTypeAllQueryArgs,
+														waf.MatchFieldTypeBody,
+														waf.MatchFieldTypeHeader,
+														waf.MatchFieldTypeMethod,
+														waf.MatchFieldTypeQueryString,
+														waf.MatchFieldTypeSingleQueryArg,
+														waf.MatchFieldTypeUri,
+													}, false),
 												},
 											},
 										},
@@ -103,6 +118,11 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											waf.WafActionTypeAllow,
+											waf.WafActionTypeBlock,
+											waf.WafActionTypeCount,
+										}, false),
 									},
 								},
 							},
@@ -116,6 +136,10 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											waf.WafOverrideActionTypeCount,
+											waf.WafOverrideActionTypeNone,
+										}, false),
 									},
 								},
 							},
@@ -219,6 +243,8 @@ func resourceAwsWafRegionalWebAclCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsWafRegionalWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	params := &waf.GetWebACLInput{
 		WebACLId: aws.String(d.Id()),
 	}
@@ -266,7 +292,7 @@ func resourceAwsWafRegionalWebAclRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("error listing tags for WAF Regional ACL (%s): %s", webACLARN, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -297,7 +323,7 @@ func resourceAwsWafRegionalWebAclUpdate(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).wafregionalconn
 	region := meta.(*AWSClient).region
 
-	if d.HasChange("default_action") || d.HasChange("rule") {
+	if d.HasChanges("default_action", "rule") {
 		o, n := d.GetChange("rule")
 		oldR, newR := o.(*schema.Set).List(), n.(*schema.Set).List()
 

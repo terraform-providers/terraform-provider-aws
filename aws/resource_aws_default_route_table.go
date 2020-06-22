@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDefaultRouteTable() *schema.Resource {
@@ -15,6 +17,12 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 		Read:   resourceAwsDefaultRouteTableRead,
 		Update: resourceAwsRouteTableUpdate,
 		Delete: resourceAwsDefaultRouteTableDelete,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("vpc_id", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"default_route_table_id": {
@@ -43,13 +51,15 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cidr_block": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsCIDR,
 						},
 
 						"ipv6_cidr_block": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsCIDR,
 						},
 
 						"egress_only_gateway_id": {
@@ -122,6 +132,12 @@ func resourceAwsDefaultRouteTableCreate(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Revoking default routes for Default Route Table for %s", d.Id())
 	if err := revokeAllRouteTableRules(d.Id(), meta); err != nil {
 		return err
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
+			return fmt.Errorf("error adding tags: %s", err)
+		}
 	}
 
 	return resourceAwsRouteTableUpdate(d, meta)

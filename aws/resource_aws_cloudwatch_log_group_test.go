@@ -2,14 +2,97 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_cloudwatch_log_group", &resource.Sweeper{
+		Name: "aws_cloudwatch_log_group",
+		F:    testSweepCloudwatchLogGroups,
+		Dependencies: []string{
+			"aws_api_gateway_rest_api",
+			"aws_cloudhsm_v2_cluster",
+			"aws_cloudtrail",
+			"aws_datasync_task",
+			"aws_db_instance",
+			"aws_directory_service_directory",
+			"aws_ec2_client_vpn_endpoint",
+			"aws_eks_cluster",
+			"aws_elasticsearch_domain",
+			"aws_flow_log",
+			"aws_glue_job",
+			"aws_kinesis_analytics_application",
+			"aws_kinesis_firehose_delivery_stream",
+			"aws_lambda_function",
+			"aws_mq_broker",
+			"aws_msk_cluster",
+			"aws_rds_cluster",
+			"aws_route53_query_log",
+			"aws_sagemaker_endpoint",
+			"aws_storagegateway_gateway",
+		},
+	})
+}
+
+func testSweepCloudwatchLogGroups(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).cloudwatchlogsconn
+	var sweeperErrs *multierror.Error
+
+	input := &cloudwatchlogs.DescribeLogGroupsInput{}
+
+	err = conn.DescribeLogGroupsPages(input, func(page *cloudwatchlogs.DescribeLogGroupsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, logGroup := range page.LogGroups {
+			if logGroup == nil {
+				continue
+			}
+
+			input := &cloudwatchlogs.DeleteLogGroupInput{
+				LogGroupName: logGroup.LogGroupName,
+			}
+			name := aws.StringValue(logGroup.LogGroupName)
+
+			log.Printf("[INFO] Deleting CloudWatch Log Group: %s", name)
+			_, err := conn.DeleteLogGroup(input)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting CloudWatch Log Group (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping CloudWatch Log Groups sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving CloudWatch Log Groups: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSCloudWatchLogGroup_basic(t *testing.T) {
 	var lg cloudwatchlogs.LogGroup

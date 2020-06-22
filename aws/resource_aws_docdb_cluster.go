@@ -160,7 +160,6 @@ func resourceAwsDocDBCluster() *schema.Resource {
 			"snapshot_identifier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"port": {
@@ -237,6 +236,11 @@ func resourceAwsDocDBCluster() *schema.Resource {
 				},
 			},
 
+			"deletion_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -279,6 +283,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 			DBClusterIdentifier: aws.String(identifier),
 			Engine:              aws.String(d.Get("engine").(string)),
 			SnapshotIdentifier:  aws.String(d.Get("snapshot_identifier").(string)),
+			DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
 			Tags:                tags,
 		}
 
@@ -361,6 +366,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 			Engine:              aws.String(d.Get("engine").(string)),
 			MasterUserPassword:  aws.String(d.Get("master_password").(string)),
 			MasterUsername:      aws.String(d.Get("master_username").(string)),
+			DeletionProtection:  aws.Bool(d.Get("deletion_protection").(bool)),
 			Tags:                tags,
 		}
 
@@ -478,6 +484,7 @@ func resourceAwsDocDBClusterCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsDocDBClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).docdbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &docdb.DescribeDBClustersInput{
 		DBClusterIdentifier: aws.String(d.Id()),
@@ -551,6 +558,7 @@ func resourceAwsDocDBClusterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("preferred_maintenance_window", dbc.PreferredMaintenanceWindow)
 	d.Set("reader_endpoint", dbc.ReaderEndpoint)
 	d.Set("storage_encrypted", dbc.StorageEncrypted)
+	d.Set("deletion_protection", dbc.DeletionProtection)
 
 	var vpcg []string
 	for _, g := range dbc.VpcSecurityGroups {
@@ -566,7 +574,7 @@ func resourceAwsDocDBClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for DocumentDB Cluster (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -617,14 +625,17 @@ func resourceAwsDocDBClusterUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("db_cluster_parameter_group_name") {
-		d.SetPartial("db_cluster_parameter_group_name")
 		req.DBClusterParameterGroupName = aws.String(d.Get("db_cluster_parameter_group_name").(string))
 		requestUpdate = true
 	}
 
 	if d.HasChange("enabled_cloudwatch_logs_exports") {
-		d.SetPartial("enabled_cloudwatch_logs_exports")
 		req.CloudwatchLogsExportConfiguration = buildDocDBCloudwatchLogsExportConfiguration(d)
+		requestUpdate = true
+	}
+
+	if d.HasChange("deletion_protection") {
+		req.DeletionProtection = aws.Bool(d.Get("deletion_protection").(bool))
 		requestUpdate = true
 	}
 
@@ -669,7 +680,6 @@ func resourceAwsDocDBClusterUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("error updating DocumentDB Cluster (%s) tags: %s", d.Get("arn").(string), err)
 		}
 
-		d.SetPartial("tags")
 	}
 
 	return resourceAwsDocDBClusterRead(d, meta)

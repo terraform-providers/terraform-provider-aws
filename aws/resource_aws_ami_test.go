@@ -303,7 +303,14 @@ func testAccCheckAmiEbsBlockDevice(bd *ec2.BlockDeviceMapping, ed *ec2.EbsBlockD
 
 func testAccAmiConfig_base(rName string, size int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_ebs_volume" "foo" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"

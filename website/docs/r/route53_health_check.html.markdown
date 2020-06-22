@@ -103,7 +103,7 @@ The following arguments are supported:
 * `insufficient_data_health_status` - (Optional) The status of the health check when CloudWatch has insufficient data about the state of associated alarm. Valid values are `Healthy` , `Unhealthy` and `LastKnownStatus`.
 * `regions` - (Optional) A list of AWS regions that you want Amazon Route 53 health checkers to check the specified endpoint from.
 
-* `tags` - (Optional) A mapping of tags to assign to the health check.
+* `tags` - (Optional) A map of tags to assign to the health check.
 
 At least one of either `fqdn` or `ip_address` must be specified.
 

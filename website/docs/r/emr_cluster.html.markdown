@@ -245,7 +245,7 @@ The following arguments are supported:
 * `kerberos_attributes` - (Optional) Kerberos configuration for the cluster. Defined below
 * `ebs_root_volume_size` - (Optional) Size in GiB of the EBS root device volume of the Linux AMI that is used for each EC2 instance. Available in Amazon EMR version 4.x and later.
 * `custom_ami_id` - (Optional) A custom Amazon Linux AMI for the cluster (instead of an EMR-owned AMI). Available in Amazon EMR version 5.7.0 and later.
-* `bootstrap_action` - (Optional) List of bootstrap actions that will be run before Hadoop is started on the cluster nodes. Defined below
+* `bootstrap_action` - (Optional) Ordered list of bootstrap actions that will be run before Hadoop is started on the cluster nodes. Defined below.
 * `configurations` - (Optional) List of configurations supplied for the EMR cluster you are creating
 * `configurations_json` - (Optional) A JSON string for supplying list of configurations for the EMR cluster.
 
@@ -407,10 +407,6 @@ boot an example EMR Cluster. It is not meant to display best practices. Please
 use at your own risk.
 
 ```hcl
-provider "aws" {
-  region = "us-west-2"
-}
-
 resource "aws_emr_cluster" "cluster" {
   name          = "emr-test-arn"
   release_label = "emr-4.6.0"
@@ -478,13 +474,10 @@ resource "aws_security_group" "allow_access" {
   vpc_id      = "${aws_vpc.main.id}"
 
   ingress {
-    # these ports should be locked down
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-
-    # we do not recommend opening your cluster to 0.0.0.0/0
-    cidr_blocks = # add your IP address here
+    cidr_blocks = aws_vpc.main.cidr_block
   }
 
   egress {

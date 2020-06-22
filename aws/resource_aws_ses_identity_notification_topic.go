@@ -55,7 +55,7 @@ func resourceAwsSesNotificationTopic() *schema.Resource {
 }
 
 func resourceAwsSesNotificationTopicSet(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 	notification := d.Get("notification_type").(string)
 	identity := d.Get("identity").(string)
 	includeOriginalHeaders := d.Get("include_original_headers").(bool)
@@ -93,7 +93,7 @@ func resourceAwsSesNotificationTopicSet(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesNotificationTopicRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity, notificationType, err := decodeSesIdentityNotificationTopicId(d.Id())
 	if err != nil {
@@ -141,7 +141,7 @@ func resourceAwsSesNotificationTopicRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceAwsSesNotificationTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity, notificationType, err := decodeSesIdentityNotificationTopicId(d.Id())
 	if err != nil {

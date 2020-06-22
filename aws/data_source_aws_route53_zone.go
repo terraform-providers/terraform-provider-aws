@@ -69,6 +69,8 @@ func dataSourceAwsRoute53Zone() *schema.Resource {
 
 func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	name, nameExists := d.GetOk("name")
 	name = hostedZoneName(name.(string))
 	id, idExists := d.GetOk("zone_id")
@@ -179,7 +181,7 @@ func dataSourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error finding Route 53 Hosted Zone: %v", err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * `channel_id` - (Required) A unique identifier describing the channel
 * `description` - (Optional) A description of the channel
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

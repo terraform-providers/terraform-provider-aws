@@ -52,12 +52,12 @@ func dataSourceAwsRamResourceShare() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchemaComputed(),
-
-			"id": {
+			"owning_account_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchemaComputed(),
 
 			"status": {
 				Type:     schema.TypeString,
@@ -69,6 +69,7 @@ func dataSourceAwsRamResourceShare() *schema.Resource {
 
 func dataSourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	name := d.Get("name").(string)
 	owner := d.Get("resource_owner").(string)
@@ -106,7 +107,7 @@ func dataSourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{})
 				d.Set("owning_account_id", aws.StringValue(r.OwningAccountId))
 				d.Set("status", aws.StringValue(r.Status))
 
-				if err := d.Set("tags", keyvaluetags.RamKeyValueTags(r.Tags).IgnoreAws().Map()); err != nil {
+				if err := d.Set("tags", keyvaluetags.RamKeyValueTags(r.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 					return fmt.Errorf("error setting tags: %s", err)
 				}
 

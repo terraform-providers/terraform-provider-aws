@@ -8,4 +8,6 @@ Running the example
 
 run `terraform apply -var 'key_name={your_key_name}'` 
 
+Alternatively to using `-var` with each command, the `terraform.template.tfvars` file can be copied to `terraform.tfvars` and updated.
+
 Give couple of mins for userdata to install nginx, and then type the Elastic IP from outputs in your browser and see the nginx welcome page

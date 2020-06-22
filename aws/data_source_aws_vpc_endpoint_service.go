@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsVpcEndpointService() *schema.Resource {
@@ -68,25 +69,37 @@ func dataSourceAwsVpcEndpointService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"filter": dataSourceFiltersSchema(),
 		},
 	}
 }
 
 func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
+	filters, filtersOk := d.GetOk("filter")
+	tags, tagsOk := d.GetOk("tags")
 
 	var serviceName string
+	serviceNameOk := false
 	if v, ok := d.GetOk("service_name"); ok {
 		serviceName = v.(string)
+		serviceNameOk = true
 	} else if v, ok := d.GetOk("service"); ok {
 		serviceName = fmt.Sprintf("com.amazonaws.%s.%s", meta.(*AWSClient).region, v.(string))
-	} else {
-		return fmt.Errorf(
-			"One of ['service', 'service_name'] must be set to query VPC Endpoint Services")
+		serviceNameOk = true
 	}
 
-	req := &ec2.DescribeVpcEndpointServicesInput{
-		ServiceNames: aws.StringSlice([]string{serviceName}),
+	req := &ec2.DescribeVpcEndpointServicesInput{}
+	if filtersOk {
+		req.Filters = buildAwsDataSourceFilters(filters.(*schema.Set))
+	}
+	if serviceNameOk {
+		req.ServiceNames = aws.StringSlice([]string{serviceName})
+	}
+	if tagsOk {
+		req.Filters = append(req.Filters, ec2TagFiltersFromMap(tags.(map[string]interface{}))...)
 	}
 
 	log.Printf("[DEBUG] Reading VPC Endpoint Service: %s", req)
@@ -137,7 +150,7 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("private_dns_name", sd.PrivateDnsName)
 	d.Set("service_id", sd.ServiceId)
 	d.Set("service_type", sd.ServiceType[0].ServiceType)
-	err = d.Set("tags", tagsToMap(sd.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(sd.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}

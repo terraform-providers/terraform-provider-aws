@@ -190,7 +190,7 @@ func resourceAwsS3BucketObject() *schema.Resource {
 			"object_lock_retain_until_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 		},
 	}
@@ -315,6 +315,7 @@ func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
@@ -394,7 +395,7 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
 	}
 
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -453,7 +454,7 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("object_lock_mode") || d.HasChange("object_lock_retain_until_date") {
+	if d.HasChanges("object_lock_mode", "object_lock_retain_until_date") {
 		req := &s3.PutObjectRetentionInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),

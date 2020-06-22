@@ -17,7 +17,6 @@ func dataSourceAwsEcsService() *schema.Resource {
 			"service_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -26,7 +25,6 @@ func dataSourceAwsEcsService() *schema.Resource {
 			"cluster_arn": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"desired_count": {
 				Type:     schema.TypeInt,

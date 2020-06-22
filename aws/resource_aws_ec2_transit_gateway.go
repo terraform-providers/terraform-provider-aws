@@ -145,6 +145,7 @@ func resourceAwsEc2TransitGatewayCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	transitGateway, err := ec2DescribeTransitGateway(conn, d.Id())
 
@@ -185,7 +186,7 @@ func resourceAwsEc2TransitGatewayRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("owner_id", transitGateway.OwnerId)
 	d.Set("propagation_default_route_table_id", transitGateway.Options.PropagationDefaultRouteTableId)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGateway.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -228,6 +229,10 @@ func resourceAwsEc2TransitGatewayDelete(d *schema.ResourceData, meta interface{}
 		}
 
 		if isAWSErr(err, "IncorrectState", "has non-deleted VPN Attachments") {
+			return resource.RetryableError(err)
+		}
+
+		if isAWSErr(err, "IncorrectState", "has non-deleted Transit Gateway Cross Region Peering Attachments") {
 			return resource.RetryableError(err)
 		}
 

@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,11 +15,13 @@ func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
 	var version secretsmanager.GetSecretValueOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret_version.test"
+	secretResourceName := "aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_SecretString(rName),
@@ -30,8 +31,7 @@ func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "version_id"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
-					resource.TestMatchResourceAttr(resourceName, "arn",
-						regexp.MustCompile(`^arn:[\w-]+:secretsmanager:[^:]+:\d{12}:secret:.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", secretResourceName, "arn"),
 				),
 			},
 			{
@@ -47,11 +47,13 @@ func TestAccAwsSecretsManagerSecretVersion_Base64Binary(t *testing.T) {
 	var version secretsmanager.GetSecretValueOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret_version.test"
+	secretResourceName := "aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_SecretBinary(rName),
@@ -61,8 +63,7 @@ func TestAccAwsSecretsManagerSecretVersion_Base64Binary(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "version_id"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
-					resource.TestMatchResourceAttr(resourceName, "arn",
-						regexp.MustCompile(`^arn:[\w-]+:secretsmanager:[^:]+:\d{12}:secret:.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", secretResourceName, "arn"),
 				),
 			},
 			{
@@ -80,9 +81,10 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 	resourceName := "aws_secretsmanager_secret_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_Single(rName),

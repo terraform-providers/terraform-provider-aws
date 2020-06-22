@@ -103,13 +103,64 @@ func resourceAwsLbListener() *schema.Resource {
 						"target_group_arn": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot("forward"),
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
+						},
+
+						"forward": {
+							Type:             schema.TypeList,
+							Optional:         true,
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumForward),
+							MaxItems:         1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"target_group": {
+										Type:     schema.TypeSet,
+										MinItems: 2,
+										MaxItems: 5,
+										Required: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"arn": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"weight": {
+													Type:         schema.TypeInt,
+													ValidateFunc: validation.IntBetween(0, 999),
+													Default:      1,
+													Optional:     true,
+												},
+											},
+										},
+									},
+									"stickiness": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"duration": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(1, 604800),
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 
 						"redirect": {
 							Type:             schema.TypeList,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot("redirect"),
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumRedirect),
 							MaxItems:         1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -163,7 +214,7 @@ func resourceAwsLbListener() *schema.Resource {
 						"fixed_response": {
 							Type:             schema.TypeList,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot("fixed-response"),
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumFixedResponse),
 							MaxItems:         1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -197,13 +248,14 @@ func resourceAwsLbListener() *schema.Resource {
 						"authenticate_cognito": {
 							Type:             schema.TypeList,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot("authenticate-cognito"),
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumAuthenticateCognito),
 							MaxItems:         1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"authentication_request_extra_params": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"on_unauthenticated_request": {
 										Type:     schema.TypeString,
@@ -249,13 +301,14 @@ func resourceAwsLbListener() *schema.Resource {
 						"authenticate_oidc": {
 							Type:             schema.TypeList,
 							Optional:         true,
-							DiffSuppressFunc: suppressIfDefaultActionTypeNot("authenticate-oidc"),
+							DiffSuppressFunc: suppressIfDefaultActionTypeNot(elbv2.ActionTypeEnumAuthenticateOidc),
 							MaxItems:         1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"authentication_request_extra_params": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"authorization_endpoint": {
 										Type:     schema.TypeString,
@@ -369,10 +422,12 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		switch defaultActionMap["type"].(string) {
-		case "forward":
-			action.TargetGroupArn = aws.String(defaultActionMap["target_group_arn"].(string))
+		case elbv2.ActionTypeEnumForward:
+			if err := lbListenerRuleActionForward(defaultActionMap, action); err != nil {
+				return err
+			}
 
-		case "redirect":
+		case elbv2.ActionTypeEnumRedirect:
 			redirectList := defaultActionMap["redirect"].([]interface{})
 
 			if len(redirectList) == 1 {
@@ -390,7 +445,7 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 				return errors.New("for actions of type 'redirect', you must specify a 'redirect' block")
 			}
 
-		case "fixed-response":
+		case elbv2.ActionTypeEnumFixedResponse:
 			fixedResponseList := defaultActionMap["fixed_response"].([]interface{})
 
 			if len(fixedResponseList) == 1 {
@@ -496,15 +551,15 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 	})
 
 	if isResourceTimeoutError(err) {
-		_, err = elbconn.CreateListener(params)
+		resp, err = elbconn.CreateListener(params)
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error creating LB Listener: %s", err)
+		return fmt.Errorf("error creating ELBv2 Listener: %s", err)
 	}
 
-	if len(resp.Listeners) == 0 {
-		return errors.New("Error creating LB Listener: no listeners returned in response")
+	if resp == nil || len(resp.Listeners) == 0 {
+		return fmt.Errorf("error creating ELBv2 Listener: no listeners returned in response")
 	}
 
 	d.SetId(*resp.Listeners[0].ListenerArn)
@@ -533,7 +588,7 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 	})
 
 	if isResourceTimeoutError(err) {
-		_, err = elbconn.DescribeListeners(request)
+		resp, err = elbconn.DescribeListeners(request)
 	}
 
 	if isAWSErr(err, elbv2.ErrCodeListenerNotFoundException, "") {
@@ -543,14 +598,25 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error retrieving Listener: %s", err)
+		return fmt.Errorf("error describing ELBv2 Listener (%s): %s", d.Id(), err)
 	}
 
-	if len(resp.Listeners) != 1 {
-		return fmt.Errorf("Error retrieving Listener %q", d.Id())
+	if resp == nil {
+		return fmt.Errorf("error describing ELBv2 Listener (%s): empty response", d.Id())
 	}
 
-	listener := resp.Listeners[0]
+	var listener *elbv2.Listener
+
+	for _, l := range resp.Listeners {
+		if aws.StringValue(l.ListenerArn) == d.Id() {
+			listener = l
+			break
+		}
+	}
+
+	if listener == nil {
+		return fmt.Errorf("error describing ELBv2 Listener (%s): not found in response", d.Id())
+	}
 
 	d.Set("arn", listener.ListenerArn)
 	d.Set("load_balancer_arn", listener.LoadBalancerArn)
@@ -572,10 +638,33 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 		defaultActionMap["order"] = aws.Int64Value(defaultAction.Order)
 
 		switch aws.StringValue(defaultAction.Type) {
-		case "forward":
-			defaultActionMap["target_group_arn"] = aws.StringValue(defaultAction.TargetGroupArn)
+		case elbv2.ActionTypeEnumForward:
+			if aws.StringValue(defaultAction.TargetGroupArn) != "" {
+				defaultActionMap["target_group_arn"] = aws.StringValue(defaultAction.TargetGroupArn)
+			} else {
+				targetGroups := make([]map[string]interface{}, 0, len(defaultAction.ForwardConfig.TargetGroups))
+				for _, targetGroup := range defaultAction.ForwardConfig.TargetGroups {
+					targetGroups = append(targetGroups,
+						map[string]interface{}{
+							"arn":    aws.StringValue(targetGroup.TargetGroupArn),
+							"weight": aws.Int64Value(targetGroup.Weight),
+						},
+					)
+				}
+				defaultActionMap["forward"] = []map[string]interface{}{
+					{
+						"target_group": targetGroups,
+						"stickiness": []map[string]interface{}{
+							{
+								"enabled":  aws.BoolValue(defaultAction.ForwardConfig.TargetGroupStickinessConfig.Enabled),
+								"duration": aws.Int64Value(defaultAction.ForwardConfig.TargetGroupStickinessConfig.DurationSeconds),
+							},
+						},
+					},
+				}
+			}
 
-		case "redirect":
+		case elbv2.ActionTypeEnumRedirect:
 			defaultActionMap["redirect"] = []map[string]interface{}{
 				{
 					"host":        aws.StringValue(defaultAction.RedirectConfig.Host),
@@ -587,7 +676,7 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 				},
 			}
 
-		case "fixed-response":
+		case elbv2.ActionTypeEnumFixedResponse:
 			defaultActionMap["fixed_response"] = []map[string]interface{}{
 				{
 					"content_type": aws.StringValue(defaultAction.FixedResponseConfig.ContentType),
@@ -596,7 +685,7 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 				},
 			}
 
-		case "authenticate-cognito":
+		case elbv2.ActionTypeEnumAuthenticateCognito:
 			authenticationRequestExtraParams := make(map[string]interface{})
 			for key, value := range defaultAction.AuthenticateCognitoConfig.AuthenticationRequestExtraParams {
 				authenticationRequestExtraParams[key] = aws.StringValue(value)
@@ -614,7 +703,7 @@ func resourceAwsLbListenerRead(d *schema.ResourceData, meta interface{}) error {
 				},
 			}
 
-		case "authenticate-oidc":
+		case elbv2.ActionTypeEnumAuthenticateOidc:
 			authenticationRequestExtraParams := make(map[string]interface{})
 			for key, value := range defaultAction.AuthenticateOidcConfig.AuthenticationRequestExtraParams {
 				authenticationRequestExtraParams[key] = aws.StringValue(value)
@@ -687,10 +776,12 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 			}
 
 			switch defaultActionMap["type"].(string) {
-			case "forward":
-				action.TargetGroupArn = aws.String(defaultActionMap["target_group_arn"].(string))
+			case elbv2.ActionTypeEnumForward:
+				if err := lbListenerRuleActionForward(defaultActionMap, action); err != nil {
+					return err
+				}
 
-			case "redirect":
+			case elbv2.ActionTypeEnumRedirect:
 				redirectList := defaultActionMap["redirect"].([]interface{})
 
 				if len(redirectList) == 1 {
@@ -708,7 +799,7 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 					return errors.New("for actions of type 'redirect', you must specify a 'redirect' block")
 				}
 
-			case "fixed-response":
+			case elbv2.ActionTypeEnumFixedResponse:
 				fixedResponseList := defaultActionMap["fixed_response"].([]interface{})
 
 				if len(fixedResponseList) == 1 {
@@ -723,7 +814,7 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 					return errors.New("for actions of type 'fixed-response', you must specify a 'fixed_response' block")
 				}
 
-			case "authenticate-cognito":
+			case elbv2.ActionTypeEnumAuthenticateCognito:
 				authenticateCognitoList := defaultActionMap["authenticate_cognito"].([]interface{})
 
 				if len(authenticateCognitoList) == 1 {
@@ -757,7 +848,7 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 					return errors.New("for actions of type 'authenticate-cognito', you must specify a 'authenticate_cognito' block")
 				}
 
-			case "authenticate-oidc":
+			case elbv2.ActionTypeEnumAuthenticateOidc:
 				authenticateOidcList := defaultActionMap["authenticate_oidc"].([]interface{})
 
 				if len(authenticateOidcList) == 1 {

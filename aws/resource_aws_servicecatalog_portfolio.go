@@ -89,6 +89,8 @@ func resourceAwsServiceCatalogPortfolioCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsServiceCatalogPortfolioRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).scconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	input := servicecatalog.DescribePortfolioInput{
 		AcceptLanguage: aws.String("en"),
 	}
@@ -113,7 +115,7 @@ func resourceAwsServiceCatalogPortfolioRead(d *schema.ResourceData, meta interfa
 	d.Set("name", portfolioDetail.DisplayName)
 	d.Set("provider_name", portfolioDetail.ProviderName)
 
-	if err := d.Set("tags", keyvaluetags.ServicecatalogKeyValueTags(resp.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ServicecatalogKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

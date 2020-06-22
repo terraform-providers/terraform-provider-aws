@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -129,7 +130,11 @@ func resourceAwsLBCookieStickinessPolicyRead(d *schema.ResourceData, meta interf
 	if *cookieAttr.AttributeName != "CookieExpirationPeriod" {
 		return fmt.Errorf("Unable to find cookie expiration period.")
 	}
-	d.Set("cookie_expiration_period", cookieAttr.AttributeValue)
+	cookieVal, err := strconv.Atoi(aws.StringValue(cookieAttr.AttributeValue))
+	if err != nil {
+		return fmt.Errorf("Error parsing cookie expiration period: %s", err)
+	}
+	d.Set("cookie_expiration_period", cookieVal)
 
 	d.Set("name", policyName)
 	d.Set("load_balancer", lbName)

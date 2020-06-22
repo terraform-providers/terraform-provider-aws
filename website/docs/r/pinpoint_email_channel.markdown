@@ -3,12 +3,12 @@ subcategory: "Pinpoint"
 layout: "aws"
 page_title: "AWS: aws_pinpoint_email_channel"
 description: |-
-  Provides a Pinpoint SMS Channel resource.
+  Provides a Pinpoint Email Channel resource.
 ---
 
 # Resource: aws_pinpoint_email_channel
 
-Provides a Pinpoint SMS Channel resource.
+Provides a Pinpoint Email Channel resource.
 
 ## Example Usage
 

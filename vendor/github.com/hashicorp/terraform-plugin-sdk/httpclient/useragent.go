@@ -11,6 +11,10 @@ import (
 
 const uaEnvVar = "TF_APPEND_USER_AGENT"
 
+// TerraformUserAgent returns a User-Agent header for a Terraform version string.
+//
+// Deprecated: This will be removed in v2 without replacement. If you need
+// its functionality, you can copy it or reference the v1 package.
 func TerraformUserAgent(version string) string {
 	ua := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io) Terraform Plugin SDK/%s", version, meta.SDKVersionString())
 

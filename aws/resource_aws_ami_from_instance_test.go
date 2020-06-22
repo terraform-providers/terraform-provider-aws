@@ -129,16 +129,33 @@ func testAccCheckAWSAMIFromInstanceDestroy(s *terraform.State) error {
 
 func testAccAWSAMIFromInstanceConfigBase() string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["t3.micro", "t2.micro"]
+  }
+
+  preferred_instance_types = ["t3.micro", "t2.micro"]
+}
+
+data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
 }
 
 resource "aws_instance" "test" {
-  // This AMI has one block device mapping, so we expect to have
-  // one snapshot in our created AMI.
-  ami = "ami-408c7f28"
-
-  instance_type = "t1.micro"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 
   tags = {
     Name = "testAccAWSAMIFromInstanceConfig_TestAMI"

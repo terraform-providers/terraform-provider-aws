@@ -16,6 +16,12 @@ The `awsproviderlint` tool extends the `tfproviderlint` tool and its checks. See
 |---|---|
 | [AWSAT001](passes/AWSAT001/README.md) | check for `resource.TestMatchResourceAttr()` calls against ARN attributes |
 
+### AWS Resource Checks
+
+| Check | Description |
+|---|---|
+| [AWSR001](passes/AWSR001/README.md) | check for `fmt.Sprintf()` calls using `.amazonaws.com` domain suffix |
+
 ## Development and Testing
 
 This project is built on the [`tfproviderlint`](https://github.com/bflad/tfproviderlint) project and the [`go/analysis`](https://godoc.org/golang.org/x/tools/go/analysis) framework.

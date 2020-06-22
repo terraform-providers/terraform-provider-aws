@@ -10,7 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/jen20/awspolicyequivalence"
+	awspolicy "github.com/jen20/awspolicyequivalence"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kms/waiter"
 )
 
 func TestAccAWSKmsExternalKey_basic(t *testing.T) {
@@ -483,7 +484,9 @@ func testAccCheckAWSKmsExternalKeyDisappears(key *kms.KeyMetadata) resource.Test
 			return err
 		}
 
-		return waitForKmsKeyScheduleDeletion(conn, aws.StringValue(key.KeyId))
+		_, err = waiter.KeyStatePendingDeletion(conn, aws.StringValue(key.KeyId))
+
+		return err
 	}
 }
 

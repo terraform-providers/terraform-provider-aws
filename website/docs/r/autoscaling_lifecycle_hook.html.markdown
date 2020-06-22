@@ -74,5 +74,5 @@ The following arguments are supported:
 AutoScaling Lifecycle Hooks can be imported using the role autoscaling_group_name and name separated by `/`.
 
 ```
-$ terraform import aws_aws_autoscaling_lifecycle_hook.test-lifecycle-hook asg-name/lifecycle-hook-name
+$ terraform import aws_autoscaling_lifecycle_hook.test-lifecycle-hook asg-name/lifecycle-hook-name
 ```

@@ -491,8 +491,6 @@ func (c *Neptune) CopyDBClusterSnapshotRequest(input *CopyDBClusterSnapshotInput
 // To copy a DB cluster snapshot from a shared manual DB cluster snapshot, SourceDBClusterSnapshotIdentifier
 // must be the Amazon Resource Name (ARN) of the shared DB cluster snapshot.
 //
-// You can't copy from one AWS Region to another.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -675,6 +673,11 @@ func (c *Neptune) CreateDBClusterRequest(input *CreateDBClusterInput) (req *requ
 //
 // You can use the ReplicationSourceIdentifier parameter to create the DB cluster
 // as a Read Replica of another DB cluster or Amazon Neptune DB instance.
+//
+// Note that when you create a new cluster using CreateDBCluster directly, deletion
+// protection is disabled by default (when you create a new production cluster
+// in the console, deletion protection is enabled by default). You can only
+// delete a DB cluster if its DeletionProtection field is set to false.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1459,6 +1462,9 @@ func (c *Neptune) DeleteDBClusterRequest(input *DeleteDBClusterInput) (req *requ
 // and can't be recovered. Manual DB cluster snapshots of the specified DB cluster
 // are not deleted.
 //
+// Note that the DB Cluster cannot be deleted if deletion protection is enabled.
+// To delete it, you must first set its DeletionProtection field to False.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1733,7 +1739,8 @@ func (c *Neptune) DeleteDBInstanceRequest(input *DeleteDBInstanceInput) (req *re
 // incompatible-restore, or incompatible-network, you can only delete it when
 // the SkipFinalSnapshot parameter is set to true.
 //
-// You can't delete a DB instance if it is the only instance in the DB cluster.
+// You can't delete a DB instance if it is the only instance in the DB cluster,
+// or if it has deletion protection enabled.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2411,7 +2418,10 @@ func (c *Neptune) DescribeDBClustersRequest(input *DescribeDBClustersInput) (req
 
 // DescribeDBClusters API operation for Amazon Neptune.
 //
-// Returns information about provisioned DB clusters. This API supports pagination.
+// Returns information about provisioned DB clusters, and supports pagination.
+//
+// This operation can also return information for Amazon RDS clusters and Amazon
+// DocDB clusters.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2628,7 +2638,10 @@ func (c *Neptune) DescribeDBInstancesRequest(input *DescribeDBInstancesInput) (r
 
 // DescribeDBInstances API operation for Amazon Neptune.
 //
-// Returns information about provisioned instances. This API supports pagination.
+// Returns information about provisioned instances, and supports pagination.
+//
+// This operation can also return information for Amazon RDS instances and Amazon
+// DocDB instances.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5814,6 +5827,181 @@ func (c *Neptune) RestoreDBClusterToPointInTimeWithContext(ctx aws.Context, inpu
 	return out, req.Send()
 }
 
+const opStartDBCluster = "StartDBCluster"
+
+// StartDBClusterRequest generates a "aws/request.Request" representing the
+// client's request for the StartDBCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StartDBCluster for more information on using the StartDBCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StartDBClusterRequest method.
+//    req, resp := client.StartDBClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StartDBCluster
+func (c *Neptune) StartDBClusterRequest(input *StartDBClusterInput) (req *request.Request, output *StartDBClusterOutput) {
+	op := &request.Operation{
+		Name:       opStartDBCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StartDBClusterInput{}
+	}
+
+	output = &StartDBClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StartDBCluster API operation for Amazon Neptune.
+//
+// Starts an Amazon Neptune DB cluster that was stopped using the AWS console,
+// the AWS CLI stop-db-cluster command, or the StopDBCluster API.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Neptune's
+// API operation StartDBCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
+//   DBClusterIdentifier does not refer to an existing DB cluster.
+//
+//   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
+//   The DB cluster is not in a valid state.
+//
+//   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
+//   The specified DB instance is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StartDBCluster
+func (c *Neptune) StartDBCluster(input *StartDBClusterInput) (*StartDBClusterOutput, error) {
+	req, out := c.StartDBClusterRequest(input)
+	return out, req.Send()
+}
+
+// StartDBClusterWithContext is the same as StartDBCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StartDBCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Neptune) StartDBClusterWithContext(ctx aws.Context, input *StartDBClusterInput, opts ...request.Option) (*StartDBClusterOutput, error) {
+	req, out := c.StartDBClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopDBCluster = "StopDBCluster"
+
+// StopDBClusterRequest generates a "aws/request.Request" representing the
+// client's request for the StopDBCluster operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopDBCluster for more information on using the StopDBCluster
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopDBClusterRequest method.
+//    req, resp := client.StopDBClusterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StopDBCluster
+func (c *Neptune) StopDBClusterRequest(input *StopDBClusterInput) (req *request.Request, output *StopDBClusterOutput) {
+	op := &request.Operation{
+		Name:       opStopDBCluster,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopDBClusterInput{}
+	}
+
+	output = &StopDBClusterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopDBCluster API operation for Amazon Neptune.
+//
+// Stops an Amazon Neptune DB cluster. When you stop a DB cluster, Neptune retains
+// the DB cluster's metadata, including its endpoints and DB parameter groups.
+//
+// Neptune also retains the transaction logs so you can do a point-in-time restore
+// if necessary.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Neptune's
+// API operation StopDBCluster for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
+//   DBClusterIdentifier does not refer to an existing DB cluster.
+//
+//   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
+//   The DB cluster is not in a valid state.
+//
+//   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
+//   The specified DB instance is not in the available state.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/neptune-2014-10-31/StopDBCluster
+func (c *Neptune) StopDBCluster(input *StopDBClusterInput) (*StopDBClusterOutput, error) {
+	req, out := c.StopDBClusterRequest(input)
+	return out, req.Send()
+}
+
+// StopDBClusterWithContext is the same as StopDBCluster with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopDBCluster for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Neptune) StopDBClusterWithContext(ctx aws.Context, input *StopDBClusterInput, opts ...request.Option) (*StopDBClusterOutput, error) {
+	req, out := c.StopDBClusterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 type AddRoleToDBClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6697,7 +6885,7 @@ type CreateDBClusterInput struct {
 
 	// A value that indicates whether the DB cluster has deletion protection enabled.
 	// The database can't be deleted when deletion protection is enabled. By default,
-	// deletion protection is disabled.
+	// deletion protection is enabled.
 	DeletionProtection *bool `type:"boolean"`
 
 	// The list of log types that need to be enabled for exporting to CloudWatch
@@ -7342,11 +7530,10 @@ type CreateDBInstanceInput struct {
 
 	// A value that indicates whether the DB instance has deletion protection enabled.
 	// The database can't be deleted when deletion protection is enabled. By default,
-	// deletion protection is disabled.
+	// deletion protection is disabled. See Deleting a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
 	//
-	// You can enable or disable deletion protection for the DB cluster. For more
-	// information, see CreateDBCluster. DB instances in a DB cluster can be deleted
-	// even when deletion protection is enabled for the DB cluster.
+	// DB instances in a DB cluster can be deleted even when deletion protection
+	// is enabled in their parent DB cluster.
 	DeletionProtection *bool `type:"boolean"`
 
 	// Specify the Active Directory Domain to create the instance in.
@@ -8265,8 +8452,8 @@ type DBCluster struct {
 	// cluster is accessed.
 	DbClusterResourceId *string `type:"string"`
 
-	// Indicates if the DB cluster has deletion protection enabled. The database
-	// can't be deleted when deletion protection is enabled.
+	// Indicates whether or not the DB cluster has deletion protection enabled.
+	// The database can't be deleted when deletion protection is enabled.
 	DeletionProtection *bool `type:"boolean"`
 
 	// Specifies the earliest time to which a database can be restored with point-in-time
@@ -8796,7 +8983,20 @@ type DBClusterSnapshot struct {
 	// The Amazon Resource Name (ARN) for the DB cluster snapshot.
 	DBClusterSnapshotArn *string `type:"string"`
 
-	// Specifies the identifier for the DB cluster snapshot.
+	// Specifies the identifier for a DB cluster snapshot. Must match the identifier
+	// of an existing snapshot.
+	//
+	// After you restore a DB cluster using a DBClusterSnapshotIdentifier, you must
+	// specify the same DBClusterSnapshotIdentifier for any future updates to the
+	// DB cluster. When you specify this property for an update, the DB cluster
+	// is not restored from the snapshot again, and the data in the database is
+	// not changed.
+	//
+	// However, if you don't specify the DBClusterSnapshotIdentifier, an empty DB
+	// cluster is created, and the original DB cluster is deleted. If you specify
+	// a property that is different from the previous snapshot restore property,
+	// the DB cluster is restored from the snapshot specified by the DBClusterSnapshotIdentifier,
+	// and the original DB cluster is deleted.
 	DBClusterSnapshotIdentifier *string `type:"string"`
 
 	// Specifies the name of the database engine.
@@ -9259,8 +9459,9 @@ type DBInstance struct {
 	// instance is accessed.
 	DbiResourceId *string `type:"string"`
 
-	// Indicates if the DB instance has deletion protection enabled. The database
-	// can't be deleted when deletion protection is enabled.
+	// Indicates whether or not the DB instance has deletion protection enabled.
+	// The instance can't be deleted when deletion protection is enabled. See Deleting
+	// a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
 	DeletionProtection *bool `type:"boolean"`
 
 	// Not supported
@@ -11027,6 +11228,12 @@ type DescribeDBClustersInput struct {
 	//    * db-cluster-id - Accepts DB cluster identifiers and DB cluster Amazon
 	//    Resource Names (ARNs). The results list will only include information
 	//    about the DB clusters identified by these ARNs.
+	//
+	//    * engine - Accepts an engine name (such as neptune), and restricts the
+	//    results list to DB clusters created by that engine.
+	//
+	// For example, to invoke this API from the AWS CLI and filter so that only
+	// Neptune DB clusters are returned, you could use the following command:
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous DescribeDBClusters request.
@@ -11318,9 +11525,11 @@ type DescribeDBInstancesInput struct {
 	//    about the DB instances associated with the DB clusters identified by these
 	//    ARNs.
 	//
-	//    * db-instance-id - Accepts DB instance identifiers and DB instance Amazon
-	//    Resource Names (ARNs). The results list will only include information
-	//    about the DB instances identified by these ARNs.
+	//    * engine - Accepts an engine name (such as neptune), and restricts the
+	//    results list to DB instances created by that engine.
+	//
+	// For example, to invoke this API from the AWS CLI and filter so that only
+	// Neptune DB instances are returned, you could use the following command:
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous DescribeDBInstances request.
@@ -13865,7 +14074,7 @@ type ModifyDBInstanceInput struct {
 
 	// A value that indicates whether the DB instance has deletion protection enabled.
 	// The database can't be deleted when deletion protection is enabled. By default,
-	// deletion protection is disabled.
+	// deletion protection is disabled. See Deleting a DB Instance (https://docs.aws.amazon.com/neptune/latest/userguide/manage-console-instances-delete.html).
 	DeletionProtection *bool `type:"boolean"`
 
 	// Not supported.
@@ -16318,6 +16527,134 @@ func (s RestoreDBClusterToPointInTimeOutput) GoString() string {
 
 // SetDBCluster sets the DBCluster field's value.
 func (s *RestoreDBClusterToPointInTimeOutput) SetDBCluster(v *DBCluster) *RestoreDBClusterToPointInTimeOutput {
+	s.DBCluster = v
+	return s
+}
+
+type StartDBClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The DB cluster identifier of the Neptune DB cluster to be started. This parameter
+	// is stored as a lowercase string.
+	//
+	// DBClusterIdentifier is a required field
+	DBClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StartDBClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartDBClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartDBClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartDBClusterInput"}
+	if s.DBClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DBClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDBClusterIdentifier sets the DBClusterIdentifier field's value.
+func (s *StartDBClusterInput) SetDBClusterIdentifier(v string) *StartDBClusterInput {
+	s.DBClusterIdentifier = &v
+	return s
+}
+
+type StartDBClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains the details of an Amazon Neptune DB cluster.
+	//
+	// This data type is used as a response element in the DescribeDBClusters action.
+	DBCluster *DBCluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s StartDBClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartDBClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetDBCluster sets the DBCluster field's value.
+func (s *StartDBClusterOutput) SetDBCluster(v *DBCluster) *StartDBClusterOutput {
+	s.DBCluster = v
+	return s
+}
+
+type StopDBClusterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The DB cluster identifier of the Neptune DB cluster to be stopped. This parameter
+	// is stored as a lowercase string.
+	//
+	// DBClusterIdentifier is a required field
+	DBClusterIdentifier *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StopDBClusterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopDBClusterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopDBClusterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopDBClusterInput"}
+	if s.DBClusterIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("DBClusterIdentifier"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDBClusterIdentifier sets the DBClusterIdentifier field's value.
+func (s *StopDBClusterInput) SetDBClusterIdentifier(v string) *StopDBClusterInput {
+	s.DBClusterIdentifier = &v
+	return s
+}
+
+type StopDBClusterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains the details of an Amazon Neptune DB cluster.
+	//
+	// This data type is used as a response element in the DescribeDBClusters action.
+	DBCluster *DBCluster `type:"structure"`
+}
+
+// String returns the string representation
+func (s StopDBClusterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopDBClusterOutput) GoString() string {
+	return s.String()
+}
+
+// SetDBCluster sets the DBCluster field's value.
+func (s *StopDBClusterOutput) SetDBCluster(v *DBCluster) *StopDBClusterOutput {
 	s.DBCluster = v
 	return s
 }

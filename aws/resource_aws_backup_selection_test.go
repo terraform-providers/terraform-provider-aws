@@ -39,6 +39,8 @@ func TestAccAwsBackupSelection_basic(t *testing.T) {
 func TestAccAwsBackupSelection_disappears(t *testing.T) {
 	var selection1 backup.GetBackupSelectionOutput
 	rInt := acctest.RandInt()
+	resourceName := "aws_backup_selection.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
 		Providers:    testAccProviders,
@@ -47,8 +49,8 @@ func TestAccAwsBackupSelection_disappears(t *testing.T) {
 			{
 				Config: testAccBackupSelectionConfigBasic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsBackupSelectionExists("aws_backup_selection.test", &selection1),
-					testAccCheckAwsBackupSelectionDisappears(&selection1),
+					testAccCheckAwsBackupSelectionExists(resourceName, &selection1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsBackupSelection(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -190,21 +192,6 @@ func testAccCheckAwsBackupSelectionExists(name string, selection *backup.GetBack
 	}
 }
 
-func testAccCheckAwsBackupSelectionDisappears(selection *backup.GetBackupSelectionOutput) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).backupconn
-
-		input := &backup.DeleteBackupSelectionInput{
-			BackupPlanId: selection.BackupPlanId,
-			SelectionId:  selection.SelectionId,
-		}
-
-		_, err := conn.DeleteBackupSelection(input)
-
-		return err
-	}
-}
-
 func testAccCheckAwsBackupSelectionRecreated(t *testing.T,
 	before, after *backup.GetBackupSelectionOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -306,6 +293,11 @@ func testAccBackupSelectionConfigWithResources(rInt int) string {
 	return testAccBackupSelectionConfigBase(rInt) + fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_ebs_volume" "test" {

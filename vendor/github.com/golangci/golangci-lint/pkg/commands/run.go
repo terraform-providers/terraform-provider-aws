@@ -30,7 +30,7 @@ func getDefaultIssueExcludeHelp() string {
 	parts := []string{"Use or not use default excludes:"}
 	for _, ep := range config.DefaultExcludePatterns {
 		parts = append(parts,
-			fmt.Sprintf("  # %s: %s", ep.Linter, ep.Why),
+			fmt.Sprintf("  # %s %s: %s", ep.ID, ep.Linter, ep.Why),
 			fmt.Sprintf("  - %s", color.YellowString(ep.Pattern)),
 			"",
 		)
@@ -189,6 +189,8 @@ func initFlagSet(fs *pflag.FlagSet, cfg *config.Config, m *lintersdb.Manager, is
 	ic := &cfg.Issues
 	fs.StringSliceVarP(&ic.ExcludePatterns, "exclude", "e", nil, wh("Exclude issue by regexp"))
 	fs.BoolVar(&ic.UseDefaultExcludes, "exclude-use-default", true, getDefaultIssueExcludeHelp())
+	fs.BoolVar(&ic.ExcludeCaseSensitive, "exclude-case-sensitive", false, wh("If set to true exclude "+
+		"and exclude rules regular expressions are case sensitive"))
 
 	fs.IntVar(&ic.MaxIssuesPerLinter, "max-issues-per-linter", 50,
 		wh("Maximum issues count per one linter. Set to 0 to disable"))
@@ -396,6 +398,8 @@ func (e *Executor) createPrinter() (printers.Printer, error) {
 		p = printers.NewCodeClimate()
 	case config.OutFormatJunitXML:
 		p = printers.NewJunitXML()
+	case config.OutFormatGithubActions:
+		p = printers.NewGithub()
 	default:
 		return nil, fmt.Errorf("unknown output format %s", format)
 	}
@@ -437,7 +441,7 @@ func (e *Executor) executeRun(_ *cobra.Command, args []string) {
 // to be removed when deadline is finally decommissioned
 func (e *Executor) setTimeoutToDeadlineIfOnlyDeadlineIsSet() {
 	//lint:ignore SA1019 We want to promoted the deprecated config value when needed
-	deadlineValue := e.cfg.Run.Deadline // nolint: staticcheck
+	deadlineValue := e.cfg.Run.Deadline // nolint:staticcheck
 	if deadlineValue != 0 && e.cfg.Run.Timeout == defaultTimeout {
 		e.cfg.Run.Timeout = deadlineValue
 	}
@@ -446,7 +450,7 @@ func (e *Executor) setTimeoutToDeadlineIfOnlyDeadlineIsSet() {
 func (e *Executor) setupExitCode(ctx context.Context) {
 	if ctx.Err() != nil {
 		e.exitCode = exitcodes.Timeout
-		e.log.Errorf("Timeout exceeded: try increase it by passing --timeout option")
+		e.log.Errorf("Timeout exceeded: try increasing it by passing --timeout option")
 		return
 	}
 

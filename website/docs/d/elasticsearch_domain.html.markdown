@@ -41,6 +41,9 @@ The following attributes are exported:
   * `zone_awareness_enabled` - Indicates whether zone awareness is enabled.
   * `zone_awareness_config` - Configuration block containing zone awareness settings.
       * `availability_zone_count` - Number of availability zones used.
+  * `warm_enabled` - Indicates warm storage is enabled.
+  * `warm_count` - The number of warm nodes in the cluster.
+  * `warm_type` - The instance type for the Elasticsearch cluster's warm nodes.   
 * `cognito_options` - Domain Amazon Cognito Authentication options for Kibana.
   * `enabled` - Whether Amazon Cognito Authentication is enabled.
   * `user_pool_id` - The Cognito User pool used by the domain.

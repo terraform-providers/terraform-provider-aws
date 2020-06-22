@@ -94,17 +94,17 @@ func resourceAwsCloudFormationStackSetInstanceCreate(d *schema.ResourceData, met
 		input.ParameterOverrides = expandCloudFormationParameters(v.(map[string]interface{}))
 	}
 
-	log.Printf("[DEBUG] Creating CloudFormation Stack Set Instance: %s", input)
+	log.Printf("[DEBUG] Creating CloudFormation StackSet Instance: %s", input)
 	output, err := conn.CreateStackInstances(input)
 
 	if err != nil {
-		return fmt.Errorf("error creating CloudFormation Stack Set Instance: %s", err)
+		return fmt.Errorf("error creating CloudFormation StackSet Instance: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
 
 	if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate)); err != nil {
-		return fmt.Errorf("error waiting for CloudFormation Stack Set Instance (%s) creation: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) creation: %s", d.Id(), err)
 	}
 
 	return resourceAwsCloudFormationStackSetInstanceRead(d, meta)
@@ -125,27 +125,27 @@ func resourceAwsCloudFormationStackSetInstanceRead(d *schema.ResourceData, meta 
 		StackSetName:         aws.String(stackSetName),
 	}
 
-	log.Printf("[DEBUG] Reading CloudFormation Stack Set Instance: %s", d.Id())
+	log.Printf("[DEBUG] Reading CloudFormation StackSet Instance: %s", d.Id())
 	output, err := conn.DescribeStackInstance(input)
 
 	if isAWSErr(err, cloudformation.ErrCodeStackInstanceNotFoundException, "") {
-		log.Printf("[WARN] CloudFormation Stack Set Instance (%s) not found, removing from state", d.Id())
+		log.Printf("[WARN] CloudFormation StackSet Instance (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if isAWSErr(err, cloudformation.ErrCodeStackSetNotFoundException, "") {
-		log.Printf("[WARN] CloudFormation Stack Set (%s) not found, removing from state", d.Id())
+		log.Printf("[WARN] CloudFormation StackSet (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error reading CloudFormation Stack Set Instance (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading CloudFormation StackSet Instance (%s): %s", d.Id(), err)
 	}
 
 	if output == nil || output.StackInstance == nil {
-		return fmt.Errorf("error reading CloudFormation Stack Set Instance (%s): empty response", d.Id())
+		return fmt.Errorf("error reading CloudFormation StackSet Instance (%s): empty response", d.Id())
 	}
 
 	stackInstance := output.StackInstance
@@ -185,15 +185,15 @@ func resourceAwsCloudFormationStackSetInstanceUpdate(d *schema.ResourceData, met
 			input.ParameterOverrides = expandCloudFormationParameters(v.(map[string]interface{}))
 		}
 
-		log.Printf("[DEBUG] Updating CloudFormation Stack Set Instance: %s", input)
+		log.Printf("[DEBUG] Updating CloudFormation StackSet Instance: %s", input)
 		output, err := conn.UpdateStackInstances(input)
 
 		if err != nil {
-			return fmt.Errorf("error updating CloudFormation Stack Set Instance (%s): %s", d.Id(), err)
+			return fmt.Errorf("error updating CloudFormation StackSet Instance (%s): %s", d.Id(), err)
 		}
 
 		if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
-			return fmt.Errorf("error waiting for CloudFormation Stack Set Instance (%s) update: %s", d.Id(), err)
+			return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) update: %s", d.Id(), err)
 		}
 	}
 
@@ -217,7 +217,7 @@ func resourceAwsCloudFormationStackSetInstanceDelete(d *schema.ResourceData, met
 		StackSetName: aws.String(stackSetName),
 	}
 
-	log.Printf("[DEBUG] Deleting CloudFormation Stack Set Instance: %s", d.Id())
+	log.Printf("[DEBUG] Deleting CloudFormation StackSet Instance: %s", d.Id())
 	output, err := conn.DeleteStackInstances(input)
 
 	if isAWSErr(err, cloudformation.ErrCodeStackInstanceNotFoundException, "") {
@@ -229,11 +229,11 @@ func resourceAwsCloudFormationStackSetInstanceDelete(d *schema.ResourceData, met
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting CloudFormation Stack Set Instance (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting CloudFormation StackSet Instance (%s): %s", d.Id(), err)
 	}
 
 	if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return fmt.Errorf("error waiting for CloudFormation Stack Set Instance (%s) deletion: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) deletion: %s", d.Id(), err)
 	}
 
 	return nil
@@ -341,7 +341,7 @@ func waitForCloudFormationStackSetOperation(conn *cloudformation.CloudFormation,
 		Delay:   5 * time.Second,
 	}
 
-	log.Printf("[DEBUG] Waiting for CloudFormation Stack Set (%s) operation: %s", stackSetName, operationID)
+	log.Printf("[DEBUG] Waiting for CloudFormation StackSet (%s) operation: %s", stackSetName, operationID)
 	_, err := stateConf.WaitForState()
 
 	return err

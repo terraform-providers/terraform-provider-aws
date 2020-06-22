@@ -18,23 +18,24 @@ type SchemaValidateFuncInfo struct {
 }
 
 // NewSchemaValidateFuncInfo instantiates a SchemaValidateFuncInfo
-func NewSchemaValidateFuncInfo(funcDecl *ast.FuncDecl, funcLit *ast.FuncLit, info *types.Info) *SchemaValidateFuncInfo {
+func NewSchemaValidateFuncInfo(node ast.Node, info *types.Info) *SchemaValidateFuncInfo {
 	result := &SchemaValidateFuncInfo{
-		AstFuncDecl: funcDecl,
-		AstFuncLit:  funcLit,
-		TypesInfo:   info,
+		TypesInfo: info,
 	}
 
-	if funcDecl != nil {
-		result.Body = funcDecl.Body
-		result.Node = funcDecl
-		result.Pos = funcDecl.Pos()
-		result.Type = funcDecl.Type
-	} else if funcLit != nil {
-		result.Body = funcLit.Body
-		result.Node = funcLit
-		result.Pos = funcLit.Pos()
-		result.Type = funcLit.Type
+	switch node := node.(type) {
+	case *ast.FuncDecl:
+		result.AstFuncDecl = node
+		result.Body = node.Body
+		result.Node = node
+		result.Pos = node.Pos()
+		result.Type = node.Type
+	case *ast.FuncLit:
+		result.AstFuncLit = node
+		result.Body = node.Body
+		result.Node = node
+		result.Pos = node.Pos()
+		result.Type = node.Type
 	}
 
 	return result

@@ -7,16 +7,8 @@ jobs:
     - uses: actions/checkout@v1.0.0
     - name: Apply Issue Triage Label
       uses: actions/github@v1.0.0
-      if: github.event.action == 'opened'
+      if: github.event.action == 'opened' && !contains(fromJSON('["bflad", "breathingdust", "ewbankkit", "gdavison", "maryelizbeth"]'), github.actor)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         args: label needs-triage
-
-    - name: Add new issue into Triage Board
-      uses: alex-page/github-project-automation-plus@v0.1.1
-      if: github.event.action == 'opened'
-      with:
-        project: AWS Provider Triage
-        column:  Needs Triage
-        repo-token: ${{ secrets.GITHUB_ACTIONS_TOKEN }}

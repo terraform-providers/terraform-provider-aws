@@ -68,7 +68,7 @@ The following arguments are supported:
 * `maintenance_window_start_time` - (Optional) Maintenance window start time. See below.
 * `logs` - (Optional) Logging configuration of the broker. See below.
 * `user` - (Optional) The list of all ActiveMQ usernames for the specified broker. See below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Nested Fields
 
@@ -120,4 +120,8 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-MQ Broker is currently not importable.
+MQ Brokers can be imported using their broker id, e.g.
+
+```
+$ terraform import aws_mq_broker.example a1b2c3d4-d5f6-7777-8888-9999aaaabbbbcccc
+```

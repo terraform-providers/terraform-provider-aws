@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
@@ -21,13 +22,17 @@ be handled outside individual test configurations (e.g. environment variables).`
 const analyzerName = "AT004"
 
 var Analyzer = &analysis.Analyzer{
-	Name:     analyzerName,
-	Doc:      Doc,
-	Requires: []*analysis.Analyzer{inspect.Analyzer},
-	Run:      run,
+	Name: analyzerName,
+	Doc:  Doc,
+	Requires: []*analysis.Analyzer{
+		commentignore.Analyzer,
+		inspect.Analyzer,
+	},
+	Run: run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
 	nodeFilter := []ast.Node{
@@ -35,6 +40,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		x := n.(*ast.BasicLit)
+
+		if ignorer.ShouldIgnore(analyzerName, x) {
+			return
+		}
 
 		if x.Kind != token.STRING {
 			return

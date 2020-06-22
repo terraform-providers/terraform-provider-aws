@@ -64,7 +64,7 @@ func resourceAwsApiGatewayUsagePlanKey() *schema.Resource {
 }
 
 func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Creating API Gateway Usage Plan Key")
 
 	params := &apigateway.CreateUsagePlanKeyInput{
@@ -84,7 +84,7 @@ func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayUsagePlanKeyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway Usage Plan Key: %s", d.Id())
 
 	up, err := conn.GetUsagePlanKey(&apigateway.GetUsagePlanKeyInput{
@@ -108,7 +108,7 @@ func resourceAwsApiGatewayUsagePlanKeyRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayUsagePlanKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Deleting API Gateway Usage Plan Key: %s", d.Id())
 	_, err := conn.DeleteUsagePlanKey(&apigateway.DeleteUsagePlanKeyInput{

@@ -49,7 +49,7 @@ The following arguments are supported:
 * `kms_key_id` - The ARN for the KMS encryption key.
 * `source_snapshot_id` The ARN for the snapshot to be copied.
 * `source_region` The region of the source snapshot.
-* `tags` - A mapping of tags for the snapshot.
+* `tags` - A map of tags for the snapshot.
 
 ## Attributes Reference
 
@@ -64,4 +64,4 @@ The following attributes are exported:
 * `data_encryption_key_id` - The data encryption key identifier for the snapshot.
 * `source_snapshot_id` The ARN of the copied snapshot.
 * `source_region` The region of the source snapshot.
-* `tags` - A mapping of tags for the snapshot.
+* `tags` - A map of tags for the snapshot.

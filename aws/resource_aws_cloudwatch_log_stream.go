@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,6 +18,9 @@ func resourceAwsCloudWatchLogStream() *schema.Resource {
 		Create: resourceAwsCloudWatchLogStreamCreate,
 		Read:   resourceAwsCloudWatchLogStreamRead,
 		Delete: resourceAwsCloudWatchLogStreamDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsCloudWatchLogStreamImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -115,6 +119,21 @@ func resourceAwsCloudWatchLogStreamDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func resourceAwsCloudWatchLogStreamImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return []*schema.ResourceData{}, fmt.Errorf("Wrong format of resource: %s. Please follow 'log-group-name:log-stream-name'", d.Id())
+	}
+
+	logGroupName := parts[0]
+	logStreamName := parts[1]
+
+	d.SetId(logStreamName)
+	d.Set("log_group_name", logGroupName)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func lookupCloudWatchLogStream(conn *cloudwatchlogs.CloudWatchLogs,

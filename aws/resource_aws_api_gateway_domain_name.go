@@ -151,7 +151,7 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 }
 
 func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Creating API Gateway Domain Name")
 
 	params := &apigateway.CreateDomainNameInput{
@@ -209,7 +209,9 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	log.Printf("[DEBUG] Reading API Gateway Domain Name %s", d.Id())
 
 	domainName, err := conn.GetDomainName(&apigateway.GetDomainNameInput{
@@ -225,7 +227,7 @@ func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(domainName.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(domainName.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -319,7 +321,7 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 }
 
 func resourceAwsApiGatewayDomainNameUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway Domain Name %s", d.Id())
 
 	if d.HasChange("tags") {
@@ -342,7 +344,7 @@ func resourceAwsApiGatewayDomainNameUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDomainNameDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Domain Name: %s", d.Id())
 
 	_, err := conn.DeleteDomainName(&apigateway.DeleteDomainNameInput{

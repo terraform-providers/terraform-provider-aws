@@ -65,6 +65,11 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 				Computed: true,
 			},
 
+			"load_balancing_algorithm_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"target_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -73,7 +78,6 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 			"stickiness": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -95,7 +99,6 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {

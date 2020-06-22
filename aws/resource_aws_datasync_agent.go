@@ -169,6 +169,7 @@ func resourceAwsDataSyncAgentCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsDataSyncAgentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeAgentInput{
 		AgentArn: aws.String(d.Id()),
@@ -196,7 +197,7 @@ func resourceAwsDataSyncAgentRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for DataSync Agent (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

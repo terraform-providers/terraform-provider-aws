@@ -211,6 +211,7 @@ func resourceAwsElasticBeanstalkApplicationAppversionLifecycleUpdate(beanstalkCo
 
 func resourceAwsElasticBeanstalkApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticbeanstalkconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var app *elasticbeanstalk.ApplicationDescription
 	err := resource.Retry(30*time.Second, func() *resource.RetryError {
@@ -256,7 +257,7 @@ func resourceAwsElasticBeanstalkApplicationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error listing tags for Elastic Beanstalk Application (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreElasticbeanstalk().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreElasticbeanstalk().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

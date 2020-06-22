@@ -225,6 +225,7 @@ func resourceAwsPinpointAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).pinpointconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading Pinpoint App Attributes for %s", d.Id())
 
@@ -275,7 +276,7 @@ func resourceAwsPinpointAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for PinPoint Application (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

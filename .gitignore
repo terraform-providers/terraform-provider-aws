@@ -25,7 +25,7 @@ website/node_modules
 *.test
 *.iml
 log.txt
-
+markdown-link-check*.txt
 website/vendor
 
 # Test exclusions

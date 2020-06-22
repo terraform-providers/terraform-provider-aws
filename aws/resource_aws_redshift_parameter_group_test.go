@@ -43,9 +43,10 @@ func TestAccAWSRedshiftParameterGroup_withParameters(t *testing.T) {
 	resourceName := "aws_redshift_parameter_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSRedshiftParameterGroupDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSRedshiftParameterGroupDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSRedshiftParameterGroupConfig(rInt),
@@ -157,46 +158,6 @@ func TestAccAWSRedshiftParameterGroup_withTags(t *testing.T) {
 			},
 		},
 	})
-}
-
-func TestResourceAWSRedshiftParameterGroupNameValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "tEsting123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123!",
-			ErrCount: 1,
-		},
-		{
-			Value:    "1testing123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing--123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123-",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandStringFromCharSet(256, acctest.CharSetAlpha),
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftParamGroupName(tc.Value, "aws_redshift_parameter_group_name")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Parameter Group Name to trigger a validation error")
-		}
-	}
 }
 
 func testAccCheckAWSRedshiftParameterGroupDestroy(s *terraform.State) error {

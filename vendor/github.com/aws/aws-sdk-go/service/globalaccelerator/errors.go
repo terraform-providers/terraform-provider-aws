@@ -42,6 +42,12 @@ const (
 	// it.
 	ErrCodeAssociatedListenerFoundException = "AssociatedListenerFoundException"
 
+	// ErrCodeByoipCidrNotFoundException for service response error code
+	// "ByoipCidrNotFoundException".
+	//
+	// The CIDR that you specified was not found or is incorrect.
+	ErrCodeByoipCidrNotFoundException = "ByoipCidrNotFoundException"
+
 	// ErrCodeEndpointGroupAlreadyExistsException for service response error code
 	// "EndpointGroupAlreadyExistsException".
 	//
@@ -53,6 +59,13 @@ const (
 	//
 	// The endpoint group that you specified doesn't exist.
 	ErrCodeEndpointGroupNotFoundException = "EndpointGroupNotFoundException"
+
+	// ErrCodeIncorrectCidrStateException for service response error code
+	// "IncorrectCidrStateException".
+	//
+	// The CIDR that you specified is not valid for this action. For example, the
+	// state of the CIDR might be incorrect for this action.
+	ErrCodeIncorrectCidrStateException = "IncorrectCidrStateException"
 
 	// ErrCodeInternalServiceErrorException for service response error code
 	// "InternalServiceErrorException".
@@ -99,8 +112,10 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"AccessDeniedException":                 newErrorAccessDeniedException,
 	"AssociatedEndpointGroupFoundException": newErrorAssociatedEndpointGroupFoundException,
 	"AssociatedListenerFoundException":      newErrorAssociatedListenerFoundException,
+	"ByoipCidrNotFoundException":            newErrorByoipCidrNotFoundException,
 	"EndpointGroupAlreadyExistsException":   newErrorEndpointGroupAlreadyExistsException,
 	"EndpointGroupNotFoundException":        newErrorEndpointGroupNotFoundException,
+	"IncorrectCidrStateException":           newErrorIncorrectCidrStateException,
 	"InternalServiceErrorException":         newErrorInternalServiceErrorException,
 	"InvalidArgumentException":              newErrorInvalidArgumentException,
 	"InvalidNextTokenException":             newErrorInvalidNextTokenException,

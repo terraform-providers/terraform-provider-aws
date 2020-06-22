@@ -10,8 +10,6 @@ description: |-
 
 Provides an ECS cluster capacity provider. More information can be found on the [ECS Developer Guide](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-capacity-providers.html).
 
-~> **NOTE:** The AWS API does not currently support deleting ECS cluster capacity providers. Removing this Terraform resource will only remove the Terraform state for it.
-
 ## Example Usage
 
 ```hcl
@@ -38,7 +36,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the capacity provider.
 * `auto_scaling_group_provider` - (Required) Nested argument defining the provider for the ECS auto scaling group. Defined below.
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 
 ## auto_scaling_group_provider
 

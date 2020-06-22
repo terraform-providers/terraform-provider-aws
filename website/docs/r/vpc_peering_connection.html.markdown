@@ -112,12 +112,12 @@ The following arguments are supported:
 * `peer_region` - (Optional) The region of the accepter VPC of the [VPC Peering Connection]. `auto_accept` must be `false`,
 and use the `aws_vpc_peering_connection_accepter` to manage the accepter side.
 * `accepter` (Optional) - An optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that accepts
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that accepts
 the peering connection (a maximum of one).
 * `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that requests
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
 the peering connection (a maximum of one).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 #### Accepter and Requester Arguments
 

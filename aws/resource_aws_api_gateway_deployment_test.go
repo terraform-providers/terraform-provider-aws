@@ -66,8 +66,8 @@ func TestAccAWSAPIGatewayDeployment_disappears_RestApi(t *testing.T) {
 	})
 }
 
-func TestAccAWSAPIGatewayDeployment_createBeforeDestoryUpdate(t *testing.T) {
-	var deployment apigateway.Deployment
+func TestAccAWSAPIGatewayDeployment_Triggers(t *testing.T) {
+	var deployment1, deployment2, deployment3, deployment4 apigateway.Deployment
 	var stage apigateway.Stage
 	resourceName := "aws_api_gateway_deployment.test"
 
@@ -77,18 +77,42 @@ func TestAccAWSAPIGatewayDeployment_createBeforeDestoryUpdate(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayDeploymentConfigCreateBeforeDestroy("description1", "https://example.com"),
+				Config: testAccAWSAPIGatewayDeploymentConfigTriggers("description1", "https://example.com"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment),
+					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment1),
+					testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName, &stage),
+					resource.TestCheckResourceAttr(resourceName, "description", "description1"),
+					resource.TestCheckResourceAttr(resourceName, "stage_description", "description1"),
+				),
+				// Due to how the Terraform state is handled for resources during creation,
+				// any SHA1 of whole resources will change after first apply, then stabilize.
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayDeploymentConfigTriggers("description1", "https://example.com"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment2),
+					testAccCheckAWSAPIGatewayDeploymentRecreated(&deployment1, &deployment2),
 					testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName, &stage),
 					resource.TestCheckResourceAttr(resourceName, "description", "description1"),
 					resource.TestCheckResourceAttr(resourceName, "stage_description", "description1"),
 				),
 			},
 			{
-				Config: testAccAWSAPIGatewayDeploymentConfigCreateBeforeDestroy("description2", "https://example.org"),
+				Config: testAccAWSAPIGatewayDeploymentConfigTriggers("description1", "https://example.com"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment),
+					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment3),
+					testAccCheckAWSAPIGatewayDeploymentNotRecreated(&deployment2, &deployment3),
+					testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName, &stage),
+					resource.TestCheckResourceAttr(resourceName, "description", "description1"),
+					resource.TestCheckResourceAttr(resourceName, "stage_description", "description1"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayDeploymentConfigTriggers("description2", "https://example.org"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment4),
+					testAccCheckAWSAPIGatewayDeploymentRecreated(&deployment3, &deployment4),
 					testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName, &stage),
 					resource.TestCheckResourceAttr(resourceName, "description", "description2"),
 					resource.TestCheckResourceAttr(resourceName, "stage_description", "description2"),
@@ -227,7 +251,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 			return fmt.Errorf("No API Gateway Deployment ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetDeploymentInput{
 			DeploymentId: aws.String(rs.Primary.ID),
@@ -250,7 +274,7 @@ func testAccCheckAWSAPIGatewayDeploymentExists(n string, res *apigateway.Deploym
 
 func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *apigateway.Stage) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -273,7 +297,7 @@ func testAccCheckAWSAPIGatewayDeploymentStageExists(resourceName string, res *ap
 }
 
 func testAccCheckAWSAPIGatewayDeploymentDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_deployment" {
@@ -303,6 +327,26 @@ func testAccCheckAWSAPIGatewayDeploymentDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccCheckAWSAPIGatewayDeploymentNotRecreated(i, j *apigateway.Deployment) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.TimeValue(i.CreatedDate) != aws.TimeValue(j.CreatedDate) {
+			return fmt.Errorf("API Gateway Deployment recreated")
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSAPIGatewayDeploymentRecreated(i, j *apigateway.Deployment) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.TimeValue(i.CreatedDate) == aws.TimeValue(j.CreatedDate) {
+			return fmt.Errorf("API Gateway Deployment not recreated")
+		}
+
+		return nil
+	}
 }
 
 func testAccAWSAPIGatewayDeploymentConfigBase(uri string) string {
@@ -350,21 +394,25 @@ resource "aws_api_gateway_integration_response" "test" {
 `, uri)
 }
 
-func testAccAWSAPIGatewayDeploymentConfigCreateBeforeDestroy(description string, url string) string {
+func testAccAWSAPIGatewayDeploymentConfigTriggers(description string, url string) string {
 	return testAccAWSAPIGatewayDeploymentConfigBase(url) + fmt.Sprintf(`
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
-
-  description       = %q
-  rest_api_id       = "${aws_api_gateway_rest_api.test.id}"
-  stage_description = %q
+  description       = %[1]q
+  rest_api_id       = aws_api_gateway_rest_api.test.id
+  stage_description = %[1]q
   stage_name        = "tf-acc-test"
+
+  triggers = {
+    redeployment = sha1(join(",", list(
+      jsonencode(aws_api_gateway_integration.test),
+    )))
+  }
 
   lifecycle {
     create_before_destroy = true
   }
 }
-`, description, description)
+`, description)
 }
 
 func testAccAWSAPIGatewayDeploymentConfigDescription(description string) string {

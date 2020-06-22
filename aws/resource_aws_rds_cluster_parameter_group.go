@@ -123,6 +123,7 @@ func resourceAwsRDSClusterParameterGroupCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := rds.DescribeDBClusterParameterGroupsInput{
 		DBClusterParameterGroupName: aws.String(d.Id()),
@@ -140,7 +141,7 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 	}
 
 	if len(describeResp.DBClusterParameterGroups) != 1 ||
-		*describeResp.DBClusterParameterGroups[0].DBClusterParameterGroupName != d.Id() {
+		aws.StringValue(describeResp.DBClusterParameterGroups[0].DBClusterParameterGroupName) != d.Id() {
 		return fmt.Errorf("Unable to find Cluster Parameter Group: %#v", describeResp.DBClusterParameterGroups)
 	}
 
@@ -172,7 +173,7 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Error retrieving tags for ARN: %s", arn)
 	}
 
-	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(resp.TagList).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RdsKeyValueTags(resp.TagList).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -181,8 +182,6 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 
 func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	rdsconn := meta.(*AWSClient).rdsconn
-
-	d.Partial(true)
 
 	if d.HasChange("parameter") {
 		o, n := d.GetChange("parameter")
@@ -197,11 +196,7 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 		ns := n.(*schema.Set)
 
 		// Expand the "parameter" set to aws-sdk-go compat []rds.Parameter
-		parameters, err := expandParameters(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
-
+		parameters := expandParameters(ns.Difference(os).List())
 		if len(parameters) > 0 {
 			// We can only modify 20 parameters at a time, so walk them until
 			// we've got them all.
@@ -219,7 +214,7 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 				}
 
 				log.Printf("[DEBUG] Modify DB Cluster Parameter Group: %s", modifyOpts)
-				_, err = rdsconn.ModifyDBClusterParameterGroup(&modifyOpts)
+				_, err := rdsconn.ModifyDBClusterParameterGroup(&modifyOpts)
 				if err != nil {
 					return fmt.Errorf("error modifying DB Cluster Parameter Group: %s", err)
 				}
@@ -227,10 +222,7 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 		}
 
 		// Reset parameters that have been removed
-		parameters, err = expandParameters(os.Difference(ns).List())
-		if err != nil {
-			return err
-		}
+		parameters = expandParameters(os.Difference(ns).List())
 		if len(parameters) > 0 {
 			for parameters != nil {
 				parameterGroupName := d.Get("name").(string)
@@ -271,10 +263,7 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 		if err := keyvaluetags.RdsUpdateTags(rdsconn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS Cluster Parameter Group (%s) tags: %s", d.Id(), err)
 		}
-		d.SetPartial("tags")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsRDSClusterParameterGroupRead(d, meta)
 }

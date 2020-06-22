@@ -87,6 +87,7 @@ func resourceAwsRamResourceShareCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	request := &ram.GetResourceSharesInput{
 		ResourceShareArns: []*string{aws.String(d.Id())},
@@ -121,7 +122,7 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resourceShare.Name)
 	d.Set("allow_external_principals", resourceShare.AllowExternalPrincipals)
 
-	if err := d.Set("tags", keyvaluetags.RamKeyValueTags(resourceShare.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RamKeyValueTags(resourceShare.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -131,7 +132,7 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 func resourceAwsRamResourceShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
 
-	if d.HasChange("name") || d.HasChange("allow_external_principals") {
+	if d.HasChanges("name", "allow_external_principals") {
 		request := &ram.UpdateResourceShareInput{
 			ResourceShareArn:        aws.String(d.Id()),
 			Name:                    aws.String(d.Get("name").(string)),

@@ -21,6 +21,7 @@ func TestAccDataSourceAWSRDSCluster_basic(t *testing.T) {
 				Config: testAccDataSourceAwsRdsClusterConfigBasic(clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "backtrack_window", resourceName, "backtrack_window"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "cluster_identifier", resourceName, "cluster_identifier"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "database_name", resourceName, "database_name"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "db_cluster_parameter_group_name", resourceName, "db_cluster_parameter_group_name"),

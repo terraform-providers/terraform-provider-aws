@@ -13,23 +13,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func timePtr(t time.Time) *time.Time {
-	return &t
-}
-
 func TestResourceSortByExpirationDate(t *testing.T) {
 	certs := []*iam.ServerCertificateMetadata{
 		{
 			ServerCertificateName: aws.String("oldest"),
-			Expiration:            timePtr(time.Now()),
+			Expiration:            aws.Time(time.Now()),
 		},
 		{
 			ServerCertificateName: aws.String("latest"),
-			Expiration:            timePtr(time.Now().Add(3 * time.Hour)),
+			Expiration:            aws.Time(time.Now().Add(3 * time.Hour)),
 		},
 		{
 			ServerCertificateName: aws.String("in between"),
-			Expiration:            timePtr(time.Now().Add(2 * time.Hour)),
+			Expiration:            aws.Time(time.Now().Add(2 * time.Hour)),
 		},
 	}
 	sort.Sort(certificateByExpiration(certs))

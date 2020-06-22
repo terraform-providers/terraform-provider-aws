@@ -50,10 +50,12 @@ In addition to all arguments above, the following attributes are exported:
 * `availability_zone` - The AZ where the EBS volume exists.
 * `encrypted` - Whether the disk is encrypted.
 * `iops` - The amount of IOPS for the disk.
+* `multi_attach_enabled` - (Optional) Specifies whether Amazon EBS Multi-Attach is enabled.
 * `size` - The size of the drive in GiBs.
 * `snapshot_id` - The snapshot_id the EBS volume is based off.
+* `outpost_arn` - The Amazon Resource Name (ARN) of the Outpost.
 * `volume_type` - The type of EBS volume.
 * `kms_key_id` - The ARN for the KMS encryption key.
-* `tags` - A mapping of tags for the resource.
+* `tags` - A map of tags for the resource.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-volumes.html

@@ -34,8 +34,8 @@
 // WAF features and an overview of how to use AWS WAF, see the AWS WAF Developer
 // Guide (https://docs.aws.amazon.com/waf/latest/developerguide/).
 //
-// You can make API calls using the endpoints listed in AWS Service Endpoints
-// for AWS WAF (https://docs.aws.amazon.com/general/latest/gr/rande.html#waf_region).
+// You can make calls using the endpoints listed in AWS Service Endpoints for
+// AWS WAF (https://docs.aws.amazon.com/general/latest/gr/rande.html#waf_region).
 //
 //    * For regional applications, you can use any of the endpoints in the list.
 //    A regional application can be an Application Load Balancer (ALB) or an
@@ -56,9 +56,9 @@
 //    need to distinguish the scope, you specify a Scope parameter and set it
 //    to CLOUDFRONT or REGIONAL.
 //
-//    * You can define a Web ACL or rule group with a single API call, and update
+//    * You can define a Web ACL or rule group with a single call, and update
 //    it with a single call. You define all rule specifications in JSON format,
-//    and pass them to your rule group or Web ACL API calls.
+//    and pass them to your rule group or Web ACL calls.
 //
 //    * The limits AWS WAF places on the use of rules more closely reflects
 //    the cost of running each type of rule. Rule groups include capacity settings,

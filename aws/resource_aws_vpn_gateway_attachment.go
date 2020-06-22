@@ -106,7 +106,7 @@ func resourceAwsVpnGatewayAttachmentRead(d *schema.ResourceData, meta interface{
 		return nil
 	}
 
-	d.Set("vpc_id", *vga.VpcId)
+	d.Set("vpc_id", vga.VpcId)
 	return nil
 }
 

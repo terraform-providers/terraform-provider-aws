@@ -198,6 +198,40 @@ func TestAccAWSEksNodeGroup_DiskSize(t *testing.T) {
 	})
 }
 
+func TestAccAWSEksNodeGroup_ForceUpdateVersion(t *testing.T) {
+	var nodeGroup1 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigForceUpdateVersion(rName, "1.15"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "version", "1.15"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"force_update_version"},
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigForceUpdateVersion(rName, "1.16"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "version", "1.16"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEksNodeGroup_InstanceTypes(t *testing.T) {
 	var nodeGroup1 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -271,6 +305,7 @@ func TestAccAWSEksNodeGroup_Labels(t *testing.T) {
 func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 	var nodeGroup1 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
+	ssmParameterDataSourceName := "data.aws_ssm_parameter.test"
 	resourceName := "aws_eks_node_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -279,16 +314,23 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.14.7-20190927"),
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.15"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
-					resource.TestCheckResourceAttr(resourceName, "release_version", "1.14.7-20190927"),
+					resource.TestCheckResourceAttrPair(resourceName, "release_version", ssmParameterDataSourceName, "value"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.16"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttrPair(resourceName, "release_version", ssmParameterDataSourceName, "value"),
+				),
 			},
 		},
 	})
@@ -520,16 +562,23 @@ func TestAccAWSEksNodeGroup_Version(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEksNodeGroupConfigVersion(rName, "1.14"),
+				Config: testAccAWSEksNodeGroupConfigVersion(rName, "1.15"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
-					resource.TestCheckResourceAttr(resourceName, "version", "1.14"),
+					resource.TestCheckResourceAttr(resourceName, "version", "1.15"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigVersion(rName, "1.16"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "version", "1.16"),
+				),
 			},
 		},
 	})
@@ -637,10 +686,15 @@ func testAccCheckAWSEksNodeGroupDisappears(nodeGroup *eks.Nodegroup) resource.Te
 	}
 }
 
-func testAccAWSEksNodeGroupConfigBase(rName string) string {
+func testAccAWSEksNodeGroupConfigBaseIamAndVpc(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_partition" "current" {}
@@ -754,16 +808,23 @@ resource "aws_security_group" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
-  vpc_id            = aws_vpc.test.id
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
+  map_public_ip_on_launch = true
+  vpc_id                  = aws_vpc.test.id
 
   tags = {
     Name                          = "tf-acc-test-eks-node-group"
     "kubernetes.io/cluster/%[1]s" = "shared"
   }
 }
+`, rName)
+}
 
+func testAccAWSEksNodeGroupConfigBase(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBaseIamAndVpc(rName),
+		fmt.Sprintf(`
 resource "aws_eks_cluster" "test" {
   name     = %[1]q
   role_arn = aws_iam_role.cluster.arn
@@ -778,7 +839,29 @@ resource "aws_eks_cluster" "test" {
     "aws_main_route_table_association.test",
   ]
 }
-`, rName)
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigBaseVersion(rName string, version string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBaseIamAndVpc(rName),
+		fmt.Sprintf(`
+resource "aws_eks_cluster" "test" {
+  name     = %[1]q
+  role_arn = aws_iam_role.cluster.arn
+  version  = %[2]q
+
+  vpc_config {
+    subnet_ids = aws_subnet.test[*].id
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy",
+    "aws_iam_role_policy_attachment.cluster-AmazonEKSServicePolicy",
+    "aws_main_route_table_association.test",
+  ]
+}
+`, rName, version))
 }
 
 func testAccAWSEksNodeGroupConfigNodeGroupName(rName string) string {
@@ -850,6 +933,31 @@ resource "aws_eks_node_group" "test" {
   ]
 }
 `, rName, diskSize)
+}
+
+func testAccAWSEksNodeGroupConfigForceUpdateVersion(rName, version string) string {
+	return testAccAWSEksNodeGroupConfigBaseVersion(rName, version) + fmt.Sprintf(`
+resource "aws_eks_node_group" "test" {
+  cluster_name         = aws_eks_cluster.test.name
+  force_update_version = true
+  node_group_name      = %[1]q
+  node_role_arn        = aws_iam_role.node.arn
+  subnet_ids           = aws_subnet.test[*].id
+  version              = aws_eks_cluster.test.version
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName)
 }
 
 func testAccAWSEksNodeGroupConfigInstanceTypes1(rName, instanceType1 string) string {
@@ -931,14 +1039,19 @@ resource "aws_eks_node_group" "test" {
 `, rName, labelKey1, labelValue1, labelKey2, labelValue2)
 }
 
-func testAccAWSEksNodeGroupConfigReleaseVersion(rName, releaseVersion string) string {
-	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
+func testAccAWSEksNodeGroupConfigReleaseVersion(rName string, version string) string {
+	return testAccAWSEksNodeGroupConfigBaseVersion(rName, version) + fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/release_version"
+}
+
 resource "aws_eks_node_group" "test" {
   cluster_name    = aws_eks_cluster.test.name
   node_group_name = %[1]q
   node_role_arn   = aws_iam_role.node.arn
-  release_version = %[2]q
+  release_version = data.aws_ssm_parameter.test.value
   subnet_ids      = aws_subnet.test[*].id
+  version         = aws_eks_cluster.test.version
 
   scaling_config {
     desired_size = 1
@@ -952,7 +1065,7 @@ resource "aws_eks_node_group" "test" {
     "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
   ]
 }
-`, rName, releaseVersion)
+`, rName)
 }
 
 func testAccAWSEksNodeGroupConfigRemoteAccessEc2SshKey(rName string) string {
@@ -1099,13 +1212,13 @@ resource "aws_eks_node_group" "test" {
 }
 
 func testAccAWSEksNodeGroupConfigVersion(rName, version string) string {
-	return testAccAWSEksNodeGroupConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSEksNodeGroupConfigBaseVersion(rName, version) + fmt.Sprintf(`
 resource "aws_eks_node_group" "test" {
   cluster_name    = aws_eks_cluster.test.name
   node_group_name = %[1]q
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = aws_subnet.test[*].id
-  version         = %[2]q
+  version         = aws_eks_cluster.test.version
 
   scaling_config {
     desired_size = 1
@@ -1119,5 +1232,5 @@ resource "aws_eks_node_group" "test" {
     "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
   ]
 }
-`, rName, version)
+`, rName)
 }

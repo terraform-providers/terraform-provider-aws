@@ -24,26 +24,22 @@ func TestAccAWSDBSecurityGroup_basic(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSDBSecurityGroupDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSDBSecurityGroupDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDBSecurityGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDBSecurityGroupExists(resourceName, &v),
 					testAccCheckAWSDBSecurityGroupAttributes(&v),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:rds:[^:]+:\d{12}:secgrp:.+`)),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", rName),
-					resource.TestCheckResourceAttr(
-						resourceName, "description", "Managed by Terraform"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ingress.3363517775.cidr", "10.0.0.1/24"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ingress.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "tags.%", "1"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "rds", regexp.MustCompile(fmt.Sprintf("secgrp:%s$", rName))),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
+					resource.TestCheckResourceAttr(resourceName, "ingress.3363517775.cidr", "10.0.0.1/24"),
+					resource.TestCheckResourceAttr(resourceName, "ingress.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 			{

@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -71,19 +70,22 @@ func TestDecodeStorageGatewayUploadBufferID(t *testing.T) {
 func TestAccAWSStorageGatewayUploadBuffer_Basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_storagegateway_upload_buffer.test"
+	localDiskDataSourceName := "data.aws_storagegateway_local_disk.test"
+	gatewayResourceName := "aws_storagegateway_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// Storage Gateway API does not support removing upload buffers
-		CheckDestroy: nil,
+		// Storage Gateway API does not support removing upload buffers,
+		// but we want to ensure other resources are removed.
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSStorageGatewayUploadBufferConfig_Basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayUploadBufferExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "disk_id"),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "disk_id", localDiskDataSourceName, "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 				),
 			},
 			{
@@ -136,30 +138,30 @@ func testAccCheckAWSStorageGatewayUploadBufferExists(resourceName string) resour
 func testAccAWSStorageGatewayUploadBufferConfig_Basic(rName string) string {
 	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Stored(rName) + fmt.Sprintf(`
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = "10"
   type              = "gp2"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/xvdc"
   force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.test.id}"
+  instance_id  = aws_instance.test.id
+  volume_id    = aws_ebs_volume.test.id
 }
 
 data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_node   = aws_volume_attachment.test.device_name
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_upload_buffer" "test" {
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_id     = data.aws_storagegateway_local_disk.test.id
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 `, rName)
 }

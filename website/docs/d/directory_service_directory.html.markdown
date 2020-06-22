@@ -36,7 +36,7 @@ data "aws_directory_service_directory" "example" {
  * `access_url` - The access URL for the directory/connector, such as http://alias.awsapps.com.
  * `dns_ip_addresses` - A list of IP addresses of the DNS servers for the directory/connector.
  * `security_group_id` - The ID of the security group created by the directory/connector.
- * `tags` – A mapping of tags assigned to the directory/connector.
+ * `tags` – A map of tags assigned to the directory/connector.
  
  `vpc_settings` (for `SimpleAD` and `MicrosoftAD`) is also exported with the following attributes:
  
@@ -45,6 +45,7 @@ data "aws_directory_service_directory" "example" {
  
 `connect_settings` (for `ADConnector`) is also exported with the following attributes:
  
+ * `connect_ips` - The IP addresses of the AD Connector servers.
  * `customer_username` - The username corresponding to the password provided.
  * `customer_dns_ips` - The DNS IP addresses of the domain to connect to.
  * `subnet_ids` - The identifiers of the subnets for the connector servers (2 subnets in 2 different AZs).

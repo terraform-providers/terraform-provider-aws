@@ -147,7 +147,7 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 				ValidateFunc: validation.IntBetween(32, 65536),
 			},
 			"subnet_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
@@ -185,7 +185,7 @@ func resourceAwsFsxWindowsFileSystemCreate(d *schema.ResourceData, meta interfac
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		FileSystemType:     aws.String(fsx.FileSystemTypeWindows),
 		StorageCapacity:    aws.Int64(int64(d.Get("storage_capacity").(int))),
-		SubnetIds:          expandStringSet(d.Get("subnet_ids").(*schema.Set)),
+		SubnetIds:          expandStringList(d.Get("subnet_ids").([]interface{})),
 		WindowsConfiguration: &fsx.CreateFileSystemWindowsConfiguration{
 			AutomaticBackupRetentionDays: aws.Int64(int64(d.Get("automatic_backup_retention_days").(int))),
 			CopyTagsToBackups:            aws.Bool(d.Get("copy_tags_to_backups").(bool)),
@@ -287,6 +287,7 @@ func resourceAwsFsxWindowsFileSystemUpdate(d *schema.ResourceData, meta interfac
 
 func resourceAwsFsxWindowsFileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).fsxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	filesystem, err := describeFsxFileSystem(conn, d.Id())
 
@@ -338,7 +339,7 @@ func resourceAwsFsxWindowsFileSystemRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error setting subnet_ids: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.FsxKeyValueTags(filesystem.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.FsxKeyValueTags(filesystem.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -410,7 +411,7 @@ func expandFsxSelfManagedActiveDirectoryConfigurationUpdate(l []interface{}) *fs
 
 	data := l[0].(map[string]interface{})
 	req := &fsx.SelfManagedActiveDirectoryConfigurationUpdates{
-		DnsIps:   expandStringList(data["dns_ips"].([]interface{})),
+		DnsIps:   expandStringSet(data["dns_ips"].(*schema.Set)),
 		Password: aws.String(data["password"].(string)),
 		UserName: aws.String(data["username"].(string)),
 	}

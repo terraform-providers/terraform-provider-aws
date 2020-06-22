@@ -34,7 +34,6 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 			"compatible_runtimes": {
 				Type:     schema.TypeSet,
 				Computed: true,
-				MaxItems: 5,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

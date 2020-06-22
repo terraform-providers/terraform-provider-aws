@@ -60,7 +60,7 @@ The following arguments are supported:
   Syntax: "ddd:hh24:mi-ddd:hh24:mi". Eg: "Mon:00:00-Mon:03:00".
 * `promotion_tier` - (Optional) Default 0. Failover Priority setting on instance level. The reader who has lower tier has higher priority to get promoter to writer.
 * `publicly_accessible` - (Optional) Bool to control if instance is publicly accessible. Default is `false`.
-* `tags` - (Optional) A mapping of tags to assign to the instance.
+* `tags` - (Optional) A map of tags to assign to the instance.
 
 ## Attributes Reference
 

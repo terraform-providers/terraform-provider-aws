@@ -61,8 +61,6 @@ func (c *CloudWatchEvents) ActivateEventSourceRequest(input *ActivateEventSource
 // Activates a partner event source that has been deactivated. Once activated,
 // your matching event bus will start receiving events from the event source.
 //
-// This operation is performed by AWS customers, not by SaaS partners.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -72,10 +70,13 @@ func (c *CloudWatchEvents) ActivateEventSourceRequest(input *ActivateEventSource
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
+//
+//   * ConcurrentModificationException
+//   There is concurrent modification on a rule or target.
 //
 //   * InvalidStateException
-//   The specified state isn't a valid state for an event source.
+//   The specified state is not a valid state for an event source.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -147,11 +148,9 @@ func (c *CloudWatchEvents) CreateEventBusRequest(input *CreateEventBusInput) (re
 // CreateEventBus API operation for Amazon CloudWatch Events.
 //
 // Creates a new event bus within your account. This can be a custom event bus
-// which you can use to receive events from your own custom applications and
-// services, or it can be a partner event bus which can be matched to a partner
-// event source.
-//
-// This operation is used by AWS customers, not by SaaS partners.
+// which you can use to receive events from your custom applications and services,
+// or it can be a partner event bus which can be matched to a partner event
+// source.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -162,22 +161,22 @@ func (c *CloudWatchEvents) CreateEventBusRequest(input *CreateEventBusInput) (re
 //
 // Returned Error Types:
 //   * ResourceAlreadyExistsException
-//   The resource that you're trying to create already exists.
+//   The resource you are trying to create already exists.
 //
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InvalidStateException
-//   The specified state isn't a valid state for an event source.
+//   The specified state is not a valid state for an event source.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * LimitExceededException
-//   You tried to create more resources than is allowed.
+//   You tried to create more rules or add more targets to a rule than is allowed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/CreateEventBus
 func (c *CloudWatchEvents) CreateEventBus(input *CreateEventBusInput) (*CreateEventBusOutput, error) {
@@ -245,16 +244,15 @@ func (c *CloudWatchEvents) CreatePartnerEventSourceRequest(input *CreatePartnerE
 
 // CreatePartnerEventSource API operation for Amazon CloudWatch Events.
 //
-// Called by an SaaS partner to create a partner event source.
-//
-// This operation is not used by AWS customers.
+// Called by an SaaS partner to create a partner event source. This operation
+// is not used by AWS customers.
 //
 // Each partner event source can be used by one AWS account to create a matching
 // partner event bus in that AWS account. A SaaS partner must create one partner
 // event source for each AWS account that wants to receive those event types.
 //
-// A partner event source creates events based on resources in the SaaS partner's
-// service or application.
+// A partner event source creates events based on resources within the SaaS
+// partner's service or application.
 //
 // An AWS account that creates a partner event bus that matches the partner
 // event source can use that event bus to receive events from the partner, and
@@ -262,18 +260,15 @@ func (c *CloudWatchEvents) CreatePartnerEventSourceRequest(input *CreatePartnerE
 //
 // Partner event source names follow this format:
 //
-// aws.partner/partner_name/event_namespace/event_name
+// partner_name/event_namespace/event_name
 //
-//    * partner_name is determined during partner registration and identifies
-//    the partner to AWS customers.
-//
-//    * For event_namespace, we recommend that partners use a string that identifies
-//    the AWS customer within the partner's system. This should not be the customer's
-//    AWS account ID.
-//
-//    * event_name is determined by the partner, and should uniquely identify
-//    an event-generating resource within the partner system. This should help
-//    AWS customers decide whether to create an event bus to receive these events.
+// partner_name is determined during partner registration and identifies the
+// partner to AWS customers. event_namespace is determined by the partner and
+// is a way for the partner to categorize their events. event_name is determined
+// by the partner, and should uniquely identify an event-generating resource
+// within the partner system. The combination of event_namespace and event_name
+// should help AWS customers decide whether to create an event bus to receive
+// these events.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -284,16 +279,16 @@ func (c *CloudWatchEvents) CreatePartnerEventSourceRequest(input *CreatePartnerE
 //
 // Returned Error Types:
 //   * ResourceAlreadyExistsException
-//   The resource that you're trying to create already exists.
+//   The resource you are trying to create already exists.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * LimitExceededException
-//   You tried to create more resources than is allowed.
+//   You tried to create more rules or add more targets to a rule than is allowed.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/CreatePartnerEventSource
 func (c *CloudWatchEvents) CreatePartnerEventSource(input *CreatePartnerEventSourceInput) (*CreatePartnerEventSourceOutput, error) {
@@ -362,11 +357,11 @@ func (c *CloudWatchEvents) DeactivateEventSourceRequest(input *DeactivateEventSo
 
 // DeactivateEventSource API operation for Amazon CloudWatch Events.
 //
-// An AWS customer uses this operation to temporarily stop receiving events
-// from the specified partner event source. The matching event bus isn't deleted.
+// You can use this operation to temporarily stop receiving events from the
+// specified partner event source. The matching event bus is not deleted.
 //
 // When you deactivate a partner event source, the source goes into PENDING
-// state. If it remains in PENDING state for more than two weeks, it's deleted.
+// state. If it remains in PENDING state for more than two weeks, it is deleted.
 //
 // To activate a deactivated partner event source, use ActivateEventSource.
 //
@@ -379,10 +374,13 @@ func (c *CloudWatchEvents) DeactivateEventSourceRequest(input *DeactivateEventSo
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
+//
+//   * ConcurrentModificationException
+//   There is concurrent modification on a rule or target.
 //
 //   * InvalidStateException
-//   The specified state isn't a valid state for an event source.
+//   The specified state is not a valid state for an event source.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -455,10 +453,8 @@ func (c *CloudWatchEvents) DeleteEventBusRequest(input *DeleteEventBusInput) (re
 // DeleteEventBus API operation for Amazon CloudWatch Events.
 //
 // Deletes the specified custom event bus or partner event bus. All rules associated
-// with this event bus are also deleted. You can't delete your account's default
+// with this event bus need to be deleted. You can't delete your account's default
 // event bus.
-//
-// This operation is performed by AWS customers, not by SaaS partners.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -470,6 +466,9 @@ func (c *CloudWatchEvents) DeleteEventBusRequest(input *DeleteEventBusInput) (re
 // Returned Error Types:
 //   * InternalException
 //   This exception occurs due to unexpected causes.
+//
+//   * ConcurrentModificationException
+//   There is concurrent modification on a rule or target.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/DeleteEventBus
 func (c *CloudWatchEvents) DeleteEventBus(input *DeleteEventBusInput) (*DeleteEventBusOutput, error) {
@@ -539,7 +538,7 @@ func (c *CloudWatchEvents) DeletePartnerEventSourceRequest(input *DeletePartnerE
 // DeletePartnerEventSource API operation for Amazon CloudWatch Events.
 //
 // This operation is used by SaaS partners to delete a partner event source.
-// AWS customers don't use this operation.
+// This operation is not used by AWS customers.
 //
 // When you delete an event source, the status of the corresponding partner
 // event bus in the AWS customer account becomes DELETED.
@@ -554,6 +553,9 @@ func (c *CloudWatchEvents) DeletePartnerEventSourceRequest(input *DeletePartnerE
 // Returned Error Types:
 //   * InternalException
 //   This exception occurs due to unexpected causes.
+//
+//   * ConcurrentModificationException
+//   There is concurrent modification on a rule or target.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/DeletePartnerEventSource
 func (c *CloudWatchEvents) DeletePartnerEventSource(input *DeletePartnerEventSourceInput) (*DeletePartnerEventSourceOutput, error) {
@@ -632,7 +634,7 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 // Managed rules are rules created and managed by another AWS service on your
 // behalf. These rules are created by those other AWS services to support functionality
 // in those services. You can delete these rules using the Force option, but
-// you should do so only if you're sure that the other service isn't still using
+// you should do so only if you are sure the other service is not still using
 // that rule.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -644,20 +646,21 @@ func (c *CloudWatchEvents) DeleteRuleRequest(input *DeleteRuleInput) (req *reque
 //
 // Returned Error Types:
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/DeleteRule
 func (c *CloudWatchEvents) DeleteRule(input *DeleteRuleInput) (*DeleteRuleOutput, error) {
@@ -744,7 +747,7 @@ func (c *CloudWatchEvents) DescribeEventBusRequest(input *DescribeEventBusInput)
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -818,8 +821,6 @@ func (c *CloudWatchEvents) DescribeEventSourceRequest(input *DescribeEventSource
 // This operation lists details about a partner event source that is shared
 // with your account.
 //
-// This operation is run by AWS customers, not by SaaS partners.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -829,7 +830,7 @@ func (c *CloudWatchEvents) DescribeEventSourceRequest(input *DescribeEventSource
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -901,10 +902,9 @@ func (c *CloudWatchEvents) DescribePartnerEventSourceRequest(input *DescribePart
 // DescribePartnerEventSource API operation for Amazon CloudWatch Events.
 //
 // An SaaS partner can use this operation to list details about a partner event
-// source that they have created.
-//
-// AWS customers do not use this operation. Instead, AWS customers can use DescribeEventSource
-// to see details about a partner event source that is shared with them.
+// source that they have created. AWS customers do not use this operation. Instead,
+// AWS customers can use DescribeEventSource to see details about a partner
+// event source that is shared with them.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -915,7 +915,7 @@ func (c *CloudWatchEvents) DescribePartnerEventSourceRequest(input *DescribePart
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -988,7 +988,7 @@ func (c *CloudWatchEvents) DescribeRuleRequest(input *DescribeRuleInput) (req *r
 //
 // Describes the specified rule.
 //
-// DescribeRule doesn't list the targets of a rule. To see the targets associated
+// DescribeRule does not list the targets of a rule. To see the targets associated
 // with a rule, use ListTargetsByRule.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1000,7 +1000,7 @@ func (c *CloudWatchEvents) DescribeRuleRequest(input *DescribeRuleInput) (req *r
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1072,8 +1072,8 @@ func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *req
 
 // DisableRule API operation for Amazon CloudWatch Events.
 //
-// Disables the specified rule. A disabled rule won't match any events and won't
-// self-trigger if it has a schedule expression.
+// Disables the specified rule. A disabled rule won't match any events, and
+// won't self-trigger if it has a schedule expression.
 //
 // When you disable a rule, incoming events might continue to match to the disabled
 // rule. Allow a short period of time for changes to take effect.
@@ -1087,17 +1087,18 @@ func (c *CloudWatchEvents) DisableRuleRequest(input *DisableRuleInput) (req *req
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1169,7 +1170,7 @@ func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *reque
 
 // EnableRule API operation for Amazon CloudWatch Events.
 //
-// Enables the specified rule. If the rule doesn't exist, the operation fails.
+// Enables the specified rule. If the rule does not exist, the operation fails.
 //
 // When you enable a rule, incoming events might not immediately start matching
 // to a newly enabled rule. Allow a short period of time for changes to take
@@ -1184,17 +1185,18 @@ func (c *CloudWatchEvents) EnableRuleRequest(input *EnableRuleInput) (req *reque
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1267,8 +1269,6 @@ func (c *CloudWatchEvents) ListEventBusesRequest(input *ListEventBusesInput) (re
 //
 // Lists all the event buses in your account, including the default event bus,
 // custom event buses, and partner event buses.
-//
-// This operation is run by AWS customers, not by SaaS partners.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1351,8 +1351,6 @@ func (c *CloudWatchEvents) ListEventSourcesRequest(input *ListEventSourcesInput)
 // with your AWS account. For more information about partner event sources,
 // see CreateEventBus.
 //
-// This operation is run by AWS customers, not by SaaS partners.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1431,9 +1429,8 @@ func (c *CloudWatchEvents) ListPartnerEventSourceAccountsRequest(input *ListPart
 // ListPartnerEventSourceAccounts API operation for Amazon CloudWatch Events.
 //
 // An SaaS partner can use this operation to display the AWS account ID that
-// a particular partner event source name is associated with.
-//
-// This operation is used by SaaS partners, not by AWS customers.
+// a particular partner event source name is associated with. This operation
+// is not used by AWS customers.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1444,7 +1441,7 @@ func (c *CloudWatchEvents) ListPartnerEventSourceAccountsRequest(input *ListPart
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1516,9 +1513,7 @@ func (c *CloudWatchEvents) ListPartnerEventSourcesRequest(input *ListPartnerEven
 // ListPartnerEventSources API operation for Amazon CloudWatch Events.
 //
 // An SaaS partner can use this operation to list all the partner event source
-// names that they have created.
-//
-// This operation is not used by AWS customers.
+// names that they have created. This operation is not used by AWS customers.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1597,8 +1592,8 @@ func (c *CloudWatchEvents) ListRuleNamesByTargetRequest(input *ListRuleNamesByTa
 
 // ListRuleNamesByTarget API operation for Amazon CloudWatch Events.
 //
-// Lists the rules for the specified target. You can see which rules can invoke
-// a specific target in your account.
+// Lists the rules for the specified target. You can see which of the rules
+// in Amazon EventBridge can invoke a specific target in your account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1612,7 +1607,7 @@ func (c *CloudWatchEvents) ListRuleNamesByTargetRequest(input *ListRuleNamesByTa
 //   This exception occurs due to unexpected causes.
 //
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/ListRuleNamesByTarget
 func (c *CloudWatchEvents) ListRuleNamesByTarget(input *ListRuleNamesByTargetInput) (*ListRuleNamesByTargetOutput, error) {
@@ -1680,10 +1675,10 @@ func (c *CloudWatchEvents) ListRulesRequest(input *ListRulesInput) (req *request
 
 // ListRules API operation for Amazon CloudWatch Events.
 //
-// Lists your EventBridge rules. You can either list all the rules or provide
-// a prefix to match to the rule names.
+// Lists your Amazon EventBridge rules. You can either list all the rules or
+// you can provide a prefix to match to the rule names.
 //
-// ListRules doesn't list the targets of a rule. To see the targets associated
+// ListRules does not list the targets of a rule. To see the targets associated
 // with a rule, use ListTargetsByRule.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1698,7 +1693,7 @@ func (c *CloudWatchEvents) ListRulesRequest(input *ListRulesInput) (req *request
 //   This exception occurs due to unexpected causes.
 //
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/ListRules
 func (c *CloudWatchEvents) ListRules(input *ListRulesInput) (*ListRulesOutput, error) {
@@ -1767,7 +1762,7 @@ func (c *CloudWatchEvents) ListTagsForResourceRequest(input *ListTagsForResource
 // ListTagsForResource API operation for Amazon CloudWatch Events.
 //
 // Displays the tags associated with an EventBridge resource. In EventBridge,
-// rules can be tagged.
+// rules and event buses can be tagged.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1778,7 +1773,7 @@ func (c *CloudWatchEvents) ListTagsForResourceRequest(input *ListTagsForResource
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1860,7 +1855,7 @@ func (c *CloudWatchEvents) ListTargetsByRuleRequest(input *ListTargetsByRuleInpu
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -1931,8 +1926,8 @@ func (c *CloudWatchEvents) PutEventsRequest(input *PutEventsInput) (req *request
 
 // PutEvents API operation for Amazon CloudWatch Events.
 //
-// Sends custom events to EventBridge so that they can be matched to rules.
-// These events can be from your custom applications and services.
+// Sends custom events to Amazon EventBridge so that they can be matched to
+// rules.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2012,10 +2007,7 @@ func (c *CloudWatchEvents) PutPartnerEventsRequest(input *PutPartnerEventsInput)
 // PutPartnerEvents API operation for Amazon CloudWatch Events.
 //
 // This is used by SaaS partners to write events to a customer's partner event
-// bus.
-//
-// AWS customers do not use this operation. Instead, AWS customers can use PutEvents
-// to write custom events from their own applications to an event bus.
+// bus. AWS customers do not use this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2096,13 +2088,13 @@ func (c *CloudWatchEvents) PutPermissionRequest(input *PutPermissionInput) (req 
 // PutPermission API operation for Amazon CloudWatch Events.
 //
 // Running PutPermission permits the specified AWS account or AWS organization
-// to put events to the specified event bus. Rules in your account are triggered
-// by these events arriving to an event bus in your account.
+// to put events to the specified event bus. CloudWatch Events rules in your
+// account are triggered by these events arriving to an event bus in your account.
 //
 // For another account to send events to your account, that external account
-// must have a rule with your account's event bus as a target.
+// must have an EventBridge rule with your account's event bus as a target.
 //
-// To enable multiple AWS accounts to put events to an event bus, run PutPermission
+// To enable multiple AWS accounts to put events to your event bus, run PutPermission
 // once for each of these accounts. Or, if all the accounts are members of the
 // same AWS organization, you can run PutPermission once specifying Principal
 // as "*" and specifying the AWS organization ID in Condition, to grant permissions
@@ -2114,7 +2106,7 @@ func (c *CloudWatchEvents) PutPermissionRequest(input *PutPermissionInput) (req 
 // and Receiving Events Between AWS Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
 // in the Amazon EventBridge User Guide.
 //
-// The permission policy on an event bus can't exceed 10 KB in size.
+// The permission policy on the default event bus cannot exceed 10 KB in size.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2125,7 +2117,7 @@ func (c *CloudWatchEvents) PutPermissionRequest(input *PutPermissionInput) (req 
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * PolicyLengthExceededException
 //   The event bus policy is too long. For more information, see the limits.
@@ -2134,7 +2126,7 @@ func (c *CloudWatchEvents) PutPermissionRequest(input *PutPermissionInput) (req 
 //   This exception occurs due to unexpected causes.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/PutPermission
 func (c *CloudWatchEvents) PutPermission(input *PutPermissionInput) (*PutPermissionOutput, error) {
@@ -2202,7 +2194,7 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 
 // PutRule API operation for Amazon CloudWatch Events.
 //
-// Creates or updates the specified rule. Rules are enabled by default or based
+// Creates or updates the specified rule. Rules are enabled by default, or based
 // on value of the state. You can disable a rule using DisableRule.
 //
 // A single rule watches for events from a single event bus. Events generated
@@ -2212,9 +2204,10 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 // their events go to your default event bus or a custom event bus that you
 // have created. For more information, see CreateEventBus.
 //
-// If you're updating an existing rule, the rule is replaced with what you specify
-// in this PutRule command. If you omit arguments in PutRule, the old values
-// for those arguments aren't kept. Instead, they're replaced with null values.
+// If you are updating an existing rule, the rule is replaced with what you
+// specify in this PutRule command. If you omit arguments in PutRule, the old
+// values for those arguments are not kept. Instead, they are replaced with
+// null values.
 //
 // When you create or update a rule, incoming events might not immediately start
 // matching to new or updated rules. Allow a short period of time for changes
@@ -2240,16 +2233,15 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 // Most services in AWS treat : or / as the same character in Amazon Resource
 // Names (ARNs). However, EventBridge uses an exact match in event patterns
 // and rules. Be sure to use the correct ARN characters when creating event
-// patterns so that they match the ARN syntax in the event that you want to
-// match.
+// patterns so that they match the ARN syntax in the event you want to match.
 //
-// In EventBridge, you could create rules that lead to infinite loops, where
-// a rule is fired repeatedly. For example, a rule might detect that ACLs have
-// changed on an S3 bucket, and trigger software to change them to the desired
-// state. If you don't write the rule carefully, the subsequent change to the
-// ACLs fires the rule again, creating an infinite loop.
+// In EventBridge, it is possible to create rules that lead to infinite loops,
+// where a rule is fired repeatedly. For example, a rule might detect that ACLs
+// have changed on an S3 bucket, and trigger software to change them to the
+// desired state. If the rule is not written carefully, the subsequent change
+// to the ACLs fires the rule again, creating an infinite loop.
 //
-// To prevent this, write the rules so that the triggered actions don't refire
+// To prevent this, write the rules so that the triggered actions do not re-fire
 // the same rule. For example, your rule could fire only if ACLs are found to
 // be in a bad state, instead of after any change.
 //
@@ -2266,26 +2258,27 @@ func (c *CloudWatchEvents) PutRuleRequest(input *PutRuleInput) (req *request.Req
 //
 // Returned Error Types:
 //   * InvalidEventPatternException
-//   The event pattern isn't valid.
+//   The event pattern is not valid.
 //
 //   * LimitExceededException
-//   You tried to create more resources than is allowed.
+//   You tried to create more rules or add more targets to a rule than is allowed.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/PutRule
 func (c *CloudWatchEvents) PutRule(input *PutRuleInput) (*PutRuleOutput, error) {
@@ -2354,11 +2347,11 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 // PutTargets API operation for Amazon CloudWatch Events.
 //
 // Adds the specified targets to the specified rule, or updates the targets
-// if they're already associated with the rule.
+// if they are already associated with the rule.
 //
 // Targets are the resources that are invoked when a rule is triggered.
 //
-// You can configure the following as targets in EventBridge:
+// You can configure the following as targets for Events:
 //
 //    * EC2 instances
 //
@@ -2390,7 +2383,7 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 //
 //    * The default event bus of another AWS account
 //
-// Creating rules with built-in targets is supported only on the AWS Management
+// Creating rules with built-in targets is supported only in the AWS Management
 // Console. The built-in targets are EC2 CreateSnapshot API call, EC2 RebootInstances
 // API call, EC2 StopInstances API call, and EC2 TerminateInstances API call.
 //
@@ -2400,28 +2393,31 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 // on multiple EC2 instances with one rule, you can use the RunCommandParameters
 // field.
 //
-// To be able to make API calls against the resources that you own, Amazon EventBridge
-// needs the appropriate permissions. For AWS Lambda and Amazon SNS resources,
+// To be able to make API calls against the resources that you own, Amazon CloudWatch
+// Events needs the appropriate permissions. For AWS Lambda and Amazon SNS resources,
 // EventBridge relies on resource-based policies. For EC2 instances, Kinesis
 // data streams, and AWS Step Functions state machines, EventBridge relies on
 // IAM roles that you specify in the RoleARN argument in PutTargets. For more
 // information, see Authentication and Access Control (https://docs.aws.amazon.com/eventbridge/latest/userguide/auth-and-access-control-eventbridge.html)
 // in the Amazon EventBridge User Guide.
 //
-// If another AWS account is in the same Region and has granted you permission
+// If another AWS account is in the same region and has granted you permission
 // (using PutPermission), you can send events to that account. Set that account's
 // event bus as a target of the rules in your account. To send the matched events
 // to the other account, specify that account's event bus as the Arn value when
 // you run PutTargets. If your account sends events to another account, your
 // account is charged for each sent event. Each event sent to another account
-// is charged as a custom event. The account receiving the event isn't charged.
-// For more information, see Amazon EventBridge Pricing (https://aws.amazon.com/eventbridge/pricing/).
+// is charged as a custom event. The account receiving the event is not charged.
+// For more information, see Amazon CloudWatch Pricing (https://aws.amazon.com/cloudwatch/pricing/).
 //
-// If you're setting an event bus in another account as the target and that
+// Input, InputPath, and InputTransformer are not available with PutTarget if
+// the target is an event bus of a different AWS account.
+//
+// If you are setting the event bus of another account as the target, and that
 // account granted permission to your account through an organization instead
-// of directly by the account ID, you must specify a RoleArn with proper permissions
-// in the Target structure. For more information, see Sending and Receiving
-// Events Between AWS Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
+// of directly by the account ID, then you must specify a RoleArn with proper
+// permissions in the Target structure. For more information, see Sending and
+// Receiving Events Between AWS Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
 // in the Amazon EventBridge User Guide.
 //
 // For more information about enabling cross-account events, see PutPermission.
@@ -2429,21 +2425,21 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 // Input, InputPath, and InputTransformer are mutually exclusive and optional
 // parameters of a target. When a rule is triggered due to a matched event:
 //
-//    * If none of the following arguments are specified for a target, the entire
-//    event is passed to the target in JSON format (unless the target is Amazon
-//    EC2 Run Command or Amazon ECS task, in which case nothing from the event
-//    is passed to the target).
+//    * If none of the following arguments are specified for a target, then
+//    the entire event is passed to the target in JSON format (unless the target
+//    is Amazon EC2 Run Command or Amazon ECS task, in which case nothing from
+//    the event is passed to the target).
 //
 //    * If Input is specified in the form of valid JSON, then the matched event
 //    is overridden with this constant.
 //
 //    * If InputPath is specified in the form of JSONPath (for example, $.detail),
-//    only the part of the event specified in the path is passed to the target
-//    (for example, only the detail part of the event is passed).
+//    then only the part of the event specified in the path is passed to the
+//    target (for example, only the detail part of the event is passed).
 //
-//    * If InputTransformer is specified, one or more specified JSONPaths are
-//    extracted from the event and used as values in a template that you specify
-//    as the input to the target.
+//    * If InputTransformer is specified, then one or more specified JSONPaths
+//    are extracted from the event and used as values in a template that you
+//    specify as the input to the target.
 //
 // When you specify InputPath or InputTransformer, you must use JSON dot notation,
 // not bracket notation.
@@ -2453,7 +2449,7 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 // of time for changes to take effect.
 //
 // This action can partially fail if too many requests are made at the same
-// time. If that happens, FailedEntryCount is nonzero in the response, and each
+// time. If that happens, FailedEntryCount is non-zero in the response and each
 // entry in FailedEntries provides the ID of the failed target and the error
 // code.
 //
@@ -2466,20 +2462,21 @@ func (c *CloudWatchEvents) PutTargetsRequest(input *PutTargetsInput) (req *reque
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * LimitExceededException
-//   You tried to create more resources than is allowed.
+//   You tried to create more rules or add more targets to a rule than is allowed.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -2565,13 +2562,13 @@ func (c *CloudWatchEvents) RemovePermissionRequest(input *RemovePermissionInput)
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/RemovePermission
 func (c *CloudWatchEvents) RemovePermission(input *RemovePermissionInput) (*RemovePermissionOutput, error) {
@@ -2660,17 +2657,18 @@ func (c *CloudWatchEvents) RemoveTargetsRequest(input *RemoveTargetsInput) (req 
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -2745,17 +2743,17 @@ func (c *CloudWatchEvents) TagResourceRequest(input *TagResourceInput) (req *req
 // Assigns one or more tags (key-value pairs) to the specified EventBridge resource.
 // Tags can help you organize and categorize your resources. You can also use
 // them to scope user permissions by granting a user permission to access or
-// change only resources with certain tag values. In EventBridge, rules can
-// be tagged.
+// change only resources with certain tag values. In EventBridge, rules and
+// event buses can be tagged.
 //
 // Tags don't have any semantic meaning to AWS and are interpreted strictly
 // as strings of characters.
 //
-// You can use the TagResource action with a rule that already has tags. If
-// you specify a new tag key for the rule, this tag is appended to the list
-// of tags associated with the rule. If you specify a tag key that is already
-// associated with the rule, the new tag value that you specify replaces the
-// previous value for that tag.
+// You can use the TagResource action with a resource that already has tags.
+// If you specify a new tag key, this tag is appended to the list of tags associated
+// with the resource. If you specify a tag key that is already associated with
+// the resource, the new tag value that you specify replaces the previous value
+// for that tag.
 //
 // You can associate as many as 50 tags with a resource.
 //
@@ -2768,20 +2766,21 @@ func (c *CloudWatchEvents) TagResourceRequest(input *TagResourceInput) (req *req
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/TagResource
 func (c *CloudWatchEvents) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
@@ -2854,8 +2853,7 @@ func (c *CloudWatchEvents) TestEventPatternRequest(input *TestEventPatternInput)
 // Most services in AWS treat : or / as the same character in Amazon Resource
 // Names (ARNs). However, EventBridge uses an exact match in event patterns
 // and rules. Be sure to use the correct ARN characters when creating event
-// patterns so that they match the ARN syntax in the event that you want to
-// match.
+// patterns so that they match the ARN syntax in the event you want to match.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2866,7 +2864,7 @@ func (c *CloudWatchEvents) TestEventPatternRequest(input *TestEventPatternInput)
 //
 // Returned Error Types:
 //   * InvalidEventPatternException
-//   The event pattern isn't valid.
+//   The event pattern is not valid.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
@@ -2938,8 +2936,8 @@ func (c *CloudWatchEvents) UntagResourceRequest(input *UntagResourceInput) (req 
 
 // UntagResource API operation for Amazon CloudWatch Events.
 //
-// Removes one or more tags from the specified EventBridge resource. In EventBridge,
-// rules can be tagged.
+// Removes one or more tags from the specified EventBridge resource. In CloudWatch
+// Events, rules and event buses can be tagged.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2950,20 +2948,21 @@ func (c *CloudWatchEvents) UntagResourceRequest(input *UntagResourceInput) (req 
 //
 // Returned Error Types:
 //   * ResourceNotFoundException
-//   An entity that you specified doesn't exist.
+//   An entity that you specified does not exist.
 //
 //   * InternalException
 //   This exception occurs due to unexpected causes.
 //
 //   * ConcurrentModificationException
-//   There is concurrent modification on a resource.
+//   There is concurrent modification on a rule or target.
 //
 //   * ManagedRuleException
-//   An AWS service created this rule on behalf of your account. That service
-//   manages it. If you see this error in response to DeleteRule or RemoveTargets,
-//   you can use the Force parameter in those calls to delete the rule or remove
-//   targets from the rule. You can't modify these managed rules by using DisableRule,
-//   EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+//   This rule was created by an AWS service on behalf of your account. It is
+//   managed by that service. If you see this error in response to DeleteRule
+//   or RemoveTargets, you can use the Force parameter in those calls to delete
+//   the rule or remove targets from the rule. You cannot modify these managed
+//   rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+//   or UntagResource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/events-2015-10-07/UntagResource
 func (c *CloudWatchEvents) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
@@ -3042,7 +3041,7 @@ func (s ActivateEventSourceOutput) GoString() string {
 	return s.String()
 }
 
-// This structure specifies the VPC subnets and security groups for the task
+// This structure specifies the VPC subnets and security groups for the task,
 // and whether a public IP address is to be used. This structure is relevant
 // only for ECS tasks that use the awsvpc network mode.
 type AwsVpcConfiguration struct {
@@ -3055,7 +3054,7 @@ type AwsVpcConfiguration struct {
 
 	// Specifies the security groups associated with the task. These security groups
 	// must all be in the same VPC. You can specify as many as five security groups.
-	// If you don't specify a security group, the default security group for the
+	// If you do not specify a security group, the default security group for the
 	// VPC is used.
 	SecurityGroups []*string `type:"list"`
 
@@ -3157,8 +3156,8 @@ type BatchParameters struct {
 	// JobName is a required field
 	JobName *string `type:"string" required:"true"`
 
-	// The retry strategy to use for failed jobs if the target is an AWS Batch job.
-	// The retry strategy is the number of times to retry the failed job execution.
+	// The retry strategy to use for failed jobs, if the target is an AWS Batch
+	// job. The retry strategy is the number of times to retry the failed job execution.
 	// Valid values are 1–10. When you specify a retry strategy here, it overrides
 	// the retry strategy defined in the job definition.
 	RetryStrategy *BatchRetryStrategy `type:"structure"`
@@ -3214,9 +3213,9 @@ func (s *BatchParameters) SetRetryStrategy(v *BatchRetryStrategy) *BatchParamete
 	return s
 }
 
-// The retry strategy to use for failed jobs if the target is an AWS Batch job.
-// If you specify a retry strategy here, it overrides the retry strategy defined
-// in the job definition.
+// The retry strategy to use for failed jobs, if the target is an AWS Batch
+// job. If you specify a retry strategy here, it overrides the retry strategy
+// defined in the job definition.
 type BatchRetryStrategy struct {
 	_ struct{} `type:"structure"`
 
@@ -3241,10 +3240,10 @@ func (s *BatchRetryStrategy) SetAttempts(v int64) *BatchRetryStrategy {
 	return s
 }
 
-// There is concurrent modification on a resource.
+// There is concurrent modification on a rule or target.
 type ConcurrentModificationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -3261,17 +3260,17 @@ func (s ConcurrentModificationException) GoString() string {
 
 func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
 	return &ConcurrentModificationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConcurrentModificationException) Code() string {
+func (s *ConcurrentModificationException) Code() string {
 	return "ConcurrentModificationException"
 }
 
 // Message returns the exception's message.
-func (s ConcurrentModificationException) Message() string {
+func (s *ConcurrentModificationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3279,45 +3278,46 @@ func (s ConcurrentModificationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConcurrentModificationException) OrigErr() error {
+func (s *ConcurrentModificationException) OrigErr() error {
 	return nil
 }
 
-func (s ConcurrentModificationException) Error() string {
+func (s *ConcurrentModificationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConcurrentModificationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConcurrentModificationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
-// A JSON string that you can use to limit the event bus permissions that you're
+// A JSON string which you can use to limit the event bus permissions you are
 // granting to only accounts that fulfill the condition. Currently, the only
 // supported condition is membership in a certain AWS organization. The string
 // must contain Type, Key, and Value fields. The Value field specifies the ID
-// of the AWS organization. The following is an example value for Condition:
+// of the AWS organization. Following is an example value for Condition:
 //
 // '{"Type" : "StringEquals", "Key": "aws:PrincipalOrgID", "Value": "o-1234567890"}'
 type Condition struct {
 	_ struct{} `type:"structure"`
 
-	// The key for the condition. Currently, the only supported key is aws:PrincipalOrgID.
+	// Specifies the key for the condition. Currently the only supported key is
+	// aws:PrincipalOrgID.
 	//
 	// Key is a required field
 	Key *string `type:"string" required:"true"`
 
-	// The type of condition. Currently, the only supported value is StringEquals.
+	// Specifies the type of condition. Currently the only supported value is StringEquals.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true"`
 
-	// The value for the key. Currently, this must be the ID of the organization.
+	// Specifies the value for the key. Currently, this must be the ID of the organization.
 	//
 	// Value is a required field
 	Value *string `type:"string" required:"true"`
@@ -3373,22 +3373,24 @@ func (s *Condition) SetValue(v string) *Condition {
 type CreateEventBusInput struct {
 	_ struct{} `type:"structure"`
 
-	// If you're creating a partner event bus, this specifies the partner event
+	// If you are creating a partner event bus, this specifies the partner event
 	// source that the new event bus will be matched with.
 	EventSourceName *string `min:"1" type:"string"`
 
 	// The name of the new event bus.
 	//
-	// The names of custom event buses can't contain the / character. You can't
-	// use the name default for a custom event bus because this name is already
-	// used for your account's default event bus.
+	// Event bus names cannot contain the / character. You can't use the name default
+	// for a custom event bus, as this name is already used for your account's default
+	// event bus.
 	//
 	// If this is a partner event bus, the name must exactly match the name of the
-	// partner event source that this event bus is matched to. This name will include
-	// the / character.
+	// partner event source that this event bus is matched to.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
+
+	// Tags to associate with the event bus.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -3413,6 +3415,16 @@ func (s *CreateEventBusInput) Validate() error {
 	if s.Name != nil && len(*s.Name) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3429,6 +3441,12 @@ func (s *CreateEventBusInput) SetEventSourceName(v string) *CreateEventBusInput 
 // SetName sets the Name field's value.
 func (s *CreateEventBusInput) SetName(v string) *CreateEventBusInput {
 	s.Name = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateEventBusInput) SetTags(v []*Tag) *CreateEventBusInput {
+	s.Tags = v
 	return s
 }
 
@@ -3458,8 +3476,8 @@ func (s *CreateEventBusOutput) SetEventBusArn(v string) *CreateEventBusOutput {
 type CreatePartnerEventSourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The AWS account ID of the customer who is permitted to create a matching
-	// partner event bus for this partner event source.
+	// The AWS account ID that is permitted to create a matching partner event bus
+	// for this partner event source.
 	//
 	// Account is a required field
 	Account *string `min:"12" type:"string" required:"true"`
@@ -3936,18 +3954,18 @@ type DescribeEventSourceOutput struct {
 	// The date and time that the event source was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The date and time that the event source will expire if you don't create a
-	// matching event bus.
+	// The date and time that the event source will expire if you do not create
+	// a matching event bus.
 	ExpirationTime *time.Time `type:"timestamp"`
 
 	// The name of the partner event source.
 	Name *string `type:"string"`
 
-	// The state of the event source. If it's ACTIVE, you have already created a
-	// matching event bus for this event source, and that event bus is active. If
-	// it's PENDING, either you haven't yet created a matching event bus, or that
-	// event bus is deactivated. If it's DELETED, you have created a matching event
-	// bus, but the event source has since been deleted.
+	// The state of the event source. If it is ACTIVE, you have already created
+	// a matching event bus for this event source, and that event bus is active.
+	// If it is PENDING, either you haven't yet created a matching event bus, or
+	// that event bus is deactivated. If it is DELETED, you have created a matching
+	// event bus, but the event source has since been deleted.
 	State *string `type:"string" enum:"EventSourceState"`
 }
 
@@ -4136,7 +4154,7 @@ type DescribeRuleOutput struct {
 	// The event bus associated with the rule.
 	EventBusName *string `min:"1" type:"string"`
 
-	// The event pattern. For more information, see Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
+	// The event pattern. For more information, see Events and Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
 	// in the Amazon EventBridge User Guide.
 	EventPattern *string `type:"string"`
 
@@ -4150,7 +4168,7 @@ type DescribeRuleOutput struct {
 	// The Amazon Resource Name (ARN) of the IAM role associated with the rule.
 	RoleArn *string `min:"1" type:"string"`
 
-	// The scheduling expression: for example, "cron(0 20 * * ? *)" or "rate(5 minutes)".
+	// The scheduling expression. For example, "cron(0 20 * * ? *)", "rate(5 minutes)".
 	ScheduleExpression *string `type:"string"`
 
 	// Specifies whether the rule is enabled or disabled.
@@ -4305,11 +4323,11 @@ type EcsParameters struct {
 	LaunchType *string `type:"string" enum:"LaunchType"`
 
 	// Use this structure if the ECS task uses the awsvpc network mode. This structure
-	// specifies the VPC subnets and security groups associated with the task and
+	// specifies the VPC subnets and security groups associated with the task, and
 	// whether a public IP address is to be used. This structure is required if
 	// LaunchType is FARGATE because the awsvpc mode is required for Fargate tasks.
 	//
-	// If you specify NetworkConfiguration when the target ECS task doesn't use
+	// If you specify NetworkConfiguration when the target ECS task does not use
 	// the awsvpc network mode, the task fails.
 	NetworkConfiguration *NetworkConfiguration `type:"structure"`
 
@@ -4529,21 +4547,21 @@ type EventSource struct {
 	// The name of the partner that created the event source.
 	CreatedBy *string `type:"string"`
 
-	// The date and time when the event source was created.
+	// The date and time the event source was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The date and time when the event source will expire if the AWS account doesn't
+	// The date and time that the event source will expire, if the AWS account doesn't
 	// create a matching event bus for it.
 	ExpirationTime *time.Time `type:"timestamp"`
 
 	// The name of the event source.
 	Name *string `type:"string"`
 
-	// The state of the event source. If it's ACTIVE, you have already created a
-	// matching event bus for this event source, and that event bus is active. If
-	// it's PENDING, either you haven't yet created a matching event bus, or that
-	// event bus is deactivated. If it's DELETED, you have created a matching event
-	// bus, but the event source has since been deleted.
+	// The state of the event source. If it is ACTIVE, you have already created
+	// a matching event bus for this event source, and that event bus is active.
+	// If it is PENDING, either you haven't yet created a matching event bus, or
+	// that event bus is deactivated. If it is DELETED, you have created a matching
+	// event bus, but the event source has since been deleted.
 	State *string `type:"string" enum:"EventSourceState"`
 }
 
@@ -4599,27 +4617,27 @@ type InputTransformer struct {
 	_ struct{} `type:"structure"`
 
 	// Map of JSON paths to be extracted from the event. You can then insert these
-	// in the template in InputTemplate to produce the output to be sent to the
-	// target.
+	// in the template in InputTemplate to produce the output you want to be sent
+	// to the target.
 	//
 	// InputPathsMap is an array key-value pairs, where each value is a valid JSON
 	// path. You can have as many as 10 key-value pairs. You must use JSON dot notation,
 	// not bracket notation.
 	//
-	// The keys can't start with "AWS".
+	// The keys cannot start with "AWS."
 	InputPathsMap map[string]*string `type:"map"`
 
 	// Input template where you specify placeholders that will be filled with the
 	// values of the keys from InputPathsMap to customize the data sent to the target.
-	// Enclose each InputPathsMaps value in brackets: <value>. The InputTemplate
+	// Enclose each InputPathsMaps value in brackets: <value> The InputTemplate
 	// must be valid JSON.
 	//
 	// If InputTemplate is a JSON object (surrounded by curly braces), the following
 	// restrictions apply:
 	//
-	//    * The placeholder can't be used as an object key
+	//    * The placeholder cannot be used as an object key.
 	//
-	//    * Object values can't include quote marks
+	//    * Object values cannot include quote marks.
 	//
 	// The following example shows the syntax for using InputPathsMap and InputTemplate.
 	//
@@ -4690,8 +4708,8 @@ func (s *InputTransformer) SetInputTemplate(v string) *InputTransformer {
 
 // This exception occurs due to unexpected causes.
 type InternalException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4708,17 +4726,17 @@ func (s InternalException) GoString() string {
 
 func newErrorInternalException(v protocol.ResponseMetadata) error {
 	return &InternalException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalException) Code() string {
+func (s *InternalException) Code() string {
 	return "InternalException"
 }
 
 // Message returns the exception's message.
-func (s InternalException) Message() string {
+func (s *InternalException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4726,28 +4744,28 @@ func (s InternalException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalException) OrigErr() error {
+func (s *InternalException) OrigErr() error {
 	return nil
 }
 
-func (s InternalException) Error() string {
+func (s *InternalException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
-// The event pattern isn't valid.
+// The event pattern is not valid.
 type InvalidEventPatternException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4764,17 +4782,17 @@ func (s InvalidEventPatternException) GoString() string {
 
 func newErrorInvalidEventPatternException(v protocol.ResponseMetadata) error {
 	return &InvalidEventPatternException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidEventPatternException) Code() string {
+func (s *InvalidEventPatternException) Code() string {
 	return "InvalidEventPatternException"
 }
 
 // Message returns the exception's message.
-func (s InvalidEventPatternException) Message() string {
+func (s *InvalidEventPatternException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4782,28 +4800,28 @@ func (s InvalidEventPatternException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidEventPatternException) OrigErr() error {
+func (s *InvalidEventPatternException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidEventPatternException) Error() string {
+func (s *InvalidEventPatternException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidEventPatternException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidEventPatternException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidEventPatternException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidEventPatternException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
-// The specified state isn't a valid state for an event source.
+// The specified state is not a valid state for an event source.
 type InvalidStateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4820,17 +4838,17 @@ func (s InvalidStateException) GoString() string {
 
 func newErrorInvalidStateException(v protocol.ResponseMetadata) error {
 	return &InvalidStateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidStateException) Code() string {
+func (s *InvalidStateException) Code() string {
 	return "InvalidStateException"
 }
 
 // Message returns the exception's message.
-func (s InvalidStateException) Message() string {
+func (s *InvalidStateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4838,28 +4856,28 @@ func (s InvalidStateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidStateException) OrigErr() error {
+func (s *InvalidStateException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidStateException) Error() string {
+func (s *InvalidStateException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidStateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidStateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidStateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This object enables you to specify a JSON path to extract from the event
-// and use as the partition key for the Amazon Kinesis data stream so that you
-// can control the shard that the event goes to. If you don't include this parameter,
-// the default is to use the eventId as the partition key.
+// and use as the partition key for the Amazon Kinesis data stream, so that
+// you can control the shard to which the event goes. If you do not include
+// this parameter, the default is to use the eventId as the partition key.
 type KinesisParameters struct {
 	_ struct{} `type:"structure"`
 
@@ -4900,10 +4918,10 @@ func (s *KinesisParameters) SetPartitionKeyPath(v string) *KinesisParameters {
 	return s
 }
 
-// You tried to create more resources than is allowed.
+// You tried to create more rules or add more targets to a rule than is allowed.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4920,17 +4938,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4938,30 +4956,30 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListEventBusesInput struct {
 	_ struct{} `type:"structure"`
 
 	// Specifying this limits the number of results returned by this operation.
-	// The operation also returns a NextToken that you can use in a subsequent operation
-	// to retrieve the next set of results.
+	// The operation also returns a NextToken which you can use in a subsequent
+	// operation to retrieve the next set of results.
 	Limit *int64 `min:"1" type:"integer"`
 
 	// Specifying this limits the results to only those event buses with names that
@@ -5056,8 +5074,8 @@ type ListEventSourcesInput struct {
 	_ struct{} `type:"structure"`
 
 	// Specifying this limits the number of results returned by this operation.
-	// The operation also returns a NextToken that you can use in a subsequent operation
-	// to retrieve the next set of results.
+	// The operation also returns a NextToken which you can use in a subsequent
+	// operation to retrieve the next set of results.
 	Limit *int64 `min:"1" type:"integer"`
 
 	// Specifying this limits the results to only those partner event sources with
@@ -5157,8 +5175,8 @@ type ListPartnerEventSourceAccountsInput struct {
 	EventSourceName *string `min:"1" type:"string" required:"true"`
 
 	// Specifying this limits the number of results returned by this operation.
-	// The operation also returns a NextToken that you can use in a subsequent operation
-	// to retrieve the next set of results.
+	// The operation also returns a NextToken which you can use in a subsequent
+	// operation to retrieve the next set of results.
 	Limit *int64 `min:"1" type:"integer"`
 
 	// The token returned by a previous call to this operation. Specifying this
@@ -5253,7 +5271,7 @@ type ListPartnerEventSourcesInput struct {
 	_ struct{} `type:"structure"`
 
 	// pecifying this limits the number of results returned by this operation. The
-	// operation also returns a NextToken that you can use in a subsequent operation
+	// operation also returns a NextToken which you can use in a subsequent operation
 	// to retrieve the next set of results.
 	Limit *int64 `min:"1" type:"integer"`
 
@@ -5571,7 +5589,7 @@ func (s *ListRulesOutput) SetRules(v []*Rule) *ListRulesOutput {
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the rule for which you want to view tags.
+	// The ARN of the EventBridge resource for which you want to view tags.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
@@ -5612,7 +5630,7 @@ func (s *ListTagsForResourceInput) SetResourceARN(v string) *ListTagsForResource
 type ListTagsForResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The list of tag keys and values associated with the rule that you specified.
+	// The list of tag keys and values associated with the resource you specified
 	Tags []*Tag `type:"list"`
 }
 
@@ -5743,14 +5761,15 @@ func (s *ListTargetsByRuleOutput) SetTargets(v []*Target) *ListTargetsByRuleOutp
 	return s
 }
 
-// An AWS service created this rule on behalf of your account. That service
-// manages it. If you see this error in response to DeleteRule or RemoveTargets,
-// you can use the Force parameter in those calls to delete the rule or remove
-// targets from the rule. You can't modify these managed rules by using DisableRule,
-// EnableRule, PutTargets, PutRule, TagResource, or UntagResource.
+// This rule was created by an AWS service on behalf of your account. It is
+// managed by that service. If you see this error in response to DeleteRule
+// or RemoveTargets, you can use the Force parameter in those calls to delete
+// the rule or remove targets from the rule. You cannot modify these managed
+// rules by using DisableRule, EnableRule, PutTargets, PutRule, TagResource,
+// or UntagResource.
 type ManagedRuleException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5767,17 +5786,17 @@ func (s ManagedRuleException) GoString() string {
 
 func newErrorManagedRuleException(v protocol.ResponseMetadata) error {
 	return &ManagedRuleException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ManagedRuleException) Code() string {
+func (s *ManagedRuleException) Code() string {
 	return "ManagedRuleException"
 }
 
 // Message returns the exception's message.
-func (s ManagedRuleException) Message() string {
+func (s *ManagedRuleException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5785,22 +5804,22 @@ func (s ManagedRuleException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ManagedRuleException) OrigErr() error {
+func (s *ManagedRuleException) OrigErr() error {
 	return nil
 }
 
-func (s ManagedRuleException) Error() string {
+func (s *ManagedRuleException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ManagedRuleException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ManagedRuleException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ManagedRuleException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ManagedRuleException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This structure specifies the network configuration for an ECS task.
@@ -5808,7 +5827,7 @@ type NetworkConfiguration struct {
 	_ struct{} `type:"structure"`
 
 	// Use this structure to specify the VPC subnets and security groups for the
-	// task and whether a public IP address is to be used. This structure is relevant
+	// task, and whether a public IP address is to be used. This structure is relevant
 	// only for ECS tasks that use the awsvpc network mode.
 	AwsvpcConfiguration *AwsVpcConfiguration `locationName:"awsvpcConfiguration" type:"structure"`
 }
@@ -5886,18 +5905,18 @@ type PartnerEventSourceAccount struct {
 	// The AWS account ID that the partner event source was offered to.
 	Account *string `min:"12" type:"string"`
 
-	// The date and time when the event source was created.
+	// The date and time the event source was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The date and time when the event source will expire if the AWS account doesn't
+	// The date and time that the event source will expire, if the AWS account doesn't
 	// create a matching event bus for it.
 	ExpirationTime *time.Time `type:"timestamp"`
 
-	// The state of the event source. If it's ACTIVE, you have already created a
-	// matching event bus for this event source, and that event bus is active. If
-	// it's PENDING, either you haven't yet created a matching event bus, or that
-	// event bus is deactivated. If it's DELETED, you have created a matching event
-	// bus, but the event source has since been deleted.
+	// The state of the event source. If it is ACTIVE, you have already created
+	// a matching event bus for this event source, and that event bus is active.
+	// If it is PENDING, either you haven't yet created a matching event bus, or
+	// that event bus is deactivated. If it is DELETED, you have created a matching
+	// event bus, but the event source has since been deleted.
 	State *string `type:"string" enum:"EventSourceState"`
 }
 
@@ -5937,8 +5956,8 @@ func (s *PartnerEventSourceAccount) SetState(v string) *PartnerEventSourceAccoun
 
 // The event bus policy is too long. For more information, see the limits.
 type PolicyLengthExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5955,17 +5974,17 @@ func (s PolicyLengthExceededException) GoString() string {
 
 func newErrorPolicyLengthExceededException(v protocol.ResponseMetadata) error {
 	return &PolicyLengthExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s PolicyLengthExceededException) Code() string {
+func (s *PolicyLengthExceededException) Code() string {
 	return "PolicyLengthExceededException"
 }
 
 // Message returns the exception's message.
-func (s PolicyLengthExceededException) Message() string {
+func (s *PolicyLengthExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5973,22 +5992,22 @@ func (s PolicyLengthExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s PolicyLengthExceededException) OrigErr() error {
+func (s *PolicyLengthExceededException) OrigErr() error {
 	return nil
 }
 
-func (s PolicyLengthExceededException) Error() string {
+func (s *PolicyLengthExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s PolicyLengthExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *PolicyLengthExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s PolicyLengthExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *PolicyLengthExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type PutEventsInput struct {
@@ -6082,26 +6101,26 @@ func (s *PutEventsOutput) SetFailedEntryCount(v int64) *PutEventsOutput {
 type PutEventsRequestEntry struct {
 	_ struct{} `type:"structure"`
 
-	// A valid JSON string. There is no other schema imposed. The JSON string can
+	// A valid JSON string. There is no other schema imposed. The JSON string may
 	// contain fields and nested subobjects.
 	Detail *string `type:"string"`
 
-	// Free-form string used to decide which fields to expect in the event detail.
+	// Free-form string used to decide what fields to expect in the event detail.
 	DetailType *string `type:"string"`
 
 	// The event bus that will receive the event. Only the rules that are associated
-	// with this event bus can match the event.
+	// with this event bus will be able to match the event.
 	EventBusName *string `min:"1" type:"string"`
 
-	// AWS resources, identified by Amazon Resource Name (ARN), that the event primarily
-	// concerns. Any number, including zero, can be present.
+	// AWS resources, identified by Amazon Resource Name (ARN), which the event
+	// primarily concerns. Any number, including zero, may be present.
 	Resources []*string `type:"list"`
 
-	// The source of the event. This field is required.
+	// The source of the event.
 	Source *string `type:"string"`
 
-	// The timestamp of the event, per RFC3339 (https://www.rfc-editor.org/rfc/rfc3339.txt).
-	// If no timestamp is provided, the timestamp of the PutEvents call is used.
+	// The time stamp of the event, per RFC3339 (https://www.rfc-editor.org/rfc/rfc3339.txt).
+	// If no time stamp is provided, the time stamp of the PutEvents call is used.
 	Time *time.Time `type:"timestamp"`
 }
 
@@ -6234,6 +6253,16 @@ func (s *PutPartnerEventsInput) Validate() error {
 	if s.Entries != nil && len(s.Entries) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Entries", 1))
 	}
+	if s.Entries != nil {
+		for i, v := range s.Entries {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Entries", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -6254,7 +6283,7 @@ type PutPartnerEventsOutput struct {
 	// the partner event bus.
 	Entries []*PutPartnerEventsResultEntry `type:"list"`
 
-	// The number of events from this operation that couldn't be written to the
+	// The number of events from this operation that could not be written to the
 	// partner event bus.
 	FailedEntryCount *int64 `type:"integer"`
 }
@@ -6285,19 +6314,19 @@ func (s *PutPartnerEventsOutput) SetFailedEntryCount(v int64) *PutPartnerEventsO
 type PutPartnerEventsRequestEntry struct {
 	_ struct{} `type:"structure"`
 
-	// A valid JSON string. There is no other schema imposed. The JSON string can
+	// A valid JSON string. There is no other schema imposed. The JSON string may
 	// contain fields and nested subobjects.
 	Detail *string `type:"string"`
 
-	// A free-form string used to decide which fields to expect in the event detail.
+	// A free-form string used to decide what fields to expect in the event detail.
 	DetailType *string `type:"string"`
 
-	// AWS resources, identified by Amazon Resource Name (ARN), that the event primarily
-	// concerns. Any number, including zero, can be present.
+	// AWS resources, identified by Amazon Resource Name (ARN), which the event
+	// primarily concerns. Any number, including zero, may be present.
 	Resources []*string `type:"list"`
 
 	// The event source that is generating the evntry.
-	Source *string `type:"string"`
+	Source *string `min:"1" type:"string"`
 
 	// The date and time of the event.
 	Time *time.Time `type:"timestamp"`
@@ -6311,6 +6340,19 @@ func (s PutPartnerEventsRequestEntry) String() string {
 // GoString returns the string representation
 func (s PutPartnerEventsRequestEntry) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutPartnerEventsRequestEntry) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutPartnerEventsRequestEntry"}
+	if s.Source != nil && len(*s.Source) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Source", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetDetail sets the Detail field's value.
@@ -6343,7 +6385,7 @@ func (s *PutPartnerEventsRequestEntry) SetTime(v time.Time) *PutPartnerEventsReq
 	return s
 }
 
-// Represents an event that a partner tried to generate but failed.
+// Represents an event that a partner tried to generate, but failed.
 type PutPartnerEventsResultEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -6388,7 +6430,7 @@ func (s *PutPartnerEventsResultEntry) SetEventId(v string) *PutPartnerEventsResu
 type PutPermissionInput struct {
 	_ struct{} `type:"structure"`
 
-	// The action that you're enabling the other account to perform. Currently,
+	// The action that you are enabling the other account to perform. Currently,
 	// this must be events:PutEvents.
 	//
 	// Action is a required field
@@ -6396,15 +6438,15 @@ type PutPermissionInput struct {
 
 	// This parameter enables you to limit the permission to accounts that fulfill
 	// a certain condition, such as being a member of a certain AWS organization.
-	// For more information about AWS Organizations, see What Is AWS Organizations?
+	// For more information about AWS Organizations, see What Is AWS Organizations
 	// (https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html)
 	// in the AWS Organizations User Guide.
 	//
-	// If you specify Condition with an AWS organization ID and specify "*" as the
-	// value for Principal, you grant permission to all the accounts in the named
-	// organization.
+	// If you specify Condition with an AWS organization ID, and specify "*" as
+	// the value for Principal, you grant permission to all the accounts in the
+	// named organization.
 	//
-	// The Condition is a JSON string that must contain Type, Key, and Value fields.
+	// The Condition is a JSON string which must contain Type, Key, and Value fields.
 	Condition *Condition `type:"structure"`
 
 	// The event bus associated with the rule. If you omit this, the default event
@@ -6416,15 +6458,15 @@ type PutPermissionInput struct {
 	// default event bus.
 	//
 	// If you specify "*" without specifying Condition, avoid creating rules that
-	// might match undesirable events. To create more secure rules, make sure that
+	// may match undesirable events. To create more secure rules, make sure that
 	// the event pattern for each rule contains an account field with a specific
-	// account ID to receive events from. Rules with an account field don't match
-	// any events sent from other accounts.
+	// account ID from which to receive events. Rules with an account field do not
+	// match any events sent from other accounts.
 	//
 	// Principal is a required field
 	Principal *string `min:"1" type:"string" required:"true"`
 
-	// An identifier string for the external account that you're granting permissions
+	// An identifier string for the external account that you are granting permissions
 	// to. If you later want to revoke the permission for this external account,
 	// specify this StatementId when you run RemovePermission.
 	//
@@ -6532,11 +6574,11 @@ type PutRuleInput struct {
 	// event bus is used.
 	EventBusName *string `min:"1" type:"string"`
 
-	// The event pattern. For more information, see Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
+	// The event pattern. For more information, see Events and Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
 	// in the Amazon EventBridge User Guide.
 	EventPattern *string `type:"string"`
 
-	// The name of the rule that you're creating or updating.
+	// The name of the rule that you are creating or updating.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
@@ -6544,7 +6586,7 @@ type PutRuleInput struct {
 	// The Amazon Resource Name (ARN) of the IAM role associated with the rule.
 	RoleArn *string `min:"1" type:"string"`
 
-	// The scheduling expression: for example, "cron(0 20 * * ? *)" or "rate(5 minutes)".
+	// The scheduling expression. For example, "cron(0 20 * * ? *)" or "rate(5 minutes)".
 	ScheduleExpression *string `type:"string"`
 
 	// Indicates whether the rule is enabled or disabled.
@@ -6899,11 +6941,11 @@ type RemoveTargetsInput struct {
 	// The name of the event bus associated with the rule.
 	EventBusName *string `min:"1" type:"string"`
 
-	// If this is a managed rule created by an AWS service on your behalf, you must
-	// specify Force as True to remove targets. This parameter is ignored for rules
-	// that aren't managed rules. You can check whether a rule is a managed rule
-	// by using DescribeRule or ListRules and checking the ManagedBy field of the
-	// response.
+	// If this is a managed rule, created by an AWS service on your behalf, you
+	// must specify Force as True to remove targets. This parameter is ignored for
+	// rules that are not managed rules. You can check whether a rule is a managed
+	// rule by using DescribeRule or ListRules and checking the ManagedBy field
+	// of the response.
 	Force *bool `type:"boolean"`
 
 	// The IDs of the targets to remove from the rule.
@@ -7052,10 +7094,10 @@ func (s *RemoveTargetsResultEntry) SetTargetId(v string) *RemoveTargetsResultEnt
 	return s
 }
 
-// The resource that you're trying to create already exists.
+// The resource you are trying to create already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7072,17 +7114,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7090,28 +7132,28 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
-// An entity that you specified doesn't exist.
+// An entity that you specified does not exist.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7128,17 +7170,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7146,22 +7188,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains information about a rule in Amazon EventBridge.
@@ -7177,12 +7219,13 @@ type Rule struct {
 	// The event bus associated with the rule.
 	EventBusName *string `min:"1" type:"string"`
 
-	// The event pattern of the rule. For more information, see Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
+	// The event pattern of the rule. For more information, see Events and Event
+	// Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
 	// in the Amazon EventBridge User Guide.
 	EventPattern *string `type:"string"`
 
-	// If an AWS service created the rule on behalf of your account, this field
-	// displays the principal name of the service that created the rule.
+	// If the rule was created on behalf of your account by an AWS service, this
+	// field displays the principal name of the service that created the rule.
 	ManagedBy *string `min:"1" type:"string"`
 
 	// The name of the rule.
@@ -7191,7 +7234,7 @@ type Rule struct {
 	// The Amazon Resource Name (ARN) of the role that is used for target invocation.
 	RoleArn *string `min:"1" type:"string"`
 
-	// The scheduling expression: for example, "cron(0 20 * * ? *)" or "rate(5 minutes)".
+	// The scheduling expression. For example, "cron(0 20 * * ? *)", "rate(5 minutes)".
 	ScheduleExpression *string `type:"string"`
 
 	// The state of the rule.
@@ -7318,7 +7361,7 @@ func (s *RunCommandParameters) SetRunCommandTargets(v []*RunCommandTarget) *RunC
 
 // Information about the EC2 instances that are to be sent the command, specified
 // as key-value pairs. Each RunCommandTarget block can include only one key,
-// but this key can specify multiple values.
+// but this key may specify multiple values.
 type RunCommandTarget struct {
 	_ struct{} `type:"structure"`
 
@@ -7403,13 +7446,13 @@ func (s *SqsParameters) SetMessageGroupId(v string) *SqsParameters {
 	return s
 }
 
-// A key-value pair associated with an AWS resource. In EventBridge, rules support
-// tagging.
+// A key-value pair associated with an AWS resource. In EventBridge, rules and
+// event buses support tagging.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
-	// A string that you can use to assign a value. The combination of tag keys
-	// and values can help you organize and categorize your resources.
+	// A string you can use to assign a value. The combination of tag keys and values
+	// can help you organize and categorize your resources.
 	//
 	// Key is a required field
 	Key *string `min:"1" type:"string" required:"true"`
@@ -7464,12 +7507,12 @@ func (s *Tag) SetValue(v string) *Tag {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the rule that you're adding tags to.
+	// The ARN of the EventBridge resource that you're adding tags to.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
 
-	// The list of key-value pairs to associate with the rule.
+	// The list of key-value pairs to associate with the resource.
 	//
 	// Tags is a required field
 	Tags []*Tag `type:"list" required:"true"`
@@ -7543,11 +7586,11 @@ func (s TagResourceOutput) GoString() string {
 // Targets are the resources to be invoked when a rule is triggered. For a complete
 // list of services and resources that can be set as a target, see PutTargets.
 //
-// If you're setting the event bus of another account as the target and that
+// If you are setting the event bus of another account as the target, and that
 // account granted permission to your account through an organization instead
-// of directly by the account ID, you must specify a RoleArn with proper permissions
-// in the Target structure. For more information, see Sending and Receiving
-// Events Between AWS Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
+// of directly by the account ID, then you must specify a RoleArn with proper
+// permissions in the Target structure. For more information, see Sending and
+// Receiving Events Between AWS Accounts (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-cross-account-event-delivery.html)
 // in the Amazon EventBridge User Guide.
 type Target struct {
 	_ struct{} `type:"structure"`
@@ -7562,7 +7605,7 @@ type Target struct {
 	// in the AWS Batch User Guide.
 	BatchParameters *BatchParameters `type:"structure"`
 
-	// Contains the Amazon ECS task definition and task count to be used if the
+	// Contains the Amazon ECS task definition and task count to be used, if the
 	// event target is an Amazon ECS task. For more information about Amazon ECS
 	// tasks, see Task Definitions (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_defintions.html)
 	// in the Amazon EC2 Container Service Developer Guide.
@@ -7588,9 +7631,9 @@ type Target struct {
 	// then use that data to send customized input to the target.
 	InputTransformer *InputTransformer `type:"structure"`
 
-	// The custom parameter that you can use to control the shard assignment when
-	// the target is a Kinesis data stream. If you don't include this parameter,
-	// the default is to use the eventId as the partition key.
+	// The custom parameter you can use to control the shard assignment, when the
+	// target is a Kinesis data stream. If you do not include this parameter, the
+	// default is to use the eventId as the partition key.
 	KinesisParameters *KinesisParameters `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the IAM role to be used for this target
@@ -7742,7 +7785,7 @@ type TestEventPatternInput struct {
 	// Event is a required field
 	Event *string `type:"string" required:"true"`
 
-	// The event pattern. For more information, see Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
+	// The event pattern. For more information, see Events and Event Patterns (https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-and-event-patterns.html)
 	// in the Amazon EventBridge User Guide.
 	//
 	// EventPattern is a required field
@@ -7813,7 +7856,7 @@ func (s *TestEventPatternOutput) SetResult(v bool) *TestEventPatternOutput {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the rule that you're removing tags from.
+	// The ARN of the EventBridge resource from which you are removing tags.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`

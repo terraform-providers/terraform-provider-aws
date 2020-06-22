@@ -220,6 +220,33 @@ func TestAccAwsAppsyncResolver_PipelineConfig(t *testing.T) {
 	})
 }
 
+func TestAccAwsAppsyncResolver_CachingConfig(t *testing.T) {
+	var resolver appsync.Resolver
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_resolver.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncResolver_cachingConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncResolverExists(resourceName, &resolver),
+					resource.TestCheckResourceAttr(resourceName, "caching_config.0.caching_keys.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "caching_config.0.ttl", "60"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAppsyncResolverDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).appsyncconn
 	for _, rs := range s.RootModule().Resources {
@@ -737,5 +764,76 @@ EOF
 	}
 }
 
+`, rName)
+}
+
+func testAccAppsyncResolver_cachingConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = "%[1]s"
+  schema              = <<EOF
+type Mutation {
+	putPost(id: ID!, title: String!): Post
+}
+
+type Post {
+	id: ID!
+	title: String!
+}
+
+type Query {
+	singlePost(id: ID!): Post
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}
+EOF
+}
+
+resource "aws_appsync_datasource" "test" {
+  api_id      = "${aws_appsync_graphql_api.test.id}"
+  name        = "%[1]s"
+  type        = "HTTP"
+
+  http_config {
+    endpoint = "http://example.com"
+  }
+}
+
+resource "aws_appsync_resolver" "test" {
+  api_id           = "${aws_appsync_graphql_api.test.id}"
+  field            = "singlePost"
+  type             = "Query"
+  kind             = "UNIT"
+  data_source      = "${aws_appsync_datasource.test.name}"
+  request_template = <<EOF
+{
+    "version": "2018-05-29",
+    "method": "GET",
+    "resourcePath": "/",
+    "params":{
+        "headers": $utils.http.copyheaders($ctx.request.headers)
+    }
+}
+EOF
+  response_template = <<EOF
+#if($ctx.result.statusCode == 200)
+    $ctx.result.body
+#else
+    $utils.appendError($ctx.result.body, $ctx.result.statusCode)
+#end
+EOF
+
+  caching_config {
+    caching_keys = [
+      "$context.identity.sub",
+      "$context.arguments.id"
+    ]
+    ttl = 60
+  }
+}
 `, rName)
 }

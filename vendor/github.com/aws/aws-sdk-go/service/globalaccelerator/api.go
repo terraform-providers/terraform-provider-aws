@@ -13,6 +13,107 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/jsonrpc"
 )
 
+const opAdvertiseByoipCidr = "AdvertiseByoipCidr"
+
+// AdvertiseByoipCidrRequest generates a "aws/request.Request" representing the
+// client's request for the AdvertiseByoipCidr operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AdvertiseByoipCidr for more information on using the AdvertiseByoipCidr
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AdvertiseByoipCidrRequest method.
+//    req, resp := client.AdvertiseByoipCidrRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/AdvertiseByoipCidr
+func (c *GlobalAccelerator) AdvertiseByoipCidrRequest(input *AdvertiseByoipCidrInput) (req *request.Request, output *AdvertiseByoipCidrOutput) {
+	op := &request.Operation{
+		Name:       opAdvertiseByoipCidr,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AdvertiseByoipCidrInput{}
+	}
+
+	output = &AdvertiseByoipCidrOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AdvertiseByoipCidr API operation for AWS Global Accelerator.
+//
+// Advertises an IPv4 address range that is provisioned for use with your AWS
+// resources through bring your own IP addresses (BYOIP). It can take a few
+// minutes before traffic to the specified addresses starts routing to AWS because
+// of propagation delays. To see an AWS CLI example of advertising an address
+// range, scroll down to Example.
+//
+// To stop advertising the BYOIP address range, use WithdrawByoipCidr (https://docs.aws.amazon.com/global-accelerator/latest/api/WithdrawByoipCidr.html).
+//
+// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation AdvertiseByoipCidr for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+//   * AccessDeniedException
+//   You don't have access permission.
+//
+//   * ByoipCidrNotFoundException
+//   The CIDR that you specified was not found or is incorrect.
+//
+//   * IncorrectCidrStateException
+//   The CIDR that you specified is not valid for this action. For example, the
+//   state of the CIDR might be incorrect for this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/AdvertiseByoipCidr
+func (c *GlobalAccelerator) AdvertiseByoipCidr(input *AdvertiseByoipCidrInput) (*AdvertiseByoipCidrOutput, error) {
+	req, out := c.AdvertiseByoipCidrRequest(input)
+	return out, req.Send()
+}
+
+// AdvertiseByoipCidrWithContext is the same as AdvertiseByoipCidr with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AdvertiseByoipCidr for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) AdvertiseByoipCidrWithContext(ctx aws.Context, input *AdvertiseByoipCidrInput, opts ...request.Option) (*AdvertiseByoipCidrOutput, error) {
+	req, out := c.AdvertiseByoipCidrRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateAccelerator = "CreateAccelerator"
 
 // CreateAcceleratorRequest generates a "aws/request.Request" representing the
@@ -62,7 +163,12 @@ func (c *GlobalAccelerator) CreateAcceleratorRequest(input *CreateAcceleratorInp
 // each of which includes endpoints, such as Network Load Balancers. To see
 // an AWS CLI example of creating an accelerator, scroll down to Example.
 //
-// You must specify the US-West-2 (Oregon) Region to create or update accelerators.
+// If you bring your own IP address ranges to AWS Global Accelerator (BYOIP),
+// you can assign IP addresses from your own pool to your accelerator as the
+// static IP address entry points. Only one IP address from each of your IP
+// address ranges can be used for each accelerator.
+//
+// You must specify the US West (Oregon) Region to create or update accelerators.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -345,8 +451,24 @@ func (c *GlobalAccelerator) DeleteAcceleratorRequest(input *DeleteAcceleratorInp
 
 // DeleteAccelerator API operation for AWS Global Accelerator.
 //
-// Delete an accelerator. Note: before you can delete an accelerator, you must
-// disable it and remove all dependent resources (listeners and endpoint groups).
+// Delete an accelerator. Before you can delete an accelerator, you must disable
+// it and remove all dependent resources (listeners and endpoint groups). To
+// disable the accelerator, update the accelerator to set Enabled to false.
+//
+// When you create an accelerator, by default, Global Accelerator provides you
+// with a set of two static IP addresses. Alternatively, you can bring your
+// own IP address ranges to Global Accelerator and assign IP addresses from
+// those ranges.
+//
+// The IP addresses are assigned to your accelerator for as long as it exists,
+// even if you disable the accelerator and it no longer accepts or routes traffic.
+// However, when you delete an accelerator, you lose the static IP addresses
+// that are assigned to the accelerator, so you can no longer route traffic
+// by using them. As a best practice, ensure that you have permissions in place
+// to avoid inadvertently deleting accelerators. You can use IAM policies with
+// Global Accelerator to limit the users who have permissions to delete an accelerator.
+// For more information, see Authentication and Access Control (https://docs.aws.amazon.com/global-accelerator/latest/dg/auth-and-access-control.html)
+// in the AWS Global Accelerator Developer Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -572,6 +694,109 @@ func (c *GlobalAccelerator) DeleteListenerWithContext(ctx aws.Context, input *De
 	return out, req.Send()
 }
 
+const opDeprovisionByoipCidr = "DeprovisionByoipCidr"
+
+// DeprovisionByoipCidrRequest generates a "aws/request.Request" representing the
+// client's request for the DeprovisionByoipCidr operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeprovisionByoipCidr for more information on using the DeprovisionByoipCidr
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeprovisionByoipCidrRequest method.
+//    req, resp := client.DeprovisionByoipCidrRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/DeprovisionByoipCidr
+func (c *GlobalAccelerator) DeprovisionByoipCidrRequest(input *DeprovisionByoipCidrInput) (req *request.Request, output *DeprovisionByoipCidrOutput) {
+	op := &request.Operation{
+		Name:       opDeprovisionByoipCidr,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeprovisionByoipCidrInput{}
+	}
+
+	output = &DeprovisionByoipCidrOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeprovisionByoipCidr API operation for AWS Global Accelerator.
+//
+// Releases the specified address range that you provisioned to use with your
+// AWS resources through bring your own IP addresses (BYOIP) and deletes the
+// corresponding address pool. To see an AWS CLI example of deprovisioning an
+// address range, scroll down to Example.
+//
+// Before you can release an address range, you must stop advertising it by
+// using WithdrawByoipCidr (https://docs.aws.amazon.com/global-accelerator/latest/api/WithdrawByoipCidr.html)
+// and you must not have any accelerators that are using static IP addresses
+// allocated from its address range.
+//
+// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation DeprovisionByoipCidr for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+//   * AccessDeniedException
+//   You don't have access permission.
+//
+//   * ByoipCidrNotFoundException
+//   The CIDR that you specified was not found or is incorrect.
+//
+//   * IncorrectCidrStateException
+//   The CIDR that you specified is not valid for this action. For example, the
+//   state of the CIDR might be incorrect for this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/DeprovisionByoipCidr
+func (c *GlobalAccelerator) DeprovisionByoipCidr(input *DeprovisionByoipCidrInput) (*DeprovisionByoipCidrOutput, error) {
+	req, out := c.DeprovisionByoipCidrRequest(input)
+	return out, req.Send()
+}
+
+// DeprovisionByoipCidrWithContext is the same as DeprovisionByoipCidr with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeprovisionByoipCidr for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) DeprovisionByoipCidrWithContext(ctx aws.Context, input *DeprovisionByoipCidrInput, opts ...request.Option) (*DeprovisionByoipCidrOutput, error) {
+	req, out := c.DeprovisionByoipCidrRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeAccelerator = "DescribeAccelerator"
 
 // DescribeAcceleratorRequest generates a "aws/request.Request" representing the
@@ -702,7 +927,8 @@ func (c *GlobalAccelerator) DescribeAcceleratorAttributesRequest(input *Describe
 
 // DescribeAcceleratorAttributes API operation for AWS Global Accelerator.
 //
-// Describe the attributes of an accelerator.
+// Describe the attributes of an accelerator. To see an AWS CLI example of describing
+// the attributes of an accelerator, scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -787,7 +1013,8 @@ func (c *GlobalAccelerator) DescribeEndpointGroupRequest(input *DescribeEndpoint
 
 // DescribeEndpointGroup API operation for AWS Global Accelerator.
 //
-// Describe an endpoint group.
+// Describe an endpoint group. To see an AWS CLI example of describing an endpoint
+// group, scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -872,7 +1099,8 @@ func (c *GlobalAccelerator) DescribeListenerRequest(input *DescribeListenerInput
 
 // DescribeListener API operation for AWS Global Accelerator.
 //
-// Describe a listener.
+// Describe a listener. To see an AWS CLI example of describing a listener,
+// scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -957,7 +1185,8 @@ func (c *GlobalAccelerator) ListAcceleratorsRequest(input *ListAcceleratorsInput
 
 // ListAccelerators API operation for AWS Global Accelerator.
 //
-// List the accelerators for an AWS account.
+// List the accelerators for an AWS account. To see an AWS CLI example of listing
+// the accelerators for an AWS account, scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -993,6 +1222,99 @@ func (c *GlobalAccelerator) ListAccelerators(input *ListAcceleratorsInput) (*Lis
 // for more information on using Contexts.
 func (c *GlobalAccelerator) ListAcceleratorsWithContext(ctx aws.Context, input *ListAcceleratorsInput, opts ...request.Option) (*ListAcceleratorsOutput, error) {
 	req, out := c.ListAcceleratorsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListByoipCidrs = "ListByoipCidrs"
+
+// ListByoipCidrsRequest generates a "aws/request.Request" representing the
+// client's request for the ListByoipCidrs operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListByoipCidrs for more information on using the ListByoipCidrs
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListByoipCidrsRequest method.
+//    req, resp := client.ListByoipCidrsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ListByoipCidrs
+func (c *GlobalAccelerator) ListByoipCidrsRequest(input *ListByoipCidrsInput) (req *request.Request, output *ListByoipCidrsOutput) {
+	op := &request.Operation{
+		Name:       opListByoipCidrs,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListByoipCidrsInput{}
+	}
+
+	output = &ListByoipCidrsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListByoipCidrs API operation for AWS Global Accelerator.
+//
+// Lists the IP address ranges that were specified in calls to ProvisionByoipCidr
+// (https://docs.aws.amazon.com/global-accelerator/latest/api/ProvisionByoipCidr.html),
+// including the current state and a history of state changes.
+//
+// To see an AWS CLI example of listing BYOIP CIDR addresses, scroll down to
+// Example.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation ListByoipCidrs for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+//   * AccessDeniedException
+//   You don't have access permission.
+//
+//   * InvalidNextTokenException
+//   There isn't another item to return.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ListByoipCidrs
+func (c *GlobalAccelerator) ListByoipCidrs(input *ListByoipCidrsInput) (*ListByoipCidrsOutput, error) {
+	req, out := c.ListByoipCidrsRequest(input)
+	return out, req.Send()
+}
+
+// ListByoipCidrsWithContext is the same as ListByoipCidrs with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListByoipCidrs for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) ListByoipCidrsWithContext(ctx aws.Context, input *ListByoipCidrsInput, opts ...request.Option) (*ListByoipCidrsOutput, error) {
+	req, out := c.ListByoipCidrsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1042,7 +1364,8 @@ func (c *GlobalAccelerator) ListEndpointGroupsRequest(input *ListEndpointGroupsI
 
 // ListEndpointGroups API operation for AWS Global Accelerator.
 //
-// List the endpoint groups that are associated with a listener.
+// List the endpoint groups that are associated with a listener. To see an AWS
+// CLI example of listing the endpoint groups for listener, scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1130,7 +1453,8 @@ func (c *GlobalAccelerator) ListListenersRequest(input *ListListenersInput) (req
 
 // ListListeners API operation for AWS Global Accelerator.
 //
-// List the listeners for an accelerator.
+// List the listeners for an accelerator. To see an AWS CLI example of listing
+// the listeners for an accelerator, scroll down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1169,6 +1493,380 @@ func (c *GlobalAccelerator) ListListeners(input *ListListenersInput) (*ListListe
 // for more information on using Contexts.
 func (c *GlobalAccelerator) ListListenersWithContext(ctx aws.Context, input *ListListenersInput, opts ...request.Option) (*ListListenersOutput, error) {
 	req, out := c.ListListenersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ListTagsForResource
+func (c *GlobalAccelerator) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for AWS Global Accelerator.
+//
+// List all tags for an accelerator. To see an AWS CLI example of listing tags
+// for an accelerator, scroll down to Example.
+//
+// For more information, see Tagging in AWS Global Accelerator (https://docs.aws.amazon.com/global-accelerator/latest/dg/tagging-in-global-accelerator.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * AcceleratorNotFoundException
+//   The accelerator that you specified doesn't exist.
+//
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ListTagsForResource
+func (c *GlobalAccelerator) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opProvisionByoipCidr = "ProvisionByoipCidr"
+
+// ProvisionByoipCidrRequest generates a "aws/request.Request" representing the
+// client's request for the ProvisionByoipCidr operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ProvisionByoipCidr for more information on using the ProvisionByoipCidr
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ProvisionByoipCidrRequest method.
+//    req, resp := client.ProvisionByoipCidrRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ProvisionByoipCidr
+func (c *GlobalAccelerator) ProvisionByoipCidrRequest(input *ProvisionByoipCidrInput) (req *request.Request, output *ProvisionByoipCidrOutput) {
+	op := &request.Operation{
+		Name:       opProvisionByoipCidr,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ProvisionByoipCidrInput{}
+	}
+
+	output = &ProvisionByoipCidrOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ProvisionByoipCidr API operation for AWS Global Accelerator.
+//
+// Provisions an IP address range to use with your AWS resources through bring
+// your own IP addresses (BYOIP) and creates a corresponding address pool. After
+// the address range is provisioned, it is ready to be advertised using AdvertiseByoipCidr
+// (https://docs.aws.amazon.com/global-accelerator/latest/api/AdvertiseByoipCidr.html).
+//
+// To see an AWS CLI example of provisioning an address range for BYOIP, scroll
+// down to Example.
+//
+// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation ProvisionByoipCidr for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+//   * LimitExceededException
+//   Processing your request would cause you to exceed an AWS Global Accelerator
+//   limit.
+//
+//   * AccessDeniedException
+//   You don't have access permission.
+//
+//   * IncorrectCidrStateException
+//   The CIDR that you specified is not valid for this action. For example, the
+//   state of the CIDR might be incorrect for this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/ProvisionByoipCidr
+func (c *GlobalAccelerator) ProvisionByoipCidr(input *ProvisionByoipCidrInput) (*ProvisionByoipCidrOutput, error) {
+	req, out := c.ProvisionByoipCidrRequest(input)
+	return out, req.Send()
+}
+
+// ProvisionByoipCidrWithContext is the same as ProvisionByoipCidr with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ProvisionByoipCidr for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) ProvisionByoipCidrWithContext(ctx aws.Context, input *ProvisionByoipCidrInput, opts ...request.Option) (*ProvisionByoipCidrOutput, error) {
+	req, out := c.ProvisionByoipCidrRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/TagResource
+func (c *GlobalAccelerator) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for AWS Global Accelerator.
+//
+// Add tags to an accelerator resource. To see an AWS CLI example of adding
+// tags to an accelerator, scroll down to Example.
+//
+// For more information, see Tagging in AWS Global Accelerator (https://docs.aws.amazon.com/global-accelerator/latest/dg/tagging-in-global-accelerator.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * AcceleratorNotFoundException
+//   The accelerator that you specified doesn't exist.
+//
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/TagResource
+func (c *GlobalAccelerator) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UntagResource
+func (c *GlobalAccelerator) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for AWS Global Accelerator.
+//
+// Remove tags from a Global Accelerator resource. When you specify a tag key,
+// the action removes both that key and its associated value. To see an AWS
+// CLI example of removing tags from an accelerator, scroll down to Example.
+// The operation succeeds even if you attempt to remove tags from an accelerator
+// that was already removed.
+//
+// For more information, see Tagging in AWS Global Accelerator (https://docs.aws.amazon.com/global-accelerator/latest/dg/tagging-in-global-accelerator.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * AcceleratorNotFoundException
+//   The accelerator that you specified doesn't exist.
+//
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/UntagResource
+func (c *GlobalAccelerator) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1221,7 +1919,7 @@ func (c *GlobalAccelerator) UpdateAcceleratorRequest(input *UpdateAcceleratorInp
 // Update an accelerator. To see an AWS CLI example of updating an accelerator,
 // scroll down to Example.
 //
-// You must specify the US-West-2 (Oregon) Region to create or update accelerators.
+// You must specify the US West (Oregon) Region to create or update accelerators.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1488,7 +2186,8 @@ func (c *GlobalAccelerator) UpdateListenerRequest(input *UpdateListenerInput) (r
 
 // UpdateListener API operation for AWS Global Accelerator.
 //
-// Update a listener.
+// Update a listener. To see an AWS CLI example of updating listener, scroll
+// down to Example.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1537,6 +2236,108 @@ func (c *GlobalAccelerator) UpdateListenerWithContext(ctx aws.Context, input *Up
 	return out, req.Send()
 }
 
+const opWithdrawByoipCidr = "WithdrawByoipCidr"
+
+// WithdrawByoipCidrRequest generates a "aws/request.Request" representing the
+// client's request for the WithdrawByoipCidr operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See WithdrawByoipCidr for more information on using the WithdrawByoipCidr
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the WithdrawByoipCidrRequest method.
+//    req, resp := client.WithdrawByoipCidrRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/WithdrawByoipCidr
+func (c *GlobalAccelerator) WithdrawByoipCidrRequest(input *WithdrawByoipCidrInput) (req *request.Request, output *WithdrawByoipCidrOutput) {
+	op := &request.Operation{
+		Name:       opWithdrawByoipCidr,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &WithdrawByoipCidrInput{}
+	}
+
+	output = &WithdrawByoipCidrOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// WithdrawByoipCidr API operation for AWS Global Accelerator.
+//
+// Stops advertising an address range that is provisioned as an address pool.
+// You can perform this operation at most once every 10 seconds, even if you
+// specify different address ranges each time. To see an AWS CLI example of
+// withdrawing an address range for BYOIP so it will no longer be advertised
+// by AWS, scroll down to Example.
+//
+// It can take a few minutes before traffic to the specified addresses stops
+// routing to AWS because of propagation delays.
+//
+// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Global Accelerator's
+// API operation WithdrawByoipCidr for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceErrorException
+//   There was an internal error for AWS Global Accelerator.
+//
+//   * InvalidArgumentException
+//   An argument that you specified is invalid.
+//
+//   * AccessDeniedException
+//   You don't have access permission.
+//
+//   * ByoipCidrNotFoundException
+//   The CIDR that you specified was not found or is incorrect.
+//
+//   * IncorrectCidrStateException
+//   The CIDR that you specified is not valid for this action. For example, the
+//   state of the CIDR might be incorrect for this action.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/globalaccelerator-2018-08-08/WithdrawByoipCidr
+func (c *GlobalAccelerator) WithdrawByoipCidr(input *WithdrawByoipCidrInput) (*WithdrawByoipCidrOutput, error) {
+	req, out := c.WithdrawByoipCidrRequest(input)
+	return out, req.Send()
+}
+
+// WithdrawByoipCidrWithContext is the same as WithdrawByoipCidr with the addition of
+// the ability to pass a context and additional request options.
+//
+// See WithdrawByoipCidr for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GlobalAccelerator) WithdrawByoipCidrWithContext(ctx aws.Context, input *WithdrawByoipCidrInput, opts ...request.Option) (*WithdrawByoipCidrOutput, error) {
+	req, out := c.WithdrawByoipCidrRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 // An accelerator is a complex type that includes one or more listeners that
 // process inbound connections and then direct traffic to one or more endpoint
 // groups, each of which includes endpoints, such as load balancers.
@@ -1552,9 +2353,9 @@ type Accelerator struct {
 	// The Domain Name System (DNS) name that Global Accelerator creates that points
 	// to your accelerator's static IP addresses.
 	//
-	// The naming convention for the DNS name is: a lower case letter a, followed
-	// by a 16-bit random hex string, followed by .awsglobalaccelerator.com. For
-	// example: a1234567890abcdef.awsglobalaccelerator.com.
+	// The naming convention for the DNS name is the following: A lowercase letter
+	// a, followed by a 16-bit random hex string, followed by .awsglobalaccelerator.com.
+	// For example: a1234567890abcdef.awsglobalaccelerator.com.
 	//
 	// For more information about the default DNS name, see Support for DNS Addressing
 	// in Global Accelerator (https://docs.aws.amazon.com/global-accelerator/latest/dg/about-accelerators.html#about-accelerators.dns-addressing)
@@ -1666,8 +2467,13 @@ type AcceleratorAttributes struct {
 	FlowLogsS3Bucket *string `type:"string"`
 
 	// The prefix for the location in the Amazon S3 bucket for the flow logs. Attribute
-	// is required if FlowLogsEnabled is true. If you don’t specify a prefix,
-	// the flow logs are stored in the root of the bucket.
+	// is required if FlowLogsEnabled is true.
+	//
+	// If you don’t specify a prefix, the flow logs are stored in the root of
+	// the bucket. If you specify slash (/) for the S3 bucket prefix, the log file
+	// bucket folder structure will include a double slash (//), like the following:
+	//
+	// s3-bucket_name//AWSLogs/aws_account_id
 	FlowLogsS3Prefix *string `type:"string"`
 }
 
@@ -1701,8 +2507,8 @@ func (s *AcceleratorAttributes) SetFlowLogsS3Prefix(v string) *AcceleratorAttrib
 
 // The accelerator that you specified could not be disabled.
 type AcceleratorNotDisabledException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -1719,17 +2525,17 @@ func (s AcceleratorNotDisabledException) GoString() string {
 
 func newErrorAcceleratorNotDisabledException(v protocol.ResponseMetadata) error {
 	return &AcceleratorNotDisabledException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AcceleratorNotDisabledException) Code() string {
+func (s *AcceleratorNotDisabledException) Code() string {
 	return "AcceleratorNotDisabledException"
 }
 
 // Message returns the exception's message.
-func (s AcceleratorNotDisabledException) Message() string {
+func (s *AcceleratorNotDisabledException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1737,28 +2543,28 @@ func (s AcceleratorNotDisabledException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AcceleratorNotDisabledException) OrigErr() error {
+func (s *AcceleratorNotDisabledException) OrigErr() error {
 	return nil
 }
 
-func (s AcceleratorNotDisabledException) Error() string {
+func (s *AcceleratorNotDisabledException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AcceleratorNotDisabledException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AcceleratorNotDisabledException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AcceleratorNotDisabledException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AcceleratorNotDisabledException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The accelerator that you specified doesn't exist.
 type AcceleratorNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -1775,17 +2581,17 @@ func (s AcceleratorNotFoundException) GoString() string {
 
 func newErrorAcceleratorNotFoundException(v protocol.ResponseMetadata) error {
 	return &AcceleratorNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AcceleratorNotFoundException) Code() string {
+func (s *AcceleratorNotFoundException) Code() string {
 	return "AcceleratorNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s AcceleratorNotFoundException) Message() string {
+func (s *AcceleratorNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1793,28 +2599,28 @@ func (s AcceleratorNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AcceleratorNotFoundException) OrigErr() error {
+func (s *AcceleratorNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s AcceleratorNotFoundException) Error() string {
+func (s *AcceleratorNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AcceleratorNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AcceleratorNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AcceleratorNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AcceleratorNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // You don't have access permission.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -1831,17 +2637,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1849,30 +2655,92 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type AdvertiseByoipCidrInput struct {
+	_ struct{} `type:"structure"`
+
+	// The address range, in CIDR notation. This must be the exact range that you
+	// provisioned. You can't advertise only a portion of the provisioned range.
+	//
+	// Cidr is a required field
+	Cidr *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AdvertiseByoipCidrInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdvertiseByoipCidrInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AdvertiseByoipCidrInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AdvertiseByoipCidrInput"}
+	if s.Cidr == nil {
+		invalidParams.Add(request.NewErrParamRequired("Cidr"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidr sets the Cidr field's value.
+func (s *AdvertiseByoipCidrInput) SetCidr(v string) *AdvertiseByoipCidrInput {
+	s.Cidr = &v
+	return s
+}
+
+type AdvertiseByoipCidrOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the address range.
+	ByoipCidr *ByoipCidr `type:"structure"`
+}
+
+// String returns the string representation
+func (s AdvertiseByoipCidrOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdvertiseByoipCidrOutput) GoString() string {
+	return s.String()
+}
+
+// SetByoipCidr sets the ByoipCidr field's value.
+func (s *AdvertiseByoipCidrOutput) SetByoipCidr(v *ByoipCidr) *AdvertiseByoipCidrOutput {
+	s.ByoipCidr = v
+	return s
 }
 
 // The listener that you specified has an endpoint group associated with it.
 // You must remove all dependent resources from a listener before you can delete
 // it.
 type AssociatedEndpointGroupFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -1889,17 +2757,17 @@ func (s AssociatedEndpointGroupFoundException) GoString() string {
 
 func newErrorAssociatedEndpointGroupFoundException(v protocol.ResponseMetadata) error {
 	return &AssociatedEndpointGroupFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AssociatedEndpointGroupFoundException) Code() string {
+func (s *AssociatedEndpointGroupFoundException) Code() string {
 	return "AssociatedEndpointGroupFoundException"
 }
 
 // Message returns the exception's message.
-func (s AssociatedEndpointGroupFoundException) Message() string {
+func (s *AssociatedEndpointGroupFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1907,30 +2775,30 @@ func (s AssociatedEndpointGroupFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AssociatedEndpointGroupFoundException) OrigErr() error {
+func (s *AssociatedEndpointGroupFoundException) OrigErr() error {
 	return nil
 }
 
-func (s AssociatedEndpointGroupFoundException) Error() string {
+func (s *AssociatedEndpointGroupFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AssociatedEndpointGroupFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AssociatedEndpointGroupFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AssociatedEndpointGroupFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AssociatedEndpointGroupFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The accelerator that you specified has a listener associated with it. You
 // must remove all dependent resources from an accelerator before you can delete
 // it.
 type AssociatedListenerFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -1947,17 +2815,17 @@ func (s AssociatedListenerFoundException) GoString() string {
 
 func newErrorAssociatedListenerFoundException(v protocol.ResponseMetadata) error {
 	return &AssociatedListenerFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AssociatedListenerFoundException) Code() string {
+func (s *AssociatedListenerFoundException) Code() string {
 	return "AssociatedListenerFoundException"
 }
 
 // Message returns the exception's message.
-func (s AssociatedListenerFoundException) Message() string {
+func (s *AssociatedListenerFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1965,22 +2833,262 @@ func (s AssociatedListenerFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AssociatedListenerFoundException) OrigErr() error {
+func (s *AssociatedListenerFoundException) OrigErr() error {
 	return nil
 }
 
-func (s AssociatedListenerFoundException) Error() string {
+func (s *AssociatedListenerFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AssociatedListenerFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AssociatedListenerFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AssociatedListenerFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AssociatedListenerFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Information about an IP address range that is provisioned for use with your
+// AWS resources through bring your own IP address (BYOIP).
+//
+// The following describes each BYOIP State that your IP address range can be
+// in.
+//
+//    * PENDING_PROVISIONING — You’ve submitted a request to provision an
+//    IP address range but it is not yet provisioned with AWS Global Accelerator.
+//
+//    * READY — The address range is provisioned with AWS Global Accelerator
+//    and can be advertised.
+//
+//    * PENDING_ADVERTISING — You’ve submitted a request for AWS Global
+//    Accelerator to advertise an address range but it is not yet being advertised.
+//
+//    * ADVERTISING — The address range is being advertised by AWS Global
+//    Accelerator.
+//
+//    * PENDING_WITHDRAWING — You’ve submitted a request to withdraw an
+//    address range from being advertised but it is still being advertised by
+//    AWS Global Accelerator.
+//
+//    * PENDING_DEPROVISIONING — You’ve submitted a request to deprovision
+//    an address range from AWS Global Accelerator but it is still provisioned.
+//
+//    * DEPROVISIONED — The address range is deprovisioned from AWS Global
+//    Accelerator.
+//
+//    * FAILED_PROVISION — The request to provision the address range from
+//    AWS Global Accelerator was not successful. Please make sure that you provide
+//    all of the correct information, and try again. If the request fails a
+//    second time, contact AWS support.
+//
+//    * FAILED_ADVERTISING — The request for AWS Global Accelerator to advertise
+//    the address range was not successful. Please make sure that you provide
+//    all of the correct information, and try again. If the request fails a
+//    second time, contact AWS support.
+//
+//    * FAILED_WITHDRAW — The request to withdraw the address range from advertising
+//    by AWS Global Accelerator was not successful. Please make sure that you
+//    provide all of the correct information, and try again. If the request
+//    fails a second time, contact AWS support.
+//
+//    * FAILED_DEPROVISION — The request to deprovision the address range
+//    from AWS Global Accelerator was not successful. Please make sure that
+//    you provide all of the correct information, and try again. If the request
+//    fails a second time, contact AWS support.
+type ByoipCidr struct {
+	_ struct{} `type:"structure"`
+
+	// The address range, in CIDR notation.
+	Cidr *string `type:"string"`
+
+	// A history of status changes for an IP address range that that you bring to
+	// AWS Global Accelerator through bring your own IP address (BYOIP).
+	Events []*ByoipCidrEvent `type:"list"`
+
+	// The state of the address pool.
+	State *string `type:"string" enum:"ByoipCidrState"`
+}
+
+// String returns the string representation
+func (s ByoipCidr) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ByoipCidr) GoString() string {
+	return s.String()
+}
+
+// SetCidr sets the Cidr field's value.
+func (s *ByoipCidr) SetCidr(v string) *ByoipCidr {
+	s.Cidr = &v
+	return s
+}
+
+// SetEvents sets the Events field's value.
+func (s *ByoipCidr) SetEvents(v []*ByoipCidrEvent) *ByoipCidr {
+	s.Events = v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *ByoipCidr) SetState(v string) *ByoipCidr {
+	s.State = &v
+	return s
+}
+
+// A complex type that contains a Message and a Timestamp value for changes
+// that you make in the status an IP address range that you bring to AWS Global
+// Accelerator through bring your own IP address (BYOIP).
+type ByoipCidrEvent struct {
+	_ struct{} `type:"structure"`
+
+	// A string that contains an Event message describing changes that you make
+	// in the status of an IP address range that you bring to AWS Global Accelerator
+	// through bring your own IP address (BYOIP).
+	Message *string `type:"string"`
+
+	// A timestamp when you make a status change for an IP address range that you
+	// bring to AWS Global Accelerator through bring your own IP address (BYOIP).
+	Timestamp *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s ByoipCidrEvent) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ByoipCidrEvent) GoString() string {
+	return s.String()
+}
+
+// SetMessage sets the Message field's value.
+func (s *ByoipCidrEvent) SetMessage(v string) *ByoipCidrEvent {
+	s.Message = &v
+	return s
+}
+
+// SetTimestamp sets the Timestamp field's value.
+func (s *ByoipCidrEvent) SetTimestamp(v time.Time) *ByoipCidrEvent {
+	s.Timestamp = &v
+	return s
+}
+
+// The CIDR that you specified was not found or is incorrect.
+type ByoipCidrNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ByoipCidrNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ByoipCidrNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorByoipCidrNotFoundException(v protocol.ResponseMetadata) error {
+	return &ByoipCidrNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ByoipCidrNotFoundException) Code() string {
+	return "ByoipCidrNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ByoipCidrNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ByoipCidrNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ByoipCidrNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ByoipCidrNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ByoipCidrNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Provides authorization for Amazon to bring a specific IP address range to
+// a specific AWS account using bring your own IP addresses (BYOIP).
+//
+// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+// in the AWS Global Accelerator Developer Guide.
+type CidrAuthorizationContext struct {
+	_ struct{} `type:"structure"`
+
+	// The plain-text authorization message for the prefix and account.
+	//
+	// Message is a required field
+	Message *string `type:"string" required:"true"`
+
+	// The signed authorization message for the prefix and account.
+	//
+	// Signature is a required field
+	Signature *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CidrAuthorizationContext) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CidrAuthorizationContext) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CidrAuthorizationContext) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CidrAuthorizationContext"}
+	if s.Message == nil {
+		invalidParams.Add(request.NewErrParamRequired("Message"))
+	}
+	if s.Signature == nil {
+		invalidParams.Add(request.NewErrParamRequired("Signature"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMessage sets the Message field's value.
+func (s *CidrAuthorizationContext) SetMessage(v string) *CidrAuthorizationContext {
+	s.Message = &v
+	return s
+}
+
+// SetSignature sets the Signature field's value.
+func (s *CidrAuthorizationContext) SetSignature(v string) *CidrAuthorizationContext {
+	s.Signature = &v
+	return s
 }
 
 type CreateAcceleratorInput struct {
@@ -1995,12 +3103,23 @@ type CreateAcceleratorInput struct {
 
 	// A unique, case-sensitive identifier that you provide to ensure the idempotency—that
 	// is, the uniqueness—of an accelerator.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `type:"string" required:"true"`
+	IdempotencyToken *string `type:"string" idempotencyToken:"true"`
 
 	// The value for the address type must be IPv4.
 	IpAddressType *string `type:"string" enum:"IpAddressType"`
+
+	// Optionally, if you've added your own IP address pool to Global Accelerator,
+	// you can choose IP addresses from your own pool to use for the accelerator's
+	// static IP addresses. You can specify one or two addresses, separated by a
+	// comma. Do not include the /32 suffix.
+	//
+	// If you specify only one IP address from your IP address range, Global Accelerator
+	// assigns a second static IP address for the accelerator from the AWS IP address
+	// pool.
+	//
+	// For more information, see Bring Your Own IP Addresses (BYOIP) (https://docs.aws.amazon.com/global-accelerator/latest/dg/using-byoip.html)
+	// in the AWS Global Accelerator Developer Guide.
+	IpAddresses []*string `type:"list"`
 
 	// The name of an accelerator. The name can have a maximum of 32 characters,
 	// must contain only alphanumeric characters or hyphens (-), and must not begin
@@ -2008,6 +3127,12 @@ type CreateAcceleratorInput struct {
 	//
 	// Name is a required field
 	Name *string `type:"string" required:"true"`
+
+	// Create tags for an accelerator.
+	//
+	// For more information, see Tagging in AWS Global Accelerator (https://docs.aws.amazon.com/global-accelerator/latest/dg/tagging-in-global-accelerator.html)
+	// in the AWS Global Accelerator Developer Guide.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -2023,11 +3148,18 @@ func (s CreateAcceleratorInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateAcceleratorInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateAcceleratorInput"}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
-	}
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -2054,9 +3186,21 @@ func (s *CreateAcceleratorInput) SetIpAddressType(v string) *CreateAcceleratorIn
 	return s
 }
 
+// SetIpAddresses sets the IpAddresses field's value.
+func (s *CreateAcceleratorInput) SetIpAddresses(v []*string) *CreateAcceleratorInput {
+	s.IpAddresses = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *CreateAcceleratorInput) SetName(v string) *CreateAcceleratorInput {
 	s.Name = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateAcceleratorInput) SetTags(v []*Tag) *CreateAcceleratorInput {
+	s.Tags = v
 	return s
 }
 
@@ -2116,9 +3260,7 @@ type CreateEndpointGroupInput struct {
 
 	// A unique, case-sensitive identifier that you provide to ensure the idempotency—that
 	// is, the uniqueness—of the request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `type:"string" required:"true"`
+	IdempotencyToken *string `type:"string" idempotencyToken:"true"`
 
 	// The Amazon Resource Name (ARN) of the listener.
 	//
@@ -2162,9 +3304,6 @@ func (s *CreateEndpointGroupInput) Validate() error {
 	}
 	if s.HealthCheckPort != nil && *s.HealthCheckPort < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("HealthCheckPort", 1))
-	}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
 	}
 	if s.ListenerArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("ListenerArn"))
@@ -2294,9 +3433,7 @@ type CreateListenerInput struct {
 
 	// A unique, case-sensitive identifier that you provide to ensure the idempotency—that
 	// is, the uniqueness—of the request.
-	//
-	// IdempotencyToken is a required field
-	IdempotencyToken *string `type:"string" required:"true"`
+	IdempotencyToken *string `type:"string" idempotencyToken:"true"`
 
 	// The list of port ranges to support for connections from clients to your accelerator.
 	//
@@ -2324,9 +3461,6 @@ func (s *CreateListenerInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateListenerInput"}
 	if s.AcceleratorArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("AcceleratorArn"))
-	}
-	if s.IdempotencyToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("IdempotencyToken"))
 	}
 	if s.PortRanges == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortRanges"))
@@ -2561,6 +3695,68 @@ func (s DeleteListenerOutput) String() string {
 // GoString returns the string representation
 func (s DeleteListenerOutput) GoString() string {
 	return s.String()
+}
+
+type DeprovisionByoipCidrInput struct {
+	_ struct{} `type:"structure"`
+
+	// The address range, in CIDR notation. The prefix must be the same prefix that
+	// you specified when you provisioned the address range.
+	//
+	// Cidr is a required field
+	Cidr *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeprovisionByoipCidrInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeprovisionByoipCidrInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeprovisionByoipCidrInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeprovisionByoipCidrInput"}
+	if s.Cidr == nil {
+		invalidParams.Add(request.NewErrParamRequired("Cidr"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidr sets the Cidr field's value.
+func (s *DeprovisionByoipCidrInput) SetCidr(v string) *DeprovisionByoipCidrInput {
+	s.Cidr = &v
+	return s
+}
+
+type DeprovisionByoipCidrOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the address range.
+	ByoipCidr *ByoipCidr `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeprovisionByoipCidrOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeprovisionByoipCidrOutput) GoString() string {
+	return s.String()
+}
+
+// SetByoipCidr sets the ByoipCidr field's value.
+func (s *DeprovisionByoipCidrOutput) SetByoipCidr(v *ByoipCidr) *DeprovisionByoipCidrOutput {
+	s.ByoipCidr = v
+	return s
 }
 
 type DescribeAcceleratorAttributesInput struct {
@@ -2820,15 +4016,17 @@ type EndpointConfiguration struct {
 	// X-Forwarded-For request header as traffic travels to applications on the
 	// Application Load Balancer endpoint fronted by the accelerator.
 	//
-	// For more information, see Viewing Client IP Addresses in AWS Global Accelerator
-	// (https://docs.aws.amazon.com/global-accelerator/latest/dg/introduction-how-it-works-client-ip.html)
+	// For more information, see Preserve Client IP Addresses in AWS Global Accelerator
+	// (https://docs.aws.amazon.com/global-accelerator/latest/dg/preserve-client-ip-address.html)
 	// in the AWS Global Accelerator Developer Guide.
 	ClientIPPreservationEnabled *bool `type:"boolean"`
 
 	// An ID for the endpoint. If the endpoint is a Network Load Balancer or Application
 	// Load Balancer, this is the Amazon Resource Name (ARN) of the resource. If
 	// the endpoint is an Elastic IP address, this is the Elastic IP address allocation
-	// ID.
+	// ID. For EC2 instances, this is the EC2 instance ID.
+	//
+	// An Application Load Balancer can be either internal or internet-facing.
 	EndpointId *string `type:"string"`
 
 	// The weight associated with the endpoint. When you add weights to endpoints,
@@ -2891,7 +4089,9 @@ type EndpointDescription struct {
 	// An ID for the endpoint. If the endpoint is a Network Load Balancer or Application
 	// Load Balancer, this is the Amazon Resource Name (ARN) of the resource. If
 	// the endpoint is an Elastic IP address, this is the Elastic IP address allocation
-	// ID. An Application Load Balancer can be either internal or internet-facing.
+	// ID. For EC2 instances, this is the EC2 instance ID.
+	//
+	// An Application Load Balancer can be either internal or internet-facing.
 	EndpointId *string `type:"string"`
 
 	// The reason code associated with why the endpoint is not healthy. If the endpoint
@@ -3087,8 +4287,8 @@ func (s *EndpointGroup) SetTrafficDialPercentage(v float64) *EndpointGroup {
 
 // The endpoint group that you specified already exists.
 type EndpointGroupAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3105,17 +4305,17 @@ func (s EndpointGroupAlreadyExistsException) GoString() string {
 
 func newErrorEndpointGroupAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &EndpointGroupAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s EndpointGroupAlreadyExistsException) Code() string {
+func (s *EndpointGroupAlreadyExistsException) Code() string {
 	return "EndpointGroupAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s EndpointGroupAlreadyExistsException) Message() string {
+func (s *EndpointGroupAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3123,28 +4323,28 @@ func (s EndpointGroupAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s EndpointGroupAlreadyExistsException) OrigErr() error {
+func (s *EndpointGroupAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s EndpointGroupAlreadyExistsException) Error() string {
+func (s *EndpointGroupAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s EndpointGroupAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *EndpointGroupAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s EndpointGroupAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *EndpointGroupAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The endpoint group that you specified doesn't exist.
 type EndpointGroupNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3161,17 +4361,17 @@ func (s EndpointGroupNotFoundException) GoString() string {
 
 func newErrorEndpointGroupNotFoundException(v protocol.ResponseMetadata) error {
 	return &EndpointGroupNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s EndpointGroupNotFoundException) Code() string {
+func (s *EndpointGroupNotFoundException) Code() string {
 	return "EndpointGroupNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s EndpointGroupNotFoundException) Message() string {
+func (s *EndpointGroupNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3179,28 +4379,85 @@ func (s EndpointGroupNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s EndpointGroupNotFoundException) OrigErr() error {
+func (s *EndpointGroupNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s EndpointGroupNotFoundException) Error() string {
+func (s *EndpointGroupNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s EndpointGroupNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *EndpointGroupNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s EndpointGroupNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *EndpointGroupNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The CIDR that you specified is not valid for this action. For example, the
+// state of the CIDR might be incorrect for this action.
+type IncorrectCidrStateException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s IncorrectCidrStateException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IncorrectCidrStateException) GoString() string {
+	return s.String()
+}
+
+func newErrorIncorrectCidrStateException(v protocol.ResponseMetadata) error {
+	return &IncorrectCidrStateException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *IncorrectCidrStateException) Code() string {
+	return "IncorrectCidrStateException"
+}
+
+// Message returns the exception's message.
+func (s *IncorrectCidrStateException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *IncorrectCidrStateException) OrigErr() error {
+	return nil
+}
+
+func (s *IncorrectCidrStateException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *IncorrectCidrStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *IncorrectCidrStateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // There was an internal error for AWS Global Accelerator.
 type InternalServiceErrorException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3217,17 +4474,17 @@ func (s InternalServiceErrorException) GoString() string {
 
 func newErrorInternalServiceErrorException(v protocol.ResponseMetadata) error {
 	return &InternalServiceErrorException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServiceErrorException) Code() string {
+func (s *InternalServiceErrorException) Code() string {
 	return "InternalServiceErrorException"
 }
 
 // Message returns the exception's message.
-func (s InternalServiceErrorException) Message() string {
+func (s *InternalServiceErrorException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3235,28 +4492,28 @@ func (s InternalServiceErrorException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServiceErrorException) OrigErr() error {
+func (s *InternalServiceErrorException) OrigErr() error {
 	return nil
 }
 
-func (s InternalServiceErrorException) Error() string {
+func (s *InternalServiceErrorException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServiceErrorException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServiceErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServiceErrorException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServiceErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An argument that you specified is invalid.
 type InvalidArgumentException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3273,17 +4530,17 @@ func (s InvalidArgumentException) GoString() string {
 
 func newErrorInvalidArgumentException(v protocol.ResponseMetadata) error {
 	return &InvalidArgumentException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidArgumentException) Code() string {
+func (s *InvalidArgumentException) Code() string {
 	return "InvalidArgumentException"
 }
 
 // Message returns the exception's message.
-func (s InvalidArgumentException) Message() string {
+func (s *InvalidArgumentException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3291,28 +4548,28 @@ func (s InvalidArgumentException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidArgumentException) OrigErr() error {
+func (s *InvalidArgumentException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidArgumentException) Error() string {
+func (s *InvalidArgumentException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidArgumentException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidArgumentException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidArgumentException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidArgumentException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // There isn't another item to return.
 type InvalidNextTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3329,17 +4586,17 @@ func (s InvalidNextTokenException) GoString() string {
 
 func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidNextTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidNextTokenException) Code() string {
+func (s *InvalidNextTokenException) Code() string {
 	return "InvalidNextTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidNextTokenException) Message() string {
+func (s *InvalidNextTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3347,29 +4604,29 @@ func (s InvalidNextTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidNextTokenException) OrigErr() error {
+func (s *InvalidNextTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidNextTokenException) Error() string {
+func (s *InvalidNextTokenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidNextTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidNextTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The port numbers that you specified are not valid numbers or are not unique
 // for this accelerator.
 type InvalidPortRangeException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3386,17 +4643,17 @@ func (s InvalidPortRangeException) GoString() string {
 
 func newErrorInvalidPortRangeException(v protocol.ResponseMetadata) error {
 	return &InvalidPortRangeException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidPortRangeException) Code() string {
+func (s *InvalidPortRangeException) Code() string {
 	return "InvalidPortRangeException"
 }
 
 // Message returns the exception's message.
-func (s InvalidPortRangeException) Message() string {
+func (s *InvalidPortRangeException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3404,22 +4661,22 @@ func (s InvalidPortRangeException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidPortRangeException) OrigErr() error {
+func (s *InvalidPortRangeException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidPortRangeException) Error() string {
+func (s *InvalidPortRangeException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidPortRangeException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidPortRangeException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidPortRangeException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidPortRangeException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A complex type for the set of IP addresses for an accelerator.
@@ -3459,8 +4716,8 @@ func (s *IpSet) SetIpFamily(v string) *IpSet {
 // Processing your request would cause you to exceed an AWS Global Accelerator
 // limit.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3477,17 +4734,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3495,22 +4752,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListAcceleratorsInput struct {
@@ -3589,6 +4846,84 @@ func (s *ListAcceleratorsOutput) SetAccelerators(v []*Accelerator) *ListAccelera
 
 // SetNextToken sets the NextToken field's value.
 func (s *ListAcceleratorsOutput) SetNextToken(v string) *ListAcceleratorsOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListByoipCidrsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return with a single call. To retrieve the
+	// remaining results, make another call with the returned nextToken value.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// The token for the next page of results.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListByoipCidrsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListByoipCidrsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListByoipCidrsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListByoipCidrsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListByoipCidrsInput) SetMaxResults(v int64) *ListByoipCidrsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListByoipCidrsInput) SetNextToken(v string) *ListByoipCidrsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListByoipCidrsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about your address ranges.
+	ByoipCidrs []*ByoipCidr `type:"list"`
+
+	// The token for the next page of results.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListByoipCidrsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListByoipCidrsOutput) GoString() string {
+	return s.String()
+}
+
+// SetByoipCidrs sets the ByoipCidrs field's value.
+func (s *ListByoipCidrsOutput) SetByoipCidrs(v []*ByoipCidr) *ListByoipCidrsOutput {
+	s.ByoipCidrs = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListByoipCidrsOutput) SetNextToken(v string) *ListByoipCidrsOutput {
 	s.NextToken = &v
 	return s
 }
@@ -3782,6 +5117,71 @@ func (s *ListListenersOutput) SetNextToken(v string) *ListListenersOutput {
 	return s
 }
 
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the accelerator to list tags for. An ARN
+	// uniquely identifies an accelerator.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Root level tag for the Tags parameters.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
+}
+
 // A complex type for a listener.
 type Listener struct {
 	_ struct{} `type:"structure"`
@@ -3854,8 +5254,8 @@ func (s *Listener) SetProtocol(v string) *Listener {
 
 // The listener that you specified doesn't exist.
 type ListenerNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3872,17 +5272,17 @@ func (s ListenerNotFoundException) GoString() string {
 
 func newErrorListenerNotFoundException(v protocol.ResponseMetadata) error {
 	return &ListenerNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ListenerNotFoundException) Code() string {
+func (s *ListenerNotFoundException) Code() string {
 	return "ListenerNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ListenerNotFoundException) Message() string {
+func (s *ListenerNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3890,22 +5290,22 @@ func (s ListenerNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ListenerNotFoundException) OrigErr() error {
+func (s *ListenerNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ListenerNotFoundException) Error() string {
+func (s *ListenerNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ListenerNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ListenerNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ListenerNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ListenerNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A complex type for a range of ports for a listener.
@@ -3957,6 +5357,296 @@ func (s *PortRange) SetToPort(v int64) *PortRange {
 	return s
 }
 
+type ProvisionByoipCidrInput struct {
+	_ struct{} `type:"structure"`
+
+	// The public IPv4 address range, in CIDR notation. The most specific IP prefix
+	// that you can specify is /24. The address range cannot overlap with another
+	// address range that you've brought to this or another Region.
+	//
+	// Cidr is a required field
+	Cidr *string `type:"string" required:"true"`
+
+	// A signed document that proves that you are authorized to bring the specified
+	// IP address range to Amazon using BYOIP.
+	//
+	// CidrAuthorizationContext is a required field
+	CidrAuthorizationContext *CidrAuthorizationContext `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s ProvisionByoipCidrInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProvisionByoipCidrInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProvisionByoipCidrInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProvisionByoipCidrInput"}
+	if s.Cidr == nil {
+		invalidParams.Add(request.NewErrParamRequired("Cidr"))
+	}
+	if s.CidrAuthorizationContext == nil {
+		invalidParams.Add(request.NewErrParamRequired("CidrAuthorizationContext"))
+	}
+	if s.CidrAuthorizationContext != nil {
+		if err := s.CidrAuthorizationContext.Validate(); err != nil {
+			invalidParams.AddNested("CidrAuthorizationContext", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidr sets the Cidr field's value.
+func (s *ProvisionByoipCidrInput) SetCidr(v string) *ProvisionByoipCidrInput {
+	s.Cidr = &v
+	return s
+}
+
+// SetCidrAuthorizationContext sets the CidrAuthorizationContext field's value.
+func (s *ProvisionByoipCidrInput) SetCidrAuthorizationContext(v *CidrAuthorizationContext) *ProvisionByoipCidrInput {
+	s.CidrAuthorizationContext = v
+	return s
+}
+
+type ProvisionByoipCidrOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the address range.
+	ByoipCidr *ByoipCidr `type:"structure"`
+}
+
+// String returns the string representation
+func (s ProvisionByoipCidrOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProvisionByoipCidrOutput) GoString() string {
+	return s.String()
+}
+
+// SetByoipCidr sets the ByoipCidr field's value.
+func (s *ProvisionByoipCidrOutput) SetByoipCidr(v *ByoipCidr) *ProvisionByoipCidrOutput {
+	s.ByoipCidr = v
+	return s
+}
+
+// A complex type that contains a Tag key and Tag value.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// A string that contains a Tag key.
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// A string that contains a Tag value.
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the Global Accelerator resource to add
+	// tags to. An ARN uniquely identifies a resource.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `min:"1" type:"string" required:"true"`
+
+	// The tags to add to a resource. A tag consists of a key and a value that you
+	// define.
+	//
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *TagResourceInput) SetResourceArn(v string) *TagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the Global Accelerator resource to remove
+	// tags from. An ARN uniquely identifies a resource.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `min:"1" type:"string" required:"true"`
+
+	// The tag key pairs that you want to remove from the specified resources.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *UntagResourceInput) SetResourceArn(v string) *UntagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateAcceleratorAttributesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3978,8 +5668,13 @@ type UpdateAcceleratorAttributesInput struct {
 	FlowLogsS3Bucket *string `type:"string"`
 
 	// Update the prefix for the location in the Amazon S3 bucket for the flow logs.
-	// Attribute is required if FlowLogsEnabled is true. If you don’t specify
-	// a prefix, the flow logs are stored in the root of the bucket.
+	// Attribute is required if FlowLogsEnabled is true.
+	//
+	// If you don’t specify a prefix, the flow logs are stored in the root of
+	// the bucket. If you specify slash (/) for the S3 bucket prefix, the log file
+	// bucket folder structure will include a double slash (//), like the following:
+	//
+	// s3-bucket_name//AWSLogs/aws_account_id
 	FlowLogsS3Prefix *string `type:"string"`
 }
 
@@ -4415,12 +6110,108 @@ func (s *UpdateListenerOutput) SetListener(v *Listener) *UpdateListenerOutput {
 	return s
 }
 
+type WithdrawByoipCidrInput struct {
+	_ struct{} `type:"structure"`
+
+	// The address range, in CIDR notation.
+	//
+	// Cidr is a required field
+	Cidr *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s WithdrawByoipCidrInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WithdrawByoipCidrInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *WithdrawByoipCidrInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "WithdrawByoipCidrInput"}
+	if s.Cidr == nil {
+		invalidParams.Add(request.NewErrParamRequired("Cidr"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidr sets the Cidr field's value.
+func (s *WithdrawByoipCidrInput) SetCidr(v string) *WithdrawByoipCidrInput {
+	s.Cidr = &v
+	return s
+}
+
+type WithdrawByoipCidrOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the address pool.
+	ByoipCidr *ByoipCidr `type:"structure"`
+}
+
+// String returns the string representation
+func (s WithdrawByoipCidrOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s WithdrawByoipCidrOutput) GoString() string {
+	return s.String()
+}
+
+// SetByoipCidr sets the ByoipCidr field's value.
+func (s *WithdrawByoipCidrOutput) SetByoipCidr(v *ByoipCidr) *WithdrawByoipCidrOutput {
+	s.ByoipCidr = v
+	return s
+}
+
 const (
 	// AcceleratorStatusDeployed is a AcceleratorStatus enum value
 	AcceleratorStatusDeployed = "DEPLOYED"
 
 	// AcceleratorStatusInProgress is a AcceleratorStatus enum value
 	AcceleratorStatusInProgress = "IN_PROGRESS"
+)
+
+const (
+	// ByoipCidrStatePendingProvisioning is a ByoipCidrState enum value
+	ByoipCidrStatePendingProvisioning = "PENDING_PROVISIONING"
+
+	// ByoipCidrStateReady is a ByoipCidrState enum value
+	ByoipCidrStateReady = "READY"
+
+	// ByoipCidrStatePendingAdvertising is a ByoipCidrState enum value
+	ByoipCidrStatePendingAdvertising = "PENDING_ADVERTISING"
+
+	// ByoipCidrStateAdvertising is a ByoipCidrState enum value
+	ByoipCidrStateAdvertising = "ADVERTISING"
+
+	// ByoipCidrStatePendingWithdrawing is a ByoipCidrState enum value
+	ByoipCidrStatePendingWithdrawing = "PENDING_WITHDRAWING"
+
+	// ByoipCidrStatePendingDeprovisioning is a ByoipCidrState enum value
+	ByoipCidrStatePendingDeprovisioning = "PENDING_DEPROVISIONING"
+
+	// ByoipCidrStateDeprovisioned is a ByoipCidrState enum value
+	ByoipCidrStateDeprovisioned = "DEPROVISIONED"
+
+	// ByoipCidrStateFailedProvision is a ByoipCidrState enum value
+	ByoipCidrStateFailedProvision = "FAILED_PROVISION"
+
+	// ByoipCidrStateFailedAdvertising is a ByoipCidrState enum value
+	ByoipCidrStateFailedAdvertising = "FAILED_ADVERTISING"
+
+	// ByoipCidrStateFailedWithdraw is a ByoipCidrState enum value
+	ByoipCidrStateFailedWithdraw = "FAILED_WITHDRAW"
+
+	// ByoipCidrStateFailedDeprovision is a ByoipCidrState enum value
+	ByoipCidrStateFailedDeprovision = "FAILED_DEPROVISION"
 )
 
 const (

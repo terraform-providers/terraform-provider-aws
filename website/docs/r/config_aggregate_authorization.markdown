@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * `account_id` - (Required) Account ID
 * `region` - (Required) Region
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

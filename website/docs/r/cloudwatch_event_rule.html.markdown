@@ -70,7 +70,7 @@ The following arguments are supported:
 * `description` - (Optional) The description of the rule.
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) associated with the role that is used for target invocation.
 * `is_enabled` - (Optional) Whether the rule should be enabled (defaults to `true`).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

@@ -283,7 +283,6 @@ func resourceAwsDbInstanceResourceV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"auto_minor_version_upgrade": {

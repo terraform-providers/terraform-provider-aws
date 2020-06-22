@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `vpc_peering_connection_id` - (Required) The VPC Peering Connection ID to manage.
 * `auto_accept` - (Optional) Whether or not to accept the peering request. Defaults to `false`.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Removing `aws_vpc_peering_connection_accepter` from your configuration
 
@@ -98,9 +98,9 @@ All of the argument attributes except `auto_accept` are also exported as result 
 * `peer_owner_id` - The AWS account ID of the owner of the requester VPC.
 * `peer_region` - The region of the accepter VPC.
 * `accepter` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the accepter VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 * `requester` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the requester VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
 
 #### Accepter and Requester Attributes Reference
 

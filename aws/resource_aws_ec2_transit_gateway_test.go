@@ -20,6 +20,7 @@ func init() {
 		Dependencies: []string{
 			"aws_dx_gateway_association",
 			"aws_ec2_transit_gateway_vpc_attachment",
+			"aws_ec2_transit_gateway_peering_attachment",
 			"aws_vpn_connection",
 		},
 	})

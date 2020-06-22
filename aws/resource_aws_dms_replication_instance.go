@@ -192,6 +192,7 @@ func resourceAwsDmsReplicationInstanceCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsDmsReplicationInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	response, err := conn.DescribeReplicationInstances(&dms.DescribeReplicationInstancesInput{
 		Filters: []*dms.Filter{
@@ -257,7 +258,7 @@ func resourceAwsDmsReplicationInstanceRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error listing tags for DMS Replication Instance (%s): %s", d.Get("replication_instance_arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

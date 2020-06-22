@@ -325,6 +325,9 @@ func (c *ELBV2) CreateListenerRequest(input *CreateListenerInput) (req *request.
 //   across all listeners. If a target group is used by multiple actions for a
 //   load balancer, it is counted as only one use.
 //
+//   * ErrCodeALPNPolicyNotSupportedException "ALPNPolicyNotFound"
+//   The specified ALPN policy is not supported.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/CreateListener
 func (c *ELBV2) CreateListener(input *CreateListenerInput) (*CreateListenerOutput, error) {
 	req, out := c.CreateListenerRequest(input)
@@ -2378,6 +2381,9 @@ func (c *ELBV2) ModifyListenerRequest(input *ModifyListenerInput) (req *request.
 //   across all listeners. If a target group is used by multiple actions for a
 //   load balancer, it is counted as only one use.
 //
+//   * ErrCodeALPNPolicyNotSupportedException "ALPNPolicyNotFound"
+//   The specified ALPN policy is not supported.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/elasticloadbalancingv2-2015-12-01/ModifyListener
 func (c *ELBV2) ModifyListener(input *ModifyListenerInput) (*ModifyListenerOutput, error) {
 	req, out := c.ModifyListenerRequest(input)
@@ -3647,7 +3653,7 @@ type AddTagsInput struct {
 	// ResourceArns is a required field
 	ResourceArns []*string `type:"list" required:"true"`
 
-	// The tags. Each resource can have a maximum of 10 tags.
+	// The tags.
 	//
 	// Tags is a required field
 	Tags []*Tag `min:"1" type:"list" required:"true"`
@@ -4143,6 +4149,23 @@ func (s *Cipher) SetPriority(v int64) *Cipher {
 type CreateListenerInput struct {
 	_ struct{} `type:"structure"`
 
+	// [TLS listeners] The name of the Application-Layer Protocol Negotiation (ALPN)
+	// policy. You can specify one policy name. The following are the possible values:
+	//
+	//    * HTTP1Only
+	//
+	//    * HTTP2Only
+	//
+	//    * HTTP2Optional
+	//
+	//    * HTTP2Preferred
+	//
+	//    * None
+	//
+	// For more information, see ALPN Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#alpn-policies)
+	// in the Network Load Balancers Guide.
+	AlpnPolicy []*string `type:"list"`
+
 	// [HTTPS and TLS listeners] The default certificate for the listener. You must
 	// provide exactly one certificate. Set CertificateArn to the certificate ARN
 	// but do not set IsDefault.
@@ -4190,9 +4213,30 @@ type CreateListenerInput struct {
 	// Protocol is a required field
 	Protocol *string `type:"string" required:"true" enum:"ProtocolEnum"`
 
-	// [HTTPS and TLS listeners] The security policy that defines which ciphers
-	// and protocols are supported. The default is the current predefined security
-	// policy.
+	// [HTTPS and TLS listeners] The security policy that defines which protocols
+	// and ciphers are supported. The following are the possible values:
+	//
+	//    * ELBSecurityPolicy-2016-08
+	//
+	//    * ELBSecurityPolicy-TLS-1-0-2015-04
+	//
+	//    * ELBSecurityPolicy-TLS-1-1-2017-01
+	//
+	//    * ELBSecurityPolicy-TLS-1-2-2017-01
+	//
+	//    * ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+	//
+	//    * ELBSecurityPolicy-FS-2018-06
+	//
+	//    * ELBSecurityPolicy-FS-1-1-2019-08
+	//
+	//    * ELBSecurityPolicy-FS-1-2-2019-08
+	//
+	//    * ELBSecurityPolicy-FS-1-2-Res-2019-08
+	//
+	// For more information, see Security Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
+	// in the Application Load Balancers Guide and Security Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies)
+	// in the Network Load Balancers Guide.
 	SslPolicy *string `type:"string"`
 }
 
@@ -4239,6 +4283,12 @@ func (s *CreateListenerInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAlpnPolicy sets the AlpnPolicy field's value.
+func (s *CreateListenerInput) SetAlpnPolicy(v []*string) *CreateListenerInput {
+	s.AlpnPolicy = v
+	return s
 }
 
 // SetCertificates sets the Certificates field's value.
@@ -5733,7 +5783,7 @@ type DescribeSSLPoliciesOutput struct {
 	// Otherwise, this is null.
 	NextMarker *string `type:"string"`
 
-	// Information about the policies.
+	// Information about the security policies.
 	SslPolicies []*SslPolicy `type:"list"`
 }
 
@@ -5762,7 +5812,8 @@ func (s *DescribeSSLPoliciesOutput) SetSslPolicies(v []*SslPolicy) *DescribeSSLP
 type DescribeTagsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Names (ARN) of the resources.
+	// The Amazon Resource Names (ARN) of the resources. You can specify up to 20
+	// resources in a single call.
 	//
 	// ResourceArns is a required field
 	ResourceArns []*string `type:"list" required:"true"`
@@ -6338,6 +6389,10 @@ func (s *Limit) SetName(v string) *Limit {
 type Listener struct {
 	_ struct{} `type:"structure"`
 
+	// [TLS listener] The name of the Application-Layer Protocol Negotiation (ALPN)
+	// policy.
+	AlpnPolicy []*string `type:"list"`
+
 	// [HTTPS or TLS listener] The default certificate for the listener.
 	Certificates []*Certificate `type:"list"`
 
@@ -6356,8 +6411,8 @@ type Listener struct {
 	// The protocol for connections from clients to the load balancer.
 	Protocol *string `type:"string" enum:"ProtocolEnum"`
 
-	// [HTTPS or TLS listener] The security policy that defines which ciphers and
-	// protocols are supported. The default is the current predefined security policy.
+	// [HTTPS or TLS listener] The security policy that defines which protocols
+	// and ciphers are supported.
 	SslPolicy *string `type:"string"`
 }
 
@@ -6369,6 +6424,12 @@ func (s Listener) String() string {
 // GoString returns the string representation
 func (s Listener) GoString() string {
 	return s.String()
+}
+
+// SetAlpnPolicy sets the AlpnPolicy field's value.
+func (s *Listener) SetAlpnPolicy(v []*string) *Listener {
+	s.AlpnPolicy = v
+	return s
 }
 
 // SetCertificates sets the Certificates field's value.
@@ -6622,7 +6683,8 @@ type LoadBalancerAttribute struct {
 	//    (true) or routed to targets (false). The default is false.
 	//
 	//    * routing.http2.enabled - Indicates whether HTTP/2 is enabled. The value
-	//    is true or false. The default is true.
+	//    is true or false. The default is true. Elastic Load Balancing requires
+	//    that message header names contain only alphanumeric characters and hyphens.
 	//
 	// The following attributes are supported by only Network Load Balancers:
 	//
@@ -6739,6 +6801,23 @@ func (s *Matcher) SetHttpCode(v string) *Matcher {
 type ModifyListenerInput struct {
 	_ struct{} `type:"structure"`
 
+	// [TLS listeners] The name of the Application-Layer Protocol Negotiation (ALPN)
+	// policy. You can specify one policy name. The following are the possible values:
+	//
+	//    * HTTP1Only
+	//
+	//    * HTTP2Only
+	//
+	//    * HTTP2Optional
+	//
+	//    * HTTP2Preferred
+	//
+	//    * None
+	//
+	// For more information, see ALPN Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#alpn-policies)
+	// in the Network Load Balancers Guide.
+	AlpnPolicy []*string `type:"list"`
+
 	// [HTTPS and TLS listeners] The default certificate for the listener. You must
 	// provide exactly one certificate. Set CertificateArn to the certificate ARN
 	// but do not set IsDefault.
@@ -6781,8 +6860,29 @@ type ModifyListenerInput struct {
 	Protocol *string `type:"string" enum:"ProtocolEnum"`
 
 	// [HTTPS and TLS listeners] The security policy that defines which protocols
-	// and ciphers are supported. For more information, see Security Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
-	// in the Application Load Balancers Guide.
+	// and ciphers are supported. The following are the possible values:
+	//
+	//    * ELBSecurityPolicy-2016-08
+	//
+	//    * ELBSecurityPolicy-TLS-1-0-2015-04
+	//
+	//    * ELBSecurityPolicy-TLS-1-1-2017-01
+	//
+	//    * ELBSecurityPolicy-TLS-1-2-2017-01
+	//
+	//    * ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+	//
+	//    * ELBSecurityPolicy-FS-2018-06
+	//
+	//    * ELBSecurityPolicy-FS-1-1-2019-08
+	//
+	//    * ELBSecurityPolicy-FS-1-2-2019-08
+	//
+	//    * ELBSecurityPolicy-FS-1-2-Res-2019-08
+	//
+	// For more information, see Security Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies)
+	// in the Application Load Balancers Guide and Security Policies (https://docs.aws.amazon.com/elasticloadbalancing/latest/network/create-tls-listener.html#describe-ssl-policies)
+	// in the Network Load Balancers Guide.
 	SslPolicy *string `type:"string"`
 }
 
@@ -6820,6 +6920,12 @@ func (s *ModifyListenerInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetAlpnPolicy sets the AlpnPolicy field's value.
+func (s *ModifyListenerInput) SetAlpnPolicy(v []*string) *ModifyListenerInput {
+	s.AlpnPolicy = v
+	return s
 }
 
 // SetCertificates sets the Certificates field's value.
@@ -8760,8 +8866,8 @@ type TargetGroupAttribute struct {
 
 	// The name of the attribute.
 	//
-	// The following attribute is supported by both Application Load Balancers and
-	// Network Load Balancers:
+	// The following attributes are supported by both Application Load Balancers
+	// and Network Load Balancers:
 	//
 	//    * deregistration_delay.timeout_seconds - The amount of time, in seconds,
 	//    for Elastic Load Balancing to wait before changing the state of a deregistering
@@ -8769,24 +8875,25 @@ type TargetGroupAttribute struct {
 	//    value is 300 seconds. If the target is a Lambda function, this attribute
 	//    is not supported.
 	//
-	// The following attributes are supported by Application Load Balancers if the
-	// target is not a Lambda function:
+	//    * stickiness.enabled - Indicates whether sticky sessions are enabled.
+	//    The value is true or false. The default is false.
+	//
+	//    * stickiness.type - The type of sticky sessions. The possible values are
+	//    lb_cookie for Application Load Balancers or source_ip for Network Load
+	//    Balancers.
+	//
+	// The following attributes are supported only if the load balancer is an Application
+	// Load Balancer and the target is an instance or an IP address:
 	//
 	//    * load_balancing.algorithm.type - The load balancing algorithm determines
 	//    how the load balancer selects targets when routing requests. The value
 	//    is round_robin or least_outstanding_requests. The default is round_robin.
 	//
 	//    * slow_start.duration_seconds - The time period, in seconds, during which
-	//    a newly registered target receives a linearly increasing share of the
-	//    traffic to the target group. After this time period ends, the target receives
+	//    a newly registered target receives an increasing share of the traffic
+	//    to the target group. After this time period ends, the target receives
 	//    its full share of traffic. The range is 30-900 seconds (15 minutes). Slow
 	//    start mode is disabled by default.
-	//
-	//    * stickiness.enabled - Indicates whether sticky sessions are enabled.
-	//    The value is true or false. The default is false.
-	//
-	//    * stickiness.type - The type of sticky sessions. The possible value is
-	//    lb_cookie.
 	//
 	//    * stickiness.lb_cookie.duration_seconds - The time period, in seconds,
 	//    during which requests from a client should be routed to the same target.
@@ -8794,14 +8901,15 @@ type TargetGroupAttribute struct {
 	//    considered stale. The range is 1 second to 1 week (604800 seconds). The
 	//    default value is 1 day (86400 seconds).
 	//
-	// The following attribute is supported only if the target is a Lambda function.
+	// The following attribute is supported only if the load balancer is an Application
+	// Load Balancer and the target is a Lambda function:
 	//
 	//    * lambda.multi_value_headers.enabled - Indicates whether the request and
-	//    response headers exchanged between the load balancer and the Lambda function
-	//    include arrays of values or strings. The value is true or false. The default
-	//    is false. If the value is false and the request contains a duplicate header
-	//    field name or query parameter key, the load balancer uses the last value
-	//    sent by the client.
+	//    response headers that are exchanged between the load balancer and the
+	//    Lambda function include arrays of values or strings. The value is true
+	//    or false. The default is false. If the value is false and the request
+	//    contains a duplicate header field name or query parameter key, the load
+	//    balancer uses the last value sent by the client.
 	//
 	// The following attribute is supported only by Network Load Balancers:
 	//

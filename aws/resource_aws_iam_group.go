@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAwsIamGroup() *schema.Resource {
@@ -31,9 +32,12 @@ func resourceAwsIamGroup() *schema.Resource {
 				Computed: true,
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateAwsIamGroupName,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`),
+					fmt.Sprintf("must only contain alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs"),
+				),
 			},
 			"path": {
 				Type:     schema.TypeString,
@@ -98,7 +102,7 @@ func resourceAwsIamGroupReadResult(d *schema.ResourceData, group *iam.Group) err
 }
 
 func resourceAwsIamGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	if d.HasChange("name") || d.HasChange("path") {
+	if d.HasChanges("name", "path") {
 		iamconn := meta.(*AWSClient).iamconn
 		on, nn := d.GetChange("name")
 		_, np := d.GetChange("path")
@@ -129,14 +133,4 @@ func resourceAwsIamGroupDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting IAM Group %s: %s", d.Id(), err)
 	}
 	return nil
-}
-
-func validateAwsIamGroupName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[0-9A-Za-z=,.@\-_+]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters, hyphens, underscores, commas, periods, @ symbols, plus and equals signs allowed in %q: %q",
-			k, value))
-	}
-	return
 }

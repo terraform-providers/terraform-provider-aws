@@ -29,7 +29,7 @@ resource "aws_launch_template" "foo" {
   }
 
   cpu_options {
-    core_count = 4
+    core_count       = 4
     threads_per_core = 2
   }
 
@@ -71,6 +71,12 @@ resource "aws_launch_template" "foo" {
     license_configuration_arn = "arn:aws:license-manager:eu-west-1:123456789012:license-configuration:lic-0123456789abcdef0123456789abcdef"
   }
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
   monitoring {
     enabled = true
   }
@@ -95,7 +101,7 @@ resource "aws_launch_template" "foo" {
     }
   }
 
-  user_data = "${base64encode(...)}"
+  user_data = filebase64("${path.module}/example.sh")
 }
 ```
 
@@ -129,6 +135,7 @@ The following arguments are supported:
 * `kernel_id` - The kernel ID.
 * `key_name` - The key name to use for the instance.
 * `license_specification` - A list of license specifications to associate with. See [License Specification](#license-specification) below for more details.
+* `metadata_options` - (Optional) Customize the metadata options for the instance. See [Metadata Options](#metadata-options) below for more details.
 * `monitoring` - The monitoring option for the instance. See [Monitoring](#monitoring) below for more details.
 * `network_interfaces` - Customize network interfaces to be attached at instance boot time. See [Network
   Interfaces](#network-interfaces) below for more details.
@@ -138,8 +145,9 @@ The following arguments are supported:
   `vpc_security_group_ids` instead.
 * `vpc_security_group_ids` - A list of security group IDs to associate with.
 * `tag_specifications` - The tags to apply to the resources during launch. See [Tag Specifications](#tag-specifications) below for more details.
-* `tags` - (Optional) A mapping of tags to assign to the launch template.
+* `tags` - (Optional) A map of tags to assign to the launch template.
 * `user_data` - The Base64-encoded user data to provide when launching the instance.
+* `hibernation_options` - The hibernation options for the instance. See [Hibernation Options](#hibernation-options) below for more details.
 
 ### Block devices
 
@@ -160,13 +168,13 @@ Each `block_device_mappings` supports the following:
 
 The `ebs` block supports the following:
 
-* `delete_on_termination` - Whether the volume should be destroyed on instance termination (Default: `false`). See [Preserving Amazon EBS Volumes on Instance Termination](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#preserving-volumes-on-termination) for more information.
+* `delete_on_termination` - Whether the volume should be destroyed on instance termination. Defaults to `false` if not set. See [Preserving Amazon EBS Volumes on Instance Termination](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#preserving-volumes-on-termination) for more information.
 * `encrypted` - Enables [EBS encryption](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html)
   on the volume (Default: `false`). Cannot be used with `snapshot_id`.
 * `iops` - The amount of provisioned
   [IOPS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-io-characteristics.html).
   This must be set with a `volume_type` of `"io1"`.
-* `kms_key_id` - AWS Key Management Service (AWS KMS) customer master key (CMK) to use when creating the encrypted volume.
+* `kms_key_id` - The ARN of the AWS Key Management Service (AWS KMS) customer master key (CMK) to use when creating the encrypted volume.
  `encrypted` must be set to `true` when this is set.
 * `snapshot_id` - The Snapshot ID to mount.
 * `volume_size` - The size of the volume in gigabytes.
@@ -253,6 +261,18 @@ The `spot_options` block supports the following:
 * `spot_instance_type` - The Spot Instance request type. Can be `one-time`, or `persistent`.
 * `valid_until` - The end date of the request.
 
+### Metadata Options
+
+The metadata options for the instances.
+
+The `metadata_options` block supports the following:
+
+* `http_endpoint` - (Optional) Whether the metadata service is available. Can be `"enabled"` or `"disabled"`. (Default: `"enabled"`).
+* `http_tokens` - (Optional) Whether or not the metadata service requires session tokens, also referred to as _Instance Metadata Service Version 2_. Can be `"optional"` or `"required"`. (Default: `"optional"`).
+* `http_put_response_hop_limit` - (Optional) The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. Can be an integer from `1` to `64`. (Default: `1`).
+
+For more information, see the documentation on the [Instance Metadata Service](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html).
+
 ### Monitoring
 
 The `monitoring` block supports the following:
@@ -268,15 +288,15 @@ Check limitations for autoscaling group in [Creating an Auto Scaling Group Using
 Each `network_interfaces` block supports the following:
 
 * `associate_public_ip_address` - Associate a public ip address with the network interface.  Boolean value.
-* `delete_on_termination` - Whether the network interface should be destroyed on instance termination.
+* `delete_on_termination` - Whether the network interface should be destroyed on instance termination. Defaults to `false` if not set.
 * `description` - Description of the network interface.
 * `device_index` - The integer index of the network interface attachment.
 * `ipv6_addresses` - One or more specific IPv6 addresses from the IPv6 CIDR block range of your subnet. Conflicts with `ipv6_address_count`
 * `ipv6_address_count` - The number of IPv6 addresses to assign to a network interface. Conflicts with `ipv6_addresses`
 * `network_interface_id` - The ID of the network interface to attach.
 * `private_ip_address` - The primary private IPv4 address.
-* `ipv4_address_count` - The number of secondary private IPv4 addresses to assign to a network interface. Conflicts with `ipv4_address_count`
-* `ipv4_addresses` - One or more private IPv4 addresses to associate. Conflicts with `ipv4_addresses`
+* `ipv4_address_count` - The number of secondary private IPv4 addresses to assign to a network interface. Conflicts with `ipv4_addresses`
+* `ipv4_addresses` - One or more private IPv4 addresses to associate. Conflicts with `ipv4_address_count`
 * `security_groups` - A list of security group IDs to associate.
 * `subnet_id` - The VPC Subnet ID to associate.
 
@@ -292,6 +312,13 @@ The `placement` block supports the following:
 * `host_id` - The ID of the Dedicated Host for the instance.
 * `spread_domain` - Reserved for future use.
 * `tenancy` - The tenancy of the instance (if the instance is running in a VPC). Can be `default`, `dedicated`, or `host`.
+* `partition_number` - The number of the partition the instance should launch in. Valid only if the placement group strategy is set to partition.
+
+### Hibernation Options
+
+The `hibernation_options` block supports the following:
+
+* `configured` - If set to `true`, the launched EC2 instance will hibernation enabled.
 
 ### Tag Specifications
 
@@ -300,7 +327,7 @@ The tags to apply to the resources during launch. You can tag instances and volu
 Each `tag_specifications` block supports the following:
 
 * `resource_type` - The type of resource to tag. Valid values are `instance` and `volume`.
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A map of tags to assign to the resource.
 
 
 ## Attributes Reference

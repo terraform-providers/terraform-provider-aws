@@ -94,6 +94,7 @@ func resourceAwsElasticBeanstalkApplicationVersionCreate(d *schema.ResourceData,
 
 func resourceAwsElasticBeanstalkApplicationVersionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticbeanstalkconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeApplicationVersions(&elasticbeanstalk.DescribeApplicationVersionsInput{
 		ApplicationName: aws.String(d.Get("application").(string)),
@@ -124,7 +125,7 @@ func resourceAwsElasticBeanstalkApplicationVersionRead(d *schema.ResourceData, m
 		return fmt.Errorf("error listing tags for Elastic Beanstalk Application version (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreElasticbeanstalk().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreElasticbeanstalk().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

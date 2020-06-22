@@ -53,7 +53,7 @@ func resourceAwsConfigOrganizationCustomRule() *schema.Resource {
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(0, 2048),
-					validation.ValidateJsonString,
+					validation.StringIsJSON,
 				),
 			},
 			"lambda_function_arn": {

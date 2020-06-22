@@ -13,13 +13,13 @@ Use this data source to get the default EBS encryption KMS key in the current re
 ## Example Usage
 
 ```hcl
-data "aws_ebs_default_kms_key" "current" { }
+data "aws_ebs_default_kms_key" "current" {}
 
 resource "aws_ebs_volume" "example" {
   availability_zone = "us-west-2a"
-  
-  encrypted         = true
-  kms_key_id        = "${data.aws_ebs_default_kms_key.current.key_arn}"
+
+  encrypted  = true
+  kms_key_id = "${data.aws_ebs_default_kms_key.current.key_arn}"
 
 }
 ```

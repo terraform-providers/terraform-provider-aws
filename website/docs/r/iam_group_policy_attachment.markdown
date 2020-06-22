@@ -22,7 +22,7 @@ resource "aws_iam_group" "group" {
 resource "aws_iam_policy" "policy" {
   name        = "test-policy"
   description = "A test policy"
-  policy      = ""              # insert policy here
+  policy      = "" # insert policy here
 }
 
 resource "aws_iam_group_policy_attachment" "test-attach" {

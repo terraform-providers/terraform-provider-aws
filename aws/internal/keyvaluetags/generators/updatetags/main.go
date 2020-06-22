@@ -28,6 +28,7 @@ var serviceNames = []string{
 	"appsync",
 	"athena",
 	"backup",
+	"cloud9",
 	"cloudfront",
 	"cloudhsmv2",
 	"cloudtrail",
@@ -67,6 +68,7 @@ var serviceNames = []string{
 	"fsx",
 	"gamelift",
 	"glacier",
+	"globalaccelerator",
 	"glue",
 	"guardduty",
 	"greengrass",
@@ -78,6 +80,7 @@ var serviceNames = []string{
 	"kinesis",
 	"kinesisanalytics",
 	"kinesisanalyticsv2",
+	"kinesisvideo",
 	"kms",
 	"lambda",
 	"licensemanager",
@@ -89,10 +92,12 @@ var serviceNames = []string{
 	"mediastore",
 	"mq",
 	"neptune",
+	"networkmanager",
 	"opsworks",
 	"organizations",
 	"pinpoint",
 	"qldb",
+	"quicksight",
 	"ram",
 	"rds",
 	"redshift",
@@ -102,16 +107,19 @@ var serviceNames = []string{
 	"sagemaker",
 	"secretsmanager",
 	"securityhub",
+	"servicediscovery",
 	"sfn",
 	"sns",
 	"sqs",
 	"ssm",
 	"storagegateway",
 	"swf",
+	"synthetics",
 	"transfer",
 	"waf",
 	"wafregional",
 	"wafv2",
+	"worklink",
 	"workspaces",
 }
 
@@ -128,20 +136,20 @@ func main() {
 	}
 	templateFuncMap := template.FuncMap{
 		"ClientType":                      keyvaluetags.ServiceClientType,
-		"TagFunction":                     ServiceTagFunction,
-		"TagFunctionBatchSize":            ServiceTagFunctionBatchSize,
-		"TagInputCustomValue":             ServiceTagInputCustomValue,
-		"TagInputIdentifierField":         ServiceTagInputIdentifierField,
-		"TagInputIdentifierRequiresSlice": ServiceTagInputIdentifierRequiresSlice,
-		"TagInputResourceTypeField":       ServiceTagInputResourceTypeField,
-		"TagInputTagsField":               ServiceTagInputTagsField,
+		"TagFunction":                     keyvaluetags.ServiceTagFunction,
+		"TagFunctionBatchSize":            keyvaluetags.ServiceTagFunctionBatchSize,
+		"TagInputCustomValue":             keyvaluetags.ServiceTagInputCustomValue,
+		"TagInputIdentifierField":         keyvaluetags.ServiceTagInputIdentifierField,
+		"TagInputIdentifierRequiresSlice": keyvaluetags.ServiceTagInputIdentifierRequiresSlice,
+		"TagInputResourceTypeField":       keyvaluetags.ServiceTagInputResourceTypeField,
+		"TagInputTagsField":               keyvaluetags.ServiceTagInputTagsField,
 		"TagPackage":                      keyvaluetags.ServiceTagPackage,
 		"Title":                           strings.Title,
-		"UntagFunction":                   ServiceUntagFunction,
-		"UntagInputCustomValue":           ServiceUntagInputCustomValue,
-		"UntagInputRequiresTagKeyType":    ServiceUntagInputRequiresTagKeyType,
-		"UntagInputRequiresTagType":       ServiceUntagInputRequiresTagType,
-		"UntagInputTagsField":             ServiceUntagInputTagsField,
+		"UntagFunction":                   keyvaluetags.ServiceUntagFunction,
+		"UntagInputCustomValue":           keyvaluetags.ServiceUntagInputCustomValue,
+		"UntagInputRequiresTagKeyType":    keyvaluetags.ServiceUntagInputRequiresTagKeyType,
+		"UntagInputRequiresTagType":       keyvaluetags.ServiceUntagInputRequiresTagType,
+		"UntagInputTagsField":             keyvaluetags.ServiceUntagInputTagsField,
 	}
 
 	tmpl, err := template.New("updatetags").Funcs(templateFuncMap).Parse(templateBody)
@@ -313,389 +321,3 @@ func {{ . | Title }}UpdateTags(conn {{ . | ClientType }}, identifier string{{ if
 }
 {{- end }}
 `
-
-// ServiceTagFunction determines the service tagging function.
-func ServiceTagFunction(serviceName string) string {
-	switch serviceName {
-	case "acm":
-		return "AddTagsToCertificate"
-	case "acmpca":
-		return "TagCertificateAuthority"
-	case "cloudtrail":
-		return "AddTags"
-	case "cloudwatchlogs":
-		return "TagLogGroup"
-	case "databasemigrationservice":
-		return "AddTagsToResource"
-	case "datapipeline":
-		return "AddTags"
-	case "directoryservice":
-		return "AddTagsToResource"
-	case "docdb":
-		return "AddTagsToResource"
-	case "ec2":
-		return "CreateTags"
-	case "elasticache":
-		return "AddTagsToResource"
-	case "elasticbeanstalk":
-		return "UpdateTagsForResource"
-	case "elasticsearchservice":
-		return "AddTags"
-	case "elb":
-		return "AddTags"
-	case "elbv2":
-		return "AddTags"
-	case "emr":
-		return "AddTags"
-	case "firehose":
-		return "TagDeliveryStream"
-	case "glacier":
-		return "AddTagsToVault"
-	case "kinesis":
-		return "AddTagsToStream"
-	case "medialive":
-		return "CreateTags"
-	case "mq":
-		return "CreateTags"
-	case "neptune":
-		return "AddTagsToResource"
-	case "rds":
-		return "AddTagsToResource"
-	case "redshift":
-		return "CreateTags"
-	case "resourcegroups":
-		return "Tag"
-	case "route53":
-		return "ChangeTagsForResource"
-	case "sagemaker":
-		return "AddTags"
-	case "sqs":
-		return "TagQueue"
-	case "ssm":
-		return "AddTagsToResource"
-	case "storagegateway":
-		return "AddTagsToResource"
-	case "workspaces":
-		return "CreateTags"
-	default:
-		return "TagResource"
-	}
-}
-
-// ServiceTagFunctionBatchSize determines the batch size (if any) for tagging and untagging.
-func ServiceTagFunctionBatchSize(serviceName string) string {
-	switch serviceName {
-	case "kinesis":
-		return "10"
-	default:
-		return ""
-	}
-}
-
-// ServiceTagInputIdentifierField determines the service tag identifier field.
-func ServiceTagInputIdentifierField(serviceName string) string {
-	switch serviceName {
-	case "acm":
-		return "CertificateArn"
-	case "acmpca":
-		return "CertificateAuthorityArn"
-	case "athena":
-		return "ResourceARN"
-	case "cloudfront":
-		return "Resource"
-	case "cloudhsmv2":
-		return "ResourceId"
-	case "cloudtrail":
-		return "ResourceId"
-	case "cloudwatch":
-		return "ResourceARN"
-	case "cloudwatchevents":
-		return "ResourceARN"
-	case "cloudwatchlogs":
-		return "LogGroupName"
-	case "codestarnotifications":
-		return "Arn"
-	case "datapipeline":
-		return "PipelineId"
-	case "dax":
-		return "ResourceName"
-	case "devicefarm":
-		return "ResourceARN"
-	case "directoryservice":
-		return "ResourceId"
-	case "docdb":
-		return "ResourceName"
-	case "ec2":
-		return "Resources"
-	case "efs":
-		return "ResourceId"
-	case "elasticache":
-		return "ResourceName"
-	case "elasticsearchservice":
-		return "ARN"
-	case "elb":
-		return "LoadBalancerNames"
-	case "elbv2":
-		return "ResourceArns"
-	case "emr":
-		return "ResourceId"
-	case "firehose":
-		return "DeliveryStreamName"
-	case "fsx":
-		return "ResourceARN"
-	case "gamelift":
-		return "ResourceARN"
-	case "glacier":
-		return "VaultName"
-	case "kinesis":
-		return "StreamName"
-	case "kinesisanalytics":
-		return "ResourceARN"
-	case "kinesisanalyticsv2":
-		return "ResourceARN"
-	case "kms":
-		return "KeyId"
-	case "lambda":
-		return "Resource"
-	case "lightsail":
-		return "ResourceName"
-	case "mediaconvert":
-		return "Arn"
-	case "mediastore":
-		return "Resource"
-	case "neptune":
-		return "ResourceName"
-	case "organizations":
-		return "ResourceId"
-	case "ram":
-		return "ResourceShareArn"
-	case "rds":
-		return "ResourceName"
-	case "redshift":
-		return "ResourceName"
-	case "resourcegroups":
-		return "Arn"
-	case "route53":
-		return "ResourceId"
-	case "secretsmanager":
-		return "SecretId"
-	case "sqs":
-		return "QueueUrl"
-	case "ssm":
-		return "ResourceId"
-	case "storagegateway":
-		return "ResourceARN"
-	case "transfer":
-		return "Arn"
-	case "waf":
-		return "ResourceARN"
-	case "wafregional":
-		return "ResourceARN"
-	case "wafv2":
-		return "ResourceARN"
-	case "workspaces":
-		return "ResourceId"
-	default:
-		return "ResourceArn"
-	}
-}
-
-// ServiceTagInputIdentifierRequiresSlice determines if the service tagging resource field requires a slice.
-func ServiceTagInputIdentifierRequiresSlice(serviceName string) string {
-	switch serviceName {
-	case "ec2":
-		return "yes"
-	case "elb":
-		return "yes"
-	case "elbv2":
-		return "yes"
-	default:
-		return ""
-	}
-}
-
-// ServiceTagInputTagsField determines the service tagging tags field.
-func ServiceTagInputTagsField(serviceName string) string {
-	switch serviceName {
-	case "cloudhsmv2":
-		return "TagList"
-	case "cloudtrail":
-		return "TagsList"
-	case "elasticbeanstalk":
-		return "TagsToAdd"
-	case "elasticsearchservice":
-		return "TagList"
-	case "glue":
-		return "TagsToAdd"
-	case "pinpoint":
-		return "TagsModel"
-	case "route53":
-		return "AddTags"
-	default:
-		return "Tags"
-	}
-}
-
-// ServiceTagInputCustomValue determines any custom value for the service tagging tags field.
-func ServiceTagInputCustomValue(serviceName string) string {
-	switch serviceName {
-	case "cloudfront":
-		return "&cloudfront.Tags{Items: updatedTags.IgnoreAws().CloudfrontTags()}"
-	case "kinesis":
-		return "aws.StringMap(updatedTags.IgnoreAws().Map())"
-	case "pinpoint":
-		return "&pinpoint.TagsModel{Tags: updatedTags.IgnoreAws().PinpointTags()}"
-	default:
-		return ""
-	}
-}
-
-// ServiceTagInputResourceTypeField determines the service tagging resource type field.
-func ServiceTagInputResourceTypeField(serviceName string) string {
-	switch serviceName {
-	case "route53":
-		return "ResourceType"
-	case "ssm":
-		return "ResourceType"
-	default:
-		return ""
-	}
-}
-
-// ServiceUntagFunction determines the service untagging function.
-func ServiceUntagFunction(serviceName string) string {
-	switch serviceName {
-	case "acm":
-		return "RemoveTagsFromCertificate"
-	case "acmpca":
-		return "UntagCertificateAuthority"
-	case "cloudtrail":
-		return "RemoveTags"
-	case "cloudwatchlogs":
-		return "UntagLogGroup"
-	case "databasemigrationservice":
-		return "RemoveTagsFromResource"
-	case "datapipeline":
-		return "RemoveTags"
-	case "directoryservice":
-		return "RemoveTagsFromResource"
-	case "docdb":
-		return "RemoveTagsFromResource"
-	case "ec2":
-		return "DeleteTags"
-	case "elasticache":
-		return "RemoveTagsFromResource"
-	case "elasticbeanstalk":
-		return "UpdateTagsForResource"
-	case "elasticsearchservice":
-		return "RemoveTags"
-	case "elb":
-		return "RemoveTags"
-	case "elbv2":
-		return "RemoveTags"
-	case "emr":
-		return "RemoveTags"
-	case "firehose":
-		return "UntagDeliveryStream"
-	case "glacier":
-		return "RemoveTagsFromVault"
-	case "kinesis":
-		return "RemoveTagsFromStream"
-	case "medialive":
-		return "DeleteTags"
-	case "mq":
-		return "DeleteTags"
-	case "neptune":
-		return "RemoveTagsFromResource"
-	case "rds":
-		return "RemoveTagsFromResource"
-	case "redshift":
-		return "DeleteTags"
-	case "resourcegroups":
-		return "Untag"
-	case "route53":
-		return "ChangeTagsForResource"
-	case "sagemaker":
-		return "DeleteTags"
-	case "sqs":
-		return "UntagQueue"
-	case "ssm":
-		return "RemoveTagsFromResource"
-	case "storagegateway":
-		return "RemoveTagsFromResource"
-	case "workspaces":
-		return "DeleteTags"
-	default:
-		return "UntagResource"
-	}
-}
-
-// ServiceUntagInputRequiresTagType determines if the service untagging requires full Tag type.
-func ServiceUntagInputRequiresTagType(serviceName string) string {
-	switch serviceName {
-	case "acm":
-		return "yes"
-	case "acmpca":
-		return "yes"
-	case "cloudtrail":
-		return "yes"
-	case "ec2":
-		return "yes"
-	default:
-		return ""
-	}
-}
-
-// ServiceUntagInputRequiresTagKeyType determines if a special type for the untagging function tag key field is needed.
-func ServiceUntagInputRequiresTagKeyType(serviceName string) string {
-	switch serviceName {
-	case "elb":
-		return "yes"
-	default:
-		return ""
-	}
-}
-
-// ServiceUntagInputTagsField determines the service untagging tags field.
-func ServiceUntagInputTagsField(serviceName string) string {
-	switch serviceName {
-	case "acm":
-		return "Tags"
-	case "acmpca":
-		return "Tags"
-	case "backup":
-		return "TagKeyList"
-	case "cloudhsmv2":
-		return "TagKeyList"
-	case "cloudtrail":
-		return "TagsList"
-	case "cloudwatchlogs":
-		return "Tags"
-	case "datasync":
-		return "Keys"
-	case "ec2":
-		return "Tags"
-	case "elasticbeanstalk":
-		return "TagsToRemove"
-	case "elb":
-		return "Tags"
-	case "glue":
-		return "TagsToRemove"
-	case "resourcegroups":
-		return "Keys"
-	case "route53":
-		return "RemoveTagKeys"
-	default:
-		return "TagKeys"
-	}
-}
-
-// ServiceUntagInputCustomValue determines any custom value for the service untagging tags field.
-func ServiceUntagInputCustomValue(serviceName string) string {
-	switch serviceName {
-	case "cloudfront":
-		return "&cloudfront.TagKeys{Items: aws.StringSlice(removedTags.IgnoreAws().Keys())}"
-	default:
-		return ""
-	}
-}

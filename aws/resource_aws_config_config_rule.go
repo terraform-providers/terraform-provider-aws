@@ -49,7 +49,7 @@ func resourceAwsConfigConfigRule() *schema.Resource {
 			"input_parameters": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 			},
 			"maximum_execution_frequency": {
 				Type:         schema.TypeString,
@@ -205,6 +205,7 @@ func resourceAwsConfigConfigRulePut(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsConfigConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).configconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	out, err := conn.DescribeConfigRules(&configservice.DescribeConfigRulesInput{
 		ConfigRuleNames: []*string{aws.String(d.Id())},
@@ -252,7 +253,7 @@ func resourceAwsConfigConfigRuleRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error listing tags for Config Config Rule (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

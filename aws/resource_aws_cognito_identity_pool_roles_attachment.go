@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -17,6 +16,9 @@ func resourceAwsCognitoIdentityPoolRolesAttachment() *schema.Resource {
 		Read:   resourceAwsCognitoIdentityPoolRolesAttachmentRead,
 		Update: resourceAwsCognitoIdentityPoolRolesAttachmentUpdate,
 		Delete: resourceAwsCognitoIdentityPoolRolesAttachmentDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"identity_pool_id": {
@@ -92,19 +94,9 @@ func resourceAwsCognitoIdentityPoolRolesAttachment() *schema.Resource {
 				Type:     schema.TypeMap,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"authenticated": {
-							Type:         schema.TypeString,
-							ValidateFunc: validateArn,
-							Optional:     true, // Required if unauthenticated isn't defined.
-						},
-						"unauthenticated": {
-							Type:         schema.TypeString,
-							ValidateFunc: validateArn,
-							Optional:     true, // Required if authenticated isn't defined.
-						},
-					},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
 				},
 			},
 		},
@@ -151,16 +143,18 @@ func resourceAwsCognitoIdentityPoolRolesAttachmentRead(d *schema.ResourceData, m
 	log.Printf("[DEBUG] Reading Cognito Identity Pool Roles Association: %s", d.Id())
 
 	ip, err := conn.GetIdentityPoolRoles(&cognitoidentity.GetIdentityPoolRolesInput{
-		IdentityPoolId: aws.String(d.Get("identity_pool_id").(string)),
+		IdentityPoolId: aws.String(d.Id()),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceNotFoundException" {
+		if isAWSErr(err, cognitoidentity.ErrCodeResourceNotFoundException, "") {
 			log.Printf("[WARN] Cognito Identity Pool Roles Association %s not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		return err
 	}
+
+	d.Set("identity_pool_id", ip.IdentityPoolId)
 
 	if err := d.Set("roles", flattenCognitoIdentityPoolRoles(ip.Roles)); err != nil {
 		return fmt.Errorf("Error setting roles error: %#v", err)
@@ -221,7 +215,7 @@ func resourceAwsCognitoIdentityPoolRolesAttachmentDelete(d *schema.ResourceData,
 	log.Printf("[DEBUG] Deleting Cognito Identity Pool Roles Association: %s", d.Id())
 
 	_, err := conn.SetIdentityPoolRoles(&cognitoidentity.SetIdentityPoolRolesInput{
-		IdentityPoolId: aws.String(d.Get("identity_pool_id").(string)),
+		IdentityPoolId: aws.String(d.Id()),
 		Roles:          expandCognitoIdentityPoolRoles(make(map[string]interface{})),
 		RoleMappings:   expandCognitoIdentityPoolRoleMappingsAttachment([]interface{}{}),
 	})

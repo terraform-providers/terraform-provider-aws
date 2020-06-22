@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -23,8 +22,9 @@ func TestAccAWSInstanceDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "ami", resourceName, "ami"),
 					resource.TestCheckResourceAttrPair(datasourceName, "tags.%", resourceName, "tags.%"),
 					resource.TestCheckResourceAttrPair(datasourceName, "instance_type", resourceName, "instance_type"),
-					resource.TestMatchResourceAttr(datasourceName, "arn", regexp.MustCompile(`^arn:[^:]+:ec2:[^:]+:\d{12}:instance/i-.+`)),
+					resource.TestCheckResourceAttrPair(datasourceName, "arn", resourceName, "arn"),
 					resource.TestCheckNoResourceAttr(datasourceName, "user_data_base64"),
+					resource.TestCheckResourceAttr(datasourceName, "outpost_arn", ""),
 				),
 			},
 		},
@@ -90,6 +90,7 @@ func TestAccAWSInstanceDataSource_gp2IopsDevice(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.#", resourceName, "root_block_device.#"),
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.volume_size", resourceName, "root_block_device.0.volume_size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.volume_type", resourceName, "root_block_device.0.volume_type"),
+					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.device_name", resourceName, "root_block_device.0.device_name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.iops", resourceName, "root_block_device.0.iops"),
 				),
 			},
@@ -113,6 +114,7 @@ func TestAccAWSInstanceDataSource_blockDevices(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.#", resourceName, "root_block_device.#"),
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.volume_size", resourceName, "root_block_device.0.volume_size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.volume_type", resourceName, "root_block_device.0.volume_type"),
+					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.0.device_name", resourceName, "root_block_device.0.device_name"),
 					resource.TestCheckResourceAttrPair(datasourceName, "ebs_block_device.#", resourceName, "ebs_block_device.#"),
 					//resource.TestCheckResourceAttrPair(datasourceName, "ephemeral_block_device.#", resourceName, "ephemeral_block_device.#"),
 					// ephemeral block devices don't get saved properly due to API limitations, so this can't actually be tested right now
@@ -444,6 +446,32 @@ func TestAccAWSInstanceDataSource_creditSpecification(t *testing.T) {
 	})
 }
 
+func TestAccAWSInstanceDataSource_metadataOptions(t *testing.T) {
+	resourceName := "aws_instance.test"
+	datasourceName := "data.aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		// No subnet_id specified requires default VPC or EC2-Classic.
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckHasDefaultVpcOrEc2Classic(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceDataSourceConfig_metadataOptions(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(datasourceName, "metadata_options.#", resourceName, "metadata_options.#"),
+					resource.TestCheckResourceAttrPair(datasourceName, "metadata_options.0.http_endpoint", resourceName, "metadata_options.0.http_endpoint"),
+					resource.TestCheckResourceAttrPair(datasourceName, "metadata_options.0.http_tokens", resourceName, "metadata_options.0.http_tokens"),
+					resource.TestCheckResourceAttrPair(datasourceName, "metadata_options.0.http_put_response_hop_limit", resourceName, "metadata_options.0.http_put_response_hop_limit"),
+				),
+			},
+		},
+	})
+}
+
 // Lookup based on InstanceID
 const testAccInstanceDataSourceConfig = `
 resource "aws_instance" "test" {
@@ -473,17 +501,17 @@ resource "aws_instance" "test" {
 
   tags = {
     Name     = "HelloWorld"
-    TestSeed = "%d"
+    TestSeed = "%[1]d"
   }
 }
 
 data "aws_instance" "test" {
   instance_tags = {
     Name     = "${aws_instance.test.tags["Name"]}"
-    TestSeed = "%d"
+    TestSeed = "%[1]d"
   }
 }
-`, rInt, rInt)
+`, rInt)
 }
 
 // filter on tag, populate more attributes
@@ -834,4 +862,30 @@ data "aws_instance" "test" {
   instance_id = "${aws_instance.test.id}"
 }
 `)
+}
+
+func testAccInstanceDataSourceConfig_metadataOptions(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+
+  tags = {
+    Name = %[1]q
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+}
+
+data "aws_instance" "test" {
+  instance_id = aws_instance.test.id
+}
+`, rName))
 }

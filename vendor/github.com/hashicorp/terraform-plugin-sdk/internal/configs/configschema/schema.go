@@ -4,6 +4,17 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+// StringKind represents the format a string is in.
+type StringKind int
+
+const (
+	// StringPlain indicates a string is plain-text and requires no processing for display.
+	StringPlain StringKind = iota
+	// StringMarkdown indicates a string is in markdown format and may
+	// require additional processing to display.
+	StringMarkdown
+)
+
 // Block represents a configuration block.
 //
 // "Block" here is a logical grouping construct, though it happens to map
@@ -21,6 +32,15 @@ type Block struct {
 	// BlockTypes describes any nested block types that may appear directly
 	// inside the block.
 	BlockTypes map[string]*NestedBlock
+
+	// Description and DescriptionKind contain a user facing description of the block
+	// and the format of that string.
+	Description     string
+	DescriptionKind StringKind
+
+	// Deprecated indicates whether the block has been marked as deprecated in the
+	// provider and usage should be discouraged.
+	Deprecated bool
 }
 
 // Attribute represents a configuration attribute, within a block.
@@ -32,7 +52,8 @@ type Attribute struct {
 	// usage of the attribute. A description should be concise and use only
 	// one or two sentences, leaving full definition to longer-form
 	// documentation defined elsewhere.
-	Description string
+	Description     string
+	DescriptionKind StringKind
 
 	// Required, if set to true, specifies that an omitted or null value is
 	// not permitted.
@@ -55,6 +76,10 @@ type Attribute struct {
 	// future to help Terraform mask sensitive information. (Terraform
 	// currently achieves this in a limited sense via other mechanisms.)
 	Sensitive bool
+
+	// Deprecated indicates whether the attribute has been marked as deprecated in the
+	// provider and usage should be discouraged.
+	Deprecated bool
 }
 
 // NestedBlock represents the embedding of one block within another.

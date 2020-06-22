@@ -67,7 +67,7 @@ const (
 	// ErrCodeResourceInUseException for service response error code
 	// "ResourceInUseException".
 	//
-	// The stream is currently not available for this operation.
+	// The signaling channel is currently not available for this operation.
 	ErrCodeResourceInUseException = "ResourceInUseException"
 
 	// ErrCodeResourceNotFoundException for service response error code

@@ -16,6 +16,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
+const (
+	StorageGatewayGatewayConnected = "GatewayConnected"
+)
+
 func resourceAwsStorageGatewayGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsStorageGatewayGatewayCreate,
@@ -45,6 +49,11 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"gateway_ip_address"},
+			},
+			"gateway_vpc_endpoint": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"gateway_id": {
 				Type:     schema.TypeString,
@@ -154,6 +163,10 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		}
 
 		requestURL := fmt.Sprintf("http://%s/?activationRegion=%s", gatewayIpAddress, region)
+		if v, ok := d.GetOk("gateway_vpc_endpoint"); ok {
+			requestURL = fmt.Sprintf("%s&vpcEndpoint=%s", requestURL, v.(string))
+		}
+
 		log.Printf("[DEBUG] Creating HTTP request: %s", requestURL)
 		request, err := http.NewRequest("GET", requestURL, nil)
 		if err != nil {
@@ -164,14 +177,25 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			log.Printf("[DEBUG] Making HTTP request: %s", request.URL.String())
 			response, err = client.Do(request)
+
 			if err != nil {
 				if err, ok := err.(net.Error); ok {
 					errMessage := fmt.Errorf("error making HTTP request: %s", err)
 					log.Printf("[DEBUG] retryable %s", errMessage)
 					return resource.RetryableError(errMessage)
 				}
+
 				return resource.NonRetryableError(fmt.Errorf("error making HTTP request: %s", err))
 			}
+
+			for _, retryableStatusCode := range []int{504} {
+				if response.StatusCode == retryableStatusCode {
+					errMessage := fmt.Errorf("status code in HTTP response: %d", response.StatusCode)
+					log.Printf("[DEBUG] retryable %s", errMessage)
+					return resource.RetryableError(errMessage)
+				}
+			}
+
 			return nil
 		})
 		if isResourceTimeoutError(err) {
@@ -222,28 +246,7 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(aws.StringValue(output.GatewayARN))
 
-	// Gateway activations can take a few minutes
-	gwInput := &storagegateway.DescribeGatewayInformationInput{
-		GatewayARN: aws.String(d.Id()),
-	}
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		_, err := conn.DescribeGatewayInformation(gwInput)
-		if err != nil {
-			if isAWSErr(err, storagegateway.ErrorCodeGatewayNotConnected, "") {
-				return resource.RetryableError(err)
-			}
-			if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "") {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-
-		return nil
-	})
-	if isResourceTimeoutError(err) {
-		_, err = conn.DescribeGatewayInformation(gwInput)
-	}
-	if err != nil {
+	if _, err := WaitForStorageGatewayGatewayConnected(conn, d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return fmt.Errorf("error waiting for Storage Gateway Gateway activation: %s", err)
 	}
 
@@ -295,13 +298,16 @@ func resourceAwsStorageGatewayGatewayCreate(d *schema.ResourceData, meta interfa
 
 func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeGatewayInformationInput{
 		GatewayARN: aws.String(d.Id()),
 	}
 
 	log.Printf("[DEBUG] Reading Storage Gateway Gateway: %s", input)
+
 	output, err := conn.DescribeGatewayInformation(input)
+
 	if err != nil {
 		if isAWSErrStorageGatewayGatewayNotFound(err) {
 			log.Printf("[WARN] Storage Gateway Gateway %q not found - removing from state", d.Id())
@@ -311,7 +317,7 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("error reading Storage Gateway Gateway: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.StoragegatewayKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.StoragegatewayKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -344,6 +350,7 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 	d.Set("gateway_name", output.GatewayName)
 	d.Set("gateway_timezone", output.GatewayTimezone)
 	d.Set("gateway_type", output.GatewayType)
+	d.Set("gateway_vpc_endpoint", output.VPCEndpoint)
 
 	// The Storage Gateway API currently provides no way to read this value
 	// We allow Terraform to passthrough the configuration value into the state
@@ -397,7 +404,7 @@ func resourceAwsStorageGatewayGatewayRead(d *schema.ResourceData, meta interface
 func resourceAwsStorageGatewayGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
 
-	if d.HasChange("gateway_name") || d.HasChange("gateway_timezone") || d.HasChange("cloudwatch_log_group_arn") {
+	if d.HasChanges("gateway_name", "gateway_timezone", "cloudwatch_log_group_arn") {
 		input := &storagegateway.UpdateGatewayInformationInput{
 			GatewayARN:            aws.String(d.Id()),
 			GatewayName:           aws.String(d.Get("gateway_name").(string)),
@@ -481,4 +488,44 @@ func isAWSErrStorageGatewayGatewayNotFound(err error) bool {
 		return true
 	}
 	return false
+}
+
+func StorageGatewayGatewayConnectedStatus(conn *storagegateway.StorageGateway, gatewayARN string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &storagegateway.DescribeGatewayInformationInput{
+			GatewayARN: aws.String(gatewayARN),
+		}
+
+		output, err := conn.DescribeGatewayInformation(input)
+
+		if isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified gateway is not connected") {
+			return output, storagegateway.ErrorCodeGatewayNotConnected, nil
+		}
+
+		if err != nil {
+			return output, "", err
+		}
+
+		return output, StorageGatewayGatewayConnected, nil
+	}
+}
+
+func WaitForStorageGatewayGatewayConnected(conn *storagegateway.StorageGateway, gatewayARN string, timeout time.Duration) (*storagegateway.DescribeGatewayInformationOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{storagegateway.ErrorCodeGatewayNotConnected},
+		Target:                    []string{StorageGatewayGatewayConnected},
+		Refresh:                   StorageGatewayGatewayConnectedStatus(conn, gatewayARN),
+		Timeout:                   timeout,
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 6, // Gateway activations can take a few seconds and can trigger a reboot of the Gateway
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	switch output := outputRaw.(type) {
+	case *storagegateway.DescribeGatewayInformationOutput:
+		return output, err
+	default:
+		return nil, err
+	}
 }

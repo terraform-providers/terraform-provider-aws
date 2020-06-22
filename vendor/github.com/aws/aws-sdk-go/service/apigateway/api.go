@@ -11339,7 +11339,9 @@ func (c *APIGateway) UpdateVpcLinkWithContext(ctx aws.Context, input *UpdateVpcL
 type AccessLogSettings struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the CloudWatch Logs log group to receive access logs.
+	// The Amazon Resource Name (ARN) of the CloudWatch Logs log group or Kinesis
+	// Data Firehose delivery stream to receive access logs. If you specify a Kinesis
+	// Data Firehose delivery stream, the stream name must begin with amazon-apigateway-.
 	DestinationArn *string `locationName:"destinationArn" type:"string"`
 
 	// A single line format of the access logs of data, as specified by selected
@@ -11767,8 +11769,8 @@ func (s *Authorizer) SetType(v string) *Authorizer {
 // The submitted request is not valid, for example, the input is incomplete
 // or incorrect. See the accompanying error message for details.
 type BadRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11785,17 +11787,17 @@ func (s BadRequestException) GoString() string {
 
 func newErrorBadRequestException(v protocol.ResponseMetadata) error {
 	return &BadRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s BadRequestException) Code() string {
+func (s *BadRequestException) Code() string {
 	return "BadRequestException"
 }
 
 // Message returns the exception's message.
-func (s BadRequestException) Message() string {
+func (s *BadRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11803,22 +11805,22 @@ func (s BadRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s BadRequestException) OrigErr() error {
+func (s *BadRequestException) OrigErr() error {
 	return nil
 }
 
-func (s BadRequestException) Error() string {
+func (s *BadRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s BadRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s BadRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the base path that callers of the API must provide as part of
@@ -12004,8 +12006,8 @@ func (s *ClientCertificate) SetTags(v map[string]*string) *ClientCertificate {
 // The request configuration has conflicts. For details, see the accompanying
 // error message.
 type ConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -12022,17 +12024,17 @@ func (s ConflictException) GoString() string {
 
 func newErrorConflictException(v protocol.ResponseMetadata) error {
 	return &ConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConflictException) Code() string {
+func (s *ConflictException) Code() string {
 	return "ConflictException"
 }
 
 // Message returns the exception's message.
-func (s ConflictException) Message() string {
+func (s *ConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -12040,22 +12042,22 @@ func (s ConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConflictException) OrigErr() error {
+func (s *ConflictException) OrigErr() error {
 	return nil
 }
 
-func (s ConflictException) Error() string {
+func (s *ConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Request to create an ApiKey resource.
@@ -12073,7 +12075,8 @@ type CreateApiKeyInput struct {
 	Enabled *bool `locationName:"enabled" type:"boolean"`
 
 	// Specifies whether (true) or not (false) the key identifier is distinct from
-	// the created API key value.
+	// the created API key value. This parameter is deprecated and should not be
+	// used.
 	GenerateDistinctId *bool `locationName:"generateDistinctId" type:"boolean"`
 
 	// The name of the ApiKey.
@@ -12346,8 +12349,8 @@ type CreateBasePathMappingInput struct {
 	RestApiId *string `locationName:"restApiId" type:"string" required:"true"`
 
 	// The name of the API's stage that you want to use for this mapping. Specify
-	// '(none)' if you do not want callers to explicitly specify the stage name
-	// after any base path name.
+	// '(none)' if you want callers to explicitly specify the stage name after any
+	// base path name.
 	Stage *string `locationName:"stage" type:"string"`
 }
 
@@ -13516,8 +13519,8 @@ type CreateVpcLinkInput struct {
 	// tag value can be up to 256 characters.
 	Tags map[string]*string `locationName:"tags" type:"map"`
 
-	// [Required] The ARNs of network load balancers of the VPC targeted by the
-	// VPC link. The network load balancers must be owned by the same AWS account
+	// [Required] The ARN of the network load balancer of the VPC targeted by the
+	// VPC link. The network load balancer must be owned by the same AWS account
 	// of the API owner.
 	//
 	// TargetArns is a required field
@@ -18092,7 +18095,7 @@ func (s *GetModelTemplateInput) SetRestApiId(v string) *GetModelTemplateInput {
 type GetModelTemplateOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The Apache Velocity Template Language (VTL) (https://velocity.apache.org/engine/devel/vtl-reference-guide.html)
+	// The Apache Velocity Template Language (VTL) (https://velocity.apache.org/engine/devel/vtl-reference.html)
 	// template content used for the template resource.
 	Value *string `locationName:"value" type:"string"`
 }
@@ -19047,8 +19050,7 @@ type GetTagsInput struct {
 	// set.
 	Position *string `location:"querystring" locationName:"position" type:"string"`
 
-	// [Required] The ARN of a resource that can be tagged. The resource ARN must
-	// be URL-encoded.
+	// [Required] The ARN of a resource that can be tagged.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resource_arn" type:"string" required:"true"`
@@ -19845,7 +19847,7 @@ type ImportRestApiInput struct {
 
 	// [Required] The POST request body containing external API definitions. Currently,
 	// only OpenAPI definition JSON/YAML files are supported. The maximum size of
-	// the API definition file is 2MB.
+	// the API definition file is 6MB.
 	//
 	// Body is a required field
 	Body []byte `locationName:"body" type:"blob" required:"true"`
@@ -19934,9 +19936,10 @@ type Integration struct {
 	// Method requestParameters.
 	CacheKeyParameters []*string `locationName:"cacheKeyParameters" type:"list"`
 
-	// An API-specific tag group of related cached parameters. To be valid values
-	// for cacheKeyParameters, these parameters must also be specified for Method
-	// requestParameters.
+	// Specifies a group of related cached parameters. By default, API Gateway uses
+	// the resource ID as the cacheNamespace. You can specify the same cacheNamespace
+	// across resources to return the same cached data for requests to different
+	// resources.
 	CacheNamespace *string `locationName:"cacheNamespace" type:"string"`
 
 	// The (id (https://docs.aws.amazon.com/apigateway/api-reference/resource/vpc-link/#id))
@@ -20040,6 +20043,9 @@ type Integration struct {
 	// Custom timeout between 50 and 29,000 milliseconds. The default value is 29,000
 	// milliseconds or 29 seconds.
 	TimeoutInMillis *int64 `locationName:"timeoutInMillis" type:"integer"`
+
+	// Specifies the TLS configuration for an integration.
+	TlsConfig *TlsConfig `locationName:"tlsConfig" type:"structure"`
 
 	// Specifies an API method integration type. The valid value is one of the following:
 	//
@@ -20176,6 +20182,12 @@ func (s *Integration) SetTimeoutInMillis(v int64) *Integration {
 	return s
 }
 
+// SetTlsConfig sets the TlsConfig field's value.
+func (s *Integration) SetTlsConfig(v *TlsConfig) *Integration {
+	s.TlsConfig = v
+	return s
+}
+
 // SetType sets the Type field's value.
 func (s *Integration) SetType(v string) *Integration {
 	s.Type = &v
@@ -20283,8 +20295,8 @@ func (s *IntegrationResponse) SetStatusCode(v string) *IntegrationResponse {
 
 // The request exceeded the rate limit. Retry after the specified time period.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 
@@ -20303,17 +20315,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20321,22 +20333,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents a client-facing interface by which the client calls the API to
@@ -20720,7 +20732,9 @@ type MethodSetting struct {
 
 	// Specifies the logging level for this method, which affects the log entries
 	// pushed to Amazon CloudWatch Logs. The PATCH path for this setting is /{method_setting_key}/logging/loglevel,
-	// and the available levels are OFF, ERROR, and INFO.
+	// and the available levels are OFF, ERROR, and INFO. Choose ERROR to write
+	// only error-level entries to CloudWatch Logs, or choose INFO to include all
+	// ERROR events as well as extra informational events.
 	LoggingLevel *string `locationName:"loggingLevel" type:"string"`
 
 	// Specifies whether Amazon CloudWatch metrics are enabled for this method.
@@ -20930,8 +20944,8 @@ func (s *Model) SetSchema(v string) *Model {
 
 // The requested resource is not found. Make sure that the request URI is correct.
 type NotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -20948,17 +20962,17 @@ func (s NotFoundException) GoString() string {
 
 func newErrorNotFoundException(v protocol.ResponseMetadata) error {
 	return &NotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotFoundException) Code() string {
+func (s *NotFoundException) Code() string {
 	return "NotFoundException"
 }
 
 // Message returns the exception's message.
-func (s NotFoundException) Message() string {
+func (s *NotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20966,22 +20980,22 @@ func (s NotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotFoundException) OrigErr() error {
+func (s *NotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s NotFoundException) Error() string {
+func (s *NotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A single patch operation to apply to the specified resource. Please refer
@@ -21188,10 +21202,15 @@ func (s *PutGatewayResponseInput) SetStatusCode(v string) *PutGatewayResponseInp
 type PutIntegrationInput struct {
 	_ struct{} `type:"structure"`
 
-	// An API-specific tag group of related cached parameters.
+	// A list of request parameters whose values API Gateway caches. To be valid
+	// values for cacheKeyParameters, these parameters must also be specified for
+	// Method requestParameters.
 	CacheKeyParameters []*string `locationName:"cacheKeyParameters" type:"list"`
 
-	// A list of request parameters whose values are to be cached.
+	// Specifies a group of related cached parameters. By default, API Gateway uses
+	// the resource ID as the cacheNamespace. You can specify the same cacheNamespace
+	// across resources to return the same cached data for requests to different
+	// resources.
 	CacheNamespace *string `locationName:"cacheNamespace" type:"string"`
 
 	// The (id (https://docs.aws.amazon.com/apigateway/api-reference/resource/vpc-link/#id))
@@ -21275,6 +21294,8 @@ type PutIntegrationInput struct {
 	// Custom timeout between 50 and 29,000 milliseconds. The default value is 29,000
 	// milliseconds or 29 seconds.
 	TimeoutInMillis *int64 `locationName:"timeoutInMillis" type:"integer"`
+
+	TlsConfig *TlsConfig `locationName:"tlsConfig" type:"structure"`
 
 	// [Required] Specifies a put integration input's type.
 	//
@@ -21427,6 +21448,12 @@ func (s *PutIntegrationInput) SetRestApiId(v string) *PutIntegrationInput {
 // SetTimeoutInMillis sets the TimeoutInMillis field's value.
 func (s *PutIntegrationInput) SetTimeoutInMillis(v int64) *PutIntegrationInput {
 	s.TimeoutInMillis = &v
+	return s
+}
+
+// SetTlsConfig sets the TlsConfig field's value.
+func (s *PutIntegrationInput) SetTlsConfig(v *TlsConfig) *PutIntegrationInput {
+	s.TlsConfig = v
 	return s
 }
 
@@ -21896,7 +21923,7 @@ type PutRestApiInput struct {
 
 	// [Required] The PUT request body containing external API definitions. Currently,
 	// only OpenAPI definition JSON/YAML files are supported. The maximum size of
-	// the API definition file is 2MB.
+	// the API definition file is 6MB.
 	//
 	// Body is a required field
 	Body []byte `locationName:"body" type:"blob" required:"true"`
@@ -22395,8 +22422,8 @@ func (s *SdkType) SetId(v string) *SdkType {
 // The requested service is not available. For details see the accompanying
 // error message. Retry after the specified time period.
 type ServiceUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 
@@ -22415,17 +22442,17 @@ func (s ServiceUnavailableException) GoString() string {
 
 func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableException) Code() string {
+func (s *ServiceUnavailableException) Code() string {
 	return "ServiceUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableException) Message() string {
+func (s *ServiceUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22433,22 +22460,22 @@ func (s ServiceUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableException) OrigErr() error {
+func (s *ServiceUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableException) Error() string {
+func (s *ServiceUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents a unique identifier for a version of a deployed RestApi that is
@@ -22666,8 +22693,7 @@ func (s *StageKey) SetStageName(v string) *StageKey {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// [Required] The ARN of a resource that can be tagged. The resource ARN must
-	// be URL-encoded.
+	// [Required] The ARN of a resource that can be tagged.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resource_arn" type:"string" required:"true"`
@@ -23175,11 +23201,41 @@ func (s *ThrottleSettings) SetRateLimit(v float64) *ThrottleSettings {
 	return s
 }
 
+type TlsConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether or not API Gateway skips verification that the certificate
+	// for an integration endpoint is issued by a supported certificate authority
+	// (https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-supported-certificate-authorities-for-http-endpoints.html).
+	// This isn’t recommended, but it enables you to use certificates that are
+	// signed by private certificate authorities, or certificates that are self-signed.
+	// If enabled, API Gateway still performs basic certificate validation, which
+	// includes checking the certificate's expiration date, hostname, and presence
+	// of a root certificate authority. Supported only for HTTP and HTTP_PROXY integrations.
+	InsecureSkipVerification *bool `locationName:"insecureSkipVerification" type:"boolean"`
+}
+
+// String returns the string representation
+func (s TlsConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TlsConfig) GoString() string {
+	return s.String()
+}
+
+// SetInsecureSkipVerification sets the InsecureSkipVerification field's value.
+func (s *TlsConfig) SetInsecureSkipVerification(v bool) *TlsConfig {
+	s.InsecureSkipVerification = &v
+	return s
+}
+
 // The request has reached its throttling limit. Retry after the specified time
 // period.
 type TooManyRequestsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 
@@ -23198,17 +23254,17 @@ func (s TooManyRequestsException) GoString() string {
 
 func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
 	return &TooManyRequestsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TooManyRequestsException) Code() string {
+func (s *TooManyRequestsException) Code() string {
 	return "TooManyRequestsException"
 }
 
 // Message returns the exception's message.
-func (s TooManyRequestsException) Message() string {
+func (s *TooManyRequestsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -23216,28 +23272,28 @@ func (s TooManyRequestsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TooManyRequestsException) OrigErr() error {
+func (s *TooManyRequestsException) OrigErr() error {
 	return nil
 }
 
-func (s TooManyRequestsException) Error() string {
+func (s *TooManyRequestsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TooManyRequestsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TooManyRequestsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TooManyRequestsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TooManyRequestsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request is denied because the caller has insufficient permissions.
 type UnauthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -23254,17 +23310,17 @@ func (s UnauthorizedException) GoString() string {
 
 func newErrorUnauthorizedException(v protocol.ResponseMetadata) error {
 	return &UnauthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnauthorizedException) Code() string {
+func (s *UnauthorizedException) Code() string {
 	return "UnauthorizedException"
 }
 
 // Message returns the exception's message.
-func (s UnauthorizedException) Message() string {
+func (s *UnauthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -23272,30 +23328,29 @@ func (s UnauthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnauthorizedException) OrigErr() error {
+func (s *UnauthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s UnauthorizedException) Error() string {
+func (s *UnauthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnauthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnauthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnauthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnauthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Removes a tag from a given resource.
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// [Required] The ARN of a resource that can be tagged. The resource ARN must
-	// be URL-encoded.
+	// [Required] The ARN of a resource that can be tagged.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resource_arn" type:"string" required:"true"`
@@ -25083,7 +25138,7 @@ func (s *UpdateVpcLinkInput) SetVpcLinkId(v string) *UpdateVpcLinkInput {
 	return s
 }
 
-// A API Gateway VPC link for a RestApi to access resources in an Amazon Virtual
+// An API Gateway VPC link for a RestApi to access resources in an Amazon Virtual
 // Private Cloud (VPC).
 //
 // To enable access to a resource in an Amazon Virtual Private Cloud through
@@ -25117,8 +25172,9 @@ type UpdateVpcLinkOutput struct {
 	// The collection of tags. Each tag element is associated with a given resource.
 	Tags map[string]*string `locationName:"tags" type:"map"`
 
-	// The ARNs of network load balancers of the VPC targeted by the VPC link. The
-	// network load balancers must be owned by the same AWS account of the API owner.
+	// The ARN of the network load balancer of the VPC targeted by the VPC link.
+	// The network load balancer must be owned by the same AWS account of the API
+	// owner.
 	TargetArns []*string `locationName:"targetArns" type:"list"`
 }
 

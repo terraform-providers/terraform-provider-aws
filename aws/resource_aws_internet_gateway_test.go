@@ -3,11 +3,11 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -86,8 +86,8 @@ func testSweepInternetGateways(region string) error {
 			}
 
 			stateConf := &resource.StateChangeConf{
-				Pending: []string{"detaching"},
-				Target:  []string{"detached"},
+				Pending: []string{ec2.AttachmentStatusDetaching},
+				Target:  []string{ec2.AttachmentStatusDetached},
 				Refresh: detachIGStateRefreshFunc(conn, aws.StringValue(internetGateway.InternetGatewayId), aws.StringValue(attachment.VpcId)),
 				Timeout: 10 * time.Minute,
 				Delay:   10 * time.Second,
@@ -148,9 +148,10 @@ func TestAccAWSInternetGateway_basic(t *testing.T) {
 			{
 				Config: testAccInternetGatewayConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInternetGatewayExists(
-						resourceName, &v),
+					testAccCheckInternetGatewayExists(resourceName, &v),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`internet-gateway/igw-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -161,8 +162,7 @@ func TestAccAWSInternetGateway_basic(t *testing.T) {
 			{
 				Config: testAccInternetGatewayConfigChangeVPC,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInternetGatewayExists(
-						resourceName, &v2),
+					testAccCheckInternetGatewayExists(resourceName, &v2),
 					testNotEqual,
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
@@ -218,8 +218,9 @@ func TestAccAWSInternetGateway_tags(t *testing.T) {
 				Config: testAccCheckInternetGatewayConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInternetGatewayExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "Name", "terraform-testacc-internet-gateway-tags"),
-					testAccCheckTags(&v.Tags, "test", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "terraform-testacc-internet-gateway-tags"),
+					resource.TestCheckResourceAttr(resourceName, "tags.test", "bar"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
@@ -232,11 +233,32 @@ func TestAccAWSInternetGateway_tags(t *testing.T) {
 				Config: testAccCheckInternetGatewayConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInternetGatewayExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "Name", "terraform-testacc-internet-gateway-tags"),
-					testAccCheckTags(&v.Tags, "test", ""),
-					testAccCheckTags(&v.Tags, "bar", "baz"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "terraform-testacc-internet-gateway-tags"),
+					resource.TestCheckResourceAttr(resourceName, "tags.bar", "baz"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInternetGateway_disappears(t *testing.T) {
+	var v ec2.InternetGateway
+	resourceName := "aws_internet_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInternetGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInternetGatewayConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInternetGatewayExists(resourceName, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsInternetGateway(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -263,11 +285,7 @@ func testAccCheckInternetGatewayDestroy(s *terraform.State) error {
 		}
 
 		// Verify the error is what we want
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidInternetGatewayID.NotFound" {
+		if !isAWSErr(err, "InvalidInternetGatewayID.NotFound", "") {
 			return err
 		}
 	}
@@ -322,9 +340,6 @@ resource "aws_vpc" "test" {
 
 resource "aws_internet_gateway" "test" {
 	vpc_id = "${aws_vpc.test.id}"
-	tags = {
-		Name = "terraform-testacc-internet-gateway"
-	}
 }
 `
 

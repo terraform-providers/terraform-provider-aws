@@ -253,6 +253,7 @@ func resourceAwsElb() *schema.Resource {
 
 func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	// Expand the "listener" set to aws-sdk-go compat []*elb.Listener
 	listeners, err := expandListeners(d.Get("listener").(*schema.Set).List())
@@ -327,16 +328,7 @@ func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(elbName)
 	log.Printf("[INFO] ELB ID: %s", d.Id())
 
-	// Enable partial mode and record what we set
-	d.Partial(true)
-	d.SetPartial("name")
-	d.SetPartial("internal")
-	d.SetPartial("availability_zones")
-	d.SetPartial("listener")
-	d.SetPartial("security_groups")
-	d.SetPartial("subnets")
-
-	if err := d.Set("tags", keyvaluetags.ElbKeyValueTags(tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ElbKeyValueTags(tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -345,6 +337,8 @@ func resourceAwsElbCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	elbName := d.Id()
 
 	arn := arn.ARN{
@@ -375,11 +369,11 @@ func resourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Unable to find ELB: %#v", describeResp.LoadBalancerDescriptions)
 	}
 
-	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, describeResp.LoadBalancerDescriptions[0])
+	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, describeResp.LoadBalancerDescriptions[0], ignoreTagsConfig)
 }
 
 // flattenAwsELbResource takes a *elbv2.LoadBalancer and populates all respective resource fields.
-func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *elb.ELB, lb *elb.LoadBalancerDescription) error {
+func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *elb.ELB, lb *elb.LoadBalancerDescription, ignoreTagsConfig *keyvaluetags.IgnoreConfig) error {
 	describeAttrsOpts := &elb.DescribeLoadBalancerAttributesInput{
 		LoadBalancerName: aws.String(d.Id()),
 	}
@@ -460,7 +454,7 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 		return fmt.Errorf("error listing tags for ELB (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -475,8 +469,6 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 
 func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
-
-	d.Partial(true)
 
 	if d.HasChange("listener") {
 		o, n := d.GetChange("listener")
@@ -541,8 +533,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Failure adding new or updated ELB listeners: %s", err)
 			}
 		}
-
-		d.SetPartial("listener")
 	}
 
 	// If we currently have instances, or did have instances,
@@ -577,11 +567,9 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Failure deregistering instances from ELB: %s", err)
 			}
 		}
-
-		d.SetPartial("instances")
 	}
 
-	if d.HasChange("cross_zone_load_balancing") || d.HasChange("idle_timeout") || d.HasChange("access_logs") {
+	if d.HasChanges("cross_zone_load_balancing", "idle_timeout", "access_logs") {
 		attrs := elb.ModifyLoadBalancerAttributesInput{
 			LoadBalancerName: aws.String(d.Get("name").(string)),
 			LoadBalancerAttributes: &elb.LoadBalancerAttributes{
@@ -615,17 +603,13 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 		}
-
-		d.SetPartial("cross_zone_load_balancing")
-		d.SetPartial("idle_timeout")
-		d.SetPartial("connection_draining_timeout")
 	}
 
 	// We have to do these changes separately from everything else since
 	// they have some weird undocumented rules. You can't set the timeout
 	// without having connection draining to true, so we set that to true,
 	// set the timeout, then reset it to false if requested.
-	if d.HasChange("connection_draining") || d.HasChange("connection_draining_timeout") {
+	if d.HasChanges("connection_draining", "connection_draining_timeout") {
 		// We do timeout changes first since they require us to set draining
 		// to true for a hot second.
 		if d.HasChange("connection_draining_timeout") {
@@ -643,8 +627,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			if err != nil {
 				return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 			}
-
-			d.SetPartial("connection_draining_timeout")
 		}
 
 		// Then we always set connection draining even if there is no change.
@@ -663,8 +645,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Failure configuring ELB attributes: %s", err)
 		}
-
-		d.SetPartial("connection_draining")
 	}
 
 	if d.HasChange("health_check") {
@@ -685,7 +665,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			if err != nil {
 				return fmt.Errorf("Failure configuring health check for ELB: %s", err)
 			}
-			d.SetPartial("health_check")
 		}
 	}
 
@@ -701,8 +680,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Failure applying security groups to ELB: %s", err)
 		}
-
-		d.SetPartial("security_groups")
 	}
 
 	if d.HasChange("availability_zones") {
@@ -738,8 +715,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Failure disabling ELB availability zones: %s", err)
 			}
 		}
-
-		d.SetPartial("availability_zones")
 	}
 
 	if d.HasChange("subnets") {
@@ -790,8 +765,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("Failure adding ELB subnets: %s", err)
 			}
 		}
-
-		d.SetPartial("subnets")
 	}
 
 	if d.HasChange("tags") {
@@ -801,13 +774,6 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("error updating ELB(%s) tags: %s", d.Id(), err)
 		}
 	}
-
-	//if err := setTagsELB(elbconn, d); err != nil {
-	//	return err
-	//}
-	//
-	//d.SetPartial("tags")
-	d.Partial(false)
 
 	return resourceAwsElbRead(d, meta)
 }

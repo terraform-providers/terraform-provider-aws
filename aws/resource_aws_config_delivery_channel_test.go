@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"testing"
 	"time"
 
@@ -97,11 +96,11 @@ func testAccConfigDeliveryChannel_basic(t *testing.T) {
 }
 
 func testAccConfigDeliveryChannel_allParams(t *testing.T) {
+	resourceName := "aws_config_delivery_channel.foo"
 	var dc configservice.DeliveryChannel
 	rInt := acctest.RandInt()
 	expectedName := fmt.Sprintf("tf-acc-test-awsconfig-%d", rInt)
 	expectedBucketName := fmt.Sprintf("tf-acc-test-awsconfig-%d", rInt)
-	expectedSnsTopicArn := regexp.MustCompile(fmt.Sprintf("arn:aws:sns:[a-z0-9-]+:[0-9]{12}:tf-acc-test-%d", rInt))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -111,13 +110,13 @@ func testAccConfigDeliveryChannel_allParams(t *testing.T) {
 			{
 				Config: testAccConfigDeliveryChannelConfig_allParams(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigDeliveryChannelExists("aws_config_delivery_channel.foo", &dc),
-					testAccCheckConfigDeliveryChannelName("aws_config_delivery_channel.foo", expectedName, &dc),
-					resource.TestCheckResourceAttr("aws_config_delivery_channel.foo", "name", expectedName),
-					resource.TestCheckResourceAttr("aws_config_delivery_channel.foo", "s3_bucket_name", expectedBucketName),
-					resource.TestCheckResourceAttr("aws_config_delivery_channel.foo", "s3_key_prefix", "one/two/three"),
-					resource.TestMatchResourceAttr("aws_config_delivery_channel.foo", "sns_topic_arn", expectedSnsTopicArn),
-					resource.TestCheckResourceAttr("aws_config_delivery_channel.foo", "snapshot_delivery_properties.0.delivery_frequency", "Six_Hours"),
+					testAccCheckConfigDeliveryChannelExists(resourceName, &dc),
+					testAccCheckConfigDeliveryChannelName(resourceName, expectedName, &dc),
+					resource.TestCheckResourceAttr(resourceName, "name", expectedName),
+					resource.TestCheckResourceAttr(resourceName, "s3_bucket_name", expectedBucketName),
+					resource.TestCheckResourceAttr(resourceName, "s3_key_prefix", "one/two/three"),
+					resource.TestCheckResourceAttrPair(resourceName, "sns_topic_arn", "aws_sns_topic.t", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "snapshot_delivery_properties.0.delivery_frequency", "Six_Hours"),
 				),
 			},
 		},

@@ -33,7 +33,7 @@ data "aws_instance" "foo" {
 
 * `instance_id` - (Optional) Specify the exact Instance ID with which to populate the data source.
 
-* `instance_tags` - (Optional) A mapping of tags, each pair of which must
+* `instance_tags` - (Optional) A map of tags, each pair of which must
 exactly match a pair on the desired Instance.
 
 * `filter` - (Optional) One or more name/value pairs to use as filters. There are
@@ -96,6 +96,7 @@ interpolation.
   is only available if you've enabled DNS hostnames for your VPC.
 * `public_ip` - The public IP address assigned to the Instance, if applicable. **NOTE**: If you are using an [`aws_eip`](/docs/providers/aws/r/eip.html) with your instance, you should refer to the EIP's address directly and not use `public_ip`, as this field will change after the EIP is attached.
 * `root_block_device` - The root block device mappings of the Instance
+  * `device_name` - The physical name of the device.
   * `delete_on_termination` - If the root block device will be deleted on termination.
   * `encrypted` - If the EBS volume is encrypted.
   * `iops` - `0` If the volume is not a provisioned IOPS image, otherwise the supported IOPS count.
@@ -105,12 +106,17 @@ interpolation.
 * `security_groups` - The associated security groups.
 * `source_dest_check` - Whether the network interface performs source/destination checking (Boolean).
 * `subnet_id` - The VPC subnet ID.
+* `outpost_arn` - The Amazon Resource Name (ARN) of the Outpost.
 * `user_data` - SHA-1 hash of User Data supplied to the Instance.
 * `user_data_base64` - Base64 encoded contents of User Data supplied to the Instance. Valid UTF-8 contents can be decoded with the [`base64decode` function](/docs/configuration/functions/base64decode.html). This attribute is only exported if `get_user_data` is true.
-* `tags` - A mapping of tags assigned to the Instance.
+* `tags` - A map of tags assigned to the Instance.
 * `tenancy` - The tenancy of the instance: `dedicated`, `default`, `host`.
 * `host_id` - The Id of the dedicated host the instance will be assigned to.
 * `vpc_security_group_ids` - The associated security groups in a non-default VPC.
 * `credit_specification` - The credit specification of the Instance.
+* `metadata_options` - The metadata options of the Instance.
+  * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+  * `http_tokens` - If session tokens are required: `optional`, `required`.
+  * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html

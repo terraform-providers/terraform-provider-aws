@@ -51,7 +51,7 @@ func resourceAwsCodePipelineWebhook() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.CIDRNetwork(0, 32),
+							ValidateFunc: validation.IsCIDRNetwork(0, 32),
 						},
 					},
 				},
@@ -228,6 +228,7 @@ func flattenCodePipelineWebhookAuthenticationConfiguration(authConfig *codepipel
 
 func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).codepipelineconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	arn := d.Id()
 	webhook, err := getCodePipelineWebhook(conn, arn)
@@ -270,7 +271,7 @@ func resourceAwsCodePipelineWebhookRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting filter: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.CodepipelineKeyValueTags(webhook.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.CodepipelineKeyValueTags(webhook.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

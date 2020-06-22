@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -90,6 +89,8 @@ func testSweepCloudWatchEventTargets(region string) error {
 }
 
 func TestAccAWSCloudWatchEventTarget_basic(t *testing.T) {
+	resourceName := "aws_cloudwatch_event_target.test"
+
 	var target events.Target
 	rName1 := acctest.RandString(5)
 	rName2 := acctest.RandString(5)
@@ -107,27 +108,25 @@ func TestAccAWSCloudWatchEventTarget_basic(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchEventTargetConfig(ruleName, snsTopicName1, targetID1),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchEventTargetExists("aws_cloudwatch_event_target.moobar", &target),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.moobar", "rule", ruleName),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.moobar", "target_id", targetID1),
-					resource.TestMatchResourceAttr("aws_cloudwatch_event_target.moobar", "arn",
-						regexp.MustCompile(fmt.Sprintf(":%s$", snsTopicName1))),
+					testAccCheckCloudWatchEventTargetExists(resourceName, &target),
+					resource.TestCheckResourceAttr(resourceName, "rule", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "target_id", targetID1),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_sns_topic.test", "arn"),
 				),
 			},
 			{
 				Config: testAccAWSCloudWatchEventTargetConfig(ruleName, snsTopicName2, targetID2),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchEventTargetExists("aws_cloudwatch_event_target.moobar", &target),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.moobar", "rule", ruleName),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.moobar", "target_id", targetID2),
-					resource.TestMatchResourceAttr("aws_cloudwatch_event_target.moobar", "arn",
-						regexp.MustCompile(fmt.Sprintf(":%s$", snsTopicName2))),
+					testAccCheckCloudWatchEventTargetExists(resourceName, &target),
+					resource.TestCheckResourceAttr(resourceName, "rule", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "target_id", targetID2),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_sns_topic.test", "arn"),
 				),
 			},
 			{
-				ResourceName:      "aws_cloudwatch_event_target.moobar",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc("aws_cloudwatch_event_target.moobar"),
+				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -135,6 +134,8 @@ func TestAccAWSCloudWatchEventTarget_basic(t *testing.T) {
 }
 
 func TestAccAWSCloudWatchEventTarget_missingTargetId(t *testing.T) {
+	resourceName := "aws_cloudwatch_event_target.test"
+
 	var target events.Target
 	rName := acctest.RandString(5)
 	ruleName := fmt.Sprintf("tf-acc-cw-event-rule-missing-target-id-%s", rName)
@@ -148,16 +149,15 @@ func TestAccAWSCloudWatchEventTarget_missingTargetId(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchEventTargetConfigMissingTargetId(ruleName, snsTopicName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchEventTargetExists("aws_cloudwatch_event_target.moobar", &target),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.moobar", "rule", ruleName),
-					resource.TestMatchResourceAttr("aws_cloudwatch_event_target.moobar", "arn",
-						regexp.MustCompile(fmt.Sprintf(":%s$", snsTopicName))),
+					testAccCheckCloudWatchEventTargetExists(resourceName, &target),
+					resource.TestCheckResourceAttr(resourceName, "rule", ruleName),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_sns_topic.test", "arn"),
 				),
 			},
 			{
-				ResourceName:      "aws_cloudwatch_event_target.moobar",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc("aws_cloudwatch_event_target.moobar"),
+				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -165,6 +165,7 @@ func TestAccAWSCloudWatchEventTarget_missingTargetId(t *testing.T) {
 }
 
 func TestAccAWSCloudWatchEventTarget_full(t *testing.T) {
+	resourceName := "aws_cloudwatch_event_target.test"
 	var target events.Target
 	rName := acctest.RandString(5)
 	ruleName := fmt.Sprintf("tf-acc-cw-event-rule-full-%s", rName)
@@ -179,19 +180,18 @@ func TestAccAWSCloudWatchEventTarget_full(t *testing.T) {
 			{
 				Config: testAccAWSCloudWatchEventTargetConfig_full(ruleName, targetID, ssmDocumentName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckCloudWatchEventTargetExists("aws_cloudwatch_event_target.foobar", &target),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.foobar", "rule", ruleName),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.foobar", "target_id", targetID),
-					resource.TestMatchResourceAttr("aws_cloudwatch_event_target.foobar", "arn",
-						regexp.MustCompile("^arn:aws:kinesis:.*:stream/tf_ssm_Document")),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.foobar", "input", "{ \"source\": [\"aws.cloudtrail\"] }\n"),
-					resource.TestCheckResourceAttr("aws_cloudwatch_event_target.foobar", "input_path", ""),
+					testAccCheckCloudWatchEventTargetExists(resourceName, &target),
+					resource.TestCheckResourceAttr(resourceName, "rule", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "target_id", targetID),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_kinesis_stream.test", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "input", "{ \"source\": [\"aws.cloudtrail\"] }\n"),
+					resource.TestCheckResourceAttr(resourceName, "input_path", ""),
 				),
 			},
 			{
-				ResourceName:      "aws_cloudwatch_event_target.foobar",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc("aws_cloudwatch_event_target.foobar"),
+				ImportStateIdFunc: testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -426,18 +426,18 @@ func testAccAWSCloudWatchEventTargetImportStateIdFunc(resourceName string) resou
 
 func testAccAWSCloudWatchEventTargetConfig(ruleName, snsTopicName, targetID string) string {
 	return fmt.Sprintf(`
-resource "aws_cloudwatch_event_rule" "foo" {
+resource "aws_cloudwatch_event_rule" "test" {
   name                = "%s"
   schedule_expression = "rate(1 hour)"
 }
 
-resource "aws_cloudwatch_event_target" "moobar" {
-  rule      = "${aws_cloudwatch_event_rule.foo.name}"
+resource "aws_cloudwatch_event_target" "test" {
+  rule      = "${aws_cloudwatch_event_rule.test.name}"
   target_id = "%s"
-  arn       = "${aws_sns_topic.moon.arn}"
+  arn       = "${aws_sns_topic.test.arn}"
 }
 
-resource "aws_sns_topic" "moon" {
+resource "aws_sns_topic" "test" {
   name = "%s"
 }
 `, ruleName, targetID, snsTopicName)
@@ -445,17 +445,17 @@ resource "aws_sns_topic" "moon" {
 
 func testAccAWSCloudWatchEventTargetConfigMissingTargetId(ruleName, snsTopicName string) string {
 	return fmt.Sprintf(`
-resource "aws_cloudwatch_event_rule" "foo" {
+resource "aws_cloudwatch_event_rule" "test" {
   name                = "%s"
   schedule_expression = "rate(1 hour)"
 }
 
-resource "aws_cloudwatch_event_target" "moobar" {
-  rule = "${aws_cloudwatch_event_rule.foo.name}"
-  arn  = "${aws_sns_topic.moon.arn}"
+resource "aws_cloudwatch_event_target" "test" {
+  rule = "${aws_cloudwatch_event_rule.test.name}"
+  arn  = "${aws_sns_topic.test.arn}"
 }
 
-resource "aws_sns_topic" "moon" {
+resource "aws_sns_topic" "test" {
   name = "%s"
 }
 `, ruleName, snsTopicName)
@@ -463,7 +463,7 @@ resource "aws_sns_topic" "moon" {
 
 func testAccAWSCloudWatchEventTargetConfig_full(ruleName, targetName, rName string) string {
 	return fmt.Sprintf(`
-resource "aws_cloudwatch_event_rule" "foo" {
+resource "aws_cloudwatch_event_rule" "test" {
   name                = "%s"
   schedule_expression = "rate(1 hour)"
   role_arn            = "${aws_iam_role.role.arn}"
@@ -512,18 +512,18 @@ resource "aws_iam_role_policy" "test_policy" {
 EOF
 }
 
-resource "aws_cloudwatch_event_target" "foobar" {
-  rule      = "${aws_cloudwatch_event_rule.foo.name}"
+resource "aws_cloudwatch_event_target" "test" {
+  rule      = "${aws_cloudwatch_event_rule.test.name}"
   target_id = "%s"
 
   input = <<INPUT
 { "source": ["aws.cloudtrail"] }
 INPUT
 
-  arn = "${aws_kinesis_stream.test_stream.arn}"
+  arn = "${aws_kinesis_stream.test.arn}"
 }
 
-resource "aws_kinesis_stream" "test_stream" {
+resource "aws_kinesis_stream" "test" {
   name        = "%s_kinesis_test"
   shard_count = 1
 }
@@ -532,7 +532,7 @@ resource "aws_kinesis_stream" "test_stream" {
 
 func testAccAWSCloudWatchEventTargetConfigSsmDocument(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_ssm_document" "foo" {
+resource "aws_ssm_document" "test" {
   name          = "%s"
   document_type = "Command"
 
@@ -571,7 +571,7 @@ PATTERN
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_ssm_document.foo.arn}"
+  arn      = "${aws_ssm_document.test.arn}"
   rule     = "${aws_cloudwatch_event_rule.console.id}"
   role_arn = "${aws_iam_role.test_role.arn}"
 

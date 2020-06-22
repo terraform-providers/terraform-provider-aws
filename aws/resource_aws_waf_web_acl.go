@@ -33,7 +33,7 @@ func resourceAwsWafWebAcl() *schema.Resource {
 				ForceNew: true,
 			},
 			"default_action": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -154,7 +154,7 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 	out, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 		params := &waf.CreateWebACLInput{
 			ChangeToken:   token,
-			DefaultAction: expandWafAction(d.Get("default_action").(*schema.Set).List()),
+			DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
 			MetricName:    aws.String(d.Get("metric_name").(string)),
 			Name:          aws.String(d.Get("name").(string)),
 		}
@@ -196,7 +196,7 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 			req := &waf.UpdateWebACLInput{
 				ChangeToken:   token,
-				DefaultAction: expandWafAction(d.Get("default_action").(*schema.Set).List()),
+				DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
 				Updates:       diffWafWebAclRules([]interface{}{}, rules),
 				WebACLId:      aws.String(d.Id()),
 			}
@@ -212,6 +212,8 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	params := &waf.GetWebACLInput{
 		WebACLId: aws.String(d.Id()),
 	}
@@ -246,7 +248,7 @@ func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for WAF ACL (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -280,7 +282,7 @@ func resourceAwsWafWebAclRead(d *schema.ResourceData, meta interface{}) error {
 func resourceAwsWafWebAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
 
-	if d.HasChange("default_action") || d.HasChange("rules") {
+	if d.HasChanges("default_action", "rules") {
 		o, n := d.GetChange("rules")
 		oldR, newR := o.(*schema.Set).List(), n.(*schema.Set).List()
 
@@ -288,7 +290,7 @@ func resourceAwsWafWebAclUpdate(d *schema.ResourceData, meta interface{}) error 
 		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 			req := &waf.UpdateWebACLInput{
 				ChangeToken:   token,
-				DefaultAction: expandWafAction(d.Get("default_action").(*schema.Set).List()),
+				DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
 				Updates:       diffWafWebAclRules(oldR, newR),
 				WebACLId:      aws.String(d.Id()),
 			}
@@ -345,7 +347,7 @@ func resourceAwsWafWebAclDelete(d *schema.ResourceData, meta interface{}) error 
 		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
 			req := &waf.UpdateWebACLInput{
 				ChangeToken:   token,
-				DefaultAction: expandWafAction(d.Get("default_action").(*schema.Set).List()),
+				DefaultAction: expandWafAction(d.Get("default_action").([]interface{})),
 				Updates:       diffWafWebAclRules(rules, []interface{}{}),
 				WebACLId:      aws.String(d.Id()),
 			}

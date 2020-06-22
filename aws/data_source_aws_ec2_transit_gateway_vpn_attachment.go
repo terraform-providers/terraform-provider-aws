@@ -19,34 +19,53 @@ func dataSourceAwsEc2TransitGatewayVpnAttachment() *schema.Resource {
 			"tags": tagsSchemaComputed(),
 			"transit_gateway_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"vpn_connection_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
+			"filter": dataSourceFiltersSchema(),
 		},
 	}
 }
 
 func dataSourceAwsEc2TransitGatewayVpnAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
+	filters, filtersOk := d.GetOk("filter")
+	tags, tagsOk := d.GetOk("tags")
+	connectionId, connectionIdOk := d.GetOk("vpn_connection_id")
+	transitGatewayId, transitGatewayIdOk := d.GetOk("transit_gateway_id")
 
 	input := &ec2.DescribeTransitGatewayAttachmentsInput{
 		Filters: []*ec2.Filter{
 			{
-				Name:   aws.String("resource-id"),
-				Values: []*string{aws.String(d.Get("vpn_connection_id").(string))},
-			},
-			{
 				Name:   aws.String("resource-type"),
 				Values: []*string{aws.String(ec2.TransitGatewayAttachmentResourceTypeVpn)},
 			},
-			{
-				Name:   aws.String("transit-gateway-id"),
-				Values: []*string{aws.String(d.Get("transit_gateway_id").(string))},
-			},
 		},
+	}
+
+	if filtersOk {
+		input.Filters = append(input.Filters, buildAwsDataSourceFilters(filters.(*schema.Set))...)
+	}
+	if tagsOk {
+		input.Filters = append(input.Filters, ec2TagFiltersFromMap(tags.(map[string]interface{}))...)
+	}
+	if connectionIdOk {
+		input.Filters = append(input.Filters, &ec2.Filter{
+			Name:   aws.String("resource-id"),
+			Values: []*string{aws.String(connectionId.(string))},
+		})
+	}
+
+	if transitGatewayIdOk {
+		input.Filters = append(input.Filters, &ec2.Filter{
+			Name:   aws.String("transit-gateway-id"),
+			Values: []*string{aws.String(transitGatewayId.(string))},
+		})
 	}
 
 	log.Printf("[DEBUG] Reading EC2 Transit Gateway VPN Attachments: %s", input)
@@ -66,7 +85,7 @@ func dataSourceAwsEc2TransitGatewayVpnAttachmentRead(d *schema.ResourceData, met
 
 	transitGatewayAttachment := output.TransitGatewayAttachments[0]
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGatewayAttachment.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(transitGatewayAttachment.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

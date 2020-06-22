@@ -2057,6 +2057,202 @@ func (c *ManagedBlockchain) RejectInvitationWithContext(ctx aws.Context, input *
 	return out, req.Send()
 }
 
+const opUpdateMember = "UpdateMember"
+
+// UpdateMemberRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateMember operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateMember for more information on using the UpdateMember
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateMemberRequest method.
+//    req, resp := client.UpdateMemberRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/managedblockchain-2018-09-24/UpdateMember
+func (c *ManagedBlockchain) UpdateMemberRequest(input *UpdateMemberInput) (req *request.Request, output *UpdateMemberOutput) {
+	op := &request.Operation{
+		Name:       opUpdateMember,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/networks/{networkId}/members/{memberId}",
+	}
+
+	if input == nil {
+		input = &UpdateMemberInput{}
+	}
+
+	output = &UpdateMemberOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateMember API operation for Amazon Managed Blockchain.
+//
+// Updates a member configuration with new parameters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Managed Blockchain's
+// API operation UpdateMember for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The action or operation requested is invalid. Verify that the action is typed
+//   correctly.
+//
+//   * AccessDeniedException
+//   You do not have sufficient access to perform this action.
+//
+//   * ResourceNotFoundException
+//   A requested resource does not exist on the network. It may have been deleted
+//   or referenced inaccurately.
+//
+//   * ThrottlingException
+//   The request or operation could not be performed because a service is throttling
+//   requests. The most common source of throttling errors is launching EC2 instances
+//   such that your service limit for EC2 instances is exceeded. Request a limit
+//   increase or delete unused resources if possible.
+//
+//   * InternalServiceErrorException
+//   The request processing has failed because of an unknown error, exception
+//   or failure.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/managedblockchain-2018-09-24/UpdateMember
+func (c *ManagedBlockchain) UpdateMember(input *UpdateMemberInput) (*UpdateMemberOutput, error) {
+	req, out := c.UpdateMemberRequest(input)
+	return out, req.Send()
+}
+
+// UpdateMemberWithContext is the same as UpdateMember with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateMember for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ManagedBlockchain) UpdateMemberWithContext(ctx aws.Context, input *UpdateMemberInput, opts ...request.Option) (*UpdateMemberOutput, error) {
+	req, out := c.UpdateMemberRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateNode = "UpdateNode"
+
+// UpdateNodeRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateNode operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateNode for more information on using the UpdateNode
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateNodeRequest method.
+//    req, resp := client.UpdateNodeRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/managedblockchain-2018-09-24/UpdateNode
+func (c *ManagedBlockchain) UpdateNodeRequest(input *UpdateNodeInput) (req *request.Request, output *UpdateNodeOutput) {
+	op := &request.Operation{
+		Name:       opUpdateNode,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/networks/{networkId}/members/{memberId}/nodes/{nodeId}",
+	}
+
+	if input == nil {
+		input = &UpdateNodeInput{}
+	}
+
+	output = &UpdateNodeOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateNode API operation for Amazon Managed Blockchain.
+//
+// Updates a node configuration with new parameters.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Managed Blockchain's
+// API operation UpdateNode for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The action or operation requested is invalid. Verify that the action is typed
+//   correctly.
+//
+//   * AccessDeniedException
+//   You do not have sufficient access to perform this action.
+//
+//   * ResourceNotFoundException
+//   A requested resource does not exist on the network. It may have been deleted
+//   or referenced inaccurately.
+//
+//   * ThrottlingException
+//   The request or operation could not be performed because a service is throttling
+//   requests. The most common source of throttling errors is launching EC2 instances
+//   such that your service limit for EC2 instances is exceeded. Request a limit
+//   increase or delete unused resources if possible.
+//
+//   * InternalServiceErrorException
+//   The request processing has failed because of an unknown error, exception
+//   or failure.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/managedblockchain-2018-09-24/UpdateNode
+func (c *ManagedBlockchain) UpdateNode(input *UpdateNodeInput) (*UpdateNodeOutput, error) {
+	req, out := c.UpdateNodeRequest(input)
+	return out, req.Send()
+}
+
+// UpdateNodeWithContext is the same as UpdateNode with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateNode for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ManagedBlockchain) UpdateNodeWithContext(ctx aws.Context, input *UpdateNodeInput, opts ...request.Option) (*UpdateNodeOutput, error) {
+	req, out := c.UpdateNodeRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opVoteOnProposal = "VoteOnProposal"
 
 // VoteOnProposalRequest generates a "aws/request.Request" representing the
@@ -2161,8 +2357,8 @@ func (c *ManagedBlockchain) VoteOnProposalWithContext(ctx aws.Context, input *Vo
 
 // You do not have sufficient access to perform this action.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -2179,17 +2375,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2197,22 +2393,22 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A policy type that defines the voting rules for the network. The rules decide
@@ -3313,8 +3509,8 @@ func (s *GetProposalOutput) SetProposal(v *Proposal) *GetProposalOutput {
 }
 
 type IllegalActionException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3331,17 +3527,17 @@ func (s IllegalActionException) GoString() string {
 
 func newErrorIllegalActionException(v protocol.ResponseMetadata) error {
 	return &IllegalActionException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IllegalActionException) Code() string {
+func (s *IllegalActionException) Code() string {
 	return "IllegalActionException"
 }
 
 // Message returns the exception's message.
-func (s IllegalActionException) Message() string {
+func (s *IllegalActionException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3349,29 +3545,29 @@ func (s IllegalActionException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IllegalActionException) OrigErr() error {
+func (s *IllegalActionException) OrigErr() error {
 	return nil
 }
 
-func (s IllegalActionException) Error() string {
+func (s *IllegalActionException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IllegalActionException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IllegalActionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IllegalActionException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IllegalActionException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request processing has failed because of an unknown error, exception
 // or failure.
 type InternalServiceErrorException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -3388,17 +3584,17 @@ func (s InternalServiceErrorException) GoString() string {
 
 func newErrorInternalServiceErrorException(v protocol.ResponseMetadata) error {
 	return &InternalServiceErrorException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServiceErrorException) Code() string {
+func (s *InternalServiceErrorException) Code() string {
 	return "InternalServiceErrorException"
 }
 
 // Message returns the exception's message.
-func (s InternalServiceErrorException) Message() string {
+func (s *InternalServiceErrorException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3406,29 +3602,29 @@ func (s InternalServiceErrorException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServiceErrorException) OrigErr() error {
+func (s *InternalServiceErrorException) OrigErr() error {
 	return nil
 }
 
-func (s InternalServiceErrorException) Error() string {
+func (s *InternalServiceErrorException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServiceErrorException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServiceErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServiceErrorException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServiceErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The action or operation requested is invalid. Verify that the action is typed
 // correctly.
 type InvalidRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3445,17 +3641,17 @@ func (s InvalidRequestException) GoString() string {
 
 func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidRequestException) Code() string {
+func (s *InvalidRequestException) Code() string {
 	return "InvalidRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidRequestException) Message() string {
+func (s *InvalidRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3463,22 +3659,22 @@ func (s InvalidRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidRequestException) OrigErr() error {
+func (s *InvalidRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidRequestException) Error() string {
+func (s *InvalidRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An invitation to an AWS account to create a member and join the network.
@@ -4234,6 +4430,54 @@ func (s *ListProposalsOutput) SetProposals(v []*ProposalSummary) *ListProposalsO
 	return s
 }
 
+// A configuration for logging events.
+type LogConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether logging is enabled.
+	Enabled *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s LogConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LogConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetEnabled sets the Enabled field's value.
+func (s *LogConfiguration) SetEnabled(v bool) *LogConfiguration {
+	s.Enabled = &v
+	return s
+}
+
+// A collection of log configurations.
+type LogConfigurations struct {
+	_ struct{} `type:"structure"`
+
+	// Parameters for publishing logs to Amazon CloudWatch Logs.
+	Cloudwatch *LogConfiguration `type:"structure"`
+}
+
+// String returns the string representation
+func (s LogConfigurations) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LogConfigurations) GoString() string {
+	return s.String()
+}
+
+// SetCloudwatch sets the Cloudwatch field's value.
+func (s *LogConfigurations) SetCloudwatch(v *LogConfiguration) *LogConfigurations {
+	s.Cloudwatch = v
+	return s
+}
+
 // Member configuration properties.
 type Member struct {
 	_ struct{} `type:"structure"`
@@ -4250,6 +4494,9 @@ type Member struct {
 
 	// The unique identifier of the member.
 	Id *string `min:"1" type:"string"`
+
+	// Configuration properties for logging events associated with a member.
+	LogPublishingConfiguration *MemberLogPublishingConfiguration `type:"structure"`
 
 	// The name of the member.
 	Name *string `min:"1" type:"string"`
@@ -4312,6 +4559,12 @@ func (s *Member) SetId(v string) *Member {
 	return s
 }
 
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *Member) SetLogPublishingConfiguration(v *MemberLogPublishingConfiguration) *Member {
+	s.LogPublishingConfiguration = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *Member) SetName(v string) *Member {
 	s.Name = &v
@@ -4341,6 +4594,10 @@ type MemberConfiguration struct {
 	//
 	// FrameworkConfiguration is a required field
 	FrameworkConfiguration *MemberFrameworkConfiguration `type:"structure" required:"true"`
+
+	// Configuration properties for logging events associated with a member of a
+	// Managed Blockchain network.
+	LogPublishingConfiguration *MemberLogPublishingConfiguration `type:"structure"`
 
 	// The name of the member.
 	//
@@ -4391,6 +4648,12 @@ func (s *MemberConfiguration) SetDescription(v string) *MemberConfiguration {
 // SetFrameworkConfiguration sets the FrameworkConfiguration field's value.
 func (s *MemberConfiguration) SetFrameworkConfiguration(v *MemberFrameworkConfiguration) *MemberConfiguration {
 	s.FrameworkConfiguration = v
+	return s
+}
+
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *MemberConfiguration) SetLogPublishingConfiguration(v *MemberLogPublishingConfiguration) *MemberConfiguration {
+	s.LogPublishingConfiguration = v
 	return s
 }
 
@@ -4498,6 +4761,33 @@ func (s *MemberFabricConfiguration) SetAdminUsername(v string) *MemberFabricConf
 	return s
 }
 
+// Configuration properties for logging events associated with a member of a
+// Managed Blockchain network using the Hyperledger Fabric framework.
+type MemberFabricLogPublishingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for logging events associated with a member's Certificate
+	// Authority (CA). CA logs help you determine when a member in your account
+	// joins the network, or when new peers register with a member CA.
+	CaLogs *LogConfigurations `type:"structure"`
+}
+
+// String returns the string representation
+func (s MemberFabricLogPublishingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MemberFabricLogPublishingConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetCaLogs sets the CaLogs field's value.
+func (s *MemberFabricLogPublishingConfiguration) SetCaLogs(v *LogConfigurations) *MemberFabricLogPublishingConfiguration {
+	s.CaLogs = v
+	return s
+}
+
 // Attributes relevant to a member for the blockchain framework that the Managed
 // Blockchain network uses.
 type MemberFrameworkAttributes struct {
@@ -4561,6 +4851,32 @@ func (s *MemberFrameworkConfiguration) Validate() error {
 
 // SetFabric sets the Fabric field's value.
 func (s *MemberFrameworkConfiguration) SetFabric(v *MemberFabricConfiguration) *MemberFrameworkConfiguration {
+	s.Fabric = v
+	return s
+}
+
+// Configuration properties for logging events associated with a member of a
+// Managed Blockchain network.
+type MemberLogPublishingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for logging events associated with a member of a
+	// Managed Blockchain network using the Hyperledger Fabric framework.
+	Fabric *MemberFabricLogPublishingConfiguration `type:"structure"`
+}
+
+// String returns the string representation
+func (s MemberLogPublishingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MemberLogPublishingConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetFabric sets the Fabric field's value.
+func (s *MemberLogPublishingConfiguration) SetFabric(v *MemberFabricLogPublishingConfiguration) *MemberLogPublishingConfiguration {
 	s.Fabric = v
 	return s
 }
@@ -4764,7 +5080,7 @@ type NetworkFabricAttributes struct {
 	_ struct{} `type:"structure"`
 
 	// The edition of Amazon Managed Blockchain that Hyperledger Fabric uses. For
-	// more information, see Amazon Managed Blockchain Pricing (https://aws.amazon.com/managed-blockchain/pricing/).
+	// more information, see Amazon Managed Blockchain Pricing (http://aws.amazon.com/managed-blockchain/pricing/).
 	Edition *string `type:"string" enum:"Edition"`
 
 	// The endpoint of the ordering service for the network.
@@ -4798,7 +5114,7 @@ type NetworkFabricConfiguration struct {
 	_ struct{} `type:"structure"`
 
 	// The edition of Amazon Managed Blockchain that the network uses. For more
-	// information, see Amazon Managed Blockchain Pricing (https://aws.amazon.com/managed-blockchain/pricing/).
+	// information, see Amazon Managed Blockchain Pricing (http://aws.amazon.com/managed-blockchain/pricing/).
 	//
 	// Edition is a required field
 	Edition *string `type:"string" required:"true" enum:"Edition"`
@@ -4997,6 +5313,10 @@ type Node struct {
 	// The instance type of the node.
 	InstanceType *string `type:"string"`
 
+	// Configuration properties for logging events associated with a peer node owned
+	// by a member in a Managed Blockchain network.
+	LogPublishingConfiguration *NodeLogPublishingConfiguration `type:"structure"`
+
 	// The unique identifier of the member to which the node belongs.
 	MemberId *string `min:"1" type:"string"`
 
@@ -5047,6 +5367,12 @@ func (s *Node) SetInstanceType(v string) *Node {
 	return s
 }
 
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *Node) SetLogPublishingConfiguration(v *NodeLogPublishingConfiguration) *Node {
+	s.LogPublishingConfiguration = v
+	return s
+}
+
 // SetMemberId sets the MemberId field's value.
 func (s *Node) SetMemberId(v string) *Node {
 	s.MemberId = &v
@@ -5078,6 +5404,10 @@ type NodeConfiguration struct {
 	//
 	// InstanceType is a required field
 	InstanceType *string `type:"string" required:"true"`
+
+	// Configuration properties for logging events associated with a peer node owned
+	// by a member in a Managed Blockchain network.
+	LogPublishingConfiguration *NodeLogPublishingConfiguration `type:"structure"`
 }
 
 // String returns the string representation
@@ -5118,6 +5448,12 @@ func (s *NodeConfiguration) SetInstanceType(v string) *NodeConfiguration {
 	return s
 }
 
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *NodeConfiguration) SetLogPublishingConfiguration(v *NodeLogPublishingConfiguration) *NodeConfiguration {
+	s.LogPublishingConfiguration = v
+	return s
+}
+
 // Attributes of Hyperledger Fabric for a peer node on a Managed Blockchain
 // network that uses Hyperledger Fabric.
 type NodeFabricAttributes struct {
@@ -5153,6 +5489,47 @@ func (s *NodeFabricAttributes) SetPeerEventEndpoint(v string) *NodeFabricAttribu
 	return s
 }
 
+// Configuration properties for logging events associated with a peer node owned
+// by a member in a Managed Blockchain network.
+type NodeFabricLogPublishingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for logging events associated with chaincode execution
+	// on a peer node. Chaincode logs contain the results of instantiating, invoking,
+	// and querying the chaincode. A peer can run multiple instances of chaincode.
+	// When enabled, a log stream is created for all chaincodes, with an individual
+	// log stream for each chaincode.
+	ChaincodeLogs *LogConfigurations `type:"structure"`
+
+	// Configuration properties for a peer node log. Peer node logs contain messages
+	// generated when your client submits transaction proposals to peer nodes, requests
+	// to join channels, enrolls an admin peer, and lists the chaincode instances
+	// on a peer node.
+	PeerLogs *LogConfigurations `type:"structure"`
+}
+
+// String returns the string representation
+func (s NodeFabricLogPublishingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NodeFabricLogPublishingConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetChaincodeLogs sets the ChaincodeLogs field's value.
+func (s *NodeFabricLogPublishingConfiguration) SetChaincodeLogs(v *LogConfigurations) *NodeFabricLogPublishingConfiguration {
+	s.ChaincodeLogs = v
+	return s
+}
+
+// SetPeerLogs sets the PeerLogs field's value.
+func (s *NodeFabricLogPublishingConfiguration) SetPeerLogs(v *LogConfigurations) *NodeFabricLogPublishingConfiguration {
+	s.PeerLogs = v
+	return s
+}
+
 // Attributes relevant to a peer node on a Managed Blockchain network for the
 // blockchain framework that the network uses.
 type NodeFrameworkAttributes struct {
@@ -5175,6 +5552,33 @@ func (s NodeFrameworkAttributes) GoString() string {
 
 // SetFabric sets the Fabric field's value.
 func (s *NodeFrameworkAttributes) SetFabric(v *NodeFabricAttributes) *NodeFrameworkAttributes {
+	s.Fabric = v
+	return s
+}
+
+// Configuration properties for logging events associated with a peer node owned
+// by a member in a Managed Blockchain network.
+type NodeLogPublishingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for logging events associated with a node that is
+	// owned by a member of a Managed Blockchain network using the Hyperledger Fabric
+	// framework.
+	Fabric *NodeFabricLogPublishingConfiguration `type:"structure"`
+}
+
+// String returns the string representation
+func (s NodeLogPublishingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NodeLogPublishingConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetFabric sets the Fabric field's value.
+func (s *NodeLogPublishingConfiguration) SetFabric(v *NodeFabricLogPublishingConfiguration) *NodeLogPublishingConfiguration {
 	s.Fabric = v
 	return s
 }
@@ -5295,7 +5699,9 @@ type Proposal struct {
 	//    are not carried out.
 	//
 	//    * ACTION_FAILED - One or more of the specified ProposalActions in a proposal
-	//    that was approved could not be completed because of an error.
+	//    that was approved could not be completed because of an error. The ACTION_FAILED
+	//    status occurs even if only one ProposalAction fails and other actions
+	//    are successful.
 	Status *string `type:"string" enum:"ProposalStatus"`
 
 	// The current total of YES votes cast on the proposal by members.
@@ -5650,8 +6056,8 @@ func (s *RemoveAction) SetMemberId(v string) *RemoveAction {
 
 // A resource request is issued for a resource that already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -5668,17 +6074,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5686,30 +6092,30 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The maximum number of resources of that type already exist. Ensure the resources
 // requested are within the boundaries of the service edition and your account
 // limits.
 type ResourceLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -5726,17 +6132,17 @@ func (s ResourceLimitExceededException) GoString() string {
 
 func newErrorResourceLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ResourceLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceLimitExceededException) Code() string {
+func (s *ResourceLimitExceededException) Code() string {
 	return "ResourceLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ResourceLimitExceededException) Message() string {
+func (s *ResourceLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5744,29 +6150,29 @@ func (s ResourceLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceLimitExceededException) OrigErr() error {
+func (s *ResourceLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceLimitExceededException) Error() string {
+func (s *ResourceLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A requested resource does not exist on the network. It may have been deleted
 // or referenced inaccurately.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -5783,17 +6189,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5801,29 +6207,29 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested resource exists but is not in a status that can complete the
 // operation.
 type ResourceNotReadyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -5840,17 +6246,17 @@ func (s ResourceNotReadyException) GoString() string {
 
 func newErrorResourceNotReadyException(v protocol.ResponseMetadata) error {
 	return &ResourceNotReadyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotReadyException) Code() string {
+func (s *ResourceNotReadyException) Code() string {
 	return "ResourceNotReadyException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotReadyException) Message() string {
+func (s *ResourceNotReadyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5858,22 +6264,22 @@ func (s ResourceNotReadyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotReadyException) OrigErr() error {
+func (s *ResourceNotReadyException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotReadyException) Error() string {
+func (s *ResourceNotReadyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotReadyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotReadyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotReadyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotReadyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request or operation could not be performed because a service is throttling
@@ -5881,8 +6287,8 @@ func (s ResourceNotReadyException) RequestID() string {
 // such that your service limit for EC2 instances is exceeded. Request a limit
 // increase or delete unused resources if possible.
 type ThrottlingException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5899,17 +6305,17 @@ func (s ThrottlingException) GoString() string {
 
 func newErrorThrottlingException(v protocol.ResponseMetadata) error {
 	return &ThrottlingException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ThrottlingException) Code() string {
+func (s *ThrottlingException) Code() string {
 	return "ThrottlingException"
 }
 
 // Message returns the exception's message.
-func (s ThrottlingException) Message() string {
+func (s *ThrottlingException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5917,22 +6323,201 @@ func (s ThrottlingException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ThrottlingException) OrigErr() error {
+func (s *ThrottlingException) OrigErr() error {
 	return nil
 }
 
-func (s ThrottlingException) Error() string {
+func (s *ThrottlingException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ThrottlingException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ThrottlingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ThrottlingException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ThrottlingException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type UpdateMemberInput struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for publishing to Amazon CloudWatch Logs.
+	LogPublishingConfiguration *MemberLogPublishingConfiguration `type:"structure"`
+
+	// The unique ID of the member.
+	//
+	// MemberId is a required field
+	MemberId *string `location:"uri" locationName:"memberId" min:"1" type:"string" required:"true"`
+
+	// The unique ID of the Managed Blockchain network to which the member belongs.
+	//
+	// NetworkId is a required field
+	NetworkId *string `location:"uri" locationName:"networkId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateMemberInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateMemberInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateMemberInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateMemberInput"}
+	if s.MemberId == nil {
+		invalidParams.Add(request.NewErrParamRequired("MemberId"))
+	}
+	if s.MemberId != nil && len(*s.MemberId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MemberId", 1))
+	}
+	if s.NetworkId == nil {
+		invalidParams.Add(request.NewErrParamRequired("NetworkId"))
+	}
+	if s.NetworkId != nil && len(*s.NetworkId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NetworkId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *UpdateMemberInput) SetLogPublishingConfiguration(v *MemberLogPublishingConfiguration) *UpdateMemberInput {
+	s.LogPublishingConfiguration = v
+	return s
+}
+
+// SetMemberId sets the MemberId field's value.
+func (s *UpdateMemberInput) SetMemberId(v string) *UpdateMemberInput {
+	s.MemberId = &v
+	return s
+}
+
+// SetNetworkId sets the NetworkId field's value.
+func (s *UpdateMemberInput) SetNetworkId(v string) *UpdateMemberInput {
+	s.NetworkId = &v
+	return s
+}
+
+type UpdateMemberOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateMemberOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateMemberOutput) GoString() string {
+	return s.String()
+}
+
+type UpdateNodeInput struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration properties for publishing to Amazon CloudWatch Logs.
+	LogPublishingConfiguration *NodeLogPublishingConfiguration `type:"structure"`
+
+	// The unique ID of the member that owns the node.
+	//
+	// MemberId is a required field
+	MemberId *string `location:"uri" locationName:"memberId" min:"1" type:"string" required:"true"`
+
+	// The unique ID of the Managed Blockchain network to which the node belongs.
+	//
+	// NetworkId is a required field
+	NetworkId *string `location:"uri" locationName:"networkId" min:"1" type:"string" required:"true"`
+
+	// The unique ID of the node.
+	//
+	// NodeId is a required field
+	NodeId *string `location:"uri" locationName:"nodeId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateNodeInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateNodeInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateNodeInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateNodeInput"}
+	if s.MemberId == nil {
+		invalidParams.Add(request.NewErrParamRequired("MemberId"))
+	}
+	if s.MemberId != nil && len(*s.MemberId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MemberId", 1))
+	}
+	if s.NetworkId == nil {
+		invalidParams.Add(request.NewErrParamRequired("NetworkId"))
+	}
+	if s.NetworkId != nil && len(*s.NetworkId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NetworkId", 1))
+	}
+	if s.NodeId == nil {
+		invalidParams.Add(request.NewErrParamRequired("NodeId"))
+	}
+	if s.NodeId != nil && len(*s.NodeId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NodeId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLogPublishingConfiguration sets the LogPublishingConfiguration field's value.
+func (s *UpdateNodeInput) SetLogPublishingConfiguration(v *NodeLogPublishingConfiguration) *UpdateNodeInput {
+	s.LogPublishingConfiguration = v
+	return s
+}
+
+// SetMemberId sets the MemberId field's value.
+func (s *UpdateNodeInput) SetMemberId(v string) *UpdateNodeInput {
+	s.MemberId = &v
+	return s
+}
+
+// SetNetworkId sets the NetworkId field's value.
+func (s *UpdateNodeInput) SetNetworkId(v string) *UpdateNodeInput {
+	s.NetworkId = &v
+	return s
+}
+
+// SetNodeId sets the NodeId field's value.
+func (s *UpdateNodeInput) SetNodeId(v string) *UpdateNodeInput {
+	s.NodeId = &v
+	return s
+}
+
+type UpdateNodeOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateNodeOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateNodeOutput) GoString() string {
+	return s.String()
 }
 
 type VoteOnProposalInput struct {
@@ -6162,6 +6747,9 @@ const (
 	// MemberStatusCreateFailed is a MemberStatus enum value
 	MemberStatusCreateFailed = "CREATE_FAILED"
 
+	// MemberStatusUpdating is a MemberStatus enum value
+	MemberStatusUpdating = "UPDATING"
+
 	// MemberStatusDeleting is a MemberStatus enum value
 	MemberStatusDeleting = "DELETING"
 
@@ -6195,6 +6783,9 @@ const (
 
 	// NodeStatusCreateFailed is a NodeStatus enum value
 	NodeStatusCreateFailed = "CREATE_FAILED"
+
+	// NodeStatusUpdating is a NodeStatus enum value
+	NodeStatusUpdating = "UPDATING"
 
 	// NodeStatusDeleting is a NodeStatus enum value
 	NodeStatusDeleting = "DELETING"

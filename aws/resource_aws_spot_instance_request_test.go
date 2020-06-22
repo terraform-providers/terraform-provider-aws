@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -283,9 +282,13 @@ func testAccCheckAWSSpotInstanceRequestDestroy(s *terraform.State) error {
 			SpotInstanceRequestIds: []*string{aws.String(rs.Primary.ID)},
 		}
 
-		resp, err := conn.DescribeSpotInstanceRequests(req)
+		resp, spotErr := conn.DescribeSpotInstanceRequests(req)
+		// Verify the error is what we expect
+		if !isAWSErr(spotErr, "InvalidSpotInstanceRequestID.NotFound", "") {
+			return spotErr
+		}
 		var s *ec2.SpotInstanceRequest
-		if err == nil {
+		if spotErr == nil {
 			for _, sir := range resp.SpotInstanceRequests {
 				if sir.SpotInstanceRequestId != nil && *sir.SpotInstanceRequestId == rs.Primary.ID {
 					s = sir
@@ -293,47 +296,29 @@ func testAccCheckAWSSpotInstanceRequestDestroy(s *terraform.State) error {
 				continue
 			}
 		}
-
 		if s == nil {
 			// not found
-			return nil
+			continue
 		}
-
-		if *s.State == "canceled" || *s.State == "closed" {
+		if aws.StringValue(s.State) == "canceled" || aws.StringValue(s.State) == "closed" {
 			// Requests stick around for a while, so we make sure it's cancelled
 			// or closed.
-			return nil
-		}
-
-		// Verify the error is what we expect
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidSpotInstanceRequestID.NotFound" {
-			return err
+			continue
 		}
 
 		// Now check if the associated Spot Instance was also destroyed
-		instId := rs.Primary.Attributes["spot_instance_id"]
-		instResp, instErr := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{aws.String(instId)},
-		})
+		instanceID := rs.Primary.Attributes["spot_instance_id"]
+		instance, instErr := resourceAwsInstanceFindByID(conn, instanceID)
 		if instErr == nil {
-			if len(instResp.Reservations) > 0 {
-				return fmt.Errorf("Instance still exists.")
+			if instance != nil {
+				return fmt.Errorf("instance %q still exists", instanceID)
 			}
-
-			return nil
+			continue
 		}
 
 		// Verify the error is what we expect
-		ec2err, ok = err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidInstanceID.NotFound" {
-			return err
+		if !isAWSErr(instErr, "InvalidInstanceID.NotFound", "") {
+			return instErr
 		}
 	}
 
@@ -412,26 +397,21 @@ func testAccCheckAWSSpotInstanceRequestAttributesCheckSIRWithoutSpot(
 	}
 }
 
-func testAccCheckAWSSpotInstanceRequest_InstanceAttributes(
-	sir *ec2.SpotInstanceRequest, rInt int) resource.TestCheckFunc {
+func testAccCheckAWSSpotInstanceRequest_InstanceAttributes(sir *ec2.SpotInstanceRequest, rInt int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{sir.InstanceId},
-		})
+		instance, err := resourceAwsInstanceFindByID(conn, aws.StringValue(sir.InstanceId))
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidInstanceID.NotFound" {
-				return fmt.Errorf("Spot Instance not found")
+			if isAWSErr(err, "InvalidInstanceID.NotFound", "") {
+				return fmt.Errorf("Spot Instance %q not found", aws.StringValue(sir.InstanceId))
 			}
 			return err
 		}
 
 		// If nothing was found, then return no state
-		if len(resp.Reservations) == 0 {
+		if instance == nil {
 			return fmt.Errorf("Spot Instance not found")
 		}
-
-		instance := resp.Reservations[0].Instances[0]
 
 		var sgMatch bool
 		for _, s := range instance.SecurityGroups {
@@ -673,8 +653,13 @@ func testAccAWSSpotInstanceRequestConfig_withBlockDuration(rInt int) string {
 func testAccAWSSpotInstanceRequestConfigVPC(rInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
-	blacklisted_zone_ids = ["usw2-az4"]
-	state                = "available"
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "foo_VPC" {
@@ -724,8 +709,13 @@ tags = {
 func testAccAWSSpotInstanceRequestConfig_SubnetAndSGAndPublicIpAddress(rInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
-	blacklisted_zone_ids = ["usw2-az4"]
-	state                = "available"
+  blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_spot_instance_request" "foo" {

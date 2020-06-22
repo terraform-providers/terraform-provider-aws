@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccAWSGuarddutyDetectorDataSource_basic(t *testing.T) {
+func testAccAWSGuarddutyDetectorDataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		Providers:                 testAccProviders,
@@ -30,7 +30,7 @@ func TestAccAWSGuarddutyDetectorDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccAWSGuarddutyDetectorDataSource_explicit(t *testing.T) {
+func testAccAWSGuarddutyDetectorDataSource_Id(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,

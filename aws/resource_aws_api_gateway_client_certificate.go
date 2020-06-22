@@ -49,7 +49,7 @@ func resourceAwsApiGatewayClientCertificate() *schema.Resource {
 }
 
 func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.GenerateClientCertificateInput{}
 	if v, ok := d.GetOk("description"); ok {
@@ -70,7 +70,8 @@ func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := apigateway.GetClientCertificateInput{
 		ClientCertificateId: aws.String(d.Id()),
@@ -86,7 +87,7 @@ func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta int
 	}
 	log.Printf("[DEBUG] Received API Gateway Client Certificate: %s", out)
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(out.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -107,7 +108,7 @@ func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta int
 }
 
 func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	operations := make([]*apigateway.PatchOperation, 0)
 	if d.HasChange("description") {
@@ -140,7 +141,7 @@ func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayClientCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Client Certificate: %s", d.Id())
 	input := apigateway.DeleteClientCertificateInput{
 		ClientCertificateId: aws.String(d.Id()),

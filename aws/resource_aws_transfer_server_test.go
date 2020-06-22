@@ -189,7 +189,7 @@ func TestAccAWSTransferServer_forcedestroy(t *testing.T) {
 				ResourceName:            "aws_transfer_server.foo",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"force_destroy"},
+				ImportStateVerifyIgnore: []string{"force_destroy", "host_key"},
 			},
 		},
 	})
@@ -217,7 +217,35 @@ func TestAccAWSTransferServer_vpcEndpointId(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"force_destroy"},
+				ImportStateVerifyIgnore: []string{"force_destroy", "host_key"},
+			},
+		},
+	})
+}
+
+func TestAccAWSTransferServer_hostKey(t *testing.T) {
+	var conf transfer.DescribedServer
+	resourceName := "aws_transfer_server.default"
+	hostKey := "test-fixtures/transfer-ssh-rsa-key"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSTransferServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSTransferServerConfig_hostKey(hostKey),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSTransferServerExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "host_key_fingerprint", "SHA256:Z2pW9sPKDD/T34tVfCoolsRcECNTlekgaKvDn9t+9sg="),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"force_destroy", "host_key"},
 			},
 		},
 	})
@@ -626,3 +654,11 @@ resource "aws_transfer_server" "default" {
 	}
 }
 `
+
+func testAccAWSTransferServerConfig_hostKey(hostKey string) string {
+	return fmt.Sprintf(`
+resource "aws_transfer_server" "default" {
+  host_key	= "${file("%s")}"
+}
+`, hostKey)
+}

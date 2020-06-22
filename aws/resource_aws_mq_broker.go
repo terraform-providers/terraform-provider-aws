@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mitchellh/copystructure"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -22,6 +23,9 @@ func resourceAwsMqBroker() *schema.Resource {
 		Read:   resourceAwsMqBrokerRead,
 		Update: resourceAwsMqBrokerUpdate,
 		Delete: resourceAwsMqBrokerDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"apply_immediately": {
@@ -63,8 +67,12 @@ func resourceAwsMqBroker() *schema.Resource {
 			"deployment_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "SINGLE_INSTANCE",
+				Default:  mq.DeploymentModeSingleInstance,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					mq.DeploymentModeSingleInstance,
+					mq.DeploymentModeActiveStandbyMultiAz,
+				}, true),
 			},
 			"encryption_options": {
 				Type:             schema.TypeList,
@@ -94,6 +102,9 @@ func resourceAwsMqBroker() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					mq.EngineTypeActivemq,
+				}, true),
 			},
 			"engine_version": {
 				Type:     schema.TypeString,
@@ -142,6 +153,15 @@ func resourceAwsMqBroker() *schema.Resource {
 						"day_of_week": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								mq.DayOfWeekSunday,
+								mq.DayOfWeekMonday,
+								mq.DayOfWeekTuesday,
+								mq.DayOfWeekWednesday,
+								mq.DayOfWeekThursday,
+								mq.DayOfWeekFriday,
+								mq.DayOfWeekSaturday,
+							}, true),
 						},
 						"time_of_day": {
 							Type:     schema.TypeString,
@@ -185,7 +205,11 @@ func resourceAwsMqBroker() *schema.Resource {
 						},
 						"groups": {
 							Type:     schema.TypeSet,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							MaxItems: 20,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(2, 100),
+							},
 							Set:      schema.HashString,
 							Optional: true,
 						},
@@ -196,8 +220,9 @@ func resourceAwsMqBroker() *schema.Resource {
 							ValidateFunc: validateMqBrokerPassword,
 						},
 						"username": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(2, 100),
 						},
 					},
 				},
@@ -304,19 +329,20 @@ func resourceAwsMqBrokerCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mqconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading MQ Broker: %s", d.Id())
 	out, err := conn.DescribeBroker(&mq.DescribeBrokerInput{
 		BrokerId: aws.String(d.Id()),
 	})
 	if err != nil {
-		if isAWSErr(err, "NotFoundException", "") {
+		if isAWSErr(err, mq.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] MQ Broker %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 		// API docs say a 404 can also return a 403
-		if isAWSErr(err, "ForbiddenException", "Forbidden") {
+		if isAWSErr(err, mq.ErrCodeForbiddenException, "Forbidden") {
 			log.Printf("[WARN] MQ Broker %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -376,11 +402,7 @@ func resourceAwsMqBrokerRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	tags, err := keyvaluetags.MqListTags(conn, aws.StringValue(out.BrokerArn))
-	if err != nil {
-		return fmt.Errorf("error listing tags for MQ Broker (%s): %s", d.Id(), err)
-	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.MqKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -402,7 +424,7 @@ func resourceAwsMqBrokerUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("configuration") || d.HasChange("logs") {
+	if d.HasChanges("configuration", "logs") {
 		_, err := conn.UpdateBroker(&mq.UpdateBrokerRequest{
 			BrokerId:      aws.String(d.Id()),
 			Configuration: expandMqConfigurationId(d.Get("configuration").([]interface{})),

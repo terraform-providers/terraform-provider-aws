@@ -35,7 +35,7 @@ The following arguments are supported:
 * `operating_system` - (Required) Operating system that the game server binaries are built to run on. e.g. `WINDOWS_2012` or `AMAZON_LINUX`.
 * `storage_location` - (Required) Information indicating where your game build files are stored. See below.
 * `version` - (Optional) Version that is associated with this build.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ### Nested Fields
 

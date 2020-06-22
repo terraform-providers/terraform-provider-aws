@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -20,8 +21,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/logutils"
-	"github.com/mitchellh/colorstring"
-
+	"github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/command/format"
@@ -32,6 +32,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/internal/states"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/tfdiags"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/mitchellh/colorstring"
 )
 
 // flagSweep is a flag available when running tests on the command line. It
@@ -108,7 +109,15 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 	} else {
-		os.Exit(m.Run())
+		exitCode := m.Run()
+
+		if acctest.TestHelper != nil {
+			err := acctest.TestHelper.Close()
+			if err != nil {
+				log.Printf("Error cleaning up temporary test files: %s", err)
+			}
+		}
+		os.Exit(exitCode)
 	}
 }
 
@@ -252,6 +261,7 @@ func runSweeperWithRegion(region string, s *Sweeper, sweepers map[string]*Sweepe
 }
 
 const TestEnvVar = "TF_ACC"
+const TestDisableBinaryTestingFlagEnvVar = "TF_DISABLE_BINARY_TESTING"
 
 // TestProvider can be implemented by any ResourceProvider to provide custom
 // reset functionality at the start of an acceptance test.
@@ -325,6 +335,12 @@ type TestCase struct {
 	// IDRefreshIgnore is a list of configuration keys that will be ignored.
 	IDRefreshName   string
 	IDRefreshIgnore []string
+
+	// DisableBinaryDriver forces this test case to run using the legacy test
+	// driver, even if the binary test driver has been enabled.
+	//
+	// Deprecated: This property will be removed in version 2.0.0 of the SDK.
+	DisableBinaryDriver bool
 }
 
 // TestStep is a single apply sequence of a test, done within the
@@ -535,6 +551,14 @@ func Test(t TestT, c TestCase) {
 			TestEnvVar))
 		return
 	}
+	if v := os.Getenv(TestDisableBinaryTestingFlagEnvVar); v != "" {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			t.Error(fmt.Errorf("Error parsing EnvVar %q value %q: %s", TestDisableBinaryTestingFlagEnvVar, v, err))
+		}
+
+		c.DisableBinaryDriver = b
+	}
 
 	logWriter, err := LogOutput(t)
 	if err != nil {
@@ -545,12 +569,6 @@ func Test(t TestT, c TestCase) {
 	// We require verbose mode so that the user knows what is going on.
 	if !testTesting && !testing.Verbose() && !c.IsUnitTest {
 		t.Fatal("Acceptance tests must be run with the -v flag on tests")
-		return
-	}
-
-	// Run the PreCheck if we have it
-	if c.PreCheck != nil {
-		c.PreCheck()
 	}
 
 	// get instances of all providers, so we can use the individual
@@ -562,6 +580,32 @@ func Test(t TestT, c TestCase) {
 			t.Fatal(err)
 		}
 		providers[name] = p
+	}
+
+	if acctest.TestHelper != nil && c.DisableBinaryDriver == false {
+		// auto-configure all providers
+		for _, p := range providers {
+			err = p.Configure(terraform.NewResourceConfigRaw(nil))
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Run the PreCheck if we have it.
+		// This is done after the auto-configure to allow providers
+		// to override the default auto-configure parameters.
+		if c.PreCheck != nil {
+			c.PreCheck()
+		}
+
+		// inject providers for ImportStateVerify
+		RunNewTest(t.(*testing.T), c, providers)
+		return
+	} else {
+		// run the PreCheck if we have it
+		if c.PreCheck != nil {
+			c.PreCheck()
+		}
 	}
 
 	providerResolver, err := testProviderResolver(c)
@@ -844,12 +888,12 @@ func testIDOnlyRefresh(c TestCase, opts terraform.ContextOpts, step TestStep, r 
 	expected := r.Primary.Attributes
 	// Remove fields we're ignoring
 	for _, v := range c.IDRefreshIgnore {
-		for k, _ := range actual {
+		for k := range actual {
 			if strings.HasPrefix(k, v) {
 				delete(actual, k)
 			}
 		}
-		for k, _ := range expected {
+		for k := range expected {
 			if strings.HasPrefix(k, v) {
 				delete(expected, k)
 			}
@@ -987,28 +1031,28 @@ func ComposeAggregateTestCheckFunc(fs ...TestCheckFunc) TestCheckFunc {
 // testing that computed values were set, when it is not possible to
 // know ahead of time what the values will be.
 func TestCheckResourceAttrSet(name, key string) TestCheckFunc {
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckResourceAttrSet(is, name, key)
-	}
+	})
 }
 
 // TestCheckModuleResourceAttrSet - as per TestCheckResourceAttrSet but with
 // support for non-root modules
 func TestCheckModuleResourceAttrSet(mp []string, name string, key string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := modulePathPrimaryInstanceState(s, mpt, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckResourceAttrSet(is, name, key)
-	}
+	})
 }
 
 func testCheckResourceAttrSet(is *terraform.InstanceState, name string, key string) error {
@@ -1022,28 +1066,28 @@ func testCheckResourceAttrSet(is *terraform.InstanceState, name string, key stri
 // TestCheckResourceAttr is a TestCheckFunc which validates
 // the value in state for the given name/key combination.
 func TestCheckResourceAttr(name, key, value string) TestCheckFunc {
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckResourceAttr(is, name, key, value)
-	}
+	})
 }
 
 // TestCheckModuleResourceAttr - as per TestCheckResourceAttr but with
 // support for non-root modules
 func TestCheckModuleResourceAttr(mp []string, name string, key string, value string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := modulePathPrimaryInstanceState(s, mpt, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckResourceAttr(is, name, key, value)
-	}
+	})
 }
 
 func testCheckResourceAttr(is *terraform.InstanceState, name string, key string, value string) error {
@@ -1077,28 +1121,28 @@ func testCheckResourceAttr(is *terraform.InstanceState, name string, key string,
 // TestCheckNoResourceAttr is a TestCheckFunc which ensures that
 // NO value exists in state for the given name/key combination.
 func TestCheckNoResourceAttr(name, key string) TestCheckFunc {
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckNoResourceAttr(is, name, key)
-	}
+	})
 }
 
 // TestCheckModuleNoResourceAttr - as per TestCheckNoResourceAttr but with
 // support for non-root modules
 func TestCheckModuleNoResourceAttr(mp []string, name string, key string) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := modulePathPrimaryInstanceState(s, mpt, name)
 		if err != nil {
 			return err
 		}
 
 		return testCheckNoResourceAttr(is, name, key)
-	}
+	})
 }
 
 func testCheckNoResourceAttr(is *terraform.InstanceState, name string, key string) error {
@@ -1125,28 +1169,28 @@ func testCheckNoResourceAttr(is *terraform.InstanceState, name string, key strin
 // TestMatchResourceAttr is a TestCheckFunc which checks that the value
 // in state for the given name/key combination matches the given regex.
 func TestMatchResourceAttr(name, key string, r *regexp.Regexp) TestCheckFunc {
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
 		if err != nil {
 			return err
 		}
 
 		return testMatchResourceAttr(is, name, key, r)
-	}
+	})
 }
 
 // TestModuleMatchResourceAttr - as per TestMatchResourceAttr but with
 // support for non-root modules
 func TestModuleMatchResourceAttr(mp []string, name string, key string, r *regexp.Regexp) TestCheckFunc {
 	mpt := addrs.Module(mp).UnkeyedInstanceShim()
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := modulePathPrimaryInstanceState(s, mpt, name)
 		if err != nil {
 			return err
 		}
 
 		return testMatchResourceAttr(is, name, key, r)
-	}
+	})
 }
 
 func testMatchResourceAttr(is *terraform.InstanceState, name string, key string, r *regexp.Regexp) error {
@@ -1182,7 +1226,7 @@ func TestCheckModuleResourceAttrPtr(mp []string, name string, key string, value 
 // TestCheckResourceAttrPair is a TestCheckFunc which validates that the values
 // in state for a pair of name/key combinations are equal.
 func TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond string) TestCheckFunc {
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSetPair(keyFirst, keySecond, func(s *terraform.State) error {
 		isFirst, err := primaryInstanceState(s, nameFirst)
 		if err != nil {
 			return err
@@ -1194,7 +1238,7 @@ func TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond string
 		}
 
 		return testCheckResourceAttrPair(isFirst, nameFirst, keyFirst, isSecond, nameSecond, keySecond)
-	}
+	})
 }
 
 // TestCheckModuleResourceAttrPair - as per TestCheckResourceAttrPair but with
@@ -1202,7 +1246,7 @@ func TestCheckResourceAttrPair(nameFirst, keyFirst, nameSecond, keySecond string
 func TestCheckModuleResourceAttrPair(mpFirst []string, nameFirst string, keyFirst string, mpSecond []string, nameSecond string, keySecond string) TestCheckFunc {
 	mptFirst := addrs.Module(mpFirst).UnkeyedInstanceShim()
 	mptSecond := addrs.Module(mpSecond).UnkeyedInstanceShim()
-	return func(s *terraform.State) error {
+	return checkIfIndexesIntoTypeSetPair(keyFirst, keySecond, func(s *terraform.State) error {
 		isFirst, err := modulePathPrimaryInstanceState(s, mptFirst, nameFirst)
 		if err != nil {
 			return err
@@ -1214,7 +1258,7 @@ func TestCheckModuleResourceAttrPair(mpFirst []string, nameFirst string, keyFirs
 		}
 
 		return testCheckResourceAttrPair(isFirst, nameFirst, keyFirst, isSecond, nameSecond, keySecond)
-	}
+	})
 }
 
 func testCheckResourceAttrPair(isFirst *terraform.InstanceState, nameFirst string, keyFirst string, isSecond *terraform.InstanceState, nameSecond string, keySecond string) error {
@@ -1388,5 +1432,37 @@ func detailedErrorMessage(err error) string {
 		return tErr.ErrorDetail()
 	default:
 		return err.Error()
+	}
+}
+
+// indexesIntoTypeSet is a heuristic to try and identify if a flatmap style
+// string address uses a precalculated TypeSet hash, which are integers and
+// typically are large and obviously not a list index
+func indexesIntoTypeSet(key string) bool {
+	for _, part := range strings.Split(key, ".") {
+		if i, err := strconv.Atoi(part); err == nil && i > 100 {
+			return true
+		}
+	}
+	return false
+}
+
+func checkIfIndexesIntoTypeSet(key string, f TestCheckFunc) TestCheckFunc {
+	return func(s *terraform.State) error {
+		err := f(s)
+		if err != nil && s.IsBinaryDrivenTest && indexesIntoTypeSet(key) {
+			return fmt.Errorf("Error in test check: %s\nTest check address %q likely indexes into TypeSet\nThis is not possible in V1 of the SDK while using the binary driver\nPlease disable the driver for this TestCase with DisableBinaryDriver: true", err, key)
+		}
+		return err
+	}
+}
+
+func checkIfIndexesIntoTypeSetPair(keyFirst, keySecond string, f TestCheckFunc) TestCheckFunc {
+	return func(s *terraform.State) error {
+		err := f(s)
+		if err != nil && s.IsBinaryDrivenTest && (indexesIntoTypeSet(keyFirst) || indexesIntoTypeSet(keySecond)) {
+			return fmt.Errorf("Error in test check: %s\nTest check address %q or %q likely indexes into TypeSet\nThis is not possible in V1 of the SDK while using the binary driver\nPlease disable the driver for this TestCase with DisableBinaryDriver: true", err, keyFirst, keySecond)
+		}
+		return err
 	}
 }

@@ -68,6 +68,7 @@ func resourceAwsDataPipelinePipelineCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsDataPipelinePipelineRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datapipelineconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	v, err := resourceAwsDataPipelinePipelineRetrieve(d.Id(), conn)
 	if isAWSErr(err, datapipeline.ErrCodePipelineNotFoundException, "") || isAWSErr(err, datapipeline.ErrCodePipelineDeletedException, "") || v == nil {
@@ -81,7 +82,7 @@ func resourceAwsDataPipelinePipelineRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", v.Name)
 	d.Set("description", v.Description)
-	if err := d.Set("tags", keyvaluetags.DatapipelineKeyValueTags(v.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.DatapipelineKeyValueTags(v.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

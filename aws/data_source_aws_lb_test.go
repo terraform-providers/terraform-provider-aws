@@ -32,6 +32,7 @@ func TestAccDataSourceAWSLB_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "zone_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "dns_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "arn"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address_type"),
 					resource.TestCheckResourceAttr(dataSourceName2, "name", lbName),
 					resource.TestCheckResourceAttr(dataSourceName2, "internal", "true"),
 					resource.TestCheckResourceAttr(dataSourceName2, "subnets.#", "2"),
@@ -44,6 +45,7 @@ func TestAccDataSourceAWSLB_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName2, "zone_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName2, "dns_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName2, "arn"),
+					resource.TestCheckResourceAttrSet(dataSourceName2, "ip_address_type"),
 				),
 			},
 		},
@@ -112,7 +114,14 @@ variable "subnets" {
   type    = "list"
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"
@@ -189,7 +198,14 @@ variable "subnets" {
   type    = "list"
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "alb_test" {
   cidr_block = "10.0.0.0/16"

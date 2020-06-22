@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxTransitVirtualInterface() *schema.Resource {
@@ -37,6 +39,10 @@ func resourceAwsDxTransitVirtualInterface() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+			"amazon_side_asn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -128,8 +134,8 @@ func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta int
 	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
 		req.NewTransitVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		req.NewTransitVirtualInterface.Tags = tagsFromMapDX(v.(map[string]interface{}))
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.NewTransitVirtualInterface.Tags = keyvaluetags.New(v).IgnoreAws().DirectconnectTags()
 	}
 
 	log.Printf("[DEBUG] Creating Direct Connect transit virtual interface: %s", req)
@@ -149,6 +155,7 @@ func resourceAwsDxTransitVirtualInterfaceCreate(d *schema.ResourceData, meta int
 
 func resourceAwsDxTransitVirtualInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
 	if err != nil {
@@ -162,6 +169,7 @@ func resourceAwsDxTransitVirtualInterfaceRead(d *schema.ResourceData, meta inter
 
 	d.Set("address_family", vif.AddressFamily)
 	d.Set("amazon_address", vif.AmazonAddress)
+	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vif.AmazonSideAsn), 10))
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
@@ -180,8 +188,15 @@ func resourceAwsDxTransitVirtualInterfaceRead(d *schema.ResourceData, meta inter
 	d.Set("mtu", vif.Mtu)
 	d.Set("name", vif.VirtualInterfaceName)
 	d.Set("vlan", vif.Vlan)
-	if err := getTagsDX(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error getting Direct Connect transit virtual interface (%s) tags: %s", d.Id(), err)
+
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect transit virtual interface (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

@@ -14,6 +14,7 @@ func TestAccAWSSnapshotCreateVolumePermission_Basic(t *testing.T) {
 	accountId := "111122223333"
 
 	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAWSSnapshotCreateVolumePermissionDestroy,
 		Steps: []resource.TestStep{
@@ -21,7 +22,7 @@ func TestAccAWSSnapshotCreateVolumePermission_Basic(t *testing.T) {
 			{
 				Config: testAccAWSSnapshotCreateVolumePermissionConfig(true, accountId),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckResourceGetAttr("aws_ebs_snapshot.example_snapshot", "id", &snapshotId),
+					testCheckResourceGetAttr("aws_ebs_snapshot.test", "id", &snapshotId),
 					testAccAWSSnapshotCreateVolumePermissionExists(&accountId, &snapshotId),
 				),
 			},
@@ -31,6 +32,28 @@ func TestAccAWSSnapshotCreateVolumePermission_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccAWSSnapshotCreateVolumePermissionDestroyed(&accountId, &snapshotId),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSnapshotCreateVolumePermission_disappears(t *testing.T) {
+	var snapshotId string
+	accountId := "111122223333"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccAWSSnapshotCreateVolumePermissionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSnapshotCreateVolumePermissionConfig(true, accountId),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGetAttr("aws_ebs_snapshot.test", "id", &snapshotId),
+					testAccAWSSnapshotCreateVolumePermissionExists(&accountId, &snapshotId),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSnapshotCreateVolumePermission(), "aws_snapshot_create_volume_permission.test"),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -84,9 +107,16 @@ func testAccAWSSnapshotCreateVolumePermissionDestroyed(accountId, snapshotId *st
 
 func testAccAWSSnapshotCreateVolumePermissionConfig(includeCreateVolumePermission bool, accountID string) string {
 	base := `
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
 
-resource "aws_ebs_volume" "example" {
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_ebs_volume" "test" {
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   size              = 1
 
@@ -95,8 +125,8 @@ resource "aws_ebs_volume" "example" {
   }
 }
 
-resource "aws_ebs_snapshot" "example_snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+resource "aws_ebs_snapshot" "test" {
+  volume_id = "${aws_ebs_volume.test.id}"
 }
 `
 
@@ -105,8 +135,8 @@ resource "aws_ebs_snapshot" "example_snapshot" {
 	}
 
 	return base + fmt.Sprintf(`
-resource "aws_snapshot_create_volume_permission" "self-test" {
-  snapshot_id = "${aws_ebs_snapshot.example_snapshot.id}"
+resource "aws_snapshot_create_volume_permission" "test" {
+  snapshot_id = "${aws_ebs_snapshot.test.id}"
   account_id  = %q
 }
 `, accountID)

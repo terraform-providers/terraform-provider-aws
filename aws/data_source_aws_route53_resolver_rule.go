@@ -80,6 +80,7 @@ func dataSourceAwsRoute53ResolverRule() *schema.Resource {
 
 func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var rule *route53resolver.ResolverRule
 	if v, ok := d.GetOk("resolver_rule_id"); ok {
@@ -137,7 +138,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("error listing tags for Route 53 Resolver rule (%s): %s", arn, err)
 		}
 
-		if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 			return fmt.Errorf("error setting tags: %s", err)
 		}
 	}

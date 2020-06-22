@@ -386,7 +386,14 @@ resource "aws_worklink_fleet" "test" {
 
 func testAccAWSWorkLinkFleetConfigNetwork_Base(rName, cidrBlock string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "%s"

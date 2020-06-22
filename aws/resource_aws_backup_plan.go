@@ -18,6 +18,9 @@ func resourceAwsBackupPlan() *schema.Resource {
 		Read:   resourceAwsBackupPlanRead,
 		Update: resourceAwsBackupPlanUpdate,
 		Delete: resourceAwsBackupPlanDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -69,6 +72,36 @@ func resourceAwsBackupPlan() *schema.Resource {
 								},
 							},
 						},
+						"copy_action": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"lifecycle": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cold_storage_after": {
+													Type:     schema.TypeInt,
+													Optional: true,
+												},
+												"delete_after": {
+													Type:     schema.TypeInt,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"destination_vault_arn": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validateArn,
+									},
+								},
+							},
+						},
 						"recovery_point_tags": tagsSchema(),
 					},
 				},
@@ -111,6 +144,7 @@ func resourceAwsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).backupconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.GetBackupPlan(&backup.GetBackupPlanInput{
 		BackupPlanId: aws.String(d.Id()),
@@ -136,7 +170,7 @@ func resourceAwsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error listing tags for Backup Plan (%s): %s", d.Id(), err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -235,10 +269,46 @@ func expandBackupPlanRules(vRules *schema.Set) []*backup.RuleInput {
 			rule.Lifecycle = lifecycle
 		}
 
+		if vCopyActions := expandBackupPlanCopyActions(mRule["copy_action"].(*schema.Set).List()); len(vCopyActions) > 0 {
+			rule.CopyActions = vCopyActions
+		}
+
 		rules = append(rules, rule)
 	}
 
 	return rules
+}
+
+func expandBackupPlanCopyActions(actionList []interface{}) []*backup.CopyAction {
+	actions := []*backup.CopyAction{}
+
+	for _, i := range actionList {
+		item := i.(map[string]interface{})
+		action := &backup.CopyAction{}
+
+		action.DestinationBackupVaultArn = aws.String(item["destination_vault_arn"].(string))
+		action.Lifecycle = expandBackupPlanLifecycle(item["lifecycle"].([]interface{}))
+
+		actions = append(actions, action)
+	}
+
+	return actions
+}
+
+func expandBackupPlanLifecycle(l []interface{}) *backup.Lifecycle {
+	lifecycle := new(backup.Lifecycle)
+
+	for _, i := range l {
+		lc := i.(map[string]interface{})
+		if vDeleteAfter, ok := lc["delete_after"]; ok && vDeleteAfter.(int) > 0 {
+			lifecycle.DeleteAfterDays = aws.Int64(int64(vDeleteAfter.(int)))
+		}
+		if vMoveToColdStorageAfterDays, ok := lc["cold_storage_after"]; ok && vMoveToColdStorageAfterDays.(int) > 0 {
+			lifecycle.MoveToColdStorageAfterDays = aws.Int64(int64(vMoveToColdStorageAfterDays.(int)))
+		}
+	}
+
+	return lifecycle
 }
 
 func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
@@ -263,10 +333,48 @@ func flattenBackupPlanRules(rules []*backup.Rule) *schema.Set {
 			}
 		}
 
+		mRule["copy_action"] = flattenBackupPlanCopyActions(rule.CopyActions)
+
 		vRules = append(vRules, mRule)
 	}
 
 	return schema.NewSet(backupBackupPlanHash, vRules)
+}
+
+func flattenBackupPlanCopyActions(copyActions []*backup.CopyAction) []interface{} {
+	if len(copyActions) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for _, copyAction := range copyActions {
+		if copyAction == nil {
+			continue
+		}
+
+		tfMap := map[string]interface{}{
+			"destination_vault_arn": aws.StringValue(copyAction.DestinationBackupVaultArn),
+			"lifecycle":             flattenBackupPlanCopyActionLifecycle(copyAction.Lifecycle),
+		}
+
+		tfList = append(tfList, tfMap)
+	}
+
+	return tfList
+}
+
+func flattenBackupPlanCopyActionLifecycle(copyActionLifecycle *backup.Lifecycle) []interface{} {
+	if copyActionLifecycle == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"delete_after":       aws.Int64Value(copyActionLifecycle.DeleteAfterDays),
+		"cold_storage_after": aws.Int64Value(copyActionLifecycle.MoveToColdStorageAfterDays),
+	}
+
+	return []interface{}{m}
 }
 
 func backupBackupPlanHash(vRule interface{}) int {
@@ -302,6 +410,27 @@ func backupBackupPlanHash(vRule interface{}) int {
 		}
 		if v, ok := mLifecycle["cold_storage_after"].(int); ok {
 			buf.WriteString(fmt.Sprintf("%d-", v))
+		}
+	}
+
+	if vCopyActions, ok := mRule["copy_action"].(*schema.Set); ok && vCopyActions.Len() > 0 {
+		for _, a := range vCopyActions.List() {
+			action := a.(map[string]interface{})
+			if mLifecycle, ok := action["lifecycle"].([]interface{}); ok {
+				for _, l := range mLifecycle {
+					lifecycle := l.(map[string]interface{})
+					if v, ok := lifecycle["delete_after"].(int); ok {
+						buf.WriteString(fmt.Sprintf("%d-", v))
+					}
+					if v, ok := lifecycle["cold_storage_after"].(int); ok {
+						buf.WriteString(fmt.Sprintf("%d-", v))
+					}
+				}
+			}
+
+			if v, ok := action["destination_vault_arn"].(string); ok {
+				buf.WriteString(fmt.Sprintf("%s-", v))
+			}
 		}
 	}
 

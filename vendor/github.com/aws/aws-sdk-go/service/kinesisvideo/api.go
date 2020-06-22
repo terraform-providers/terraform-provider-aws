@@ -81,7 +81,7 @@ func (c *KinesisVideo) CreateSignalingChannelRequest(input *CreateSignalingChann
 //   AWS account in this region.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * AccessDeniedException
 //   You do not have required permissions to perform this operation.
@@ -183,7 +183,7 @@ func (c *KinesisVideo) CreateStreamRequest(input *CreateStreamInput) (req *reque
 //   Not implemented.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * InvalidDeviceException
 //   Not implemented.
@@ -296,6 +296,9 @@ func (c *KinesisVideo) DeleteSignalingChannelRequest(input *DeleteSignalingChann
 //   latest version, use the DescribeStream (https://docs.aws.amazon.com/kinesisvideostreams/latest/dg/API_DescribeStream.html)
 //   API.
 //
+//   * ResourceInUseException
+//   The signaling channel is currently not available for this operation.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/kinesisvideo-2017-09-30/DeleteSignalingChannel
 func (c *KinesisVideo) DeleteSignalingChannel(input *DeleteSignalingChannelInput) (*DeleteSignalingChannelOutput, error) {
 	req, out := c.DeleteSignalingChannelRequest(input)
@@ -402,6 +405,9 @@ func (c *KinesisVideo) DeleteStreamRequest(input *DeleteStreamInput) (req *reque
 //   latest version, use the DescribeStream (https://docs.aws.amazon.com/kinesisvideostreams/latest/dg/API_DescribeStream.html)
 //   API.
 //
+//   * ResourceInUseException
+//   The signaling channel is currently not available for this operation.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/kinesisvideo-2017-09-30/DeleteStream
 func (c *KinesisVideo) DeleteStream(input *DeleteStreamInput) (*DeleteStreamOutput, error) {
 	req, out := c.DeleteStreamRequest(input)
@@ -469,7 +475,8 @@ func (c *KinesisVideo) DescribeSignalingChannelRequest(input *DescribeSignalingC
 // DescribeSignalingChannel API operation for Amazon Kinesis Video Streams.
 //
 // Returns the most current information about the signaling channel. You must
-// specify either the name or the ARN of the channel that you want to describe.
+// specify either the name or the Amazon Resource Name (ARN) of the channel
+// that you want to describe.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -750,9 +757,9 @@ func (c *KinesisVideo) GetSignalingChannelEndpointRequest(input *GetSignalingCha
 // parameter, which consists of the Protocols and Role properties.
 //
 // Protocols is used to determine the communication mechanism. For example,
-// specifying WSS as the protocol, results in this API producing a secure websocket
-// endpoint, and specifying HTTPS as the protocol, results in this API generating
-// an HTTPS endpoint.
+// if you specify WSS as the protocol, this API produces a secure websocket
+// endpoint. If you specify HTTPS as the protocol, this API generates an HTTPS
+// endpoint.
 //
 // Role determines the messaging permissions. A MASTER role results in this
 // API generating an endpoint that a client can use to communicate with any
@@ -778,7 +785,7 @@ func (c *KinesisVideo) GetSignalingChannelEndpointRequest(input *GetSignalingCha
 //   Amazon Kinesis Video Streams can't find the stream that you specified.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * AccessDeniedException
 //   You do not have required permissions to perform this operation.
@@ -1759,7 +1766,7 @@ func (c *KinesisVideo) UpdateDataRetentionRequest(input *UpdateDataRetentionInpu
 //   Amazon Kinesis Video Streams can't find the stream that you specified.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * NotAuthorizedException
 //   The caller is not authorized to perform this operation.
@@ -1840,8 +1847,8 @@ func (c *KinesisVideo) UpdateSignalingChannelRequest(input *UpdateSignalingChann
 // and takes time to complete.
 //
 // If the MessageTtlSeconds value is updated (either increased or reduced),
-// then it only applies to new messages sent via this channel after it's been
-// updated. Existing messages are still expire as per the previous MessageTtlSeconds
+// it only applies to new messages sent via this channel after it's been updated.
+// Existing messages are still expired as per the previous MessageTtlSeconds
 // value.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1863,7 +1870,7 @@ func (c *KinesisVideo) UpdateSignalingChannelRequest(input *UpdateSignalingChann
 //   Amazon Kinesis Video Streams can't find the stream that you specified.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * AccessDeniedException
 //   You do not have required permissions to perform this operation.
@@ -1972,7 +1979,7 @@ func (c *KinesisVideo) UpdateStreamRequest(input *UpdateStreamInput) (req *reque
 //   Amazon Kinesis Video Streams can't find the stream that you specified.
 //
 //   * ResourceInUseException
-//   The stream is currently not available for this operation.
+//   The signaling channel is currently not available for this operation.
 //
 //   * NotAuthorizedException
 //   The caller is not authorized to perform this operation.
@@ -2006,8 +2013,8 @@ func (c *KinesisVideo) UpdateStreamWithContext(ctx aws.Context, input *UpdateStr
 
 // You do not have required permissions to perform this operation.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2024,17 +2031,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2042,29 +2049,29 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // You have reached the maximum limit of active signaling channels for this
 // AWS account in this region.
 type AccountChannelLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2081,17 +2088,17 @@ func (s AccountChannelLimitExceededException) GoString() string {
 
 func newErrorAccountChannelLimitExceededException(v protocol.ResponseMetadata) error {
 	return &AccountChannelLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccountChannelLimitExceededException) Code() string {
+func (s *AccountChannelLimitExceededException) Code() string {
 	return "AccountChannelLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s AccountChannelLimitExceededException) Message() string {
+func (s *AccountChannelLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2099,28 +2106,28 @@ func (s AccountChannelLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccountChannelLimitExceededException) OrigErr() error {
+func (s *AccountChannelLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s AccountChannelLimitExceededException) Error() string {
+func (s *AccountChannelLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccountChannelLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccountChannelLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccountChannelLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccountChannelLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The number of streams created for the account is too high.
 type AccountStreamLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2137,17 +2144,17 @@ func (s AccountStreamLimitExceededException) GoString() string {
 
 func newErrorAccountStreamLimitExceededException(v protocol.ResponseMetadata) error {
 	return &AccountStreamLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccountStreamLimitExceededException) Code() string {
+func (s *AccountStreamLimitExceededException) Code() string {
 	return "AccountStreamLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s AccountStreamLimitExceededException) Message() string {
+func (s *AccountStreamLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2155,29 +2162,29 @@ func (s AccountStreamLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccountStreamLimitExceededException) OrigErr() error {
+func (s *AccountStreamLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s AccountStreamLimitExceededException) Error() string {
+func (s *AccountStreamLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccountStreamLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccountStreamLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccountStreamLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccountStreamLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A structure that encapsulates a signaling channel's metadata and properties.
 type ChannelInfo struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signaling channel.
+	// The Amazon Resource Name (ARN) of the signaling channel.
 	ChannelARN *string `min:"1" type:"string"`
 
 	// The name of the signaling channel.
@@ -2304,8 +2311,8 @@ func (s *ChannelNameCondition) SetComparisonValue(v string) *ChannelNameConditio
 // Kinesis Video Streams has throttled the request because you have exceeded
 // the limit of allowed client calls. Try making the call later.
 type ClientLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2322,17 +2329,17 @@ func (s ClientLimitExceededException) GoString() string {
 
 func newErrorClientLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ClientLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ClientLimitExceededException) Code() string {
+func (s *ClientLimitExceededException) Code() string {
 	return "ClientLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ClientLimitExceededException) Message() string {
+func (s *ClientLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2340,29 +2347,29 @@ func (s ClientLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ClientLimitExceededException) OrigErr() error {
+func (s *ClientLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ClientLimitExceededException) Error() string {
+func (s *ClientLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ClientLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ClientLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ClientLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ClientLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CreateSignalingChannelInput struct {
 	_ struct{} `type:"structure"`
 
 	// A name for the signaling channel that you are creating. It must be unique
-	// for each account and region.
+	// for each AWS account and AWS Region.
 	//
 	// ChannelName is a required field
 	ChannelName *string `min:"1" type:"string" required:"true"`
@@ -2374,7 +2381,7 @@ type CreateSignalingChannelInput struct {
 	// A structure containing the configuration for the SINGLE_MASTER channel type.
 	SingleMasterConfiguration *SingleMasterConfiguration `type:"structure"`
 
-	// A set of tags (key/value pairs) that you want to associate with this channel.
+	// A set of tags (key-value pairs) that you want to associate with this channel.
 	Tags []*Tag `type:"list"`
 }
 
@@ -2446,7 +2453,7 @@ func (s *CreateSignalingChannelInput) SetTags(v []*Tag) *CreateSignalingChannelI
 type CreateSignalingChannelOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the created channel.
+	// The Amazon Resource Name (ARN) of the created channel.
 	ChannelARN *string `min:"1" type:"string"`
 }
 
@@ -2619,14 +2626,15 @@ func (s *CreateStreamOutput) SetStreamARN(v string) *CreateStreamOutput {
 type DeleteSignalingChannelInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signaling channel that you want to delete.
+	// The Amazon Resource Name (ARN) of the signaling channel that you want to
+	// delete.
 	//
 	// ChannelARN is a required field
 	ChannelARN *string `min:"1" type:"string" required:"true"`
 
 	// The current version of the signaling channel that you want to delete. You
 	// can obtain the current version by invoking the DescribeSignalingChannel or
-	// ListSignalingChannels APIs.
+	// ListSignalingChannels API operations.
 	CurrentVersion *string `min:"1" type:"string"`
 }
 
@@ -2902,8 +2910,8 @@ func (s *DescribeStreamOutput) SetStreamInfo(v *StreamInfo) *DescribeStreamOutpu
 
 // Not implemented.
 type DeviceStreamLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2920,17 +2928,17 @@ func (s DeviceStreamLimitExceededException) GoString() string {
 
 func newErrorDeviceStreamLimitExceededException(v protocol.ResponseMetadata) error {
 	return &DeviceStreamLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DeviceStreamLimitExceededException) Code() string {
+func (s *DeviceStreamLimitExceededException) Code() string {
 	return "DeviceStreamLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s DeviceStreamLimitExceededException) Message() string {
+func (s *DeviceStreamLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2938,22 +2946,22 @@ func (s DeviceStreamLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DeviceStreamLimitExceededException) OrigErr() error {
+func (s *DeviceStreamLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s DeviceStreamLimitExceededException) Error() string {
+func (s *DeviceStreamLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DeviceStreamLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DeviceStreamLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DeviceStreamLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DeviceStreamLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type GetDataEndpointInput struct {
@@ -3047,7 +3055,8 @@ func (s *GetDataEndpointOutput) SetDataEndpoint(v string) *GetDataEndpointOutput
 type GetSignalingChannelEndpointInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signalling channel for which you want to get an endpoint.
+	// The Amazon Resource Name (ARN) of the signalling channel for which you want
+	// to get an endpoint.
 	//
 	// ChannelARN is a required field
 	ChannelARN *string `min:"1" type:"string" required:"true"`
@@ -3125,8 +3134,8 @@ func (s *GetSignalingChannelEndpointOutput) SetResourceEndpointList(v []*Resourc
 
 // The value for this input parameter is invalid.
 type InvalidArgumentException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3143,17 +3152,17 @@ func (s InvalidArgumentException) GoString() string {
 
 func newErrorInvalidArgumentException(v protocol.ResponseMetadata) error {
 	return &InvalidArgumentException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidArgumentException) Code() string {
+func (s *InvalidArgumentException) Code() string {
 	return "InvalidArgumentException"
 }
 
 // Message returns the exception's message.
-func (s InvalidArgumentException) Message() string {
+func (s *InvalidArgumentException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3161,28 +3170,28 @@ func (s InvalidArgumentException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidArgumentException) OrigErr() error {
+func (s *InvalidArgumentException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidArgumentException) Error() string {
+func (s *InvalidArgumentException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidArgumentException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidArgumentException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidArgumentException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidArgumentException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Not implemented.
 type InvalidDeviceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3199,17 +3208,17 @@ func (s InvalidDeviceException) GoString() string {
 
 func newErrorInvalidDeviceException(v protocol.ResponseMetadata) error {
 	return &InvalidDeviceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidDeviceException) Code() string {
+func (s *InvalidDeviceException) Code() string {
 	return "InvalidDeviceException"
 }
 
 // Message returns the exception's message.
-func (s InvalidDeviceException) Message() string {
+func (s *InvalidDeviceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3217,28 +3226,28 @@ func (s InvalidDeviceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidDeviceException) OrigErr() error {
+func (s *InvalidDeviceException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidDeviceException) Error() string {
+func (s *InvalidDeviceException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidDeviceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidDeviceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidDeviceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidDeviceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The format of the StreamARN is invalid.
 type InvalidResourceFormatException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3255,17 +3264,17 @@ func (s InvalidResourceFormatException) GoString() string {
 
 func newErrorInvalidResourceFormatException(v protocol.ResponseMetadata) error {
 	return &InvalidResourceFormatException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidResourceFormatException) Code() string {
+func (s *InvalidResourceFormatException) Code() string {
 	return "InvalidResourceFormatException"
 }
 
 // Message returns the exception's message.
-func (s InvalidResourceFormatException) Message() string {
+func (s *InvalidResourceFormatException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3273,22 +3282,22 @@ func (s InvalidResourceFormatException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidResourceFormatException) OrigErr() error {
+func (s *InvalidResourceFormatException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidResourceFormatException) Error() string {
+func (s *InvalidResourceFormatException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidResourceFormatException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidResourceFormatException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidResourceFormatException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidResourceFormatException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListSignalingChannelsInput struct {
@@ -3489,7 +3498,8 @@ type ListTagsForResourceInput struct {
 	// request to fetch the next batch of tags.
 	NextToken *string `type:"string"`
 
-	// The ARN of the signaling channel for which you want to list tags.
+	// The Amazon Resource Name (ARN) of the signaling channel for which you want
+	// to list tags.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
@@ -3662,8 +3672,8 @@ func (s *ListTagsForStreamOutput) SetTags(v map[string]*string) *ListTagsForStre
 
 // The caller is not authorized to perform this operation.
 type NotAuthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3680,17 +3690,17 @@ func (s NotAuthorizedException) GoString() string {
 
 func newErrorNotAuthorizedException(v protocol.ResponseMetadata) error {
 	return &NotAuthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotAuthorizedException) Code() string {
+func (s *NotAuthorizedException) Code() string {
 	return "NotAuthorizedException"
 }
 
 // Message returns the exception's message.
-func (s NotAuthorizedException) Message() string {
+func (s *NotAuthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3698,22 +3708,22 @@ func (s NotAuthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotAuthorizedException) OrigErr() error {
+func (s *NotAuthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s NotAuthorizedException) Error() string {
+func (s *NotAuthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotAuthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotAuthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotAuthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotAuthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An object that describes the endpoint of the signaling channel returned by
@@ -3752,10 +3762,10 @@ func (s *ResourceEndpointListItem) SetResourceEndpoint(v string) *ResourceEndpoi
 	return s
 }
 
-// The stream is currently not available for this operation.
+// The signaling channel is currently not available for this operation.
 type ResourceInUseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3772,17 +3782,17 @@ func (s ResourceInUseException) GoString() string {
 
 func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
 	return &ResourceInUseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceInUseException) Code() string {
+func (s *ResourceInUseException) Code() string {
 	return "ResourceInUseException"
 }
 
 // Message returns the exception's message.
-func (s ResourceInUseException) Message() string {
+func (s *ResourceInUseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3790,28 +3800,28 @@ func (s ResourceInUseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceInUseException) OrigErr() error {
+func (s *ResourceInUseException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceInUseException) Error() string {
+func (s *ResourceInUseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceInUseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceInUseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Amazon Kinesis Video Streams can't find the stream that you specified.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3828,17 +3838,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3846,22 +3856,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An object that contains the endpoint configuration for the SINGLE_MASTER
@@ -4163,7 +4173,8 @@ func (s *Tag) SetValue(v string) *Tag {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signaling channel to which you want to add tags.
+	// The Amazon Resource Name (ARN) of the signaling channel to which you want
+	// to add tags.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
@@ -4327,8 +4338,8 @@ func (s TagStreamOutput) GoString() string {
 // You have exceeded the limit of tags that you can associate with the resource.
 // Kinesis video streams support up to 50 tags.
 type TagsPerResourceExceededLimitException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -4345,17 +4356,17 @@ func (s TagsPerResourceExceededLimitException) GoString() string {
 
 func newErrorTagsPerResourceExceededLimitException(v protocol.ResponseMetadata) error {
 	return &TagsPerResourceExceededLimitException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TagsPerResourceExceededLimitException) Code() string {
+func (s *TagsPerResourceExceededLimitException) Code() string {
 	return "TagsPerResourceExceededLimitException"
 }
 
 // Message returns the exception's message.
-func (s TagsPerResourceExceededLimitException) Message() string {
+func (s *TagsPerResourceExceededLimitException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4363,28 +4374,29 @@ func (s TagsPerResourceExceededLimitException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TagsPerResourceExceededLimitException) OrigErr() error {
+func (s *TagsPerResourceExceededLimitException) OrigErr() error {
 	return nil
 }
 
-func (s TagsPerResourceExceededLimitException) Error() string {
+func (s *TagsPerResourceExceededLimitException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TagsPerResourceExceededLimitException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TagsPerResourceExceededLimitException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TagsPerResourceExceededLimitException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TagsPerResourceExceededLimitException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signaling channel from which you want to remove tags.
+	// The Amazon Resource Name (ARN) of the signaling channel from which you want
+	// to remove tags.
 	//
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
@@ -4649,7 +4661,8 @@ func (s UpdateDataRetentionOutput) GoString() string {
 type UpdateSignalingChannelInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the signaling channel that you want to update.
+	// The Amazon Resource Name (ARN) of the signaling channel that you want to
+	// update.
 	//
 	// ChannelARN is a required field
 	ChannelARN *string `min:"1" type:"string" required:"true"`
@@ -4851,8 +4864,8 @@ func (s UpdateStreamOutput) GoString() string {
 // latest version, use the DescribeStream (https://docs.aws.amazon.com/kinesisvideostreams/latest/dg/API_DescribeStream.html)
 // API.
 type VersionMismatchException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -4869,17 +4882,17 @@ func (s VersionMismatchException) GoString() string {
 
 func newErrorVersionMismatchException(v protocol.ResponseMetadata) error {
 	return &VersionMismatchException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s VersionMismatchException) Code() string {
+func (s *VersionMismatchException) Code() string {
 	return "VersionMismatchException"
 }
 
 // Message returns the exception's message.
-func (s VersionMismatchException) Message() string {
+func (s *VersionMismatchException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4887,22 +4900,22 @@ func (s VersionMismatchException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s VersionMismatchException) OrigErr() error {
+func (s *VersionMismatchException) OrigErr() error {
 	return nil
 }
 
-func (s VersionMismatchException) Error() string {
+func (s *VersionMismatchException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s VersionMismatchException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *VersionMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s VersionMismatchException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *VersionMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 const (
@@ -4923,6 +4936,9 @@ const (
 
 	// APINameGetDashStreamingSessionUrl is a APIName enum value
 	APINameGetDashStreamingSessionUrl = "GET_DASH_STREAMING_SESSION_URL"
+
+	// APINameGetClip is a APIName enum value
+	APINameGetClip = "GET_CLIP"
 )
 
 const (

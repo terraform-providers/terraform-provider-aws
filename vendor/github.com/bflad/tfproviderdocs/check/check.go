@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
-	tfjson "github.com/hashicorp/terraform-json"
 )
 
 const (
@@ -22,6 +21,8 @@ type Check struct {
 }
 
 type CheckOptions struct {
+	DataSourceFileMismatch *FileMismatchOptions
+
 	LegacyDataSourceFile *LegacyDataSourceFileOptions
 	LegacyGuideFile      *LegacyGuideFileOptions
 	LegacyIndexFile      *LegacyIndexFileOptions
@@ -34,8 +35,7 @@ type CheckOptions struct {
 	RegistryIndexFile      *RegistryIndexFileOptions
 	RegistryResourceFile   *RegistryResourceFileOptions
 
-	SchemaDataSources map[string]*tfjson.Schema
-	SchemaResources   map[string]*tfjson.Schema
+	ResourceFileMismatch *FileMismatchOptions
 
 	SideNavigation *SideNavigationOptions
 }
@@ -65,37 +65,13 @@ func (check *Check) Run(directories map[string][]string) error {
 		return err
 	}
 
-	if len(check.Options.SchemaDataSources) > 0 && false {
-		var dataSourceFiles []string
-
-		if files, ok := directories[RegistryDataSourcesDirectory]; ok {
-			dataSourceFiles = files
-		} else if files, ok := directories[LegacyDataSourcesDirectory]; ok {
-			dataSourceFiles = files
-		}
-
-		if err := ResourceFileMismatchCheck(check.Options.ProviderName, ResourceTypeDataSource, check.Options.SchemaDataSources, dataSourceFiles); err != nil {
-			return err
-		}
-	}
-
-	if len(check.Options.SchemaResources) > 0 {
-		var resourceFiles []string
-
-		if files, ok := directories[RegistryResourcesDirectory]; ok {
-			resourceFiles = files
-		} else if files, ok := directories[LegacyResourcesDirectory]; ok {
-			resourceFiles = files
-		}
-
-		if err := ResourceFileMismatchCheck(check.Options.ProviderName, ResourceTypeResource, check.Options.SchemaResources, resourceFiles); err != nil {
-			return err
-		}
-	}
-
 	var result *multierror.Error
 
 	if files, ok := directories[RegistryDataSourcesDirectory]; ok {
+		if err := NewFileMismatchCheck(check.Options.DataSourceFileMismatch).Run(files); err != nil {
+			result = multierror.Append(result, err)
+		}
+
 		if err := NewRegistryDataSourceFileCheck(check.Options.RegistryDataSourceFile).RunAll(files); err != nil {
 			result = multierror.Append(result, err)
 		}
@@ -114,6 +90,10 @@ func (check *Check) Run(directories map[string][]string) error {
 	}
 
 	if files, ok := directories[RegistryResourcesDirectory]; ok {
+		if err := NewFileMismatchCheck(check.Options.ResourceFileMismatch).Run(files); err != nil {
+			result = multierror.Append(result, err)
+		}
+
 		if err := NewRegistryResourceFileCheck(check.Options.RegistryResourceFile).RunAll(files); err != nil {
 			result = multierror.Append(result, err)
 		}
@@ -123,6 +103,10 @@ func (check *Check) Run(directories map[string][]string) error {
 	legacyResourcesFiles, legacyResourcesOk := directories[LegacyResourcesDirectory]
 
 	if legacyDataSourcesOk {
+		if err := NewFileMismatchCheck(check.Options.DataSourceFileMismatch).Run(legacyDataSourcesFiles); err != nil {
+			result = multierror.Append(result, err)
+		}
+
 		if err := NewLegacyDataSourceFileCheck(check.Options.LegacyDataSourceFile).RunAll(legacyDataSourcesFiles); err != nil {
 			result = multierror.Append(result, err)
 		}
@@ -141,6 +125,10 @@ func (check *Check) Run(directories map[string][]string) error {
 	}
 
 	if legacyResourcesOk {
+		if err := NewFileMismatchCheck(check.Options.ResourceFileMismatch).Run(legacyResourcesFiles); err != nil {
+			result = multierror.Append(result, err)
+		}
+
 		if err := NewLegacyResourceFileCheck(check.Options.LegacyResourceFile).RunAll(legacyResourcesFiles); err != nil {
 			result = multierror.Append(result, err)
 		}

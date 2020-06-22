@@ -20,21 +20,18 @@ func dataSourceAwsLambdaInvocation() *schema.Resource {
 			"function_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"qualifier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  "$LATEST",
 			},
 
 			"input": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 			},
 
 			"result": {
@@ -43,8 +40,9 @@ func dataSourceAwsLambdaInvocation() *schema.Resource {
 			},
 
 			"result_map": {
-				Type:     schema.TypeMap,
-				Computed: true,
+				Type:       schema.TypeMap,
+				Computed:   true,
+				Deprecated: "use `result` attribute with jsondecode() function",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

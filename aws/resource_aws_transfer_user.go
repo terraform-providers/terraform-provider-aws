@@ -106,6 +106,8 @@ func resourceAwsTransferUserCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsTransferUserRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).transferconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	serverID, userName, err := decodeTransferUserId(d.Id())
 	if err != nil {
 		return fmt.Errorf("error parsing Transfer User ID: %s", err)
@@ -135,7 +137,7 @@ func resourceAwsTransferUserRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("policy", resp.User.Policy)
 	d.Set("role", resp.User.Role)
 
-	if err := d.Set("tags", keyvaluetags.TransferKeyValueTags(resp.User.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.TransferKeyValueTags(resp.User.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("Error setting tags: %s", err)
 	}
 	return nil

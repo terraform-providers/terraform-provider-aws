@@ -32,6 +32,8 @@ func dataSourceAwsSqsQueue() *schema.Resource {
 
 func dataSourceAwsSqsQueueRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sqsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	name := d.Get("name").(string)
 
 	urlOutput, err := conn.GetQueueUrl(&sqs.GetQueueUrlInput{
@@ -61,7 +63,7 @@ func dataSourceAwsSqsQueueRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for SQS Queue (%s): %s", queueURL, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

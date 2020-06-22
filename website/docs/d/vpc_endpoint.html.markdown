@@ -33,9 +33,9 @@ The given filters must match exactly one VPC endpoint whose data will be exporte
 
 * `filter` - (Optional) Custom filter block as described below.
 * `id` - (Optional) The ID of the specific VPC Endpoint to retrieve.
-* `service_name` - (Optional) The AWS service name of the specific VPC Endpoint to retrieve.
+* `service_name` - (Optional) The service name of the specific VPC Endpoint to retrieve. For AWS services the service name is usually in the form `com.amazonaws.<region>.<service>` (the SageMaker Notebook service is an exception to this rule, the service name is in the form `aws.sagemaker.<region>.notebook`).
 * `state` - (Optional) The state of the specific VPC Endpoint to retrieve.
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the specific VPC Endpoint to retrieve.
 * `vpc_id` - (Optional) The ID of the VPC in which the specific VPC Endpoint is used.
 
@@ -43,7 +43,7 @@ More complex filters can be expressed using one or more `filter` sub-blocks,
 which take the following arguments:
 
 * `name` - (Required) The name of the field to filter by, as defined by
-  [the underlying AWS API](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVpcPeeringConnections.html).
+  [the underlying AWS API](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVpcEndpoints.html).
 * `values` - (Required) Set of values that are accepted for the given field.
   A VPC Endpoint will be selected if any one of the given values matches.
 

@@ -18,7 +18,6 @@ func dataSourceAwsAutoscalingGroup() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,

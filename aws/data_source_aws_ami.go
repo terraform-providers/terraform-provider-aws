@@ -25,20 +25,17 @@ func dataSourceAwsAmi() *schema.Resource {
 			"executable_users": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"most_recent": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 			"owners": {
 				Type:     schema.TypeList,
@@ -152,6 +149,7 @@ func dataSourceAwsAmi() *schema.Resource {
 						"ebs": {
 							Type:     schema.TypeMap,
 							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -176,6 +174,7 @@ func dataSourceAwsAmi() *schema.Resource {
 			"state_reason": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"tags": tagsSchemaComputed(),
 		},
@@ -185,6 +184,7 @@ func dataSourceAwsAmi() *schema.Resource {
 // dataSourceAwsAmiDescriptionRead performs the AMI lookup.
 func dataSourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &ec2.DescribeImagesInput{
 		Owners: expandStringList(d.Get("owners").([]interface{})),
@@ -240,11 +240,11 @@ func dataSourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		})
 	}
 
-	return amiDescriptionAttributes(d, filteredImages[0])
+	return amiDescriptionAttributes(d, filteredImages[0], ignoreTagsConfig)
 }
 
 // populate the numerous fields that the image description returns.
-func amiDescriptionAttributes(d *schema.ResourceData, image *ec2.Image) error {
+func amiDescriptionAttributes(d *schema.ResourceData, image *ec2.Image, ignoreTagsConfig *keyvaluetags.IgnoreConfig) error {
 	// Simple attributes first
 	d.SetId(*image.ImageId)
 	d.Set("architecture", image.Architecture)
@@ -291,7 +291,7 @@ func amiDescriptionAttributes(d *schema.ResourceData, image *ec2.Image) error {
 	if err := d.Set("state_reason", amiStateReason(image.StateReason)); err != nil {
 		return err
 	}
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(image.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 	return nil

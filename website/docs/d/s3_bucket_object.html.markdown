@@ -48,7 +48,7 @@ resource "aws_lambda_function" "test_lambda" {
   s3_key            = "${data.aws_s3_bucket_object.lambda.key}"
   s3_object_version = "${data.aws_s3_bucket_object.lambda.version_id}"
   function_name     = "lambda_function_name"
-  role              = "${aws_iam_role.iam_for_lambda.arn}"             # (not shown)
+  role              = "${aws_iam_role.iam_for_lambda.arn}" # (not shown)
   handler           = "exports.test"
 }
 ```
@@ -57,7 +57,7 @@ resource "aws_lambda_function" "test_lambda" {
 
 The following arguments are supported:
 
-* `bucket` - (Required) The name of the bucket to read the object from
+* `bucket` - (Required) The name of the bucket to read the object from. Alternatively, an [S3 access point](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-access-points.html) ARN can be specified
 * `key` - (Required) The full path to the object inside the bucket
 * `version_id` - (Optional) Specific version ID of the object returned (defaults to latest version)
 
@@ -85,6 +85,6 @@ In addition to all arguments above, the following attributes are exported:
 * `storage_class` - [Storage class](http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html) information of the object. Available for all objects except for `Standard` storage class objects.
 * `version_id` - The latest version ID of the object returned.
 * `website_redirect_location` - If the bucket is configured as a website, redirects requests for this object to another object in the same bucket or to an external URL. Amazon S3 stores the value of this header in the object metadata.
-* `tags`  - A mapping of tags assigned to the object.
+* `tags`  - A map of tags assigned to the object.
 
 -> **Note:** Terraform ignores all leading `/`s in the object's `key` and treats multiple `/`s in the rest of the object's `key` as a single `/`, so values of `/index.html` and `index.html` correspond to the same S3 object as do `first//second///third//` and `first/second/third/`.

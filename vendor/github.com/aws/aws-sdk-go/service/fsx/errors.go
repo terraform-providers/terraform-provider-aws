@@ -102,10 +102,17 @@ const (
 	// specified.
 	ErrCodeInvalidNetworkSettings = "InvalidNetworkSettings"
 
+	// ErrCodeInvalidPerUnitStorageThroughput for service response error code
+	// "InvalidPerUnitStorageThroughput".
+	//
+	// An invalid value for PerUnitStorageThroughput was provided. Please create
+	// your file system again, using a valid value.
+	ErrCodeInvalidPerUnitStorageThroughput = "InvalidPerUnitStorageThroughput"
+
 	// ErrCodeMissingFileSystemConfiguration for service response error code
 	// "MissingFileSystemConfiguration".
 	//
-	// File system configuration is required for this operation.
+	// A file system configuration is required for this operation.
 	ErrCodeMissingFileSystemConfiguration = "MissingFileSystemConfiguration"
 
 	// ErrCodeNotServiceResourceError for service response error code
@@ -142,24 +149,25 @@ const (
 )
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
-	"ActiveDirectoryError":           newErrorActiveDirectoryError,
-	"BackupInProgress":               newErrorBackupInProgress,
-	"BackupNotFound":                 newErrorBackupNotFound,
-	"BackupRestoring":                newErrorBackupRestoring,
-	"BadRequest":                     newErrorBadRequest,
-	"DataRepositoryTaskEnded":        newErrorDataRepositoryTaskEnded,
-	"DataRepositoryTaskExecuting":    newErrorDataRepositoryTaskExecuting,
-	"DataRepositoryTaskNotFound":     newErrorDataRepositoryTaskNotFound,
-	"FileSystemNotFound":             newErrorFileSystemNotFound,
-	"IncompatibleParameterError":     newErrorIncompatibleParameterError,
-	"InternalServerError":            newErrorInternalServerError,
-	"InvalidExportPath":              newErrorInvalidExportPath,
-	"InvalidImportPath":              newErrorInvalidImportPath,
-	"InvalidNetworkSettings":         newErrorInvalidNetworkSettings,
-	"MissingFileSystemConfiguration": newErrorMissingFileSystemConfiguration,
-	"NotServiceResourceError":        newErrorNotServiceResourceError,
-	"ResourceDoesNotSupportTagging":  newErrorResourceDoesNotSupportTagging,
-	"ResourceNotFound":               newErrorResourceNotFound,
-	"ServiceLimitExceeded":           newErrorServiceLimitExceeded,
-	"UnsupportedOperation":           newErrorUnsupportedOperation,
+	"ActiveDirectoryError":            newErrorActiveDirectoryError,
+	"BackupInProgress":                newErrorBackupInProgress,
+	"BackupNotFound":                  newErrorBackupNotFound,
+	"BackupRestoring":                 newErrorBackupRestoring,
+	"BadRequest":                      newErrorBadRequest,
+	"DataRepositoryTaskEnded":         newErrorDataRepositoryTaskEnded,
+	"DataRepositoryTaskExecuting":     newErrorDataRepositoryTaskExecuting,
+	"DataRepositoryTaskNotFound":      newErrorDataRepositoryTaskNotFound,
+	"FileSystemNotFound":              newErrorFileSystemNotFound,
+	"IncompatibleParameterError":      newErrorIncompatibleParameterError,
+	"InternalServerError":             newErrorInternalServerError,
+	"InvalidExportPath":               newErrorInvalidExportPath,
+	"InvalidImportPath":               newErrorInvalidImportPath,
+	"InvalidNetworkSettings":          newErrorInvalidNetworkSettings,
+	"InvalidPerUnitStorageThroughput": newErrorInvalidPerUnitStorageThroughput,
+	"MissingFileSystemConfiguration":  newErrorMissingFileSystemConfiguration,
+	"NotServiceResourceError":         newErrorNotServiceResourceError,
+	"ResourceDoesNotSupportTagging":   newErrorResourceDoesNotSupportTagging,
+	"ResourceNotFound":                newErrorResourceNotFound,
+	"ServiceLimitExceeded":            newErrorServiceLimitExceeded,
+	"UnsupportedOperation":            newErrorUnsupportedOperation,
 }

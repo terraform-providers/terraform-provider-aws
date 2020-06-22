@@ -58,7 +58,7 @@ Elastic IP whose data will be exported as attributes.
 * `filter` - (Optional) One or more name/value pairs to use as filters. There are several valid keys, for a full reference, check out the [EC2 API Reference](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAddresses.html).
 * `id` - (Optional) The allocation id of the specific VPC EIP to retrieve. If a classic EIP is required, do NOT set `id`, only set `public_ip`
 * `public_ip` - (Optional) The public IP of the specific EIP to retrieve.
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match a pair on the desired Elastic IP
+* `tags` - (Optional) A map of tags, each pair of which must exactly match a pair on the desired Elastic IP
 
 ## Attributes Reference
 
@@ -75,6 +75,8 @@ In addition to all arguments above, the following attributes are exported:
 * `public_ip` - Public IP address of Elastic IP.
 * `public_dns` - Public DNS associated with the Elastic IP address.
 * `public_ipv4_pool` - The ID of an address pool.
+* `customer_owned_ipv4_pool` - The ID of a Customer Owned IP Pool. For more on customer owned IP addressed check out [Customer-owned IP addresses guide](https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing)
+* `customer_owned_ip` - Customer Owned IP.
 * `tags` - Key-value map of tags associated with Elastic IP.
 
 ~> **Note:** The data source computes the `public_dns` and `private_dns` attributes according to the [VPC DNS Guide](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-hostnames) as they are not available with the EC2 API.

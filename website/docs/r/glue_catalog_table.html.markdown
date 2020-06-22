@@ -133,7 +133,15 @@ The following arguments are supported:
 
 * `skewed_column_names` - (Optional) A list of names of columns that contain skewed values.
 * `skewed_column_value_location_maps` - (Optional) A list of values that appear so frequently as to be considered skewed.
-* `skewed_column_values` - (Optional) A mapping of skewed values to the columns that contain them.
+* `skewed_column_values` - (Optional) A map of skewed values to the columns that contain them.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - Catalog ID, Database name and of the name table.
+* `arn` - The ARN of the Glue Table.
+
 
 ## Import
 

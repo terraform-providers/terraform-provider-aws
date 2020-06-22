@@ -1193,7 +1193,7 @@ func (c *Backup) DescribeProtectedResourceRequest(input *DescribeProtectedResour
 // DescribeProtectedResource API operation for AWS Backup.
 //
 // Returns information about a saved resource, including the last time it was
-// backed-up, its Amazon Resource Name (ARN), and the AWS service type of the
+// backed up, its Amazon Resource Name (ARN), and the AWS service type of the
 // saved resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1324,6 +1324,89 @@ func (c *Backup) DescribeRecoveryPoint(input *DescribeRecoveryPointInput) (*Desc
 // for more information on using Contexts.
 func (c *Backup) DescribeRecoveryPointWithContext(ctx aws.Context, input *DescribeRecoveryPointInput, opts ...request.Option) (*DescribeRecoveryPointOutput, error) {
 	req, out := c.DescribeRecoveryPointRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeRegionSettings = "DescribeRegionSettings"
+
+// DescribeRegionSettingsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeRegionSettings operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeRegionSettings for more information on using the DescribeRegionSettings
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeRegionSettingsRequest method.
+//    req, resp := client.DescribeRegionSettingsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/backup-2018-11-15/DescribeRegionSettings
+func (c *Backup) DescribeRegionSettingsRequest(input *DescribeRegionSettingsInput) (req *request.Request, output *DescribeRegionSettingsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeRegionSettings,
+		HTTPMethod: "GET",
+		HTTPPath:   "/account-settings",
+	}
+
+	if input == nil {
+		input = &DescribeRegionSettingsInput{}
+	}
+
+	output = &DescribeRegionSettingsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeRegionSettings API operation for AWS Backup.
+//
+// Returns the current service opt-in settings for the region. If the service
+// has a value set to true, AWS Backup will attempt to protect that service's
+// resources in this region, when included in an on-demand backup or scheduled
+// backup plan. If the value is set to false for a service, AWS Backup will
+// not attempt to protect that service's resources in this region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Backup's
+// API operation DescribeRegionSettings for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceUnavailableException
+//   The request failed due to a temporary failure of the server.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/backup-2018-11-15/DescribeRegionSettings
+func (c *Backup) DescribeRegionSettings(input *DescribeRegionSettingsInput) (*DescribeRegionSettingsOutput, error) {
+	req, out := c.DescribeRegionSettingsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeRegionSettingsWithContext is the same as DescribeRegionSettings with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeRegionSettings for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Backup) DescribeRegionSettingsWithContext(ctx aws.Context, input *DescribeRegionSettingsInput, opts ...request.Option) (*DescribeRegionSettingsOutput, error) {
+	req, out := c.DescribeRegionSettingsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3889,6 +3972,8 @@ func (c *Backup) ListTagsRequest(input *ListTagsInput) (req *request.Request, ou
 // Returns a list of key-value pairs assigned to a target recovery point, backup
 // plan, or backup vault.
 //
+// ListTags are currently only supported with Amazon EFS backups.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -4915,10 +5000,101 @@ func (c *Backup) UpdateRecoveryPointLifecycleWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opUpdateRegionSettings = "UpdateRegionSettings"
+
+// UpdateRegionSettingsRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateRegionSettings operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateRegionSettings for more information on using the UpdateRegionSettings
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateRegionSettingsRequest method.
+//    req, resp := client.UpdateRegionSettingsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/backup-2018-11-15/UpdateRegionSettings
+func (c *Backup) UpdateRegionSettingsRequest(input *UpdateRegionSettingsInput) (req *request.Request, output *UpdateRegionSettingsOutput) {
+	op := &request.Operation{
+		Name:       opUpdateRegionSettings,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/account-settings",
+	}
+
+	if input == nil {
+		input = &UpdateRegionSettingsInput{}
+	}
+
+	output = &UpdateRegionSettingsOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateRegionSettings API operation for AWS Backup.
+//
+// Updates the current service opt-in settings for the region. If the service
+// has a value set to true, AWS Backup will attempt to protect that service's
+// resources in this region, when included in an on-demand backup or scheduled
+// backup plan. If the value is set to false for a service, AWS Backup will
+// not attempt to protect that service's resources in this region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Backup's
+// API operation UpdateRegionSettings for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceUnavailableException
+//   The request failed due to a temporary failure of the server.
+//
+//   * MissingParameterValueException
+//   Indicates that a required parameter is missing.
+//
+//   * InvalidParameterValueException
+//   Indicates that something is wrong with a parameter's value. For example,
+//   the value is out of range.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/backup-2018-11-15/UpdateRegionSettings
+func (c *Backup) UpdateRegionSettings(input *UpdateRegionSettingsInput) (*UpdateRegionSettingsOutput, error) {
+	req, out := c.UpdateRegionSettingsRequest(input)
+	return out, req.Send()
+}
+
+// UpdateRegionSettingsWithContext is the same as UpdateRegionSettings with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateRegionSettings for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Backup) UpdateRegionSettingsWithContext(ctx aws.Context, input *UpdateRegionSettingsInput, opts ...request.Option) (*UpdateRegionSettingsOutput, error) {
+	req, out := c.UpdateRegionSettingsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 // The required resource already exists.
 type AlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Arn *string `type:"string"`
 
@@ -4945,17 +5121,17 @@ func (s AlreadyExistsException) GoString() string {
 
 func newErrorAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &AlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AlreadyExistsException) Code() string {
+func (s *AlreadyExistsException) Code() string {
 	return "AlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s AlreadyExistsException) Message() string {
+func (s *AlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4963,22 +5139,22 @@ func (s AlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AlreadyExistsException) OrigErr() error {
+func (s *AlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s AlreadyExistsException) Error() string {
+func (s *AlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains DeleteAt and MoveToColdStorageAt timestamps, which are used to specify
@@ -5160,13 +5336,13 @@ type CopyJob struct {
 	// The size, in bytes, of a copy job.
 	BackupSizeInBytes *int64 `type:"long"`
 
-	// The date and time a job to create a copy job is completed, in Unix format
-	// and Coordinated Universal Time (UTC). The value of CompletionDate is accurate
-	// to milliseconds. For example, the value 1516925490.087 represents Friday,
-	// January 26, 2018 12:11:30.087 AM.
+	// The date and time a copy job is completed, in Unix format and Coordinated
+	// Universal Time (UTC). The value of CompletionDate is accurate to milliseconds.
+	// For example, the value 1516925490.087 represents Friday, January 26, 2018
+	// 12:11:30.087 AM.
 	CompletionDate *time.Time `type:"timestamp"`
 
-	// Uniquely identifies a request to AWS Backup to copy a resource.
+	// Uniquely identifies a copy job.
 	CopyJobId *string `type:"string"`
 
 	// Contains information about the backup plan and rule that AWS Backup used
@@ -5191,9 +5367,9 @@ type CopyJob struct {
 	// arn:aws:iam::123456789012:role/S3Access.
 	IamRoleArn *string `type:"string"`
 
-	// The type of AWS resource to be copied; for example, an Amazon Elastic Block
-	// Store (Amazon EBS) volume or an Amazon Relational Database Service (Amazon
-	// RDS) database.
+	// The AWS resource to be copied; for example, an Amazon Elastic Block Store
+	// (Amazon EBS) volume or an Amazon Relational Database Service (Amazon RDS)
+	// database.
 	ResourceArn *string `type:"string"`
 
 	// The type of AWS resource to be copied; for example, an Amazon Elastic Block
@@ -5208,10 +5384,10 @@ type CopyJob struct {
 	// An ARN that uniquely identifies a source recovery point; for example, arn:aws:backup:us-east-1:123456789012:recovery-point:1EB3B5E7-9EB0-435A-A80B-108B488B0D45.
 	SourceRecoveryPointArn *string `type:"string"`
 
-	// The current state of a resource recovery point.
+	// The current state of a copy job.
 	State *string `type:"string" enum:"CopyJobState"`
 
-	// A detailed message explaining the status of the job that to copy a resource.
+	// A detailed message explaining the status of the job to copy a resource.
 	StatusMessage *string `type:"string"`
 }
 
@@ -5393,7 +5569,7 @@ type CreateBackupPlanOutput struct {
 	CreationDate *time.Time `type:"timestamp"`
 
 	// Unique, randomly generated, Unicode, UTF-8 encoded strings that are at most
-	// 1024 bytes long. They cannot be edited.
+	// 1,024 bytes long. They cannot be edited.
 	VersionId *string `type:"string"`
 }
 
@@ -5902,7 +6078,7 @@ type DeleteBackupVaultInput struct {
 
 	// The name of a logical container where backups are stored. Backup vaults are
 	// identified by names that are unique to the account used to create them and
-	// theAWS Region where they are created. They consist of lowercase letters,
+	// the AWS Region where they are created. They consist of lowercase letters,
 	// numbers, and hyphens.
 	//
 	// BackupVaultName is a required field
@@ -6092,8 +6268,8 @@ func (s DeleteRecoveryPointOutput) GoString() string {
 // A dependent AWS service or resource returned an error to the AWS Backup service,
 // and the action cannot be completed.
 type DependencyFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -6116,17 +6292,17 @@ func (s DependencyFailureException) GoString() string {
 
 func newErrorDependencyFailureException(v protocol.ResponseMetadata) error {
 	return &DependencyFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DependencyFailureException) Code() string {
+func (s *DependencyFailureException) Code() string {
 	return "DependencyFailureException"
 }
 
 // Message returns the exception's message.
-func (s DependencyFailureException) Message() string {
+func (s *DependencyFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6134,22 +6310,22 @@ func (s DependencyFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DependencyFailureException) OrigErr() error {
+func (s *DependencyFailureException) OrigErr() error {
 	return nil
 }
 
-func (s DependencyFailureException) Error() string {
+func (s *DependencyFailureException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DependencyFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DependencyFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DependencyFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DependencyFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type DescribeBackupJobInput struct {
@@ -6254,7 +6430,7 @@ type DescribeBackupJobOutput struct {
 	// on the resource type.
 	ResourceArn *string `type:"string"`
 
-	// The type of AWS resource to be backed-up; for example, an Amazon Elastic
+	// The type of AWS resource to be backed up; for example, an Amazon Elastic
 	// Block Store (Amazon EBS) volume or an Amazon Relational Database Service
 	// (Amazon RDS) database.
 	ResourceType *string `type:"string"`
@@ -6511,7 +6687,7 @@ func (s *DescribeBackupVaultOutput) SetNumberOfRecoveryPoints(v int64) *Describe
 type DescribeCopyJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// Uniquely identifies a request to AWS Backup to copy a resource.
+	// Uniquely identifies a copy job.
 	//
 	// CopyJobId is a required field
 	CopyJobId *string `location:"uri" locationName:"copyJobId" type:"string" required:"true"`
@@ -6919,6 +7095,43 @@ func (s *DescribeRecoveryPointOutput) SetStatus(v string) *DescribeRecoveryPoint
 // SetStorageClass sets the StorageClass field's value.
 func (s *DescribeRecoveryPointOutput) SetStorageClass(v string) *DescribeRecoveryPointOutput {
 	s.StorageClass = &v
+	return s
+}
+
+type DescribeRegionSettingsInput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeRegionSettingsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeRegionSettingsInput) GoString() string {
+	return s.String()
+}
+
+type DescribeRegionSettingsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Returns a list of all services along with the opt-in preferences in the region.
+	ResourceTypeOptInPreference map[string]*bool `type:"map"`
+}
+
+// String returns the string representation
+func (s DescribeRegionSettingsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeRegionSettingsOutput) GoString() string {
+	return s.String()
+}
+
+// SetResourceTypeOptInPreference sets the ResourceTypeOptInPreference field's value.
+func (s *DescribeRegionSettingsOutput) SetResourceTypeOptInPreference(v map[string]*bool) *DescribeRegionSettingsOutput {
+	s.ResourceTypeOptInPreference = v
 	return s
 }
 
@@ -7900,8 +8113,8 @@ func (s *GetSupportedResourceTypesOutput) SetResourceTypes(v []*string) *GetSupp
 // Indicates that something is wrong with a parameter's value. For example,
 // the value is out of range.
 type InvalidParameterValueException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -7924,17 +8137,17 @@ func (s InvalidParameterValueException) GoString() string {
 
 func newErrorInvalidParameterValueException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterValueException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterValueException) Code() string {
+func (s *InvalidParameterValueException) Code() string {
 	return "InvalidParameterValueException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterValueException) Message() string {
+func (s *InvalidParameterValueException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7942,29 +8155,29 @@ func (s InvalidParameterValueException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterValueException) OrigErr() error {
+func (s *InvalidParameterValueException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterValueException) Error() string {
+func (s *InvalidParameterValueException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterValueException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterValueException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterValueException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Indicates that something is wrong with the input to the request. For example,
 // a parameter is of the wrong type.
 type InvalidRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -7987,17 +8200,17 @@ func (s InvalidRequestException) GoString() string {
 
 func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidRequestException) Code() string {
+func (s *InvalidRequestException) Code() string {
 	return "InvalidRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidRequestException) Message() string {
+func (s *InvalidRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8005,22 +8218,22 @@ func (s InvalidRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidRequestException) OrigErr() error {
+func (s *InvalidRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidRequestException) Error() string {
+func (s *InvalidRequestException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains detailed information about a backup job.
@@ -8085,7 +8298,7 @@ type Job struct {
 	// on the resource type.
 	ResourceArn *string `type:"string"`
 
-	// The type of AWS resource to be backed-up; for example, an Amazon Elastic
+	// The type of AWS resource to be backed up; for example, an Amazon Elastic
 	// Block Store (Amazon EBS) volume or an Amazon Relational Database Service
 	// (Amazon RDS) database.
 	ResourceType *string `type:"string"`
@@ -8263,8 +8476,8 @@ func (s *Lifecycle) SetMoveToColdStorageAfterDays(v int64) *Lifecycle {
 // A limit in the request has been exceeded; for example, a maximum number of
 // items allowed in a request.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -8287,17 +8500,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8305,22 +8518,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListBackupJobsInput struct {
@@ -8957,8 +9170,6 @@ type ListCopyJobsInput struct {
 	ByResourceArn *string `location:"querystring" locationName:"resourceArn" type:"string"`
 
 	// Returns only backup jobs for the specified resources:
-	//
-	//    * DynamoDB for Amazon DynamoDB
 	//
 	//    * EBS for Amazon Elastic Block Store
 	//
@@ -9615,8 +9826,8 @@ func (s *ListTagsOutput) SetTags(v map[string]*string) *ListTagsOutput {
 
 // Indicates that a required parameter is missing.
 type MissingParameterValueException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -9639,17 +9850,17 @@ func (s MissingParameterValueException) GoString() string {
 
 func newErrorMissingParameterValueException(v protocol.ResponseMetadata) error {
 	return &MissingParameterValueException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MissingParameterValueException) Code() string {
+func (s *MissingParameterValueException) Code() string {
 	return "MissingParameterValueException"
 }
 
 // Message returns the exception's message.
-func (s MissingParameterValueException) Message() string {
+func (s *MissingParameterValueException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9657,22 +9868,22 @@ func (s MissingParameterValueException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MissingParameterValueException) OrigErr() error {
+func (s *MissingParameterValueException) OrigErr() error {
 	return nil
 }
 
-func (s MissingParameterValueException) Error() string {
+func (s *MissingParameterValueException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MissingParameterValueException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MissingParameterValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MissingParameterValueException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MissingParameterValueException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains an optional backup plan display name and an array of BackupRule
@@ -10441,8 +10652,8 @@ func (s *RecoveryPointCreator) SetBackupRuleId(v string) *RecoveryPointCreator {
 
 // A resource that is required for the action doesn't exist.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -10465,17 +10676,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10483,22 +10694,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains metadata about a restore job.
@@ -10632,7 +10843,7 @@ type Rule struct {
 	_ struct{} `type:"structure"`
 
 	// A value in minutes after a backup job is successfully started before it must
-	// be completed or it is canceled by AWS Backup. This value is optional.
+	// be completed or it will be canceled by AWS Backup. This value is optional.
 	CompletionWindowMinutes *int64 `type:"long"`
 
 	// An array of CopyAction objects, which contains the details of the copy operation.
@@ -10665,8 +10876,8 @@ type Rule struct {
 	// A CRON expression specifying when AWS Backup initiates a backup job.
 	ScheduleExpression *string `type:"string"`
 
-	// An optional value that specifies a period of time in minutes after a backup
-	// is scheduled before a job is canceled if it doesn't start successfully.
+	// A value in minutes after a backup is scheduled before a job will be canceled
+	// if it doesn't start successfully. This value is optional.
 	StartWindowMinutes *int64 `type:"long"`
 
 	// The name of a logical container where backups are stored. Backup vaults are
@@ -10746,8 +10957,8 @@ func (s *Rule) SetTargetBackupVaultName(v string) *Rule {
 type RuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The amount of time AWS Backup attempts a backup before canceling the job
-	// and returning an error.
+	// A value in minutes after a backup job is successfully started before it must
+	// be completed or it will be canceled by AWS Backup. This value is optional.
 	CompletionWindowMinutes *int64 `type:"long"`
 
 	// An array of CopyAction objects, which contains the details of the copy operation.
@@ -10759,16 +10970,16 @@ type RuleInput struct {
 	//
 	// Backups transitioned to cold storage must be stored in cold storage for a
 	// minimum of 90 days. Therefore, the “expire after days” setting must be
-	// 90 days greater than the “transition to cold after days”. The “transition
-	// to cold after days” setting cannot be changed after a backup has been transitioned
-	// to cold.
+	// 90 days greater than the “transition to cold after days” setting. The
+	// “transition to cold after days” setting cannot be changed after a backup
+	// has been transitioned to cold.
 	Lifecycle *Lifecycle `type:"structure"`
 
 	// To help organize your resources, you can assign your own metadata to the
 	// resources that you create. Each tag is a key-value pair.
 	RecoveryPointTags map[string]*string `type:"map" sensitive:"true"`
 
-	// >An optional display name for a backup rule.
+	// An optional display name for a backup rule.
 	//
 	// RuleName is a required field
 	RuleName *string `type:"string" required:"true"`
@@ -10776,7 +10987,8 @@ type RuleInput struct {
 	// A CRON expression specifying when AWS Backup initiates a backup job.
 	ScheduleExpression *string `type:"string"`
 
-	// The amount of time in minutes before beginning a backup.
+	// A value in minutes after a backup is scheduled before a job will be canceled
+	// if it doesn't start successfully. This value is optional.
 	StartWindowMinutes *int64 `type:"long"`
 
 	// The name of a logical container where backups are stored. Backup vaults are
@@ -11033,8 +11245,8 @@ func (s *SelectionsListMember) SetSelectionName(v string) *SelectionsListMember 
 
 // The request failed due to a temporary failure of the server.
 type ServiceUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"Code" type:"string"`
 
@@ -11057,17 +11269,17 @@ func (s ServiceUnavailableException) GoString() string {
 
 func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableException) Code() string {
+func (s *ServiceUnavailableException) Code() string {
 	return "ServiceUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableException) Message() string {
+func (s *ServiceUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11075,22 +11287,22 @@ func (s ServiceUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableException) OrigErr() error {
+func (s *ServiceUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableException) Error() string {
+func (s *ServiceUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type StartBackupJobInput struct {
@@ -11104,8 +11316,8 @@ type StartBackupJobInput struct {
 	// BackupVaultName is a required field
 	BackupVaultName *string `type:"string" required:"true"`
 
-	// The amount of time AWS Backup attempts a backup before canceling the job
-	// and returning an error.
+	// A value in minutes after a backup job is successfully started before it must
+	// be completed or it will be canceled by AWS Backup. This value is optional.
 	CompleteWindowMinutes *int64 `type:"long"`
 
 	// Specifies the IAM role ARN used to create the target recovery point; for
@@ -11139,7 +11351,8 @@ type StartBackupJobInput struct {
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// The amount of time in minutes before beginning a backup.
+	// A value in minutes after a backup is scheduled before a job will be canceled
+	// if it doesn't start successfully. This value is optional.
 	StartWindowMinutes *int64 `type:"long"`
 }
 
@@ -11302,7 +11515,7 @@ type StartCopyJobInput struct {
 	// The name of a logical source container where backups are stored. Backup vaults
 	// are identified by names that are unique to the account used to create them
 	// and the AWS Region where they are created. They consist of lowercase letters,
-	// numbers, and hyphens. >
+	// numbers, and hyphens.
 	//
 	// SourceBackupVaultName is a required field
 	SourceBackupVaultName *string `type:"string" required:"true"`
@@ -11379,13 +11592,13 @@ func (s *StartCopyJobInput) SetSourceBackupVaultName(v string) *StartCopyJobInpu
 type StartCopyJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Uniquely identifies a request to AWS Backup to copy a resource.
+	// Uniquely identifies a copy job.
 	CopyJobId *string `type:"string"`
 
-	// The date and time that a backup job is started, in Unix format and Coordinated
+	// The date and time that a copy job is started, in Unix format and Coordinated
 	// Universal Time (UTC). The value of CreationDate is accurate to milliseconds.
 	// For example, the value 1516925490.087 represents Friday, January 26, 2018
-	// 12:11:30.087 AM. >
+	// 12:11:30.087 AM.
 	CreationDate *time.Time `type:"timestamp"`
 }
 
@@ -11427,11 +11640,11 @@ type StartRestoreJobInput struct {
 	// A set of metadata key-value pairs. Contains information, such as a resource
 	// name, required to restore a recovery point.
 	//
-	// You can get configuration metadata about a resource at the time it was backed-up
-	// by calling GetRecoveryPointRestoreMetadata. However, values in addition to
-	// those provided by GetRecoveryPointRestoreMetadata might be required to restore
-	// a resource. For example, you might need to provide a new resource name if
-	// the original already exists.
+	// You can get configuration metadata about a resource at the time it was backed
+	// up by calling GetRecoveryPointRestoreMetadata. However, values in addition
+	// to those provided by GetRecoveryPointRestoreMetadata might be required to
+	// restore a resource. For example, you might need to provide a new resource
+	// name if the original already exists.
 	//
 	// You need to specify specific metadata to restore an Amazon Elastic File System
 	// (Amazon EFS) instance:
@@ -12006,6 +12219,43 @@ func (s *UpdateRecoveryPointLifecycleOutput) SetLifecycle(v *Lifecycle) *UpdateR
 func (s *UpdateRecoveryPointLifecycleOutput) SetRecoveryPointArn(v string) *UpdateRecoveryPointLifecycleOutput {
 	s.RecoveryPointArn = &v
 	return s
+}
+
+type UpdateRegionSettingsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Updates the list of services along with the opt-in preferences for the region.
+	ResourceTypeOptInPreference map[string]*bool `type:"map"`
+}
+
+// String returns the string representation
+func (s UpdateRegionSettingsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateRegionSettingsInput) GoString() string {
+	return s.String()
+}
+
+// SetResourceTypeOptInPreference sets the ResourceTypeOptInPreference field's value.
+func (s *UpdateRegionSettingsInput) SetResourceTypeOptInPreference(v map[string]*bool) *UpdateRegionSettingsInput {
+	s.ResourceTypeOptInPreference = v
+	return s
+}
+
+type UpdateRegionSettingsOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateRegionSettingsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateRegionSettingsOutput) GoString() string {
+	return s.String()
 }
 
 // Contains metadata about a backup vault.

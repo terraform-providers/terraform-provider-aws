@@ -34,7 +34,7 @@ Valid values: `SYMMETRIC_DEFAULT`,  `RSA_2048`, `RSA_3072`, `RSA_4096`, `ECC_NIS
 * `is_enabled` - (Optional) Specifies whether the key is enabled. Defaults to true.
 * `enable_key_rotation` - (Optional) Specifies whether [key rotation](http://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html)
 	is enabled. Defaults to false.
-* `tags` - (Optional) A mapping of tags to assign to the object.
+* `tags` - (Optional) A map of tags to assign to the object.
 
 ## Attributes Reference
 

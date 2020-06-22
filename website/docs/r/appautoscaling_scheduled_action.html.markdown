@@ -19,7 +19,6 @@ resource "aws_appautoscaling_target" "dynamodb" {
   max_capacity       = 100
   min_capacity       = 5
   resource_id        = "table/tableName"
-  role_arn           = "${data.aws_iam_role.DynamoDBAutoscaleRole.arn}"
   scalable_dimension = "dynamodb:table:ReadCapacityUnits"
   service_namespace  = "dynamodb"
 }
@@ -45,7 +44,6 @@ resource "aws_appautoscaling_target" "ecs" {
   max_capacity       = 4
   min_capacity       = 1
   resource_id        = "service/clusterName/serviceName"
-  role_arn           = "${var.ecs_iam_role}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }

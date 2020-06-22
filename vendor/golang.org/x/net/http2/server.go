@@ -252,7 +252,7 @@ func ConfigureServer(s *http.Server, conf *Server) error {
 			}
 		}
 		if !haveRequired {
-			return fmt.Errorf("http2: TLSConfig.CipherSuites is missing an HTTP/2-required AES_128_GCM_SHA256 cipher.")
+			return fmt.Errorf("http2: TLSConfig.CipherSuites is missing an HTTP/2-required AES_128_GCM_SHA256 cipher (need at least one of TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 or TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256).")
 		}
 	}
 
@@ -581,13 +581,10 @@ type stream struct {
 	cancelCtx func()
 
 	// owned by serverConn's serve loop:
-	bodyBytes        int64   // body bytes seen so far
-	declBodyBytes    int64   // or -1 if undeclared
-	flow             flow    // limits writing from Handler to client
-	inflow           flow    // what the client is allowed to POST/etc to us
-	parent           *stream // or nil
-	numTrailerValues int64
-	weight           uint8
+	bodyBytes        int64 // body bytes seen so far
+	declBodyBytes    int64 // or -1 if undeclared
+	flow             flow  // limits writing from Handler to client
+	inflow           flow  // what the client is allowed to POST/etc to us
 	state            streamState
 	resetQueued      bool        // RST_STREAM queued for write; set by sc.resetStream
 	gotTrailerHeader bool        // HEADER frame for trailers was seen

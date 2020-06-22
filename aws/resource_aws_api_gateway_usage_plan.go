@@ -55,7 +55,7 @@ func resourceAwsApiGatewayUsagePlan() *schema.Resource {
 			},
 
 			"quota_settings": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -85,7 +85,7 @@ func resourceAwsApiGatewayUsagePlan() *schema.Resource {
 			},
 
 			"throttle_settings": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -119,7 +119,7 @@ func resourceAwsApiGatewayUsagePlan() *schema.Resource {
 }
 
 func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Creating API Gateway Usage Plan")
 
 	params := &apigateway.CreateUsagePlanInput{
@@ -155,7 +155,7 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("quota_settings"); ok {
-		settings := v.(*schema.Set).List()
+		settings := v.([]interface{})
 		q, ok := settings[0].(map[string]interface{})
 
 		if errors := validateApiGatewayUsagePlanQuotaSettings(q); len(errors) > 0 {
@@ -184,7 +184,7 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("throttle_settings"); ok {
-		settings := v.(*schema.Set).List()
+		settings := v.([]interface{})
 		q, ok := settings[0].(map[string]interface{})
 
 		if !ok {
@@ -239,7 +239,9 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsApiGatewayUsagePlanRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	log.Printf("[DEBUG] Reading API Gateway Usage Plan: %s", d.Id())
 
 	up, err := conn.GetUsagePlan(&apigateway.GetUsagePlanInput{
@@ -254,7 +256,7 @@ func resourceAwsApiGatewayUsagePlanRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(up.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(up.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -292,7 +294,7 @@ func resourceAwsApiGatewayUsagePlanRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Updating API Gateway Usage Plan")
 
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -361,10 +363,7 @@ func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("throttle_settings") {
 		o, n := d.GetChange("throttle_settings")
-
-		os := o.(*schema.Set)
-		ns := n.(*schema.Set)
-		diff := ns.Difference(os).List()
+		diff := n.([]interface{})
 
 		// Handle Removal
 		if len(diff) == 0 {
@@ -409,10 +408,7 @@ func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("quota_settings") {
 		o, n := d.GetChange("quota_settings")
-
-		os := o.(*schema.Set)
-		ns := n.(*schema.Set)
-		diff := ns.Difference(os).List()
+		diff := n.([]interface{})
 
 		// Handle Removal
 		if len(diff) == 0 {
@@ -490,7 +486,7 @@ func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsApiGatewayUsagePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	// Removing existing api stages associated
 	if apistages, ok := d.GetOk("api_stages"); ok {

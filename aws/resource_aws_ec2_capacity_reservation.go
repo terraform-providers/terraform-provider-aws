@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -42,7 +43,7 @@ func resourceAwsEc2CapacityReservation() *schema.Resource {
 			"end_date": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"end_date_type": {
 				Type:     schema.TypeString,
@@ -86,6 +87,9 @@ func resourceAwsEc2CapacityReservation() *schema.Resource {
 					ec2.CapacityReservationInstancePlatformWindowswithSqlserverEnterprise,
 					ec2.CapacityReservationInstancePlatformWindowswithSqlserverStandard,
 					ec2.CapacityReservationInstancePlatformWindowswithSqlserverWeb,
+					ec2.CapacityReservationInstancePlatformLinuxwithSqlserverStandard,
+					ec2.CapacityReservationInstancePlatformLinuxwithSqlserverWeb,
+					ec2.CapacityReservationInstancePlatformLinuxwithSqlserverEnterprise,
 				}, false),
 			},
 			"instance_type": {
@@ -103,6 +107,10 @@ func resourceAwsEc2CapacityReservation() *schema.Resource {
 					ec2.CapacityReservationTenancyDefault,
 					ec2.CapacityReservationTenancyDedicated,
 				}, false),
+			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -156,6 +164,7 @@ func resourceAwsEc2CapacityReservationCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsEc2CapacityReservationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeCapacityReservations(&ec2.DescribeCapacityReservationsInput{
 		CapacityReservationIds: []*string{aws.String(d.Id())},
@@ -197,11 +206,21 @@ func resourceAwsEc2CapacityReservationRead(d *schema.ResourceData, meta interfac
 	d.Set("instance_platform", reservation.InstancePlatform)
 	d.Set("instance_type", reservation.InstanceType)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(reservation.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(reservation.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	d.Set("tenancy", reservation.Tenancy)
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("capacity-reservation/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

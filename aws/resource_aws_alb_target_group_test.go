@@ -443,6 +443,47 @@ func TestAccAWSALBTargetGroup_setAndUpdateSlowStart(t *testing.T) {
 	})
 }
 
+func TestAccAWSALBTargetGroup_updateLoadBalancingAlgorithmType(t *testing.T) {
+	var conf elbv2.TargetGroup
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_alb_target_group.test",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSALBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, false, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "round_robin"),
+				),
+			},
+			{
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "round_robin"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "round_robin"),
+				),
+			},
+			{
+				Config: testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName, true, "least_outstanding_requests"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSALBTargetGroupExists("aws_alb_target_group.test", &conf),
+					resource.TestCheckResourceAttrSet("aws_alb_target_group.test", "arn"),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "name", targetGroupName),
+					resource.TestCheckResourceAttr("aws_alb_target_group.test", "load_balancing_algorithm_type", "least_outstanding_requests"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSALBTargetGroupExists(n string, res *elbv2.TargetGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -530,6 +571,7 @@ func TestAccAWSALBTargetGroup_lambda(t *testing.T) {
 					"deregistration_delay",
 					"proxy_protocol_v2",
 					"slow_start",
+					"load_balancing_algorithm_type",
 				},
 			},
 		},
@@ -562,6 +604,7 @@ func TestAccAWSALBTargetGroup_lambdaMultiValueHeadersEnabled(t *testing.T) {
 					"deregistration_delay",
 					"proxy_protocol_v2",
 					"slow_start",
+					"load_balancing_algorithm_type",
 				},
 			},
 			{
@@ -889,6 +932,32 @@ resource "aws_vpc" "test" {
 }`, targetGroupName, stickinessBlock)
 }
 
+func testAccAWSALBTargetGroupConfig_loadBalancingAlgorithm(targetGroupName string, nonDefault bool, algoType string) string {
+	var algoTypeParam string
+
+	if nonDefault {
+		algoTypeParam = fmt.Sprintf(`load_balancing_algorithm_type = "%s"`, algoType)
+	}
+
+	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
+  name = "%s"
+  port = 443
+  protocol = "HTTPS"
+  vpc_id = "${aws_vpc.test.id}"
+
+  %s
+
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-alb-target-group-load-balancing-algo"
+  }
+}`, targetGroupName, algoTypeParam)
+}
+
 func testAccAWSALBTargetGroupConfig_updateSlowStart(targetGroupName string, slowStartDuration int) string {
 	return fmt.Sprintf(`resource "aws_alb_target_group" "test" {
   name = "%s"
@@ -950,7 +1019,7 @@ resource "aws_alb_target_group" "test" {
   port = 80
   protocol = "HTTP"
 	vpc_id = "${aws_vpc.test.id}"
-	
+
 	health_check {
     path = "/health"
     interval = 60

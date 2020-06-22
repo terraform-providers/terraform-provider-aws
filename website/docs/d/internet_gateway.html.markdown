@@ -31,7 +31,7 @@ Internet Gateway whose data will be exported as attributes.
 
 * `internet_gateway_id` - (Optional) The id of the specific Internet Gateway to retrieve.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired Internet Gateway.
 
 * `filter` - (Optional) Custom filter block as described below.
@@ -46,6 +46,8 @@ which take the following arguments:
   An Internet Gateway will be selected if any one of the given values matches.
 
 ## Attributes Reference
+
+* `arn` - The ARN of the Internet Gateway.
 
 All of the argument attributes except `filter` block are also exported as
 result attributes. This data source will complete the data by populating

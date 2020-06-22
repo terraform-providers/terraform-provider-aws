@@ -41,7 +41,7 @@ The following arguments are supported:
 * `name` - (Required) The name or description of the rule.
 * `metric_name` - (Required) The name or description for the Amazon CloudWatch metric of this rule.
 * `predicate` - (Optional) The objects to include in a rule (documented below).
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Nested Fields
 

@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsInternetGateway() *schema.Resource {
@@ -40,12 +42,18 @@ func dataSourceAwsInternetGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceAwsInternetGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	req := &ec2.DescribeInternetGatewaysInput{}
 	internetGatewayId, internetGatewayIdOk := d.GetOk("internet_gateway_id")
 	tags, tagsOk := d.GetOk("tags")
@@ -59,7 +67,7 @@ func dataSourceAwsInternetGatewayRead(d *schema.ResourceData, meta interface{}) 
 		"internet-gateway-id": internetGatewayId.(string),
 	})
 	req.Filters = append(req.Filters, buildEC2TagFilterList(
-		tagsFromMap(tags.(map[string]interface{})),
+		keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
 	)...)
 	req.Filters = append(req.Filters, buildEC2CustomFilterList(
 		filter.(*schema.Set),
@@ -80,9 +88,23 @@ func dataSourceAwsInternetGatewayRead(d *schema.ResourceData, meta interface{}) 
 
 	igw := resp.InternetGateways[0]
 	d.SetId(aws.StringValue(igw.InternetGatewayId))
-	d.Set("tags", tagsToMap(igw.Tags))
+
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(igw.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	d.Set("owner_id", igw.OwnerId)
 	d.Set("internet_gateway_id", igw.InternetGatewayId)
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("internet-gateway/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	err1 := d.Set("attachments", dataSourceAttachmentsRead(igw.Attachments))
 	return err1
@@ -93,8 +115,8 @@ func dataSourceAttachmentsRead(igwAttachments []*ec2.InternetGatewayAttachment) 
 	attachments := make([]map[string]interface{}, 0, len(igwAttachments))
 	for _, a := range igwAttachments {
 		m := make(map[string]interface{})
-		m["state"] = *a.State
-		m["vpc_id"] = *a.VpcId
+		m["state"] = aws.StringValue(a.State)
+		m["vpc_id"] = aws.StringValue(a.VpcId)
 		attachments = append(attachments, m)
 	}
 

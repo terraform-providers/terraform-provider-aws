@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,6 +21,22 @@ func resourceAwsVolumeAttachment() *schema.Resource {
 		Read:   resourceAwsVolumeAttachmentRead,
 		Update: resourceAwsVolumeAttachmentUpdate,
 		Delete: resourceAwsVolumeAttachmentDelete,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected DEVICE_NAME:VOLUME_ID:INSTANCE_ID", d.Id())
+				}
+				deviceName := idParts[0]
+				volumeID := idParts[1]
+				instanceID := idParts[2]
+				d.Set("device_name", deviceName)
+				d.Set("volume_id", volumeID)
+				d.Set("instance_id", instanceID)
+				d.SetId(volumeAttachmentID(deviceName, volumeID, instanceID))
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"device_name": {
@@ -80,9 +97,9 @@ func resourceAwsVolumeAttachmentCreate(d *schema.ResourceData, meta interface{})
 		// a spot request and whilst the request has been fulfilled the
 		// instance is not running yet
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"pending", "stopping"},
-			Target:     []string{"running", "stopped"},
-			Refresh:    InstanceStateRefreshFunc(conn, iID, []string{"terminated"}),
+			Pending:    []string{ec2.InstanceStateNamePending, ec2.InstanceStateNameStopping},
+			Target:     []string{ec2.InstanceStateNameRunning, ec2.InstanceStateNameStopped},
+			Refresh:    InstanceStateRefreshFunc(conn, iID, []string{ec2.InstanceStateNameTerminated}),
 			Timeout:    10 * time.Minute,
 			Delay:      10 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -109,13 +126,12 @@ func resourceAwsVolumeAttachmentCreate(d *schema.ResourceData, meta interface{})
 				return fmt.Errorf("Error attaching volume (%s) to instance (%s), message: \"%s\", code: \"%s\"",
 					vID, iID, awsErr.Message(), awsErr.Code())
 			}
-			return err
 		}
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"attaching"},
-		Target:     []string{"attached"},
+		Pending:    []string{ec2.VolumeAttachmentStateAttaching},
+		Target:     []string{ec2.VolumeAttachmentStateAttached},
 		Refresh:    volumeAttachmentStateRefreshFunc(conn, name, vID, iID),
 		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
@@ -166,7 +182,7 @@ func volumeAttachmentStateRefreshFunc(conn *ec2.EC2, name, volumeID, instanceID 
 			}
 		}
 		// assume detached if volume count is 0
-		return 42, "detached", nil
+		return 42, ec2.VolumeAttachmentStateDetached, nil
 	}
 }
 
@@ -189,14 +205,14 @@ func resourceAwsVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) e
 
 	vols, err := conn.DescribeVolumes(request)
 	if err != nil {
-		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidVolume.NotFound" {
+		if isAWSErr(err, "InvalidVolume.NotFound", "") {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("Error reading EC2 volume %s for instance: %s: %#v", d.Get("volume_id").(string), d.Get("instance_id").(string), err)
 	}
 
-	if len(vols.Volumes) == 0 || *vols.Volumes[0].State == "available" {
+	if len(vols.Volumes) == 0 || *vols.Volumes[0].State == ec2.VolumeStateAvailable {
 		log.Printf("[DEBUG] Volume Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 	}
@@ -233,8 +249,8 @@ func resourceAwsVolumeAttachmentDelete(d *schema.ResourceData, meta interface{})
 			vID, iID, err)
 	}
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"detaching"},
-		Target:     []string{"detached"},
+		Pending:    []string{ec2.VolumeAttachmentStateDetaching},
+		Target:     []string{ec2.VolumeAttachmentStateDetached},
 		Refresh:    volumeAttachmentStateRefreshFunc(conn, name, vID, iID),
 		Timeout:    5 * time.Minute,
 		Delay:      10 * time.Second,
@@ -245,8 +261,8 @@ func resourceAwsVolumeAttachmentDelete(d *schema.ResourceData, meta interface{})
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf(
-			"Error waiting for Volume (%s) to detach from Instance: %s",
-			vID, iID)
+			"Error waiting for Volume (%s) to detach from Instance (%s): %s",
+			vID, iID, err)
 	}
 
 	return nil

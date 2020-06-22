@@ -18,6 +18,9 @@ func resourceAwsSsmActivation() *schema.Resource {
 		Create: resourceAwsSsmActivationCreate,
 		Read:   resourceAwsSsmActivationRead,
 		Delete: resourceAwsSsmActivationDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -31,7 +34,7 @@ func resourceAwsSsmActivation() *schema.Resource {
 				ForceNew: true,
 			},
 			"expired": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			"expiration_date": {
@@ -39,7 +42,7 @@ func resourceAwsSsmActivation() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.ValidateRFC3339TimeString,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"iam_role": {
 				Type:     schema.TypeString,
@@ -130,6 +133,7 @@ func resourceAwsSsmActivationCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsSsmActivationRead(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading SSM Activation: %s", d.Id())
 
@@ -164,7 +168,7 @@ func resourceAwsSsmActivationRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("iam_role", activation.IamRole)
 	d.Set("registration_limit", activation.RegistrationLimit)
 	d.Set("registration_count", activation.RegistrationsCount)
-	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(activation.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(activation.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -19,7 +19,6 @@ resource "aws_codecommit_repository" "code" {
 
 resource "aws_sns_topic" "notif" {
   name = "notification"
-
 }
 
 data "aws_iam_policy_document" "notif_access" {
@@ -62,8 +61,8 @@ The following arguments are supported:
   For list of allowed events see [here](https://docs.aws.amazon.com/codestar-notifications/latest/userguide/concepts.html#concepts-api).
 * `name` - (Required) The name of notification rule.
 * `resource` - (Required) The ARN of the resource to associate with the notification rule.
-* `status` - (Optional) The status of the notification rule. Possible balues are `ENABLED` and `DISABLED`, default is `ENABLED`.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `status` - (Optional) The status of the notification rule. Possible values are `ENABLED` and `DISABLED`, default is `ENABLED`.
+* `tags` - (Optional) A map of tags to assign to the resource.
 * `target` - (Optional) Configuration blocks containing notification target information. Can be specified multiple times. At least one target must be specified on creation.
 
 An `target` block supports the following arguments:
@@ -83,5 +82,5 @@ In addition to all arguments above, the following attributes are exported:
 CodeStar notification rule can be imported using the ARN, e.g.
 
 ```
-$ terraform import aws_codestarnotification_rule.foo arn:aws:codestar-notifications:us-west-1:0123456789:notificationrule/2cdc68a3-8f7c-4893-b6a5-45b362bd4f2b
+$ terraform import aws_codestarnotifications_notification_rule.foo arn:aws:codestar-notifications:us-west-1:0123456789:notificationrule/2cdc68a3-8f7c-4893-b6a5-45b362bd4f2b
 ```

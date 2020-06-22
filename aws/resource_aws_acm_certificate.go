@@ -15,6 +15,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
+const (
+	// Maximum amount of time for ACM Certificate cross-service reference propagation.
+	// Removal of ACM Certificates from API Gateway Custom Domains can take >15 minutes.
+	AcmCertificateCrossServicePropagationTimeout = 20 * time.Minute
+
+	// Maximum amount of time for ACM Certificate asynchronous DNS validation record assignment.
+	// This timeout is unrelated to any creation or validation of those assigned DNS records.
+	AcmCertificateDnsValidationAssignmentTimeout = 5 * time.Minute
+)
+
 func resourceAwsAcmCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsAcmCertificateCreate,
@@ -143,6 +153,10 @@ func resourceAwsAcmCertificate() *schema.Resource {
 					},
 				},
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tagsSchema(),
 		},
 	}
@@ -221,12 +235,13 @@ func resourceAwsAcmCertificateCreateRequested(d *schema.ResourceData, meta inter
 
 func resourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	acmconn := meta.(*AWSClient).acmconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &acm.DescribeCertificateInput{
 		CertificateArn: aws.String(d.Id()),
 	}
 
-	return resource.Retry(time.Duration(1)*time.Minute, func() *resource.RetryError {
+	return resource.Retry(AcmCertificateDnsValidationAssignmentTimeout, func() *resource.RetryError {
 		resp, err := acmconn.DescribeCertificate(params)
 
 		if err != nil {
@@ -258,11 +273,13 @@ func resourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) err
 			return resource.NonRetryableError(err)
 		}
 
-		d.Set("validation_method", resourceAwsAcmCertificateGuessValidationMethod(domainValidationOptions, emailValidationOptions))
+		d.Set("validation_method", resourceAwsAcmCertificateValidationMethod(resp.Certificate))
 
 		if err := d.Set("options", flattenAcmCertificateOptions(resp.Certificate.Options)); err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error setting certificate options: %s", err))
 		}
+
+		d.Set("status", resp.Certificate.Status)
 
 		tags, err := keyvaluetags.AcmListTags(acmconn, d.Id())
 
@@ -270,29 +287,29 @@ func resourceAwsAcmCertificateRead(d *schema.ResourceData, meta interface{}) err
 			return resource.NonRetryableError(fmt.Errorf("error listing tags for ACM Certificate (%s): %s", d.Id(), err))
 		}
 
-		if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error setting tags: %s", err))
 		}
 
 		return nil
 	})
 }
-func resourceAwsAcmCertificateGuessValidationMethod(domainValidationOptions []map[string]interface{}, emailValidationOptions []string) string {
-	// The DescribeCertificate Response doesn't have information on what validation method was used
-	// so we need to guess from the validation options we see...
-	if len(domainValidationOptions) > 0 {
-		return acm.ValidationMethodDns
-	} else if len(emailValidationOptions) > 0 {
-		return acm.ValidationMethodEmail
-	} else {
-		return "NONE"
+func resourceAwsAcmCertificateValidationMethod(certificate *acm.CertificateDetail) string {
+	if aws.StringValue(certificate.Type) == acm.CertificateTypeAmazonIssued {
+		for _, domainValidation := range certificate.DomainValidationOptions {
+			if domainValidation.ValidationMethod != nil {
+				return aws.StringValue(domainValidation.ValidationMethod)
+			}
+		}
 	}
+
+	return "NONE"
 }
 
 func resourceAwsAcmCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	acmconn := meta.(*AWSClient).acmconn
 
-	if d.HasChange("private_key") || d.HasChange("certificate_body") || d.HasChange("certificate_chain") {
+	if d.HasChanges("private_key", "certificate_body", "certificate_chain") {
 		_, err := resourceAwsAcmCertificateImport(acmconn, d, true)
 		if err != nil {
 			return fmt.Errorf("Error updating certificate: %s", err)
@@ -344,8 +361,8 @@ func convertValidationOptions(certificate *acm.CertificateDetail) ([]map[string]
 					emailValidationResult = append(emailValidationResult, *validationEmail)
 				}
 			} else if o.ValidationStatus == nil || aws.StringValue(o.ValidationStatus) == acm.DomainStatusPendingValidation {
-				log.Printf("[DEBUG] No validation options need to retry: %#v", o)
-				return nil, nil, fmt.Errorf("No validation options need to retry: %#v", o)
+				log.Printf("[DEBUG] Asynchronous ACM service domain validation assignment not complete, need to retry: %#v", o)
+				return nil, nil, fmt.Errorf("asynchronous ACM service domain validation assignment not complete, need to retry: %#v", o)
 			}
 		}
 	case acm.CertificateTypePrivate:
@@ -368,7 +385,7 @@ func resourceAwsAcmCertificateDelete(d *schema.ResourceData, meta interface{}) e
 		CertificateArn: aws.String(d.Id()),
 	}
 
-	err := resource.Retry(10*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(AcmCertificateCrossServicePropagationTimeout, func() *resource.RetryError {
 		_, err := acmconn.DeleteCertificate(params)
 		if err != nil {
 			if isAWSErr(err, acm.ErrCodeResourceInUseException, "") {

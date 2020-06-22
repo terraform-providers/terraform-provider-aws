@@ -60,7 +60,7 @@ func resourceAwsDmsReplicationTask() *schema.Resource {
 			"replication_task_settings": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 			},
 			"source_endpoint_arn": {
@@ -72,7 +72,7 @@ func resourceAwsDmsReplicationTask() *schema.Resource {
 			"table_mappings": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 			},
 			"tags": tagsSchema(),
@@ -141,6 +141,7 @@ func resourceAwsDmsReplicationTaskCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsDmsReplicationTaskRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dmsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	response, err := conn.DescribeReplicationTasks(&dms.DescribeReplicationTasksInput{
 		Filters: []*dms.Filter{
@@ -170,7 +171,7 @@ func resourceAwsDmsReplicationTaskRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for DMS Replication Task (%s): %s", d.Get("replication_task_arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

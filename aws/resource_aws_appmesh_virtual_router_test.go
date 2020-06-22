@@ -106,11 +106,11 @@ func testAccAwsAppmeshVirtualRouter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "spec.0.listener.#", "1"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.2279702354.port_mapping.#", "1"),
+						resourceName, "spec.0.listener.0.port_mapping.#", "1"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.2279702354.port_mapping.0.port", "8080"),
+						resourceName, "spec.0.listener.0.port_mapping.0.port", "8080"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.2279702354.port_mapping.0.protocol", "http"),
+						resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
 					resource.TestCheckResourceAttrSet(
 						resourceName, "created_date"),
 					resource.TestCheckResourceAttrSet(
@@ -133,11 +133,11 @@ func testAccAwsAppmeshVirtualRouter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "spec.0.listener.#", "1"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.563508454.port_mapping.#", "1"),
+						resourceName, "spec.0.listener.0.port_mapping.#", "1"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.563508454.port_mapping.0.port", "8081"),
+						resourceName, "spec.0.listener.0.port_mapping.0.port", "8081"),
 					resource.TestCheckResourceAttr(
-						resourceName, "spec.0.listener.563508454.port_mapping.0.protocol", "http"),
+						resourceName, "spec.0.listener.0.port_mapping.0.protocol", "http"),
 				),
 			},
 			{

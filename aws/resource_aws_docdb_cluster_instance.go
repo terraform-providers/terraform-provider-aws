@@ -248,7 +248,10 @@ func resourceAwsDocDBClusterInstanceCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	db, err := resourceAwsDocDBInstanceRetrieve(d.Id(), meta.(*AWSClient).docdbconn)
+	conn := meta.(*AWSClient).docdbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
+	db, err := resourceAwsDocDBInstanceRetrieve(d.Id(), conn)
 	// Errors from this helper are always reportable
 	if err != nil {
 		return fmt.Errorf("Error on retrieving DocDB Cluster Instance (%s): %s", d.Id(), err)
@@ -261,7 +264,6 @@ func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{
 	}
 
 	// Retrieve DB Cluster information, to determine if this Instance is a writer
-	conn := meta.(*AWSClient).docdbconn
 	resp, err := conn.DescribeDBClusters(&docdb.DescribeDBClustersInput{
 		DBClusterIdentifier: db.DBClusterIdentifier,
 	})
@@ -320,7 +322,7 @@ func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for DocumentDB Cluster Instance (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -342,25 +344,21 @@ func resourceAwsDocDBClusterInstanceUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("preferred_maintenance_window") {
-		d.SetPartial("preferred_maintenance_window")
 		req.PreferredMaintenanceWindow = aws.String(d.Get("preferred_maintenance_window").(string))
 		requestUpdate = true
 	}
 
 	if d.HasChange("auto_minor_version_upgrade") {
-		d.SetPartial("auto_minor_version_upgrade")
 		req.AutoMinorVersionUpgrade = aws.Bool(d.Get("auto_minor_version_upgrade").(bool))
 		requestUpdate = true
 	}
 
 	if d.HasChange("promotion_tier") {
-		d.SetPartial("promotion_tier")
 		req.PromotionTier = aws.Int64(int64(d.Get("promotion_tier").(int)))
 		requestUpdate = true
 	}
 
 	if d.HasChange("ca_cert_identifier") {
-		d.SetPartial("ca_cert_identifier")
 		req.CACertificateIdentifier = aws.String(d.Get("ca_cert_identifier").(string))
 		requestUpdate = true
 	}
@@ -410,7 +408,6 @@ func resourceAwsDocDBClusterInstanceUpdate(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("error updating DocumentDB Cluster Instance (%s) tags: %s", d.Get("arn").(string), err)
 		}
 
-		d.SetPartial("tags")
 	}
 
 	return resourceAwsDocDBClusterInstanceRead(d, meta)

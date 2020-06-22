@@ -179,9 +179,10 @@ func TestAccAWSCognitoIdentityPool_cognitoIdentityProviders(t *testing.T) {
 	resourceName := "aws_cognito_identity_pool.main"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSCognitoIdentityPoolDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCognitoIdentityPoolConfig_cognitoIdentityProviders(name),

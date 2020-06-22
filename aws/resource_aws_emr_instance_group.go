@@ -44,7 +44,7 @@ func resourceAwsEMRInstanceGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 			},
 			"bid_price": {
 				Type:     schema.TypeString,
@@ -60,7 +60,7 @@ func resourceAwsEMRInstanceGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         false,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
@@ -270,7 +270,6 @@ func resourceAwsEMRInstanceGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 	d.Set("ebs_optimized", ig.EbsOptimized)
 	d.Set("instance_count", ig.RequestedInstanceCount)
-	d.Set("instance_role", ig.InstanceGroupType)
 	d.Set("instance_type", ig.InstanceType)
 	d.Set("name", ig.Name)
 	d.Set("running_instance_count", ig.RunningInstanceCount)
@@ -286,7 +285,7 @@ func resourceAwsEMRInstanceGroupUpdate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).emrconn
 
 	log.Printf("[DEBUG] Modify EMR task group")
-	if d.HasChange("instance_count") || d.HasChange("configurations_json") {
+	if d.HasChanges("instance_count", "configurations_json") {
 		instanceGroupModifyConfig := emr.InstanceGroupModifyConfig{
 			InstanceGroupId: aws.String(d.Id()),
 		}

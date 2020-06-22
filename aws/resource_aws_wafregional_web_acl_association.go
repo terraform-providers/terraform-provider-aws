@@ -78,7 +78,7 @@ func resourceAwsWafRegionalWebAclAssociationCreate(d *schema.ResourceData, meta 
 func resourceAwsWafRegionalWebAclAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
 
-	_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(d.Id())
+	resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(d.Id())
 
 	input := &wafregional.GetWebACLForResourceInput{
 		ResourceArn: aws.String(resourceArn),
@@ -111,7 +111,7 @@ func resourceAwsWafRegionalWebAclAssociationRead(d *schema.ResourceData, meta in
 func resourceAwsWafRegionalWebAclAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
 
-	_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(d.Id())
+	resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(d.Id())
 
 	log.Printf("[INFO] Deleting WAF Regional Web ACL association: %s", resourceArn)
 
@@ -124,9 +124,8 @@ func resourceAwsWafRegionalWebAclAssociationDelete(d *schema.ResourceData, meta 
 	return err
 }
 
-func resourceAwsWafRegionalWebAclAssociationParseId(id string) (webAclId, resourceArn string) {
+func resourceAwsWafRegionalWebAclAssociationParseId(id string) (resourceArn string) {
 	parts := strings.SplitN(id, ":", 2)
-	webAclId = parts[0]
 	resourceArn = parts[1]
 	return
 }

@@ -1,22 +1,23 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/service/opsworks"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceAwsOpsworksMysqlLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:         "db-master",
+		TypeName:         opsworks.LayerTypeDbMaster,
 		DefaultLayerName: "MySQL",
 
 		Attributes: map[string]*opsworksLayerTypeAttribute{
 			"root_password": {
-				AttrName:  "MysqlRootPassword",
+				AttrName:  opsworks.LayerAttributesKeysMysqlRootPassword,
 				Type:      schema.TypeString,
 				WriteOnly: true,
 			},
 			"root_password_on_all_instances": {
-				AttrName: "MysqlRootPasswordUbiquitous",
+				AttrName: opsworks.LayerAttributesKeysMysqlRootPasswordUbiquitous,
 				Type:     schema.TypeBool,
 				Default:  true,
 			},

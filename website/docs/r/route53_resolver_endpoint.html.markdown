@@ -48,7 +48,7 @@ or `OUTBOUND` (resolver forwards DNS queries from the DNS service for a VPC to y
 to your network (for outbound endpoints) or on the way from your network to your VPCs (for inbound endpoints). Described below.
 * `security_group_ids` - (Required) The ID of one or more security groups that you want to use to control access to this VPC.
 * `name` - (Optional) The friendly name of the Route 53 Resolver endpoint.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `ip_address` object supports the following:
 

@@ -2,28 +2,101 @@ package aws
 
 import (
 	"fmt"
+	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_db_snapshot", &resource.Sweeper{
+		Name: "aws_db_snapshot",
+		F:    testSweepDbSnapshots,
+	})
+}
+
+func testSweepDbSnapshots(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+
+	conn := client.(*AWSClient).rdsconn
+	input := &rds.DescribeDBSnapshotsInput{}
+	var sweeperErrs error
+
+	err = conn.DescribeDBSnapshotsPages(input, func(out *rds.DescribeDBSnapshotsOutput, lastPage bool) bool {
+		if out == nil {
+			return !lastPage
+		}
+
+		for _, dbSnapshot := range out.DBSnapshots {
+			if dbSnapshot == nil {
+				continue
+			}
+
+			id := aws.StringValue(dbSnapshot.DBSnapshotIdentifier)
+			input := &rds.DeleteDBSnapshotInput{
+				DBSnapshotIdentifier: dbSnapshot.DBSnapshotIdentifier,
+			}
+
+			log.Printf("[INFO] Deleting RDS DB Snapshot: %s", id)
+			_, err := conn.DeleteDBSnapshot(input)
+
+			if isAWSErr(err, rds.ErrCodeDBSnapshotNotFoundFault, "") {
+				continue
+			}
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting RDS DB Snapshot (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			}
+		}
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping RDS DB Snapshot sweep for %s: %s", region, err)
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error describing RDS DB Snapshots: %s", err)
+	}
+
+	return sweeperErrs
+}
+
 func TestAccAWSDBSnapshot_basic(t *testing.T) {
 	var v rds.DBSnapshot
-	rInt := acctest.RandInt()
+	resourceName := "aws_db_snapshot.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsDbSnapshotConfig(rInt),
+				Config: testAccAwsDbSnapshotConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbSnapshotExists("aws_db_snapshot.test", &v),
+					testAccCheckDbSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "db_snapshot_arn", "rds", regexp.MustCompile(`snapshot:.+`)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -31,27 +104,42 @@ func TestAccAWSDBSnapshot_basic(t *testing.T) {
 
 func TestAccAWSDBSnapshot_tags(t *testing.T) {
 	var v rds.DBSnapshot
-	rInt := acctest.RandInt()
+	resourceName := "aws_db_snapshot.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsDbSnapshotConfigTags1(rInt, "key1", "value1"),
+				Config: testAccAwsDbSnapshotConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbSnapshotExists("aws_db_snapshot.test", &v),
-					resource.TestCheckResourceAttr("aws_db_snapshot.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_db_snapshot.test", "tags.key1", "value1"),
+					testAccCheckDbSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
 				),
 			},
 			{
-				Config: testAccAwsDbSnapshotConfigTags2(rInt, "key1", "value1updated", "key2", "value2"),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsDbSnapshotConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDbSnapshotExists("aws_db_snapshot.test", &v),
-					resource.TestCheckResourceAttr("aws_db_snapshot.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr("aws_db_snapshot.test", "tags.key1", "value1updated"),
-					resource.TestCheckResourceAttr("aws_db_snapshot.test", "tags.key2", "value2"),
+					testAccCheckDbSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsDbSnapshotConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDbSnapshotExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -60,7 +148,7 @@ func TestAccAWSDBSnapshot_tags(t *testing.T) {
 
 func TestAccAWSDBSnapshot_disappears(t *testing.T) {
 	var v rds.DBSnapshot
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_db_snapshot.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +157,7 @@ func TestAccAWSDBSnapshot_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckDbSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsDbSnapshotConfig(rInt),
+				Config: testAccAwsDbSnapshotConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDbSnapshotExists(resourceName, &v),
 					testAccCheckDbSnapshotDisappears(&v),
@@ -154,92 +242,56 @@ func testAccCheckDbSnapshotDisappears(snapshot *rds.DBSnapshot) resource.TestChe
 	}
 }
 
-func testAccAwsDbSnapshotConfig(rInt int) string {
+func testAccAwsDbSnapshotConfigBase(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_db_instance" "bar" {
-  allocated_storage = 10
-  engine            = "MySQL"
-  engine_version    = "5.6.35"
-  instance_class    = "db.t2.micro"
-  name              = "baz"
-  password          = "barbarbarbar"
-  username          = "foo"
-
-  maintenance_window = "Fri:09:00-Fri:09:30"
-
+resource "aws_db_instance" "test" {
+  allocated_storage       = 10
+  engine                  = "MySQL"
+  engine_version          = "5.6.35"
+  instance_class          = "db.t2.micro"
+  name                    = "baz"
+  identifier              = %[1]q
+  password                = "barbarbarbar"
+  username                = "foo"
+  maintenance_window      = "Fri:09:00-Fri:09:30"
   backup_retention_period = 0
-
-  parameter_group_name = "default.mysql5.6"
-
-  skip_final_snapshot = true
+  parameter_group_name    = "default.mysql5.6"
+  skip_final_snapshot     = true
+}`, rName)
 }
 
+func testAccAwsDbSnapshotConfig(rName string) string {
+	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.bar.id}"
-  db_snapshot_identifier = "testsnapshot%d"
+  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_snapshot_identifier = %[1]q
 }
-`, rInt)
-}
-
-func testAccAwsDbSnapshotConfigTags1(rInt int, tag1Key, tag1Value string) string {
-	return fmt.Sprintf(`
-resource "aws_db_instance" "bar" {
-	allocated_storage = 10
-	engine = "MySQL"
-	engine_version = "5.6.35"
-	instance_class = "db.t2.micro"
-	name = "baz"
-	password = "barbarbarbar"
-	username = "foo"
-
-	maintenance_window = "Fri:09:00-Fri:09:30"
-
-	backup_retention_period = 0
-
-	parameter_group_name = "default.mysql5.6"
-
-	skip_final_snapshot = true
+`, rName)
 }
 
+func testAccAwsDbSnapshotConfigTags1(rName, tag1Key, tag1Value string) string {
+	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-	db_instance_identifier = "${aws_db_instance.bar.id}"
-	db_snapshot_identifier = "testsnapshot%d"
+  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_snapshot_identifier = %[1]q
 
-	tags = {
-		%q = %q
-	  }
-	}
-`, rInt, tag1Key, tag1Value)
+  tags = {
+  	%[2]q = %[3]q
+  }
+}
+`, rName, tag1Key, tag1Value)
 }
 
-func testAccAwsDbSnapshotConfigTags2(rInt int, tag1Key, tag1Value, tag2Key, tag2Value string) string {
-	return fmt.Sprintf(`
-resource "aws_db_instance" "bar" {
-	allocated_storage = 10
-	engine = "MySQL"
-	engine_version = "5.6.35"
-	instance_class = "db.t2.micro"
-	name = "baz"
-	password = "barbarbarbar"
-	username = "foo"
-
-	maintenance_window = "Fri:09:00-Fri:09:30"
-
-	backup_retention_period = 0
-
-	parameter_group_name = "default.mysql5.6"
-
-	skip_final_snapshot = true
-}
-
+func testAccAwsDbSnapshotConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
+	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-	db_instance_identifier = "${aws_db_instance.bar.id}"
-	db_snapshot_identifier = "testsnapshot%d"
+  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_snapshot_identifier = %[1]q
 
-	tags = {
-		%q = %q
-		%q = %q
-	  }
-	}
-`, rInt, tag1Key, tag1Value, tag2Key, tag2Value)
+  tags = {
+  	%[2]q = %[3]q
+  	%[4]q = %[5]q
+  }
+}
+`, rName, tag1Key, tag1Value, tag2Key, tag2Value)
 }

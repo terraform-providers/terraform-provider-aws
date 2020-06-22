@@ -95,6 +95,7 @@ func dataSourceAwsAcmpcaCertificateAuthority() *schema.Resource {
 
 func dataSourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).acmpcaconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 	certificateAuthorityArn := d.Get("arn").(string)
 
 	describeCertificateAuthorityInput := &acmpca.DescribeCertificateAuthorityInput{
@@ -169,7 +170,7 @@ func dataSourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("error listing tags for ACMPCA Certificate Authority (%s): %s", certificateAuthorityArn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -149,6 +149,7 @@ func resourceAwsDbEventSubscriptionCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsDbEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	sub, err := resourceAwsDbEventSubscriptionRetrieve(d.Id(), conn)
 
@@ -197,7 +198,7 @@ func resourceAwsDbEventSubscriptionRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for RDS Event Subscription (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -236,7 +237,6 @@ func resourceAwsDbEventSubscriptionRetrieve(name string, conn *rds.RDS) (*rds.Ev
 func resourceAwsDbEventSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
 
-	d.Partial(true)
 	requestUpdate := false
 
 	req := &rds.ModifyEventSubscriptionInput{
@@ -293,10 +293,6 @@ func resourceAwsDbEventSubscriptionUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return fmt.Errorf("Modifying RDS Event Subscription %s failed: %s", d.Id(), err)
 		}
-		d.SetPartial("event_categories")
-		d.SetPartial("enabled")
-		d.SetPartial("sns_topic")
-		d.SetPartial("source_type")
 	}
 
 	if d.HasChange("tags") {
@@ -305,8 +301,6 @@ func resourceAwsDbEventSubscriptionUpdate(d *schema.ResourceData, meta interface
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS Event Subscription (%s) tags: %s", d.Get("arn").(string), err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	if d.HasChange("source_ids") {
@@ -348,10 +342,7 @@ func resourceAwsDbEventSubscriptionUpdate(d *schema.ResourceData, meta interface
 				}
 			}
 		}
-		d.SetPartial("source_ids")
 	}
-
-	d.Partial(false)
 
 	return nil
 }

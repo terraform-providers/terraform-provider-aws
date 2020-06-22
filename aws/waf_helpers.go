@@ -28,7 +28,7 @@ func wafSizeConstraintSetSchema() map[string]*schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"field_to_match": {
-						Type:     schema.TypeSet,
+						Type:     schema.TypeList,
 						Required: true,
 						MaxItems: 1,
 						Elem: &schema.Resource{
@@ -76,7 +76,7 @@ func diffWafSizeConstraints(oldS, newS []interface{}) []*waf.SizeConstraintSetUp
 		updates = append(updates, &waf.SizeConstraintSetUpdate{
 			Action: aws.String(waf.ChangeActionDelete),
 			SizeConstraint: &waf.SizeConstraint{
-				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				ComparisonOperator: aws.String(constraint["comparison_operator"].(string)),
 				Size:               aws.Int64(int64(constraint["size"].(int))),
 				TextTransformation: aws.String(constraint["text_transformation"].(string)),
@@ -90,7 +90,7 @@ func diffWafSizeConstraints(oldS, newS []interface{}) []*waf.SizeConstraintSetUp
 		updates = append(updates, &waf.SizeConstraintSetUpdate{
 			Action: aws.String(waf.ChangeActionInsert),
 			SizeConstraint: &waf.SizeConstraint{
-				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(constraint["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				ComparisonOperator: aws.String(constraint["comparison_operator"].(string)),
 				Size:               aws.Int64(int64(constraint["size"].(int))),
 				TextTransformation: aws.String(constraint["text_transformation"].(string)),

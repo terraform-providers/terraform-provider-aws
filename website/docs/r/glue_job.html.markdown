@@ -79,11 +79,12 @@ be removed in future releases, please use `max_capacity` instead.
 * `description` – (Optional) Description of the job.
 * `execution_property` – (Optional) Execution property of the job. Defined below.
 * `glue_version` - (Optional) The version of glue to use, for example "1.0". For information about available versions, see the [AWS Glue Release Notes](https://docs.aws.amazon.com/glue/latest/dg/release-notes.html).
-* `max_capacity` – (Optional) The maximum number of AWS Glue data processing units (DPUs) that can be allocated when this job runs.
+* `max_capacity` – (Optional) The maximum number of AWS Glue data processing units (DPUs) that can be allocated when this job runs. `Required` when `pythonshell` is set, accept either `0.0625` or `1.0`.
 * `max_retries` – (Optional) The maximum number of times to retry this job if it fails.
 * `name` – (Required) The name you assign to this job. It must be unique in your account.
+* `notification_property` - (Optional) Notification property of the job. Defined below.
 * `role_arn` – (Required) The ARN of the IAM role associated with this job.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 * `timeout` – (Optional) The job timeout in minutes. The default is 2880 minutes (48 hours).
 * `security_configuration` - (Optional) The name of the Security Configuration to be associated with the job.
 * `worker_type` - (Optional) The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.
@@ -91,13 +92,17 @@ be removed in future releases, please use `max_capacity` instead.
 
 ### command Argument Reference
 
-* `name` - (Optional) The name of the job command. Defaults to `glueetl`
+* `name` - (Optional) The name of the job command. Defaults to `glueetl`. Use `pythonshell` for Python Shell Job Type, `max_capacity` needs to be set if `pythonshell` is chosen.
 * `script_location` - (Required) Specifies the S3 path to a script that executes a job.
 * `python_version` - (Optional) The Python version being used to execute a Python shell job. Allowed values are 2 or 3.
 
 ### execution_property Argument Reference
 
 * `max_concurrent_runs` - (Optional) The maximum number of concurrent runs allowed for a job. The default is 1.
+
+### notification_property Argument Reference
+
+* `notify_delay_after` - (Optional) After a job run starts, the number of minutes to wait before sending a job run delay notification.
 
 ## Attributes Reference
 

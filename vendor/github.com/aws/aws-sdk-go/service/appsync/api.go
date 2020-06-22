@@ -3838,8 +3838,8 @@ func (c *AppSync) UpdateTypeWithContext(ctx aws.Context, input *UpdateTypeInput,
 
 // You do not have access to perform this operation on this resource.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -3856,17 +3856,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3874,22 +3874,22 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes an additional authentication provider.
@@ -3954,6 +3954,7 @@ func (s *AdditionalAuthenticationProvider) SetUserPoolConfig(v *CognitoUserPoolC
 	return s
 }
 
+// The ApiCache object.
 type ApiCache struct {
 	_ struct{} `type:"structure"`
 
@@ -4135,8 +4136,8 @@ func (s *ApiKey) SetId(v string) *ApiKey {
 
 // The API key exceeded a limit. Try your request again.
 type ApiKeyLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4153,17 +4154,17 @@ func (s ApiKeyLimitExceededException) GoString() string {
 
 func newErrorApiKeyLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ApiKeyLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ApiKeyLimitExceededException) Code() string {
+func (s *ApiKeyLimitExceededException) Code() string {
 	return "ApiKeyLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ApiKeyLimitExceededException) Message() string {
+func (s *ApiKeyLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4171,29 +4172,29 @@ func (s ApiKeyLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ApiKeyLimitExceededException) OrigErr() error {
+func (s *ApiKeyLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ApiKeyLimitExceededException) Error() string {
+func (s *ApiKeyLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ApiKeyLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ApiKeyLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ApiKeyLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ApiKeyLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The API key expiration must be set to a value between 1 and 365 days from
 // creation (for CreateApiKey) or from update (for UpdateApiKey).
 type ApiKeyValidityOutOfBoundsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4210,17 +4211,17 @@ func (s ApiKeyValidityOutOfBoundsException) GoString() string {
 
 func newErrorApiKeyValidityOutOfBoundsException(v protocol.ResponseMetadata) error {
 	return &ApiKeyValidityOutOfBoundsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ApiKeyValidityOutOfBoundsException) Code() string {
+func (s *ApiKeyValidityOutOfBoundsException) Code() string {
 	return "ApiKeyValidityOutOfBoundsException"
 }
 
 // Message returns the exception's message.
-func (s ApiKeyValidityOutOfBoundsException) Message() string {
+func (s *ApiKeyValidityOutOfBoundsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4228,28 +4229,28 @@ func (s ApiKeyValidityOutOfBoundsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ApiKeyValidityOutOfBoundsException) OrigErr() error {
+func (s *ApiKeyValidityOutOfBoundsException) OrigErr() error {
 	return nil
 }
 
-func (s ApiKeyValidityOutOfBoundsException) Error() string {
+func (s *ApiKeyValidityOutOfBoundsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ApiKeyValidityOutOfBoundsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ApiKeyValidityOutOfBoundsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ApiKeyValidityOutOfBoundsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ApiKeyValidityOutOfBoundsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The GraphQL API exceeded a limit. Try your request again.
 type ApiLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4266,17 +4267,17 @@ func (s ApiLimitExceededException) GoString() string {
 
 func newErrorApiLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ApiLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ApiLimitExceededException) Code() string {
+func (s *ApiLimitExceededException) Code() string {
 	return "ApiLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ApiLimitExceededException) Message() string {
+func (s *ApiLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4284,22 +4285,22 @@ func (s ApiLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ApiLimitExceededException) OrigErr() error {
+func (s *ApiLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ApiLimitExceededException) Error() string {
+func (s *ApiLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ApiLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ApiLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ApiLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ApiLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The authorization config in case the HTTP endpoint requires authorization.
@@ -4388,8 +4389,8 @@ func (s *AwsIamConfig) SetSigningServiceName(v string) *AwsIamConfig {
 // The request is not well formed. For example, a value is invalid or a required
 // field is missing. Check the field values, and then try again.
 type BadRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4406,17 +4407,17 @@ func (s BadRequestException) GoString() string {
 
 func newErrorBadRequestException(v protocol.ResponseMetadata) error {
 	return &BadRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s BadRequestException) Code() string {
+func (s *BadRequestException) Code() string {
 	return "BadRequestException"
 }
 
 // Message returns the exception's message.
-func (s BadRequestException) Message() string {
+func (s *BadRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4424,22 +4425,22 @@ func (s BadRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s BadRequestException) OrigErr() error {
+func (s *BadRequestException) OrigErr() error {
 	return nil
 }
 
-func (s BadRequestException) Error() string {
+func (s *BadRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s BadRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s BadRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The caching configuration for a resolver that has caching enabled.
@@ -4546,8 +4547,8 @@ func (s *CognitoUserPoolConfig) SetUserPoolId(v string) *CognitoUserPoolConfig {
 // Another modification is in progress at this time and it must complete before
 // you can make your change.
 type ConcurrentModificationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4564,17 +4565,17 @@ func (s ConcurrentModificationException) GoString() string {
 
 func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
 	return &ConcurrentModificationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConcurrentModificationException) Code() string {
+func (s *ConcurrentModificationException) Code() string {
 	return "ConcurrentModificationException"
 }
 
 // Message returns the exception's message.
-func (s ConcurrentModificationException) Message() string {
+func (s *ConcurrentModificationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4582,22 +4583,22 @@ func (s ConcurrentModificationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConcurrentModificationException) OrigErr() error {
+func (s *ConcurrentModificationException) OrigErr() error {
 	return nil
 }
 
-func (s ConcurrentModificationException) Error() string {
+func (s *ConcurrentModificationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConcurrentModificationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConcurrentModificationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input of a CreateApiCache operation.
@@ -5190,6 +5191,9 @@ type CreateGraphqlApiInput struct {
 
 	// The Amazon Cognito user pool configuration.
 	UserPoolConfig *UserPoolConfig `locationName:"userPoolConfig" type:"structure"`
+
+	// A flag indicating whether to enable X-Ray tracing for the GraphqlApi.
+	XrayEnabled *bool `locationName:"xrayEnabled" type:"boolean"`
 }
 
 // String returns the string representation
@@ -5285,6 +5289,12 @@ func (s *CreateGraphqlApiInput) SetTags(v map[string]*string) *CreateGraphqlApiI
 // SetUserPoolConfig sets the UserPoolConfig field's value.
 func (s *CreateGraphqlApiInput) SetUserPoolConfig(v *UserPoolConfig) *CreateGraphqlApiInput {
 	s.UserPoolConfig = v
+	return s
+}
+
+// SetXrayEnabled sets the XrayEnabled field's value.
+func (s *CreateGraphqlApiInput) SetXrayEnabled(v bool) *CreateGraphqlApiInput {
+	s.XrayEnabled = &v
 	return s
 }
 
@@ -6572,6 +6582,7 @@ func (s *GetApiCacheInput) SetApiId(v string) *GetApiCacheInput {
 type GetApiCacheOutput struct {
 	_ struct{} `type:"structure"`
 
+	// The ApiCache object.
 	ApiCache *ApiCache `locationName:"apiCache" type:"structure"`
 }
 
@@ -7175,8 +7186,8 @@ func (s *GetTypeOutput) SetType(v *Type) *GetTypeOutput {
 
 // The GraphQL schema is not valid.
 type GraphQLSchemaException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7193,17 +7204,17 @@ func (s GraphQLSchemaException) GoString() string {
 
 func newErrorGraphQLSchemaException(v protocol.ResponseMetadata) error {
 	return &GraphQLSchemaException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s GraphQLSchemaException) Code() string {
+func (s *GraphQLSchemaException) Code() string {
 	return "GraphQLSchemaException"
 }
 
 // Message returns the exception's message.
-func (s GraphQLSchemaException) Message() string {
+func (s *GraphQLSchemaException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7211,22 +7222,22 @@ func (s GraphQLSchemaException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s GraphQLSchemaException) OrigErr() error {
+func (s *GraphQLSchemaException) OrigErr() error {
 	return nil
 }
 
-func (s GraphQLSchemaException) Error() string {
+func (s *GraphQLSchemaException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s GraphQLSchemaException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *GraphQLSchemaException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s GraphQLSchemaException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *GraphQLSchemaException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a GraphQL API.
@@ -7262,6 +7273,9 @@ type GraphqlApi struct {
 
 	// The Amazon Cognito user pool configuration.
 	UserPoolConfig *UserPoolConfig `locationName:"userPoolConfig" type:"structure"`
+
+	// A flag representing whether X-Ray tracing is enabled for this GraphqlApi.
+	XrayEnabled *bool `locationName:"xrayEnabled" type:"boolean"`
 }
 
 // String returns the string representation
@@ -7334,6 +7348,12 @@ func (s *GraphqlApi) SetUserPoolConfig(v *UserPoolConfig) *GraphqlApi {
 	return s
 }
 
+// SetXrayEnabled sets the XrayEnabled field's value.
+func (s *GraphqlApi) SetXrayEnabled(v bool) *GraphqlApi {
+	s.XrayEnabled = &v
+	return s
+}
+
 // Describes an HTTP data source configuration.
 type HttpDataSourceConfig struct {
 	_ struct{} `type:"structure"`
@@ -7387,8 +7407,8 @@ func (s *HttpDataSourceConfig) SetEndpoint(v string) *HttpDataSourceConfig {
 
 // An internal AWS AppSync error occurred. Try your request again.
 type InternalFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7405,17 +7425,17 @@ func (s InternalFailureException) GoString() string {
 
 func newErrorInternalFailureException(v protocol.ResponseMetadata) error {
 	return &InternalFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalFailureException) Code() string {
+func (s *InternalFailureException) Code() string {
 	return "InternalFailureException"
 }
 
 // Message returns the exception's message.
-func (s InternalFailureException) Message() string {
+func (s *InternalFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7423,24 +7443,26 @@ func (s InternalFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalFailureException) OrigErr() error {
+func (s *InternalFailureException) OrigErr() error {
 	return nil
 }
 
-func (s InternalFailureException) Error() string {
+func (s *InternalFailureException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
+// The LambdaConflictHandlerConfig object when configuring LAMBDA as the Conflict
+// Handler.
 type LambdaConflictHandlerConfig struct {
 	_ struct{} `type:"structure"`
 
@@ -7505,8 +7527,8 @@ func (s *LambdaDataSourceConfig) SetLambdaFunctionArn(v string) *LambdaDataSourc
 
 // The request exceeded a limit. Try your request again.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7523,17 +7545,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7541,22 +7563,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListApiKeysInput struct {
@@ -8402,8 +8424,8 @@ func (s *LogConfig) SetFieldLogLevel(v string) *LogConfig {
 // The resource specified in the request was not found. Check the resource,
 // and then try again.
 type NotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8420,17 +8442,17 @@ func (s NotFoundException) GoString() string {
 
 func newErrorNotFoundException(v protocol.ResponseMetadata) error {
 	return &NotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotFoundException) Code() string {
+func (s *NotFoundException) Code() string {
 	return "NotFoundException"
 }
 
 // Message returns the exception's message.
-func (s NotFoundException) Message() string {
+func (s *NotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8438,22 +8460,22 @@ func (s NotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotFoundException) OrigErr() error {
+func (s *NotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s NotFoundException) Error() string {
+func (s *NotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes an OpenID Connect configuration.
@@ -9031,8 +9053,8 @@ func (s *Type) SetName(v string) *Type {
 
 // You are not authorized to perform this operation.
 type UnauthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9049,17 +9071,17 @@ func (s UnauthorizedException) GoString() string {
 
 func newErrorUnauthorizedException(v protocol.ResponseMetadata) error {
 	return &UnauthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnauthorizedException) Code() string {
+func (s *UnauthorizedException) Code() string {
 	return "UnauthorizedException"
 }
 
 // Message returns the exception's message.
-func (s UnauthorizedException) Message() string {
+func (s *UnauthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9067,22 +9089,22 @@ func (s UnauthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnauthorizedException) OrigErr() error {
+func (s *UnauthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s UnauthorizedException) Error() string {
+func (s *UnauthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnauthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnauthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnauthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnauthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -9759,6 +9781,9 @@ type UpdateGraphqlApiInput struct {
 
 	// The new Amazon Cognito user pool configuration for the GraphqlApi object.
 	UserPoolConfig *UserPoolConfig `locationName:"userPoolConfig" type:"structure"`
+
+	// A flag indicating whether to enable X-Ray tracing for the GraphqlApi.
+	XrayEnabled *bool `locationName:"xrayEnabled" type:"boolean"`
 }
 
 // String returns the string representation
@@ -9854,6 +9879,12 @@ func (s *UpdateGraphqlApiInput) SetOpenIDConnectConfig(v *OpenIDConnectConfig) *
 // SetUserPoolConfig sets the UserPoolConfig field's value.
 func (s *UpdateGraphqlApiInput) SetUserPoolConfig(v *UserPoolConfig) *UpdateGraphqlApiInput {
 	s.UserPoolConfig = v
+	return s
+}
+
+// SetXrayEnabled sets the XrayEnabled field's value.
+func (s *UpdateGraphqlApiInput) SetXrayEnabled(v bool) *UpdateGraphqlApiInput {
+	s.XrayEnabled = &v
 	return s
 }
 

@@ -276,10 +276,11 @@ func TestAccAWSRoute53Record_spfSupport(t *testing.T) {
 	resourceName := "aws_route53_record.default"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckRoute53RecordDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		IDRefreshName:       resourceName,
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckRoute53RecordDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoute53RecordConfigSPF,
@@ -304,10 +305,11 @@ func TestAccAWSRoute53Record_caaSupport(t *testing.T) {
 	resourceName := "aws_route53_record.default"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckRoute53RecordDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		IDRefreshName:       resourceName,
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckRoute53RecordDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccRoute53RecordConfigCAA,

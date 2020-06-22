@@ -385,11 +385,11 @@ func (c *Lightsail) AttachLoadBalancerTlsCertificateRequest(input *AttachLoadBal
 //
 // Once you create and validate your certificate, you can attach it to your
 // load balancer. You can also use this API to rotate the certificates on your
-// account. Use the attach load balancer tls certificate operation with the
-// non-attached certificate, and it will replace the existing one and become
-// the attached certificate.
+// account. Use the AttachLoadBalancerTlsCertificate action with the non-attached
+// certificate, and it will replace the existing one and become the attached
+// certificate.
 //
-// The attach load balancer tls certificate operation supports tag-based access
+// The AttachLoadBalancerTlsCertificate operation supports tag-based access
 // control via resource tags applied to the resource identified by load balancer
 // name. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
@@ -599,11 +599,11 @@ func (c *Lightsail) CloseInstancePublicPortsRequest(input *CloseInstancePublicPo
 
 // CloseInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Closes the public ports on a specific Amazon Lightsail instance.
+// Closes ports for a specific Amazon Lightsail instance.
 //
-// The close instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The CloseInstancePublicPorts action supports tag-based access control via
+// resource tags applied to the resource identified by instanceName. For more
+// information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -884,6 +884,112 @@ func (c *Lightsail) CreateCloudFormationStack(input *CreateCloudFormationStackIn
 // for more information on using Contexts.
 func (c *Lightsail) CreateCloudFormationStackWithContext(ctx aws.Context, input *CreateCloudFormationStackInput, opts ...request.Option) (*CreateCloudFormationStackOutput, error) {
 	req, out := c.CreateCloudFormationStackRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateContactMethod = "CreateContactMethod"
+
+// CreateContactMethodRequest generates a "aws/request.Request" representing the
+// client's request for the CreateContactMethod operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateContactMethod for more information on using the CreateContactMethod
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateContactMethodRequest method.
+//    req, resp := client.CreateContactMethodRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateContactMethod
+func (c *Lightsail) CreateContactMethodRequest(input *CreateContactMethodInput) (req *request.Request, output *CreateContactMethodOutput) {
+	op := &request.Operation{
+		Name:       opCreateContactMethod,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateContactMethodInput{}
+	}
+
+	output = &CreateContactMethodOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateContactMethod API operation for Amazon Lightsail.
+//
+// Creates an email or SMS text message contact method.
+//
+// A contact method is used to send you notifications about your Amazon Lightsail
+// resources. You can add one email address and one mobile phone number contact
+// method in each AWS Region. However, SMS text messaging is not supported in
+// some AWS Regions, and SMS text messages cannot be sent to some countries/regions.
+// For more information, see Notifications in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation CreateContactMethod for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateContactMethod
+func (c *Lightsail) CreateContactMethod(input *CreateContactMethodInput) (*CreateContactMethodOutput, error) {
+	req, out := c.CreateContactMethodRequest(input)
+	return out, req.Send()
+}
+
+// CreateContactMethodWithContext is the same as CreateContactMethod with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateContactMethod for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) CreateContactMethodWithContext(ctx aws.Context, input *CreateContactMethodInput, opts ...request.Option) (*CreateContactMethodOutput, error) {
+	req, out := c.CreateContactMethodRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2048,7 +2154,7 @@ func (c *Lightsail) CreateLoadBalancerTlsCertificateRequest(input *CreateLoadBal
 //
 // TLS is just an updated, more secure version of Secure Socket Layer (SSL).
 //
-// The create load balancer tls certificate operation supports tag-based access
+// The CreateLoadBalancerTlsCertificate operation supports tag-based access
 // control via resource tags applied to the resource identified by load balancer
 // name. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
@@ -2440,6 +2546,111 @@ func (c *Lightsail) CreateRelationalDatabaseSnapshotWithContext(ctx aws.Context,
 	return out, req.Send()
 }
 
+const opDeleteAlarm = "DeleteAlarm"
+
+// DeleteAlarmRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAlarm operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAlarm for more information on using the DeleteAlarm
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteAlarmRequest method.
+//    req, resp := client.DeleteAlarmRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteAlarm
+func (c *Lightsail) DeleteAlarmRequest(input *DeleteAlarmInput) (req *request.Request, output *DeleteAlarmOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAlarm,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteAlarmInput{}
+	}
+
+	output = &DeleteAlarmOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteAlarm API operation for Amazon Lightsail.
+//
+// Deletes an alarm.
+//
+// An alarm is used to monitor a single metric for one of your resources. When
+// a metric condition is met, the alarm can notify you by email, SMS text message,
+// and a banner displayed on the Amazon Lightsail console. For more information,
+// see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation DeleteAlarm for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteAlarm
+func (c *Lightsail) DeleteAlarm(input *DeleteAlarmInput) (*DeleteAlarmOutput, error) {
+	req, out := c.DeleteAlarmRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAlarmWithContext is the same as DeleteAlarm with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAlarm for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) DeleteAlarmWithContext(ctx aws.Context, input *DeleteAlarmInput, opts ...request.Option) (*DeleteAlarmOutput, error) {
+	req, out := c.DeleteAlarmRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteAutoSnapshot = "DeleteAutoSnapshot"
 
 // DeleteAutoSnapshotRequest generates a "aws/request.Request" representing the
@@ -2536,6 +2747,112 @@ func (c *Lightsail) DeleteAutoSnapshot(input *DeleteAutoSnapshotInput) (*DeleteA
 // for more information on using Contexts.
 func (c *Lightsail) DeleteAutoSnapshotWithContext(ctx aws.Context, input *DeleteAutoSnapshotInput, opts ...request.Option) (*DeleteAutoSnapshotOutput, error) {
 	req, out := c.DeleteAutoSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteContactMethod = "DeleteContactMethod"
+
+// DeleteContactMethodRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteContactMethod operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteContactMethod for more information on using the DeleteContactMethod
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteContactMethodRequest method.
+//    req, resp := client.DeleteContactMethodRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteContactMethod
+func (c *Lightsail) DeleteContactMethodRequest(input *DeleteContactMethodInput) (req *request.Request, output *DeleteContactMethodOutput) {
+	op := &request.Operation{
+		Name:       opDeleteContactMethod,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteContactMethodInput{}
+	}
+
+	output = &DeleteContactMethodOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteContactMethod API operation for Amazon Lightsail.
+//
+// Deletes a contact method.
+//
+// A contact method is used to send you notifications about your Amazon Lightsail
+// resources. You can add one email address and one mobile phone number contact
+// method in each AWS Region. However, SMS text messaging is not supported in
+// some AWS Regions, and SMS text messages cannot be sent to some countries/regions.
+// For more information, see Notifications in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation DeleteContactMethod for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteContactMethod
+func (c *Lightsail) DeleteContactMethod(input *DeleteContactMethodInput) (*DeleteContactMethodOutput, error) {
+	req, out := c.DeleteContactMethodRequest(input)
+	return out, req.Send()
+}
+
+// DeleteContactMethodWithContext is the same as DeleteContactMethod with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteContactMethod for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) DeleteContactMethodWithContext(ctx aws.Context, input *DeleteContactMethodInput, opts ...request.Option) (*DeleteContactMethodOutput, error) {
+	req, out := c.DeleteContactMethodRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3575,7 +3892,7 @@ func (c *Lightsail) DeleteLoadBalancerTlsCertificateRequest(input *DeleteLoadBal
 //
 // Deletes an SSL/TLS certificate associated with a Lightsail load balancer.
 //
-// The delete load balancer tls certificate operation supports tag-based access
+// The DeleteLoadBalancerTlsCertificate operation supports tag-based access
 // control via resource tags applied to the resource identified by load balancer
 // name. For more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
@@ -4708,6 +5025,113 @@ func (c *Lightsail) GetActiveNamesWithContext(ctx aws.Context, input *GetActiveN
 	return out, req.Send()
 }
 
+const opGetAlarms = "GetAlarms"
+
+// GetAlarmsRequest generates a "aws/request.Request" representing the
+// client's request for the GetAlarms operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetAlarms for more information on using the GetAlarms
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetAlarmsRequest method.
+//    req, resp := client.GetAlarmsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetAlarms
+func (c *Lightsail) GetAlarmsRequest(input *GetAlarmsInput) (req *request.Request, output *GetAlarmsOutput) {
+	op := &request.Operation{
+		Name:       opGetAlarms,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetAlarmsInput{}
+	}
+
+	output = &GetAlarmsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetAlarms API operation for Amazon Lightsail.
+//
+// Returns information about the configured alarms. Specify an alarm name in
+// your request to return information about a specific alarm, or specify a monitored
+// resource name to return information about all alarms for a specific resource.
+//
+// An alarm is used to monitor a single metric for one of your resources. When
+// a metric condition is met, the alarm can notify you by email, SMS text message,
+// and a banner displayed on the Amazon Lightsail console. For more information,
+// see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetAlarms for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetAlarms
+func (c *Lightsail) GetAlarms(input *GetAlarmsInput) (*GetAlarmsOutput, error) {
+	req, out := c.GetAlarmsRequest(input)
+	return out, req.Send()
+}
+
+// GetAlarmsWithContext is the same as GetAlarms with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetAlarms for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetAlarmsWithContext(ctx aws.Context, input *GetAlarmsInput, opts ...request.Option) (*GetAlarmsOutput, error) {
+	req, out := c.GetAlarmsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetAutoSnapshots = "GetAutoSnapshots"
 
 // GetAutoSnapshotsRequest generates a "aws/request.Request" representing the
@@ -5134,6 +5558,113 @@ func (c *Lightsail) GetCloudFormationStackRecordsWithContext(ctx aws.Context, in
 	return out, req.Send()
 }
 
+const opGetContactMethods = "GetContactMethods"
+
+// GetContactMethodsRequest generates a "aws/request.Request" representing the
+// client's request for the GetContactMethods operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetContactMethods for more information on using the GetContactMethods
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetContactMethodsRequest method.
+//    req, resp := client.GetContactMethodsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetContactMethods
+func (c *Lightsail) GetContactMethodsRequest(input *GetContactMethodsInput) (req *request.Request, output *GetContactMethodsOutput) {
+	op := &request.Operation{
+		Name:       opGetContactMethods,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetContactMethodsInput{}
+	}
+
+	output = &GetContactMethodsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetContactMethods API operation for Amazon Lightsail.
+//
+// Returns information about the configured contact methods. Specify a protocol
+// in your request to return information about a specific contact method.
+//
+// A contact method is used to send you notifications about your Amazon Lightsail
+// resources. You can add one email address and one mobile phone number contact
+// method in each AWS Region. However, SMS text messaging is not supported in
+// some AWS Regions, and SMS text messages cannot be sent to some countries/regions.
+// For more information, see Notifications in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetContactMethods for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetContactMethods
+func (c *Lightsail) GetContactMethods(input *GetContactMethodsInput) (*GetContactMethodsOutput, error) {
+	req, out := c.GetContactMethodsRequest(input)
+	return out, req.Send()
+}
+
+// GetContactMethodsWithContext is the same as GetContactMethods with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetContactMethods for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetContactMethodsWithContext(ctx aws.Context, input *GetContactMethodsInput, opts ...request.Option) (*GetContactMethodsOutput, error) {
+	req, out := c.GetContactMethodsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetDisk = "GetDisk"
 
 // GetDiskRequest generates a "aws/request.Request" representing the
@@ -5389,10 +5920,6 @@ func (c *Lightsail) GetDiskSnapshotsRequest(input *GetDiskSnapshotsInput) (req *
 // Returns information about all block storage disk snapshots in your AWS account
 // and region.
 //
-// If you are describing a long list of disk snapshots, you can paginate the
-// output to make the list more manageable. You can use the pageToken and nextPageToken
-// values to retrieve the next items in the list.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -5497,10 +6024,6 @@ func (c *Lightsail) GetDisksRequest(input *GetDisksInput) (req *request.Request,
 //
 // Returns information about all block storage disks in your AWS account and
 // region.
-//
-// If you are describing a long list of disks, you can paginate the output to
-// make the list more manageable. You can use the pageToken and nextPageToken
-// values to retrieve the next items in the list.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6137,6 +6660,10 @@ func (c *Lightsail) GetInstanceMetricDataRequest(input *GetInstanceMetricDataInp
 // Returns the data points for the specified Amazon Lightsail instance metric,
 // given an instance name.
 //
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -6239,7 +6766,9 @@ func (c *Lightsail) GetInstancePortStatesRequest(input *GetInstancePortStatesInp
 
 // GetInstancePortStates API operation for Amazon Lightsail.
 //
-// Returns the port states for a specific virtual private server, or instance.
+// Returns the firewall port states for a specific Amazon Lightsail instance,
+// the IP addresses allowed to connect to the instance through the ports, and
+// the protocol.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7074,6 +7603,10 @@ func (c *Lightsail) GetLoadBalancerMetricDataRequest(input *GetLoadBalancerMetri
 //
 // Returns information about health metrics for your Lightsail load balancer.
 //
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -7287,10 +7820,6 @@ func (c *Lightsail) GetLoadBalancersRequest(input *GetLoadBalancersInput) (req *
 // GetLoadBalancers API operation for Amazon Lightsail.
 //
 // Returns information about all load balancers in an account.
-//
-// If you are describing a long list of load balancers, you can paginate the
-// output to make the list more manageable. You can use the pageToken and nextPageToken
-// values to retrieve the next items in the list.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8561,6 +9090,10 @@ func (c *Lightsail) GetRelationalDatabaseMetricDataRequest(input *GetRelationalD
 // Returns the data points of the specified metric for a database in Amazon
 // Lightsail.
 //
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -9501,11 +10034,12 @@ func (c *Lightsail) OpenInstancePublicPortsRequest(input *OpenInstancePublicPort
 
 // OpenInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Adds public ports to an Amazon Lightsail instance.
+// Opens ports for a specific Amazon Lightsail instance, and specifies the IP
+// addresses allowed to connect to the instance through the ports, and the protocol.
 //
-// The open instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The OpenInstancePublicPorts action supports tag-based access control via
+// resource tags applied to the resource identified by instanceName. For more
+// information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9669,6 +10203,119 @@ func (c *Lightsail) PeerVpcWithContext(ctx aws.Context, input *PeerVpcInput, opt
 	return out, req.Send()
 }
 
+const opPutAlarm = "PutAlarm"
+
+// PutAlarmRequest generates a "aws/request.Request" representing the
+// client's request for the PutAlarm operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutAlarm for more information on using the PutAlarm
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutAlarmRequest method.
+//    req, resp := client.PutAlarmRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/PutAlarm
+func (c *Lightsail) PutAlarmRequest(input *PutAlarmInput) (req *request.Request, output *PutAlarmOutput) {
+	op := &request.Operation{
+		Name:       opPutAlarm,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutAlarmInput{}
+	}
+
+	output = &PutAlarmOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutAlarm API operation for Amazon Lightsail.
+//
+// Creates or updates an alarm, and associates it with the specified metric.
+//
+// An alarm is used to monitor a single metric for one of your resources. When
+// a metric condition is met, the alarm can notify you by email, SMS text message,
+// and a banner displayed on the Amazon Lightsail console. For more information,
+// see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+//
+// When this action creates an alarm, the alarm state is immediately set to
+// INSUFFICIENT_DATA. The alarm is then evaluated and its state is set appropriately.
+// Any actions associated with the new state are then executed.
+//
+// When you update an existing alarm, its state is left unchanged, but the update
+// completely overwrites the previous configuration of the alarm. The alarm
+// is then evaluated with the updated configuration.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation PutAlarm for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/PutAlarm
+func (c *Lightsail) PutAlarm(input *PutAlarmInput) (*PutAlarmOutput, error) {
+	req, out := c.PutAlarmRequest(input)
+	return out, req.Send()
+}
+
+// PutAlarmWithContext is the same as PutAlarm with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutAlarm for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) PutAlarmWithContext(ctx aws.Context, input *PutAlarmInput, opts ...request.Option) (*PutAlarmOutput, error) {
+	req, out := c.PutAlarmRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPutInstancePublicPorts = "PutInstancePublicPorts"
 
 // PutInstancePublicPortsRequest generates a "aws/request.Request" representing the
@@ -9713,12 +10360,16 @@ func (c *Lightsail) PutInstancePublicPortsRequest(input *PutInstancePublicPortsI
 
 // PutInstancePublicPorts API operation for Amazon Lightsail.
 //
-// Sets the specified open ports for an Amazon Lightsail instance, and closes
-// all ports for every protocol not included in the current request.
+// Opens ports for a specific Amazon Lightsail instance, and specifies the IP
+// addresses allowed to connect to the instance through the ports, and the protocol.
+// This action also closes all currently open ports that are not included in
+// the request. Include all of the ports and the protocols you want to open
+// in your PutInstancePublicPortsrequest. Or use the OpenInstancePublicPorts
+// action to open ports without closing currently open ports.
 //
-// The put instance public ports operation supports tag-based access control
-// via resource tags applied to the resource identified by instance name. For
-// more information, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
+// The PutInstancePublicPorts action supports tag-based access control via resource
+// tags applied to the resource identified by instanceName. For more information,
+// see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-controlling-access-using-tags).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10093,6 +10744,120 @@ func (c *Lightsail) ReleaseStaticIp(input *ReleaseStaticIpInput) (*ReleaseStatic
 // for more information on using Contexts.
 func (c *Lightsail) ReleaseStaticIpWithContext(ctx aws.Context, input *ReleaseStaticIpInput, opts ...request.Option) (*ReleaseStaticIpOutput, error) {
 	req, out := c.ReleaseStaticIpRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opSendContactMethodVerification = "SendContactMethodVerification"
+
+// SendContactMethodVerificationRequest generates a "aws/request.Request" representing the
+// client's request for the SendContactMethodVerification operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See SendContactMethodVerification for more information on using the SendContactMethodVerification
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the SendContactMethodVerificationRequest method.
+//    req, resp := client.SendContactMethodVerificationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/SendContactMethodVerification
+func (c *Lightsail) SendContactMethodVerificationRequest(input *SendContactMethodVerificationInput) (req *request.Request, output *SendContactMethodVerificationOutput) {
+	op := &request.Operation{
+		Name:       opSendContactMethodVerification,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &SendContactMethodVerificationInput{}
+	}
+
+	output = &SendContactMethodVerificationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// SendContactMethodVerification API operation for Amazon Lightsail.
+//
+// Sends a verification request to an email contact method to ensure it's owned
+// by the requester. SMS contact methods don't need to be verified.
+//
+// A contact method is used to send you notifications about your Amazon Lightsail
+// resources. You can add one email address and one mobile phone number contact
+// method in each AWS Region. However, SMS text messaging is not supported in
+// some AWS Regions, and SMS text messages cannot be sent to some countries/regions.
+// For more information, see Notifications in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+//
+// A verification request is sent to the contact method when you initially create
+// it. Use this action to send another verification request if a previous verification
+// request was deleted, or has expired.
+//
+// Notifications are not sent to an email contact method until after it is verified,
+// and confirmed as valid.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation SendContactMethodVerification for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/SendContactMethodVerification
+func (c *Lightsail) SendContactMethodVerification(input *SendContactMethodVerificationInput) (*SendContactMethodVerificationOutput, error) {
+	req, out := c.SendContactMethodVerificationRequest(input)
+	return out, req.Send()
+}
+
+// SendContactMethodVerificationWithContext is the same as SendContactMethodVerification with the addition of
+// the ability to pass a context and additional request options.
+//
+// See SendContactMethodVerification for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) SendContactMethodVerificationWithContext(ctx aws.Context, input *SendContactMethodVerificationInput, opts ...request.Option) (*SendContactMethodVerificationOutput, error) {
+	req, out := c.SendContactMethodVerificationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -10648,6 +11413,114 @@ func (c *Lightsail) TagResource(input *TagResourceInput) (*TagResourceOutput, er
 // for more information on using Contexts.
 func (c *Lightsail) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
 	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTestAlarm = "TestAlarm"
+
+// TestAlarmRequest generates a "aws/request.Request" representing the
+// client's request for the TestAlarm operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TestAlarm for more information on using the TestAlarm
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TestAlarmRequest method.
+//    req, resp := client.TestAlarmRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/TestAlarm
+func (c *Lightsail) TestAlarmRequest(input *TestAlarmInput) (req *request.Request, output *TestAlarmOutput) {
+	op := &request.Operation{
+		Name:       opTestAlarm,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &TestAlarmInput{}
+	}
+
+	output = &TestAlarmOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// TestAlarm API operation for Amazon Lightsail.
+//
+// Tests an alarm by displaying a banner on the Amazon Lightsail console. If
+// a notification trigger is configured for the specified alarm, the test also
+// sends a notification to the notification protocol (Email and/or SMS) configured
+// for the alarm.
+//
+// An alarm is used to monitor a single metric for one of your resources. When
+// a metric condition is met, the alarm can notify you by email, SMS text message,
+// and a banner displayed on the Amazon Lightsail console. For more information,
+// see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation TestAlarm for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/TestAlarm
+func (c *Lightsail) TestAlarm(input *TestAlarmInput) (*TestAlarmOutput, error) {
+	req, out := c.TestAlarmRequest(input)
+	return out, req.Send()
+}
+
+// TestAlarmWithContext is the same as TestAlarm with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TestAlarm for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) TestAlarmWithContext(ctx aws.Context, input *TestAlarmInput, opts ...request.Option) (*TestAlarmOutput, error) {
+	req, out := c.TestAlarmRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -11312,8 +12185,8 @@ func (c *Lightsail) UpdateRelationalDatabaseParametersWithContext(ctx aws.Contex
 // Lightsail throws this exception when the user cannot be authenticated or
 // uses invalid credentials to access a resource.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -11336,17 +12209,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11354,29 +12227,29 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Lightsail throws this exception when an account is still in the setup in
 // progress state.
 type AccountSetupInProgressException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -11399,17 +12272,17 @@ func (s AccountSetupInProgressException) GoString() string {
 
 func newErrorAccountSetupInProgressException(v protocol.ResponseMetadata) error {
 	return &AccountSetupInProgressException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccountSetupInProgressException) Code() string {
+func (s *AccountSetupInProgressException) Code() string {
 	return "AccountSetupInProgressException"
 }
 
 // Message returns the exception's message.
-func (s AccountSetupInProgressException) Message() string {
+func (s *AccountSetupInProgressException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11417,22 +12290,22 @@ func (s AccountSetupInProgressException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccountSetupInProgressException) OrigErr() error {
+func (s *AccountSetupInProgressException) OrigErr() error {
 	return nil
 }
 
-func (s AccountSetupInProgressException) Error() string {
+func (s *AccountSetupInProgressException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccountSetupInProgressException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccountSetupInProgressException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccountSetupInProgressException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccountSetupInProgressException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes an add-on that is enabled for an Amazon Lightsail resource.
@@ -11549,6 +12422,252 @@ func (s *AddOnRequest) SetAutoSnapshotAddOnRequest(v *AutoSnapshotAddOnRequest) 
 	return s
 }
 
+// Describes an alarm.
+//
+// An alarm is a way to monitor your Amazon Lightsail resource metrics. For
+// more information, see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+type Alarm struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the alarm.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The arithmetic operation used when comparing the specified statistic and
+	// threshold.
+	ComparisonOperator *string `locationName:"comparisonOperator" type:"string" enum:"ComparisonOperator"`
+
+	// The contact protocols for the alarm, such as Email, SMS (text messaging),
+	// or both.
+	ContactProtocols []*string `locationName:"contactProtocols" type:"list"`
+
+	// The timestamp when the alarm was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The number of data points that must not within the specified threshold to
+	// trigger the alarm.
+	DatapointsToAlarm *int64 `locationName:"datapointsToAlarm" type:"integer"`
+
+	// The number of periods over which data is compared to the specified threshold.
+	EvaluationPeriods *int64 `locationName:"evaluationPeriods" type:"integer"`
+
+	// An object that lists information about the location of the alarm.
+	Location *ResourceLocation `locationName:"location" type:"structure"`
+
+	// The name of the metric associated with the alarm.
+	MetricName *string `locationName:"metricName" type:"string" enum:"MetricName"`
+
+	// An object that lists information about the resource monitored by the alarm.
+	MonitoredResourceInfo *MonitoredResourceInfo `locationName:"monitoredResourceInfo" type:"structure"`
+
+	// The name of the alarm.
+	Name *string `locationName:"name" type:"string"`
+
+	// Indicates whether the alarm is enabled.
+	NotificationEnabled *bool `locationName:"notificationEnabled" type:"boolean"`
+
+	// The alarm states that trigger a notification.
+	NotificationTriggers []*string `locationName:"notificationTriggers" type:"list"`
+
+	// The period, in seconds, over which the statistic is applied.
+	Period *int64 `locationName:"period" min:"60" type:"integer"`
+
+	// The Lightsail resource type (e.g., Alarm).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// The current state of the alarm.
+	//
+	// An alarm has the following possible states:
+	//
+	//    * ALARM - The metric is outside of the defined threshold.
+	//
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
+	//
+	//    * OK - The metric is within the defined threshold.
+	State *string `locationName:"state" type:"string" enum:"AlarmState"`
+
+	// The statistic for the metric associated with the alarm.
+	//
+	// The following statistics are available:
+	//
+	//    * Minimum - The lowest value observed during the specified period. Use
+	//    this value to determine low volumes of activity for your application.
+	//
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
+	//
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
+	//
+	//    * Average - The value of Sum / SampleCount during the specified period.
+	//    By comparing this statistic with the Minimum and Maximum values, you can
+	//    determine the full scope of a metric and how close the average use is
+	//    to the Minimum and Maximum values. This comparison helps you to know when
+	//    to increase or decrease your resources.
+	//
+	//    * SampleCount - The count, or number, of data points used for the statistical
+	//    calculation.
+	Statistic *string `locationName:"statistic" type:"string" enum:"MetricStatistic"`
+
+	// The support code. Include this code in your email to support when you have
+	// questions about your Lightsail alarm. This code enables our support team
+	// to look up your Lightsail information more easily.
+	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The value against which the specified statistic is compared.
+	Threshold *float64 `locationName:"threshold" type:"double"`
+
+	// Specifies how the alarm handles missing data points.
+	//
+	// An alarm can treat missing data in the following ways:
+	//
+	//    * breaching - Assume the missing data is not within the threshold. Missing
+	//    data counts towards the number of times the metric is not within the threshold.
+	//
+	//    * notBreaching - Assume the missing data is within the threshold. Missing
+	//    data does not count towards the number of times the metric is not within
+	//    the threshold.
+	//
+	//    * ignore - Ignore the missing data. Maintains the current alarm state.
+	//
+	//    * missing - Missing data is treated as missing.
+	TreatMissingData *string `locationName:"treatMissingData" type:"string" enum:"TreatMissingData"`
+
+	// The unit of the metric associated with the alarm.
+	Unit *string `locationName:"unit" type:"string" enum:"MetricUnit"`
+}
+
+// String returns the string representation
+func (s Alarm) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Alarm) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *Alarm) SetArn(v string) *Alarm {
+	s.Arn = &v
+	return s
+}
+
+// SetComparisonOperator sets the ComparisonOperator field's value.
+func (s *Alarm) SetComparisonOperator(v string) *Alarm {
+	s.ComparisonOperator = &v
+	return s
+}
+
+// SetContactProtocols sets the ContactProtocols field's value.
+func (s *Alarm) SetContactProtocols(v []*string) *Alarm {
+	s.ContactProtocols = v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *Alarm) SetCreatedAt(v time.Time) *Alarm {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDatapointsToAlarm sets the DatapointsToAlarm field's value.
+func (s *Alarm) SetDatapointsToAlarm(v int64) *Alarm {
+	s.DatapointsToAlarm = &v
+	return s
+}
+
+// SetEvaluationPeriods sets the EvaluationPeriods field's value.
+func (s *Alarm) SetEvaluationPeriods(v int64) *Alarm {
+	s.EvaluationPeriods = &v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *Alarm) SetLocation(v *ResourceLocation) *Alarm {
+	s.Location = v
+	return s
+}
+
+// SetMetricName sets the MetricName field's value.
+func (s *Alarm) SetMetricName(v string) *Alarm {
+	s.MetricName = &v
+	return s
+}
+
+// SetMonitoredResourceInfo sets the MonitoredResourceInfo field's value.
+func (s *Alarm) SetMonitoredResourceInfo(v *MonitoredResourceInfo) *Alarm {
+	s.MonitoredResourceInfo = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *Alarm) SetName(v string) *Alarm {
+	s.Name = &v
+	return s
+}
+
+// SetNotificationEnabled sets the NotificationEnabled field's value.
+func (s *Alarm) SetNotificationEnabled(v bool) *Alarm {
+	s.NotificationEnabled = &v
+	return s
+}
+
+// SetNotificationTriggers sets the NotificationTriggers field's value.
+func (s *Alarm) SetNotificationTriggers(v []*string) *Alarm {
+	s.NotificationTriggers = v
+	return s
+}
+
+// SetPeriod sets the Period field's value.
+func (s *Alarm) SetPeriod(v int64) *Alarm {
+	s.Period = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *Alarm) SetResourceType(v string) *Alarm {
+	s.ResourceType = &v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *Alarm) SetState(v string) *Alarm {
+	s.State = &v
+	return s
+}
+
+// SetStatistic sets the Statistic field's value.
+func (s *Alarm) SetStatistic(v string) *Alarm {
+	s.Statistic = &v
+	return s
+}
+
+// SetSupportCode sets the SupportCode field's value.
+func (s *Alarm) SetSupportCode(v string) *Alarm {
+	s.SupportCode = &v
+	return s
+}
+
+// SetThreshold sets the Threshold field's value.
+func (s *Alarm) SetThreshold(v float64) *Alarm {
+	s.Threshold = &v
+	return s
+}
+
+// SetTreatMissingData sets the TreatMissingData field's value.
+func (s *Alarm) SetTreatMissingData(v string) *Alarm {
+	s.TreatMissingData = &v
+	return s
+}
+
+// SetUnit sets the Unit field's value.
+func (s *Alarm) SetUnit(v string) *Alarm {
+	s.Unit = &v
+	return s
+}
+
 type AllocateStaticIpInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11590,8 +12709,9 @@ func (s *AllocateStaticIpInput) SetStaticIpName(v string) *AllocateStaticIpInput
 type AllocateStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the static IP address
-	// you allocated.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -11681,7 +12801,9 @@ func (s *AttachDiskInput) SetInstanceName(v string) *AttachDiskInput {
 type AttachDiskOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -11763,7 +12885,9 @@ func (s *AttachInstancesToLoadBalancerInput) SetLoadBalancerName(v string) *Atta
 type AttachInstancesToLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object representing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -11839,7 +12963,9 @@ func (s *AttachLoadBalancerTlsCertificateInput) SetLoadBalancerName(v string) *A
 type AttachLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object representing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	//
 	// These SSL/TLS certificates are only usable by Lightsail load balancers. You
 	// can't get the certificate and use it for another purpose.
@@ -11917,7 +13043,9 @@ func (s *AttachStaticIpInput) SetStaticIpName(v string) *AttachStaticIpInput {
 type AttachStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about your API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -12280,7 +13408,7 @@ type Bundle struct {
 	// instance that uses a blueprint with a minimum power value of 500.
 	Power *int64 `locationName:"power" type:"integer"`
 
-	// The price in US dollars (e.g., 5.0).
+	// The price in US dollars (e.g., 5.0) of the bundle.
 	Price *float64 `locationName:"price" type:"float"`
 
 	// The amount of RAM in GB (e.g., 2.0).
@@ -12375,12 +13503,12 @@ func (s *Bundle) SetTransferPerMonthInGb(v int64) *Bundle {
 type CloseInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance on which you're attempting to close the public ports.
+	// The name of the instance for which to close ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// Information about the public port you are trying to close.
+	// An object to describe the ports to close for the specified instance.
 	//
 	// PortInfo is a required field
 	PortInfo *PortInfo `locationName:"portInfo" type:"structure" required:"true"`
@@ -12405,6 +13533,11 @@ func (s *CloseInstancePublicPortsInput) Validate() error {
 	if s.PortInfo == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfo"))
 	}
+	if s.PortInfo != nil {
+		if err := s.PortInfo.Validate(); err != nil {
+			invalidParams.AddNested("PortInfo", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -12427,7 +13560,9 @@ func (s *CloseInstancePublicPortsInput) SetPortInfo(v *PortInfo) *CloseInstanceP
 type CloseInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs that contains information about the operation.
+	// An object that describes the result of the action, such as the status of
+	// the request, the timestamp of the request, and the resources affected by
+	// the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -12585,6 +13720,118 @@ func (s *CloudFormationStackRecordSourceInfo) SetResourceType(v string) *CloudFo
 	return s
 }
 
+// Describes a contact method.
+//
+// A contact method is a way to send you notifications. For more information,
+// see Notifications in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+type ContactMethod struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the contact method.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The destination of the contact method, such as an email address or a mobile
+	// phone number.
+	ContactEndpoint *string `locationName:"contactEndpoint" type:"string"`
+
+	// The timestamp when the contact method was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// Describes the resource location.
+	Location *ResourceLocation `locationName:"location" type:"structure"`
+
+	// The name of the contact method.
+	Name *string `locationName:"name" type:"string"`
+
+	// The protocol of the contact method, such as email or SMS (text messaging).
+	Protocol *string `locationName:"protocol" type:"string" enum:"ContactProtocol"`
+
+	// The Lightsail resource type (e.g., ContactMethod).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// The current status of the contact method.
+	//
+	// A contact method has the following possible status:
+	//
+	//    * PendingVerification - The contact method has not yet been verified,
+	//    and the verification has not yet expired.
+	//
+	//    * Valid - The contact method has been verified.
+	//
+	//    * InValid - An attempt was made to verify the contact method, but the
+	//    verification has expired.
+	Status *string `locationName:"status" type:"string" enum:"ContactMethodStatus"`
+
+	// The support code. Include this code in your email to support when you have
+	// questions about your Lightsail contact method. This code enables our support
+	// team to look up your Lightsail information more easily.
+	SupportCode *string `locationName:"supportCode" type:"string"`
+}
+
+// String returns the string representation
+func (s ContactMethod) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ContactMethod) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ContactMethod) SetArn(v string) *ContactMethod {
+	s.Arn = &v
+	return s
+}
+
+// SetContactEndpoint sets the ContactEndpoint field's value.
+func (s *ContactMethod) SetContactEndpoint(v string) *ContactMethod {
+	s.ContactEndpoint = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *ContactMethod) SetCreatedAt(v time.Time) *ContactMethod {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *ContactMethod) SetLocation(v *ResourceLocation) *ContactMethod {
+	s.Location = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ContactMethod) SetName(v string) *ContactMethod {
+	s.Name = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *ContactMethod) SetProtocol(v string) *ContactMethod {
+	s.Protocol = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ContactMethod) SetResourceType(v string) *ContactMethod {
+	s.ResourceType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ContactMethod) SetStatus(v string) *ContactMethod {
+	s.Status = &v
+	return s
+}
+
+// SetSupportCode sets the SupportCode field's value.
+func (s *ContactMethod) SetSupportCode(v string) *ContactMethod {
+	s.SupportCode = &v
+	return s
+}
+
 type CopySnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -12709,7 +13956,9 @@ func (s *CopySnapshotInput) SetUseLatestRestorableAutoSnapshot(v bool) *CopySnap
 type CopySnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -12783,7 +14032,9 @@ func (s *CreateCloudFormationStackInput) SetInstances(v []*InstanceEntry) *Creat
 type CreateCloudFormationStackOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -12799,6 +14050,116 @@ func (s CreateCloudFormationStackOutput) GoString() string {
 
 // SetOperations sets the Operations field's value.
 func (s *CreateCloudFormationStackOutput) SetOperations(v []*Operation) *CreateCloudFormationStackOutput {
+	s.Operations = v
+	return s
+}
+
+type CreateContactMethodInput struct {
+	_ struct{} `type:"structure"`
+
+	// The destination of the contact method, such as an email address or a mobile
+	// phone number.
+	//
+	// Use the E.164 format when specifying a mobile phone number. E.164 is a standard
+	// for the phone number structure used for international telecommunication.
+	// Phone numbers that follow this format can have a maximum of 15 digits, and
+	// they are prefixed with the plus character (+) and the country code. For example,
+	// a U.S. phone number in E.164 format would be specified as +1XXX5550100. For
+	// more information, see E.164 (https://en.wikipedia.org/wiki/E.164) on Wikipedia.
+	//
+	// ContactEndpoint is a required field
+	ContactEndpoint *string `locationName:"contactEndpoint" min:"1" type:"string" required:"true"`
+
+	// The protocol of the contact method, such as Email or SMS (text messaging).
+	//
+	// The SMS protocol is supported only in the following AWS Regions.
+	//
+	//    * US East (N. Virginia) (us-east-1)
+	//
+	//    * US West (Oregon) (us-west-2)
+	//
+	//    * Europe (Ireland) (eu-west-1)
+	//
+	//    * Asia Pacific (Tokyo) (ap-northeast-1)
+	//
+	//    * Asia Pacific (Singapore) (ap-southeast-1)
+	//
+	//    * Asia Pacific (Sydney) (ap-southeast-2)
+	//
+	// For a list of countries/regions where SMS text messages can be sent, and
+	// the latest AWS Regions where SMS text messaging is supported, see Supported
+	// Regions and Countries (https://docs.aws.amazon.com/sns/latest/dg/sns-supported-regions-countries.html)
+	// in the Amazon SNS Developer Guide.
+	//
+	// For more information about notifications in Amazon Lightsail, see Notifications
+	// in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-notifications).
+	//
+	// Protocol is a required field
+	Protocol *string `locationName:"protocol" type:"string" required:"true" enum:"ContactProtocol"`
+}
+
+// String returns the string representation
+func (s CreateContactMethodInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateContactMethodInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateContactMethodInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateContactMethodInput"}
+	if s.ContactEndpoint == nil {
+		invalidParams.Add(request.NewErrParamRequired("ContactEndpoint"))
+	}
+	if s.ContactEndpoint != nil && len(*s.ContactEndpoint) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ContactEndpoint", 1))
+	}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetContactEndpoint sets the ContactEndpoint field's value.
+func (s *CreateContactMethodInput) SetContactEndpoint(v string) *CreateContactMethodInput {
+	s.ContactEndpoint = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *CreateContactMethodInput) SetProtocol(v string) *CreateContactMethodInput {
+	s.Protocol = &v
+	return s
+}
+
+type CreateContactMethodOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateContactMethodOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateContactMethodOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *CreateContactMethodOutput) SetOperations(v []*Operation) *CreateContactMethodOutput {
 	s.Operations = v
 	return s
 }
@@ -12982,7 +14343,9 @@ func (s *CreateDiskFromSnapshotInput) SetUseLatestRestorableAutoSnapshot(v bool)
 type CreateDiskFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13106,7 +14469,9 @@ func (s *CreateDiskInput) SetTags(v []*Tag) *CreateDiskInput {
 type CreateDiskOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13204,7 +14569,9 @@ func (s *CreateDiskSnapshotInput) SetTags(v []*Tag) *CreateDiskSnapshotInput {
 type CreateDiskSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13281,7 +14648,9 @@ func (s *CreateDomainEntryInput) SetDomainName(v string) *CreateDomainEntryInput
 type CreateDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -13358,8 +14727,9 @@ func (s *CreateDomainInput) SetTags(v []*Tag) *CreateDomainInput {
 type CreateDomainOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the domain resource
-	// you created.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -13445,8 +14815,9 @@ func (s *CreateInstanceSnapshotInput) SetTags(v []*Tag) *CreateInstanceSnapshotI
 type CreateInstanceSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// create instances snapshot request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13680,8 +15051,9 @@ func (s *CreateInstancesFromSnapshotInput) SetUserData(v string) *CreateInstance
 type CreateInstancesFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// create instances from snapshot request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13865,8 +15237,9 @@ func (s *CreateInstancesInput) SetUserData(v string) *CreateInstancesInput {
 type CreateInstancesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// create instances request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -13942,8 +15315,9 @@ type CreateKeyPairOutput struct {
 	// you just created.
 	KeyPair *KeyPair `locationName:"keyPair" type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// create key pair request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 
 	// A base64-encoded RSA private key.
@@ -14047,6 +15421,9 @@ func (s *CreateLoadBalancerInput) Validate() error {
 	if s.InstancePort == nil {
 		invalidParams.Add(request.NewErrParamRequired("InstancePort"))
 	}
+	if s.InstancePort != nil && *s.InstancePort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("InstancePort", -1))
+	}
 	if s.LoadBalancerName == nil {
 		invalidParams.Add(request.NewErrParamRequired("LoadBalancerName"))
 	}
@@ -14102,7 +15479,9 @@ func (s *CreateLoadBalancerInput) SetTags(v []*Tag) *CreateLoadBalancerInput {
 type CreateLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object containing information about the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14219,7 +15598,9 @@ func (s *CreateLoadBalancerTlsCertificateInput) SetTags(v []*Tag) *CreateLoadBal
 type CreateLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object containing information about the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14392,8 +15773,9 @@ func (s *CreateRelationalDatabaseFromSnapshotInput) SetUseLatestRestorableTime(v
 type CreateRelationalDatabaseFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your create relational database from snapshot
-	// request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14643,7 +16025,9 @@ func (s *CreateRelationalDatabaseInput) SetTags(v []*Tag) *CreateRelationalDatab
 type CreateRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your create relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14735,8 +16119,9 @@ func (s *CreateRelationalDatabaseSnapshotInput) SetTags(v []*Tag) *CreateRelatio
 type CreateRelationalDatabaseSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your create relational database snapshot
-	// request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14752,6 +16137,69 @@ func (s CreateRelationalDatabaseSnapshotOutput) GoString() string {
 
 // SetOperations sets the Operations field's value.
 func (s *CreateRelationalDatabaseSnapshotOutput) SetOperations(v []*Operation) *CreateRelationalDatabaseSnapshotOutput {
+	s.Operations = v
+	return s
+}
+
+type DeleteAlarmInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the alarm to delete.
+	//
+	// AlarmName is a required field
+	AlarmName *string `locationName:"alarmName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAlarmInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAlarmInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAlarmInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAlarmInput"}
+	if s.AlarmName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AlarmName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAlarmName sets the AlarmName field's value.
+func (s *DeleteAlarmInput) SetAlarmName(v string) *DeleteAlarmInput {
+	s.AlarmName = &v
+	return s
+}
+
+type DeleteAlarmOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s DeleteAlarmOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAlarmOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *DeleteAlarmOutput) SetOperations(v []*Operation) *DeleteAlarmOutput {
 	s.Operations = v
 	return s
 }
@@ -14814,7 +16262,9 @@ func (s *DeleteAutoSnapshotInput) SetResourceName(v string) *DeleteAutoSnapshotI
 type DeleteAutoSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of objects that describe the result of your request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14830,6 +16280,72 @@ func (s DeleteAutoSnapshotOutput) GoString() string {
 
 // SetOperations sets the Operations field's value.
 func (s *DeleteAutoSnapshotOutput) SetOperations(v []*Operation) *DeleteAutoSnapshotOutput {
+	s.Operations = v
+	return s
+}
+
+type DeleteContactMethodInput struct {
+	_ struct{} `type:"structure"`
+
+	// The protocol that will be deleted, such as Email or SMS (text messaging).
+	//
+	// To delete an Email and an SMS contact method if you added both, you must
+	// run separate DeleteContactMethod actions to delete each protocol.
+	//
+	// Protocol is a required field
+	Protocol *string `locationName:"protocol" type:"string" required:"true" enum:"ContactProtocol"`
+}
+
+// String returns the string representation
+func (s DeleteContactMethodInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteContactMethodInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteContactMethodInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteContactMethodInput"}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *DeleteContactMethodInput) SetProtocol(v string) *DeleteContactMethodInput {
+	s.Protocol = &v
+	return s
+}
+
+type DeleteContactMethodOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s DeleteContactMethodOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteContactMethodOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *DeleteContactMethodOutput) SetOperations(v []*Operation) *DeleteContactMethodOutput {
 	s.Operations = v
 	return s
 }
@@ -14885,7 +16401,9 @@ func (s *DeleteDiskInput) SetForceDeleteAddOns(v bool) *DeleteDiskInput {
 type DeleteDiskOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of objects that describe the result of your request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -14946,7 +16464,9 @@ func (s *DeleteDiskSnapshotInput) SetDiskSnapshotName(v string) *DeleteDiskSnaps
 type DeleteDiskSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15021,8 +16541,9 @@ func (s *DeleteDomainEntryInput) SetDomainName(v string) *DeleteDomainEntryInput
 type DeleteDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// delete domain entry request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -15083,8 +16604,9 @@ func (s *DeleteDomainInput) SetDomainName(v string) *DeleteDomainInput {
 type DeleteDomainOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// delete domain request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -15155,8 +16677,9 @@ func (s *DeleteInstanceInput) SetInstanceName(v string) *DeleteInstanceInput {
 type DeleteInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// delete instance request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15217,8 +16740,9 @@ func (s *DeleteInstanceSnapshotInput) SetInstanceSnapshotName(v string) *DeleteI
 type DeleteInstanceSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// delete instance snapshot request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15279,8 +16803,9 @@ func (s *DeleteKeyPairInput) SetKeyPairName(v string) *DeleteKeyPairInput {
 type DeleteKeyPairOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// delete key pair request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -15341,7 +16866,9 @@ func (s *DeleteKnownHostKeysInput) SetInstanceName(v string) *DeleteKnownHostKey
 type DeleteKnownHostKeysOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15402,7 +16929,9 @@ func (s *DeleteLoadBalancerInput) SetLoadBalancerName(v string) *DeleteLoadBalan
 type DeleteLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15490,7 +17019,9 @@ func (s *DeleteLoadBalancerTlsCertificateInput) SetLoadBalancerName(v string) *D
 type DeleteLoadBalancerTlsCertificateOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15586,7 +17117,9 @@ func (s *DeleteRelationalDatabaseInput) SetSkipFinalSnapshot(v bool) *DeleteRela
 type DeleteRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your delete relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15647,8 +17180,9 @@ func (s *DeleteRelationalDatabaseSnapshotInput) SetRelationalDatabaseSnapshotNam
 type DeleteRelationalDatabaseSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your delete relational database snapshot
-	// request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15743,7 +17277,9 @@ func (s *DetachDiskInput) SetDiskName(v string) *DetachDiskInput {
 type DetachDiskOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15819,7 +17355,9 @@ func (s *DetachInstancesFromLoadBalancerInput) SetLoadBalancerName(v string) *De
 type DetachInstancesFromLoadBalancerOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15880,8 +17418,9 @@ func (s *DetachStaticIpInput) SetStaticIpName(v string) *DetachStaticIpInput {
 type DetachStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// detach static IP request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -15956,7 +17495,9 @@ func (s *DisableAddOnInput) SetResourceName(v string) *DisableAddOnInput {
 type DisableAddOnOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of objects that describe the result of your request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -16720,7 +18261,9 @@ func (s *EnableAddOnInput) SetResourceName(v string) *EnableAddOnInput {
 type EnableAddOnOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of objects that describe the result of your request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -16781,7 +18324,9 @@ func (s *ExportSnapshotInput) SetSourceSnapshotName(v string) *ExportSnapshotInp
 type ExportSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -16979,7 +18524,11 @@ func (s *ExportSnapshotRecordSourceInfo) SetResourceType(v string) *ExportSnapsh
 type GetActiveNamesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for paginating results from your get active names request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetActiveNames request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17005,8 +18554,12 @@ type GetActiveNamesOutput struct {
 	// The list of active names returned by the get active names request.
 	ActiveNames []*string `locationName:"activeNames" type:"list"`
 
-	// A token used for advancing to the next page of results from your get active
-	// names request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetActiveNames request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17028,6 +18581,93 @@ func (s *GetActiveNamesOutput) SetActiveNames(v []*string) *GetActiveNamesOutput
 
 // SetNextPageToken sets the NextPageToken field's value.
 func (s *GetActiveNamesOutput) SetNextPageToken(v string) *GetActiveNamesOutput {
+	s.NextPageToken = &v
+	return s
+}
+
+type GetAlarmsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the alarm.
+	//
+	// Specify an alarm name to return information about a specific alarm.
+	AlarmName *string `locationName:"alarmName" type:"string"`
+
+	// The name of the Lightsail resource being monitored by the alarm.
+	//
+	// Specify a monitored resource name to return information about all alarms
+	// for a specific resource.
+	MonitoredResourceName *string `locationName:"monitoredResourceName" type:"string"`
+
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetAlarms request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
+	PageToken *string `locationName:"pageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetAlarmsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAlarmsInput) GoString() string {
+	return s.String()
+}
+
+// SetAlarmName sets the AlarmName field's value.
+func (s *GetAlarmsInput) SetAlarmName(v string) *GetAlarmsInput {
+	s.AlarmName = &v
+	return s
+}
+
+// SetMonitoredResourceName sets the MonitoredResourceName field's value.
+func (s *GetAlarmsInput) SetMonitoredResourceName(v string) *GetAlarmsInput {
+	s.MonitoredResourceName = &v
+	return s
+}
+
+// SetPageToken sets the PageToken field's value.
+func (s *GetAlarmsInput) SetPageToken(v string) *GetAlarmsInput {
+	s.PageToken = &v
+	return s
+}
+
+type GetAlarmsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the alarms.
+	Alarms []*Alarm `locationName:"alarms" type:"list"`
+
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetAlarms request and specify
+	// the next page token using the pageToken parameter.
+	NextPageToken *string `locationName:"nextPageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetAlarmsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAlarmsOutput) GoString() string {
+	return s.String()
+}
+
+// SetAlarms sets the Alarms field's value.
+func (s *GetAlarmsOutput) SetAlarms(v []*Alarm) *GetAlarmsOutput {
+	s.Alarms = v
+	return s
+}
+
+// SetNextPageToken sets the NextPageToken field's value.
+func (s *GetAlarmsOutput) SetNextPageToken(v string) *GetAlarmsOutput {
 	s.NextPageToken = &v
 	return s
 }
@@ -17119,8 +18759,11 @@ type GetBlueprintsInput struct {
 	// A Boolean value indicating whether to include inactive results in your request.
 	IncludeInactive *bool `locationName:"includeInactive" type:"boolean"`
 
-	// A token used for advancing to the next page of results from your get blueprints
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetBlueprints request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17153,8 +18796,12 @@ type GetBlueprintsOutput struct {
 	// blueprints.
 	Blueprints []*Blueprint `locationName:"blueprints" type:"list"`
 
-	// A token used for advancing to the next page of results from your get blueprints
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetBlueprints request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17187,8 +18834,11 @@ type GetBundlesInput struct {
 	// in your request.
 	IncludeInactive *bool `locationName:"includeInactive" type:"boolean"`
 
-	// A token used for advancing to the next page of results from your get bundles
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetBundles request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17221,8 +18871,12 @@ type GetBundlesOutput struct {
 	// bundles.
 	Bundles []*Bundle `locationName:"bundles" type:"list"`
 
-	// A token used for advancing to the next page of results from your get active
-	// names request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetBundles request and specify
+	// the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17251,8 +18905,11 @@ func (s *GetBundlesOutput) SetNextPageToken(v string) *GetBundlesOutput {
 type GetCloudFormationStackRecordsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get cloud
-	// formation stack records request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetClouFormationStackRecords request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17278,8 +18935,12 @@ type GetCloudFormationStackRecordsOutput struct {
 	// A list of objects describing the CloudFormation stack records.
 	CloudFormationStackRecords []*CloudFormationStackRecord `locationName:"cloudFormationStackRecords" type:"list"`
 
-	// A token used for advancing to the next page of results of your get relational
-	// database bundles request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetCloudFormationStackRecords
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17302,6 +18963,55 @@ func (s *GetCloudFormationStackRecordsOutput) SetCloudFormationStackRecords(v []
 // SetNextPageToken sets the NextPageToken field's value.
 func (s *GetCloudFormationStackRecordsOutput) SetNextPageToken(v string) *GetCloudFormationStackRecordsOutput {
 	s.NextPageToken = &v
+	return s
+}
+
+type GetContactMethodsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The protocols used to send notifications, such as Email, or SMS (text messaging).
+	//
+	// Specify a protocol in your request to return information about a specific
+	// contact method protocol.
+	Protocols []*string `locationName:"protocols" type:"list"`
+}
+
+// String returns the string representation
+func (s GetContactMethodsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetContactMethodsInput) GoString() string {
+	return s.String()
+}
+
+// SetProtocols sets the Protocols field's value.
+func (s *GetContactMethodsInput) SetProtocols(v []*string) *GetContactMethodsInput {
+	s.Protocols = v
+	return s
+}
+
+type GetContactMethodsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the contact methods.
+	ContactMethods []*ContactMethod `locationName:"contactMethods" type:"list"`
+}
+
+// String returns the string representation
+func (s GetContactMethodsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetContactMethodsOutput) GoString() string {
+	return s.String()
+}
+
+// SetContactMethods sets the ContactMethods field's value.
+func (s *GetContactMethodsOutput) SetContactMethods(v []*ContactMethod) *GetContactMethodsOutput {
+	s.ContactMethods = v
 	return s
 }
 
@@ -17430,8 +19140,11 @@ func (s *GetDiskSnapshotOutput) SetDiskSnapshot(v *DiskSnapshot) *GetDiskSnapsho
 type GetDiskSnapshotsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your GetDiskSnapshots
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetDiskSnapshots request. If your
+	// results are paginated, the response will return a next page token that you
+	// can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17457,8 +19170,12 @@ type GetDiskSnapshotsOutput struct {
 	// An array of objects containing information about all block storage disk snapshots.
 	DiskSnapshots []*DiskSnapshot `locationName:"diskSnapshots" type:"list"`
 
-	// A token used for advancing to the next page of results from your GetDiskSnapshots
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetDiskSnapshots request
+	// and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17487,8 +19204,11 @@ func (s *GetDiskSnapshotsOutput) SetNextPageToken(v string) *GetDiskSnapshotsOut
 type GetDisksInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your GetDisks
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetDisks request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17514,8 +19234,12 @@ type GetDisksOutput struct {
 	// An array of objects containing information about all block storage disks.
 	Disks []*Disk `locationName:"disks" type:"list"`
 
-	// A token used for advancing to the next page of results from your GetDisks
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetDisks request and specify
+	// the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17606,8 +19330,11 @@ func (s *GetDomainOutput) SetDomain(v *Domain) *GetDomainOutput {
 type GetDomainsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get domains
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetDomains request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17634,8 +19361,12 @@ type GetDomainsOutput struct {
 	// entries in the user's account.
 	Domains []*Domain `locationName:"domains" type:"list"`
 
-	// A token used for advancing to the next page of results from your get active
-	// names request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetDomains request and specify
+	// the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17664,8 +19395,11 @@ func (s *GetDomainsOutput) SetNextPageToken(v string) *GetDomainsOutput {
 type GetExportSnapshotRecordsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get export
-	// snapshot records request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetExportSnapshotRecords request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -17691,8 +19425,12 @@ type GetExportSnapshotRecordsOutput struct {
 	// A list of objects describing the export snapshot records.
 	ExportSnapshotRecords []*ExportSnapshotRecord `locationName:"exportSnapshotRecords" type:"list"`
 
-	// A token used for advancing to the next page of results of your get relational
-	// database bundles request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetExportSnapshotRecords
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -17840,12 +19578,79 @@ type GetInstanceMetricDataInput struct {
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// The metric name to get data about.
+	// The metric for which you want to return information.
+	//
+	// Valid instance metric names are listed below, along with the most useful
+	// statistics to include in your request, and the published unit value.
+	//
+	//    * BurstCapacityPercentage - The percentage of CPU performance available
+	//    for your instance to burst above its baseline. Your instance continuously
+	//    accrues and consumes burst capacity. Burst capacity stops accruing when
+	//    your instance's BurstCapacityPercentage reaches 100%. For more information,
+	//    see Viewing instance burst capacity in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-viewing-instance-burst-capacity).
+	//    Statistics: The most useful statistics are Maximum and Average. Unit:
+	//    The published unit is Percent.
+	//
+	//    * BurstCapacityTime - The available amount of time for your instance to
+	//    burst at 100% CPU utilization. Your instance continuously accrues and
+	//    consumes burst capacity. Burst capacity time stops accruing when your
+	//    instance's BurstCapacityPercentage metric reaches 100%. Burst capacity
+	//    time is consumed at the full rate only when your instance operates at
+	//    100% CPU utilization. For example, if your instance operates at 50% CPU
+	//    utilization in the burstable zone for a 5-minute period, then it consumes
+	//    CPU burst capacity minutes at a 50% rate in that period. Your instance
+	//    consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the
+	//    5-minute period. For more information, see Viewing instance burst capacity
+	//    in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-viewing-instance-burst-capacity).
+	//    Statistics: The most useful statistics are Maximum and Average. Unit:
+	//    The published unit is Seconds.
+	//
+	//    * CPUUtilization - The percentage of allocated compute units that are
+	//    currently in use on the instance. This metric identifies the processing
+	//    power to run the applications on the instance. Tools in your operating
+	//    system can show a lower percentage than Lightsail when the instance is
+	//    not allocated a full processor core. Statistics: The most useful statistics
+	//    are Maximum and Average. Unit: The published unit is Percent.
+	//
+	//    * NetworkIn - The number of bytes received on all network interfaces by
+	//    the instance. This metric identifies the volume of incoming network traffic
+	//    to the instance. The number reported is the number of bytes received during
+	//    the period. Because this metric is reported in 5-minute intervals, divide
+	//    the reported number by 300 to find Bytes/second. Statistics: The most
+	//    useful statistic is Sum. Unit: The published unit is Bytes.
+	//
+	//    * NetworkOut - The number of bytes sent out on all network interfaces
+	//    by the instance. This metric identifies the volume of outgoing network
+	//    traffic from the instance. The number reported is the number of bytes
+	//    sent during the period. Because this metric is reported in 5-minute intervals,
+	//    divide the reported number by 300 to find Bytes/second. Statistics: The
+	//    most useful statistic is Sum. Unit: The published unit is Bytes.
+	//
+	//    * StatusCheckFailed - Reports whether the instance passed or failed both
+	//    the instance status check and the system status check. This metric can
+	//    be either 0 (passed) or 1 (failed). This metric data is available in 1-minute
+	//    (60 seconds) granularity. Statistics: The most useful statistic is Sum.
+	//    Unit: The published unit is Count.
+	//
+	//    * StatusCheckFailed_Instance - Reports whether the instance passed or
+	//    failed the instance status check. This metric can be either 0 (passed)
+	//    or 1 (failed). This metric data is available in 1-minute (60 seconds)
+	//    granularity. Statistics: The most useful statistic is Sum. Unit: The published
+	//    unit is Count.
+	//
+	//    * StatusCheckFailed_System - Reports whether the instance passed or failed
+	//    the system status check. This metric can be either 0 (passed) or 1 (failed).
+	//    This metric data is available in 1-minute (60 seconds) granularity. Statistics:
+	//    The most useful statistic is Sum. Unit: The published unit is Count.
 	//
 	// MetricName is a required field
 	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"InstanceMetricName"`
 
 	// The granularity, in seconds, of the returned data points.
+	//
+	// The StatusCheckFailed, StatusCheckFailed_Instance, and StatusCheckFailed_System
+	// instance metric data is available in 1-minute (60 seconds) granularity. All
+	// other instance metric data is available in 5-minute (300 seconds) granularity.
 	//
 	// Period is a required field
 	Period *int64 `locationName:"period" min:"60" type:"integer" required:"true"`
@@ -17855,12 +19660,34 @@ type GetInstanceMetricDataInput struct {
 	// StartTime is a required field
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
 
-	// The instance statistics.
+	// The statistic for the metric.
+	//
+	// The following statistics are available:
+	//
+	//    * Minimum - The lowest value observed during the specified period. Use
+	//    this value to determine low volumes of activity for your application.
+	//
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
+	//
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
+	//
+	//    * Average - The value of Sum / SampleCount during the specified period.
+	//    By comparing this statistic with the Minimum and Maximum values, you can
+	//    determine the full scope of a metric and how close the average use is
+	//    to the Minimum and Maximum values. This comparison helps you to know when
+	//    to increase or decrease your resources.
+	//
+	//    * SampleCount - The count, or number, of data points used for the statistical
+	//    calculation.
 	//
 	// Statistics is a required field
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
-	// The unit. The list of valid values is below.
+	// The unit for the metric data request. Valid units depend on the metric data
+	// being requested. For the valid units to specify with each available metric,
+	// see the metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -17955,11 +19782,10 @@ func (s *GetInstanceMetricDataInput) SetUnit(v string) *GetInstanceMetricDataInp
 type GetInstanceMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// get instance metric data request.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The metric name to return data for.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"InstanceMetricName"`
 }
 
@@ -18011,7 +19837,7 @@ func (s *GetInstanceOutput) SetInstance(v *Instance) *GetInstanceOutput {
 type GetInstancePortStatesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance.
+	// The name of the instance for which to return firewall port states.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
@@ -18049,7 +19875,8 @@ func (s *GetInstancePortStatesInput) SetInstanceName(v string) *GetInstancePortS
 type GetInstancePortStatesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the port states resulting from your request.
+	// An array of objects that describe the firewall port states for the specified
+	// instance.
 	PortStates []*InstancePortState `locationName:"portStates" type:"list"`
 }
 
@@ -18134,8 +19961,11 @@ func (s *GetInstanceSnapshotOutput) SetInstanceSnapshot(v *InstanceSnapshot) *Ge
 type GetInstanceSnapshotsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get instance
-	// snapshots request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetInstanceSnapshots request. If
+	// your results are paginated, the response will return a next page token that
+	// you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -18162,8 +19992,12 @@ type GetInstanceSnapshotsOutput struct {
 	// get instance snapshots request.
 	InstanceSnapshots []*InstanceSnapshot `locationName:"instanceSnapshots" type:"list"`
 
-	// A token used for advancing to the next page of results from your get instance
-	// snapshots request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetInstanceSnapshots request
+	// and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -18253,8 +20087,11 @@ func (s *GetInstanceStateOutput) SetState(v *InstanceState) *GetInstanceStateOut
 type GetInstancesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get instances
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetInstances request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -18280,8 +20117,12 @@ type GetInstancesOutput struct {
 	// An array of key-value pairs containing information about your instances.
 	Instances []*Instance `locationName:"instances" type:"list"`
 
-	// A token used for advancing to the next page of results from your get instances
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetInstances request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -18371,8 +20212,11 @@ func (s *GetKeyPairOutput) SetKeyPair(v *KeyPair) *GetKeyPairOutput {
 type GetKeyPairsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get key
-	// pairs request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetKeyPairs request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -18398,8 +20242,12 @@ type GetKeyPairsOutput struct {
 	// An array of key-value pairs containing information about the key pairs.
 	KeyPairs []*KeyPair `locationName:"keyPairs" type:"list"`
 
-	// A token used for advancing to the next page of results from your get key
-	// pairs request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetKeyPairs request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -18476,67 +20324,80 @@ type GetLoadBalancerMetricDataInput struct {
 	// LoadBalancerName is a required field
 	LoadBalancerName *string `locationName:"loadBalancerName" type:"string" required:"true"`
 
-	// The metric about which you want to return information. Valid values are listed
-	// below, along with the most useful statistics to include in your request.
+	// The metric for which you want to return information.
+	//
+	// Valid load balancer metric names are listed below, along with the most useful
+	// statistics to include in your request, and the published unit value.
 	//
 	//    * ClientTLSNegotiationErrorCount - The number of TLS connections initiated
-	//    by the client that did not establish a session with the load balancer.
-	//    Possible causes include a mismatch of ciphers or protocols. Statistics:
-	//    The most useful statistic is Sum.
+	//    by the client that did not establish a session with the load balancer
+	//    due to a TLS error generated by the load balancer. Possible causes include
+	//    a mismatch of ciphers or protocols. Statistics: The most useful statistic
+	//    is Sum. Unit: The published unit is Count.
 	//
 	//    * HealthyHostCount - The number of target instances that are considered
 	//    healthy. Statistics: The most useful statistic are Average, Minimum, and
-	//    Maximum.
+	//    Maximum. Unit: The published unit is Count.
 	//
-	//    * UnhealthyHostCount - The number of target instances that are considered
-	//    unhealthy. Statistics: The most useful statistic are Average, Minimum,
-	//    and Maximum.
+	//    * HTTPCode_Instance_2XX_Count - The number of HTTP 2XX response codes
+	//    generated by the target instances. This does not include any response
+	//    codes generated by the load balancer. Statistics: The most useful statistic
+	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
+	//    published unit is Count.
+	//
+	//    * HTTPCode_Instance_3XX_Count - The number of HTTP 3XX response codes
+	//    generated by the target instances. This does not include any response
+	//    codes generated by the load balancer. Statistics: The most useful statistic
+	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
+	//    published unit is Count.
+	//
+	//    * HTTPCode_Instance_4XX_Count - The number of HTTP 4XX response codes
+	//    generated by the target instances. This does not include any response
+	//    codes generated by the load balancer. Statistics: The most useful statistic
+	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
+	//    published unit is Count.
+	//
+	//    * HTTPCode_Instance_5XX_Count - The number of HTTP 5XX response codes
+	//    generated by the target instances. This does not include any response
+	//    codes generated by the load balancer. Statistics: The most useful statistic
+	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Unit: The
+	//    published unit is Count.
 	//
 	//    * HTTPCode_LB_4XX_Count - The number of HTTP 4XX client error codes that
-	//    originate from the load balancer. Client errors are generated when requests
-	//    are malformed or incomplete. These requests have not been received by
-	//    the target instance. This count does not include any response codes generated
-	//    by the target instances. Statistics: The most useful statistic is Sum.
-	//    Note that Minimum, Maximum, and Average all return 1.
+	//    originated from the load balancer. Client errors are generated when requests
+	//    are malformed or incomplete. These requests were not received by the target
+	//    instance. This count does not include response codes generated by the
+	//    target instances. Statistics: The most useful statistic is Sum. Note that
+	//    Minimum, Maximum, and Average all return 1. Unit: The published unit is
+	//    Count.
 	//
 	//    * HTTPCode_LB_5XX_Count - The number of HTTP 5XX server error codes that
-	//    originate from the load balancer. This count does not include any response
-	//    codes generated by the target instances. Statistics: The most useful statistic
-	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Note that
-	//    Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_2XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_3XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_4XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_5XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
+	//    originated from the load balancer. This does not include any response
+	//    codes generated by the target instance. This metric is reported if there
+	//    are no healthy instances attached to the load balancer, or if the request
+	//    rate exceeds the capacity of the instances (spillover) or the load balancer.
+	//    Statistics: The most useful statistic is Sum. Note that Minimum, Maximum,
+	//    and Average all return 1. Unit: The published unit is Count.
 	//
 	//    * InstanceResponseTime - The time elapsed, in seconds, after the request
 	//    leaves the load balancer until a response from the target instance is
-	//    received. Statistics: The most useful statistic is Average.
+	//    received. Statistics: The most useful statistic is Average. Unit: The
+	//    published unit is Seconds.
 	//
 	//    * RejectedConnectionCount - The number of connections that were rejected
 	//    because the load balancer had reached its maximum number of connections.
-	//    Statistics: The most useful statistic is Sum.
+	//    Statistics: The most useful statistic is Sum. Unit: The published unit
+	//    is Count.
 	//
 	//    * RequestCount - The number of requests processed over IPv4. This count
 	//    includes only the requests with a response generated by a target instance
 	//    of the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
+	//    that Minimum, Maximum, and Average all return 1. Unit: The published unit
+	//    is Count.
+	//
+	//    * UnhealthyHostCount - The number of target instances that are considered
+	//    unhealthy. Statistics: The most useful statistic are Average, Minimum,
+	//    and Maximum. Unit: The published unit is Count.
 	//
 	// MetricName is a required field
 	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"LoadBalancerMetricName"`
@@ -18551,31 +20412,34 @@ type GetLoadBalancerMetricDataInput struct {
 	// StartTime is a required field
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
 
-	// An array of statistics that you want to request metrics for. Valid values
-	// are listed below.
+	// The statistic for the metric.
 	//
-	//    * SampleCount - The count (number) of data points used for the statistical
-	//    calculation.
+	// The following statistics are available:
+	//
+	//    * Minimum - The lowest value observed during the specified period. Use
+	//    this value to determine low volumes of activity for your application.
+	//
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
+	//
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
 	//
 	//    * Average - The value of Sum / SampleCount during the specified period.
-	//    By comparing this statistic with the Minimum and Maximum, you can determine
-	//    the full scope of a metric and how close the average use is to the Minimum
-	//    and Maximum. This comparison helps you to know when to increase or decrease
-	//    your resources as needed.
+	//    By comparing this statistic with the Minimum and Maximum values, you can
+	//    determine the full scope of a metric and how close the average use is
+	//    to the Minimum and Maximum values. This comparison helps you to know when
+	//    to increase or decrease your resources.
 	//
-	//    * Sum - All values submitted for the matching metric added together. This
-	//    statistic can be useful for determining the total volume of a metric.
-	//
-	//    * Minimum - The lowest value observed during the specified period. You
-	//    can use this value to determine low volumes of activity for your application.
-	//
-	//    * Maximum - The highest value observed during the specified period. You
-	//    can use this value to determine high volumes of activity for your application.
+	//    * SampleCount - The count, or number, of data points used for the statistical
+	//    calculation.
 	//
 	// Statistics is a required field
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
-	// The unit for the time period request. Valid values are listed below.
+	// The unit for the metric data request. Valid units depend on the metric data
+	// being requested. For the valid units with each available metric, see the
+	// metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -18670,70 +20534,10 @@ func (s *GetLoadBalancerMetricDataInput) SetUnit(v string) *GetLoadBalancerMetri
 type GetLoadBalancerMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of metric datapoint objects.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The metric about which you are receiving information. Valid values are listed
-	// below, along with the most useful statistics to include in your request.
-	//
-	//    * ClientTLSNegotiationErrorCount - The number of TLS connections initiated
-	//    by the client that did not establish a session with the load balancer.
-	//    Possible causes include a mismatch of ciphers or protocols. Statistics:
-	//    The most useful statistic is Sum.
-	//
-	//    * HealthyHostCount - The number of target instances that are considered
-	//    healthy. Statistics: The most useful statistic are Average, Minimum, and
-	//    Maximum.
-	//
-	//    * UnhealthyHostCount - The number of target instances that are considered
-	//    unhealthy. Statistics: The most useful statistic are Average, Minimum,
-	//    and Maximum.
-	//
-	//    * HTTPCode_LB_4XX_Count - The number of HTTP 4XX client error codes that
-	//    originate from the load balancer. Client errors are generated when requests
-	//    are malformed or incomplete. These requests have not been received by
-	//    the target instance. This count does not include any response codes generated
-	//    by the target instances. Statistics: The most useful statistic is Sum.
-	//    Note that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_LB_5XX_Count - The number of HTTP 5XX server error codes that
-	//    originate from the load balancer. This count does not include any response
-	//    codes generated by the target instances. Statistics: The most useful statistic
-	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Note that
-	//    Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_2XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_3XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_4XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_5XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * InstanceResponseTime - The time elapsed, in seconds, after the request
-	//    leaves the load balancer until a response from the target instance is
-	//    received. Statistics: The most useful statistic is Average.
-	//
-	//    * RejectedConnectionCount - The number of connections that were rejected
-	//    because the load balancer had reached its maximum number of connections.
-	//    Statistics: The most useful statistic is Sum.
-	//
-	//    * RequestCount - The number of requests processed over IPv4. This count
-	//    includes only the requests with a response generated by a target instance
-	//    of the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"LoadBalancerMetricName"`
 }
 
@@ -18846,7 +20650,11 @@ func (s *GetLoadBalancerTlsCertificatesOutput) SetTlsCertificates(v []*LoadBalan
 type GetLoadBalancersInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for paginating the results from your GetLoadBalancers request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetLoadBalancers request. If your
+	// results are paginated, the response will return a next page token that you
+	// can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -18872,8 +20680,12 @@ type GetLoadBalancersOutput struct {
 	// An array of LoadBalancer objects describing your load balancers.
 	LoadBalancers []*LoadBalancer `locationName:"loadBalancers" type:"list"`
 
-	// A token used for advancing to the next page of results from your GetLoadBalancers
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetLoadBalancers request
+	// and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -18940,8 +20752,9 @@ func (s *GetOperationInput) SetOperationId(v string) *GetOperationInput {
 type GetOperationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// get operation request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -18964,8 +20777,11 @@ func (s *GetOperationOutput) SetOperation(v *Operation) *GetOperationOutput {
 type GetOperationsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get operations
-	// for resource request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetOperationsForResource request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 
 	// The name of the resource for which you are requesting information.
@@ -19020,12 +20836,17 @@ type GetOperationsForResourceOutput struct {
 	// Deprecated: NextPageCount has been deprecated
 	NextPageCount *string `locationName:"nextPageCount" deprecated:"true" type:"string"`
 
-	// An identifier that was returned from the previous call to this operation,
-	// which can be used to return the next set of items in the list.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetOperationsForResource
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
-	// An array of key-value pairs containing information about the results of your
-	// get operations for resource request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -19060,8 +20881,11 @@ func (s *GetOperationsForResourceOutput) SetOperations(v []*Operation) *GetOpera
 type GetOperationsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get operations
-	// request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetOperations request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -19084,12 +20908,17 @@ func (s *GetOperationsInput) SetPageToken(v string) *GetOperationsInput {
 type GetOperationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get operations
-	// request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetOperations request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
-	// An array of key-value pairs containing information about the results of your
-	// get operations request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -19178,8 +21007,11 @@ func (s *GetRegionsOutput) SetRegions(v []*Region) *GetRegionsOutput {
 type GetRelationalDatabaseBlueprintsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database blueprints request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseBlueprints request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -19206,8 +21038,12 @@ type GetRelationalDatabaseBlueprintsOutput struct {
 	// request.
 	Blueprints []*RelationalDatabaseBlueprint `locationName:"blueprints" type:"list"`
 
-	// A token used for advancing to the next page of results of your get relational
-	// database blueprints request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabaseBlueprints
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -19236,8 +21072,11 @@ func (s *GetRelationalDatabaseBlueprintsOutput) SetNextPageToken(v string) *GetR
 type GetRelationalDatabaseBundlesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database bundles request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseBundles request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -19263,8 +21102,12 @@ type GetRelationalDatabaseBundlesOutput struct {
 	// An object describing the result of your get relational database bundles request.
 	Bundles []*RelationalDatabaseBundle `locationName:"bundles" type:"list"`
 
-	// A token used for advancing to the next page of results of your get relational
-	// database bundles request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabaseBundles
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 }
 
@@ -19301,8 +21144,11 @@ type GetRelationalDatabaseEventsInput struct {
 	// The minimum is 1 and the maximum is 14 days (20160 minutes).
 	DurationInMinutes *int64 `locationName:"durationInMinutes" type:"integer"`
 
-	// A token used for advancing to a specific page of results from for get relational
-	// database events request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseEvents request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 
 	// The name of the database from which to get events.
@@ -19355,8 +21201,12 @@ func (s *GetRelationalDatabaseEventsInput) SetRelationalDatabaseName(v string) *
 type GetRelationalDatabaseEventsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get relational
-	// database events request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabaseEvents
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An object describing the result of your get relational database events request.
@@ -19445,8 +21295,12 @@ type GetRelationalDatabaseLogEventsInput struct {
 	// LogStreamName is a required field
 	LogStreamName *string `locationName:"logStreamName" type:"string" required:"true"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database log events request.
+	// The token to advance to the next or previous page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseLogEvents request.
+	// If your results are paginated, the response will return a next forward token
+	// and/or next backward token that you can specify as the page token in a subsequent
+	// request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 
 	// The name of your database for which to get log events.
@@ -19744,12 +21598,45 @@ type GetRelationalDatabaseMetricDataInput struct {
 	// EndTime is a required field
 	EndTime *time.Time `locationName:"endTime" type:"timestamp" required:"true"`
 
-	// The name of the metric data to return.
+	// The metric for which you want to return information.
+	//
+	// Valid relational database metric names are listed below, along with the most
+	// useful statistics to include in your request, and the published unit value.
+	// All relational database metric data is available in 1-minute (60 seconds)
+	// granularity.
+	//
+	//    * CPUUtilization - The percentage of CPU utilization currently in use
+	//    on the database. Statistics: The most useful statistics are Maximum and
+	//    Average. Unit: The published unit is Percent.
+	//
+	//    * DatabaseConnections - The number of database connections in use. Statistics:
+	//    The most useful statistics are Maximum and Sum. Unit: The published unit
+	//    is Count.
+	//
+	//    * DiskQueueDepth - The number of outstanding IOs (read/write requests)
+	//    that are waiting to access the disk. Statistics: The most useful statistic
+	//    is Sum. Unit: The published unit is Count.
+	//
+	//    * FreeStorageSpace - The amount of available storage space. Statistics:
+	//    The most useful statistic is Sum. Unit: The published unit is Bytes.
+	//
+	//    * NetworkReceiveThroughput - The incoming (Receive) network traffic on
+	//    the database, including both customer database traffic and AWS traffic
+	//    used for monitoring and replication. Statistics: The most useful statistic
+	//    is Average. Unit: The published unit is Bytes/Second.
+	//
+	//    * NetworkTransmitThroughput - The outgoing (Transmit) network traffic
+	//    on the database, including both customer database traffic and AWS traffic
+	//    used for monitoring and replication. Statistics: The most useful statistic
+	//    is Average. Unit: The published unit is Bytes/Second.
 	//
 	// MetricName is a required field
 	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"RelationalDatabaseMetricName"`
 
 	// The granularity, in seconds, of the returned data points.
+	//
+	// All relational database metric data is available in 1-minute (60 seconds)
+	// granularity.
 	//
 	// Period is a required field
 	Period *int64 `locationName:"period" min:"60" type:"integer" required:"true"`
@@ -19772,12 +21659,34 @@ type GetRelationalDatabaseMetricDataInput struct {
 	// StartTime is a required field
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
 
-	// The array of statistics for your metric data request.
+	// The statistic for the metric.
+	//
+	// The following statistics are available:
+	//
+	//    * Minimum - The lowest value observed during the specified period. Use
+	//    this value to determine low volumes of activity for your application.
+	//
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
+	//
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
+	//
+	//    * Average - The value of Sum / SampleCount during the specified period.
+	//    By comparing this statistic with the Minimum and Maximum values, you can
+	//    determine the full scope of a metric and how close the average use is
+	//    to the Minimum and Maximum values. This comparison helps you to know when
+	//    to increase or decrease your resources.
+	//
+	//    * SampleCount - The count, or number, of data points used for the statistical
+	//    calculation.
 	//
 	// Statistics is a required field
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
-	// The unit for the metric data request.
+	// The unit for the metric data request. Valid units depend on the metric data
+	// being requested. For the valid units with each available metric, see the
+	// metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -19872,11 +21781,10 @@ func (s *GetRelationalDatabaseMetricDataInput) SetUnit(v string) *GetRelationalD
 type GetRelationalDatabaseMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your get relational database metric data
-	// request.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The name of the metric.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"RelationalDatabaseMetricName"`
 }
 
@@ -19928,8 +21836,11 @@ func (s *GetRelationalDatabaseOutput) SetRelationalDatabase(v *RelationalDatabas
 type GetRelationalDatabaseParametersInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database parameters request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseParameters request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 
 	// The name of your database for which to get parameters.
@@ -19976,8 +21887,12 @@ func (s *GetRelationalDatabaseParametersInput) SetRelationalDatabaseName(v strin
 type GetRelationalDatabaseParametersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get static
-	// IPs request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabaseParameters
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An object describing the result of your get relational database parameters
@@ -20071,8 +21986,11 @@ func (s *GetRelationalDatabaseSnapshotOutput) SetRelationalDatabaseSnapshot(v *R
 type GetRelationalDatabaseSnapshotsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database snapshots request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabaseSnapshots request.
+	// If your results are paginated, the response will return a next page token
+	// that you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -20095,8 +22013,12 @@ func (s *GetRelationalDatabaseSnapshotsInput) SetPageToken(v string) *GetRelatio
 type GetRelationalDatabaseSnapshotsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get relational
-	// database snapshots request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabaseSnapshots
+	// request and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An object describing the result of your get relational database snapshots
@@ -20129,8 +22051,11 @@ func (s *GetRelationalDatabaseSnapshotsOutput) SetRelationalDatabaseSnapshots(v 
 type GetRelationalDatabasesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to a specific page of results for your get relational
-	// database request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetRelationalDatabases request. If
+	// your results are paginated, the response will return a next page token that
+	// you can specify as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -20153,8 +22078,12 @@ func (s *GetRelationalDatabasesInput) SetPageToken(v string) *GetRelationalDatab
 type GetRelationalDatabasesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get relational
-	// databases request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetRelationalDatabases request
+	// and specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An object describing the result of your get relational databases request.
@@ -20248,8 +22177,11 @@ func (s *GetStaticIpOutput) SetStaticIp(v *StaticIp) *GetStaticIpOutput {
 type GetStaticIpsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get static
-	// IPs request.
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetStaticIps request. If your results
+	// are paginated, the response will return a next page token that you can specify
+	// as the page token in a subsequent request.
 	PageToken *string `locationName:"pageToken" type:"string"`
 }
 
@@ -20272,8 +22204,12 @@ func (s *GetStaticIpsInput) SetPageToken(v string) *GetStaticIpsInput {
 type GetStaticIpsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A token used for advancing to the next page of results from your get static
-	// IPs request.
+	// The token to advance to the next page of resutls from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetStaticIps request and
+	// specify the next page token using the pageToken parameter.
 	NextPageToken *string `locationName:"nextPageToken" type:"string"`
 
 	// An array of key-value pairs containing information about your get static
@@ -20451,7 +22387,9 @@ func (s *ImportKeyPairInput) SetPublicKeyBase64(v string) *ImportKeyPairInput {
 type ImportKeyPairOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -20812,13 +22750,20 @@ type InstanceEntry struct {
 	//
 	// The following configuration options are available:
 	//
-	//    * DEFAULT — Use the default firewall settings from the image.
+	//    * DEFAULT - Use the default firewall settings from the Lightsail instance
+	//    blueprint.
 	//
-	//    * INSTANCE — Use the firewall settings from the source Lightsail instance.
+	//    * INSTANCE - Use the configured firewall settings from the source Lightsail
+	//    instance.
 	//
-	//    * NONE — Default to Amazon EC2.
+	//    * NONE - Use the default Amazon EC2 security group.
 	//
-	//    * CLOSED — All ports closed.
+	//    * CLOSED - All ports closed.
+	//
+	// If you configured lightsail-connect as a cidrListAliases on your instance,
+	// or if you chose to allow the Lightsail browser-based SSH or RDP clients to
+	// connect to your instance, that configuration is not carried over to your
+	// new Amazon EC2 instance.
 	//
 	// PortInfoSource is a required field
 	PortInfoSource *string `locationName:"portInfoSource" type:"string" required:"true" enum:"PortInfoSourceType"`
@@ -21068,26 +23013,56 @@ func (s *InstanceNetworking) SetPorts(v []*InstancePortInfo) *InstanceNetworking
 	return s
 }
 
-// Describes information about the instance ports.
+// Describes information about ports for an Amazon Lightsail instance.
 type InstancePortInfo struct {
 	_ struct{} `type:"structure"`
 
 	// The access direction (inbound or outbound).
+	//
+	// Lightsail currently supports only inbound access direction.
 	AccessDirection *string `locationName:"accessDirection" type:"string" enum:"AccessDirection"`
 
-	// The location from which access is allowed (e.g., Anywhere (0.0.0.0/0)).
+	// The location from which access is allowed. For example, Anywhere (0.0.0.0/0),
+	// or Custom if a specific IP address or range of IP addresses is allowed.
 	AccessFrom *string `locationName:"accessFrom" type:"string"`
 
 	// The type of access (Public or Private).
 	AccessType *string `locationName:"accessType" type:"string" enum:"PortAccessType"`
 
-	// The common name.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The common name of the port information.
 	CommonName *string `locationName:"commonName" type:"string"`
 
-	// The first port in the range.
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol being used. Can be one of the following.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
 	//
 	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
 	//    and error-checked delivery of streamed data between applications running
@@ -21105,9 +23080,25 @@ type InstancePortInfo struct {
 	//    can use UDP, which provides a connectionless datagram service that emphasizes
 	//    reduced latency over reliability. If you do require reliable data stream
 	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -21139,6 +23130,18 @@ func (s *InstancePortInfo) SetAccessType(v string) *InstancePortInfo {
 	return s
 }
 
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *InstancePortInfo) SetCidrListAliases(v []*string) *InstancePortInfo {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *InstancePortInfo) SetCidrs(v []*string) *InstancePortInfo {
+	s.Cidrs = v
+	return s
+}
+
 // SetCommonName sets the CommonName field's value.
 func (s *InstancePortInfo) SetCommonName(v string) *InstancePortInfo {
 	s.CommonName = &v
@@ -21163,14 +23166,42 @@ func (s *InstancePortInfo) SetToPort(v int64) *InstancePortInfo {
 	return s
 }
 
-// Describes the port state.
+// Describes open ports on an instance, the IP addresses allowed to connect
+// to the instance through the ports, and the protocol.
 type InstancePortState struct {
 	_ struct{} `type:"structure"`
 
-	// The first port in the range.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol being used. Can be one of the following.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
 	//
 	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
 	//    and error-checked delivery of streamed data between applications running
@@ -21188,12 +23219,30 @@ type InstancePortState struct {
 	//    can use UDP, which provides a connectionless datagram service that emphasizes
 	//    reduced latency over reliability. If you do require reliable data stream
 	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
 	// Specifies whether the instance port is open or closed.
+	//
+	// The port state for Lightsail instances is always open.
 	State *string `locationName:"state" type:"string" enum:"PortState"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -21205,6 +23254,18 @@ func (s InstancePortState) String() string {
 // GoString returns the string representation
 func (s InstancePortState) GoString() string {
 	return s.String()
+}
+
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *InstancePortState) SetCidrListAliases(v []*string) *InstancePortState {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *InstancePortState) SetCidrs(v []*string) *InstancePortState {
+	s.Cidrs = v
+	return s
 }
 
 // SetFromPort sets the FromPort field's value.
@@ -21479,8 +23540,8 @@ func (s *InstanceState) SetName(v string) *InstanceState {
 // Please set your AWS Region configuration to us-east-1 to create, view, or
 // edit these resources.
 type InvalidInputException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -21503,17 +23564,17 @@ func (s InvalidInputException) GoString() string {
 
 func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
 	return &InvalidInputException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidInputException) Code() string {
+func (s *InvalidInputException) Code() string {
 	return "InvalidInputException"
 }
 
 // Message returns the exception's message.
-func (s InvalidInputException) Message() string {
+func (s *InvalidInputException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21521,22 +23582,22 @@ func (s InvalidInputException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidInputException) OrigErr() error {
+func (s *InvalidInputException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidInputException) Error() string {
+func (s *InvalidInputException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidInputException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidInputException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type IsVpcPeeredInput struct {
@@ -21928,7 +23989,7 @@ type LoadBalancerTlsCertificate struct {
 	// The algorithm that was used to sign the certificate.
 	SignatureAlgorithm *string `locationName:"signatureAlgorithm" type:"string"`
 
-	// The status of the SSL/TLS certificate. Valid values are below.
+	// The validation status of the SSL/TLS certificate. Valid values are below.
 	Status *string `locationName:"status" type:"string" enum:"LoadBalancerTlsCertificateStatus"`
 
 	// The name of the entity that is associated with the public key contained in
@@ -22388,6 +24449,54 @@ func (s *MetricDatapoint) SetUnit(v string) *MetricDatapoint {
 	return s
 }
 
+// Describes resource being monitored by an alarm.
+//
+// An alarm is a way to monitor your Amazon Lightsail resource metrics. For
+// more information, see Alarms in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-alarms).
+type MonitoredResourceInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the resource being monitored.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The name of the Lightsail resource being monitored.
+	Name *string `locationName:"name" type:"string"`
+
+	// The Lightsail resource type of the resource being monitored.
+	//
+	// Instances, load balancers, and relational databases are the only Lightsail
+	// resources that can currently be monitored by alarms.
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+}
+
+// String returns the string representation
+func (s MonitoredResourceInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MonitoredResourceInfo) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *MonitoredResourceInfo) SetArn(v string) *MonitoredResourceInfo {
+	s.Arn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *MonitoredResourceInfo) SetName(v string) *MonitoredResourceInfo {
+	s.Name = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *MonitoredResourceInfo) SetResourceType(v string) *MonitoredResourceInfo {
+	s.ResourceType = &v
+	return s
+}
+
 // Describes the monthly data transfer in and out of your virtual private server
 // (or instance).
 type MonthlyTransfer struct {
@@ -22415,8 +24524,8 @@ func (s *MonthlyTransfer) SetGbPerMonthAllocated(v int64) *MonthlyTransfer {
 
 // Lightsail throws this exception when it cannot find a resource.
 type NotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -22439,17 +24548,17 @@ func (s NotFoundException) GoString() string {
 
 func newErrorNotFoundException(v protocol.ResponseMetadata) error {
 	return &NotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotFoundException) Code() string {
+func (s *NotFoundException) Code() string {
 	return "NotFoundException"
 }
 
 // Message returns the exception's message.
-func (s NotFoundException) Message() string {
+func (s *NotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22457,33 +24566,33 @@ func (s NotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotFoundException) OrigErr() error {
+func (s *NotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s NotFoundException) Error() string {
+func (s *NotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type OpenInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the instance for which you want to open the public ports.
+	// The name of the instance for which to open ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// An array of key-value pairs containing information about the port mappings.
+	// An object to describe the ports to open for the specified instance.
 	//
 	// PortInfo is a required field
 	PortInfo *PortInfo `locationName:"portInfo" type:"structure" required:"true"`
@@ -22508,6 +24617,11 @@ func (s *OpenInstancePublicPortsInput) Validate() error {
 	if s.PortInfo == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfo"))
 	}
+	if s.PortInfo != nil {
+		if err := s.PortInfo.Validate(); err != nil {
+			invalidParams.AddNested("PortInfo", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -22530,7 +24644,9 @@ func (s *OpenInstancePublicPortsInput) SetPortInfo(v *PortInfo) *OpenInstancePub
 type OpenInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -22675,8 +24791,8 @@ func (s *Operation) SetStatusChangedAt(v time.Time) *Operation {
 
 // Lightsail throws this exception when an operation fails to execute.
 type OperationFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -22699,17 +24815,17 @@ func (s OperationFailureException) GoString() string {
 
 func newErrorOperationFailureException(v protocol.ResponseMetadata) error {
 	return &OperationFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s OperationFailureException) Code() string {
+func (s *OperationFailureException) Code() string {
 	return "OperationFailureException"
 }
 
 // Message returns the exception's message.
-func (s OperationFailureException) Message() string {
+func (s *OperationFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22717,22 +24833,22 @@ func (s OperationFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s OperationFailureException) OrigErr() error {
+func (s *OperationFailureException) OrigErr() error {
 	return nil
 }
 
-func (s OperationFailureException) Error() string {
+func (s *OperationFailureException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s OperationFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *OperationFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s OperationFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *OperationFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The password data for the Windows Server-based instance, including the ciphertext
@@ -22804,7 +24920,9 @@ func (s PeerVpcInput) GoString() string {
 type PeerVpcOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -22908,18 +25026,84 @@ func (s *PendingModifiedRelationalDatabaseValues) SetMasterUserPassword(v string
 	return s
 }
 
-// Describes information about the ports on your virtual private server (or
-// instance).
+// Describes ports to open on an instance, the IP addresses allowed to connect
+// to the instance through the ports, and the protocol.
 type PortInfo struct {
 	_ struct{} `type:"structure"`
 
-	// The first port in the range.
+	// An alias that defines access for a preconfigured range of IP addresses.
+	//
+	// The only alias currently supported is lightsail-connect, which allows IP
+	// addresses of the browser-based RDP/SSH client in the Lightsail console to
+	// connect to your instance.
+	CidrListAliases []*string `locationName:"cidrListAliases" type:"list"`
+
+	// The IP address, or range of IP addresses in CIDR notation, that are allowed
+	// to connect to an instance through the ports, and the protocol. Lightsail
+	// supports IPv4 addresses.
+	//
+	// Examples:
+	//
+	//    * To allow the IP address 192.0.2.44, specify 192.0.2.44 or 192.0.2.44/32.
+	//
+	//    * To allow the IP addresses 192.0.2.0 to 192.0.2.255, specify 192.0.2.0/24.
+	//
+	// For more information about CIDR block notation, see Classless Inter-Domain
+	// Routing (https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation)
+	// on Wikipedia.
+	Cidrs []*string `locationName:"cidrs" type:"list"`
+
+	// The first port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
-	// The protocol.
+	// The IP protocol name.
+	//
+	// The name can be one of the following:
+	//
+	//    * tcp - Transmission Control Protocol (TCP) provides reliable, ordered,
+	//    and error-checked delivery of streamed data between applications running
+	//    on hosts communicating by an IP network. If you have an application that
+	//    doesn't require reliable data stream service, use UDP instead.
+	//
+	//    * all - All transport layer protocol types. For more general information,
+	//    see Transport layer (https://en.wikipedia.org/wiki/Transport_layer) on
+	//    Wikipedia.
+	//
+	//    * udp - With User Datagram Protocol (UDP), computer applications can send
+	//    messages (or datagrams) to other hosts on an Internet Protocol (IP) network.
+	//    Prior communications are not required to set up transmission channels
+	//    or data paths. Applications that don't require reliable data stream service
+	//    can use UDP, which provides a connectionless datagram service that emphasizes
+	//    reduced latency over reliability. If you do require reliable data stream
+	//    service, use TCP instead.
+	//
+	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
+	//    messages and operational information indicating success or failure when
+	//    communicating with an instance. For example, an error is indicated when
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
-	// The last port in the range.
+	// The last port in a range of open ports on an instance.
+	//
+	// Allowed ports:
+	//
+	//    * TCP and UDP - 0 to 65535
+	//
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -22931,6 +25115,34 @@ func (s PortInfo) String() string {
 // GoString returns the string representation
 func (s PortInfo) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PortInfo) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PortInfo"}
+	if s.FromPort != nil && *s.FromPort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("FromPort", -1))
+	}
+	if s.ToPort != nil && *s.ToPort < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("ToPort", -1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCidrListAliases sets the CidrListAliases field's value.
+func (s *PortInfo) SetCidrListAliases(v []*string) *PortInfo {
+	s.CidrListAliases = v
+	return s
+}
+
+// SetCidrs sets the Cidrs field's value.
+func (s *PortInfo) SetCidrs(v []*string) *PortInfo {
+	s.Cidrs = v
+	return s
 }
 
 // SetFromPort sets the FromPort field's value.
@@ -22951,15 +25163,284 @@ func (s *PortInfo) SetToPort(v int64) *PortInfo {
 	return s
 }
 
+type PutAlarmInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name for the alarm. Specify the name of an existing alarm to update,
+	// and overwrite the previous configuration of the alarm.
+	//
+	// AlarmName is a required field
+	AlarmName *string `locationName:"alarmName" type:"string" required:"true"`
+
+	// The arithmetic operation to use when comparing the specified statistic to
+	// the threshold. The specified statistic value is used as the first operand.
+	//
+	// ComparisonOperator is a required field
+	ComparisonOperator *string `locationName:"comparisonOperator" type:"string" required:"true" enum:"ComparisonOperator"`
+
+	// The contact protocols to use for the alarm, such as Email, SMS (text messaging),
+	// or both.
+	//
+	// A notification is sent via the specified contact protocol if notifications
+	// are enabled for the alarm, and when the alarm is triggered.
+	//
+	// A notification is not sent if a contact protocol is not specified, if the
+	// specified contact protocol is not configured in the AWS Region, or if notifications
+	// are not enabled for the alarm using the notificationEnabled paramater.
+	//
+	// Use the CreateContactMethod action to configure a contact protocol in an
+	// AWS Region.
+	ContactProtocols []*string `locationName:"contactProtocols" type:"list"`
+
+	// The number of data points that must be not within the specified threshold
+	// to trigger the alarm. If you are setting an "M out of N" alarm, this value
+	// (datapointsToAlarm) is the M.
+	DatapointsToAlarm *int64 `locationName:"datapointsToAlarm" type:"integer"`
+
+	// The number of most recent periods over which data is compared to the specified
+	// threshold. If you are setting an "M out of N" alarm, this value (evaluationPeriods)
+	// is the N.
+	//
+	// If you are setting an alarm that requires that a number of consecutive data
+	// points be breaching to trigger the alarm, this value specifies the rolling
+	// period of time in which data points are evaluated.
+	//
+	// Each evaluation period is five minutes long. For example, specify an evaluation
+	// period of 24 to evaluate a metric over a rolling period of two hours.
+	//
+	// You can specify a minimum valuation period of 1 (5 minutes), and a maximum
+	// evaluation period of 288 (24 hours).
+	//
+	// EvaluationPeriods is a required field
+	EvaluationPeriods *int64 `locationName:"evaluationPeriods" type:"integer" required:"true"`
+
+	// The name of the metric to associate with the alarm.
+	//
+	// You can configure up to two alarms per metric.
+	//
+	// The following metrics are available for each resource type:
+	//
+	//    * Instances: BurstCapacityPercentage, BurstCapacityTime, CPUUtilization,
+	//    NetworkIn, NetworkOut, StatusCheckFailed, StatusCheckFailed_Instance,
+	//    and StatusCheckFailed_System.
+	//
+	//    * Load balancers: ClientTLSNegotiationErrorCount, HealthyHostCount, UnhealthyHostCount,
+	//    HTTPCode_LB_4XX_Count, HTTPCode_LB_5XX_Count, HTTPCode_Instance_2XX_Count,
+	//    HTTPCode_Instance_3XX_Count, HTTPCode_Instance_4XX_Count, HTTPCode_Instance_5XX_Count,
+	//    InstanceResponseTime, RejectedConnectionCount, and RequestCount.
+	//
+	//    * Relational databases: CPUUtilization, DatabaseConnections, DiskQueueDepth,
+	//    FreeStorageSpace, NetworkReceiveThroughput, and NetworkTransmitThroughput.
+	//
+	// For more information about these metrics, see Metrics available in Lightsail
+	// (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-resource-health-metrics#available-metrics).
+	//
+	// MetricName is a required field
+	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"MetricName"`
+
+	// The name of the Lightsail resource that will be monitored.
+	//
+	// Instances, load balancers, and relational databases are the only Lightsail
+	// resources that can currently be monitored by alarms.
+	//
+	// MonitoredResourceName is a required field
+	MonitoredResourceName *string `locationName:"monitoredResourceName" type:"string" required:"true"`
+
+	// Indicates whether the alarm is enabled.
+	//
+	// Notifications are enabled by default if you don't specify this parameter.
+	NotificationEnabled *bool `locationName:"notificationEnabled" type:"boolean"`
+
+	// The alarm states that trigger a notification.
+	//
+	// An alarm has the following possible states:
+	//
+	//    * ALARM - The metric is outside of the defined threshold.
+	//
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
+	//
+	//    * OK - The metric is within the defined threshold.
+	//
+	// When you specify a notification trigger, the ALARM state must be specified.
+	// The INSUFFICIENT_DATA and OK states can be specified in addition to the ALARM
+	// state.
+	//
+	//    * If you specify OK as an alarm trigger, a notification is sent when the
+	//    alarm switches from an ALARM or INSUFFICIENT_DATA alarm state to an OK
+	//    state. This can be thought of as an all clear alarm notification.
+	//
+	//    * If you specify INSUFFICIENT_DATA as the alarm trigger, a notification
+	//    is sent when the alarm switches from an OK or ALARM alarm state to an
+	//    INSUFFICIENT_DATA state.
+	//
+	// The notification trigger defaults to ALARM if you don't specify this parameter.
+	NotificationTriggers []*string `locationName:"notificationTriggers" type:"list"`
+
+	// The value against which the specified statistic is compared.
+	//
+	// Threshold is a required field
+	Threshold *float64 `locationName:"threshold" type:"double" required:"true"`
+
+	// Sets how this alarm will handle missing data points.
+	//
+	// An alarm can treat missing data in the following ways:
+	//
+	//    * breaching - Assume the missing data is not within the threshold. Missing
+	//    data counts towards the number of times the metric is not within the threshold.
+	//
+	//    * notBreaching - Assume the missing data is within the threshold. Missing
+	//    data does not count towards the number of times the metric is not within
+	//    the threshold.
+	//
+	//    * ignore - Ignore the missing data. Maintains the current alarm state.
+	//
+	//    * missing - Missing data is treated as missing.
+	//
+	// If treatMissingData is not specified, the default behavior of missing is
+	// used.
+	TreatMissingData *string `locationName:"treatMissingData" type:"string" enum:"TreatMissingData"`
+}
+
+// String returns the string representation
+func (s PutAlarmInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutAlarmInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutAlarmInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutAlarmInput"}
+	if s.AlarmName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AlarmName"))
+	}
+	if s.ComparisonOperator == nil {
+		invalidParams.Add(request.NewErrParamRequired("ComparisonOperator"))
+	}
+	if s.EvaluationPeriods == nil {
+		invalidParams.Add(request.NewErrParamRequired("EvaluationPeriods"))
+	}
+	if s.MetricName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MetricName"))
+	}
+	if s.MonitoredResourceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MonitoredResourceName"))
+	}
+	if s.Threshold == nil {
+		invalidParams.Add(request.NewErrParamRequired("Threshold"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAlarmName sets the AlarmName field's value.
+func (s *PutAlarmInput) SetAlarmName(v string) *PutAlarmInput {
+	s.AlarmName = &v
+	return s
+}
+
+// SetComparisonOperator sets the ComparisonOperator field's value.
+func (s *PutAlarmInput) SetComparisonOperator(v string) *PutAlarmInput {
+	s.ComparisonOperator = &v
+	return s
+}
+
+// SetContactProtocols sets the ContactProtocols field's value.
+func (s *PutAlarmInput) SetContactProtocols(v []*string) *PutAlarmInput {
+	s.ContactProtocols = v
+	return s
+}
+
+// SetDatapointsToAlarm sets the DatapointsToAlarm field's value.
+func (s *PutAlarmInput) SetDatapointsToAlarm(v int64) *PutAlarmInput {
+	s.DatapointsToAlarm = &v
+	return s
+}
+
+// SetEvaluationPeriods sets the EvaluationPeriods field's value.
+func (s *PutAlarmInput) SetEvaluationPeriods(v int64) *PutAlarmInput {
+	s.EvaluationPeriods = &v
+	return s
+}
+
+// SetMetricName sets the MetricName field's value.
+func (s *PutAlarmInput) SetMetricName(v string) *PutAlarmInput {
+	s.MetricName = &v
+	return s
+}
+
+// SetMonitoredResourceName sets the MonitoredResourceName field's value.
+func (s *PutAlarmInput) SetMonitoredResourceName(v string) *PutAlarmInput {
+	s.MonitoredResourceName = &v
+	return s
+}
+
+// SetNotificationEnabled sets the NotificationEnabled field's value.
+func (s *PutAlarmInput) SetNotificationEnabled(v bool) *PutAlarmInput {
+	s.NotificationEnabled = &v
+	return s
+}
+
+// SetNotificationTriggers sets the NotificationTriggers field's value.
+func (s *PutAlarmInput) SetNotificationTriggers(v []*string) *PutAlarmInput {
+	s.NotificationTriggers = v
+	return s
+}
+
+// SetThreshold sets the Threshold field's value.
+func (s *PutAlarmInput) SetThreshold(v float64) *PutAlarmInput {
+	s.Threshold = &v
+	return s
+}
+
+// SetTreatMissingData sets the TreatMissingData field's value.
+func (s *PutAlarmInput) SetTreatMissingData(v string) *PutAlarmInput {
+	s.TreatMissingData = &v
+	return s
+}
+
+type PutAlarmOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s PutAlarmOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutAlarmOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *PutAlarmOutput) SetOperations(v []*Operation) *PutAlarmOutput {
+	s.Operations = v
+	return s
+}
+
 type PutInstancePublicPortsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Lightsail instance name of the public port(s) you are setting.
+	// The name of the instance for which to open ports.
 	//
 	// InstanceName is a required field
 	InstanceName *string `locationName:"instanceName" type:"string" required:"true"`
 
-	// Specifies information about the public port(s).
+	// An array of objects to describe the ports to open for the specified instance.
 	//
 	// PortInfos is a required field
 	PortInfos []*PortInfo `locationName:"portInfos" type:"list" required:"true"`
@@ -22984,6 +25465,16 @@ func (s *PutInstancePublicPortsInput) Validate() error {
 	if s.PortInfos == nil {
 		invalidParams.Add(request.NewErrParamRequired("PortInfos"))
 	}
+	if s.PortInfos != nil {
+		for i, v := range s.PortInfos {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "PortInfos", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -23006,7 +25497,9 @@ func (s *PutInstancePublicPortsInput) SetPortInfos(v []*PortInfo) *PutInstancePu
 type PutInstancePublicPortsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Describes metadata about the operation you just executed.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -23067,7 +25560,9 @@ func (s *RebootInstanceInput) SetInstanceName(v string) *RebootInstanceInput {
 type RebootInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -23128,7 +25623,9 @@ func (s *RebootRelationalDatabaseInput) SetRelationalDatabaseName(v string) *Reb
 type RebootRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your reboot relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24061,7 +26558,9 @@ func (s *ReleaseStaticIpInput) SetStaticIpName(v string) *ReleaseStaticIpInput {
 type ReleaseStaticIpOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24114,10 +26613,73 @@ func (s *ResourceLocation) SetRegionName(v string) *ResourceLocation {
 	return s
 }
 
+type SendContactMethodVerificationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The protocol to verify, such as Email or SMS (text messaging).
+	//
+	// Protocol is a required field
+	Protocol *string `locationName:"protocol" type:"string" required:"true" enum:"ContactMethodVerificationProtocol"`
+}
+
+// String returns the string representation
+func (s SendContactMethodVerificationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SendContactMethodVerificationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SendContactMethodVerificationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SendContactMethodVerificationInput"}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *SendContactMethodVerificationInput) SetProtocol(v string) *SendContactMethodVerificationInput {
+	s.Protocol = &v
+	return s
+}
+
+type SendContactMethodVerificationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s SendContactMethodVerificationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SendContactMethodVerificationOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *SendContactMethodVerificationOutput) SetOperations(v []*Operation) *SendContactMethodVerificationOutput {
+	s.Operations = v
+	return s
+}
+
 // A general service exception.
 type ServiceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -24140,17 +26702,17 @@ func (s ServiceException) GoString() string {
 
 func newErrorServiceException(v protocol.ResponseMetadata) error {
 	return &ServiceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceException) Code() string {
+func (s *ServiceException) Code() string {
 	return "ServiceException"
 }
 
 // Message returns the exception's message.
-func (s ServiceException) Message() string {
+func (s *ServiceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -24158,22 +26720,22 @@ func (s ServiceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceException) OrigErr() error {
+func (s *ServiceException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceException) Error() string {
+func (s *ServiceException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type StartInstanceInput struct {
@@ -24217,7 +26779,9 @@ func (s *StartInstanceInput) SetInstanceName(v string) *StartInstanceInput {
 type StartInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24278,7 +26842,9 @@ func (s *StartRelationalDatabaseInput) SetRelationalDatabaseName(v string) *Star
 type StartRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your start relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24451,7 +27017,9 @@ func (s *StopInstanceInput) SetInstanceName(v string) *StopInstanceInput {
 type StopInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24522,7 +27090,9 @@ func (s *StopRelationalDatabaseInput) SetRelationalDatabaseSnapshotName(v string
 type StopRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your stop relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24649,7 +27219,9 @@ func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
 type TagResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24669,10 +27241,97 @@ func (s *TagResourceOutput) SetOperations(v []*Operation) *TagResourceOutput {
 	return s
 }
 
+type TestAlarmInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the alarm to test.
+	//
+	// AlarmName is a required field
+	AlarmName *string `locationName:"alarmName" type:"string" required:"true"`
+
+	// The alarm state to test.
+	//
+	// An alarm has the following possible states that can be tested:
+	//
+	//    * ALARM - The metric is outside of the defined threshold.
+	//
+	//    * INSUFFICIENT_DATA - The alarm has just started, the metric is not available,
+	//    or not enough data is available for the metric to determine the alarm
+	//    state.
+	//
+	//    * OK - The metric is within the defined threshold.
+	//
+	// State is a required field
+	State *string `locationName:"state" type:"string" required:"true" enum:"AlarmState"`
+}
+
+// String returns the string representation
+func (s TestAlarmInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestAlarmInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TestAlarmInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TestAlarmInput"}
+	if s.AlarmName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AlarmName"))
+	}
+	if s.State == nil {
+		invalidParams.Add(request.NewErrParamRequired("State"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAlarmName sets the AlarmName field's value.
+func (s *TestAlarmInput) SetAlarmName(v string) *TestAlarmInput {
+	s.AlarmName = &v
+	return s
+}
+
+// SetState sets the State field's value.
+func (s *TestAlarmInput) SetState(v string) *TestAlarmInput {
+	s.State = &v
+	return s
+}
+
+type TestAlarmOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s TestAlarmOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TestAlarmOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *TestAlarmOutput) SetOperations(v []*Operation) *TestAlarmOutput {
+	s.Operations = v
+	return s
+}
+
 // Lightsail throws this exception when the user has not been authenticated.
 type UnauthenticatedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Code_ *string `locationName:"code" type:"string"`
 
@@ -24695,17 +27354,17 @@ func (s UnauthenticatedException) GoString() string {
 
 func newErrorUnauthenticatedException(v protocol.ResponseMetadata) error {
 	return &UnauthenticatedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnauthenticatedException) Code() string {
+func (s *UnauthenticatedException) Code() string {
 	return "UnauthenticatedException"
 }
 
 // Message returns the exception's message.
-func (s UnauthenticatedException) Message() string {
+func (s *UnauthenticatedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -24713,22 +27372,22 @@ func (s UnauthenticatedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnauthenticatedException) OrigErr() error {
+func (s *UnauthenticatedException) OrigErr() error {
 	return nil
 }
 
-func (s UnauthenticatedException) Error() string {
+func (s *UnauthenticatedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnauthenticatedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnauthenticatedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnauthenticatedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnauthenticatedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UnpeerVpcInput struct {
@@ -24748,7 +27407,9 @@ func (s UnpeerVpcInput) GoString() string {
 type UnpeerVpcOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operation *Operation `locationName:"operation" type:"structure"`
 }
 
@@ -24833,7 +27494,9 @@ func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
 type UntagResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects describing the API operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -24908,7 +27571,9 @@ func (s *UpdateDomainEntryInput) SetDomainName(v string) *UpdateDomainEntryInput
 type UpdateDomainEntryOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the request operation.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -25000,7 +27665,9 @@ func (s *UpdateLoadBalancerAttributeInput) SetLoadBalancerName(v string) *Update
 type UpdateLoadBalancerAttributeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the API operations.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -25191,7 +27858,9 @@ func (s *UpdateRelationalDatabaseInput) SetRotateMasterUserPassword(v bool) *Upd
 type UpdateRelationalDatabaseOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your update relational database request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -25266,8 +27935,9 @@ func (s *UpdateRelationalDatabaseParametersInput) SetRelationalDatabaseName(v st
 type UpdateRelationalDatabaseParametersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your update relational database parameters
-	// request.
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
 	Operations []*Operation `locationName:"operations" type:"list"`
 }
 
@@ -25301,6 +27971,17 @@ const (
 )
 
 const (
+	// AlarmStateOk is a AlarmState enum value
+	AlarmStateOk = "OK"
+
+	// AlarmStateAlarm is a AlarmState enum value
+	AlarmStateAlarm = "ALARM"
+
+	// AlarmStateInsufficientData is a AlarmState enum value
+	AlarmStateInsufficientData = "INSUFFICIENT_DATA"
+)
+
+const (
 	// AutoSnapshotStatusSuccess is a AutoSnapshotStatus enum value
 	AutoSnapshotStatusSuccess = "Success"
 
@@ -25325,6 +28006,44 @@ const (
 const (
 	// CloudFormationStackRecordSourceTypeExportSnapshotRecord is a CloudFormationStackRecordSourceType enum value
 	CloudFormationStackRecordSourceTypeExportSnapshotRecord = "ExportSnapshotRecord"
+)
+
+const (
+	// ComparisonOperatorGreaterThanOrEqualToThreshold is a ComparisonOperator enum value
+	ComparisonOperatorGreaterThanOrEqualToThreshold = "GreaterThanOrEqualToThreshold"
+
+	// ComparisonOperatorGreaterThanThreshold is a ComparisonOperator enum value
+	ComparisonOperatorGreaterThanThreshold = "GreaterThanThreshold"
+
+	// ComparisonOperatorLessThanThreshold is a ComparisonOperator enum value
+	ComparisonOperatorLessThanThreshold = "LessThanThreshold"
+
+	// ComparisonOperatorLessThanOrEqualToThreshold is a ComparisonOperator enum value
+	ComparisonOperatorLessThanOrEqualToThreshold = "LessThanOrEqualToThreshold"
+)
+
+const (
+	// ContactMethodStatusPendingVerification is a ContactMethodStatus enum value
+	ContactMethodStatusPendingVerification = "PendingVerification"
+
+	// ContactMethodStatusValid is a ContactMethodStatus enum value
+	ContactMethodStatusValid = "Valid"
+
+	// ContactMethodStatusInvalid is a ContactMethodStatus enum value
+	ContactMethodStatusInvalid = "Invalid"
+)
+
+const (
+	// ContactMethodVerificationProtocolEmail is a ContactMethodVerificationProtocol enum value
+	ContactMethodVerificationProtocolEmail = "Email"
+)
+
+const (
+	// ContactProtocolEmail is a ContactProtocol enum value
+	ContactProtocolEmail = "Email"
+
+	// ContactProtocolSms is a ContactProtocol enum value
+	ContactProtocolSms = "SMS"
 )
 
 const (
@@ -25447,6 +28166,12 @@ const (
 
 	// InstanceMetricNameStatusCheckFailedSystem is a InstanceMetricName enum value
 	InstanceMetricNameStatusCheckFailedSystem = "StatusCheckFailed_System"
+
+	// InstanceMetricNameBurstCapacityTime is a InstanceMetricName enum value
+	InstanceMetricNameBurstCapacityTime = "BurstCapacityTime"
+
+	// InstanceMetricNameBurstCapacityPercentage is a InstanceMetricName enum value
+	InstanceMetricNameBurstCapacityPercentage = "BurstCapacityPercentage"
 )
 
 const (
@@ -25643,6 +28368,83 @@ const (
 )
 
 const (
+	// MetricNameCpuutilization is a MetricName enum value
+	MetricNameCpuutilization = "CPUUtilization"
+
+	// MetricNameNetworkIn is a MetricName enum value
+	MetricNameNetworkIn = "NetworkIn"
+
+	// MetricNameNetworkOut is a MetricName enum value
+	MetricNameNetworkOut = "NetworkOut"
+
+	// MetricNameStatusCheckFailed is a MetricName enum value
+	MetricNameStatusCheckFailed = "StatusCheckFailed"
+
+	// MetricNameStatusCheckFailedInstance is a MetricName enum value
+	MetricNameStatusCheckFailedInstance = "StatusCheckFailed_Instance"
+
+	// MetricNameStatusCheckFailedSystem is a MetricName enum value
+	MetricNameStatusCheckFailedSystem = "StatusCheckFailed_System"
+
+	// MetricNameClientTlsnegotiationErrorCount is a MetricName enum value
+	MetricNameClientTlsnegotiationErrorCount = "ClientTLSNegotiationErrorCount"
+
+	// MetricNameHealthyHostCount is a MetricName enum value
+	MetricNameHealthyHostCount = "HealthyHostCount"
+
+	// MetricNameUnhealthyHostCount is a MetricName enum value
+	MetricNameUnhealthyHostCount = "UnhealthyHostCount"
+
+	// MetricNameHttpcodeLb4xxCount is a MetricName enum value
+	MetricNameHttpcodeLb4xxCount = "HTTPCode_LB_4XX_Count"
+
+	// MetricNameHttpcodeLb5xxCount is a MetricName enum value
+	MetricNameHttpcodeLb5xxCount = "HTTPCode_LB_5XX_Count"
+
+	// MetricNameHttpcodeInstance2xxCount is a MetricName enum value
+	MetricNameHttpcodeInstance2xxCount = "HTTPCode_Instance_2XX_Count"
+
+	// MetricNameHttpcodeInstance3xxCount is a MetricName enum value
+	MetricNameHttpcodeInstance3xxCount = "HTTPCode_Instance_3XX_Count"
+
+	// MetricNameHttpcodeInstance4xxCount is a MetricName enum value
+	MetricNameHttpcodeInstance4xxCount = "HTTPCode_Instance_4XX_Count"
+
+	// MetricNameHttpcodeInstance5xxCount is a MetricName enum value
+	MetricNameHttpcodeInstance5xxCount = "HTTPCode_Instance_5XX_Count"
+
+	// MetricNameInstanceResponseTime is a MetricName enum value
+	MetricNameInstanceResponseTime = "InstanceResponseTime"
+
+	// MetricNameRejectedConnectionCount is a MetricName enum value
+	MetricNameRejectedConnectionCount = "RejectedConnectionCount"
+
+	// MetricNameRequestCount is a MetricName enum value
+	MetricNameRequestCount = "RequestCount"
+
+	// MetricNameDatabaseConnections is a MetricName enum value
+	MetricNameDatabaseConnections = "DatabaseConnections"
+
+	// MetricNameDiskQueueDepth is a MetricName enum value
+	MetricNameDiskQueueDepth = "DiskQueueDepth"
+
+	// MetricNameFreeStorageSpace is a MetricName enum value
+	MetricNameFreeStorageSpace = "FreeStorageSpace"
+
+	// MetricNameNetworkReceiveThroughput is a MetricName enum value
+	MetricNameNetworkReceiveThroughput = "NetworkReceiveThroughput"
+
+	// MetricNameNetworkTransmitThroughput is a MetricName enum value
+	MetricNameNetworkTransmitThroughput = "NetworkTransmitThroughput"
+
+	// MetricNameBurstCapacityTime is a MetricName enum value
+	MetricNameBurstCapacityTime = "BurstCapacityTime"
+
+	// MetricNameBurstCapacityPercentage is a MetricName enum value
+	MetricNameBurstCapacityPercentage = "BurstCapacityPercentage"
+)
+
+const (
 	// MetricStatisticMinimum is a MetricStatistic enum value
 	MetricStatisticMinimum = "Minimum"
 
@@ -25751,6 +28553,9 @@ const (
 
 	// NetworkProtocolUdp is a NetworkProtocol enum value
 	NetworkProtocolUdp = "udp"
+
+	// NetworkProtocolIcmp is a NetworkProtocol enum value
+	NetworkProtocolIcmp = "icmp"
 )
 
 const (
@@ -25911,6 +28716,30 @@ const (
 
 	// OperationTypeDisableAddOn is a OperationType enum value
 	OperationTypeDisableAddOn = "DisableAddOn"
+
+	// OperationTypePutAlarm is a OperationType enum value
+	OperationTypePutAlarm = "PutAlarm"
+
+	// OperationTypeGetAlarms is a OperationType enum value
+	OperationTypeGetAlarms = "GetAlarms"
+
+	// OperationTypeDeleteAlarm is a OperationType enum value
+	OperationTypeDeleteAlarm = "DeleteAlarm"
+
+	// OperationTypeTestAlarm is a OperationType enum value
+	OperationTypeTestAlarm = "TestAlarm"
+
+	// OperationTypeCreateContactMethod is a OperationType enum value
+	OperationTypeCreateContactMethod = "CreateContactMethod"
+
+	// OperationTypeGetContactMethods is a OperationType enum value
+	OperationTypeGetContactMethods = "GetContactMethods"
+
+	// OperationTypeSendContactMethodVerification is a OperationType enum value
+	OperationTypeSendContactMethodVerification = "SendContactMethodVerification"
+
+	// OperationTypeDeleteContactMethod is a OperationType enum value
+	OperationTypeDeleteContactMethod = "DeleteContactMethod"
 )
 
 const (
@@ -26076,4 +28905,24 @@ const (
 
 	// ResourceTypeCloudFormationStackRecord is a ResourceType enum value
 	ResourceTypeCloudFormationStackRecord = "CloudFormationStackRecord"
+
+	// ResourceTypeAlarm is a ResourceType enum value
+	ResourceTypeAlarm = "Alarm"
+
+	// ResourceTypeContactMethod is a ResourceType enum value
+	ResourceTypeContactMethod = "ContactMethod"
+)
+
+const (
+	// TreatMissingDataBreaching is a TreatMissingData enum value
+	TreatMissingDataBreaching = "breaching"
+
+	// TreatMissingDataNotBreaching is a TreatMissingData enum value
+	TreatMissingDataNotBreaching = "notBreaching"
+
+	// TreatMissingDataIgnore is a TreatMissingData enum value
+	TreatMissingDataIgnore = "ignore"
+
+	// TreatMissingDataMissing is a TreatMissingData enum value
+	TreatMissingDataMissing = "missing"
 )

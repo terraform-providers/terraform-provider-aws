@@ -29,6 +29,7 @@ func TestAccAWSSSMDocument_basic(t *testing.T) {
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ssm", fmt.Sprintf("document/%s", name)),
 					testAccCheckResourceAttrRfc3339(resourceName, "created_date"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "document_version"),
 				),
 			},
 			{
@@ -467,6 +468,46 @@ func TestAccAWSSSMDocument_Tags(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestValidateSSMDocumentPermissions(t *testing.T) {
+	validValues := []map[string]interface{}{
+		{
+			"type":        "Share",
+			"account_ids": "123456789012,123456789014",
+		},
+		{
+			"type":        "Share",
+			"account_ids": "all",
+		},
+	}
+
+	for _, s := range validValues {
+		errors := validateSSMDocumentPermissions(s)
+		if len(errors) > 0 {
+			t.Fatalf("%q should be valid SSM Document Permissions: %v", s, errors)
+		}
+	}
+
+	invalidValues := []map[string]interface{}{
+		{},
+		{"type": ""},
+		{"type": "Share"},
+		{"account_ids": ""},
+		{"account_ids": "all"},
+		{"type": "", "account_ids": ""},
+		{"type": "", "account_ids": "all"},
+		{"type": "share", "account_ids": ""},
+		{"type": "share", "account_ids": "all"},
+		{"type": "private", "account_ids": "all"},
+	}
+
+	for _, s := range invalidValues {
+		errors := validateSSMDocumentPermissions(s)
+		if len(errors) == 0 {
+			t.Fatalf("%q should not be valid SSM Document Permissions: %v", s, errors)
+		}
+	}
 }
 
 func testAccCheckAWSSSMDocumentExists(n string) resource.TestCheckFunc {

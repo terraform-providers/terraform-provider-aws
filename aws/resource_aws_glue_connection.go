@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -22,6 +23,10 @@ func resourceAwsGlueConnection() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"catalog_id": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -32,6 +37,7 @@ func resourceAwsGlueConnection() *schema.Resource {
 				Type:      schema.TypeMap,
 				Required:  true,
 				Sensitive: true,
+				Elem:      &schema.Schema{Type: schema.TypeString},
 			},
 			"connection_type": {
 				Type:     schema.TypeString,
@@ -40,6 +46,8 @@ func resourceAwsGlueConnection() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					glue.ConnectionTypeJdbc,
 					glue.ConnectionTypeSftp,
+					glue.ConnectionTypeMongodb,
+					glue.ConnectionTypeKafka,
 				}, false),
 			},
 			"description": {
@@ -139,6 +147,15 @@ func resourceAwsGlueConnectionRead(d *schema.ResourceData, meta interface{}) err
 		d.SetId("")
 		return nil
 	}
+
+	connectionArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "glue",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("connection/%s", connectionName),
+	}.String()
+	d.Set("arn", connectionArn)
 
 	d.Set("catalog_id", catalogID)
 	if err := d.Set("connection_properties", aws.StringValueMap(connection.ConnectionProperties)); err != nil {

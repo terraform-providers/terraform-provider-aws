@@ -113,8 +113,41 @@ func TestAccAWSSESReceiptRule_actions(t *testing.T) {
 	})
 }
 
+func TestAccAWSSESReceiptRule_disappears(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "aws_ses_receipt_rule.basic"
+	ruleSetResourceName := "aws_ses_receipt_rule_set.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSSES(t)
+		},
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSESReceiptRuleBasicConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESReceiptRuleExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesReceiptRuleSet(), ruleSetResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: testAccAWSSESReceiptRuleBasicConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESReceiptRuleExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesReceiptRule(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckSESReceiptRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).sesConn
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_ses_receipt_rule" {
@@ -154,7 +187,7 @@ func testAccCheckAwsSESReceiptRuleExists(n string) resource.TestCheckFunc {
 			return fmt.Errorf("SES Receipt Rule name not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 		params := &ses.DescribeReceiptRuleInput{
 			RuleName:    aws.String(rs.Primary.Attributes["name"]),
@@ -208,7 +241,7 @@ func testAccCheckAwsSESReceiptRuleOrder(n string) resource.TestCheckFunc {
 			return fmt.Errorf("SES Receipt Rule name not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 		params := &ses.DescribeReceiptRuleSetInput{
 			RuleSetName: aws.String(rs.Primary.Attributes["rule_set_name"]),
@@ -240,7 +273,7 @@ func testAccCheckAwsSESReceiptRuleActions(n string) resource.TestCheckFunc {
 			return fmt.Errorf("SES Receipt Rule name not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 		params := &ses.DescribeReceiptRuleInput{
 			RuleName:    aws.String(rs.Primary.Attributes["name"]),

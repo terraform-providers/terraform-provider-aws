@@ -59,42 +59,6 @@ func testSweepRedshiftClusters(region string) error {
 	return nil
 }
 
-func TestValidateRedshiftClusterDbName(t *testing.T) {
-	validNames := []string{
-		"testdbname",
-		"test_dbname",
-		"testdbname123",
-		"testdbname$hashicorp",
-		"_dbname",
-	}
-	for _, v := range validNames {
-		_, errors := validateRedshiftClusterDbName(v, "name")
-		if len(errors) != 0 {
-			t.Fatalf("%q should be a valid Redshift DBName: %q", v, errors)
-		}
-	}
-
-	invalidNames := []string{
-		"!",
-		"/",
-		" ",
-		":",
-		";",
-		"test name",
-		"/slash-at-the-beginning",
-		"slash-at-the-end/",
-		"",
-		acctest.RandStringFromCharSet(100, acctest.CharSetAlpha),
-		"TestDBname",
-	}
-	for _, v := range invalidNames {
-		_, errors := validateRedshiftClusterDbName(v, "name")
-		if len(errors) == 0 {
-			t.Fatalf("%q should be an invalid Redshift DBName", v)
-		}
-	}
-}
-
 func TestAccAWSRedshiftCluster_basic(t *testing.T) {
 	var v redshift.Cluster
 
@@ -164,9 +128,10 @@ func TestAccAWSRedshiftCluster_withFinalSnapshot(t *testing.T) {
 func TestAccAWSRedshiftCluster_kmsKey(t *testing.T) {
 	var v redshift.Cluster
 
+	resourceName := "aws_redshift_cluster.default"
+	kmsResourceName := "aws_kms_key.foo"
+
 	ri := acctest.RandInt()
-	config := testAccAWSRedshiftClusterConfig_kmsKey(ri)
-	keyRegex := regexp.MustCompile(`^arn:aws:([a-zA-Z0-9\-])+:([a-z]{2}-[a-z]+-\d{1})?:(\d{12})?:(.*)$`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -174,14 +139,12 @@ func TestAccAWSRedshiftCluster_kmsKey(t *testing.T) {
 		CheckDestroy: testAccCheckAWSRedshiftClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAWSRedshiftClusterConfig_kmsKey(ri),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSRedshiftClusterExists("aws_redshift_cluster.default", &v),
-					resource.TestCheckResourceAttr(
-						"aws_redshift_cluster.default", "cluster_type", "single-node"),
-					resource.TestCheckResourceAttr(
-						"aws_redshift_cluster.default", "publicly_accessible", "true"),
-					resource.TestMatchResourceAttr("aws_redshift_cluster.default", "kms_key_id", keyRegex),
+					testAccCheckAWSRedshiftClusterExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "cluster_type", "single-node"),
+					resource.TestCheckResourceAttr(resourceName, "publicly_accessible", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "kms_key_id", kmsResourceName, "arn"),
 				),
 			},
 			{
@@ -744,146 +707,6 @@ func testAccCheckAWSRedshiftClusterAvailabilityZone(c *redshift.Cluster, value s
 			return fmt.Errorf("Expected cluster's AvailabilityZone: %q, given: %q", value, *c.AvailabilityZone)
 		}
 		return nil
-	}
-}
-
-func TestResourceAWSRedshiftClusterIdentifierValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "tEsting",
-			ErrCount: 1,
-		},
-		{
-			Value:    "1testing",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing--123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing!",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing-",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftClusterIdentifier(tc.Value, "aws_redshift_cluster_identifier")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Cluster cluster_identifier to trigger a validation error")
-		}
-	}
-}
-
-func TestResourceAWSRedshiftClusterFinalSnapshotIdentifierValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "testing--123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing-",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Testingq123!",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandStringFromCharSet(256, acctest.CharSetAlpha),
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftClusterFinalSnapshotIdentifier(tc.Value, "aws_redshift_cluster_final_snapshot_identifier")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Cluster final_snapshot_identifier to trigger a validation error")
-		}
-	}
-}
-
-func TestResourceAWSRedshiftClusterMasterUsernameValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "1Testing",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Testing!!",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandStringFromCharSet(129, acctest.CharSetAlpha),
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing_testing123",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftClusterMasterUsername(tc.Value, "aws_redshift_cluster_master_username")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Cluster master_username to trigger a validation error")
-		}
-	}
-}
-
-func TestResourceAWSRedshiftClusterMasterPasswordValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "1TESTING",
-			ErrCount: 1,
-		},
-		{
-			Value:    "1testing",
-			ErrCount: 1,
-		},
-		{
-			Value:    "TestTest",
-			ErrCount: 1,
-		},
-		{
-			Value:    "T3st",
-			ErrCount: 1,
-		},
-		{
-			Value:    "1Testing",
-			ErrCount: 0,
-		},
-		{
-			Value:    "1Testing@",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftClusterMasterPassword(tc.Value, "aws_redshift_cluster_master_password")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Cluster master_password to trigger a validation error")
-		}
 	}
 }
 

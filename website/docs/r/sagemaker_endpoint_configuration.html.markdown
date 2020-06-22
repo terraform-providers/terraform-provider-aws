@@ -39,7 +39,7 @@ The following arguments are supported:
 * `production_variants` - (Required) Fields are documented below.
 * `kms_key_arn` - (Optional) Amazon Resource Name (ARN) of a AWS Key Management Service key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance that hosts the endpoint.
 * `name` - (Optional) The name of the endpoint configuration. If omitted, Terraform will assign a random, unique name.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `production_variants` block supports:
 

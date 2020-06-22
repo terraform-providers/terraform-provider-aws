@@ -2,14 +2,70 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_ecr_repository", &resource.Sweeper{
+		Name: "aws_ecr_repository",
+		F:    testSweepEcrRepositories,
+	})
+}
+
+func testSweepEcrRepositories(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).ecrconn
+
+	var errors error
+	err = conn.DescribeRepositoriesPages(&ecr.DescribeRepositoriesInput{}, func(page *ecr.DescribeRepositoriesOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, repository := range page.Repositories {
+			repositoryName := aws.StringValue(repository.RepositoryName)
+			log.Printf("[INFO] Deleting ECR repository: %s", repositoryName)
+
+			shouldForce := true
+			_, err = conn.DeleteRepository(&ecr.DeleteRepositoryInput{
+				// We should probably sweep repositories even if there are images.
+				Force:          &shouldForce,
+				RegistryId:     repository.RegistryId,
+				RepositoryName: repository.RepositoryName,
+			})
+			if err != nil {
+				if !isAWSErr(err, ecr.ErrCodeRepositoryNotFoundException, "") {
+					sweeperErr := fmt.Errorf("Error deleting ECR repository (%s): %w", repositoryName, err)
+					log.Printf("[ERROR] %s", sweeperErr)
+					errors = multierror.Append(errors, sweeperErr)
+				}
+				continue
+			}
+		}
+
+		return !isLast
+	})
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping ECR repository sweep for %s: %s", region, err)
+			return nil
+		}
+		errors = multierror.Append(errors, fmt.Errorf("Error retreiving ECR repositories: %w", err))
+	}
+
+	return errors
+}
 
 func TestAccAWSEcrRepository_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")

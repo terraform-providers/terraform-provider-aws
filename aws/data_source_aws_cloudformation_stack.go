@@ -22,10 +22,6 @@ func dataSourceAwsCloudFormationStack() *schema.Resource {
 			"template_body": {
 				Type:     schema.TypeString,
 				Computed: true,
-				StateFunc: func(v interface{}) string {
-					template, _ := normalizeCloudFormationTemplate(v)
-					return template
-				},
 			},
 			"capabilities": {
 				Type:     schema.TypeSet,
@@ -50,10 +46,12 @@ func dataSourceAwsCloudFormationStack() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"timeout_in_minutes": {
 				Type:     schema.TypeInt,
@@ -70,6 +68,8 @@ func dataSourceAwsCloudFormationStack() *schema.Resource {
 
 func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	name := d.Get("name").(string)
 	input := &cloudformation.DescribeStacksInput{
 		StackName: aws.String(name),
@@ -96,7 +96,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("parameters", flattenAllCloudFormationParameters(stack.Parameters))
-	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 	d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))

@@ -117,6 +117,7 @@ func resourceAwsWafRegionalRuleGroupCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsWafRegionalRuleGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &waf.GetRuleGroupInput{
 		RuleGroupId: aws.String(d.Id()),
@@ -153,7 +154,7 @@ func resourceAwsWafRegionalRuleGroupRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("error listing tags for WAF Regional Rule Group (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

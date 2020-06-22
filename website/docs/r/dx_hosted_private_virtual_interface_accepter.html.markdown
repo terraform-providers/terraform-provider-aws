@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `virtual_interface_id` - (Required) The ID of the Direct Connect virtual interface to accept.
 * `dx_gateway_id` - (Optional) The ID of the Direct Connect gateway to which to connect the virtual interface.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 * `vpn_gateway_id` - (Optional) The ID of the [virtual private gateway](vpn_gateway.html) to which to connect the virtual interface.
 
 ### Removing `aws_dx_hosted_private_virtual_interface_accepter` from your configuration

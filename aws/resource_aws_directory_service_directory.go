@@ -82,6 +82,11 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						"availability_zones": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 					},
 				},
 			},
@@ -92,6 +97,12 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"connect_ips": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
 						"customer_username": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -101,8 +112,11 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsIPAddress,
+							},
+							Set: schema.HashString,
 						},
 						"subnet_ids": {
 							Type:     schema.TypeSet,
@@ -115,6 +129,11 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
+						},
+						"availability_zones": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -147,6 +166,7 @@ func resourceAwsDirectoryServiceDirectory() *schema.Resource {
 					directoryservice.DirectoryTypeAdconnector,
 					directoryservice.DirectoryTypeMicrosoftAd,
 					directoryservice.DirectoryTypeSimpleAd,
+					directoryservice.DirectoryTypeSharedMicrosoftAd,
 				}, false),
 			},
 			"edition": {
@@ -314,8 +334,6 @@ func createActiveDirectoryService(dsconn *directoryservice.DirectoryService, d *
 }
 
 func enableDirectoryServiceSso(dsconn *directoryservice.DirectoryService, d *schema.ResourceData) error {
-	d.SetPartial("enable_sso")
-
 	if v, ok := d.GetOk("enable_sso"); ok && v.(bool) {
 		log.Printf("[DEBUG] Enabling SSO for DS directory %q", d.Id())
 		if _, err := dsconn.EnableSso(&directoryservice.EnableSsoInput{
@@ -388,8 +406,6 @@ func resourceAwsDirectoryServiceDirectoryCreate(d *schema.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("alias"); ok {
-		d.SetPartial("alias")
-
 		input := directoryservice.CreateAliasInput{
 			DirectoryId: aws.String(d.Id()),
 			Alias:       aws.String(v.(string)),
@@ -436,6 +452,7 @@ func resourceAwsDirectoryServiceDirectoryUpdate(d *schema.ResourceData, meta int
 
 func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	dsconn := meta.(*AWSClient).dsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := directoryservice.DescribeDirectoriesInput{
 		DirectoryIds: []*string{aws.String(d.Id())},
@@ -460,17 +477,24 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 	d.Set("description", dir.Description)
 
 	if *dir.Type == directoryservice.DirectoryTypeAdconnector {
-		d.Set("dns_ip_addresses", schema.NewSet(schema.HashString, flattenStringList(dir.ConnectSettings.ConnectIps)))
+		d.Set("dns_ip_addresses", flattenStringSet(dir.ConnectSettings.ConnectIps))
 	} else {
-		d.Set("dns_ip_addresses", schema.NewSet(schema.HashString, flattenStringList(dir.DnsIpAddrs)))
+		d.Set("dns_ip_addresses", flattenStringSet(dir.DnsIpAddrs))
 	}
 	d.Set("name", dir.Name)
 	d.Set("short_name", dir.ShortName)
 	d.Set("size", dir.Size)
 	d.Set("edition", dir.Edition)
 	d.Set("type", dir.Type)
-	d.Set("vpc_settings", flattenDSVpcSettings(dir.VpcSettings))
-	d.Set("connect_settings", flattenDSConnectSettings(dir.DnsIpAddrs, dir.ConnectSettings))
+
+	if err := d.Set("vpc_settings", flattenDSVpcSettings(dir.VpcSettings)); err != nil {
+		return fmt.Errorf("error setting VPC settings: %s", err)
+	}
+
+	if err := d.Set("connect_settings", flattenDSConnectSettings(dir.DnsIpAddrs, dir.ConnectSettings)); err != nil {
+		return fmt.Errorf("error setting connect settings: %s", err)
+	}
+
 	d.Set("enable_sso", dir.SsoEnabled)
 
 	if aws.StringValue(dir.Type) == directoryservice.DirectoryTypeAdconnector {
@@ -485,7 +509,7 @@ func resourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error listing tags for Directory Service Directory (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

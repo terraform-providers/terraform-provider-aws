@@ -96,6 +96,7 @@ func resourceAwsMediaPackageChannelCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsMediaPackageChannelRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mediapackageconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &mediapackage.DescribeChannelInput{
 		Id: aws.String(d.Id()),
@@ -112,7 +113,7 @@ func resourceAwsMediaPackageChannelRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting hls_ingest: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.MediapackageKeyValueTags(resp.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.MediapackageKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

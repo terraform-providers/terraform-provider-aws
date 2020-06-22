@@ -27,7 +27,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"access_logs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": {
@@ -80,7 +79,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"healthy_threshold": {
@@ -198,6 +196,8 @@ func dataSourceAwsElb() *schema.Resource {
 
 func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	lbName := d.Get("name").(string)
 
 	input := &elb.DescribeLoadBalancersInput{
@@ -223,5 +223,5 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("arn", arn.String())
 
-	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0])
+	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0], ignoreTagsConfig)
 }

@@ -60,6 +60,203 @@ func TestKeyValueTagsIgnoreAws(t *testing.T) {
 	}
 }
 
+func TestKeyValueTagsIgnoreConfig(t *testing.T) {
+	testCases := []struct {
+		name         string
+		tags         KeyValueTags
+		ignoreConfig *IgnoreConfig
+		want         map[string]string
+	}{
+		{
+			name: "empty config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no config",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: nil,
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "no tags",
+			tags: New(map[string]string{}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+					"key2",
+					"key3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys all matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key1": "value1",
+					"key2": "value2",
+					"key3": "value3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "keys some matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key1": "value1",
+				}),
+			},
+			want: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys none matching",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New(map[string]string{
+					"key4": "value4",
+					"key5": "value5",
+					"key6": "value6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "keys and key prefixes",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				Keys: New([]string{
+					"key1",
+				}),
+				KeyPrefixes: New([]string{
+					"key2",
+				}),
+			},
+			want: map[string]string{
+				"key3": "value3",
+			},
+		},
+		{
+			name: "key prefixes all exact",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+					"key2",
+					"key3",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "key prefixes all prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key",
+				}),
+			},
+			want: map[string]string{},
+		},
+		{
+			name: "key prefixes some prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key1",
+				}),
+			},
+			want: map[string]string{
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name: "key prefixes none prefixed",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			ignoreConfig: &IgnoreConfig{
+				KeyPrefixes: New([]string{
+					"key4",
+					"key5",
+					"key6",
+				}),
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.IgnoreConfig(testCase.ignoreConfig)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
 func TestKeyValueTagsIgnoreElasticbeanstalk(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -332,6 +529,102 @@ func TestKeyValueTagsIgnore(t *testing.T) {
 			got := testCase.tags.Ignore(testCase.ignoreTags)
 
 			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
+func TestKeyValueTagsKeyExists(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		key  string
+		want bool
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]*string{}),
+			key:  "key1",
+			want: false,
+		},
+		{
+			name: "non-existent",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key2",
+			want: false,
+		},
+		{
+			name: "matching with string value",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key1",
+			want: true,
+		},
+		{
+			name: "matching with nil value",
+			tags: New(map[string]*string{"key1": nil}),
+			key:  "key1",
+			want: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyExists(testCase.key)
+
+			if got != testCase.want {
+				t.Fatalf("expected: %t, got: %t", testCase.want, got)
+			}
+		})
+	}
+}
+
+func TestKeyValueTagsKeyValues(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		key  string
+		want *string
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]*string{}),
+			key:  "key1",
+			want: nil,
+		},
+		{
+			name: "non-existent",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key2",
+			want: nil,
+		},
+		{
+			name: "matching with string value",
+			tags: New(map[string]*string{"key1": testStringPtr("value1")}),
+			key:  "key1",
+			want: testStringPtr("value1"),
+		},
+		{
+			name: "matching with nil value",
+			tags: New(map[string]*string{"key1": nil}),
+			key:  "key1",
+			want: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.KeyValue(testCase.key)
+
+			if testCase.want == nil && got != nil {
+				t.Fatalf("expected: nil, got: %s", *got)
+			}
+
+			if testCase.want != nil && got == nil {
+				t.Fatalf("expected: %s, got: nil", *testCase.want)
+			}
+
+			if testCase.want != nil && got != nil && *testCase.want != *got {
+				t.Fatalf("expected: %s, got: %s", *testCase.want, *got)
+			}
 		})
 	}
 }

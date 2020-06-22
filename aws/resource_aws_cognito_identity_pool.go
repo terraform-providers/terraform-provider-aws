@@ -149,6 +149,8 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cognitoconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	log.Printf("[DEBUG] Reading Cognito Identity Pool: %s", d.Id())
 
 	ip, err := conn.DescribeIdentityPool(&cognitoidentity.DescribeIdentityPoolInput{
@@ -173,7 +175,7 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 	d.Set("identity_pool_name", ip.IdentityPoolName)
 	d.Set("allow_unauthenticated_identities", ip.AllowUnauthenticatedIdentities)
 	d.Set("developer_provider_name", ip.DeveloperProviderName)
-	if err := d.Set("tags", keyvaluetags.CognitoidentityKeyValueTags(ip.IdentityPoolTags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.CognitoidentityKeyValueTags(ip.IdentityPoolTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

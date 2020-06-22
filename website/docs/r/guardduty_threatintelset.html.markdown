@@ -47,11 +47,13 @@ The following arguments are supported:
 * `format` - (Required) The format of the file that contains the ThreatIntelSet. Valid values: `TXT` | `STIX` | `OTX_CSV` | `ALIEN_VAULT` | `PROOF_POINT` | `FIRE_EYE`
 * `location` - (Required) The URI of the file that contains the ThreatIntelSet.
 * `name` - (Required) The friendly name to identify the ThreatIntelSet.
+* `tags` - (Optional) Key-value map of resource tags.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of the GuardDuty ThreatIntelSet.
 * `id` - The ID of the GuardDuty ThreatIntelSet and the detector ID. Format: `<DetectorID>:<ThreatIntelSetID>`
 
 ## Import

@@ -48,3 +48,5 @@ data "aws_acm_certificate" "example" {
 ## Attributes Reference
 
  * `arn` - Set to the ARN of the found certificate, suitable for referencing in other resources that support ACM certificates.
+ * `tags` - A mapping of tags for the resource.
+

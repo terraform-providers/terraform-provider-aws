@@ -152,6 +152,7 @@ func resourceAwsEksFargateProfileCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsEksFargateProfileRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, fargateProfileName, err := resourceAwsEksFargateProfileParseId(d.Id())
 	if err != nil {
@@ -198,7 +199,7 @@ func resourceAwsEksFargateProfileRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting subnets: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(fargateProfile.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(fargateProfile.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

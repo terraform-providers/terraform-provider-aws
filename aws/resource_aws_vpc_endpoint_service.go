@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsVpcEndpointService() *schema.Resource {
@@ -54,8 +55,11 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
+				Set: schema.HashString,
 			},
 			"private_dns_name": {
 				Type:     schema.TypeString,
@@ -84,6 +88,7 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
 		AcceptanceRequired:      aws.Bool(d.Get("acceptance_required").(bool)),
 		NetworkLoadBalancerArns: expandStringSet(d.Get("network_load_balancer_arns").(*schema.Set)),
+		TagSpecifications:       ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
 	}
 
 	log.Printf("[DEBUG] Creating VPC Endpoint Service configuration: %#v", req)
@@ -98,11 +103,23 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return resourceAwsVpcEndpointServiceUpdate(d, meta)
+	if v, ok := d.GetOk("allowed_principals"); ok && v.(*schema.Set).Len() > 0 {
+		modifyPermReq := &ec2.ModifyVpcEndpointServicePermissionsInput{
+			ServiceId:            aws.String(d.Id()),
+			AddAllowedPrincipals: expandStringSet(v.(*schema.Set)),
+		}
+		log.Printf("[DEBUG] Adding VPC Endpoint Service permissions: %#v", modifyPermReq)
+		if _, err := conn.ModifyVpcEndpointServicePermissions(modifyPermReq); err != nil {
+			return fmt.Errorf("error adding VPC Endpoint Service permissions: %s", err.Error())
+		}
+	}
+
+	return resourceAwsVpcEndpointServiceRead(d, meta)
 }
 
 func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	svcCfgRaw, state, err := vpcEndpointServiceStateRefresh(conn, d.Id())()
 	if err != nil && state != ec2.ServiceStateFailed {
@@ -139,7 +156,7 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 	d.Set("service_name", svcCfg.ServiceName)
 	d.Set("service_type", svcCfg.ServiceType[0].ServiceType)
 	d.Set("state", svcCfg.ServiceState)
-	err = d.Set("tags", tagsToMap(svcCfg.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(svcCfg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
@@ -162,7 +179,6 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	d.Partial(true)
 	svcId := d.Id()
 
 	modifyCfgReq := &ec2.ModifyVpcEndpointServiceConfigurationInput{
@@ -185,8 +201,6 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 		if err := vpcEndpointServiceWaitUntilAvailable(d, conn); err != nil {
 			return err
 		}
-
-		d.SetPartial("network_load_balancer_arns")
 	}
 
 	modifyPermReq := &ec2.ModifyVpcEndpointServicePermissionsInput{
@@ -198,16 +212,16 @@ func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{
 		if _, err := conn.ModifyVpcEndpointServicePermissions(modifyPermReq); err != nil {
 			return fmt.Errorf("Error modifying VPC Endpoint Service permissions: %s", err.Error())
 		}
-
-		d.SetPartial("allowed_principals")
 	}
 
-	if err := setTags(conn, d); err != nil {
-		return err
-	}
-	d.SetPartial("tags")
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	d.Partial(false)
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 VPC Endpoint Service (%s) tags: %s", d.Id(), err)
+		}
+	}
+
 	return resourceAwsVpcEndpointServiceRead(d, meta)
 }
 

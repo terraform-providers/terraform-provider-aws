@@ -1,5 +1,3 @@
-// Package S024 defines an Analyzer that checks for
-// extraneous usage of ForceNew in data source schema attributes
 package S024
 
 import (
@@ -7,7 +5,7 @@ import (
 
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfo"
+	"github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfodatasourceonly"
 	"golang.org/x/tools/go/analysis"
 )
 
@@ -22,21 +20,17 @@ var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,
 	Doc:  Doc,
 	Requires: []*analysis.Analyzer{
-		resourceinfo.Analyzer,
 		commentignore.Analyzer,
+		resourceinfodatasourceonly.Analyzer,
 	},
 	Run: run,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
-	resourceInfos := pass.ResultOf[resourceinfo.Analyzer].([]*schema.ResourceInfo)
+	resourceInfos := pass.ResultOf[resourceinfodatasourceonly.Analyzer].([]*schema.ResourceInfo)
 	for _, resourceInfo := range resourceInfos {
 		if ignorer.ShouldIgnore(analyzerName, resourceInfo.AstCompositeLit) {
-			continue
-		}
-
-		if !resourceInfo.IsDataSource() {
 			continue
 		}
 

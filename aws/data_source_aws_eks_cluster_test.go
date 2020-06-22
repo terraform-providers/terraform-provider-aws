@@ -15,9 +15,10 @@ func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
 	resourceName := "aws_eks_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEksClusterDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSEksClusterDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEksClusterDataSourceConfig_Basic(rName),

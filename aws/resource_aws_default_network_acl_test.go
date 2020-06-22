@@ -41,6 +41,11 @@ func TestAccAWSDefaultNetworkAcl_basic(t *testing.T) {
 					testAccCheckResourceAttrAccountID("aws_default_network_acl.default", "owner_id"),
 				),
 			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -59,6 +64,11 @@ func TestAccAWSDefaultNetworkAcl_basicIpv6Vpc(t *testing.T) {
 					testAccGetAWSDefaultNetworkAcl("aws_default_network_acl.default", &networkAcl),
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{}, 0, 4),
 				),
+			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -82,6 +92,11 @@ func TestAccAWSDefaultNetworkAcl_deny_ingress(t *testing.T) {
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{defaultEgressAcl}, 0, 2),
 				),
 			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -100,6 +115,11 @@ func TestAccAWSDefaultNetworkAcl_withIpv6Ingress(t *testing.T) {
 					testAccGetAWSDefaultNetworkAcl("aws_default_network_acl.default", &networkAcl),
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{ipv6IngressAcl}, 0, 2),
 				),
+			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -120,6 +140,11 @@ func TestAccAWSDefaultNetworkAcl_SubnetRemoval(t *testing.T) {
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{}, 2, 2),
 				),
 			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 
 			// Here the Subnets have been removed from the Default Network ACL Config,
 			// but have not been reassigned. The result is that the Subnets are still
@@ -131,6 +156,11 @@ func TestAccAWSDefaultNetworkAcl_SubnetRemoval(t *testing.T) {
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{}, 2, 2),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -151,6 +181,11 @@ func TestAccAWSDefaultNetworkAcl_SubnetReassign(t *testing.T) {
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{}, 2, 2),
 				),
 			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 
 			// Here we've reassigned the subnets to a different ACL.
 			// Without any otherwise association between the `aws_network_acl` and
@@ -170,6 +205,11 @@ func TestAccAWSDefaultNetworkAcl_SubnetReassign(t *testing.T) {
 					testAccGetAWSDefaultNetworkAcl("aws_default_network_acl.default", &networkAcl),
 					testAccCheckAWSDefaultACLAttributes(&networkAcl, []*ec2.NetworkAclEntry{}, 0, 2),
 				),
+			},
+			{
+				ResourceName:      "aws_default_network_acl.default",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -440,10 +480,6 @@ resource "aws_default_network_acl" "default" {
 `
 
 const testAccAWSDefaultNetworkConfig_basicIpv6Vpc = `
-provider "aws" {
-  region = "us-east-2"
-}
-
 resource "aws_vpc" "tftestvpc" {
 	cidr_block = "10.1.0.0/16"
 	assign_generated_ipv6_cidr_block = true

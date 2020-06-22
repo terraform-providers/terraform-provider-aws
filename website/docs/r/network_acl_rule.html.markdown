@@ -20,17 +20,16 @@ a conflict of rule settings and will overwrite rules.
 
 ```hcl
 resource "aws_network_acl" "bar" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
 resource "aws_network_acl_rule" "bar" {
-  network_acl_id = "${aws_network_acl.bar.id}"
+  network_acl_id = aws_network_acl.bar.id
   rule_number    = 200
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
-  cidr_block = # add a CIDR block here
+  cidr_block     = aws_vpc.foo.cidr_block
   from_port      = 22
   to_port        = 22
 }
@@ -65,3 +64,21 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL Rule
+
+## Import
+
+Individual rules can be imported using `NETWORK_ACL_ID:RULE_NUMBER:PROTOCOL:EGRESS`, where `PROTOCOL` can be a decimal (e.g. 6) or string (e.g. tcp) value.
+If importing a rule previously provisioned by Terraform, the `PROTOCOL` must be the input value used at creation time.
+For more information on protocol numbers and keywords, see here: https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+
+For example, import a network ACL Rule with an argument like this:
+
+```console
+$ terraform import aws_network_acl_rule.my_rule acl-7aaabd18:100:tcp:false
+```
+
+Or by the procotol's decimal value:
+
+```console
+$ terraform import aws_network_acl_rule.my_rule acl-7aaabd18:100:6:false
+```

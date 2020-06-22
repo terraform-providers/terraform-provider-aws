@@ -14,7 +14,7 @@ import (
 func validateMonthlySpend(v interface{}, k string) (ws []string, errors []error) {
 	vInt, _ := strconv.Atoi(v.(string))
 	if vInt < 0 {
-		errors = append(errors, fmt.Errorf("Error setting SMS preferences: monthly spend limit value [%d] must be >= 0!", vInt))
+		errors = append(errors, fmt.Errorf("error setting SMS preferences: monthly spend limit value [%d] must be >= 0", vInt))
 	}
 	return
 }
@@ -22,7 +22,7 @@ func validateMonthlySpend(v interface{}, k string) (ws []string, errors []error)
 func validateDeliverySamplingRate(v interface{}, k string) (ws []string, errors []error) {
 	vInt, _ := strconv.Atoi(v.(string))
 	if vInt < 0 || vInt > 100 {
-		errors = append(errors, fmt.Errorf("Error setting SMS preferences: default percentage of success to sample value [%d] must be between 0 and 100!", vInt))
+		errors = append(errors, fmt.Errorf("error setting SMS preferences: default percentage of success to sample value [%d] must be between 0 and 100", vInt))
 	}
 	return
 }
@@ -154,12 +154,14 @@ func resourceAwsSnsSmsPreferencesDelete(d *schema.ResourceData, meta interface{}
 	// Reset the attributes to their default value
 	attrs := map[string]*string{}
 	for tfAttrName, defValue := range smsAttributeDefaultValues {
-		attrs[smsAttributeMap[tfAttrName]] = &defValue
+		attrs[smsAttributeMap[tfAttrName]] = aws.String(defValue)
 	}
 
-	params := &sns.SetSMSAttributesInput{Attributes: attrs}
+	params := &sns.SetSMSAttributesInput{
+		Attributes: attrs,
+	}
 	if _, err := snsconn.SetSMSAttributes(params); err != nil {
-		return fmt.Errorf("Error resetting SMS preferences: %s", err)
+		return fmt.Errorf("Error resetting SMS preferences: %w", err)
 	}
 
 	return nil

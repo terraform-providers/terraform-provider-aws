@@ -2,6 +2,7 @@ package aws
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -242,7 +243,7 @@ func dataSourceAwsIamPolicyDocumentReplaceVarsInList(in interface{}, version str
 		}
 		return out, nil
 	default:
-		panic("dataSourceAwsIamPolicyDocumentReplaceVarsInList: input not string nor []string")
+		return nil, errors.New("dataSourceAwsIamPolicyDocumentReplaceVarsInList: input not string nor []string")
 	}
 }
 

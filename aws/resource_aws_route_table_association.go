@@ -115,10 +115,10 @@ func resourceAwsRouteTableAssociationRead(d *schema.ResourceData, meta interface
 		if *a.RouteTableAssociationId == d.Id() {
 			found = true
 			if a.SubnetId != nil {
-				d.Set("subnet_id", *a.SubnetId)
+				d.Set("subnet_id", a.SubnetId)
 			}
 			if a.GatewayId != nil {
-				d.Set("gateway_id", *a.GatewayId)
+				d.Set("gateway_id", a.GatewayId)
 			}
 			break
 		}

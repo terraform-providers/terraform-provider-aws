@@ -45,9 +45,7 @@ func migrateAwsInstanceStateV0toV1(is *terraform.InstanceState) (*terraform.Inst
 		is.Attributes["root_block_device.#"] = "0"
 	}
 	for _, oldBd := range oldBds {
-		if err := writeV1BlockDevice(is, oldBd); err != nil {
-			return is, err
-		}
+		writeV1BlockDevice(is, oldBd)
 	}
 	log.Printf("[DEBUG] Attributes after migration: %#v", is.Attributes)
 	return is, nil
@@ -76,7 +74,7 @@ func readV0BlockDevices(is *terraform.InstanceState) (map[string]map[string]stri
 }
 
 func writeV1BlockDevice(
-	is *terraform.InstanceState, oldBd map[string]string) error {
+	is *terraform.InstanceState, oldBd map[string]string) {
 	code := hashcode.String(oldBd["device_name"])
 	bdType := "ebs_block_device"
 	if vn, ok := oldBd["virtual_name"]; ok && strings.HasPrefix(vn, "ephemeral") {
@@ -107,5 +105,4 @@ func writeV1BlockDevice(
 	countAttr := fmt.Sprintf("%s.#", bdType)
 	count, _ := strconv.Atoi(is.Attributes[countAttr])
 	is.Attributes[countAttr] = strconv.Itoa(count + 1)
-	return nil
 }

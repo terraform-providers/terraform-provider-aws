@@ -2,11 +2,13 @@ package aws
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-	"log"
 )
 
 func resourceAwsWorkspacesIpGroup() *schema.Resource {
@@ -36,8 +38,9 @@ func resourceAwsWorkspacesIpGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsCIDR,
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -75,6 +78,7 @@ func resourceAwsWorkspacesIpGroupCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsWorkspacesIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeIpGroups(&workspaces.DescribeIpGroupsInput{
 		GroupIds: []*string{aws.String(d.Id())},
@@ -89,16 +93,26 @@ func resourceAwsWorkspacesIpGroupRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	d.Set("name", resp.Result[0].GroupName)
-	d.Set("description", resp.Result[0].GroupDesc)
-	d.Set("rules", flattenIpGroupRules(resp.Result[0].UserRules))
+	ipGroups := resp.Result
+
+	if len(ipGroups) == 0 {
+		log.Printf("[WARN] Workspaces Ip Group (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	ipGroup := ipGroups[0]
+
+	d.Set("name", ipGroup.GroupName)
+	d.Set("description", ipGroup.GroupDesc)
+	d.Set("rules", flattenIpGroupRules(ipGroup.UserRules))
 
 	tags, err := keyvaluetags.WorkspacesListTags(conn, d.Id())
 	if err != nil {
 		return fmt.Errorf("error listing tags for Workspaces IP Group (%q): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -70,7 +70,7 @@ POLICY
 
 ### Data Event Logging
 
-CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-management-and-data-events-with-cloudtrail.html#logging-data-events) for certain services such as S3 bucket objects and Lambda function invocations. Additional information about data event configuration can be found in the [CloudTrail API DataResource documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html).
+CloudTrail can log [Data Events](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html) for certain services such as S3 bucket objects and Lambda function invocations. Additional information about data event configuration can be found in the [CloudTrail API DataResource documentation](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DataResource.html).
 
 #### Logging All Lambda Function Invocations
 
@@ -158,7 +158,7 @@ The following arguments are supported:
     Defaults to `false`.
 * `kms_key_id` - (Optional) Specifies the KMS key ARN to use to encrypt the logs delivered by CloudTrail.
 * `event_selector` - (Optional) Specifies an event selector for enabling data event logging. Fields documented below. Please note the [CloudTrail limits](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/WhatIsCloudTrail-Limits.html) when configuring these.
-* `tags` - (Optional) A mapping of tags to assign to the trail
+* `tags` - (Optional) A map of tags to assign to the trail
 
 ### Event Selector Arguments
 For **event_selector** the following attributes are supported.
@@ -170,7 +170,7 @@ For **event_selector** the following attributes are supported.
 #### Data Resource Arguments
 For **data_resource** the following attributes are supported.
 
-* `type` (Required) - The resource type in which you want to log data events. You can specify only the follwing value: "AWS::S3::Object", "AWS::Lambda::Function"
+* `type` (Required) - The resource type in which you want to log data events. You can specify only the following value: "AWS::S3::Object", "AWS::Lambda::Function"
 * `values` (Required) - A list of ARN for the specified S3 buckets and object prefixes..
 
 ## Attribute Reference

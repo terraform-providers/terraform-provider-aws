@@ -17,7 +17,6 @@ func dataSourceAwsBatchJobQueue() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"arn": {

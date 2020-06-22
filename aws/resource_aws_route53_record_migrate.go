@@ -13,10 +13,7 @@ func resourceAwsRoute53RecordMigrateState(
 	switch v {
 	case 0:
 		log.Println("[INFO] Found AWS Route53 Record State v0; migrating to v1 then v2")
-		v1InstanceState, err := migrateRoute53RecordStateV0toV1(is)
-		if err != nil {
-			return v1InstanceState, err
-		}
+		v1InstanceState := migrateRoute53RecordStateV0toV1(is)
 		return migrateRoute53RecordStateV1toV2(v1InstanceState)
 	case 1:
 		log.Println("[INFO] Found AWS Route53 Record State v1; migrating to v2")
@@ -26,17 +23,17 @@ func resourceAwsRoute53RecordMigrateState(
 	}
 }
 
-func migrateRoute53RecordStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
+func migrateRoute53RecordStateV0toV1(is *terraform.InstanceState) *terraform.InstanceState {
 	if is.Empty() {
 		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return is, nil
+		return is
 	}
 
 	log.Printf("[DEBUG] Attributes before migration: %#v", is.Attributes)
 	newName := strings.TrimSuffix(is.Attributes["name"], ".")
 	is.Attributes["name"] = newName
 	log.Printf("[DEBUG] Attributes after migration: %#v, new name: %s", is.Attributes, newName)
-	return is, nil
+	return is
 }
 
 func migrateRoute53RecordStateV1toV2(is *terraform.InstanceState) (*terraform.InstanceState, error) {

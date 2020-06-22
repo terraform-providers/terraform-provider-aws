@@ -13,7 +13,6 @@ import (
 
 func resourceAwsAmiLaunchPermission() *schema.Resource {
 	return &schema.Resource{
-		Exists: resourceAwsAmiLaunchPermissionExists,
 		Create: resourceAwsAmiLaunchPermissionCreate,
 		Read:   resourceAwsAmiLaunchPermissionRead,
 		Delete: resourceAwsAmiLaunchPermissionDelete,
@@ -47,14 +46,6 @@ func resourceAwsAmiLaunchPermission() *schema.Resource {
 	}
 }
 
-func resourceAwsAmiLaunchPermissionExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*AWSClient).ec2conn
-
-	image_id := d.Get("image_id").(string)
-	account_id := d.Get("account_id").(string)
-	return hasLaunchPermission(conn, image_id, account_id)
-}
-
 func resourceAwsAmiLaunchPermissionCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
@@ -71,7 +62,7 @@ func resourceAwsAmiLaunchPermissionCreate(d *schema.ResourceData, meta interface
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("error creating ami launch permission: %s", err)
+		return fmt.Errorf("error creating AMI launch permission: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s-%s", image_id, account_id))
@@ -79,6 +70,18 @@ func resourceAwsAmiLaunchPermissionCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsAmiLaunchPermissionRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).ec2conn
+
+	exists, err := hasLaunchPermission(conn, d.Get("image_id").(string), d.Get("account_id").(string))
+	if err != nil {
+		return fmt.Errorf("error reading AMI launch permission (%s): %w", d.Id(), err)
+	}
+	if !exists {
+		log.Printf("[WARN] AMI launch permission (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	return nil
 }
 
@@ -98,7 +101,7 @@ func resourceAwsAmiLaunchPermissionDelete(d *schema.ResourceData, meta interface
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("error removing ami launch permission: %s", err)
+		return fmt.Errorf("error deleting AMI launch permission (%s): %w", d.Id(), err)
 	}
 
 	return nil

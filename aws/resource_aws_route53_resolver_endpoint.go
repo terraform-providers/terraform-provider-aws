@@ -55,7 +55,7 @@ func resourceAwsRoute53ResolverEndpoint() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.SingleIP(),
+							ValidateFunc: validation.IsIPAddress,
 						},
 						"ip_id": {
 							Type:     schema.TypeString,
@@ -139,6 +139,7 @@ func resourceAwsRoute53ResolverEndpointCreate(d *schema.ResourceData, meta inter
 
 func resourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	epRaw, state, err := route53ResolverEndpointRefresh(conn, d.Id())()
 	if err != nil {
@@ -186,7 +187,7 @@ func resourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("error listing tags for Route53 Resolver endpoint (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -196,7 +197,6 @@ func resourceAwsRoute53ResolverEndpointRead(d *schema.ResourceData, meta interfa
 func resourceAwsRoute53ResolverEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
 
-	d.Partial(true)
 	if d.HasChange("name") {
 		req := &route53resolver.UpdateResolverEndpointInput{
 			ResolverEndpointId: aws.String(d.Id()),
@@ -215,8 +215,6 @@ func resourceAwsRoute53ResolverEndpointUpdate(d *schema.ResourceData, meta inter
 		if err != nil {
 			return err
 		}
-
-		d.SetPartial("name")
 	}
 
 	if d.HasChange("ip_address") {
@@ -260,8 +258,6 @@ func resourceAwsRoute53ResolverEndpointUpdate(d *schema.ResourceData, meta inter
 				return err
 			}
 		}
-
-		d.SetPartial("ip_address")
 	}
 
 	if d.HasChange("tags") {
@@ -269,10 +265,8 @@ func resourceAwsRoute53ResolverEndpointUpdate(d *schema.ResourceData, meta inter
 		if err := keyvaluetags.Route53resolverUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Route53 Resolver endpoint (%s) tags: %s", d.Get("arn").(string), err)
 		}
-		d.SetPartial("tags")
 	}
 
-	d.Partial(false)
 	return resourceAwsRoute53ResolverEndpointRead(d, meta)
 }
 

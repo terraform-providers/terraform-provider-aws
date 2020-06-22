@@ -132,7 +132,7 @@ SNS topic to send ElastiCache notifications to. Example:
 
 * `preferred_availability_zones` - (Optional, Memcached only) A list of the Availability Zones in which cache nodes are created. If you are creating your cluster in an Amazon VPC you can only locate nodes in Availability Zones that are associated with the subnets in the selected subnet group. The number of Availability Zones listed must equal the value of `num_cache_nodes`. If you want all the nodes in the same Availability Zone, use `availability_zone` instead, or repeat the Availability Zone multiple times in the list. Default: System chosen Availability Zones. Detecting drift of existing node availability zone is not currently supported. Updating this argument by itself to migrate existing node availability zones is not currently supported and will show a perpetual difference.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource
+* `tags` - (Optional) A map of tags to assign to the resource
 
 ## Attributes Reference
 

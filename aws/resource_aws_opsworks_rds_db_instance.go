@@ -43,21 +43,16 @@ func resourceAwsOpsworksRdsDbInstance() *schema.Resource {
 func resourceAwsOpsworksRdsDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient).opsworksconn
 
-	d.Partial(true)
-
-	d.SetPartial("rds_db_instance_arn")
 	req := &opsworks.UpdateRdsDbInstanceInput{
 		RdsDbInstanceArn: aws.String(d.Get("rds_db_instance_arn").(string)),
 	}
 
 	requestUpdate := false
 	if d.HasChange("db_user") {
-		d.SetPartial("db_user")
 		req.DbUser = aws.String(d.Get("db_user").(string))
 		requestUpdate = true
 	}
 	if d.HasChange("db_password") {
-		d.SetPartial("db_password")
 		req.DbPassword = aws.String(d.Get("db_password").(string))
 		requestUpdate = true
 	}
@@ -70,8 +65,6 @@ func resourceAwsOpsworksRdsDbInstanceUpdate(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error updating Opsworks RDS DB instance: %s", err)
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceAwsOpsworksRdsDbInstanceRead(d, meta)
 }

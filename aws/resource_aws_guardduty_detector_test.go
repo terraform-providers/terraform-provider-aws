@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -75,9 +76,16 @@ func testAccAwsGuardDutyDetector_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsGuardDutyDetectorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "account_id"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "guardduty", regexp.MustCompile("detector/.+$")),
 					resource.TestCheckResourceAttr(resourceName, "enable", "true"),
 					resource.TestCheckResourceAttr(resourceName, "finding_publishing_frequency", "SIX_HOURS"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccGuardDutyDetectorConfig_basic2,
@@ -104,7 +112,7 @@ func testAccAwsGuardDutyDetector_basic(t *testing.T) {
 	})
 }
 
-func testAccAwsGuardDutyDetector_import(t *testing.T) {
+func testAccAwsGuardDutyDetector_tags(t *testing.T) {
 	resourceName := "aws_guardduty_detector.test"
 
 	resource.Test(t, resource.TestCase{
@@ -113,13 +121,34 @@ func testAccAwsGuardDutyDetector_import(t *testing.T) {
 		CheckDestroy: testAccCheckAwsGuardDutyDetectorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGuardDutyDetectorConfig_basic1,
+				Config: testAccGuardDutyDetectorConfigTags1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsGuardDutyDetectorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
 			},
-
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccGuardDutyDetectorConfigTags2("key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsGuardDutyDetectorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccGuardDutyDetectorConfigTags1("key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsGuardDutyDetectorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -179,3 +208,24 @@ const testAccGuardDutyDetectorConfig_basic4 = `
 resource "aws_guardduty_detector" "test" {
   finding_publishing_frequency = "FIFTEEN_MINUTES"
 }`
+
+func testAccGuardDutyDetectorConfigTags1(tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_guardduty_detector" "test" {
+  tags = {
+    %[1]q = %[2]q
+  }
+}
+`, tagKey1, tagValue1)
+}
+
+func testAccGuardDutyDetectorConfigTags2(tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_guardduty_detector" "test" {
+  tags = {
+    %[1]q = %[2]q
+    %[3]q = %[4]q
+  }
+}
+`, tagKey1, tagValue1, tagKey2, tagValue2)
+}

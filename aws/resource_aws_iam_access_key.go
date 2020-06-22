@@ -43,6 +43,12 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Sensitive: true,
 			},
 			"ses_smtp_password": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "AWS SigV2 for SES SMTP passwords isy deprecated.\nUse 'ses_smtp_password_v4' for region-specific AWS SigV4 signed SES SMTP password instead.",
+			},
+			"ses_smtp_password_v4": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -105,11 +111,19 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	sesSMTPPassword, err := sesSmtpPasswordFromSecretKey(createResp.AccessKey.SecretAccessKey)
+	// AWS SigV2
+	sesSMTPPassword, err := sesSmtpPasswordFromSecretKeySigV2(createResp.AccessKey.SecretAccessKey)
 	if err != nil {
-		return fmt.Errorf("error getting SES SMTP Password from Secret Access Key: %s", err)
+		return fmt.Errorf("error getting SES SigV2 SMTP Password from Secret Access Key: %s", err)
 	}
 	d.Set("ses_smtp_password", sesSMTPPassword)
+
+	// AWS SigV4
+	sesSMTPPasswordV4, err := sesSmtpPasswordFromSecretKeySigV4(createResp.AccessKey.SecretAccessKey, meta.(*AWSClient).region)
+	if err != nil {
+		return fmt.Errorf("error getting SES SigV4 SMTP Password from Secret Access Key: %s", err)
+	}
+	d.Set("ses_smtp_password_v4", sesSMTPPasswordV4)
 
 	return resourceAwsIamAccessKeyReadResult(d, &iam.AccessKeyMetadata{
 		AccessKeyId: createResp.AccessKey.AccessKeyId,
@@ -197,7 +211,49 @@ func resourceAwsIamAccessKeyStatusUpdate(iamconn *iam.IAM, d *schema.ResourceDat
 	return nil
 }
 
-func sesSmtpPasswordFromSecretKey(key *string) (string, error) {
+func hmacSignature(key []byte, value []byte) ([]byte, error) {
+	h := hmac.New(sha256.New, key)
+	if _, err := h.Write(value); err != nil {
+		return []byte(""), err
+	}
+	return h.Sum(nil), nil
+}
+
+func sesSmtpPasswordFromSecretKeySigV4(key *string, region string) (string, error) {
+	if key == nil {
+		return "", nil
+	}
+	version := byte(0x04)
+	date := []byte("11111111")
+	service := []byte("ses")
+	terminal := []byte("aws4_request")
+	message := []byte("SendRawEmail")
+
+	rawSig, err := hmacSignature([]byte("AWS4"+*key), date)
+	if err != nil {
+		return "", err
+	}
+
+	if rawSig, err = hmacSignature(rawSig, []byte(region)); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, service); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, terminal); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, message); err != nil {
+		return "", err
+	}
+
+	versionedSig := make([]byte, 0, len(rawSig)+1)
+	versionedSig = append(versionedSig, version)
+	versionedSig = append(versionedSig, rawSig...)
+	return base64.StdEncoding.EncodeToString(versionedSig), nil
+}
+
+func sesSmtpPasswordFromSecretKeySigV2(key *string) (string, error) {
 	if key == nil {
 		return "", nil
 	}

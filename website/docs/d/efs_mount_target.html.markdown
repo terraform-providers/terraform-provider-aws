@@ -38,6 +38,9 @@ In addition to all arguments above, the following attributes are exported:
 * `subnet_id` - ID of the mount target's subnet.
 * `ip_address` - Address at which the file system may be mounted via the mount target.
 * `security_groups` - List of VPC security group IDs attached to the mount target.
-* `dns_name` - The DNS name for the given subnet/AZ per [documented convention](http://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html).
+* `dns_name` - The DNS name for the EFS file system.
+* `mount_target_dns_name` - The DNS name for the given subnet/AZ per [documented convention](http://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html).
 * `network_interface_id` - The ID of the network interface that Amazon EFS created when it created the mount target.
-
+* `availability_zone_name` - The name of the Availability Zone (AZ) that the mount target resides in.
+* `availability_zone_id` - The unique and consistent identifier of the Availability Zone (AZ) that the mount target resides in.
+* `owner_id` - AWS account ID that owns the resource.

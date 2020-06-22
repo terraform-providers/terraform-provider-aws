@@ -41,16 +41,19 @@ func dataSourceAwsSecretsManagerSecret() *schema.Resource {
 				Computed: true,
 			},
 			"rotation_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation data source instead",
+				Type:       schema.TypeBool,
+				Computed:   true,
 			},
 			"rotation_lambda_arn": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation data source instead",
+				Type:       schema.TypeString,
+				Computed:   true,
 			},
 			"rotation_rules": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation data source instead",
+				Type:       schema.TypeList,
+				Computed:   true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"automatically_after_days": {
@@ -63,6 +66,7 @@ func dataSourceAwsSecretsManagerSecret() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -70,6 +74,8 @@ func dataSourceAwsSecretsManagerSecret() *schema.Resource {
 
 func dataSourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	var secretID string
 	if v, ok := d.GetOk("arn"); ok {
 		secretID = v.(string)
@@ -132,7 +138,7 @@ func dataSourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("error setting rotation_rules: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

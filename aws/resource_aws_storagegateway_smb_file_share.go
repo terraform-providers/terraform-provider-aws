@@ -103,6 +103,10 @@ func resourceAwsStorageGatewaySmbFileShare() *schema.Resource {
 					storagegateway.ObjectACLPublicReadWrite,
 				}, false),
 			},
+			"path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"read_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -179,6 +183,7 @@ func resourceAwsStorageGatewaySmbFileShareCreate(d *schema.ResourceData, meta in
 
 func resourceAwsStorageGatewaySmbFileShareRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).storagegatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &storagegateway.DescribeSMBFileSharesInput{
 		FileShareARNList: []*string{aws.String(d.Id())},
@@ -232,7 +237,7 @@ func resourceAwsStorageGatewaySmbFileShareRead(d *schema.ResourceData, meta inte
 	if err != nil {
 		return fmt.Errorf("error listing tags for resource (%s): %s", *arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

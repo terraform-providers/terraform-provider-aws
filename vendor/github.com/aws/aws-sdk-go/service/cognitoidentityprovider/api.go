@@ -1551,6 +1551,10 @@ func (c *CognitoIdentityProvider) AdminLinkProviderForUserRequest(input *AdminLi
 //   account. This exception tells user that an account with this email or phone
 //   already exists.
 //
+//   * LimitExceededException
+//   This exception is thrown when a user exceeds the limit for a requested AWS
+//   resource.
+//
 //   * InternalErrorException
 //   This exception is thrown when Amazon Cognito encounters an internal error.
 //
@@ -6058,11 +6062,12 @@ func (c *CognitoIdentityProvider) ForgotPasswordRequest(input *ForgotPasswordInp
 //
 // Calling this API causes a message to be sent to the end user with a confirmation
 // code that is required to change the user's password. For the Username parameter,
-// you can use the username or user alias. If a verified phone number exists
-// for the user, the confirmation code is sent to the phone number. Otherwise,
-// if a verified email exists, the confirmation code is sent to the email. If
-// neither a verified phone number nor a verified email exists, InvalidParameterException
-// is thrown. To use the confirmation code for resetting the password, call .
+// you can use the username or user alias. The method used to send the confirmation
+// code is sent according to the specified AccountRecoverySetting. For more
+// information, see Recovering User Accounts in the Amazon Cognito Developer
+// Guide. If neither a verified phone number nor a verified email exists, an
+// InvalidParameterException is thrown. To use the confirmation code for resetting
+// the password, call .
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -12911,7 +12916,7 @@ type AdminInitiateAuthInput struct {
 	//
 	//    * For CUSTOM_AUTH: USERNAME (required), SECRET_HASH (if app client is
 	//    configured with client secret), DEVICE_KEY
-	AuthParameters map[string]*string `type:"map"`
+	AuthParameters map[string]*string `type:"map" sensitive:"true"`
 
 	// The app client ID.
 	//
@@ -14772,8 +14777,8 @@ func (s AdminUserGlobalSignOutOutput) GoString() string {
 // account. This exception tells user that an account with this email or phone
 // already exists.
 type AliasExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message sent to the user when an alias exists.
 	Message_ *string `locationName:"message" type:"string"`
@@ -14791,17 +14796,17 @@ func (s AliasExistsException) GoString() string {
 
 func newErrorAliasExistsException(v protocol.ResponseMetadata) error {
 	return &AliasExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AliasExistsException) Code() string {
+func (s *AliasExistsException) Code() string {
 	return "AliasExistsException"
 }
 
 // Message returns the exception's message.
-func (s AliasExistsException) Message() string {
+func (s *AliasExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -14809,26 +14814,30 @@ func (s AliasExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AliasExistsException) OrigErr() error {
+func (s *AliasExistsException) OrigErr() error {
 	return nil
 }
 
-func (s AliasExistsException) Error() string {
+func (s *AliasExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AliasExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AliasExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AliasExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AliasExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The Amazon Pinpoint analytics configuration for collecting metrics for a
 // user pool.
+//
+// Cognito User Pools only supports sending events to Amazon Pinpoint projects
+// in the US East (N. Virginia) us-east-1 Region, regardless of the region in
+// which the user pool resides.
 type AnalyticsConfigurationType struct {
 	_ struct{} `type:"structure"`
 
@@ -14913,6 +14922,10 @@ func (s *AnalyticsConfigurationType) SetUserDataShared(v bool) *AnalyticsConfigu
 //
 // An endpoint uniquely identifies a mobile device, email address, or phone
 // number that can receive messages from Amazon Pinpoint analytics.
+//
+// Cognito User Pools only supports sending events to Amazon Pinpoint projects
+// in the US East (N. Virginia) us-east-1 Region, regardless of the region in
+// which the user pool resides.
 type AnalyticsMetadataType struct {
 	_ struct{} `type:"structure"`
 
@@ -15392,8 +15405,8 @@ func (s *CodeDeliveryDetailsType) SetDestination(v string) *CodeDeliveryDetailsT
 
 // This exception is thrown when a verification code fails to deliver successfully.
 type CodeDeliveryFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message sent when a verification code fails to deliver successfully.
 	Message_ *string `locationName:"message" type:"string"`
@@ -15411,17 +15424,17 @@ func (s CodeDeliveryFailureException) GoString() string {
 
 func newErrorCodeDeliveryFailureException(v protocol.ResponseMetadata) error {
 	return &CodeDeliveryFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CodeDeliveryFailureException) Code() string {
+func (s *CodeDeliveryFailureException) Code() string {
 	return "CodeDeliveryFailureException"
 }
 
 // Message returns the exception's message.
-func (s CodeDeliveryFailureException) Message() string {
+func (s *CodeDeliveryFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15429,29 +15442,29 @@ func (s CodeDeliveryFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CodeDeliveryFailureException) OrigErr() error {
+func (s *CodeDeliveryFailureException) OrigErr() error {
 	return nil
 }
 
-func (s CodeDeliveryFailureException) Error() string {
+func (s *CodeDeliveryFailureException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CodeDeliveryFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CodeDeliveryFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CodeDeliveryFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CodeDeliveryFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown if the provided code does not match what the server
 // was expecting.
 type CodeMismatchException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message provided when the code mismatch exception is thrown.
 	Message_ *string `locationName:"message" type:"string"`
@@ -15469,17 +15482,17 @@ func (s CodeMismatchException) GoString() string {
 
 func newErrorCodeMismatchException(v protocol.ResponseMetadata) error {
 	return &CodeMismatchException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CodeMismatchException) Code() string {
+func (s *CodeMismatchException) Code() string {
 	return "CodeMismatchException"
 }
 
 // Message returns the exception's message.
-func (s CodeMismatchException) Message() string {
+func (s *CodeMismatchException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15487,22 +15500,22 @@ func (s CodeMismatchException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CodeMismatchException) OrigErr() error {
+func (s *CodeMismatchException) OrigErr() error {
 	return nil
 }
 
-func (s CodeMismatchException) Error() string {
+func (s *CodeMismatchException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CodeMismatchException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CodeMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CodeMismatchException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CodeMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The compromised credentials actions type
@@ -15600,8 +15613,8 @@ func (s *CompromisedCredentialsRiskConfigurationType) SetEventFilter(v []*string
 
 // This exception is thrown if two or more modifications are happening concurrently.
 type ConcurrentModificationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message provided when the concurrent exception is thrown.
 	Message_ *string `locationName:"message" type:"string"`
@@ -15619,17 +15632,17 @@ func (s ConcurrentModificationException) GoString() string {
 
 func newErrorConcurrentModificationException(v protocol.ResponseMetadata) error {
 	return &ConcurrentModificationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConcurrentModificationException) Code() string {
+func (s *ConcurrentModificationException) Code() string {
 	return "ConcurrentModificationException"
 }
 
 // Message returns the exception's message.
-func (s ConcurrentModificationException) Message() string {
+func (s *ConcurrentModificationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15637,22 +15650,22 @@ func (s ConcurrentModificationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConcurrentModificationException) OrigErr() error {
+func (s *ConcurrentModificationException) OrigErr() error {
 	return nil
 }
 
-func (s ConcurrentModificationException) Error() string {
+func (s *ConcurrentModificationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConcurrentModificationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConcurrentModificationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConcurrentModificationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConcurrentModificationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Confirms the device request.
@@ -16341,7 +16354,22 @@ type CreateIdentityProviderInput struct {
 	// A list of identity provider identifiers.
 	IdpIdentifiers []*string `type:"list"`
 
-	// The identity provider details, such as MetadataURL and MetadataFile.
+	// The identity provider details. The following list describes the provider
+	// detail keys for each identity provider type.
+	//
+	//    * For Google, Facebook and Login with Amazon: client_id client_secret
+	//    authorize_scopes
+	//
+	//    * For Sign in with Apple: client_id team_id key_id private_key authorize_scopes
+	//
+	//    * For OIDC providers: client_id client_secret attributes_request_method
+	//    oidc_issuer authorize_scopes authorize_url if not available from discovery
+	//    URL specified by oidc_issuer key token_url if not available from discovery
+	//    URL specified by oidc_issuer key attributes_url if not available from
+	//    discovery URL specified by oidc_issuer key jwks_uri if not available from
+	//    discovery URL specified by oidc_issuer key authorize_scopes
+	//
+	//    * For SAML providers: MetadataFile OR MetadataURL IDPSignout optional
 	//
 	// ProviderDetails is a required field
 	ProviderDetails map[string]*string `type:"map" required:"true"`
@@ -16686,25 +16714,35 @@ func (s *CreateUserImportJobOutput) SetUserImportJob(v *UserImportJobType) *Crea
 type CreateUserPoolClientInput struct {
 	_ struct{} `type:"structure"`
 
+	// The allowed OAuth flows.
+	//
 	// Set to code to initiate a code grant flow, which provides an authorization
 	// code as the response. This code can be exchanged for access tokens with the
 	// token endpoint.
 	//
-	// Set to token to specify that the client should get the access token (and,
+	// Set to implicit to specify that the client should get the access token (and,
 	// optionally, ID token, based on scopes) directly.
+	//
+	// Set to client_credentials to specify that the client should get the access
+	// token (and, optionally, ID token, based on scopes) from the token endpoint
+	// using a combination of client and client_secret.
 	AllowedOAuthFlows []*string `type:"list"`
 
-	// Set to True if the client is allowed to follow the OAuth protocol when interacting
+	// Set to true if the client is allowed to follow the OAuth protocol when interacting
 	// with Cognito user pools.
 	AllowedOAuthFlowsUserPoolClient *bool `type:"boolean"`
 
-	// A list of allowed OAuth scopes. Currently supported values are "phone", "email",
-	// "openid", and "Cognito". In addition to these values, custom scopes created
-	// in Resource Servers are also supported.
+	// The allowed OAuth scopes. Possible values provided by OAuth are: phone, email,
+	// openid, and profile. Possible values provided by AWS are: aws.cognito.signin.user.admin.
+	// Custom scopes created in Resource Servers are also supported.
 	AllowedOAuthScopes []*string `type:"list"`
 
 	// The Amazon Pinpoint analytics configuration for collecting metrics for this
 	// user pool.
+	//
+	// Cognito User Pools only supports sending events to Amazon Pinpoint projects
+	// in the US East (N. Virginia) us-east-1 Region, regardless of the region in
+	// which the user pool resides.
 	AnalyticsConfiguration *AnalyticsConfigurationType `type:"structure"`
 
 	// A list of allowed redirect (callback) URLs for the identity providers.
@@ -16813,7 +16851,7 @@ type CreateUserPoolClientInput struct {
 	//
 	//    * ResendConfirmationCode
 	//
-	// After January 1st 2020, the value of PreventUserExistenceErrors will default
+	// After February 15th 2020, the value of PreventUserExistenceErrors will default
 	// to ENABLED for newly created user pool clients if no value is provided.
 	PreventUserExistenceErrors *string `type:"string" enum:"PreventUserExistenceErrorTypes"`
 
@@ -17197,6 +17235,12 @@ type CreateUserPoolInput struct {
 	// when a user signs up.
 	UsernameAttributes []*string `type:"list"`
 
+	// You can choose to set case sensitivity on the username input for the selected
+	// sign-in option. For example, when this is set to False, users will be able
+	// to sign in using either "username" or "Username". This configuration is immutable
+	// once it has been set. For more information, see .
+	UsernameConfiguration *UsernameConfigurationType `type:"structure"`
+
 	// The template for the verification message that the user sees when the app
 	// requests permission to access the user's information.
 	VerificationMessageTemplate *VerificationMessageTemplateType `type:"structure"`
@@ -17279,6 +17323,11 @@ func (s *CreateUserPoolInput) Validate() error {
 	if s.UserPoolAddOns != nil {
 		if err := s.UserPoolAddOns.Validate(); err != nil {
 			invalidParams.AddNested("UserPoolAddOns", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.UsernameConfiguration != nil {
+		if err := s.UsernameConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("UsernameConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.VerificationMessageTemplate != nil {
@@ -17404,6 +17453,12 @@ func (s *CreateUserPoolInput) SetUserPoolTags(v map[string]*string) *CreateUserP
 // SetUsernameAttributes sets the UsernameAttributes field's value.
 func (s *CreateUserPoolInput) SetUsernameAttributes(v []*string) *CreateUserPoolInput {
 	s.UsernameAttributes = v
+	return s
+}
+
+// SetUsernameConfiguration sets the UsernameConfiguration field's value.
+func (s *CreateUserPoolInput) SetUsernameConfiguration(v *UsernameConfigurationType) *CreateUserPoolInput {
+	s.UsernameConfiguration = v
 	return s
 }
 
@@ -18783,8 +18838,8 @@ func (s *DomainDescriptionType) SetVersion(v string) *DomainDescriptionType {
 // This exception is thrown when the provider is already supported by the user
 // pool.
 type DuplicateProviderException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -18801,17 +18856,17 @@ func (s DuplicateProviderException) GoString() string {
 
 func newErrorDuplicateProviderException(v protocol.ResponseMetadata) error {
 	return &DuplicateProviderException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DuplicateProviderException) Code() string {
+func (s *DuplicateProviderException) Code() string {
 	return "DuplicateProviderException"
 }
 
 // Message returns the exception's message.
-func (s DuplicateProviderException) Message() string {
+func (s *DuplicateProviderException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -18819,22 +18874,22 @@ func (s DuplicateProviderException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DuplicateProviderException) OrigErr() error {
+func (s *DuplicateProviderException) OrigErr() error {
 	return nil
 }
 
-func (s DuplicateProviderException) Error() string {
+func (s *DuplicateProviderException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DuplicateProviderException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DuplicateProviderException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DuplicateProviderException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DuplicateProviderException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The email configuration type.
@@ -18979,8 +19034,8 @@ func (s *EmailConfigurationType) SetSourceArn(v string) *EmailConfigurationType 
 // This exception is thrown when there is a code mismatch and the service fails
 // to configure the software token TOTP multi-factor authentication (MFA).
 type EnableSoftwareTokenMFAException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -18997,17 +19052,17 @@ func (s EnableSoftwareTokenMFAException) GoString() string {
 
 func newErrorEnableSoftwareTokenMFAException(v protocol.ResponseMetadata) error {
 	return &EnableSoftwareTokenMFAException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s EnableSoftwareTokenMFAException) Code() string {
+func (s *EnableSoftwareTokenMFAException) Code() string {
 	return "EnableSoftwareTokenMFAException"
 }
 
 // Message returns the exception's message.
-func (s EnableSoftwareTokenMFAException) Message() string {
+func (s *EnableSoftwareTokenMFAException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -19015,22 +19070,22 @@ func (s EnableSoftwareTokenMFAException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s EnableSoftwareTokenMFAException) OrigErr() error {
+func (s *EnableSoftwareTokenMFAException) OrigErr() error {
 	return nil
 }
 
-func (s EnableSoftwareTokenMFAException) Error() string {
+func (s *EnableSoftwareTokenMFAException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s EnableSoftwareTokenMFAException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *EnableSoftwareTokenMFAException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s EnableSoftwareTokenMFAException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *EnableSoftwareTokenMFAException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Specifies the user context data captured at the time of an event request.
@@ -19143,6 +19198,10 @@ func (s *EventFeedbackType) SetProvider(v string) *EventFeedbackType {
 type EventRiskType struct {
 	_ struct{} `type:"structure"`
 
+	// Indicates whether compromised credentials were detected during an authentication
+	// event.
+	CompromisedCredentialsDetected *bool `type:"boolean"`
+
 	// The risk decision.
 	RiskDecision *string `type:"string" enum:"RiskDecisionType"`
 
@@ -19160,6 +19219,12 @@ func (s EventRiskType) GoString() string {
 	return s.String()
 }
 
+// SetCompromisedCredentialsDetected sets the CompromisedCredentialsDetected field's value.
+func (s *EventRiskType) SetCompromisedCredentialsDetected(v bool) *EventRiskType {
+	s.CompromisedCredentialsDetected = &v
+	return s
+}
+
 // SetRiskDecision sets the RiskDecision field's value.
 func (s *EventRiskType) SetRiskDecision(v string) *EventRiskType {
 	s.RiskDecision = &v
@@ -19174,8 +19239,8 @@ func (s *EventRiskType) SetRiskLevel(v string) *EventRiskType {
 
 // This exception is thrown if a code has expired.
 type ExpiredCodeException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the expired code exception is thrown.
 	Message_ *string `locationName:"message" type:"string"`
@@ -19193,17 +19258,17 @@ func (s ExpiredCodeException) GoString() string {
 
 func newErrorExpiredCodeException(v protocol.ResponseMetadata) error {
 	return &ExpiredCodeException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ExpiredCodeException) Code() string {
+func (s *ExpiredCodeException) Code() string {
 	return "ExpiredCodeException"
 }
 
 // Message returns the exception's message.
-func (s ExpiredCodeException) Message() string {
+func (s *ExpiredCodeException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -19211,22 +19276,22 @@ func (s ExpiredCodeException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ExpiredCodeException) OrigErr() error {
+func (s *ExpiredCodeException) OrigErr() error {
 	return nil
 }
 
-func (s ExpiredCodeException) Error() string {
+func (s *ExpiredCodeException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ExpiredCodeException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ExpiredCodeException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ExpiredCodeException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ExpiredCodeException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the request to forget the device.
@@ -20293,8 +20358,8 @@ func (s GlobalSignOutOutput) GoString() string {
 // This exception is thrown when Amazon Cognito encounters a group that already
 // exists in the user pool.
 type GroupExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -20311,17 +20376,17 @@ func (s GroupExistsException) GoString() string {
 
 func newErrorGroupExistsException(v protocol.ResponseMetadata) error {
 	return &GroupExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s GroupExistsException) Code() string {
+func (s *GroupExistsException) Code() string {
 	return "GroupExistsException"
 }
 
 // Message returns the exception's message.
-func (s GroupExistsException) Message() string {
+func (s *GroupExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20329,22 +20394,22 @@ func (s GroupExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s GroupExistsException) OrigErr() error {
+func (s *GroupExistsException) OrigErr() error {
 	return nil
 }
 
-func (s GroupExistsException) Error() string {
+func (s *GroupExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s GroupExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *GroupExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s GroupExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *GroupExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The group type.
@@ -20488,7 +20553,22 @@ type IdentityProviderType struct {
 	// The date the identity provider was last modified.
 	LastModifiedDate *time.Time `type:"timestamp"`
 
-	// The identity provider details, such as MetadataURL and MetadataFile.
+	// The identity provider details. The following list describes the provider
+	// detail keys for each identity provider type.
+	//
+	//    * For Google, Facebook and Login with Amazon: client_id client_secret
+	//    authorize_scopes
+	//
+	//    * For Sign in with Apple: client_id team_id key_id private_key authorize_scopes
+	//
+	//    * For OIDC providers: client_id client_secret attributes_request_method
+	//    oidc_issuer authorize_scopes authorize_url if not available from discovery
+	//    URL specified by oidc_issuer key token_url if not available from discovery
+	//    URL specified by oidc_issuer key attributes_url if not available from
+	//    discovery URL specified by oidc_issuer key jwks_uri if not available from
+	//    discovery URL specified by oidc_issuer key authorize_scopes
+	//
+	//    * For SAML providers: MetadataFile OR MetadataURL IDPSignOut optional
 	ProviderDetails map[string]*string `type:"map"`
 
 	// The identity provider name.
@@ -20615,7 +20695,7 @@ type InitiateAuthInput struct {
 	//
 	//    * For CUSTOM_AUTH: USERNAME (required), SECRET_HASH (if app client is
 	//    configured with client secret), DEVICE_KEY
-	AuthParameters map[string]*string `type:"map"`
+	AuthParameters map[string]*string `type:"map" sensitive:"true"`
 
 	// The app client ID.
 	//
@@ -20838,8 +20918,8 @@ func (s *InitiateAuthOutput) SetSession(v string) *InitiateAuthOutput {
 
 // This exception is thrown when Amazon Cognito encounters an internal error.
 type InternalErrorException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when Amazon Cognito throws an internal error exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -20857,17 +20937,17 @@ func (s InternalErrorException) GoString() string {
 
 func newErrorInternalErrorException(v protocol.ResponseMetadata) error {
 	return &InternalErrorException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalErrorException) Code() string {
+func (s *InternalErrorException) Code() string {
 	return "InternalErrorException"
 }
 
 // Message returns the exception's message.
-func (s InternalErrorException) Message() string {
+func (s *InternalErrorException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20875,29 +20955,29 @@ func (s InternalErrorException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalErrorException) OrigErr() error {
+func (s *InternalErrorException) OrigErr() error {
 	return nil
 }
 
-func (s InternalErrorException) Error() string {
+func (s *InternalErrorException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalErrorException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalErrorException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when Amazon Cognito is not allowed to use your email
 // identity. HTTP status code: 400.
 type InvalidEmailRoleAccessPolicyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when you have an unverified email address or the identity
 	// policy is not set on an email address that Amazon Cognito can access.
@@ -20916,17 +20996,17 @@ func (s InvalidEmailRoleAccessPolicyException) GoString() string {
 
 func newErrorInvalidEmailRoleAccessPolicyException(v protocol.ResponseMetadata) error {
 	return &InvalidEmailRoleAccessPolicyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidEmailRoleAccessPolicyException) Code() string {
+func (s *InvalidEmailRoleAccessPolicyException) Code() string {
 	return "InvalidEmailRoleAccessPolicyException"
 }
 
 // Message returns the exception's message.
-func (s InvalidEmailRoleAccessPolicyException) Message() string {
+func (s *InvalidEmailRoleAccessPolicyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20934,29 +21014,29 @@ func (s InvalidEmailRoleAccessPolicyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidEmailRoleAccessPolicyException) OrigErr() error {
+func (s *InvalidEmailRoleAccessPolicyException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidEmailRoleAccessPolicyException) Error() string {
+func (s *InvalidEmailRoleAccessPolicyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidEmailRoleAccessPolicyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidEmailRoleAccessPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidEmailRoleAccessPolicyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidEmailRoleAccessPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the Amazon Cognito service encounters an invalid
 // AWS Lambda response.
 type InvalidLambdaResponseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service throws an invalid AWS
 	// Lambda response exception.
@@ -20975,17 +21055,17 @@ func (s InvalidLambdaResponseException) GoString() string {
 
 func newErrorInvalidLambdaResponseException(v protocol.ResponseMetadata) error {
 	return &InvalidLambdaResponseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidLambdaResponseException) Code() string {
+func (s *InvalidLambdaResponseException) Code() string {
 	return "InvalidLambdaResponseException"
 }
 
 // Message returns the exception's message.
-func (s InvalidLambdaResponseException) Message() string {
+func (s *InvalidLambdaResponseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20993,28 +21073,28 @@ func (s InvalidLambdaResponseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidLambdaResponseException) OrigErr() error {
+func (s *InvalidLambdaResponseException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidLambdaResponseException) Error() string {
+func (s *InvalidLambdaResponseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidLambdaResponseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidLambdaResponseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidLambdaResponseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidLambdaResponseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the specified OAuth flow is invalid.
 type InvalidOAuthFlowException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -21031,17 +21111,17 @@ func (s InvalidOAuthFlowException) GoString() string {
 
 func newErrorInvalidOAuthFlowException(v protocol.ResponseMetadata) error {
 	return &InvalidOAuthFlowException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidOAuthFlowException) Code() string {
+func (s *InvalidOAuthFlowException) Code() string {
 	return "InvalidOAuthFlowException"
 }
 
 // Message returns the exception's message.
-func (s InvalidOAuthFlowException) Message() string {
+func (s *InvalidOAuthFlowException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21049,29 +21129,29 @@ func (s InvalidOAuthFlowException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidOAuthFlowException) OrigErr() error {
+func (s *InvalidOAuthFlowException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidOAuthFlowException) Error() string {
+func (s *InvalidOAuthFlowException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidOAuthFlowException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidOAuthFlowException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidOAuthFlowException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidOAuthFlowException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the Amazon Cognito service encounters an invalid
 // parameter.
 type InvalidParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service throws an invalid parameter
 	// exception.
@@ -21090,17 +21170,17 @@ func (s InvalidParameterException) GoString() string {
 
 func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterException) Code() string {
+func (s *InvalidParameterException) Code() string {
 	return "InvalidParameterException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterException) Message() string {
+func (s *InvalidParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21108,29 +21188,29 @@ func (s InvalidParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterException) OrigErr() error {
+func (s *InvalidParameterException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterException) Error() string {
+func (s *InvalidParameterException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the Amazon Cognito service encounters an invalid
 // password.
 type InvalidPasswordException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service throws an invalid user
 	// password exception.
@@ -21149,17 +21229,17 @@ func (s InvalidPasswordException) GoString() string {
 
 func newErrorInvalidPasswordException(v protocol.ResponseMetadata) error {
 	return &InvalidPasswordException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidPasswordException) Code() string {
+func (s *InvalidPasswordException) Code() string {
 	return "InvalidPasswordException"
 }
 
 // Message returns the exception's message.
-func (s InvalidPasswordException) Message() string {
+func (s *InvalidPasswordException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21167,29 +21247,29 @@ func (s InvalidPasswordException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidPasswordException) OrigErr() error {
+func (s *InvalidPasswordException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidPasswordException) Error() string {
+func (s *InvalidPasswordException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidPasswordException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidPasswordException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidPasswordException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidPasswordException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is returned when the role provided for SMS configuration does
 // not have permission to publish using Amazon SNS.
 type InvalidSmsRoleAccessPolicyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message retuned when the invalid SMS role access policy exception is
 	// thrown.
@@ -21208,17 +21288,17 @@ func (s InvalidSmsRoleAccessPolicyException) GoString() string {
 
 func newErrorInvalidSmsRoleAccessPolicyException(v protocol.ResponseMetadata) error {
 	return &InvalidSmsRoleAccessPolicyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidSmsRoleAccessPolicyException) Code() string {
+func (s *InvalidSmsRoleAccessPolicyException) Code() string {
 	return "InvalidSmsRoleAccessPolicyException"
 }
 
 // Message returns the exception's message.
-func (s InvalidSmsRoleAccessPolicyException) Message() string {
+func (s *InvalidSmsRoleAccessPolicyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21226,22 +21306,22 @@ func (s InvalidSmsRoleAccessPolicyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidSmsRoleAccessPolicyException) OrigErr() error {
+func (s *InvalidSmsRoleAccessPolicyException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidSmsRoleAccessPolicyException) Error() string {
+func (s *InvalidSmsRoleAccessPolicyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidSmsRoleAccessPolicyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidSmsRoleAccessPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidSmsRoleAccessPolicyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidSmsRoleAccessPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the trust relationship is invalid for the role
@@ -21249,8 +21329,8 @@ func (s InvalidSmsRoleAccessPolicyException) RequestID() string {
 // or the external ID provided in the role does not match what is provided in
 // the SMS configuration for the user pool.
 type InvalidSmsRoleTrustRelationshipException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the role trust relationship for the SMS message
 	// is invalid.
@@ -21269,17 +21349,17 @@ func (s InvalidSmsRoleTrustRelationshipException) GoString() string {
 
 func newErrorInvalidSmsRoleTrustRelationshipException(v protocol.ResponseMetadata) error {
 	return &InvalidSmsRoleTrustRelationshipException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidSmsRoleTrustRelationshipException) Code() string {
+func (s *InvalidSmsRoleTrustRelationshipException) Code() string {
 	return "InvalidSmsRoleTrustRelationshipException"
 }
 
 // Message returns the exception's message.
-func (s InvalidSmsRoleTrustRelationshipException) Message() string {
+func (s *InvalidSmsRoleTrustRelationshipException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21287,28 +21367,28 @@ func (s InvalidSmsRoleTrustRelationshipException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidSmsRoleTrustRelationshipException) OrigErr() error {
+func (s *InvalidSmsRoleTrustRelationshipException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidSmsRoleTrustRelationshipException) Error() string {
+func (s *InvalidSmsRoleTrustRelationshipException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidSmsRoleTrustRelationshipException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidSmsRoleTrustRelationshipException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidSmsRoleTrustRelationshipException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidSmsRoleTrustRelationshipException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the user pool configuration is invalid.
 type InvalidUserPoolConfigurationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the user pool configuration is invalid.
 	Message_ *string `locationName:"message" type:"string"`
@@ -21326,17 +21406,17 @@ func (s InvalidUserPoolConfigurationException) GoString() string {
 
 func newErrorInvalidUserPoolConfigurationException(v protocol.ResponseMetadata) error {
 	return &InvalidUserPoolConfigurationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidUserPoolConfigurationException) Code() string {
+func (s *InvalidUserPoolConfigurationException) Code() string {
 	return "InvalidUserPoolConfigurationException"
 }
 
 // Message returns the exception's message.
-func (s InvalidUserPoolConfigurationException) Message() string {
+func (s *InvalidUserPoolConfigurationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21344,22 +21424,22 @@ func (s InvalidUserPoolConfigurationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidUserPoolConfigurationException) OrigErr() error {
+func (s *InvalidUserPoolConfigurationException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidUserPoolConfigurationException) Error() string {
+func (s *InvalidUserPoolConfigurationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidUserPoolConfigurationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidUserPoolConfigurationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidUserPoolConfigurationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidUserPoolConfigurationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Specifies the configuration for AWS Lambda triggers.
@@ -21510,8 +21590,8 @@ func (s *LambdaConfigType) SetVerifyAuthChallengeResponse(v string) *LambdaConfi
 // This exception is thrown when a user exceeds the limit for a requested AWS
 // resource.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when Amazon Cognito throws a limit exceeded exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -21529,17 +21609,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21547,22 +21627,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the request to list the devices.
@@ -22588,8 +22668,8 @@ func (s *ListUsersOutput) SetUsers(v []*UserType) *ListUsersOutput {
 // This exception is thrown when Amazon Cognito cannot find a multi-factor authentication
 // (MFA) method.
 type MFAMethodNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when Amazon Cognito throws an MFA method not found exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -22607,17 +22687,17 @@ func (s MFAMethodNotFoundException) GoString() string {
 
 func newErrorMFAMethodNotFoundException(v protocol.ResponseMetadata) error {
 	return &MFAMethodNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MFAMethodNotFoundException) Code() string {
+func (s *MFAMethodNotFoundException) Code() string {
 	return "MFAMethodNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s MFAMethodNotFoundException) Message() string {
+func (s *MFAMethodNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22625,22 +22705,22 @@ func (s MFAMethodNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MFAMethodNotFoundException) OrigErr() error {
+func (s *MFAMethodNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s MFAMethodNotFoundException) Error() string {
+func (s *MFAMethodNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MFAMethodNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MFAMethodNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MFAMethodNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MFAMethodNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This data type is no longer supported. You can use it only for SMS MFA configurations.
@@ -22793,8 +22873,8 @@ func (s *NewDeviceMetadataType) SetDeviceKey(v string) *NewDeviceMetadataType {
 
 // This exception is thrown when a user is not authorized.
 type NotAuthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns a not authorized
 	// exception.
@@ -22813,17 +22893,17 @@ func (s NotAuthorizedException) GoString() string {
 
 func newErrorNotAuthorizedException(v protocol.ResponseMetadata) error {
 	return &NotAuthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotAuthorizedException) Code() string {
+func (s *NotAuthorizedException) Code() string {
 	return "NotAuthorizedException"
 }
 
 // Message returns the exception's message.
-func (s NotAuthorizedException) Message() string {
+func (s *NotAuthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22831,22 +22911,22 @@ func (s NotAuthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotAuthorizedException) OrigErr() error {
+func (s *NotAuthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s NotAuthorizedException) Error() string {
+func (s *NotAuthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotAuthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotAuthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotAuthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotAuthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The notify configuration type.
@@ -23151,8 +23231,8 @@ func (s *PasswordPolicyType) SetTemporaryPasswordValidityDays(v int64) *Password
 
 // This exception is thrown when a password reset is required.
 type PasswordResetRequiredException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when a password reset is required.
 	Message_ *string `locationName:"message" type:"string"`
@@ -23170,17 +23250,17 @@ func (s PasswordResetRequiredException) GoString() string {
 
 func newErrorPasswordResetRequiredException(v protocol.ResponseMetadata) error {
 	return &PasswordResetRequiredException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s PasswordResetRequiredException) Code() string {
+func (s *PasswordResetRequiredException) Code() string {
 	return "PasswordResetRequiredException"
 }
 
 // Message returns the exception's message.
-func (s PasswordResetRequiredException) Message() string {
+func (s *PasswordResetRequiredException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -23188,28 +23268,28 @@ func (s PasswordResetRequiredException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s PasswordResetRequiredException) OrigErr() error {
+func (s *PasswordResetRequiredException) OrigErr() error {
 	return nil
 }
 
-func (s PasswordResetRequiredException) Error() string {
+func (s *PasswordResetRequiredException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s PasswordResetRequiredException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *PasswordResetRequiredException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s PasswordResetRequiredException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *PasswordResetRequiredException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when a precondition is not met.
 type PreconditionNotMetException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when a precondition is not met.
 	Message_ *string `locationName:"message" type:"string"`
@@ -23227,17 +23307,17 @@ func (s PreconditionNotMetException) GoString() string {
 
 func newErrorPreconditionNotMetException(v protocol.ResponseMetadata) error {
 	return &PreconditionNotMetException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s PreconditionNotMetException) Code() string {
+func (s *PreconditionNotMetException) Code() string {
 	return "PreconditionNotMetException"
 }
 
 // Message returns the exception's message.
-func (s PreconditionNotMetException) Message() string {
+func (s *PreconditionNotMetException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -23245,22 +23325,22 @@ func (s PreconditionNotMetException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s PreconditionNotMetException) OrigErr() error {
+func (s *PreconditionNotMetException) OrigErr() error {
 	return nil
 }
 
-func (s PreconditionNotMetException) Error() string {
+func (s *PreconditionNotMetException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s PreconditionNotMetException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *PreconditionNotMetException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s PreconditionNotMetException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *PreconditionNotMetException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A container for identity provider details.
@@ -23585,8 +23665,8 @@ func (s *ResendConfirmationCodeOutput) SetCodeDeliveryDetails(v *CodeDeliveryDet
 // This exception is thrown when the Amazon Cognito service cannot find the
 // requested resource.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns a resource not
 	// found exception.
@@ -23605,17 +23685,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -23623,22 +23703,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A resource server scope.
@@ -24116,7 +24196,15 @@ type SchemaAttributeType struct {
 	// The attribute data type.
 	AttributeDataType *string `type:"string" enum:"AttributeDataType"`
 
-	// Specifies whether the attribute type is developer only.
+	//
+	// We recommend that you use WriteAttributes (https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolClientType.html#CognitoUserPools-Type-UserPoolClientType-WriteAttributes)
+	// in the user pool client to control how attributes can be mutated for new
+	// use cases instead of using DeveloperOnlyAttribute.
+	//
+	// Specifies whether the attribute type is developer only. This attribute can
+	// only be modified by an administrator. Users will not be able to modify this
+	// attribute using their access token. For example, DeveloperOnlyAttribute can
+	// be modified using the API but cannot be updated using the API.
 	DeveloperOnlyAttribute *bool `type:"boolean"`
 
 	// Specifies whether the value of the attribute can be changed.
@@ -24211,8 +24299,8 @@ func (s *SchemaAttributeType) SetStringAttributeConstraints(v *StringAttributeCo
 
 // This exception is thrown when the specified scope does not exist.
 type ScopeDoesNotExistException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -24229,17 +24317,17 @@ func (s ScopeDoesNotExistException) GoString() string {
 
 func newErrorScopeDoesNotExistException(v protocol.ResponseMetadata) error {
 	return &ScopeDoesNotExistException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ScopeDoesNotExistException) Code() string {
+func (s *ScopeDoesNotExistException) Code() string {
 	return "ScopeDoesNotExistException"
 }
 
 // Message returns the exception's message.
-func (s ScopeDoesNotExistException) Message() string {
+func (s *ScopeDoesNotExistException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -24247,22 +24335,22 @@ func (s ScopeDoesNotExistException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ScopeDoesNotExistException) OrigErr() error {
+func (s *ScopeDoesNotExistException) OrigErr() error {
 	return nil
 }
 
-func (s ScopeDoesNotExistException) Error() string {
+func (s *ScopeDoesNotExistException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ScopeDoesNotExistException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ScopeDoesNotExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ScopeDoesNotExistException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ScopeDoesNotExistException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type SetRiskConfigurationInput struct {
@@ -25115,8 +25203,8 @@ func (s *SmsMfaConfigType) SetSmsConfiguration(v *SmsConfigurationType) *SmsMfaC
 // This exception is thrown when the software token TOTP multi-factor authentication
 // (MFA) is not enabled for the user pool.
 type SoftwareTokenMFANotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -25133,17 +25221,17 @@ func (s SoftwareTokenMFANotFoundException) GoString() string {
 
 func newErrorSoftwareTokenMFANotFoundException(v protocol.ResponseMetadata) error {
 	return &SoftwareTokenMFANotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SoftwareTokenMFANotFoundException) Code() string {
+func (s *SoftwareTokenMFANotFoundException) Code() string {
 	return "SoftwareTokenMFANotFoundException"
 }
 
 // Message returns the exception's message.
-func (s SoftwareTokenMFANotFoundException) Message() string {
+func (s *SoftwareTokenMFANotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25151,22 +25239,22 @@ func (s SoftwareTokenMFANotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SoftwareTokenMFANotFoundException) OrigErr() error {
+func (s *SoftwareTokenMFANotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s SoftwareTokenMFANotFoundException) Error() string {
+func (s *SoftwareTokenMFANotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SoftwareTokenMFANotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SoftwareTokenMFANotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SoftwareTokenMFANotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SoftwareTokenMFANotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The type used for enabling software token MFA at the user pool level.
@@ -25499,8 +25587,8 @@ func (s TagResourceOutput) GoString() string {
 // This exception is thrown when the user has made too many failed attempts
 // for a given action (e.g., sign in).
 type TooManyFailedAttemptsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns a too many failed
 	// attempts exception.
@@ -25519,17 +25607,17 @@ func (s TooManyFailedAttemptsException) GoString() string {
 
 func newErrorTooManyFailedAttemptsException(v protocol.ResponseMetadata) error {
 	return &TooManyFailedAttemptsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TooManyFailedAttemptsException) Code() string {
+func (s *TooManyFailedAttemptsException) Code() string {
 	return "TooManyFailedAttemptsException"
 }
 
 // Message returns the exception's message.
-func (s TooManyFailedAttemptsException) Message() string {
+func (s *TooManyFailedAttemptsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25537,29 +25625,29 @@ func (s TooManyFailedAttemptsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TooManyFailedAttemptsException) OrigErr() error {
+func (s *TooManyFailedAttemptsException) OrigErr() error {
 	return nil
 }
 
-func (s TooManyFailedAttemptsException) Error() string {
+func (s *TooManyFailedAttemptsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TooManyFailedAttemptsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TooManyFailedAttemptsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TooManyFailedAttemptsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TooManyFailedAttemptsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the user has made too many requests for a given
 // operation.
 type TooManyRequestsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns a too many requests
 	// exception.
@@ -25578,17 +25666,17 @@ func (s TooManyRequestsException) GoString() string {
 
 func newErrorTooManyRequestsException(v protocol.ResponseMetadata) error {
 	return &TooManyRequestsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TooManyRequestsException) Code() string {
+func (s *TooManyRequestsException) Code() string {
 	return "TooManyRequestsException"
 }
 
 // Message returns the exception's message.
-func (s TooManyRequestsException) Message() string {
+func (s *TooManyRequestsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25596,22 +25684,22 @@ func (s TooManyRequestsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TooManyRequestsException) OrigErr() error {
+func (s *TooManyRequestsException) OrigErr() error {
 	return nil
 }
 
-func (s TooManyRequestsException) Error() string {
+func (s *TooManyRequestsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TooManyRequestsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TooManyRequestsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TooManyRequestsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TooManyRequestsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A container for the UI customization information for a user pool's built-in
@@ -25696,8 +25784,8 @@ func (s *UICustomizationType) SetUserPoolId(v string) *UICustomizationType {
 // This exception is thrown when the Amazon Cognito service encounters an unexpected
 // exception with the AWS Lambda service.
 type UnexpectedLambdaException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns an unexpected
 	// AWS Lambda exception.
@@ -25716,17 +25804,17 @@ func (s UnexpectedLambdaException) GoString() string {
 
 func newErrorUnexpectedLambdaException(v protocol.ResponseMetadata) error {
 	return &UnexpectedLambdaException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnexpectedLambdaException) Code() string {
+func (s *UnexpectedLambdaException) Code() string {
 	return "UnexpectedLambdaException"
 }
 
 // Message returns the exception's message.
-func (s UnexpectedLambdaException) Message() string {
+func (s *UnexpectedLambdaException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25734,28 +25822,28 @@ func (s UnexpectedLambdaException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnexpectedLambdaException) OrigErr() error {
+func (s *UnexpectedLambdaException) OrigErr() error {
 	return nil
 }
 
-func (s UnexpectedLambdaException) Error() string {
+func (s *UnexpectedLambdaException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnexpectedLambdaException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnexpectedLambdaException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnexpectedLambdaException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnexpectedLambdaException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when the specified identifier is not supported.
 type UnsupportedIdentityProviderException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -25772,17 +25860,17 @@ func (s UnsupportedIdentityProviderException) GoString() string {
 
 func newErrorUnsupportedIdentityProviderException(v protocol.ResponseMetadata) error {
 	return &UnsupportedIdentityProviderException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnsupportedIdentityProviderException) Code() string {
+func (s *UnsupportedIdentityProviderException) Code() string {
 	return "UnsupportedIdentityProviderException"
 }
 
 // Message returns the exception's message.
-func (s UnsupportedIdentityProviderException) Message() string {
+func (s *UnsupportedIdentityProviderException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25790,28 +25878,28 @@ func (s UnsupportedIdentityProviderException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnsupportedIdentityProviderException) OrigErr() error {
+func (s *UnsupportedIdentityProviderException) OrigErr() error {
 	return nil
 }
 
-func (s UnsupportedIdentityProviderException) Error() string {
+func (s *UnsupportedIdentityProviderException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnsupportedIdentityProviderException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnsupportedIdentityProviderException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnsupportedIdentityProviderException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnsupportedIdentityProviderException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request failed because the user is in an unsupported state.
 type UnsupportedUserStateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the user is in an unsupported state.
 	Message_ *string `locationName:"message" type:"string"`
@@ -25829,17 +25917,17 @@ func (s UnsupportedUserStateException) GoString() string {
 
 func newErrorUnsupportedUserStateException(v protocol.ResponseMetadata) error {
 	return &UnsupportedUserStateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnsupportedUserStateException) Code() string {
+func (s *UnsupportedUserStateException) Code() string {
 	return "UnsupportedUserStateException"
 }
 
 // Message returns the exception's message.
-func (s UnsupportedUserStateException) Message() string {
+func (s *UnsupportedUserStateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25847,22 +25935,22 @@ func (s UnsupportedUserStateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnsupportedUserStateException) OrigErr() error {
+func (s *UnsupportedUserStateException) OrigErr() error {
 	return nil
 }
 
-func (s UnsupportedUserStateException) Error() string {
+func (s *UnsupportedUserStateException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnsupportedUserStateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnsupportedUserStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnsupportedUserStateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnsupportedUserStateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -26606,22 +26694,35 @@ func (s *UpdateUserAttributesOutput) SetCodeDeliveryDetailsList(v []*CodeDeliver
 type UpdateUserPoolClientInput struct {
 	_ struct{} `type:"structure"`
 
+	// The allowed OAuth flows.
+	//
 	// Set to code to initiate a code grant flow, which provides an authorization
 	// code as the response. This code can be exchanged for access tokens with the
 	// token endpoint.
+	//
+	// Set to implicit to specify that the client should get the access token (and,
+	// optionally, ID token, based on scopes) directly.
+	//
+	// Set to client_credentials to specify that the client should get the access
+	// token (and, optionally, ID token, based on scopes) from the token endpoint
+	// using a combination of client and client_secret.
 	AllowedOAuthFlows []*string `type:"list"`
 
-	// Set to TRUE if the client is allowed to follow the OAuth protocol when interacting
+	// Set to true if the client is allowed to follow the OAuth protocol when interacting
 	// with Cognito user pools.
 	AllowedOAuthFlowsUserPoolClient *bool `type:"boolean"`
 
-	// A list of allowed OAuth scopes. Currently supported values are "phone", "email",
-	// "openid", and "Cognito". In addition to these values, custom scopes created
-	// in Resource Servers are also supported.
+	// The allowed OAuth scopes. Possible values provided by OAuth are: phone, email,
+	// openid, and profile. Possible values provided by AWS are: aws.cognito.signin.user.admin.
+	// Custom scopes created in Resource Servers are also supported.
 	AllowedOAuthScopes []*string `type:"list"`
 
 	// The Amazon Pinpoint analytics configuration for collecting metrics for this
 	// user pool.
+	//
+	// Cognito User Pools only supports sending events to Amazon Pinpoint projects
+	// in the US East (N. Virginia) us-east-1 Region, regardless of the region in
+	// which the user pool resides.
 	AnalyticsConfiguration *AnalyticsConfigurationType `type:"structure"`
 
 	// A list of allowed redirect (callback) URLs for the identity providers.
@@ -26729,7 +26830,7 @@ type UpdateUserPoolClientInput struct {
 	//
 	//    * ResendConfirmationCode
 	//
-	// After January 1st 2020, the value of PreventUserExistenceErrors will default
+	// After February 15th 2020, the value of PreventUserExistenceErrors will default
 	// to ENABLED for newly created user pool clients if no value is provided.
 	PreventUserExistenceErrors *string `type:"string" enum:"PreventUserExistenceErrorTypes"`
 
@@ -27334,8 +27435,8 @@ func (s *UserContextDataType) SetEncodedData(v string) *UserContextDataType {
 // This exception is thrown when you are trying to modify a user pool while
 // a user import job is in progress for that pool.
 type UserImportInProgressException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the user pool has an import job running.
 	Message_ *string `locationName:"message" type:"string"`
@@ -27353,17 +27454,17 @@ func (s UserImportInProgressException) GoString() string {
 
 func newErrorUserImportInProgressException(v protocol.ResponseMetadata) error {
 	return &UserImportInProgressException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserImportInProgressException) Code() string {
+func (s *UserImportInProgressException) Code() string {
 	return "UserImportInProgressException"
 }
 
 // Message returns the exception's message.
-func (s UserImportInProgressException) Message() string {
+func (s *UserImportInProgressException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -27371,22 +27472,22 @@ func (s UserImportInProgressException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserImportInProgressException) OrigErr() error {
+func (s *UserImportInProgressException) OrigErr() error {
 	return nil
 }
 
-func (s UserImportInProgressException) Error() string {
+func (s *UserImportInProgressException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserImportInProgressException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserImportInProgressException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserImportInProgressException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserImportInProgressException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The user import job type.
@@ -27547,8 +27648,8 @@ func (s *UserImportJobType) SetUserPoolId(v string) *UserImportJobType {
 // This exception is thrown when the Amazon Cognito service encounters a user
 // validation exception with the AWS Lambda service.
 type UserLambdaValidationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when the Amazon Cognito service returns a user validation
 	// exception with the AWS Lambda service.
@@ -27567,17 +27668,17 @@ func (s UserLambdaValidationException) GoString() string {
 
 func newErrorUserLambdaValidationException(v protocol.ResponseMetadata) error {
 	return &UserLambdaValidationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserLambdaValidationException) Code() string {
+func (s *UserLambdaValidationException) Code() string {
 	return "UserLambdaValidationException"
 }
 
 // Message returns the exception's message.
-func (s UserLambdaValidationException) Message() string {
+func (s *UserLambdaValidationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -27585,28 +27686,28 @@ func (s UserLambdaValidationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserLambdaValidationException) OrigErr() error {
+func (s *UserLambdaValidationException) OrigErr() error {
 	return nil
 }
 
-func (s UserLambdaValidationException) Error() string {
+func (s *UserLambdaValidationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserLambdaValidationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserLambdaValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserLambdaValidationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserLambdaValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when a user is not confirmed successfully.
 type UserNotConfirmedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when a user is not confirmed successfully.
 	Message_ *string `locationName:"message" type:"string"`
@@ -27624,17 +27725,17 @@ func (s UserNotConfirmedException) GoString() string {
 
 func newErrorUserNotConfirmedException(v protocol.ResponseMetadata) error {
 	return &UserNotConfirmedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserNotConfirmedException) Code() string {
+func (s *UserNotConfirmedException) Code() string {
 	return "UserNotConfirmedException"
 }
 
 // Message returns the exception's message.
-func (s UserNotConfirmedException) Message() string {
+func (s *UserNotConfirmedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -27642,28 +27743,28 @@ func (s UserNotConfirmedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserNotConfirmedException) OrigErr() error {
+func (s *UserNotConfirmedException) OrigErr() error {
 	return nil
 }
 
-func (s UserNotConfirmedException) Error() string {
+func (s *UserNotConfirmedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserNotConfirmedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserNotConfirmedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserNotConfirmedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserNotConfirmedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when a user is not found.
 type UserNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when a user is not found.
 	Message_ *string `locationName:"message" type:"string"`
@@ -27681,17 +27782,17 @@ func (s UserNotFoundException) GoString() string {
 
 func newErrorUserNotFoundException(v protocol.ResponseMetadata) error {
 	return &UserNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserNotFoundException) Code() string {
+func (s *UserNotFoundException) Code() string {
 	return "UserNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s UserNotFoundException) Message() string {
+func (s *UserNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -27699,28 +27800,28 @@ func (s UserNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserNotFoundException) OrigErr() error {
+func (s *UserNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s UserNotFoundException) Error() string {
+func (s *UserNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // This exception is thrown when user pool add-ons are not enabled.
 type UserPoolAddOnNotEnabledException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -27737,17 +27838,17 @@ func (s UserPoolAddOnNotEnabledException) GoString() string {
 
 func newErrorUserPoolAddOnNotEnabledException(v protocol.ResponseMetadata) error {
 	return &UserPoolAddOnNotEnabledException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserPoolAddOnNotEnabledException) Code() string {
+func (s *UserPoolAddOnNotEnabledException) Code() string {
 	return "UserPoolAddOnNotEnabledException"
 }
 
 // Message returns the exception's message.
-func (s UserPoolAddOnNotEnabledException) Message() string {
+func (s *UserPoolAddOnNotEnabledException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -27755,22 +27856,22 @@ func (s UserPoolAddOnNotEnabledException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserPoolAddOnNotEnabledException) OrigErr() error {
+func (s *UserPoolAddOnNotEnabledException) OrigErr() error {
 	return nil
 }
 
-func (s UserPoolAddOnNotEnabledException) Error() string {
+func (s *UserPoolAddOnNotEnabledException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserPoolAddOnNotEnabledException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserPoolAddOnNotEnabledException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserPoolAddOnNotEnabledException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserPoolAddOnNotEnabledException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The user pool add-ons type.
@@ -27859,24 +27960,34 @@ func (s *UserPoolClientDescription) SetUserPoolId(v string) *UserPoolClientDescr
 type UserPoolClientType struct {
 	_ struct{} `type:"structure"`
 
+	// The allowed OAuth flows.
+	//
 	// Set to code to initiate a code grant flow, which provides an authorization
 	// code as the response. This code can be exchanged for access tokens with the
 	// token endpoint.
 	//
-	// Set to token to specify that the client should get the access token (and,
+	// Set to implicit to specify that the client should get the access token (and,
 	// optionally, ID token, based on scopes) directly.
+	//
+	// Set to client_credentials to specify that the client should get the access
+	// token (and, optionally, ID token, based on scopes) from the token endpoint
+	// using a combination of client and client_secret.
 	AllowedOAuthFlows []*string `type:"list"`
 
-	// Set to TRUE if the client is allowed to follow the OAuth protocol when interacting
+	// Set to true if the client is allowed to follow the OAuth protocol when interacting
 	// with Cognito user pools.
 	AllowedOAuthFlowsUserPoolClient *bool `type:"boolean"`
 
-	// A list of allowed OAuth scopes. Currently supported values are "phone", "email",
-	// "openid", and "Cognito". In addition to these values, custom scopes created
-	// in Resource Servers are also supported.
+	// The allowed OAuth scopes. Possible values provided by OAuth are: phone, email,
+	// openid, and profile. Possible values provided by AWS are: aws.cognito.signin.user.admin.
+	// Custom scopes created in Resource Servers are also supported.
 	AllowedOAuthScopes []*string `type:"list"`
 
 	// The Amazon Pinpoint analytics configuration for the user pool client.
+	//
+	// Cognito User Pools only supports sending events to Amazon Pinpoint projects
+	// in the US East (N. Virginia) us-east-1 Region, regardless of the region in
+	// which the user pool resides.
 	AnalyticsConfiguration *AnalyticsConfigurationType `type:"structure"`
 
 	// A list of allowed redirect (callback) URLs for the identity providers.
@@ -27991,7 +28102,7 @@ type UserPoolClientType struct {
 	//
 	//    * ResendConfirmationCode
 	//
-	// After January 1st 2020, the value of PreventUserExistenceErrors will default
+	// After February 15th 2020, the value of PreventUserExistenceErrors will default
 	// to ENABLED for newly created user pool clients if no value is provided.
 	PreventUserExistenceErrors *string `type:"string" enum:"PreventUserExistenceErrorTypes"`
 
@@ -28247,8 +28358,8 @@ func (s *UserPoolPolicyType) SetPasswordPolicy(v *PasswordPolicyType) *UserPoolP
 
 // This exception is thrown when a user pool tag cannot be set or updated.
 type UserPoolTaggingException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -28265,17 +28376,17 @@ func (s UserPoolTaggingException) GoString() string {
 
 func newErrorUserPoolTaggingException(v protocol.ResponseMetadata) error {
 	return &UserPoolTaggingException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserPoolTaggingException) Code() string {
+func (s *UserPoolTaggingException) Code() string {
 	return "UserPoolTaggingException"
 }
 
 // Message returns the exception's message.
-func (s UserPoolTaggingException) Message() string {
+func (s *UserPoolTaggingException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -28283,22 +28394,22 @@ func (s UserPoolTaggingException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserPoolTaggingException) OrigErr() error {
+func (s *UserPoolTaggingException) OrigErr() error {
 	return nil
 }
 
-func (s UserPoolTaggingException) Error() string {
+func (s *UserPoolTaggingException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserPoolTaggingException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserPoolTaggingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserPoolTaggingException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserPoolTaggingException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A container for information about the user pool.
@@ -28413,6 +28524,12 @@ type UserPoolType struct {
 	// Specifies whether email addresses or phone numbers can be specified as usernames
 	// when a user signs up.
 	UsernameAttributes []*string `type:"list"`
+
+	// You can choose to enable case sensitivity on the username input for the selected
+	// sign-in option. For example, when this is set to False, users will be able
+	// to sign in using either "username" or "Username". This configuration is immutable
+	// once it has been set. For more information, see .
+	UsernameConfiguration *UsernameConfigurationType `type:"structure"`
 
 	// The template for verification messages.
 	VerificationMessageTemplate *VerificationMessageTemplateType `type:"structure"`
@@ -28602,6 +28719,12 @@ func (s *UserPoolType) SetUsernameAttributes(v []*string) *UserPoolType {
 	return s
 }
 
+// SetUsernameConfiguration sets the UsernameConfiguration field's value.
+func (s *UserPoolType) SetUsernameConfiguration(v *UsernameConfigurationType) *UserPoolType {
+	s.UsernameConfiguration = v
+	return s
+}
+
 // SetVerificationMessageTemplate sets the VerificationMessageTemplate field's value.
 func (s *UserPoolType) SetVerificationMessageTemplate(v *VerificationMessageTemplateType) *UserPoolType {
 	s.VerificationMessageTemplate = v
@@ -28703,11 +28826,62 @@ func (s *UserType) SetUsername(v string) *UserType {
 	return s
 }
 
+// The username configuration type.
+type UsernameConfigurationType struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether username case sensitivity will be applied for all users
+	// in the user pool through Cognito APIs.
+	//
+	// Valid values include:
+	//
+	//    * True : Enables case sensitivity for all username input. When this option
+	//    is set to True, users must sign in using the exact capitalization of their
+	//    given username. For example, “UserName”. This is the default value.
+	//
+	//    * False : Enables case insensitivity for all username input. For example,
+	//    when this option is set to False, users will be able to sign in using
+	//    either "username" or "Username". This option also enables both preferred_username
+	//    and email alias to be case insensitive, in addition to the username attribute.
+	//
+	// CaseSensitive is a required field
+	CaseSensitive *bool `type:"boolean" required:"true"`
+}
+
+// String returns the string representation
+func (s UsernameConfigurationType) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UsernameConfigurationType) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UsernameConfigurationType) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UsernameConfigurationType"}
+	if s.CaseSensitive == nil {
+		invalidParams.Add(request.NewErrParamRequired("CaseSensitive"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCaseSensitive sets the CaseSensitive field's value.
+func (s *UsernameConfigurationType) SetCaseSensitive(v bool) *UsernameConfigurationType {
+	s.CaseSensitive = &v
+	return s
+}
+
 // This exception is thrown when Amazon Cognito encounters a user name that
 // already exists in the user pool.
 type UsernameExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message returned when Amazon Cognito throws a user name exists exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -28725,17 +28899,17 @@ func (s UsernameExistsException) GoString() string {
 
 func newErrorUsernameExistsException(v protocol.ResponseMetadata) error {
 	return &UsernameExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UsernameExistsException) Code() string {
+func (s *UsernameExistsException) Code() string {
 	return "UsernameExistsException"
 }
 
 // Message returns the exception's message.
-func (s UsernameExistsException) Message() string {
+func (s *UsernameExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -28743,22 +28917,22 @@ func (s UsernameExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UsernameExistsException) OrigErr() error {
+func (s *UsernameExistsException) OrigErr() error {
 	return nil
 }
 
-func (s UsernameExistsException) Error() string {
+func (s *UsernameExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UsernameExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UsernameExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UsernameExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UsernameExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The template for verification messages.

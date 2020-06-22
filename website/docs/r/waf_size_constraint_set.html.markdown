@@ -44,7 +44,7 @@ The following arguments are supported:
 * `field_to_match` - (Required) Specifies where in a web request to look for the size constraint.
 * `comparison_operator` - (Required) The type of comparison you want to perform.
   e.g. `EQ`, `NE`, `LT`, `GT`.
-  See [docs](http://docs.aws.amazon.com/waf/latest/APIReference/API_SizeConstraint.html#WAF-Type-SizeConstraint-ComparisonOperator) for all supported values.
+  See [docs](https://docs.aws.amazon.com/waf/latest/APIReference/API_wafRegional_SizeConstraint.html) for all supported values.
 * `size` - (Required) The size in bytes that you want to compare against the size of the specified `field_to_match`.
   Valid values are between 0 - 21474836480 bytes (0 - 20 GB).
 * `text_transformation` - (Required) Text transformations used to eliminate unusual formatting that attackers use in web requests in an effort to bypass AWS WAF.

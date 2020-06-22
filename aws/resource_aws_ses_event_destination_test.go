@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,17 +12,13 @@ import (
 )
 
 func TestAccAWSSESEventDestination_basic(t *testing.T) {
-	rString := acctest.RandString(8)
-
-	bucketName := fmt.Sprintf("tf-acc-bucket-ses-event-dst-%s", rString)
-	roleName := fmt.Sprintf("tf_acc_role_ses_event_dst_%s", rString)
-	streamName := fmt.Sprintf("tf_acc_stream_ses_event_dst_%s", rString)
-	policyName := fmt.Sprintf("tf_acc_policy_ses_event_dst_%s", rString)
-	topicName := fmt.Sprintf("tf_acc_topic_ses_event_dst_%s", rString)
-	sesCfgSetName := fmt.Sprintf("tf_acc_cfg_ses_event_dst_%s", rString)
-	sesEventDstNameKinesis := fmt.Sprintf("tf_acc_event_dst_kinesis_%s", rString)
-	sesEventDstNameCw := fmt.Sprintf("tf_acc_event_dst_cloudwatch_%s", rString)
-	sesEventDstNameSns := fmt.Sprintf("tf_acc_event_dst_sns_%s", rString)
+	rName1 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
+	rName3 := acctest.RandomWithPrefix("tf-acc-test")
+	cloudwatchDestinationResourceName := "aws_ses_event_destination.cloudwatch"
+	kinesisDestinationResourceName := "aws_ses_event_destination.kinesis"
+	snsDestinationResourceName := "aws_ses_event_destination.sns"
+	var v1, v2, v3 ses.EventDestination
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -32,24 +29,73 @@ func TestAccAWSSESEventDestination_basic(t *testing.T) {
 		CheckDestroy: testAccCheckSESEventDestinationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSESEventDestinationConfig(bucketName, roleName, streamName, policyName, topicName,
-					sesCfgSetName, sesEventDstNameKinesis, sesEventDstNameCw, sesEventDstNameSns),
+				Config: testAccAWSSESEventDestinationConfig(rName1, rName2, rName3),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsSESEventDestinationExists("aws_ses_configuration_set.test"),
-					resource.TestCheckResourceAttr(
-						"aws_ses_event_destination.kinesis", "name", sesEventDstNameKinesis),
-					resource.TestCheckResourceAttr(
-						"aws_ses_event_destination.cloudwatch", "name", sesEventDstNameCw),
-					resource.TestCheckResourceAttr(
-						"aws_ses_event_destination.sns", "name", sesEventDstNameSns),
+					testAccCheckAwsSESEventDestinationExists(cloudwatchDestinationResourceName, &v1),
+					testAccCheckAwsSESEventDestinationExists(kinesisDestinationResourceName, &v2),
+					testAccCheckAwsSESEventDestinationExists(snsDestinationResourceName, &v3),
+					resource.TestCheckResourceAttr(cloudwatchDestinationResourceName, "name", rName1),
+					resource.TestCheckResourceAttr(kinesisDestinationResourceName, "name", rName2),
+					resource.TestCheckResourceAttr(snsDestinationResourceName, "name", rName3),
 				),
+			},
+			{
+				ResourceName:      cloudwatchDestinationResourceName,
+				ImportStateId:     fmt.Sprintf("%s/%s", rName1, rName1),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      kinesisDestinationResourceName,
+				ImportStateId:     fmt.Sprintf("%s/%s", rName1, rName2),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      snsDestinationResourceName,
+				ImportStateId:     fmt.Sprintf("%s/%s", rName1, rName3),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSESEventDestination_disappears(t *testing.T) {
+	rName1 := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
+	rName3 := acctest.RandomWithPrefix("tf-acc-test")
+	cloudwatchDestinationResourceName := "aws_ses_event_destination.cloudwatch"
+	kinesisDestinationResourceName := "aws_ses_event_destination.kinesis"
+	snsDestinationResourceName := "aws_ses_event_destination.sns"
+	var v1, v2, v3 ses.EventDestination
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSSES(t)
+		},
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSESEventDestinationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSESEventDestinationConfig(rName1, rName2, rName3),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESEventDestinationExists(cloudwatchDestinationResourceName, &v1),
+					testAccCheckAwsSESEventDestinationExists(kinesisDestinationResourceName, &v2),
+					testAccCheckAwsSESEventDestinationExists(snsDestinationResourceName, &v3),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesEventDestination(), cloudwatchDestinationResourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesEventDestination(), kinesisDestinationResourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesEventDestination(), snsDestinationResourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func testAccCheckSESEventDestinationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).sesConn
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_ses_configuration_set" {
@@ -78,7 +124,7 @@ func testAccCheckSESEventDestinationDestroy(s *terraform.State) error {
 
 }
 
-func testAccCheckAwsSESEventDestinationExists(n string) resource.TestCheckFunc {
+func testAccCheckAwsSESEventDestinationExists(n string, v *ses.EventDestination) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -89,38 +135,36 @@ func testAccCheckAwsSESEventDestinationExists(n string) resource.TestCheckFunc {
 			return fmt.Errorf("SES event destination ID not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).sesConn
+		conn := testAccProvider.Meta().(*AWSClient).sesconn
 
-		response, err := conn.ListConfigurationSets(&ses.ListConfigurationSetsInput{})
+		response, err := conn.DescribeConfigurationSet(&ses.DescribeConfigurationSetInput{
+			ConfigurationSetAttributeNames: aws.StringSlice([]string{ses.ConfigurationSetAttributeEventDestinations}),
+			ConfigurationSetName:           aws.String(rs.Primary.Attributes["configuration_set_name"]),
+		})
 		if err != nil {
 			return err
 		}
 
-		found := false
-		for _, element := range response.ConfigurationSets {
-			if *element.Name == rs.Primary.ID {
-				found = true
+		for _, eventDestination := range response.EventDestinations {
+			if aws.StringValue(eventDestination.Name) == rs.Primary.ID {
+				*v = *eventDestination
+				return nil
 			}
 		}
 
-		if !found {
-			return fmt.Errorf("The configuration set was not created")
-		}
-
-		return nil
+		return fmt.Errorf("The SES Configuration Set Event Destination was not found")
 	}
 }
 
-func testAccAWSSESEventDestinationConfig(bucketName, roleName, streamName, policyName, topicName,
-	sesCfgSetName, sesEventDstNameKinesis, sesEventDstNameCw, sesEventDstNameSns string) string {
+func testAccAWSSESEventDestinationConfig(rName1, rName2, rName3 string) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = "%s"
+resource "aws_s3_bucket" "test" {
+  bucket = %[2]q
   acl    = "private"
 }
 
-resource "aws_iam_role" "firehose_role" {
-  name = "%s"
+resource "aws_iam_role" "test" {
+  name = %[2]q
 
   assume_role_policy = <<EOF
 {
@@ -146,23 +190,23 @@ resource "aws_iam_role" "firehose_role" {
 EOF
 }
 
-resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
-  name        = "%s"
+resource "aws_kinesis_firehose_delivery_stream" "test" {
+  name        = %[2]q
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn = "${aws_s3_bucket.bucket.arn}"
+    role_arn   = "${aws_iam_role.test.arn}"
+    bucket_arn = "${aws_s3_bucket.test.arn}"
   }
 }
 
-resource "aws_iam_role_policy" "firehose_delivery_policy" {
-  name   = "%s"
-  role   = "${aws_iam_role.firehose_role.id}"
-  policy = "${data.aws_iam_policy_document.fh_felivery_document.json}"
+resource "aws_iam_role_policy" "test" {
+  name   = %[2]q
+  role   = "${aws_iam_role.test.id}"
+  policy = "${data.aws_iam_policy_document.test.json}"
 }
 
-data "aws_iam_policy_document" "fh_felivery_document" {
+data "aws_iam_policy_document" "test" {
   statement {
     sid = "GiveSESPermissionToPutFirehose"
 
@@ -177,28 +221,28 @@ data "aws_iam_policy_document" "fh_felivery_document" {
   }
 }
 
-resource "aws_sns_topic" "ses_destination" {
-  name = "%s"
+resource "aws_sns_topic" "test" {
+  name = %[3]q
 }
 
 resource "aws_ses_configuration_set" "test" {
-  name = "%s"
+  name = %[1]q
 }
 
 resource "aws_ses_event_destination" "kinesis" {
-  name                   = "%s"
+  name                   = %[2]q
   configuration_set_name = "${aws_ses_configuration_set.test.name}"
   enabled                = true
   matching_types         = ["bounce", "send"]
 
   kinesis_destination {
-    stream_arn = "${aws_kinesis_firehose_delivery_stream.test_stream.arn}"
-    role_arn   = "${aws_iam_role.firehose_role.arn}"
+    stream_arn = "${aws_kinesis_firehose_delivery_stream.test.arn}"
+    role_arn   = "${aws_iam_role.test.arn}"
   }
 }
 
 resource "aws_ses_event_destination" "cloudwatch" {
-  name                   = "%s"
+  name                   = %[1]q
   configuration_set_name = "${aws_ses_configuration_set.test.name}"
   enabled                = true
   matching_types         = ["bounce", "send"]
@@ -217,15 +261,14 @@ resource "aws_ses_event_destination" "cloudwatch" {
 }
 
 resource "aws_ses_event_destination" "sns" {
-  name                   = "%s"
+  name                   = %[3]q
   configuration_set_name = "${aws_ses_configuration_set.test.name}"
   enabled                = true
   matching_types         = ["bounce", "send"]
 
   sns_destination {
-    topic_arn = "${aws_sns_topic.ses_destination.arn}"
+    topic_arn = "${aws_sns_topic.test.arn}"
   }
 }
-`, bucketName, roleName, streamName, policyName, topicName,
-		sesCfgSetName, sesEventDstNameKinesis, sesEventDstNameCw, sesEventDstNameSns)
+`, rName1, rName2, rName3)
 }

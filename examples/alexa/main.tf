@@ -13,7 +13,7 @@ resource "aws_lambda_permission" "default" {
 
 resource "aws_lambda_function" "default" {
   filename         = "lambda_function.zip"
-  source_code_hash = "${base64sha256(file("lambda_function.zip"))}"
+  source_code_hash = "${filebase64sha256("lambda_function.zip")}"
   function_name    = "terraform_lambda_alexa_example"
   role             = "${aws_iam_role.default.arn}"
   handler          = "lambda_function.lambda_handler"

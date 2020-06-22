@@ -155,6 +155,28 @@ func TestAccDataSourceAWSLambdaFunction_environment(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSLambdaFunction_fileSystemConfig(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_lambda_function.test"
+	resourceName := "aws_lambda_function.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAWSLambdaFunctionConfigFileSystemConfigs(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.#", resourceName, "file_system_config.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.0.arn", resourceName, "file_system_config.0.arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.0.local_mount_path", resourceName, "file_system_config.0.local_mount_path"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAWSLambdaFunctionConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "lambda" {
@@ -368,6 +390,101 @@ resource "aws_lambda_function" "test" {
       key2 = "value2"
     }
   }
+}
+
+data "aws_lambda_function" "test" {
+  function_name = "${aws_lambda_function.test.function_name}"
+}
+`, rName)
+}
+
+func testAccDataSourceAWSLambdaFunctionConfigFileSystemConfigs(rName string) string {
+	return testAccDataSourceAWSLambdaFunctionConfigBase(rName) + fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+	Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  vpc_id     = "${aws_vpc.test.id}"
+  cidr_block = "10.0.1.0/24"
+
+  tags = {
+	Name = %[1]q
+  }
+}
+
+resource "aws_security_group" "test" {
+  name        = %[1]q
+  description = "Terraform Acceptance Testing"
+  vpc_id      = "${aws_vpc.test.id}"
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_efs_file_system" "efs_for_lambda" {
+	tags = {
+    	Name = "efs_for_lambda"
+  	}
+}
+
+resource "aws_efs_mount_target" "alpha" {
+	file_system_id = "${aws_efs_file_system.efs_for_lambda.id}"
+	subnet_id      = "${aws_subnet.test.id}"
+}
+
+resource "aws_efs_access_point" "access_point_1" {
+	file_system_id = "${aws_efs_file_system.efs_for_lambda.id}"
+
+	root_directory {
+		path = "/lambda"
+		creation_info {
+			owner_gid   = 1000
+			owner_uid   = 1000
+			permissions = "777"
+		}
+	}
+	
+	posix_user {
+		gid = 1000
+		uid = 1000
+	}
+}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = %[1]q
+  handler       = "lambdatest.handler"
+  role          = "${aws_iam_role.lambda.arn}"
+  runtime       = "nodejs12.x"
+
+  vpc_config {
+   security_group_ids = ["${aws_security_group.test.id}"]
+   subnet_ids         = ["${aws_subnet.test.id}"]
+  }
+
+	
+  file_system_config {
+	arn = "${aws_efs_access_point.access_point_1.arn}"
+	local_mount_path = "/mnt/lambda"
+  }
+
+  depends_on = [aws_efs_mount_target.alpha]
 }
 
 data "aws_lambda_function" "test" {

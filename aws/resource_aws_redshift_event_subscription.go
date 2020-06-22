@@ -108,6 +108,7 @@ func resourceAwsRedshiftEventSubscriptionCreate(d *schema.ResourceData, meta int
 
 func resourceAwsRedshiftEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -156,7 +157,7 @@ func resourceAwsRedshiftEventSubscriptionRead(d *schema.ResourceData, meta inter
 	if err := d.Set("customer_aws_id", sub.CustomerAwsId); err != nil {
 		return err
 	}
-	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(sub.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(sub.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -188,8 +189,6 @@ func resourceAwsRedshiftEventSubscriptionRetrieve(name string, conn *redshift.Re
 func resourceAwsRedshiftEventSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
-	d.Partial(true)
-
 	req := &redshift.ModifyEventSubscriptionInput{
 		SubscriptionName: aws.String(d.Id()),
 		SnsTopicArn:      aws.String(d.Get("sns_topic_arn").(string)),
@@ -212,11 +211,7 @@ func resourceAwsRedshiftEventSubscriptionUpdate(d *schema.ResourceData, meta int
 		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Redshift Event Subscription (%s) tags: %s", d.Get("arn").(string), err)
 		}
-
-		d.SetPartial("tags")
 	}
-
-	d.Partial(false)
 
 	return nil
 }

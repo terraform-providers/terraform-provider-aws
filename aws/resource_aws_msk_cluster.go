@@ -189,7 +189,6 @@ func resourceAwsMskCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  kafka.EnhancedMonitoringDefault,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					kafka.EnhancedMonitoringDefault,
 					kafka.EnhancedMonitoringPerBroker,
@@ -205,7 +204,130 @@ func resourceAwsMskCluster() *schema.Resource {
 			"number_of_broker_nodes": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
+			},
+			"open_monitoring": {
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				MaxItems:         1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"prometheus": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"jmx_exporter": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled_in_broker": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+											},
+										},
+									},
+									"node_exporter": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled_in_broker": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"logging_info": {
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+				MaxItems:         1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"broker_logs": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cloudwatch_logs": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+												"log_group": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"firehose": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+												"delivery_stream": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"s3": {
+										Type:             schema.TypeList,
+										Optional:         true,
+										DiffSuppressFunc: suppressMissingOptionalConfigurationBlock,
+										MaxItems:         1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"enabled": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+												"bucket": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"prefix": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			"tags": tagsSchema(),
 			"zookeeper_connect_string": {
@@ -228,6 +350,8 @@ func resourceAwsMskClusterCreate(d *schema.ResourceData, meta interface{}) error
 		EnhancedMonitoring:   aws.String(d.Get("enhanced_monitoring").(string)),
 		KafkaVersion:         aws.String(d.Get("kafka_version").(string)),
 		NumberOfBrokerNodes:  aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
+		OpenMonitoring:       expandMskOpenMonitoring(d.Get("open_monitoring").([]interface{})),
+		LoggingInfo:          expandMskLoggingInfo(d.Get("logging_info").([]interface{})),
 		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().KafkaTags(),
 	}
 
@@ -289,6 +413,7 @@ func waitForMskClusterCreation(conn *kafka.Kafka, arn string) error {
 
 func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kafkaconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	out, err := conn.DescribeCluster(&kafka.DescribeClusterInput{
 		ClusterArn: aws.String(d.Id()),
@@ -339,8 +464,16 @@ func resourceAwsMskClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("kafka_version", aws.StringValue(cluster.CurrentBrokerSoftwareInfo.KafkaVersion))
 	d.Set("number_of_broker_nodes", aws.Int64Value(cluster.NumberOfBrokerNodes))
 
-	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.KafkaKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
+	}
+
+	if err := d.Set("open_monitoring", flattenMskOpenMonitoring(cluster.OpenMonitoring)); err != nil {
+		return fmt.Errorf("error setting open_monitoring: %s", err)
+	}
+
+	if err := d.Set("logging_info", flattenMskLoggingInfo(cluster.LoggingInfo)); err != nil {
+		return fmt.Errorf("error setting logging_info: %s", err)
 	}
 
 	d.Set("zookeeper_connect_string", aws.StringValue(cluster.ZookeeperConnectString))
@@ -371,6 +504,56 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if output == nil {
 			return fmt.Errorf("error updating MSK Cluster (%s) broker storage: empty response", d.Id())
+		}
+
+		clusterOperationARN := aws.StringValue(output.ClusterOperationArn)
+
+		if err := waitForMskClusterOperation(conn, clusterOperationARN); err != nil {
+			return fmt.Errorf("error waiting for MSK Cluster (%s) operation (%s): %s", d.Id(), clusterOperationARN, err)
+		}
+	}
+
+	if d.HasChange("number_of_broker_nodes") {
+		input := &kafka.UpdateBrokerCountInput{
+			ClusterArn:                aws.String(d.Id()),
+			CurrentVersion:            aws.String(d.Get("current_version").(string)),
+			TargetNumberOfBrokerNodes: aws.Int64(int64(d.Get("number_of_broker_nodes").(int))),
+		}
+
+		output, err := conn.UpdateBrokerCount(input)
+
+		if err != nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) broker count: %s", d.Id(), err)
+		}
+
+		if output == nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) broker count: empty response", d.Id())
+		}
+
+		clusterOperationARN := aws.StringValue(output.ClusterOperationArn)
+
+		if err := waitForMskClusterOperation(conn, clusterOperationARN); err != nil {
+			return fmt.Errorf("error waiting for MSK Cluster (%s) operation (%s): %s", d.Id(), clusterOperationARN, err)
+		}
+	}
+
+	if d.HasChanges("enhanced_monitoring", "open_monitoring", "logging_info") {
+		input := &kafka.UpdateMonitoringInput{
+			ClusterArn:         aws.String(d.Id()),
+			CurrentVersion:     aws.String(d.Get("current_version").(string)),
+			EnhancedMonitoring: aws.String(d.Get("enhanced_monitoring").(string)),
+			OpenMonitoring:     expandMskOpenMonitoring(d.Get("open_monitoring").([]interface{})),
+			LoggingInfo:        expandMskLoggingInfo(d.Get("logging_info").([]interface{})),
+		}
+
+		output, err := conn.UpdateMonitoring(input)
+
+		if err != nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) monitoring: %s", d.Id(), err)
+		}
+
+		if output == nil {
+			return fmt.Errorf("error updating MSK Cluster (%s) monitoring: empty response", d.Id())
 		}
 
 		clusterOperationARN := aws.StringValue(output.ClusterOperationArn)
@@ -516,6 +699,139 @@ func expandMskClusterTls(l []interface{}) *kafka.Tls {
 	return tls
 }
 
+func expandMskOpenMonitoring(l []interface{}) *kafka.OpenMonitoringInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	openMonitoring := &kafka.OpenMonitoringInfo{
+		Prometheus: expandMskOpenMonitoringPrometheus(m["prometheus"].([]interface{})),
+	}
+
+	return openMonitoring
+}
+
+func expandMskOpenMonitoringPrometheus(l []interface{}) *kafka.PrometheusInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	prometheus := &kafka.PrometheusInfo{
+		JmxExporter:  expandMskOpenMonitoringPrometheusJmxExporter(m["jmx_exporter"].([]interface{})),
+		NodeExporter: expandMskOpenMonitoringPrometheusNodeExporter(m["node_exporter"].([]interface{})),
+	}
+
+	return prometheus
+}
+
+func expandMskOpenMonitoringPrometheusJmxExporter(l []interface{}) *kafka.JmxExporterInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	jmxExporter := &kafka.JmxExporterInfo{
+		EnabledInBroker: aws.Bool(m["enabled_in_broker"].(bool)),
+	}
+
+	return jmxExporter
+}
+
+func expandMskOpenMonitoringPrometheusNodeExporter(l []interface{}) *kafka.NodeExporterInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	nodeExporter := &kafka.NodeExporterInfo{
+		EnabledInBroker: aws.Bool(m["enabled_in_broker"].(bool)),
+	}
+
+	return nodeExporter
+}
+
+func expandMskLoggingInfo(l []interface{}) *kafka.LoggingInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	loggingInfo := &kafka.LoggingInfo{
+		BrokerLogs: expandMskLoggingInfoBrokerLogs(m["broker_logs"].([]interface{})),
+	}
+
+	return loggingInfo
+}
+
+func expandMskLoggingInfoBrokerLogs(l []interface{}) *kafka.BrokerLogs {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	brokerLogs := &kafka.BrokerLogs{
+		CloudWatchLogs: expandMskLoggingInfoBrokerLogsCloudWatchLogs(m["cloudwatch_logs"].([]interface{})),
+		Firehose:       expandMskLoggingInfoBrokerLogsFirehose(m["firehose"].([]interface{})),
+		S3:             expandMskLoggingInfoBrokerLogsS3(m["s3"].([]interface{})),
+	}
+
+	return brokerLogs
+}
+
+func expandMskLoggingInfoBrokerLogsCloudWatchLogs(l []interface{}) *kafka.CloudWatchLogs {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	cloudWatchLogs := &kafka.CloudWatchLogs{
+		Enabled:  aws.Bool(m["enabled"].(bool)),
+		LogGroup: aws.String(m["log_group"].(string)),
+	}
+
+	return cloudWatchLogs
+}
+
+func expandMskLoggingInfoBrokerLogsFirehose(l []interface{}) *kafka.Firehose {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	firehose := &kafka.Firehose{
+		Enabled:        aws.Bool(m["enabled"].(bool)),
+		DeliveryStream: aws.String(m["delivery_stream"].(string)),
+	}
+
+	return firehose
+}
+
+func expandMskLoggingInfoBrokerLogsS3(l []interface{}) *kafka.S3 {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	s3 := &kafka.S3{
+		Enabled: aws.Bool(m["enabled"].(bool)),
+		Bucket:  aws.String(m["bucket"].(string)),
+		Prefix:  aws.String(m["prefix"].(string)),
+	}
+
+	return s3
+}
+
 func flattenMskBrokerNodeGroupInfo(b *kafka.BrokerNodeGroupInfo) []map[string]interface{} {
 
 	if b == nil {
@@ -594,6 +910,121 @@ func flattenMskTls(tls *kafka.Tls) []map[string]interface{} {
 
 	m := map[string]interface{}{
 		"certificate_authority_arns": aws.StringValueSlice(tls.CertificateAuthorityArnList),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoring(e *kafka.OpenMonitoring) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"prometheus": flattenMskOpenMonitoringPrometheus(e.Prometheus),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheus(e *kafka.Prometheus) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"jmx_exporter":  flattenMskOpenMonitoringPrometheusJmxExporter(e.JmxExporter),
+		"node_exporter": flattenMskOpenMonitoringPrometheusNodeExporter(e.NodeExporter),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheusJmxExporter(e *kafka.JmxExporter) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled_in_broker": aws.BoolValue(e.EnabledInBroker),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskOpenMonitoringPrometheusNodeExporter(e *kafka.NodeExporter) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled_in_broker": aws.BoolValue(e.EnabledInBroker),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskLoggingInfo(e *kafka.LoggingInfo) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"broker_logs": flattenMskLoggingInfoBrokerLogs(e.BrokerLogs),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskLoggingInfoBrokerLogs(e *kafka.BrokerLogs) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"cloudwatch_logs": flattenMskLoggingInfoBrokerLogsCloudWatchLogs(e.CloudWatchLogs),
+		"firehose":        flattenMskLoggingInfoBrokerLogsFirehose(e.Firehose),
+		"s3":              flattenMskLoggingInfoBrokerLogsS3(e.S3),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskLoggingInfoBrokerLogsCloudWatchLogs(e *kafka.CloudWatchLogs) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled":   aws.BoolValue(e.Enabled),
+		"log_group": aws.StringValue(e.LogGroup),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskLoggingInfoBrokerLogsFirehose(e *kafka.Firehose) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled":         aws.BoolValue(e.Enabled),
+		"delivery_stream": aws.StringValue(e.DeliveryStream),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenMskLoggingInfoBrokerLogsS3(e *kafka.S3) []map[string]interface{} {
+	if e == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"enabled": aws.BoolValue(e.Enabled),
+		"bucket":  aws.StringValue(e.Bucket),
+		"prefix":  aws.StringValue(e.Prefix),
 	}
 
 	return []map[string]interface{}{m}

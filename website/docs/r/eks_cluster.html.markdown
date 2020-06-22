@@ -45,7 +45,7 @@ output "kubeconfig-certificate-authority-data" {
 ```hcl
 resource "aws_iam_role" "example" {
   name = "eks-cluster-example"
-  
+
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -153,8 +153,22 @@ The following arguments are supported:
 * `role_arn` - (Required) The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf. Ensure the resource configuration includes explicit dependencies on the IAM Role permissions by adding [`depends_on`](/docs/configuration/resources.html#depends_on-explicit-resource-dependencies) if using the [`aws_iam_role_policy` resource](/docs/providers/aws/r/iam_role_policy.html) or [`aws_iam_role_policy_attachment` resource](/docs/providers/aws/r/iam_role_policy_attachment.html), otherwise EKS cannot delete EKS managed EC2 infrastructure such as Security Groups on EKS Cluster deletion.
 * `vpc_config` - (Required) Nested argument for the VPC associated with your cluster. Amazon EKS VPC resources have specific requirements to work properly with Kubernetes. For more information, see [Cluster VPC Considerations](https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html) and [Cluster Security Group Considerations](https://docs.aws.amazon.com/eks/latest/userguide/sec-group-reqs.html) in the Amazon EKS User Guide. Configuration detailed below.
 * `enabled_cluster_log_types` - (Optional) A list of the desired control plane logging to enable. For more information, see [Amazon EKS Control Plane Logging](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html)
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `encryption_config` - (Optional) Configuration block with encryption configuration for the cluster. Only available on Kubernetes 1.13 and above clusters created after March 6, 2020. Detailed below.
+* `tags` - (Optional) Key-value map of resource tags.
 * `version` – (Optional) Desired Kubernetes master version. If you do not specify a value, the latest available version at resource creation is used and no upgrades will occur except those automatically triggered by EKS. The value must be configured and increased to upgrade the version when desired. Downgrades are not supported by EKS.
+
+### encryption_config
+
+The following arguments are supported in the `encryption_config` configuration block:
+
+* `provider` - (Required) Configuration block with provider for encryption. Detailed below.
+* `resources` - (Required) List of strings with resources to be encrypted. Valid values: `secrets`
+
+#### provider
+
+The following arguments are supported in the `provider` configuration block:
+
+* `key_arn` - (Required) Amazon Resource Name (ARN) of the Key Management Service (KMS) customer master key (CMK). The CMK must be symmetric, created in the same region as the cluster, and if the CMK was created in a different account, the user must have access to the CMK. For more information, see [Allowing Users in Other Accounts to Use a CMK in the AWS Key Management Service Developer Guide](https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html).
 
 ### vpc_config
 
@@ -171,17 +185,17 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The name of the cluster.
 * `arn` - The Amazon Resource Name (ARN) of the cluster.
 * `certificate_authority` - Nested attribute containing `certificate-authority-data` for your cluster.
-  * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
+    * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
 * `endpoint` - The endpoint for your Kubernetes API server.
 * `identity` - Nested attribute containing identity provider information for your cluster. Only available on Kubernetes version 1.13 and 1.14 clusters created or upgraded on or after September 3, 2019.
-  * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
-    * `issuer` - Issuer URL for the OpenID Connect identity provider.
+    * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
+        * `issuer` - Issuer URL for the OpenID Connect identity provider.
 * `platform_version` - The platform version for the cluster.
 * `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`. 
 * `version` - The Kubernetes server version for the cluster.
 * `vpc_config` - Additional nested attributes:
-  * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
-  * `vpc_id` - The VPC associated with your cluster.
+    * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
+    * `vpc_id` - The VPC associated with your cluster.
 
 ## Timeouts
 

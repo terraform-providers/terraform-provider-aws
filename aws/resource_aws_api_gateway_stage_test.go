@@ -77,11 +77,37 @@ func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/12756
+func TestAccAWSAPIGatewayStage_disappears_ReferencingDeployment(t *testing.T) {
+	var stage apigateway.Stage
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_stage.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayStageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayStageConfigReferencingDeployment(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayStageExists(resourceName, &stage),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayStageImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 	var conf apigateway.Stage
 	rName := acctest.RandString(5)
 	resourceName := "aws_api_gateway_stage.test"
-	logGroupArnRegex := regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:logs:[^:]+:[^:]+:log-group:foo-bar-%s$", rName))
 	clf := `$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId`
 	json := `{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod", "resourcePath":"$context.resourcePath", "status":"$context.status", "protocol":"$context.protocol", "responseLength":"$context.responseLength" }`
 	xml := `<request id="$context.requestId"> <ip>$context.identity.sourceIp</ip> <caller>$context.identity.caller</caller> <user>$context.identity.user</user> <requestTime>$context.requestTime</requestTime> <httpMethod>$context.httpMethod</httpMethod> <resourcePath>$context.resourcePath</resourcePath> <status>$context.status</status> <protocol>$context.protocol</protocol> <responseLength>$context.responseLength</responseLength> </request>`
@@ -98,7 +124,7 @@ func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 					testAccCheckAWSAPIGatewayStageExists(resourceName, &conf),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/.+/stages/prod`)),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "access_log_settings.0.destination_arn", logGroupArnRegex),
+					testAccMatchResourceAttrRegionalARN(resourceName, "access_log_settings.0.destination_arn", "logs", regexp.MustCompile(fmt.Sprintf("log-group:foo-bar-%s$", rName))),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.0.format", clf),
 				),
 			},
@@ -109,7 +135,7 @@ func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 					testAccCheckAWSAPIGatewayStageExists(resourceName, &conf),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/.+/stages/prod`)),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "access_log_settings.0.destination_arn", logGroupArnRegex),
+					testAccMatchResourceAttrRegionalARN(resourceName, "access_log_settings.0.destination_arn", "logs", regexp.MustCompile(fmt.Sprintf("log-group:foo-bar-%s$", rName))),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.0.format", json),
 				),
 			},
@@ -119,7 +145,7 @@ func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 					testAccCheckAWSAPIGatewayStageExists(resourceName, &conf),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/.+/stages/prod`)),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "access_log_settings.0.destination_arn", logGroupArnRegex),
+					testAccMatchResourceAttrRegionalARN(resourceName, "access_log_settings.0.destination_arn", "logs", regexp.MustCompile(fmt.Sprintf("log-group:foo-bar-%s$", rName))),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.0.format", xml),
 				),
 			},
@@ -129,7 +155,7 @@ func TestAccAWSAPIGatewayStage_accessLogSettings(t *testing.T) {
 					testAccCheckAWSAPIGatewayStageExists(resourceName, &conf),
 					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/.+/stages/prod`)),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "access_log_settings.0.destination_arn", logGroupArnRegex),
+					testAccMatchResourceAttrRegionalARN(resourceName, "access_log_settings.0.destination_arn", "logs", regexp.MustCompile(fmt.Sprintf("log-group:foo-bar-%s$", rName))),
 					resource.TestCheckResourceAttr(resourceName, "access_log_settings.0.format", csv),
 				),
 			},
@@ -222,7 +248,7 @@ func testAccCheckAWSAPIGatewayStageExists(n string, res *apigateway.Stage) resou
 			return fmt.Errorf("No API Gateway Stage ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetStageInput{
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
@@ -240,7 +266,7 @@ func testAccCheckAWSAPIGatewayStageExists(n string, res *apigateway.Stage) resou
 }
 
 func testAccCheckAWSAPIGatewayStageDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_stage" {
@@ -336,6 +362,82 @@ resource "aws_api_gateway_deployment" "dev" {
   }
 }
 `, rName)
+}
+
+func testAccAWSAPIGatewayStageConfigBaseDeploymentStageName(rName string, stageName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+}
+
+resource "aws_api_gateway_resource" "test" {
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
+  path_part   = "test"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+}
+
+resource "aws_api_gateway_method" "test" {
+  authorization = "NONE"
+  http_method   = "GET"
+  resource_id   = aws_api_gateway_resource.test.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+}
+
+resource "aws_api_gateway_method_response" "error" {
+  http_method = aws_api_gateway_method.test.http_method
+  resource_id = aws_api_gateway_resource.test.id
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  status_code = "400"
+}
+
+resource "aws_api_gateway_integration" "test" {
+  http_method             = aws_api_gateway_method.test.http_method
+  integration_http_method = "GET"
+  resource_id             = aws_api_gateway_resource.test.id
+  rest_api_id             = aws_api_gateway_rest_api.test.id
+  type                    = "HTTP"
+  uri                     = "https://www.google.co.uk"
+}
+
+resource "aws_api_gateway_integration_response" "test" {
+  http_method = aws_api_gateway_integration.test.http_method
+  resource_id = aws_api_gateway_resource.test.id
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  status_code = aws_api_gateway_method_response.error.status_code
+}
+
+resource "aws_api_gateway_deployment" "test" {
+  depends_on = [aws_api_gateway_integration.test]
+
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = %[2]q
+}
+`, rName, stageName)
+}
+
+func testAccAWSAPIGatewayStageConfigReferencingDeployment(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayStageConfigBaseDeploymentStageName(rName, ""),
+		`
+# Due to oddities with API Gateway, certain environments utilize
+# a double deployment configuration. This can cause destroy errors.
+resource "aws_api_gateway_stage" "test" {
+  deployment_id = aws_api_gateway_deployment.test.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  stage_name    = "test"
+
+  lifecycle {
+    ignore_changes = [deployment_id]
+  }
+}
+
+resource "aws_api_gateway_deployment" "test2" {
+  depends_on = [aws_api_gateway_integration.test]
+
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_stage.test.stage_name
+}
+`)
 }
 
 func testAccAWSAPIGatewayStageConfig_basic(rName string) string {

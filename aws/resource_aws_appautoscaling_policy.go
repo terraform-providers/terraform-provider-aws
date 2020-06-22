@@ -441,9 +441,16 @@ func validateAppautoscalingPolicyImportInput(id string) ([]string, error) {
 	switch idParts[0] {
 	case "dynamodb":
 		serviceNamespace = idParts[0]
-		resourceId = strings.Join(idParts[1:3], "/")
-		scalableDimension = idParts[3]
-		policyName = strings.Join(idParts[4:], "/")
+
+		dimensionIx := 3
+		// DynamoDB resource ID can be "/table/tableName" or "/table/tableName/index/indexName"
+		if idParts[dimensionIx] == "index" {
+			dimensionIx = 5
+		}
+
+		resourceId = strings.Join(idParts[1:dimensionIx], "/")
+		scalableDimension = idParts[dimensionIx]
+		policyName = strings.Join(idParts[dimensionIx+1:], "/")
 	default:
 		serviceNamespace = idParts[0]
 		resourceId = strings.Join(idParts[1:len(idParts)-2], "/")

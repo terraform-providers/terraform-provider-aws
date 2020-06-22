@@ -35,3 +35,11 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The Amazon Resource Name of this project
 
 [aws-get-project]: http://docs.aws.amazon.com/devicefarm/latest/APIReference/API_GetProject.html
+
+## Import
+
+DeviceFarm Projects can be imported by their arn:
+
+```
+$ terraform import aws_devicefarm_project.example arn:aws:devicefarm:us-west-2:123456789012:project:4fa784c7-ccb4-4dbf-ba4f-02198320daa1
+```

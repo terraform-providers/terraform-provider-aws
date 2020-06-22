@@ -109,7 +109,7 @@ func testAccCheckWafRegionalWebAclAssociationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		input := &wafregional.GetWebACLForResourceInput{
 			ResourceArn: aws.String(resourceArn),
@@ -142,7 +142,7 @@ func testAccCheckWafRegionalWebAclAssociationExists(n string) resource.TestCheck
 			return fmt.Errorf("No WebACL association ID is set")
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
 
@@ -169,7 +169,7 @@ func testAccCheckWafRegionalWebAclAssociationDisappears(resourceName string) res
 			return fmt.Errorf("No WebACL association ID is set")
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
 
@@ -208,7 +208,14 @@ resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_subnet" "foo" {
   vpc_id = "${aws_vpc.foo.id}"

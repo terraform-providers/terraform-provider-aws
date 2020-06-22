@@ -146,6 +146,7 @@ func resourceAwsEcsClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &ecs.DescribeClustersInput{
 		Clusters: []*string{aws.String(d.Id())},
@@ -220,7 +221,7 @@ func resourceAwsEcsClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error setting setting: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(cluster.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -256,7 +257,7 @@ func resourceAwsEcsClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("capacity_providers") || d.HasChange("default_capacity_provider_strategy") {
+	if d.HasChanges("capacity_providers", "default_capacity_provider_strategy") {
 		input := ecs.PutClusterCapacityProvidersInput{
 			Cluster:                         aws.String(d.Id()),
 			CapacityProviders:               expandStringSet(d.Get("capacity_providers").(*schema.Set)),

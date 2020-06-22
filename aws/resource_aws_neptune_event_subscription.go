@@ -156,6 +156,7 @@ func resourceAwsNeptuneEventSubscriptionCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	sub, err := resourceAwsNeptuneEventSubscriptionRetrieve(d.Id(), conn)
 	if err != nil {
@@ -196,7 +197,7 @@ func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error listing tags for Neptune Event Subscription (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -206,7 +207,6 @@ func resourceAwsNeptuneEventSubscriptionRead(d *schema.ResourceData, meta interf
 func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).neptuneconn
 
-	d.Partial(true)
 	requestUpdate := false
 
 	req := &neptune.ModifyEventSubscriptionInput{
@@ -262,10 +262,6 @@ func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			return err
 		}
-		d.SetPartial("event_categories")
-		d.SetPartial("enabled")
-		d.SetPartial("sns_topic_arn")
-		d.SetPartial("source_type")
 	}
 
 	if d.HasChange("tags") {
@@ -274,8 +270,6 @@ func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta inte
 		if err := keyvaluetags.NeptuneUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Neptune Cluster Event Subscription (%s) tags: %s", d.Get("arn").(string), err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	if d.HasChange("source_ids") {
@@ -317,10 +311,7 @@ func resourceAwsNeptuneEventSubscriptionUpdate(d *schema.ResourceData, meta inte
 				}
 			}
 		}
-		d.SetPartial("source_ids")
 	}
-
-	d.Partial(false)
 
 	return resourceAwsNeptuneEventSubscriptionRead(d, meta)
 }

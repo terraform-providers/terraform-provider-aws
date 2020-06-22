@@ -205,9 +205,10 @@ func TestAccAWSAPIGatewayIntegration_cache_key_parameters(t *testing.T) {
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(7))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSAPIGatewayIntegrationDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSAPIGatewayIntegrationDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAPIGatewayIntegrationConfigCacheKeyParameters(rName),
@@ -295,7 +296,7 @@ func testAccCheckAWSAPIGatewayIntegrationExists(n string, res *apigateway.Integr
 			return fmt.Errorf("No API Gateway Method ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetIntegrationInput{
 			HttpMethod: aws.String("GET"),
@@ -314,7 +315,7 @@ func testAccCheckAWSAPIGatewayIntegrationExists(n string, res *apigateway.Integr
 }
 
 func testAccCheckAWSAPIGatewayIntegrationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_integration" {
@@ -695,7 +696,14 @@ variable "name" {
   default = "%s"
 }
 
-data "aws_availability_zones" "test" {}
+data "aws_availability_zones" "test" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.10.0.0/16"

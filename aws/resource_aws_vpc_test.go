@@ -176,11 +176,11 @@ func TestAccAWSVpc_ignoreTags(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config:   testAccProviderConfigIgnoreTagPrefixes1("ignorekey") + testAccVpcConfigTags,
+				Config:   testAccProviderConfigIgnoreTagsKeyPrefixes1("ignorekey") + testAccVpcConfigTags,
 				PlanOnly: true,
 			},
 			{
-				Config:   testAccProviderConfigIgnoreTags1("ignorekey1") + testAccVpcConfigTags,
+				Config:   testAccProviderConfigIgnoreTagsKeys1("ignorekey1") + testAccVpcConfigTags,
 				PlanOnly: true,
 			},
 		},
@@ -295,7 +295,9 @@ func TestAccAWSVpc_tags(t *testing.T) {
 					testAccCheckVpcExists(resourceName, &vpc),
 					testAccCheckVpcCidr(&vpc, "10.1.0.0/16"),
 					resource.TestCheckResourceAttr(resourceName, "cidr_block", "10.1.0.0/16"),
-					testAccCheckTags(&vpc.Tags, "foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "terraform-testacc-vpc-tags"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
 				),
 			},
 			{
@@ -307,8 +309,9 @@ func TestAccAWSVpc_tags(t *testing.T) {
 				Config: testAccVpcConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpcExists(resourceName, &vpc),
-					testAccCheckTags(&vpc.Tags, "foo", ""),
-					testAccCheckTags(&vpc.Tags, "bar", "baz"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "terraform-testacc-vpc-tags"),
+					resource.TestCheckResourceAttr(resourceName, "tags.bar", "baz"),
 				),
 			},
 		},

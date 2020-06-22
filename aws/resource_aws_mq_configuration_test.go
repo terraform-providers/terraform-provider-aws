@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,6 +14,7 @@ import (
 
 func TestAccAWSMqConfiguration_basic(t *testing.T) {
 	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
@@ -22,25 +24,30 @@ func TestAccAWSMqConfiguration_basic(t *testing.T) {
 			{
 				Config: testAccMqConfigurationConfig(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttrSet("aws_mq_configuration.test", "arn"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "description", "TfAccTest MQ Configuration"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_type", "ActiveMQ"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_version", "5.15.0"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "latest_revision", "2"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "name", configurationName),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "description", "TfAccTest MQ Configuration"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "latest_revision", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccMqConfigurationConfig_descriptionUpdated(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttrSet("aws_mq_configuration.test", "arn"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "description", "TfAccTest MQ Configuration Updated"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_type", "ActiveMQ"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_version", "5.15.0"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "latest_revision", "3"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "name", configurationName),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "description", "TfAccTest MQ Configuration Updated"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "latest_revision", "3"),
+					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
 				),
 			},
 		},
@@ -49,6 +56,7 @@ func TestAccAWSMqConfiguration_basic(t *testing.T) {
 
 func TestAccAWSMqConfiguration_withData(t *testing.T) {
 	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
@@ -58,14 +66,19 @@ func TestAccAWSMqConfiguration_withData(t *testing.T) {
 			{
 				Config: testAccMqConfigurationWithDataConfig(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttrSet("aws_mq_configuration.test", "arn"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "description", "TfAccTest MQ Configuration"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_type", "ActiveMQ"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "engine_version", "5.15.0"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "latest_revision", "2"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "name", configurationName),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "mq", regexp.MustCompile(`configuration:+.`)),
+					resource.TestCheckResourceAttr(resourceName, "description", "TfAccTest MQ Configuration"),
+					resource.TestCheckResourceAttr(resourceName, "engine_type", "ActiveMQ"),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "5.15.0"),
+					resource.TestCheckResourceAttr(resourceName, "latest_revision", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", configurationName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -73,6 +86,7 @@ func TestAccAWSMqConfiguration_withData(t *testing.T) {
 
 func TestAccAWSMqConfiguration_updateTags(t *testing.T) {
 	configurationName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_mq_configuration.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSMq(t) },
@@ -82,26 +96,31 @@ func TestAccAWSMqConfiguration_updateTags(t *testing.T) {
 			{
 				Config: testAccMqConfigurationConfig_updateTags1(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.env", "test"),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccMqConfigurationConfig_updateTags2(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.env", "test2"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.role", "test-role"),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.role", "test-role"),
 				),
 			},
 			{
 				Config: testAccMqConfigurationConfig_updateTags3(configurationName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsMqConfigurationExists("aws_mq_configuration.test"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("aws_mq_configuration.test", "tags.role", "test-role"),
+					testAccCheckAwsMqConfigurationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.role", "test-role"),
 				),
 			},
 		},
@@ -122,7 +141,7 @@ func testAccCheckAwsMqConfigurationDestroy(s *terraform.State) error {
 
 		_, err := conn.DescribeConfiguration(input)
 		if err != nil {
-			if isAWSErr(err, "NotFoundException", "") {
+			if isAWSErr(err, mq.ErrCodeNotFoundException, "") {
 				return nil
 			}
 			return err

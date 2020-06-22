@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -9,13 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAppmeshVirtualRouter() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsAppmeshVirtualRouterCreate,
 		Read:   resourceAwsAppmeshVirtualRouterRead,
@@ -59,7 +58,7 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 						},
 
 						"listener": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							MinItems: 1,
 							MaxItems: 1,
@@ -91,7 +90,6 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 									},
 								},
 							},
-							Set: appmeshVirtualRouterListenerHash,
 						},
 					},
 				},
@@ -140,6 +138,7 @@ func resourceAwsAppmeshVirtualRouterCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeVirtualRouter(&appmesh.DescribeVirtualRouterInput{
 		MeshName:          aws.String(d.Get("mesh_name").(string)),
@@ -176,7 +175,7 @@ func resourceAwsAppmeshVirtualRouterRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for App Mesh virtual router (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -256,19 +255,4 @@ func resourceAwsAppmeshVirtualRouterImport(d *schema.ResourceData, meta interfac
 	d.Set("mesh_name", resp.VirtualRouter.MeshName)
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func appmeshVirtualRouterListenerHash(vListener interface{}) int {
-	var buf bytes.Buffer
-	mListener := vListener.(map[string]interface{})
-	if vPortMapping, ok := mListener["port_mapping"].([]interface{}); ok && len(vPortMapping) > 0 && vPortMapping[0] != nil {
-		mPortMapping := vPortMapping[0].(map[string]interface{})
-		if v, ok := mPortMapping["port"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mPortMapping["protocol"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-	}
-	return hashcode.String(buf.String())
 }

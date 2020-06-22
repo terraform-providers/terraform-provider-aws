@@ -62,7 +62,7 @@ The following arguments are supported:
 * `source_type` - (Optional) The type of source that will be generating the events. Valid options are `db-instance`, `db-security-group`, `db-parameter-group`, `db-snapshot`, `db-cluster` or `db-cluster-snapshot`. If not set, all sources will be subscribed to.
 * `event_categories` - (Optional) A list of event categories for a SourceType that you want to subscribe to. See http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.html or run `aws rds describe-event-categories`.
 * `enabled` - (Optional) A boolean flag to enable/disable the subscription. Defaults to true.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes
 
@@ -77,9 +77,9 @@ The following additional atttributes are provided:
 `aws_db_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
 configuration options:
 
-- `create` - (Default `40m`) How long to wait for a RDS event notification subscription to be ready.
-- `delete` - (Default `40m`) How long to wait for a RDS event notification subscription to be deleted.
-- `update` - (Default `40m`) How long to wait for a RDS event notification subscription to be updated.
+- `create` - (Default `40m`) How long to wait for an RDS event notification subscription to be ready.
+- `delete` - (Default `40m`) How long to wait for an RDS event notification subscription to be deleted.
+- `update` - (Default `40m`) How long to wait for an RDS event notification subscription to be updated.
 
 ## Import
 

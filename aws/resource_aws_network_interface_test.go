@@ -91,6 +91,8 @@ func TestAccAWSENI_basic(t *testing.T) {
 						"aws_network_interface.bar", "tags.Name", "bar_interface"),
 					resource.TestCheckResourceAttr(
 						"aws_network_interface.bar", "description", "Managed by Terraform"),
+					resource.TestCheckResourceAttr(
+						"aws_network_interface.bar", "outpost_arn", ""),
 				),
 			},
 			{

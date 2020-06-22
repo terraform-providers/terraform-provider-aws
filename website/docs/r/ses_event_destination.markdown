@@ -88,3 +88,12 @@ The following arguments are supported:
 ### sns_destination Argument Reference
 
 * `topic_arn` - (Required) The ARN of the SNS topic
+
+## Import
+
+SES event destinations can be imported using `configuration_set_name` together with the event destination's `name`,
+e.g.
+
+```
+$ terraform import aws_ses_event_destination.sns some-configuration-set-test/event-destination-sns
+```

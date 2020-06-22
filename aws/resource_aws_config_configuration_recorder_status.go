@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/configservice"
 )
 
@@ -79,12 +78,10 @@ func resourceAwsConfigConfigurationRecorderStatusRead(d *schema.ResourceData, me
 	}
 	statusOut, err := conn.DescribeConfigurationRecorderStatus(&statusInput)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "NoSuchConfigurationRecorderException" {
-				log.Printf("[WARN] Configuration Recorder (status) %q is gone (NoSuchConfigurationRecorderException)", name)
-				d.SetId("")
-				return nil
-			}
+		if isAWSErr(err, configservice.ErrCodeNoSuchConfigurationRecorderException, "") {
+			log.Printf("[WARN] Configuration Recorder (status) %q is gone (NoSuchConfigurationRecorderException)", name)
+			d.SetId("")
+			return nil
 		}
 		return fmt.Errorf("Failed describing Configuration Recorder %q status: %s",
 			name, err)

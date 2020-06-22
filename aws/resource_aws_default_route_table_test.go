@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
@@ -43,6 +43,12 @@ func TestAccAWSDefaultRouteTable_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "vpc_id", vpcResourceName, "id"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSDefaultRouteTableImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -73,26 +79,33 @@ func TestAccAWSDefaultRouteTable_disappears_Vpc(t *testing.T) {
 
 func TestAccAWSDefaultRouteTable_Route(t *testing.T) {
 	var v ec2.RouteTable
+	resourceName := "aws_default_route_table.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_default_route_table.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDefaultRouteTableConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRouteTableExists("aws_default_route_table.foo", &v),
-					testAccCheckResourceAttrAccountID("aws_default_route_table.foo", "owner_id"),
+					testAccCheckRouteTableExists(resourceName, &v),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSDefaultRouteTableImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccDefaultRouteTableConfig_noRouteBlock,
 				Check: resource.ComposeTestCheckFunc(
 					// The route block from the previous step should still be
 					// present, because no blocks means "ignore existing blocks".
-					resource.TestCheckResourceAttr("aws_default_route_table.foo", "route.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
 				),
 			},
 			{
@@ -100,7 +113,7 @@ func TestAccAWSDefaultRouteTable_Route(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// This config uses attribute syntax to set zero routes
 					// explicitly, so should remove the one we created before.
-					resource.TestCheckResourceAttr("aws_default_route_table.foo", "route.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
 				),
 			},
 		},
@@ -109,10 +122,11 @@ func TestAccAWSDefaultRouteTable_Route(t *testing.T) {
 
 func TestAccAWSDefaultRouteTable_swap(t *testing.T) {
 	var v ec2.RouteTable
+	resourceName := "aws_default_route_table.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_default_route_table.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
@@ -120,8 +134,14 @@ func TestAccAWSDefaultRouteTable_swap(t *testing.T) {
 				Config: testAccDefaultRouteTable_change,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
-						"aws_default_route_table.foo", &v),
+						resourceName, &v),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSDefaultRouteTableImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 
 			// This config will swap out the original Default Route Table and replace
@@ -133,7 +153,7 @@ func TestAccAWSDefaultRouteTable_swap(t *testing.T) {
 				Config: testAccDefaultRouteTable_change_mod,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
-						"aws_default_route_table.foo", &v),
+						resourceName, &v),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -156,16 +176,23 @@ func TestAccAWSDefaultRouteTable_Route_TransitGatewayID(t *testing.T) {
 					testAccCheckRouteTableExists(resourceName, &routeTable1),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSDefaultRouteTableImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAWSDefaultRouteTable_vpc_endpoint(t *testing.T) {
 	var v ec2.RouteTable
+	resourceName := "aws_default_route_table.foo"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_default_route_table.foo",
+		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckDefaultRouteTableDestroy,
 		Steps: []resource.TestStep{
@@ -173,7 +200,52 @@ func TestAccAWSDefaultRouteTable_vpc_endpoint(t *testing.T) {
 				Config: testAccDefaultRouteTable_vpc_endpoint,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
-						"aws_default_route_table.foo", &v),
+						resourceName, &v),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSDefaultRouteTableImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSDefaultRouteTable_tags(t *testing.T) {
+	var routeTable ec2.RouteTable
+	resourceName := "aws_default_route_table.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDefaultRouteTableConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccDefaultRouteTableConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccDefaultRouteTableConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists(resourceName, &routeTable),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -201,11 +273,7 @@ func testAccCheckDefaultRouteTableDestroy(s *terraform.State) error {
 		}
 
 		// Verify the error is what we want
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidRouteTableID.NotFound" {
+		if !isAWSErr(err, "InvalidRouteTableID.NotFound", "") {
 			return err
 		}
 	}
@@ -434,12 +502,20 @@ resource "aws_subnet" "test" {
   }
 }
 
-resource "aws_ec2_transit_gateway" "test" {}
+resource "aws_ec2_transit_gateway" "test" {
+  tags = {
+    Name = "tf-acc-test-ec2-default-route-table-transit-gateway-id"
+  }
+}
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
   subnet_ids         = ["${aws_subnet.test.id}"]
   transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
   vpc_id             = "${aws_vpc.test.id}"
+
+  tags = {
+    Name = "tf-acc-test-ec2-default-route-table-transit-gateway-id"
+  }
 }
 
 resource "aws_default_route_table" "test" {
@@ -454,40 +530,96 @@ resource "aws_default_route_table" "test" {
 }
 
 const testAccDefaultRouteTable_vpc_endpoint = `
+data "aws_region" "current" {}
+
 resource "aws_vpc" "test" {
-    cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16"
 
   tags = {
-        Name = "terraform-testacc-default-route-table-vpc-endpoint"
-    }
+    Name = "terraform-testacc-default-route-table-vpc-endpoint"
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
-    vpc_id = "${aws_vpc.test.id}"
+  vpc_id = "${aws_vpc.test.id}"
 
   tags = {
-        Name = "test"
-    }
+    Name = "terraform-testacc-default-route-table-vpc-endpoint"
+  }
 }
 
 resource "aws_vpc_endpoint" "s3" {
-    vpc_id = "${aws_vpc.test.id}"
-    service_name = "com.amazonaws.us-west-2.s3"
-    route_table_ids = [
-        "${aws_vpc.test.default_route_table_id}"
-    ]
+    vpc_id          = "${aws_vpc.test.id}"
+    service_name    = "com.amazonaws.${data.aws_region.current.name}.s3"
+    route_table_ids = ["${aws_vpc.test.default_route_table_id}"]
+
+  tags = {
+    Name = "terraform-testacc-default-route-table-vpc-endpoint"
+  }
 }
 
 resource "aws_default_route_table" "foo" {
-    default_route_table_id = "${aws_vpc.test.default_route_table_id}"
+  default_route_table_id = "${aws_vpc.test.default_route_table_id}"
 
   tags = {
         Name = "test"
-    }
+  }
 
-    route {
-        cidr_block = "0.0.0.0/0"
-        gateway_id = "${aws_internet_gateway.igw.id}"
-    }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.igw.id}"
+  }
 }
 `
+
+func testAccDefaultRouteTableConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_default_route_table" "test" {
+  default_route_table_id = aws_vpc.test.default_route_table_id
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccDefaultRouteTableConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_default_route_table" "test" {
+  default_route_table_id = aws_vpc.test.default_route_table_id
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccAWSDefaultRouteTableImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return rs.Primary.Attributes["vpc_id"], nil
+	}
+}

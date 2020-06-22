@@ -291,28 +291,30 @@ func testAccCheckAWSStorageGatewayCachedIscsiVolumeDestroy(s *terraform.State) e
 	return nil
 }
 
-func testAccAWSStorageGatewayCachedIscsiVolumeConfig_Basic(rName string) string {
-	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
+func testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName string) string {
+	return composeConfig(
+		testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName),
+		fmt.Sprintf(`
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = 10
   type              = "gp2"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/xvdc"
   force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.test.id}"
+  instance_id  = aws_instance.test.id
+  volume_id    = aws_ebs_volume.test.id
 }
 
 data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_node   = aws_volume_attachment.test.device_name
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_cache" "test" {
@@ -325,258 +327,109 @@ resource "aws_storagegateway_cache" "test" {
     ignore_changes = ["disk_id"]
   }
 
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_id     = data.aws_storagegateway_local_disk.test.id
+  gateway_arn = aws_storagegateway_gateway.test.arn
+}
+`, rName))
 }
 
+func testAccAWSStorageGatewayCachedIscsiVolumeConfig_Basic(rName string) string {
+	return composeConfig(
+		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
+		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
-  gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
-  network_interface_id = "${aws_instance.test.private_ip}"
-  target_name          = %q
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  target_name          = %[1]q
   volume_size_in_bytes = 5368709120
 }
-`, rName, rName)
+`, rName))
 }
 
 func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags1(rName, tagKey1, tagValue1 string) string {
-	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
-resource "aws_ebs_volume" "test" {
- availability_zone = "${aws_instance.test.availability_zone}"
- size              = 10
- type              = "gp2"
-
- tags = {
-   Name = %q
- }
-}
-
-resource "aws_volume_attachment" "test" {
- device_name  = "/dev/xvdc"
- force_detach = true
- instance_id  = "${aws_instance.test.id}"
- volume_id    = "${aws_ebs_volume.test.id}"
-}
-
-data "aws_storagegateway_local_disk" "test" {
- disk_path   = "${aws_volume_attachment.test.device_name}"
- gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_cache" "test" {
- # ACCEPTANCE TESTING WORKAROUND:
- # Data sources are not refreshed before plan after apply in TestStep
- # Step 0 error: After applying this step, the plan was not empty:
- #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
- # We expect this data source value to change due to how Storage Gateway works.
- lifecycle {
-   ignore_changes = ["disk_id"]
- }
-
- disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
- gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
+	return composeConfig(
+		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
+		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
- gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
- network_interface_id = "${aws_instance.test.private_ip}"
- target_name          = %q
+ gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+ network_interface_id = aws_instance.test.private_ip
+ target_name          = %[1]q
  volume_size_in_bytes = 5368709120
 
   tags = {
-	%q = %q
+    %[2]q = %[3]q
   }
 }
-`, rName, rName, tagKey1, tagValue1)
+`, rName, tagKey1, tagValue1))
 }
 
 func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
-	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
-resource "aws_ebs_volume" "test" {
- availability_zone = "${aws_instance.test.availability_zone}"
- size              = 10
- type              = "gp2"
-
- tags = {
-   Name = %q
- }
-}
-
-resource "aws_volume_attachment" "test" {
- device_name  = "/dev/xvdc"
- force_detach = true
- instance_id  = "${aws_instance.test.id}"
- volume_id    = "${aws_ebs_volume.test.id}"
-}
-
-data "aws_storagegateway_local_disk" "test" {
- disk_path   = "${aws_volume_attachment.test.device_name}"
- gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_cache" "test" {
- # ACCEPTANCE TESTING WORKAROUND:
- # Data sources are not refreshed before plan after apply in TestStep
- # Step 0 error: After applying this step, the plan was not empty:
- #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
- # We expect this data source value to change due to how Storage Gateway works.
- lifecycle {
-   ignore_changes = ["disk_id"]
- }
-
- disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
- gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
+	return composeConfig(
+		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
+		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
- gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
- network_interface_id = "${aws_instance.test.private_ip}"
- target_name          = %q
+ gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+ network_interface_id = aws_instance.test.private_ip
+ target_name          = %[1]q
  volume_size_in_bytes = 5368709120
 
   tags = {
-	%q = %q
-	%q = %q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, rName, rName, tagKey1, tagValue1, tagKey2, tagValue2)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
 
 func testAccAWSStorageGatewayCachedIscsiVolumeConfig_SnapshotId(rName string) string {
-	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
-resource "aws_ebs_volume" "cachevolume" {
-  availability_zone = "${aws_instance.test.availability_zone}"
-  size              = 10
-  type              = "gp2"
-
-  tags = {
-    Name = %q
-  }
-}
-
-resource "aws_volume_attachment" "test" {
-  device_name  = "/dev/xvdc"
-  force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.cachevolume.id}"
-}
-
-data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_cache" "test" {
-  # ACCEPTANCE TESTING WORKAROUND:
-  # Data sources are not refreshed before plan after apply in TestStep
-  # Step 0 error: After applying this step, the plan was not empty:
-  #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
-  # We expect this data source value to change due to how Storage Gateway works.
-  lifecycle {
-    ignore_changes = ["disk_id"]
-  }
-
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
+	return composeConfig(
+		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
+		fmt.Sprintf(`
 resource "aws_ebs_volume" "snapvolume" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = 5
   type              = "gp2"
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.snapvolume.id}"
+  volume_id = aws_ebs_volume.snapvolume.id
 
   tags = {
-    Name = %q
+    Name = %[1]q
   }
 }
 
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
-  gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
-  network_interface_id = "${aws_instance.test.private_ip}"
-  snapshot_id          = "${aws_ebs_snapshot.test.id}"
-  target_name          = %q
-  volume_size_in_bytes = "${aws_ebs_snapshot.test.volume_size * 1024 * 1024 * 1024}"
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  snapshot_id          = aws_ebs_snapshot.test.id
+  target_name          = %[1]q
+  volume_size_in_bytes = aws_ebs_snapshot.test.volume_size * 1024 * 1024 * 1024
 }
-`, rName, rName, rName, rName)
+`, rName))
 }
 
 func testAccAWSStorageGatewayCachedIscsiVolumeConfig_SourceVolumeArn(rName string) string {
-	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
-data "aws_storagegateway_local_disk" "uploadbuffer" {
-  disk_path   = "/dev/xvdb"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_upload_buffer" "test" {
-  # ACCEPTANCE TESTING WORKAROUND:
-  # Data sources are not refreshed before plan after apply in TestStep
-  # Step 0 error: After applying this step, the plan was not empty:
-  #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
-  # We expect this data source value to change due to how Storage Gateway works.
-  lifecycle {
-    ignore_changes = ["disk_id"]
-  }
-
-  disk_id     = "${data.aws_storagegateway_local_disk.uploadbuffer.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
-  size              = 10
-  type              = "gp2"
-
-  tags = {
-    Name = %q
-  }
-}
-
-resource "aws_volume_attachment" "test" {
-  device_name  = "/dev/xvdc"
-  force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.test.id}"
-}
-
-data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
-resource "aws_storagegateway_cache" "test" {
-  # ACCEPTANCE TESTING WORKAROUND:
-  # Data sources are not refreshed before plan after apply in TestStep
-  # Step 0 error: After applying this step, the plan was not empty:
-  #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
-  # We expect this data source value to change due to how Storage Gateway works.
-  lifecycle {
-    ignore_changes = ["disk_id"]
-  }
-
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
-}
-
+	return composeConfig(
+		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
+		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "source" {
-  gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
-  network_interface_id = "${aws_instance.test.private_ip}"
-  target_name          = "%s-source"
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  target_name          = "%[1]s-source"
   volume_size_in_bytes = 1073741824
 }
 
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
-  gateway_arn          = "${aws_storagegateway_cache.test.gateway_arn}"
-  network_interface_id = "${aws_instance.test.private_ip}"
-  source_volume_arn    = "${aws_storagegateway_cached_iscsi_volume.source.arn}"
-  target_name          = %q
-  volume_size_in_bytes = "${aws_storagegateway_cached_iscsi_volume.source.volume_size_in_bytes}"
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  source_volume_arn    = aws_storagegateway_cached_iscsi_volume.source.arn
+  target_name          = %[1]q
+  volume_size_in_bytes = aws_storagegateway_cached_iscsi_volume.source.volume_size_in_bytes
 }
-`, rName, rName, rName)
+`, rName))
 }

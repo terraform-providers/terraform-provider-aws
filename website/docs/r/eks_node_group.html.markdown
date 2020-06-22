@@ -35,16 +35,38 @@ resource "aws_eks_node_group" "example" {
 }
 ```
 
+### Ignoring Changes to Desired Size
+
+You can utilize the generic Terraform resource [lifecycle configuration block](/docs/configuration/resources.html#lifecycle-lifecycle-customizations) with `ignore_changes` to create an EKS Node Group with an initial size of running instances, then ignore any changes to that count caused externally (e.g. Application Autoscaling).
+
+```hcl
+resource "aws_eks_node_group" "example" {
+  # ... other configurations ...
+
+  scaling_config {
+    # Example: Create EKS Node Group with 2 instances to start
+    desired_size = 2
+
+    # ... other configurations ...
+  }
+
+  # Optional: Allow external changes without Terraform plan difference
+  lifecycle {
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+}
+```
+
 ### Example IAM Role for EKS Node Group
 
 ```hcl
 resource "aws_iam_role" "example" {
   name = "eks-node-group-example"
-  
+
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "ec2.amazonaws.com"
       }
@@ -103,11 +125,12 @@ The following arguments are optional:
 
 * `ami_type` - (Optional) Type of Amazon Machine Image (AMI) associated with the EKS Node Group. Defaults to `AL2_x86_64`. Valid values: `AL2_x86_64`, `AL2_x86_64_GPU`. Terraform will only perform drift detection if a configuration value is provided.
 * `disk_size` - (Optional) Disk size in GiB for worker nodes. Defaults to `20`. Terraform will only perform drift detection if a configuration value is provided.
+* `force_update_version` - (Optional) Force version update if existing pods are unable to be drained due to a pod disruption budget issue.
 * `instance_types` - (Optional) Set of instance types associated with the EKS Node Group. Defaults to `["t3.medium"]`. Terraform will only perform drift detection if a configuration value is provided. Currently, the EKS API only accepts a single value in the set.
-* `labels` - (Optional) Key-value mapping of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed.
+* `labels` - (Optional) Key-value map of Kubernetes labels. Only labels that are applied with the EKS API are managed by this argument. Other Kubernetes labels applied to the EKS Node Group will not be managed.
 * `release_version` – (Optional) AMI version of the EKS Node Group. Defaults to latest version for Kubernetes version.
 * `remote_access` - (Optional) Configuration block with remote access settings. Detailed below.
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 * `version` – (Optional) Kubernetes version. Defaults to EKS Cluster Kubernetes version. Terraform will only perform drift detection if a configuration value is provided.
 
 ### remote_access Configuration Block
@@ -128,9 +151,9 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - Amazon Resource Name (ARN) of the EKS Node Group.
 * `id` - EKS Cluster name and EKS Node Group name separated by a colon (`:`).
 * `resources` - List of objects containing information about underlying resources.
-  * `autoscaling_groups` - List of objects containing information about AutoScaling Groups.
-    * `name` - Name of the AutoScaling Group.
-  * `remote_access_security_group_id` - Identifier of the remote access EC2 Security Group.
+    * `autoscaling_groups` - List of objects containing information about AutoScaling Groups.
+        * `name` - Name of the AutoScaling Group.
+    * `remote_access_security_group_id` - Identifier of the remote access EC2 Security Group.
 * `status` - Status of the EKS Node Group.
 
 ## Timeouts

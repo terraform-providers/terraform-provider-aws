@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxHostedPublicVirtualInterfaceAccepter() *schema.Resource {
@@ -74,6 +75,7 @@ func resourceAwsDxHostedPublicVirtualInterfaceAccepterCreate(d *schema.ResourceD
 
 func resourceAwsDxHostedPublicVirtualInterfaceAccepterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
 	if err != nil {
@@ -94,8 +96,16 @@ func resourceAwsDxHostedPublicVirtualInterfaceAccepterRead(d *schema.ResourceDat
 	}
 
 	d.Set("virtual_interface_id", vif.VirtualInterfaceId)
-	if err := getTagsDX(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error getting Direct Connect hosted private virtual interface (%s) tags: %s", d.Id(), err)
+
+	arn := d.Get("arn").(string)
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect hosted public virtual interface (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

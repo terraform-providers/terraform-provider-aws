@@ -60,8 +60,8 @@ func (c *StorageGateway) ActivateGatewayRequest(input *ActivateGatewayInput) (re
 // process, you specify information such as the AWS Region that you want to
 // use for storing snapshots or tapes, the time zone for scheduled snapshots
 // the gateway snapshot schedule window, an activation key, and a name for your
-// gateway. The activation process also associates your gateway with your account;
-// for more information, see UpdateGatewayInformation.
+// gateway. The activation process also associates your gateway with your account.
+// For more information, see UpdateGatewayInformation.
 //
 // You must turn on the gateway VM before you can activate your gateway.
 //
@@ -148,8 +148,8 @@ func (c *StorageGateway) AddCacheRequest(input *AddCacheInput) (req *request.Req
 // AddCache API operation for AWS Storage Gateway.
 //
 // Configures one or more gateway local disks as cache for a gateway. This operation
-// is only supported in the cached volume, tape and file gateway type (see Storage
-// Gateway Concepts (https://docs.aws.amazon.com/storagegateway/latest/userguide/StorageGatewayConcepts.html)).
+// is only supported in the cached volume, tape, and file gateway type (see
+// How AWS Storage Gateway works (architecture) (https://docs.aws.amazon.com/storagegateway/latest/userguide/StorageGatewayConcepts.html).
 //
 // In the request, you specify the gateway Amazon Resource Name (ARN) to which
 // you want to add cache, and one or more disk IDs that you want to configure
@@ -523,10 +523,10 @@ func (c *StorageGateway) AssignTapePoolRequest(input *AssignTapePoolInput) (req 
 // Assigns a tape to a tape pool for archiving. The tape assigned to a pool
 // is archived in the S3 storage class that is associated with the pool. When
 // you use your backup application to eject the tape, the tape is archived directly
-// into the S3 storage class (Glacier or Deep Archive) that corresponds to the
-// pool.
+// into the S3 storage class (S3 Glacier or S3 Glacier Deep Archive) that corresponds
+// to the pool.
 //
-// Valid values: "GLACIER", "DEEP_ARCHIVE"
+// Valid Values: GLACIER | DEEP_ARCHIVE
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -972,15 +972,15 @@ func (c *StorageGateway) CreateNFSFileShareRequest(input *CreateNFSFileShareInpu
 //
 // Creates a Network File System (NFS) file share on an existing file gateway.
 // In Storage Gateway, a file share is a file system mount point backed by Amazon
-// S3 cloud storage. Storage Gateway exposes file shares using a NFS interface.
+// S3 cloud storage. Storage Gateway exposes file shares using an NFS interface.
 // This operation is only supported for file gateways.
 //
 // File gateway requires AWS Security Token Service (AWS STS) to be activated
-// to enable you create a file share. Make sure AWS STS is activated in the
+// to enable you to create a file share. Make sure AWS STS is activated in the
 // AWS Region you are creating your file gateway in. If AWS STS is not activated
 // in the AWS Region, activate it. For information about how to activate AWS
-// STS, see Activating and Deactivating AWS STS in an AWS Region in the AWS
-// Identity and Access Management User Guide.
+// STS, see Activating and deactivating AWS STS in an AWS Region (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+// in the AWS Identity and Access Management User Guide.
 //
 // File gateway does not support creating hard or symbolic links on a file share.
 //
@@ -1068,14 +1068,14 @@ func (c *StorageGateway) CreateSMBFileShareRequest(input *CreateSMBFileShareInpu
 //
 // Creates a Server Message Block (SMB) file share on an existing file gateway.
 // In Storage Gateway, a file share is a file system mount point backed by Amazon
-// S3 cloud storage. Storage Gateway expose file shares using a SMB interface.
+// S3 cloud storage. Storage Gateway expose file shares using an SMB interface.
 // This operation is only supported for file gateways.
 //
 // File gateways require AWS Security Token Service (AWS STS) to be activated
 // to enable you to create a file share. Make sure that AWS STS is activated
 // in the AWS Region you are creating your file gateway in. If AWS STS is not
 // activated in this AWS Region, activate it. For information about how to activate
-// AWS STS, see Activating and Deactivating AWS STS in an AWS Region (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+// AWS STS, see Activating and deactivating AWS STS in an AWS Region (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
 // in the AWS Identity and Access Management User Guide.
 //
 // File gateways don't support creating hard or symbolic links on a file share.
@@ -1165,11 +1165,11 @@ func (c *StorageGateway) CreateSnapshotRequest(input *CreateSnapshotInput) (req 
 // Initiates a snapshot of a volume.
 //
 // AWS Storage Gateway provides the ability to back up point-in-time snapshots
-// of your data to Amazon Simple Storage (S3) for durable off-site recovery,
+// of your data to Amazon Simple Storage (Amazon S3) for durable off-site recovery,
 // as well as import the data to an Amazon Elastic Block Store (EBS) volume
 // in Amazon Elastic Compute Cloud (EC2). You can take snapshots of your gateway
 // volume on a scheduled or ad hoc basis. This API enables you to take ad-hoc
-// snapshot. For more information, see Editing a Snapshot Schedule (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#SchedulingSnapshot).
+// snapshot. For more information, see Editing a snapshot schedule (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#SchedulingSnapshot).
 //
 // In the CreateSnapshot request you identify the volume by providing its Amazon
 // Resource Name (ARN). You must also provide description for the snapshot.
@@ -1181,7 +1181,9 @@ func (c *StorageGateway) CreateSnapshotRequest(input *CreateSnapshotInput) (req 
 // cached volume gateway type.
 //
 // To list or delete a snapshot, you must use the Amazon EC2 API. For more information,
-// see DescribeSnapshots or DeleteSnapshot in the EC2 API reference (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Operations.html).
+// see DescribeSnapshots (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html)
+// or DeleteSnapshot (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteSnapshot.html)
+// in the Amazon Elastic Compute Cloud API Reference.
 //
 // Volume and snapshot IDs are changing to a longer length ID format. For more
 // information, see the important note on the Welcome (https://docs.aws.amazon.com/storagegateway/latest/APIReference/Welcome.html)
@@ -1289,7 +1291,9 @@ func (c *StorageGateway) CreateSnapshotFromVolumeRecoveryPointRequest(input *Cre
 // a volume from a snapshot.
 //
 // To list or delete a snapshot, you must use the Amazon EC2 API. For more information,
-// in Amazon Elastic Compute Cloud API Reference.
+// see DescribeSnapshots (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html)
+// or DeleteSnapshot (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteSnapshot.html)
+// in the Amazon Elastic Compute Cloud API Reference.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1475,8 +1479,8 @@ func (c *StorageGateway) CreateTapeWithBarcodeRequest(input *CreateTapeWithBarco
 //
 // Creates a virtual tape by using your own barcode. You write data to the virtual
 // tape and then archive the tape. A barcode is unique and can not be reused
-// if it has already been used on a tape . This applies to barcodes used on
-// deleted tapes. This operation is only supported in the tape gateway type.
+// if it has already been used on a tape. This applies to barcodes used on deleted
+// tapes. This operation is only supported in the tape gateway type.
 //
 // Cache storage must be allocated to the gateway before you can create a virtual
 // tape. Use the AddCache operation to add cache storage to a gateway.
@@ -1603,6 +1607,92 @@ func (c *StorageGateway) CreateTapes(input *CreateTapesInput) (*CreateTapesOutpu
 // for more information on using Contexts.
 func (c *StorageGateway) CreateTapesWithContext(ctx aws.Context, input *CreateTapesInput, opts ...request.Option) (*CreateTapesOutput, error) {
 	req, out := c.CreateTapesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteAutomaticTapeCreationPolicy = "DeleteAutomaticTapeCreationPolicy"
+
+// DeleteAutomaticTapeCreationPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAutomaticTapeCreationPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAutomaticTapeCreationPolicy for more information on using the DeleteAutomaticTapeCreationPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteAutomaticTapeCreationPolicyRequest method.
+//    req, resp := client.DeleteAutomaticTapeCreationPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/DeleteAutomaticTapeCreationPolicy
+func (c *StorageGateway) DeleteAutomaticTapeCreationPolicyRequest(input *DeleteAutomaticTapeCreationPolicyInput) (req *request.Request, output *DeleteAutomaticTapeCreationPolicyOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAutomaticTapeCreationPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteAutomaticTapeCreationPolicyInput{}
+	}
+
+	output = &DeleteAutomaticTapeCreationPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteAutomaticTapeCreationPolicy API operation for AWS Storage Gateway.
+//
+// Deletes the automatic tape creation policy of a gateway. If you delete this
+// policy, new virtual tapes must be created manually. Use the Amazon Resource
+// Name (ARN) of the gateway in your request to remove the policy.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation DeleteAutomaticTapeCreationPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/DeleteAutomaticTapeCreationPolicy
+func (c *StorageGateway) DeleteAutomaticTapeCreationPolicy(input *DeleteAutomaticTapeCreationPolicyInput) (*DeleteAutomaticTapeCreationPolicyOutput, error) {
+	req, out := c.DeleteAutomaticTapeCreationPolicyRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAutomaticTapeCreationPolicyWithContext is the same as DeleteAutomaticTapeCreationPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAutomaticTapeCreationPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) DeleteAutomaticTapeCreationPolicyWithContext(ctx aws.Context, input *DeleteAutomaticTapeCreationPolicyInput, opts ...request.Option) (*DeleteAutomaticTapeCreationPolicyOutput, error) {
+	req, out := c.DeleteAutomaticTapeCreationPolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1927,7 +2017,7 @@ func (c *StorageGateway) DeleteGatewayRequest(input *DeleteGatewayInput) (req *r
 // for these snapshots. You can choose to remove all remaining Amazon EBS snapshots
 // by canceling your Amazon EC2 subscription. If you prefer not to cancel your
 // Amazon EC2 subscription, you can delete your snapshots using the Amazon EC2
-// console. For more information, see the AWS Storage Gateway Detail Page (http://aws.amazon.com/storagegateway).
+// console. For more information, see the AWS Storage Gateway detail page (http://aws.amazon.com/storagegateway).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2015,13 +2105,14 @@ func (c *StorageGateway) DeleteSnapshotScheduleRequest(input *DeleteSnapshotSche
 //
 // You can take snapshots of your gateway volumes on a scheduled or ad hoc basis.
 // This API action enables you to delete a snapshot schedule for a volume. For
-// more information, see Working with Snapshots (https://docs.aws.amazon.com/storagegateway/latest/userguide/WorkingWithSnapshots.html).
+// more information, see Backing up your volumes (https://docs.aws.amazon.com/storagegatewaylatest/userguide/backing-up-volumes.html).
 // In the DeleteSnapshotSchedule request, you identify the volume by providing
 // its Amazon Resource Name (ARN). This operation is only supported in stored
 // and cached volume gateway types.
 //
-// To list or delete a snapshot, you must use the Amazon EC2 API. in Amazon
-// Elastic Compute Cloud API Reference.
+// To list or delete a snapshot, you must use the Amazon EC2 API. For more information,
+// go to DescribeSnapshots (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshots.html)
+// in the Amazon Elastic Compute Cloud API Reference.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2461,7 +2552,7 @@ func (c *StorageGateway) DescribeBandwidthRateLimitRequest(input *DescribeBandwi
 //
 // Returns the bandwidth rate limits of a gateway. By default, these limits
 // are not set, which means no bandwidth rate limiting is in effect. This operation
-// is supported for the stored volume, cached volume and tape gateway types.'
+// is supported for the stored volume, cached volume and tape gateway types.
 //
 // This operation only returns a value for a bandwidth rate limit only if the
 // limit is set. If no limits are set for the gateway, then this operation returns
@@ -2551,7 +2642,7 @@ func (c *StorageGateway) DescribeCacheRequest(input *DescribeCacheInput) (req *r
 // DescribeCache API operation for AWS Storage Gateway.
 //
 // Returns information about the cache of a gateway. This operation is only
-// supported in the cached volume, tape and file gateway types.
+// supported in the cached volume, tape, and file gateway types.
 //
 // The response includes disk IDs that are configured as cache, and it includes
 // the amount of cache allocated and used.
@@ -2642,7 +2733,7 @@ func (c *StorageGateway) DescribeCachediSCSIVolumesRequest(input *DescribeCached
 // operation is only supported in the cached volume gateway types.
 //
 // The list of gateway volumes in the request must be from one gateway. In the
-// response Amazon Storage Gateway returns volume information sorted by volume
+// response, AWS Storage Gateway returns volume information sorted by volume
 // Amazon Resource Name (ARN).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3329,7 +3420,7 @@ func (c *StorageGateway) DescribeStorediSCSIVolumesRequest(input *DescribeStored
 //
 // Returns the description of the gateway volumes specified in the request.
 // The list of gateway volumes in the request must be from one gateway. In the
-// response Amazon Storage Gateway returns volume information sorted by volume
+// response, AWS Storage Gateway returns volume information sorted by volume
 // ARNs. This operation is only supported in stored volume gateway type.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3854,7 +3945,7 @@ func (c *StorageGateway) DescribeUploadBufferRequest(input *DescribeUploadBuffer
 // DescribeUploadBuffer API operation for AWS Storage Gateway.
 //
 // Returns information about the upload buffer of a gateway. This operation
-// is supported for the stored volume, cached volume and tape gateway types.
+// is supported for the stored volume, cached volume, and tape gateway types.
 //
 // The response includes disk IDs that are configured as upload buffer space,
 // and it includes the amount of upload buffer space allocated and used.
@@ -4274,7 +4365,7 @@ func (c *StorageGateway) DisableGatewayRequest(input *DisableGatewayInput) (req 
 // Use this operation for a tape gateway that is not reachable or not functioning.
 // This operation is only supported in the tape gateway type.
 //
-// Once a gateway is disabled it cannot be enabled.
+// After a gateway is disabled, it cannot be enabled.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4394,6 +4485,93 @@ func (c *StorageGateway) JoinDomain(input *JoinDomainInput) (*JoinDomainOutput, 
 // for more information on using Contexts.
 func (c *StorageGateway) JoinDomainWithContext(ctx aws.Context, input *JoinDomainInput, opts ...request.Option) (*JoinDomainOutput, error) {
 	req, out := c.JoinDomainRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListAutomaticTapeCreationPolicies = "ListAutomaticTapeCreationPolicies"
+
+// ListAutomaticTapeCreationPoliciesRequest generates a "aws/request.Request" representing the
+// client's request for the ListAutomaticTapeCreationPolicies operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListAutomaticTapeCreationPolicies for more information on using the ListAutomaticTapeCreationPolicies
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListAutomaticTapeCreationPoliciesRequest method.
+//    req, resp := client.ListAutomaticTapeCreationPoliciesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/ListAutomaticTapeCreationPolicies
+func (c *StorageGateway) ListAutomaticTapeCreationPoliciesRequest(input *ListAutomaticTapeCreationPoliciesInput) (req *request.Request, output *ListAutomaticTapeCreationPoliciesOutput) {
+	op := &request.Operation{
+		Name:       opListAutomaticTapeCreationPolicies,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListAutomaticTapeCreationPoliciesInput{}
+	}
+
+	output = &ListAutomaticTapeCreationPoliciesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListAutomaticTapeCreationPolicies API operation for AWS Storage Gateway.
+//
+// Lists the automatic tape creation policies for a gateway. If there are no
+// automatic tape creation policies for the gateway, it returns an empty list.
+//
+// This operation is only supported for tape gateways.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation ListAutomaticTapeCreationPolicies for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/ListAutomaticTapeCreationPolicies
+func (c *StorageGateway) ListAutomaticTapeCreationPolicies(input *ListAutomaticTapeCreationPoliciesInput) (*ListAutomaticTapeCreationPoliciesOutput, error) {
+	req, out := c.ListAutomaticTapeCreationPoliciesRequest(input)
+	return out, req.Send()
+}
+
+// ListAutomaticTapeCreationPoliciesWithContext is the same as ListAutomaticTapeCreationPolicies with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListAutomaticTapeCreationPolicies for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) ListAutomaticTapeCreationPoliciesWithContext(ctx aws.Context, input *ListAutomaticTapeCreationPoliciesInput, opts ...request.Option) (*ListAutomaticTapeCreationPoliciesOutput, error) {
+	req, out := c.ListAutomaticTapeCreationPoliciesRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -5469,8 +5647,8 @@ func (c *StorageGateway) NotifyWhenUploadedRequest(input *NotifyWhenUploadedInpu
 // event targets such as Amazon SNS or AWS Lambda function. This operation is
 // only supported for file gateways.
 //
-// For more information, see Getting File Upload Notification in the Storage
-// Gateway User Guide (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-upload-notification).
+// For more information, see Getting file upload notification (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-upload-notification)
+// in the AWS Storage Gateway User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5559,7 +5737,8 @@ func (c *StorageGateway) RefreshCacheRequest(input *RefreshCacheInput) (req *req
 // last listed the bucket's contents and cached the results. This operation
 // is only supported in the file gateway type. You can subscribe to be notified
 // through an Amazon CloudWatch event when your RefreshCache operation completes.
-// For more information, see Getting Notified About File Operations (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification).
+// For more information, see Getting notified about file operations (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification)
+// in the AWS Storage Gateway User Guide.
 //
 // When this API is called, it only initiates the refresh operation. When the
 // API call completes and returns a success code, it doesn't necessarily mean
@@ -5571,13 +5750,15 @@ func (c *StorageGateway) RefreshCacheRequest(input *RefreshCacheInput) (req *req
 // Throttle limit: This API is asynchronous so the gateway will accept no more
 // than two refreshes at any time. We recommend using the refresh-complete CloudWatch
 // event notification before issuing additional requests. For more information,
-// see Getting Notified About File Operations (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification).
+// see Getting notified about file operations (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification)
+// in the AWS Storage Gateway User Guide.
 //
 // If you invoke the RefreshCache API when two requests are already being processed,
 // any new request will cause an InvalidGatewayRequestException error because
 // too many requests were sent to the server.
 //
-// For more information, see "https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification".
+// For more information, see Getting notified about file operations (https://docs.aws.amazon.com/storagegateway/latest/userguide/monitoring-file-gateway.html#get-notification)
+// in the AWS Storage Gateway User Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5746,12 +5927,12 @@ func (c *StorageGateway) ResetCacheRequest(input *ResetCacheInput) (req *request
 
 // ResetCache API operation for AWS Storage Gateway.
 //
-// Resets all cache disks that have encountered a error and makes the disks
+// Resets all cache disks that have encountered an error and makes the disks
 // available for reconfiguration as cache storage. If your cache disk encounters
-// a error, the gateway prevents read and write operations on virtual tapes
+// an error, the gateway prevents read and write operations on virtual tapes
 // in the gateway. For example, an error can occur when a disk is corrupted
 // or removed from the gateway. When a cache is reset, the gateway loses its
-// cache storage. At this point you can reconfigure the disks as cache disks.
+// cache storage. At this point, you can reconfigure the disks as cache disks.
 // This operation is only supported in the cached volume and tape types.
 //
 // If the cache disk you are resetting contains data that has not been uploaded
@@ -6444,6 +6625,96 @@ func (c *StorageGateway) StartGatewayWithContext(ctx aws.Context, input *StartGa
 	return out, req.Send()
 }
 
+const opUpdateAutomaticTapeCreationPolicy = "UpdateAutomaticTapeCreationPolicy"
+
+// UpdateAutomaticTapeCreationPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateAutomaticTapeCreationPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateAutomaticTapeCreationPolicy for more information on using the UpdateAutomaticTapeCreationPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateAutomaticTapeCreationPolicyRequest method.
+//    req, resp := client.UpdateAutomaticTapeCreationPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/UpdateAutomaticTapeCreationPolicy
+func (c *StorageGateway) UpdateAutomaticTapeCreationPolicyRequest(input *UpdateAutomaticTapeCreationPolicyInput) (req *request.Request, output *UpdateAutomaticTapeCreationPolicyOutput) {
+	op := &request.Operation{
+		Name:       opUpdateAutomaticTapeCreationPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateAutomaticTapeCreationPolicyInput{}
+	}
+
+	output = &UpdateAutomaticTapeCreationPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateAutomaticTapeCreationPolicy API operation for AWS Storage Gateway.
+//
+// Updates the automatic tape creation policy of a gateway. Use this to update
+// the policy with a new set of automatic tape creation rules. This is only
+// supported for tape gateways.
+//
+// By default, there is no automatic tape creation policy.
+//
+// A gateway can have only one automatic tape creation policy.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation UpdateAutomaticTapeCreationPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/UpdateAutomaticTapeCreationPolicy
+func (c *StorageGateway) UpdateAutomaticTapeCreationPolicy(input *UpdateAutomaticTapeCreationPolicyInput) (*UpdateAutomaticTapeCreationPolicyOutput, error) {
+	req, out := c.UpdateAutomaticTapeCreationPolicyRequest(input)
+	return out, req.Send()
+}
+
+// UpdateAutomaticTapeCreationPolicyWithContext is the same as UpdateAutomaticTapeCreationPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateAutomaticTapeCreationPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) UpdateAutomaticTapeCreationPolicyWithContext(ctx aws.Context, input *UpdateAutomaticTapeCreationPolicyInput, opts ...request.Option) (*UpdateAutomaticTapeCreationPolicyOutput, error) {
+	req, out := c.UpdateAutomaticTapeCreationPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateBandwidthRateLimit = "UpdateBandwidthRateLimit"
 
 // UpdateBandwidthRateLimitRequest generates a "aws/request.Request" representing the
@@ -6491,7 +6762,7 @@ func (c *StorageGateway) UpdateBandwidthRateLimitRequest(input *UpdateBandwidthR
 // Updates the bandwidth rate limits of a gateway. You can update both the upload
 // and download bandwidth rate limit or specify only one of the two. If you
 // don't set a bandwidth rate limit, the existing rate limit remains. This operation
-// is supported for the stored volume, cached volume and tape gateway types.'
+// is supported for the stored volume, cached volume, and tape gateway types.
 //
 // By default, a gateway's bandwidth rate limits are not set. If you don't set
 // any limit, the gateway does not have any limitations on its bandwidth usage
@@ -6773,9 +7044,9 @@ func (c *StorageGateway) UpdateGatewaySoftwareNowRequest(input *UpdateGatewaySof
 // A software update forces a system restart of your gateway. You can minimize
 // the chance of any disruption to your applications by increasing your iSCSI
 // Initiators' timeouts. For more information about increasing iSCSI Initiator
-// timeouts for Windows and Linux, see Customizing Your Windows iSCSI Settings
+// timeouts for Windows and Linux, see Customizing your Windows iSCSI settings
 // (https://docs.aws.amazon.com/storagegateway/latest/userguide/ConfiguringiSCSIClientInitiatorWindowsClient.html#CustomizeWindowsiSCSISettings)
-// and Customizing Your Linux iSCSI Settings (https://docs.aws.amazon.com/storagegateway/latest/userguide/ConfiguringiSCSIClientInitiatorRedHatClient.html#CustomizeLinuxiSCSISettings),
+// and Customizing your Linux iSCSI settings (https://docs.aws.amazon.com/storagegateway/latest/userguide/ConfiguringiSCSIClientInitiatorRedHatClient.html#CustomizeLinuxiSCSISettings),
 // respectively.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -7058,7 +7329,7 @@ func (c *StorageGateway) UpdateSMBFileShareRequest(input *UpdateSMBFileShareInpu
 // to enable you to create a file share. Make sure that AWS STS is activated
 // in the AWS Region you are creating your file gateway in. If AWS STS is not
 // activated in this AWS Region, activate it. For information about how to activate
-// AWS STS, see Activating and Deactivating AWS STS in an AWS Region (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
+// AWS STS, see Activating and deactivating AWS STS in an AWS Region (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_enable-regions.html)
 // in the AWS Identity and Access Management User Guide.
 //
 // File gateways don't support creating hard or symbolic links on a file share.
@@ -7383,9 +7654,9 @@ func (c *StorageGateway) UpdateVTLDeviceTypeWithContext(ctx aws.Context, input *
 //
 //    * ActivateGatewayInput$GatewayType
 //
-//    * ActivateGatewayInput$TapeDriveType
-//
 //    * ActivateGatewayInput$MediumChangerType
+//
+//    * ActivateGatewayInput$TapeDriveType
 type ActivateGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7397,8 +7668,8 @@ type ActivateGatewayInput struct {
 	// defaults -- the arguments you pass to the ActivateGateway API call determine
 	// the actual configuration of your gateway.
 	//
-	// For more information, see https://docs.aws.amazon.com/storagegateway/latest/userguide/get-activation-key.html
-	// in the Storage Gateway User Guide.
+	// For more information, see Getting activation key (https://docs.aws.amazon.com/storagegateway/latest/userguide/get-activation-key.html)
+	// in the AWS Storage Gateway User Guide.
 	//
 	// ActivationKey is a required field
 	ActivationKey *string `min:"1" type:"string" required:"true"`
@@ -7411,11 +7682,11 @@ type ActivateGatewayInput struct {
 	// A value that indicates the AWS Region where you want to store your data.
 	// The gateway AWS Region specified must be the same AWS Region as the AWS Region
 	// in your Host header in the request. For more information about available
-	// AWS Regions and endpoints for AWS Storage Gateway, see Regions and Endpoints
-	// (https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region) in the
-	// Amazon Web Services Glossary.
+	// AWS Regions and endpoints for AWS Storage Gateway, see AWS Storage Gateway
+	// endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/sg.html)
+	// in the AWS General Reference.
 	//
-	// Valid Values: See AWS Storage Gateway Regions and Endpoints (https://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region)
+	// Valid Values: See AWS Storage Gateway endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/sg.html)
 	// in the AWS General Reference.
 	//
 	// GatewayRegion is a required field
@@ -7434,13 +7705,13 @@ type ActivateGatewayInput struct {
 	// is critical to all later functions of the gateway and cannot be changed after
 	// activation. The default value is CACHED.
 	//
-	// Valid Values: "STORED", "CACHED", "VTL", "FILE_S3"
+	// Valid Values: STORED | CACHED | VTL | FILE_S3
 	GatewayType *string `min:"2" type:"string"`
 
 	// The value that indicates the type of medium changer to use for tape gateway.
 	// This field is optional.
 	//
-	// Valid Values: "STK-L700", "AWS-Gateway-VTL"
+	// Valid Values: STK-L700 | AWS-Gateway-VTL
 	MediumChangerType *string `min:"2" type:"string"`
 
 	// A list of up to 50 tags that you can assign to the gateway. Each tag is a
@@ -7455,7 +7726,7 @@ type ActivateGatewayInput struct {
 	// The value that indicates the type of tape drive to use for tape gateway.
 	// This field is optional.
 	//
-	// Valid Values: "IBM-ULT3580-TD5"
+	// Valid Values: IBM-ULT3580-TD5
 	TapeDriveType *string `min:"2" type:"string"`
 }
 
@@ -7606,7 +7877,7 @@ type AddCacheInput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of strings that identify disks that are to be configured as working
-	// storage. Each string have a minimum length of 1 and maximum length of 300.
+	// storage. Each string has a minimum length of 1 and maximum length of 300.
 	// You can get the disk IDs from the ListLocalDisks API.
 	//
 	// DiskIds is a required field
@@ -7784,7 +8055,7 @@ type AddUploadBufferInput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of strings that identify disks that are to be configured as working
-	// storage. Each string have a minimum length of 1 and maximum length of 300.
+	// storage. Each string has a minimum length of 1 and maximum length of 300.
 	// You can get the disk IDs from the ListLocalDisks API.
 	//
 	// DiskIds is a required field
@@ -7869,7 +8140,7 @@ type AddWorkingStorageInput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of strings that identify disks that are to be configured as working
-	// storage. Each string have a minimum length of 1 and maximum length of 300.
+	// storage. Each string has a minimum length of 1 and maximum length of 300.
 	// You can get the disk IDs from the ListLocalDisks API.
 	//
 	// DiskIds is a required field
@@ -7923,8 +8194,8 @@ func (s *AddWorkingStorageInput) SetGatewayARN(v string) *AddWorkingStorageInput
 	return s
 }
 
-// A JSON object containing the of the gateway for which working storage was
-// configured.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway for
+// which working storage was configured.
 type AddWorkingStorageOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -7955,10 +8226,10 @@ type AssignTapePoolInput struct {
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
 	// the pool. When you use your backup application to eject the tape, the tape
-	// is archived directly into the storage class (Glacier or Deep Archive) that
-	// corresponds to the pool.
+	// is archived directly into the storage class (S3 Glacier or S3 Glacier Deep
+	// Archive) that corresponds to the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	//
 	// PoolId is a required field
 	PoolId *string `min:"1" type:"string" required:"true"`
@@ -8182,6 +8453,147 @@ func (s *AttachVolumeOutput) SetVolumeARN(v string) *AttachVolumeOutput {
 	return s
 }
 
+// Information about the gateway's automatic tape creation policies, including
+// the automatic tape creation rules and the gateway that is using the policies.
+type AutomaticTapeCreationPolicyInfo struct {
+	_ struct{} `type:"structure"`
+
+	// An automatic tape creation policy consists of a list of automatic tape creation
+	// rules. This returns the rules that determine when and how to automatically
+	// create new tapes.
+	AutomaticTapeCreationRules []*AutomaticTapeCreationRule `min:"1" type:"list"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	GatewayARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s AutomaticTapeCreationPolicyInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AutomaticTapeCreationPolicyInfo) GoString() string {
+	return s.String()
+}
+
+// SetAutomaticTapeCreationRules sets the AutomaticTapeCreationRules field's value.
+func (s *AutomaticTapeCreationPolicyInfo) SetAutomaticTapeCreationRules(v []*AutomaticTapeCreationRule) *AutomaticTapeCreationPolicyInfo {
+	s.AutomaticTapeCreationRules = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *AutomaticTapeCreationPolicyInfo) SetGatewayARN(v string) *AutomaticTapeCreationPolicyInfo {
+	s.GatewayARN = &v
+	return s
+}
+
+// An automatic tape creation policy consists of automatic tape creation rules
+// where each rule defines when and how to create new tapes.
+type AutomaticTapeCreationRule struct {
+	_ struct{} `type:"structure"`
+
+	// The minimum number of available virtual tapes that the gateway maintains
+	// at all times. If the number of tapes on the gateway goes below this value,
+	// the gateway creates as many new tapes as are needed to have MinimumNumTapes
+	// on the gateway.
+	//
+	// MinimumNumTapes is a required field
+	MinimumNumTapes *int64 `min:"1" type:"integer" required:"true"`
+
+	// The ID of the pool that you want to add your tape to for archiving. The tape
+	// in this pool is archived in the Amazon S3 storage class that is associated
+	// with the pool. When you use your backup application to eject the tape, the
+	// tape is archived directly into the storage class (S3 Glacier or S3 Glacier
+	// Deep Archive) that corresponds to the pool.
+	//
+	// Valid Values: GLACIER | DEEP_ARCHIVE
+	//
+	// PoolId is a required field
+	PoolId *string `min:"1" type:"string" required:"true"`
+
+	// A prefix that you append to the barcode of the virtual tape that you are
+	// creating. This prefix makes the barcode unique.
+	//
+	// The prefix must be 1-4 characters in length and must be one of the uppercase
+	// letters from A to Z.
+	//
+	// TapeBarcodePrefix is a required field
+	TapeBarcodePrefix *string `min:"1" type:"string" required:"true"`
+
+	// The size, in bytes, of the virtual tape capacity.
+	//
+	// TapeSizeInBytes is a required field
+	TapeSizeInBytes *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s AutomaticTapeCreationRule) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AutomaticTapeCreationRule) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AutomaticTapeCreationRule) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AutomaticTapeCreationRule"}
+	if s.MinimumNumTapes == nil {
+		invalidParams.Add(request.NewErrParamRequired("MinimumNumTapes"))
+	}
+	if s.MinimumNumTapes != nil && *s.MinimumNumTapes < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MinimumNumTapes", 1))
+	}
+	if s.PoolId == nil {
+		invalidParams.Add(request.NewErrParamRequired("PoolId"))
+	}
+	if s.PoolId != nil && len(*s.PoolId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PoolId", 1))
+	}
+	if s.TapeBarcodePrefix == nil {
+		invalidParams.Add(request.NewErrParamRequired("TapeBarcodePrefix"))
+	}
+	if s.TapeBarcodePrefix != nil && len(*s.TapeBarcodePrefix) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TapeBarcodePrefix", 1))
+	}
+	if s.TapeSizeInBytes == nil {
+		invalidParams.Add(request.NewErrParamRequired("TapeSizeInBytes"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMinimumNumTapes sets the MinimumNumTapes field's value.
+func (s *AutomaticTapeCreationRule) SetMinimumNumTapes(v int64) *AutomaticTapeCreationRule {
+	s.MinimumNumTapes = &v
+	return s
+}
+
+// SetPoolId sets the PoolId field's value.
+func (s *AutomaticTapeCreationRule) SetPoolId(v string) *AutomaticTapeCreationRule {
+	s.PoolId = &v
+	return s
+}
+
+// SetTapeBarcodePrefix sets the TapeBarcodePrefix field's value.
+func (s *AutomaticTapeCreationRule) SetTapeBarcodePrefix(v string) *AutomaticTapeCreationRule {
+	s.TapeBarcodePrefix = &v
+	return s
+}
+
+// SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
+func (s *AutomaticTapeCreationRule) SetTapeSizeInBytes(v int64) *AutomaticTapeCreationRule {
+	s.TapeSizeInBytes = &v
+	return s
+}
+
 // Describes an iSCSI cached volume.
 type CachediSCSIVolume struct {
 	_ struct{} `type:"structure"`
@@ -8190,8 +8602,9 @@ type CachediSCSIVolume struct {
 	// don’t have this time stamp.
 	CreatedDate *time.Time `type:"timestamp"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// If the cached volume was created from a snapshot, this field contains the
@@ -8211,8 +8624,8 @@ type CachediSCSIVolume struct {
 	VolumeARN *string `min:"50" type:"string"`
 
 	// A value that indicates whether a storage volume is attached to or detached
-	// from a gateway. For more information, see Moving Your Volumes to a Different
-	// Gateway (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#attach-detach-volume).
+	// from a gateway. For more information, see Moving your volumes to a different
+	// gateway (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#attach-detach-volume).
 	VolumeAttachmentStatus *string `min:"3" type:"string"`
 
 	// The unique identifier of the volume, e.g. vol-AE4B946D.
@@ -8580,12 +8993,15 @@ type CreateCachediSCSIVolumeInput struct {
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The network interface of the gateway on which to expose the iSCSI target.
@@ -8599,7 +9015,7 @@ type CreateCachediSCSIVolumeInput struct {
 
 	// The snapshot ID (e.g. "snap-1122aabb") of the snapshot to restore as the
 	// new cached volume. Specify this field if you want to create the iSCSI storage
-	// volume from a snapshot otherwise do not include this field. To list snapshots
+	// volume from a snapshot; otherwise, do not include this field. To list snapshots
 	// for your account use DescribeSnapshots (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeSnapshots.html)
 	// in the Amazon Elastic Compute Cloud API Reference.
 	SnapshotId *string `type:"string"`
@@ -8804,8 +9220,9 @@ type CreateNFSFileShareInput struct {
 	ClientToken *string `min:"5" type:"string" required:"true"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the file gateway on which you want to create
@@ -8816,15 +9233,20 @@ type CreateNFSFileShareInput struct {
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) AWS KMS key used for Amazon S3 server side
-	// encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ARN of the backed storage used for storing file data.
@@ -8835,22 +9257,27 @@ type CreateNFSFileShareInput struct {
 	// File share default values. Optional.
 	NFSFileShareDefaults *NFSFileShareDefaults `type:"structure"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set the write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
 	// The ARN of the AWS Identity and Access Management (IAM) role that a file
@@ -8859,13 +9286,15 @@ type CreateNFSFileShareInput struct {
 	// Role is a required field
 	Role *string `min:"20" type:"string" required:"true"`
 
-	// A value that maps a user to anonymous user. Valid options are the following:
+	// A value that maps a user to anonymous user.
 	//
-	//    * RootSquash - Only root is mapped to anonymous user.
+	// Valid values are the following:
 	//
-	//    * NoSquash - No one is mapped to anonymous user
+	//    * RootSquash: Only root is mapped to anonymous user.
 	//
-	//    * AllSquash - Everyone is mapped to anonymous user.
+	//    * NoSquash: No one is mapped to anonymous user.
+	//
+	//    * AllSquash: Everyone is mapped to anonymous user.
 	Squash *string `min:"5" type:"string"`
 
 	// A list of up to 50 tags that can be assigned to the NFS file share. Each
@@ -9075,9 +9504,13 @@ type CreateSMBFileShareInput struct {
 	// they like on the file share, regardless of file permissions.
 	AdminUserList []*string `type:"list"`
 
-	// The authentication method that users use to access the file share.
+	// The Amazon Resource Name (ARN) of the storage used for the audit logs.
+	AuditDestinationARN *string `type:"string"`
+
+	// The authentication method that users use to access the file share. The default
+	// is ActiveDirectory.
 	//
-	// Valid values are ActiveDirectory or GuestAccess. The default is ActiveDirectory.
+	// Valid Values: ActiveDirectory | GuestAccess
 	Authentication *string `min:"5" type:"string"`
 
 	// A unique string value that you supply that is used by file gateway to ensure
@@ -9087,32 +9520,37 @@ type CreateSMBFileShareInput struct {
 	ClientToken *string `min:"5" type:"string" required:"true"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
-	// The Amazon Resource Name (ARN) of the file gateway on which you want to create
-	// a file share.
+	// The ARN of the file gateway on which you want to create a file share.
 	//
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
 	// access the file share. A group must be prefixed with the @ character. For
-	// example @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// example, @group1. Can only be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ARN of the backed storage used for storing file data.
@@ -9120,22 +9558,27 @@ type CreateSMBFileShareInput struct {
 	// LocationARN is a required field
 	LocationARN *string `min:"16" type:"string" required:"true"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set the write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
 	// The ARN of the AWS Identity and Access Management (IAM) role that a file
@@ -9144,12 +9587,15 @@ type CreateSMBFileShareInput struct {
 	// Role is a required field
 	Role *string `min:"20" type:"string" required:"true"`
 
-	// Set this value to "true to enable ACL (access control list) on the SMB file
-	// share. Set it to "false" to map file and directory permissions to the POSIX
+	// Set this value to true to enable access control list (ACL) on the SMB file
+	// share. Set it to false to map file and directory permissions to the POSIX
 	// permissions.
 	//
-	// For more information, see https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.html
-	// in the Storage Gateway User Guide.
+	// For more information, see Using Microsoft Windows ACLs to control access
+	// to an SMB file share (https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.html)
+	// in the AWS Storage Gateway User Guide.
+	//
+	// Valid Values: true | false
 	SMBACLEnabled *bool `type:"boolean"`
 
 	// A list of up to 50 tags that can be assigned to the NFS file share. Each
@@ -9162,7 +9608,7 @@ type CreateSMBFileShareInput struct {
 	Tags []*Tag `type:"list"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example
+	// the file share. A group must be prefixed with the @ character. For example,
 	// @group1. Can only be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
@@ -9233,6 +9679,12 @@ func (s *CreateSMBFileShareInput) Validate() error {
 // SetAdminUserList sets the AdminUserList field's value.
 func (s *CreateSMBFileShareInput) SetAdminUserList(v []*string) *CreateSMBFileShareInput {
 	s.AdminUserList = v
+	return s
+}
+
+// SetAuditDestinationARN sets the AuditDestinationARN field's value.
+func (s *CreateSMBFileShareInput) SetAuditDestinationARN(v string) *CreateSMBFileShareInput {
+	s.AuditDestinationARN = &v
 	return s
 }
 
@@ -9361,7 +9813,7 @@ type CreateSnapshotFromVolumeRecoveryPointInput struct {
 
 	// Textual description of the snapshot that appears in the Amazon EC2 console,
 	// Elastic Block Store snapshots panel in the Description field, and in the
-	// AWS Storage Gateway snapshot Details pane, Description field
+	// AWS Storage Gateway snapshot Details pane, Description field.
 	//
 	// SnapshotDescription is a required field
 	SnapshotDescription *string `min:"1" type:"string" required:"true"`
@@ -9494,7 +9946,7 @@ type CreateSnapshotInput struct {
 
 	// Textual description of the snapshot that appears in the Amazon EC2 console,
 	// Elastic Block Store snapshots panel in the Description field, and in the
-	// AWS Storage Gateway snapshot Details pane, Description field
+	// AWS Storage Gateway snapshot Details pane, Description field.
 	//
 	// SnapshotDescription is a required field
 	SnapshotDescription *string `min:"1" type:"string" required:"true"`
@@ -9637,12 +10089,15 @@ type CreateStorediSCSIVolumeInput struct {
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the KMS key used for Amazon S3 server side
-	// encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The network interface of the gateway on which to expose the iSCSI target.
@@ -9654,17 +10109,17 @@ type CreateStorediSCSIVolumeInput struct {
 	// NetworkInterfaceId is a required field
 	NetworkInterfaceId *string `type:"string" required:"true"`
 
-	// Specify this field as true if you want to preserve the data on the local
-	// disk. Otherwise, specifying this field as false creates an empty volume.
+	// Set to true true if you want to preserve the data on the local disk. Otherwise,
+	// set to false to create an empty volume.
 	//
-	// Valid Values: true, false
+	// Valid Values: true | false
 	//
 	// PreserveExistingData is a required field
 	PreserveExistingData *bool `type:"boolean" required:"true"`
 
 	// The snapshot ID (e.g. "snap-1122aabb") of the snapshot to restore as the
 	// new stored volume. Specify this field if you want to create the iSCSI storage
-	// volume from a snapshot otherwise do not include this field. To list snapshots
+	// volume from a snapshot; otherwise, do not include this field. To list snapshots
 	// for your account use DescribeSnapshots (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeSnapshots.html)
 	// in the Amazon Elastic Compute Cloud API Reference.
 	SnapshotId *string `type:"string"`
@@ -9855,21 +10310,24 @@ type CreateTapeWithBarcodeInput struct {
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS Key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
 	// the pool. When you use your backup application to eject the tape, the tape
-	// is archived directly into the storage class (Glacier or Deep Archive) that
-	// corresponds to the pool.
+	// is archived directly into the storage class (S3 Glacier or S3 Deep Archive)
+	// that corresponds to the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
 
 	// A list of up to 50 tags that can be assigned to a virtual tape that has a
@@ -9891,7 +10349,7 @@ type CreateTapeWithBarcodeInput struct {
 
 	// The size, in bytes, of the virtual tape that you want to create.
 	//
-	// The size must be aligned by gigabyte (1024*1024*1024 byte).
+	// The size must be aligned by gigabyte (1024*1024*1024 bytes).
 	//
 	// TapeSizeInBytes is a required field
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
@@ -10034,12 +10492,15 @@ type CreateTapesInput struct {
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The number of virtual tapes that you want to create.
@@ -10050,10 +10511,10 @@ type CreateTapesInput struct {
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
 	// the pool. When you use your backup application to eject the tape, the tape
-	// is archived directly into the storage class (Glacier or Deep Archive) that
-	// corresponds to the pool.
+	// is archived directly into the storage class (S3 Glacier or S3 Glacier Deep
+	// Archive) that corresponds to the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
 
 	// A list of up to 50 tags that can be assigned to a virtual tape. Each tag
@@ -10076,7 +10537,7 @@ type CreateTapesInput struct {
 
 	// The size, in bytes, of the virtual tapes that you want to create.
 	//
-	// The size must be aligned by gigabyte (1024*1024*1024 byte).
+	// The size must be aligned by gigabyte (1024*1024*1024 bytes).
 	//
 	// TapeSizeInBytes is a required field
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
@@ -10224,6 +10685,72 @@ func (s *CreateTapesOutput) SetTapeARNs(v []*string) *CreateTapesOutput {
 	return s
 }
 
+type DeleteAutomaticTapeCreationPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	//
+	// GatewayARN is a required field
+	GatewayARN *string `min:"50" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAutomaticTapeCreationPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAutomaticTapeCreationPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAutomaticTapeCreationPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAutomaticTapeCreationPolicyInput"}
+	if s.GatewayARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayARN"))
+	}
+	if s.GatewayARN != nil && len(*s.GatewayARN) < 50 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayARN", 50))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteAutomaticTapeCreationPolicyInput) SetGatewayARN(v string) *DeleteAutomaticTapeCreationPolicyInput {
+	s.GatewayARN = &v
+	return s
+}
+
+type DeleteAutomaticTapeCreationPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	GatewayARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteAutomaticTapeCreationPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAutomaticTapeCreationPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *DeleteAutomaticTapeCreationPolicyOutput) SetGatewayARN(v string) *DeleteAutomaticTapeCreationPolicyOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing the following fields:
 //
 //    * DeleteBandwidthRateLimitInput$BandwidthType
@@ -10233,7 +10760,7 @@ type DeleteBandwidthRateLimitInput struct {
 	// One of the BandwidthType values that indicates the gateway bandwidth rate
 	// limit to delete.
 	//
-	// Valid Values: Upload, Download, All.
+	// Valid Values: Upload | Download | All
 	//
 	// BandwidthType is a required field
 	BandwidthType *string `min:"3" type:"string" required:"true"`
@@ -10289,8 +10816,8 @@ func (s *DeleteBandwidthRateLimitInput) SetGatewayARN(v string) *DeleteBandwidth
 	return s
 }
 
-// A JSON object containing the of the gateway whose bandwidth rate information
-// was deleted.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway whose
+// bandwidth rate information was deleted.
 type DeleteBandwidthRateLimitOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10425,6 +10952,8 @@ type DeleteFileShareInput struct {
 	// and aborts all data uploads to AWS. Otherwise, the file share is not deleted
 	// until all data is uploaded to AWS. This process aborts the data upload process,
 	// and the file share enters the FORCE_DELETING status.
+	//
+	// Valid Values: true | false
 	ForceDelete *bool `type:"boolean"`
 }
 
@@ -10818,7 +11347,8 @@ func (s *DeleteVolumeInput) SetVolumeARN(v string) *DeleteVolumeInput {
 	return s
 }
 
-// A JSON object containing the of the storage volume that was deleted
+// A JSON object containing the Amazon Resource Name (ARN) of the storage volume
+// that was deleted.
 type DeleteVolumeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -10929,7 +11459,7 @@ func (s *DescribeAvailabilityMonitorTestOutput) SetStatus(v string) *DescribeAva
 	return s
 }
 
-// A JSON object containing the of the gateway.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway.
 type DescribeBandwidthRateLimitInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11062,7 +11592,7 @@ func (s *DescribeCacheInput) SetGatewayARN(v string) *DescribeCacheInput {
 type DescribeCacheOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The amount of cache in bytes allocated to the a gateway.
+	// The amount of cache in bytes allocated to a gateway.
 	CacheAllocatedInBytes *int64 `type:"long"`
 
 	// The file share's contribution to the overall percentage of the gateway's
@@ -11084,7 +11614,7 @@ type DescribeCacheOutput struct {
 	CacheUsedPercentage *float64 `type:"double"`
 
 	// An array of strings that identify disks that are to be configured as working
-	// storage. Each string have a minimum length of 1 and maximum length of 300.
+	// storage. Each string has a minimum length of 1 and maximum length of 300.
 	// You can get the disk IDs from the ListLocalDisks API.
 	DiskIds []*string `type:"list"`
 
@@ -11149,8 +11679,8 @@ type DescribeCachediSCSIVolumesInput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of strings where each string represents the Amazon Resource Name
-	// (ARN) of a cached volume. All of the specified cached volumes must from the
-	// same gateway. Use ListVolumes to get volume ARNs for a gateway.
+	// (ARN) of a cached volume. All of the specified cached volumes must be from
+	// the same gateway. Use ListVolumes to get volume ARNs for a gateway.
 	//
 	// VolumeARNs is a required field
 	VolumeARNs []*string `type:"list" required:"true"`
@@ -11254,7 +11784,7 @@ func (s *DescribeChapCredentialsInput) SetTargetARN(v string) *DescribeChapCrede
 	return s
 }
 
-// A JSON object containing a .
+// A JSON object containing the following fields:
 type DescribeChapCredentialsOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -11349,6 +11879,11 @@ type DescribeGatewayInformationOutput struct {
 	// The AWS Region where the Amazon EC2 instance is located.
 	Ec2InstanceRegion *string `type:"string"`
 
+	// The type of endpoint for your gateway.
+	//
+	// Valid Values: STANDARD | FIPS
+	EndpointType *string `min:"4" type:"string"`
+
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and AWS Region.
 	GatewayARN *string `min:"50" type:"string"`
@@ -11425,6 +11960,12 @@ func (s *DescribeGatewayInformationOutput) SetEc2InstanceRegion(v string) *Descr
 	return s
 }
 
+// SetEndpointType sets the EndpointType field's value.
+func (s *DescribeGatewayInformationOutput) SetEndpointType(v string) *DescribeGatewayInformationOutput {
+	s.EndpointType = &v
+	return s
+}
+
 // SetGatewayARN sets the GatewayARN field's value.
 func (s *DescribeGatewayInformationOutput) SetGatewayARN(v string) *DescribeGatewayInformationOutput {
 	s.GatewayARN = &v
@@ -11497,7 +12038,7 @@ func (s *DescribeGatewayInformationOutput) SetVPCEndpoint(v string) *DescribeGat
 	return s
 }
 
-// A JSON object containing the of the gateway.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway.
 type DescribeMaintenanceStartTimeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -11557,8 +12098,6 @@ type DescribeMaintenanceStartTimeOutput struct {
 	// The day of the month component of the maintenance start time represented
 	// as an ordinal number from 1 to 28, where 1 represents the first day of the
 	// month and 28 represents the last day of the month.
-	//
-	// This value is only available for tape and volume gateways.
 	DayOfMonth *int64 `min:"1" type:"integer"`
 
 	// An ordinal number between 0 and 6 that represents the day of the week, where
@@ -11839,24 +12378,27 @@ type DescribeSMBSettingsOutput struct {
 	// to return a list of gateways for your account and AWS Region.
 	GatewayARN *string `min:"50" type:"string"`
 
-	// This value is true if a password for the guest user “smbguest” is set,
-	// and otherwise false.
+	// This value is true if a password for the guest user smbguest is set, otherwise
+	// false.
+	//
+	// Valid Values: true | false
 	SMBGuestPasswordSet *bool `type:"boolean"`
 
 	// The type of security strategy that was specified for file gateway.
 	//
-	// ClientSpecified: if you use this option, requests are established based on
-	// what is negotiated by the client. This option is recommended when you want
-	// to maximize compatibility across different clients in your environment.
+	//    * ClientSpecified: If you use this option, requests are established based
+	//    on what is negotiated by the client. This option is recommended when you
+	//    want to maximize compatibility across different clients in your environment.
 	//
-	// MandatorySigning: if you use this option, file gateway only allows connections
-	// from SMBv2 or SMBv3 clients that have signing enabled. This option works
-	// with SMB clients on Microsoft Windows Vista, Windows Server 2008 or newer.
+	//    * MandatorySigning: If you use this option, file gateway only allows connections
+	//    from SMBv2 or SMBv3 clients that have signing enabled. This option works
+	//    with SMB clients on Microsoft Windows Vista, Windows Server 2008 or newer.
 	//
-	// MandatoryEncryption: if you use this option, file gateway only allows connections
-	// from SMBv3 clients that have encryption enabled. This option is highly recommended
-	// for environments that handle sensitive data. This option works with SMB clients
-	// on Microsoft Windows 8, Windows Server 2012 or newer.
+	//    * MandatoryEncryption: If you use this option, file gateway only allows
+	//    connections from SMBv3 clients that have encryption enabled. This option
+	//    is highly recommended for environments that handle sensitive data. This
+	//    option works with SMB clients on Microsoft Windows 8, Windows Server 2012
+	//    or newer.
 	SMBSecurityStrategy *string `type:"string" enum:"SMBSecurityStrategy"`
 }
 
@@ -12021,8 +12563,8 @@ type DescribeStorediSCSIVolumesInput struct {
 	_ struct{} `type:"structure"`
 
 	// An array of strings where each string represents the Amazon Resource Name
-	// (ARN) of a stored volume. All of the specified stored volumes must from the
-	// same gateway. Use ListVolumes to get volume ARNs for a gateway.
+	// (ARN) of a stored volume. All of the specified stored volumes must be from
+	// the same gateway. Use ListVolumes to get volume ARNs for a gateway.
 	//
 	// VolumeARNs is a required field
 	VolumeARNs []*string `type:"list" required:"true"`
@@ -12073,7 +12615,7 @@ type DescribeStorediSCSIVolumesOutput struct {
 	//
 	//    * NetworkInterfacePort: The port used to communicate with iSCSI targets.
 	//
-	//    * PreservedExistingData: Indicates if when the stored volume was created,
+	//    * PreservedExistingData: Indicates when the stored volume was created,
 	//    existing data on the underlying local disk was preserved.
 	//
 	//    * SourceSnapshotId: If the stored volume was created from a snapshot,
@@ -12106,7 +12648,7 @@ type DescribeStorediSCSIVolumesOutput struct {
 	//    of the volume.
 	//
 	//    * VolumeType: One of the enumeration values describing the type of the
-	//    volume. Currently, on STORED volumes are supported.
+	//    volume. Currently, only STORED volumes are supported.
 	StorediSCSIVolumes []*StorediSCSIVolume `type:"list"`
 }
 
@@ -12130,7 +12672,7 @@ func (s *DescribeStorediSCSIVolumesOutput) SetStorediSCSIVolumes(v []*StorediSCS
 type DescribeTapeArchivesInput struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies that the number of virtual tapes descried be limited to the specified
+	// Specifies that the number of virtual tapes described be limited to the specified
 	// number.
 	Limit *int64 `min:"1" type:"integer"`
 
@@ -12201,7 +12743,7 @@ type DescribeTapeArchivesOutput struct {
 	// An array of virtual tape objects in the virtual tape shelf (VTS). The description
 	// includes of the Amazon Resource Name (ARN) of the virtual tapes. The information
 	// returned includes the Amazon Resource Names (ARNs) of the tapes, size of
-	// the tapes, status of the tapes, progress of the description and tape barcode.
+	// the tapes, status of the tapes, progress of the description, and tape barcode.
 	TapeArchives []*TapeArchive `type:"list"`
 }
 
@@ -12659,7 +13201,7 @@ type DescribeVTLDevicesOutput struct {
 	// to describe, this field does not appear in the response.
 	Marker *string `min:"1" type:"string"`
 
-	// An array of VTL device objects composed of the Amazon Resource Name(ARN)
+	// An array of VTL device objects composed of the Amazon Resource Name (ARN)
 	// of the VTL devices.
 	VTLDevices []*VTLDevice `type:"list"`
 }
@@ -12692,7 +13234,7 @@ func (s *DescribeVTLDevicesOutput) SetVTLDevices(v []*VTLDevice) *DescribeVTLDev
 	return s
 }
 
-// A JSON object containing the of the gateway.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway.
 type DescribeWorkingStorageInput struct {
 	_ struct{} `type:"structure"`
 
@@ -12799,6 +13341,8 @@ type DetachVolumeInput struct {
 	// Set to true to forcibly remove the iSCSI connection of the target volume
 	// and detach the volume. The default is false. If this value is set to false,
 	// you must manually disconnect the iSCSI connection from the target volume.
+	//
+	// Valid Values: true | false
 	ForceDetach *bool `type:"boolean"`
 
 	// The Amazon Resource Name (ARN) of the volume to detach from the gateway.
@@ -12998,7 +13542,9 @@ type Disk struct {
 	DiskAllocationResource *string `type:"string"`
 
 	// One of the DiskAllocationType enumeration values that identifies how a local
-	// disk is used. Valid values: UPLOAD_BUFFER, CACHE_STORAGE
+	// disk is used.
+	//
+	// Valid Values: UPLOAD_BUFFER | CACHE_STORAGE
 	DiskAllocationType *string `min:"3" type:"string"`
 
 	// A list of values that represents attributes of a local disk.
@@ -13079,9 +13625,9 @@ func (s *Disk) SetDiskStatus(v string) *Disk {
 	return s
 }
 
-// Provides additional information about an error that was returned by the service
-// as an or. See the errorCode and errorDetails members for more information
-// about the error.
+// Provides additional information about an error that was returned by the service.
+// See the errorCode and errorDetails members for more information about the
+// error.
 type Error struct {
 	_ struct{} `type:"structure"`
 
@@ -13124,8 +13670,9 @@ type FileShareInfo struct {
 	// The ID of the file share.
 	FileShareId *string `min:"12" type:"string"`
 
-	// The status of the file share. Possible values are CREATING, UPDATING, AVAILABLE
-	// and DELETING.
+	// The status of the file share.
+	//
+	// Valid Values: CREATING | UPDATING | AVAILABLE | DELETING
 	FileShareStatus *string `min:"3" type:"string"`
 
 	// The type of the file share.
@@ -13200,7 +13747,7 @@ type GatewayInfo struct {
 
 	// The state of the gateway.
 	//
-	// Valid Values: DISABLED or ACTIVE
+	// Valid Values: DISABLED | ACTIVE
 	GatewayOperationalState *string `min:"2" type:"string"`
 
 	// The type of the gateway.
@@ -13262,8 +13809,8 @@ func (s *GatewayInfo) SetGatewayType(v string) *GatewayInfo {
 // An internal server error has occurred during the request. For more information,
 // see the error and message fields.
 type InternalServerError struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// A StorageGatewayError that provides more information about the cause of the
 	// error.
@@ -13285,17 +13832,17 @@ func (s InternalServerError) GoString() string {
 
 func newErrorInternalServerError(v protocol.ResponseMetadata) error {
 	return &InternalServerError{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServerError) Code() string {
+func (s *InternalServerError) Code() string {
 	return "InternalServerError"
 }
 
 // Message returns the exception's message.
-func (s InternalServerError) Message() string {
+func (s *InternalServerError) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -13303,29 +13850,29 @@ func (s InternalServerError) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServerError) OrigErr() error {
+func (s *InternalServerError) OrigErr() error {
 	return nil
 }
 
-func (s InternalServerError) Error() string {
+func (s *InternalServerError) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServerError) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServerError) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An exception occurred because an invalid gateway request was issued to the
 // service. For more information, see the error and message fields.
 type InvalidGatewayRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// A StorageGatewayError that provides more detail about the cause of the error.
 	Error_ *Error `locationName:"error" type:"structure"`
@@ -13346,17 +13893,17 @@ func (s InvalidGatewayRequestException) GoString() string {
 
 func newErrorInvalidGatewayRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidGatewayRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidGatewayRequestException) Code() string {
+func (s *InvalidGatewayRequestException) Code() string {
 	return "InvalidGatewayRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidGatewayRequestException) Message() string {
+func (s *InvalidGatewayRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -13364,22 +13911,22 @@ func (s InvalidGatewayRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidGatewayRequestException) OrigErr() error {
+func (s *InvalidGatewayRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidGatewayRequestException) Error() string {
+func (s *InvalidGatewayRequestException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidGatewayRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidGatewayRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidGatewayRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidGatewayRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // JoinDomainInput
@@ -13566,11 +14113,73 @@ func (s *JoinDomainOutput) SetGatewayARN(v string) *JoinDomainOutput {
 	return s
 }
 
+type ListAutomaticTapeCreationPoliciesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	GatewayARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s ListAutomaticTapeCreationPoliciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAutomaticTapeCreationPoliciesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListAutomaticTapeCreationPoliciesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListAutomaticTapeCreationPoliciesInput"}
+	if s.GatewayARN != nil && len(*s.GatewayARN) < 50 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayARN", 50))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *ListAutomaticTapeCreationPoliciesInput) SetGatewayARN(v string) *ListAutomaticTapeCreationPoliciesInput {
+	s.GatewayARN = &v
+	return s
+}
+
+type ListAutomaticTapeCreationPoliciesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Gets a listing of information about the gateway's automatic tape creation
+	// policies, including the automatic tape creation rules and the gateway that
+	// is using the policies.
+	AutomaticTapeCreationPolicyInfos []*AutomaticTapeCreationPolicyInfo `type:"list"`
+}
+
+// String returns the string representation
+func (s ListAutomaticTapeCreationPoliciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAutomaticTapeCreationPoliciesOutput) GoString() string {
+	return s.String()
+}
+
+// SetAutomaticTapeCreationPolicyInfos sets the AutomaticTapeCreationPolicyInfos field's value.
+func (s *ListAutomaticTapeCreationPoliciesOutput) SetAutomaticTapeCreationPolicyInfos(v []*AutomaticTapeCreationPolicyInfo) *ListAutomaticTapeCreationPoliciesOutput {
+	s.AutomaticTapeCreationPolicyInfos = v
+	return s
+}
+
 // ListFileShareInput
 type ListFileSharesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon resource Name (ARN) of the gateway whose file shares you want
+	// The Amazon Resource Name (ARN) of the gateway whose file shares you want
 	// to list. If this field is not present, all file shares under your account
 	// are listed.
 	GatewayARN *string `min:"50" type:"string"`
@@ -13765,7 +14374,7 @@ func (s *ListGatewaysOutput) SetMarker(v string) *ListGatewaysOutput {
 	return s
 }
 
-// A JSON object containing the of the gateway.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway.
 type ListLocalDisksInput struct {
 	_ struct{} `type:"structure"`
 
@@ -14037,9 +14646,9 @@ type ListTapesOutput struct {
 	// in the response body.
 	Marker *string `min:"1" type:"string"`
 
-	// An array of TapeInfo objects, where each object describes an a single tape.
-	// If there not tapes in the tape library or VTS, then the TapeInfos is an empty
-	// array.
+	// An array of TapeInfo objects, where each object describes a single tape.
+	// If there are no tapes in the tape library or VTS, then the TapeInfos is an
+	// empty array.
 	TapeInfos []*TapeInfo `type:"list"`
 }
 
@@ -14337,13 +14946,13 @@ func (s *ListVolumesOutput) SetVolumeInfos(v []*VolumeInfo) *ListVolumesOutput {
 type NFSFileShareDefaults struct {
 	_ struct{} `type:"structure"`
 
-	// The Unix directory mode in the form "nnnn". For example, "0666" represents
+	// The Unix directory mode in the form "nnnn". For example, 0666 represents
 	// the default access mode for all directories inside the file share. The default
 	// value is 0777.
 	DirectoryMode *string `min:"1" type:"string"`
 
-	// The Unix file mode in the form "nnnn". For example, "0666" represents the
-	// default file mode inside the file share. The default value is 0666.
+	// The Unix file mode in the form "nnnn". For example, 0666 represents the default
+	// file mode inside the file share. The default value is 0666.
 	FileMode *string `min:"1" type:"string"`
 
 	// The default group ID for the file share (unless the files have another group
@@ -14416,8 +15025,9 @@ type NFSFileShareInfo struct {
 	ClientList []*string `min:"1" type:"list"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the file share.
@@ -14426,8 +15036,9 @@ type NFSFileShareInfo struct {
 	// The ID of the file share.
 	FileShareId *string `min:"12" type:"string"`
 
-	// The status of the file share. Possible values are CREATING, UPDATING, AVAILABLE
-	// and DELETING.
+	// The status of the file share.
+	//
+	// Valid Values: CREATING | UPDATING | AVAILABLE | DELETING
 	FileShareStatus *string `min:"3" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -14436,15 +15047,20 @@ type NFSFileShareInfo struct {
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ARN of the backend storage used for storing file data.
@@ -14458,25 +15074,30 @@ type NFSFileShareInfo struct {
 	// gateways.
 	NFSFileShareDefaults *NFSFileShareDefaults `type:"structure"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
 	// The file share path used by the NFS client to identify the mount point.
 	Path *string `type:"string"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set the write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
 	// The ARN of the IAM role that file gateway assumes when it accesses the underlying
@@ -14485,11 +15106,11 @@ type NFSFileShareInfo struct {
 
 	// The user mapped to anonymous user. Valid options are the following:
 	//
-	//    * RootSquash - Only root is mapped to anonymous user.
+	//    * RootSquash: Only root is mapped to anonymous user.
 	//
-	//    * NoSquash - No one is mapped to anonymous user
+	//    * NoSquash: No one is mapped to anonymous user.
 	//
-	//    * AllSquash - Everyone is mapped to anonymous user.
+	//    * AllSquash: Everyone is mapped to anonymous user.
 	Squash *string `min:"5" type:"string"`
 
 	// A list of up to 50 tags assigned to the NFS file share, sorted alphabetically
@@ -14746,17 +15367,19 @@ type RefreshCacheInput struct {
 
 	// A comma-separated list of the paths of folders to refresh in the cache. The
 	// default is ["/"]. The default refreshes objects and folders at the root of
-	// the Amazon S3 bucket. If Recursive is set to "true", the entire S3 bucket
-	// that the file share has access to is refreshed.
+	// the Amazon S3 bucket. If Recursive is set to true, the entire S3 bucket that
+	// the file share has access to is refreshed.
 	FolderList []*string `min:"1" type:"list"`
 
 	// A value that specifies whether to recursively refresh folders in the cache.
 	// The refresh includes folders that were in the cache the last time the gateway
-	// listed the folder's contents. If this value set to "true", each folder that
+	// listed the folder's contents. If this value set to true, each folder that
 	// is listed in FolderList is recursively updated. Otherwise, subfolders listed
 	// in FolderList are not refreshed. Only objects that are in folders listed
 	// directly under FolderList are found and used for the update. The default
-	// is "true".
+	// is true.
+	//
+	// Valid Values: true | false
 	Recursive *bool `type:"boolean"`
 }
 
@@ -14852,7 +15475,7 @@ type RemoveTagsFromResourceInput struct {
 	ResourceARN *string `min:"50" type:"string" required:"true"`
 
 	// The keys of the tags you want to remove from the specified resource. A tag
-	// is composed of a key/value pair.
+	// is composed of a key-value pair.
 	//
 	// TagKeys is a required field
 	TagKeys []*string `type:"list" required:"true"`
@@ -15176,14 +15799,18 @@ type SMBFileShareInfo struct {
 	// For example @group1. Can only be set if Authentication is set to ActiveDirectory.
 	AdminUserList []*string `type:"list"`
 
-	// The authentication method of the file share.
+	// The Amazon Resource Name (ARN) of the storage used for the audit logs.
+	AuditDestinationARN *string `type:"string"`
+
+	// The authentication method of the file share. The default is ActiveDirectory.
 	//
-	// Valid values are ActiveDirectory or GuestAccess. The default is ActiveDirectory.
+	// Valid Values: ActiveDirectory | GuestAccess
 	Authentication *string `min:"5" type:"string"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the file share.
@@ -15192,8 +15819,9 @@ type SMBFileShareInfo struct {
 	// The ID of the file share.
 	FileShareId *string `min:"12" type:"string"`
 
-	// The status of the file share. Possible values are CREATING, UPDATING, AVAILABLE
-	// and DELETING.
+	// The status of the file share.
+	//
+	// Valid Values: CREATING | UPDATING | AVAILABLE | DELETING
 	FileShareStatus *string `min:"3" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -15202,7 +15830,9 @@ type SMBFileShareInfo struct {
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
@@ -15210,48 +15840,57 @@ type SMBFileShareInfo struct {
 	// example @group1. Can only be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
-	// True to use Amazon S3 server-side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ARN of the backend storage used for storing file data.
 	LocationARN *string `min:"16" type:"string"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
 	// The file share path used by the SMB client to identify the mount point.
 	Path *string `type:"string"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set the write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
 	// The ARN of the IAM role that file gateway assumes when it accesses the underlying
 	// storage.
 	Role *string `min:"20" type:"string"`
 
-	// If this value is set to "true", indicates that ACL (access control list)
-	// is enabled on the SMB file share. If it is set to "false", it indicates that
+	// If this value is set to true, it indicates that access control list (ACL)
+	// is enabled on the SMB file share. If it is set to false, it indicates that
 	// file and directory permissions are mapped to the POSIX permission.
 	//
-	// For more information, see https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.html
-	// in the Storage Gateway User Guide.
+	// For more information, see Using Microsoft Windows ACLs to control access
+	// to an SMB file share (https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.html)
+	// in the AWS Storage Gateway User Guide.
 	SMBACLEnabled *bool `type:"boolean"`
 
 	// A list of up to 50 tags assigned to the SMB file share, sorted alphabetically
@@ -15260,7 +15899,7 @@ type SMBFileShareInfo struct {
 	Tags []*Tag `type:"list"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example
+	// the file share. A group must be prefixed with the @ character. For example,
 	// @group1. Can only be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
@@ -15278,6 +15917,12 @@ func (s SMBFileShareInfo) GoString() string {
 // SetAdminUserList sets the AdminUserList field's value.
 func (s *SMBFileShareInfo) SetAdminUserList(v []*string) *SMBFileShareInfo {
 	s.AdminUserList = v
+	return s
+}
+
+// SetAuditDestinationARN sets the AuditDestinationARN field's value.
+func (s *SMBFileShareInfo) SetAuditDestinationARN(v string) *SMBFileShareInfo {
+	s.AuditDestinationARN = &v
 	return s
 }
 
@@ -15398,8 +16043,8 @@ func (s *SMBFileShareInfo) SetValidUserList(v []*string) *SMBFileShareInfo {
 // An internal server error has occurred because the service is unavailable.
 // For more information, see the error and message fields.
 type ServiceUnavailableError struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// A StorageGatewayError that provides more information about the cause of the
 	// error.
@@ -15421,17 +16066,17 @@ func (s ServiceUnavailableError) GoString() string {
 
 func newErrorServiceUnavailableError(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableError{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableError) Code() string {
+func (s *ServiceUnavailableError) Code() string {
 	return "ServiceUnavailableError"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableError) Message() string {
+func (s *ServiceUnavailableError) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15439,22 +16084,22 @@ func (s ServiceUnavailableError) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableError) OrigErr() error {
+func (s *ServiceUnavailableError) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableError) Error() string {
+func (s *ServiceUnavailableError) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableError) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableError) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableError) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableError) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // SetLocalConsolePasswordInput
@@ -15551,7 +16196,7 @@ type SetSMBGuestPasswordInput struct {
 	// GatewayARN is a required field
 	GatewayARN *string `min:"50" type:"string" required:"true"`
 
-	// The password that you want to set for your SMB Server.
+	// The password that you want to set for your SMB server.
 	//
 	// Password is a required field
 	Password *string `min:"6" type:"string" required:"true" sensitive:"true"`
@@ -15625,7 +16270,8 @@ func (s *SetSMBGuestPasswordOutput) SetGatewayARN(v string) *SetSMBGuestPassword
 	return s
 }
 
-// A JSON object containing the of the gateway to shut down.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway to
+// shut down.
 type ShutdownGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15668,7 +16314,8 @@ func (s *ShutdownGatewayInput) SetGatewayARN(v string) *ShutdownGatewayInput {
 	return s
 }
 
-// A JSON object containing the of the gateway that was shut down.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway that
+// was shut down.
 type ShutdownGatewayOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -15759,7 +16406,8 @@ func (s *StartAvailabilityMonitorTestOutput) SetGatewayARN(v string) *StartAvail
 	return s
 }
 
-// A JSON object containing the of the gateway to start.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway to
+// start.
 type StartGatewayInput struct {
 	_ struct{} `type:"structure"`
 
@@ -15802,7 +16450,8 @@ func (s *StartGatewayInput) SetGatewayARN(v string) *StartGatewayInput {
 	return s
 }
 
-// A JSON object containing the of the gateway that was restarted.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway that
+// was restarted.
 type StartGatewayOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -15835,14 +16484,15 @@ type StorediSCSIVolume struct {
 	// don’t have this time stamp.
 	CreatedDate *time.Time `type:"timestamp"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// Indicates if when the stored volume was created, existing data on the underlying
 	// local disk was preserved.
 	//
-	// Valid Values: true, false
+	// Valid Values: true | false
 	PreservedExistingData *bool `type:"boolean"`
 
 	// If the stored volume was created from a snapshot, this field contains the
@@ -15863,7 +16513,7 @@ type StorediSCSIVolume struct {
 
 	// A value that indicates whether a storage volume is attached to, detached
 	// from, or is in the process of detaching from a gateway. For more information,
-	// see Moving Your Volumes to a Different Gateway (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#attach-detach-volume).
+	// see Moving your volumes to a different gateway (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#attach-detach-volume).
 	VolumeAttachmentStatus *string `min:"3" type:"string"`
 
 	// The ID of the local disk that was specified in the CreateStorediSCSIVolume
@@ -16005,11 +16655,11 @@ func (s *StorediSCSIVolume) SetVolumeiSCSIAttributes(v *VolumeiSCSIAttributes) *
 
 // A key-value pair that helps you manage, filter, and search for your resource.
 // Allowed characters: letters, white space, and numbers, representable in UTF-8,
-// and the following characters: + - = . _ : /
+// and the following characters: + - = . _ : /.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
-	// Tag key (String). The key can't start with aws:.
+	// Tag key. The key can't start with aws:.
 	//
 	// Key is a required field
 	Key *string `min:"1" type:"string" required:"true"`
@@ -16065,17 +16715,18 @@ func (s *Tag) SetValue(v string) *Tag {
 type Tape struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ID of the pool that contains tapes that will be archived. The tapes in
 	// this pool are archived in the S3 storage class that is associated with the
 	// pool. When you use your backup application to eject the tape, the tape is
-	// archived directly into the storage class (Glacier or Deep Archive) that corresponds
-	// to the pool.
+	// archived directly into the storage class (S3 Glacier or S3 Glacier Deep Archive)
+	// that corresponds to the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
 
 	// For archiving virtual tapes, indicates how much data remains to be uploaded
@@ -16189,14 +16840,15 @@ type TapeArchive struct {
 	// format.
 	CompletionTime *time.Time `type:"timestamp"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The ID of the pool that was used to archive the tape. The tapes in this pool
 	// are archived in the S3 storage class that is associated with the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the tape gateway that the virtual tape
@@ -16307,10 +16959,10 @@ type TapeInfo struct {
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
 	// the pool. When you use your backup application to eject the tape, the tape
-	// is archived directly into the storage class (Glacier or Deep Archive) that
-	// corresponds to the pool.
+	// is archived directly into the storage class (S3 Glacier or S3 Glacier Deep
+	// Archive) that corresponds to the pool.
 	//
-	// Valid values: "GLACIER", "DEEP_ARCHIVE"
+	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of a virtual tape.
@@ -16427,6 +17079,100 @@ func (s *TapeRecoveryPointInfo) SetTapeStatus(v string) *TapeRecoveryPointInfo {
 	return s
 }
 
+type UpdateAutomaticTapeCreationPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// An automatic tape creation policy consists of a list of automatic tape creation
+	// rules. The rules determine when and how to automatically create new tapes.
+	//
+	// AutomaticTapeCreationRules is a required field
+	AutomaticTapeCreationRules []*AutomaticTapeCreationRule `min:"1" type:"list" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	//
+	// GatewayARN is a required field
+	GatewayARN *string `min:"50" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateAutomaticTapeCreationPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAutomaticTapeCreationPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateAutomaticTapeCreationPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateAutomaticTapeCreationPolicyInput"}
+	if s.AutomaticTapeCreationRules == nil {
+		invalidParams.Add(request.NewErrParamRequired("AutomaticTapeCreationRules"))
+	}
+	if s.AutomaticTapeCreationRules != nil && len(s.AutomaticTapeCreationRules) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AutomaticTapeCreationRules", 1))
+	}
+	if s.GatewayARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayARN"))
+	}
+	if s.GatewayARN != nil && len(*s.GatewayARN) < 50 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayARN", 50))
+	}
+	if s.AutomaticTapeCreationRules != nil {
+		for i, v := range s.AutomaticTapeCreationRules {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AutomaticTapeCreationRules", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAutomaticTapeCreationRules sets the AutomaticTapeCreationRules field's value.
+func (s *UpdateAutomaticTapeCreationPolicyInput) SetAutomaticTapeCreationRules(v []*AutomaticTapeCreationRule) *UpdateAutomaticTapeCreationPolicyInput {
+	s.AutomaticTapeCreationRules = v
+	return s
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateAutomaticTapeCreationPolicyInput) SetGatewayARN(v string) *UpdateAutomaticTapeCreationPolicyInput {
+	s.GatewayARN = &v
+	return s
+}
+
+type UpdateAutomaticTapeCreationPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
+	// to return a list of gateways for your account and AWS Region.
+	GatewayARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateAutomaticTapeCreationPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAutomaticTapeCreationPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayARN sets the GatewayARN field's value.
+func (s *UpdateAutomaticTapeCreationPolicyOutput) SetGatewayARN(v string) *UpdateAutomaticTapeCreationPolicyOutput {
+	s.GatewayARN = &v
+	return s
+}
+
 // A JSON object containing one or more of the following fields:
 //
 //    * UpdateBandwidthRateLimitInput$AverageDownloadRateLimitInBitsPerSec
@@ -16498,8 +17244,8 @@ func (s *UpdateBandwidthRateLimitInput) SetGatewayARN(v string) *UpdateBandwidth
 	return s
 }
 
-// A JSON object containing the of the gateway whose throttle information was
-// updated.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway whose
+// throttle information was updated.
 type UpdateBandwidthRateLimitOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -16670,7 +17416,7 @@ type UpdateGatewayInformationInput struct {
 	// The Amazon Resource Name (ARN) of the Amazon CloudWatch log group that you
 	// want to use to monitor and log events in the gateway.
 	//
-	// For more information, see What Is Amazon CloudWatch Logs? (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
+	// For more information, see What is Amazon CloudWatch logs? (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
 	CloudWatchLogGroupARN *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -16742,7 +17488,8 @@ func (s *UpdateGatewayInformationInput) SetGatewayTimezone(v string) *UpdateGate
 	return s
 }
 
-// A JSON object containing the ARN of the gateway that was updated.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway that
+// was updated.
 type UpdateGatewayInformationOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -16776,7 +17523,8 @@ func (s *UpdateGatewayInformationOutput) SetGatewayName(v string) *UpdateGateway
 	return s
 }
 
-// A JSON object containing the of the gateway to update.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway to
+// update.
 type UpdateGatewaySoftwareNowInput struct {
 	_ struct{} `type:"structure"`
 
@@ -16819,7 +17567,8 @@ func (s *UpdateGatewaySoftwareNowInput) SetGatewayARN(v string) *UpdateGatewaySo
 	return s
 }
 
-// A JSON object containing the of the gateway that was updated.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway that
+// was updated.
 type UpdateGatewaySoftwareNowOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -16859,8 +17608,6 @@ type UpdateMaintenanceStartTimeInput struct {
 	// The day of the month component of the maintenance start time represented
 	// as an ordinal number from 1 to 28, where 1 represents the first day of the
 	// month and 28 represents the last day of the month.
-	//
-	// This value is only available for tape and volume gateways.
 	DayOfMonth *int64 `min:"1" type:"integer"`
 
 	// The day of the week component of the maintenance start time week represented
@@ -16953,8 +17700,8 @@ func (s *UpdateMaintenanceStartTimeInput) SetMinuteOfHour(v int64) *UpdateMainte
 	return s
 }
 
-// A JSON object containing the of the gateway whose maintenance start time
-// is updated.
+// A JSON object containing the Amazon Resource Name (ARN) of the gateway whose
+// maintenance start time is updated.
 type UpdateMaintenanceStartTimeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -16988,8 +17735,9 @@ type UpdateNFSFileShareInput struct {
 	ClientList []*string `min:"1" type:"list"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the file share to be updated.
@@ -16999,45 +17747,57 @@ type UpdateNFSFileShareInput struct {
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
 	// The default values for the file share. Optional.
 	NFSFileShareDefaults *NFSFileShareDefaults `type:"structure"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set the write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
-	// The user mapped to anonymous user. Valid options are the following:
+	// The user mapped to anonymous user.
 	//
-	//    * RootSquash - Only root is mapped to anonymous user.
+	// Valid values are the following:
 	//
-	//    * NoSquash - No one is mapped to anonymous user
+	//    * RootSquash: Only root is mapped to anonymous user.
 	//
-	//    * AllSquash - Everyone is mapped to anonymous user.
+	//    * NoSquash: No one is mapped to anonymous user.
+	//
+	//    * AllSquash: Everyone is mapped to anonymous user.
 	Squash *string `min:"5" type:"string"`
 }
 
@@ -17179,13 +17939,17 @@ type UpdateSMBFileShareInput struct {
 	_ struct{} `type:"structure"`
 
 	// A list of users in the Active Directory that have administrator rights to
-	// the file share. A group must be prefixed with the @ character. For example
+	// the file share. A group must be prefixed with the @ character. For example,
 	// @group1. Can only be set if Authentication is set to ActiveDirectory.
 	AdminUserList []*string `type:"list"`
 
+	// The Amazon Resource Name (ARN) of the storage used for the audit logs.
+	AuditDestinationARN *string `type:"string"`
+
 	// The default storage class for objects put into an Amazon S3 bucket by the
-	// file gateway. Possible values are S3_STANDARD, S3_STANDARD_IA, or S3_ONEZONE_IA.
-	// If this field is not populated, the default value S3_STANDARD is used. Optional.
+	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
+	//
+	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the SMB file share that you want to update.
@@ -17195,7 +17959,9 @@ type UpdateSMBFileShareInput struct {
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
-	// and otherwise to false. The default value is true.
+	// otherwise set to false. The default value is true.
+	//
+	// Valid Values: true | false
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
@@ -17203,42 +17969,53 @@ type UpdateSMBFileShareInput struct {
 	// example @group1. Can only be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
-	// True to use Amazon S3 server side encryption with your own AWS KMS key, or
-	// false to use a key managed by Amazon S3. Optional.
+	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
+	// key, or false to use a key managed by Amazon S3. Optional.
+	//
+	// Valid Values: true | false
 	KMSEncrypted *bool `type:"boolean"`
 
-	// The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server
-	// side encryption. This value can only be set when KMSEncrypted is true. Optional.
+	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
+	// for Amazon S3 server-side encryption. Storage Gateway does not support asymmetric
+	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
-	// A value that sets the access control list permission for objects in the S3
-	// bucket that a file gateway puts objects into. The default value is "private".
+	// A value that sets the access control list (ACL) permission for objects in
+	// the S3 bucket that a file gateway puts objects into. The default value is
+	// private.
 	ObjectACL *string `type:"string" enum:"ObjectACL"`
 
-	// A value that sets the write status of a file share. This value is true if
-	// the write status is read-only, and otherwise false.
+	// A value that sets the write status of a file share. Set this value to true
+	// to set write status to read-only, otherwise set to false.
+	//
+	// Valid Values: true | false
 	ReadOnly *bool `type:"boolean"`
 
 	// A value that sets who pays the cost of the request and the cost associated
 	// with data download from the S3 bucket. If this value is set to true, the
-	// requester pays the costs. Otherwise the S3 bucket owner pays. However, the
+	// requester pays the costs; otherwise, the S3 bucket owner pays. However, the
 	// S3 bucket owner always pays the cost of storing data.
 	//
 	// RequesterPays is a configuration for the S3 bucket that backs the file share,
 	// so make sure that the configuration on the file share is the same as the
 	// S3 bucket configuration.
+	//
+	// Valid Values: true | false
 	RequesterPays *bool `type:"boolean"`
 
-	// Set this value to "true to enable ACL (access control list) on the SMB file
-	// share. Set it to "false" to map file and directory permissions to the POSIX
+	// Set this value to true to enable access control list (ACL) on the SMB file
+	// share. Set it to false to map file and directory permissions to the POSIX
 	// permissions.
 	//
-	// For more information, see https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.htmlin
-	// the Storage Gateway User Guide.
+	// For more information, see Using Microsoft Windows ACLs to control access
+	// to an SMB file share (https://docs.aws.amazon.com/storagegateway/latest/userguide/smb-acl.html)
+	// in the AWS Storage Gateway User Guide.
+	//
+	// Valid Values: true | false
 	SMBACLEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example
+	// the file share. A group must be prefixed with the @ character. For example,
 	// @group1. Can only be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
@@ -17278,6 +18055,12 @@ func (s *UpdateSMBFileShareInput) Validate() error {
 // SetAdminUserList sets the AdminUserList field's value.
 func (s *UpdateSMBFileShareInput) SetAdminUserList(v []*string) *UpdateSMBFileShareInput {
 	s.AdminUserList = v
+	return s
+}
+
+// SetAuditDestinationARN sets the AuditDestinationARN field's value.
+func (s *UpdateSMBFileShareInput) SetAuditDestinationARN(v string) *UpdateSMBFileShareInput {
+	s.AuditDestinationARN = &v
 	return s
 }
 
@@ -17585,7 +18368,8 @@ func (s *UpdateSnapshotScheduleInput) SetVolumeARN(v string) *UpdateSnapshotSche
 	return s
 }
 
-// A JSON object containing the of the updated storage volume.
+// A JSON object containing the Amazon Resource Name (ARN) of the updated storage
+// volume.
 type UpdateSnapshotScheduleOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -17615,7 +18399,7 @@ type UpdateVTLDeviceTypeInput struct {
 
 	// The type of medium changer you want to select.
 	//
-	// Valid Values: "STK-L700", "AWS-Gateway-VTL"
+	// Valid Values: STK-L700 | AWS-Gateway-VTL
 	//
 	// DeviceType is a required field
 	DeviceType *string `min:"2" type:"string" required:"true"`
@@ -18207,12 +18991,16 @@ const (
 	// HostEnvironmentEc2 is a HostEnvironment enum value
 	HostEnvironmentEc2 = "EC2"
 
+	// HostEnvironmentKvm is a HostEnvironment enum value
+	HostEnvironmentKvm = "KVM"
+
 	// HostEnvironmentOther is a HostEnvironment enum value
 	HostEnvironmentOther = "OTHER"
 )
 
-// A value that sets the access control list permission for objects in the S3
-// bucket that a file gateway puts objects into. The default value is "private".
+// A value that sets the access control list (ACL) permission for objects in
+// the S3 bucket that a file gateway puts objects into. The default value is
+// private.
 const (
 	// ObjectACLPrivate is a ObjectACL enum value
 	ObjectACLPrivate = "private"

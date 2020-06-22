@@ -119,7 +119,7 @@ func testSweepWafRegionalWebAcls(region string) error {
 func TestAccAWSWafRegionalWebAcl_basic(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -151,7 +151,7 @@ func TestAccAWSWafRegionalWebAcl_basic(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_tags(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -195,7 +195,7 @@ func TestAccAWSWafRegionalWebAcl_tags(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_createRateBased(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -213,6 +213,11 @@ func TestAccAWSWafRegionalWebAcl_createRateBased(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "metric_name", wafAclName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -220,7 +225,7 @@ func TestAccAWSWafRegionalWebAcl_createRateBased(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_createGroup(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -251,7 +256,7 @@ func TestAccAWSWafRegionalWebAcl_changeNameForceNew(t *testing.T) {
 	var before, after waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
 	wafAclNewName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -293,7 +298,7 @@ func TestAccAWSWafRegionalWebAcl_changeDefaultAction(t *testing.T) {
 	var before, after waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
 	wafAclNewName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -334,7 +339,7 @@ func TestAccAWSWafRegionalWebAcl_changeDefaultAction(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_disappears(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -356,7 +361,7 @@ func TestAccAWSWafRegionalWebAcl_disappears(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_noRules(t *testing.T) {
 	var v waf.WebACL
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -387,17 +392,18 @@ func TestAccAWSWafRegionalWebAcl_changeRules(t *testing.T) {
 	var r waf.Rule
 	var idx int
 	wafAclName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSWafRegionalWebAclDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSWafRegionalWebAclDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafRegionalWebAclConfig(wafAclName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.wafrule", &r),
+					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.test", &r),
 					testAccCheckAWSWafRegionalWebAclExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "default_action.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "default_action.0.type", "ALLOW"),
@@ -429,7 +435,7 @@ func TestAccAWSWafRegionalWebAcl_changeRules(t *testing.T) {
 func TestAccAWSWafRegionalWebAcl_LoggingConfiguration(t *testing.T) {
 	var webACL1, webACL2, webACL3 waf.WebACL
 	rName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
-	resourceName := "aws_wafregional_web_acl.waf_acl"
+	resourceName := "aws_wafregional_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -507,7 +513,7 @@ func testAccCheckAWSWafRegionalWebAclDisappears(v *waf.WebACL) resource.TestChec
 
 			for _, activatedRule := range v.Rules {
 				webACLUpdate := &waf.WebACLUpdate{
-					Action: aws.String("DELETE"),
+					Action: aws.String(waf.ChangeActionDelete),
 					ActivatedRule: &waf.ActivatedRule{
 						Priority: activatedRule.Priority,
 						RuleId:   activatedRule.RuleId,
@@ -597,12 +603,12 @@ func testAccCheckAWSWafRegionalWebAclExists(n string, v *waf.WebACL) resource.Te
 
 func testAccAWSWafRegionalWebAclConfig(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -616,7 +622,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 }
 `, name)
@@ -624,12 +630,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfigTags1(name, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -643,7 +649,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 
   tags = {
@@ -655,12 +661,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfigTags2(name, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -674,7 +680,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 
   tags = {
@@ -687,7 +693,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfigRateBased(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rate_based_rule" "wafrule" {
+resource "aws_wafregional_rate_based_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -695,7 +701,7 @@ resource "aws_wafregional_rate_based_rule" "wafrule" {
   rate_limit = 2000
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -710,7 +716,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
     priority = 1
     type     = "RATE_BASED"
-    rule_id  = "${aws_wafregional_rate_based_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rate_based_rule.test.id}"
   }
 }
 `, name)
@@ -718,12 +724,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfigGroup(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule_group" "wafrulegroup" {
+resource "aws_wafregional_rule_group" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -738,7 +744,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
     priority = 1
     type     = "GROUP"
-    rule_id  = "${aws_wafregional_rule_group.wafrulegroup.id}" # todo
+    rule_id  = "${aws_wafregional_rule_group.test.id}"
   }
 }
 `, name)
@@ -746,12 +752,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfig_changeName(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -765,7 +771,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 }
 `, name)
@@ -773,12 +779,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfig_changeDefaultAction(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -792,7 +798,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 }
 `, name)
@@ -800,7 +806,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfig_noRules(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -813,12 +819,12 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfig_changeRules(name string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_rule" "wafrule" {
+resource "aws_wafregional_rule" "test" {
   name        = %[1]q
   metric_name = %[1]q
 }
 
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -832,7 +838,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 3
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 
   rule {
@@ -841,7 +847,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
     }
 
     priority = 99
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = "${aws_wafregional_rule.test.id}"
   }
 }
 `, name)
@@ -849,7 +855,7 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 func testAccAWSWafRegionalWebAclConfigLoggingConfiguration(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 
@@ -913,7 +919,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
 
 func testAccAWSWafRegionalWebAclConfigLoggingConfigurationUpdate(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_wafregional_web_acl" "waf_acl" {
+resource "aws_wafregional_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
 

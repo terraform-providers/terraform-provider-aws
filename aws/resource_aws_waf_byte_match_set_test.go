@@ -19,9 +19,10 @@ func TestAccAWSWafByteMatchSet_basic(t *testing.T) {
 	resourceName := "aws_waf_byte_match_set.byte_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSWafByteMatchSetDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSWafByteMatchSetDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafByteMatchSetConfig(byteMatchSet),
@@ -29,18 +30,18 @@ func TestAccAWSWafByteMatchSet_basic(t *testing.T) {
 					testAccCheckAWSWafByteMatchSetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "name", byteMatchSet),
 					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.data", "referer"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.type", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.positional_constraint", "CONTAINS"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.target_string", "badrefer1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.text_transformation", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.2991901334.data", "referer"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.2991901334.type", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.positional_constraint", "CONTAINS"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.target_string", "badrefer2"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.text_transformation", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.data", "referer"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.type", "HEADER"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.positional_constraint", "CONTAINS"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.target_string", "badrefer1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.text_transformation", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.0.data", "referer"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.0.type", "HEADER"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.positional_constraint", "CONTAINS"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.target_string", "badrefer2"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.text_transformation", "NONE"),
 				),
 			},
 			{
@@ -94,9 +95,10 @@ func TestAccAWSWafByteMatchSet_changeTuples(t *testing.T) {
 	resourceName := "aws_waf_byte_match_set.byte_set"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSWafByteMatchSetDestroy,
+		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSWafByteMatchSetDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafByteMatchSetConfig(byteMatchSetName),
@@ -104,18 +106,18 @@ func TestAccAWSWafByteMatchSet_changeTuples(t *testing.T) {
 					testAccCheckAWSWafByteMatchSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", byteMatchSetName),
 					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.data", "referer"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.type", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.positional_constraint", "CONTAINS"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.target_string", "badrefer1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.text_transformation", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.2991901334.data", "referer"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.field_to_match.2991901334.type", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.positional_constraint", "CONTAINS"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.target_string", "badrefer2"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.839525137.text_transformation", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.data", "referer"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.type", "HEADER"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.positional_constraint", "CONTAINS"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.target_string", "badrefer1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.text_transformation", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.0.data", "referer"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.field_to_match.0.type", "HEADER"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.positional_constraint", "CONTAINS"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.target_string", "badrefer2"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2081155357.text_transformation", "NONE"),
 				),
 			},
 			{
@@ -124,18 +126,18 @@ func TestAccAWSWafByteMatchSet_changeTuples(t *testing.T) {
 					testAccCheckAWSWafByteMatchSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", byteMatchSetName),
 					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.data", "referer"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.field_to_match.2991901334.type", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.positional_constraint", "CONTAINS"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.target_string", "badrefer1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.2174619346.text_transformation", "NONE"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.field_to_match.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.field_to_match.4253810390.data", "GET"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.field_to_match.4253810390.type", "METHOD"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.positional_constraint", "CONTAINS_WORD"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.target_string", "blah"),
-					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.4224486115.text_transformation", "URL_DECODE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.data", "referer"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.field_to_match.0.type", "HEADER"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.positional_constraint", "CONTAINS"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.target_string", "badrefer1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3483354334.text_transformation", "NONE"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.field_to_match.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.field_to_match.0.data", ""),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.field_to_match.0.type", "METHOD"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.positional_constraint", "CONTAINS_WORD"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.target_string", "blah"),
+					resource.TestCheckResourceAttr(resourceName, "byte_match_tuples.3945246213.text_transformation", "URL_DECODE"),
 				),
 			},
 			{
@@ -384,7 +386,7 @@ resource "aws_waf_byte_match_set" "byte_set" {
 
     field_to_match {
       type = "METHOD"
-      data = "GET"
+      # data field omitted as the type is neither "HEADER" nor "SINGLE_QUERY_ARG"
     }
   }
 }

@@ -98,3 +98,11 @@ A `ssl_configuration` block supports the following arguments (can only be define
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the application.
+
+## Import
+
+Opsworks Application can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_opsworks_application.test <id>
+```

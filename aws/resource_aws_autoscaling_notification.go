@@ -66,7 +66,7 @@ func resourceAwsAutoscalingNotificationRead(d *schema.ResourceData, meta interfa
 	}
 
 	topic := d.Get("topic_arn").(string)
-	// Grab all applicable notifcation configurations for this Topic.
+	// Grab all applicable notification configurations for this Topic.
 	// Each NotificationType will have a record, so 1 Group with 3 Types results
 	// in 3 records, all with the same Group name
 	gRaw := make(map[string]bool)
@@ -79,6 +79,7 @@ func resourceAwsAutoscalingNotificationRead(d *schema.ResourceData, meta interfa
 			log.Printf("[DEBUG] Paging DescribeNotificationConfigurations for (%s), page: %d", d.Id(), i)
 		} else {
 			log.Printf("[DEBUG] Paging finished for DescribeNotificationConfigurations (%s)", d.Id())
+			return false
 		}
 
 		for _, n := range resp.NotificationConfigurations {

@@ -18,8 +18,8 @@ func TestAccAWSAPIGatewayAccount_basic(t *testing.T) {
 	firstName := fmt.Sprintf("tf_acc_api_gateway_cloudwatch_%d", rInt)
 	secondName := fmt.Sprintf("tf_acc_api_gateway_cloudwatch_modified_%d", rInt)
 	resourceName := "aws_api_gateway_account.test"
-	expectedRoleArn_first := regexp.MustCompile(":role/" + firstName + "$")
-	expectedRoleArn_second := regexp.MustCompile(":role/" + secondName + "$")
+	expectedRoleArn_first := regexp.MustCompile("role/" + firstName + "$")
+	expectedRoleArn_second := regexp.MustCompile("role/" + secondName + "$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAWSAPIGatewayAccount_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayAccountExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayAccountCloudwatchRoleArn(&conf, expectedRoleArn_first),
-					resource.TestMatchResourceAttr(resourceName, "cloudwatch_role_arn", expectedRoleArn_first),
+					testAccMatchResourceAttrGlobalARN(resourceName, "cloudwatch_role_arn", "iam", expectedRoleArn_first),
 				),
 			},
 			{
@@ -45,14 +45,17 @@ func TestAccAWSAPIGatewayAccount_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayAccountExists(resourceName, &conf),
 					testAccCheckAWSAPIGatewayAccountCloudwatchRoleArn(&conf, expectedRoleArn_second),
-					resource.TestMatchResourceAttr(resourceName, "cloudwatch_role_arn", expectedRoleArn_second),
+					testAccMatchResourceAttrGlobalARN(resourceName, "cloudwatch_role_arn", "iam", expectedRoleArn_second),
 				),
 			},
 			{
 				Config: testAccAWSAPIGatewayAccountConfig_empty,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayAccountExists(resourceName, &conf),
+					// This resource does not un-set the value, so this will preserve the CloudWatch role ARN setting on the
+					// deployed resource, but will be empty in the Terraform state
 					testAccCheckAWSAPIGatewayAccountCloudwatchRoleArn(&conf, expectedRoleArn_second),
+					resource.TestCheckResourceAttr(resourceName, "cloudwatch_role_arn", ""),
 				),
 			},
 		},
@@ -88,7 +91,7 @@ func testAccCheckAWSAPIGatewayAccountExists(n string, res *apigateway.Account) r
 			return fmt.Errorf("No API Gateway Account ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetAccountInput{}
 		describe, err := conn.GetAccount(req)

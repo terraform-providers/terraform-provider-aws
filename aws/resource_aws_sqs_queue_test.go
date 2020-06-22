@@ -2,17 +2,75 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_sqs_queue", &resource.Sweeper{
+		Name: "aws_sqs_queue",
+		F:    testSweepSqsQueues,
+		Dependencies: []string{
+			"aws_autoscaling_group",
+			"aws_cloudwatch_event_rule",
+			"aws_elastic_beanstalk_environment",
+			"aws_iot_topic_rule",
+			"aws_lambda_function",
+			"aws_s3_bucket",
+			"aws_sns_topic",
+		},
+	})
+}
+
+func testSweepSqsQueues(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).sqsconn
+	input := &sqs.ListQueuesInput{}
+	var sweeperErrs *multierror.Error
+
+	output, err := conn.ListQueues(input)
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping SQS Queues sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving SQS Queues: %w", err))
+		return sweeperErrs
+	}
+
+	for _, queueUrl := range output.QueueUrls {
+		url := aws.StringValue(queueUrl)
+
+		log.Printf("[INFO] Deleting SQS Queue: %s", url)
+		_, err := conn.DeleteQueue(&sqs.DeleteQueueInput{
+			QueueUrl: aws.String(url),
+		})
+		if isAWSErr(err, sqs.ErrCodeQueueDoesNotExist, "") {
+			continue
+		}
+		if err != nil {
+			sweeperErr := fmt.Errorf("error deleting SQS Queue (%s): %w", url, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSSQSQueue_basic(t *testing.T) {
 	var queueAttributes map[string]*string

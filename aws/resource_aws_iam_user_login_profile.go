@@ -3,6 +3,7 @@ package aws
 import (
 	"bytes"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -76,7 +77,7 @@ const (
 
 // generateIAMPassword generates a random password of a given length, matching the
 // most restrictive iam password policy.
-func generateIAMPassword(length int) string {
+func generateIAMPassword(length int) (string, error) {
 	const charset = charLower + charUpper + charNumbers + charSymbols
 
 	result := make([]byte, length)
@@ -93,10 +94,10 @@ func generateIAMPassword(length int) string {
 		for i := range result {
 			r, err := rand.Int(rand.Reader, charsetSize)
 			if err != nil {
-				panic(err)
+				return "", err
 			}
 			if !r.IsInt64() {
-				panic("rand.Int() not representable as an Int64")
+				return "", errors.New("rand.Int() not representable as an Int64")
 			}
 
 			result[i] = charset[r.Int64()]
@@ -106,10 +107,10 @@ func generateIAMPassword(length int) string {
 			continue
 		}
 
-		return string(result)
+		return string(result), nil
 	}
 
-	panic("failed to generate acceptable password")
+	return "", errors.New("failed to generate acceptable password")
 }
 
 // Check the generated password contains all character classes listed in the
@@ -132,7 +133,10 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 
 	passwordResetRequired := d.Get("password_reset_required").(bool)
 	passwordLength := d.Get("password_length").(int)
-	initialPassword := generateIAMPassword(passwordLength)
+	initialPassword, err := generateIAMPassword(passwordLength)
+	if err != nil {
+		return err
+	}
 
 	fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, initialPassword, "Password")
 	if err != nil {

@@ -1501,15 +1501,18 @@ func (c *FMS) PutPolicyRequest(input *PutPolicyInput) (req *request.Request, out
 //    * A Shield Advanced policy, which applies Shield Advanced protection to
 //    specified accounts and resources
 //
-//    * An AWS WAF policy, which contains a rule group and defines which resources
-//    are to be protected by that rule group
+//    * An AWS WAF policy (type WAFV2), which defines rule groups to run first
+//    in the corresponding AWS WAF web ACL and rule groups to run last in the
+//    web ACL.
+//
+//    * An AWS WAF Classic policy (type WAF), which defines a rule group.
 //
 //    * A security group policy, which manages VPC security groups across your
 //    AWS organization.
 //
-// Each policy is specific to one of the three types. If you want to enforce
-// more than one policy type across accounts, you can create multiple policies.
-// You can create multiple policies for each type.
+// Each policy is specific to one of the types. If you want to enforce more
+// than one policy type across accounts, create multiple policies. You can create
+// multiple policies for each type.
 //
 // You must be subscribed to Shield Advanced to create a Shield Advanced policy.
 // For more information about subscribing to Shield Advanced, see CreateSubscription
@@ -2488,8 +2491,8 @@ func (s *GetProtectionStatusOutput) SetServiceType(v string) *GetProtectionStatu
 // The operation failed because of a system problem, even though the request
 // was valid. Retry your request.
 type InternalErrorException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2506,17 +2509,17 @@ func (s InternalErrorException) GoString() string {
 
 func newErrorInternalErrorException(v protocol.ResponseMetadata) error {
 	return &InternalErrorException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalErrorException) Code() string {
+func (s *InternalErrorException) Code() string {
 	return "InternalErrorException"
 }
 
 // Message returns the exception's message.
-func (s InternalErrorException) Message() string {
+func (s *InternalErrorException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2524,28 +2527,28 @@ func (s InternalErrorException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalErrorException) OrigErr() error {
+func (s *InternalErrorException) OrigErr() error {
 	return nil
 }
 
-func (s InternalErrorException) Error() string {
+func (s *InternalErrorException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalErrorException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalErrorException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The parameters of the request were invalid.
 type InvalidInputException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2562,17 +2565,17 @@ func (s InvalidInputException) GoString() string {
 
 func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
 	return &InvalidInputException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidInputException) Code() string {
+func (s *InvalidInputException) Code() string {
 	return "InvalidInputException"
 }
 
 // Message returns the exception's message.
-func (s InvalidInputException) Message() string {
+func (s *InvalidInputException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2580,30 +2583,30 @@ func (s InvalidInputException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidInputException) OrigErr() error {
+func (s *InvalidInputException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidInputException) Error() string {
+func (s *InvalidInputException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidInputException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidInputException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The operation failed because there was nothing to do. For example, you might
 // have submitted an AssociateAdminAccount request, but the account ID that
 // you submitted was already set as the AWS Firewall Manager administrator.
 type InvalidOperationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2620,17 +2623,17 @@ func (s InvalidOperationException) GoString() string {
 
 func newErrorInvalidOperationException(v protocol.ResponseMetadata) error {
 	return &InvalidOperationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidOperationException) Code() string {
+func (s *InvalidOperationException) Code() string {
 	return "InvalidOperationException"
 }
 
 // Message returns the exception's message.
-func (s InvalidOperationException) Message() string {
+func (s *InvalidOperationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2638,28 +2641,28 @@ func (s InvalidOperationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidOperationException) OrigErr() error {
+func (s *InvalidOperationException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidOperationException) Error() string {
+func (s *InvalidOperationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidOperationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidOperationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidOperationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidOperationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The value of the Type parameter is invalid.
 type InvalidTypeException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2676,17 +2679,17 @@ func (s InvalidTypeException) GoString() string {
 
 func newErrorInvalidTypeException(v protocol.ResponseMetadata) error {
 	return &InvalidTypeException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidTypeException) Code() string {
+func (s *InvalidTypeException) Code() string {
 	return "InvalidTypeException"
 }
 
 // Message returns the exception's message.
-func (s InvalidTypeException) Message() string {
+func (s *InvalidTypeException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2694,22 +2697,22 @@ func (s InvalidTypeException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidTypeException) OrigErr() error {
+func (s *InvalidTypeException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidTypeException) Error() string {
+func (s *InvalidTypeException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidTypeException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidTypeException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidTypeException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidTypeException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The operation exceeds a resource limit, for example, the maximum number of
@@ -2717,8 +2720,8 @@ func (s InvalidTypeException) RequestID() string {
 // see Firewall Manager Limits (https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html)
 // in the AWS WAF Developer Guide.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -2735,17 +2738,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2753,22 +2756,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListComplianceStatusInput struct {
@@ -3134,13 +3137,28 @@ func (s *ListTagsForResourceOutput) SetTagList(v []*Tag) *ListTagsForResourceOut
 type Policy struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies the AWS account IDs to exclude from the policy. The IncludeMap
-	// values are evaluated first, with all the appropriate account IDs added to
-	// the policy. Then the accounts listed in ExcludeMap are removed, resulting
-	// in the final list of accounts to add to the policy.
+	// Specifies the AWS account IDs and AWS Organizations organizational units
+	// (OUs) to exclude from the policy. Specifying an OU is the equivalent of specifying
+	// all accounts in the OU and in any of its child OUs, including any child OUs
+	// and accounts that are added at a later time.
 	//
-	// The key to the map is ACCOUNT. For example, a valid ExcludeMap would be {“ACCOUNT”
-	// : [“accountID1”, “accountID2”]}.
+	// You can specify inclusions or exclusions, but not both. If you specify an
+	// IncludeMap, AWS Firewall Manager applies the policy to all accounts specified
+	// by the IncludeMap, and does not evaluate any ExcludeMap specifications. If
+	// you do not specify an IncludeMap, then Firewall Manager applies the policy
+	// to all accounts except for those specified by the ExcludeMap.
+	//
+	// You can specify account IDs, OUs, or a combination:
+	//
+	//    * Specify account IDs by setting the key to ACCOUNT. For example, the
+	//    following is a valid map: {“ACCOUNT” : [“accountID1”, “accountID2”]}.
+	//
+	//    * Specify OUs by setting the key to ORG_UNIT. For example, the following
+	//    is a valid map: {“ORG_UNIT” : [“ouid111”, “ouid112”]}.
+	//
+	//    * Specify accounts and OUs together in a single map, separated with a
+	//    comma. For example, the following is a valid map: {“ACCOUNT” : [“accountID1”,
+	//    “accountID2”], “ORG_UNIT” : [“ouid111”, “ouid112”]}.
 	ExcludeMap map[string][]*string `type:"map"`
 
 	// If set to True, resources with the tags that are specified in the ResourceTag
@@ -3151,13 +3169,28 @@ type Policy struct {
 	// ExcludeResourceTags is a required field
 	ExcludeResourceTags *bool `type:"boolean" required:"true"`
 
-	// Specifies the AWS account IDs to include in the policy. If IncludeMap is
-	// null, all accounts in the organization in AWS Organizations are included
-	// in the policy. If IncludeMap is not null, only values listed in IncludeMap
-	// are included in the policy.
+	// Specifies the AWS account IDs and AWS Organizations organizational units
+	// (OUs) to include in the policy. Specifying an OU is the equivalent of specifying
+	// all accounts in the OU and in any of its child OUs, including any child OUs
+	// and accounts that are added at a later time.
 	//
-	// The key to the map is ACCOUNT. For example, a valid IncludeMap would be {“ACCOUNT”
-	// : [“accountID1”, “accountID2”]}.
+	// You can specify inclusions or exclusions, but not both. If you specify an
+	// IncludeMap, AWS Firewall Manager applies the policy to all accounts specified
+	// by the IncludeMap, and does not evaluate any ExcludeMap specifications. If
+	// you do not specify an IncludeMap, then Firewall Manager applies the policy
+	// to all accounts except for those specified by the ExcludeMap.
+	//
+	// You can specify account IDs, OUs, or a combination:
+	//
+	//    * Specify account IDs by setting the key to ACCOUNT. For example, the
+	//    following is a valid map: {“ACCOUNT” : [“accountID1”, “accountID2”]}.
+	//
+	//    * Specify OUs by setting the key to ORG_UNIT. For example, the following
+	//    is a valid map: {“ORG_UNIT” : [“ouid111”, “ouid112”]}.
+	//
+	//    * Specify accounts and OUs together in a single map, separated with a
+	//    comma. For example, the following is a valid map: {“ACCOUNT” : [“accountID1”,
+	//    “accountID2”], “ORG_UNIT” : [“ouid111”, “ouid112”]}.
 	IncludeMap map[string][]*string `type:"map"`
 
 	// The ID of the AWS Firewall Manager policy.
@@ -3749,8 +3782,8 @@ func (s *PutPolicyOutput) SetPolicyArn(v string) *PutPolicyOutput {
 
 // The specified resource was not found.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 }
@@ -3767,17 +3800,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3785,22 +3818,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The resource tags that AWS Firewall Manager uses to determine if a particular
@@ -3868,12 +3901,14 @@ type SecurityServicePolicyData struct {
 	// Details about the service that are specific to the service type, in JSON
 	// format. For service type SHIELD_ADVANCED, this is an empty string.
 	//
-	//    * Example: WAF ManagedServiceData": "{\"type\": \"WAF\", \"ruleGroups\":
+	//    * Example: WAFV2 "ManagedServiceData": "{\"type\":\"WAFV2\",\"defaultAction\":{\"type\":\"ALLOW\"},\"preProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":null,\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"COUNT\"},\"excludedRules\":[{\"name\":\"EntityName\"}],\"ruleGroupType\":\"RuleGroup\"}],\"postProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":{\"managedRuleGroupName\":\"AWSManagedRulesAdminProtectionRuleSet\",\"vendor\":\"AWS\"},\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"NONE\"},\"excludedRules\":[],\"ruleGroupType\":\"ManagedRuleGroup\"}],\"overrideCustomerWebACLAssociation\":false}"
+	//
+	//    * Example: WAF Classic "ManagedServiceData": "{\"type\": \"WAF\", \"ruleGroups\":
 	//    [{\"id\": \"12345678-1bcd-9012-efga-0987654321ab\", \"overrideAction\"
 	//    : {\"type\": \"COUNT\"}}], \"defaultAction\": {\"type\": \"BLOCK\"}}
 	//
-	//    * Example: SECURITY_GROUPS_COMMON "SecurityServicePolicyData":{"Type":"SECURITY_GROUPS_COMMON","ManagedServiceData":"{\"type\":\"SECURITY_GROUPS_COMMON\",\"revertManualSecurityGroupChanges\":false,\"exclusiveResourceSecurityGroupManagement\":false,\"securityGroups\":[{\"id\":\"
-	//    sg-000e55995d61a06bd\"}]}"},"RemediationEnabled":false,"ResourceType":"AWS::EC2::NetworkInterface"}
+	//    * Example: SECURITY_GROUPS_COMMON "SecurityServicePolicyData":{"Type":"SECURITY_GROUPS_COMMON","ManagedServiceData":"{\"type\":\"SECURITY_GROUPS_COMMON\",\"revertManualSecurityGroupChanges\":false,\"exclusiveResourceSecurityGroupManagement\":false,
+	//    \"applyToAllEC2InstanceENIs\":false,\"securityGroups\":[{\"id\":\" sg-000e55995d61a06bd\"}]}"},"RemediationEnabled":false,"ResourceType":"AWS::EC2::NetworkInterface"}
 	//
 	//    * Example: SECURITY_GROUPS_CONTENT_AUDIT "SecurityServicePolicyData":{"Type":"SECURITY_GROUPS_CONTENT_AUDIT","ManagedServiceData":"{\"type\":\"SECURITY_GROUPS_CONTENT_AUDIT\",\"securityGroups\":[{\"id\":\"
 	//    sg-000e55995d61a06bd \"}],\"securityGroupAction\":{\"type\":\"ALLOW\"}}"},"RemediationEnabled":false,"ResourceType":"AWS::EC2::NetworkInterface"}
@@ -4169,6 +4204,9 @@ const (
 const (
 	// CustomerPolicyScopeIdTypeAccount is a CustomerPolicyScopeIdType enum value
 	CustomerPolicyScopeIdTypeAccount = "ACCOUNT"
+
+	// CustomerPolicyScopeIdTypeOrgUnit is a CustomerPolicyScopeIdType enum value
+	CustomerPolicyScopeIdTypeOrgUnit = "ORG_UNIT"
 )
 
 const (
@@ -4196,6 +4234,9 @@ const (
 const (
 	// SecurityServiceTypeWaf is a SecurityServiceType enum value
 	SecurityServiceTypeWaf = "WAF"
+
+	// SecurityServiceTypeWafv2 is a SecurityServiceType enum value
+	SecurityServiceTypeWafv2 = "WAFV2"
 
 	// SecurityServiceTypeShieldAdvanced is a SecurityServiceType enum value
 	SecurityServiceTypeShieldAdvanced = "SHIELD_ADVANCED"

@@ -542,6 +542,32 @@ func testAccCheckKinesisStreamTags(n string, tagCount int) resource.TestCheckFun
 	}
 }
 
+func TestAccAWSKinesisStream_UpdateKmsKeyId(t *testing.T) {
+	var stream kinesis.StreamDescription
+	rInt := acctest.RandInt()
+	resourceName := "aws_kinesis_stream.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisStreamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisStreamUpdateKmsKeyId(rInt, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisStreamExists(resourceName, &stream),
+				),
+			},
+			{
+				Config: testAccKinesisStreamUpdateKmsKeyId(rInt, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisStreamExists(resourceName, &stream),
+				),
+			},
+		},
+	})
+}
+
 func testAccKinesisStreamConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_kinesis_stream" "test" {
@@ -735,4 +761,26 @@ resource "aws_kinesis_stream" "test" {
   }
 }
 `, rInt)
+}
+
+func testAccKinesisStreamUpdateKmsKeyId(rInt int, key int) string {
+	return fmt.Sprintf(`
+
+resource "aws_kms_key" "key1" {
+	description             = "KMS key 1"
+	deletion_window_in_days = 10
+}
+
+resource "aws_kms_key" "key2" {
+	description             = "KMS key 2"
+	deletion_window_in_days = 10
+}
+
+resource "aws_kinesis_stream" "test" {
+	name = "test_stream-%d"
+	shard_count = 1
+	encryption_type = "KMS"
+	kms_key_id = aws_kms_key.key%d.id
+}
+`, rInt, key)
 }

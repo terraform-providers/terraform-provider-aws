@@ -14,7 +14,7 @@
 //
 // App Mesh supports microservice applications that use service discovery naming
 // for their components. For more information about service discovery on Amazon
-// ECS, see Service Discovery (http://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html)
+// ECS, see Service Discovery (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html)
 // in the Amazon Elastic Container Service Developer Guide. Kubernetes kube-dns
 // and coredns are supported. For more information, see DNS for Services and
 // Pods (https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)

@@ -179,6 +179,91 @@ func (c *ElasticBeanstalk) ApplyEnvironmentManagedActionWithContext(ctx aws.Cont
 	return out, req.Send()
 }
 
+const opAssociateEnvironmentOperationsRole = "AssociateEnvironmentOperationsRole"
+
+// AssociateEnvironmentOperationsRoleRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateEnvironmentOperationsRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateEnvironmentOperationsRole for more information on using the AssociateEnvironmentOperationsRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateEnvironmentOperationsRoleRequest method.
+//    req, resp := client.AssociateEnvironmentOperationsRoleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/AssociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRoleRequest(input *AssociateEnvironmentOperationsRoleInput) (req *request.Request, output *AssociateEnvironmentOperationsRoleOutput) {
+	op := &request.Operation{
+		Name:       opAssociateEnvironmentOperationsRole,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AssociateEnvironmentOperationsRoleInput{}
+	}
+
+	output = &AssociateEnvironmentOperationsRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// AssociateEnvironmentOperationsRole API operation for AWS Elastic Beanstalk.
+//
+// Add or change the operations role used by an environment. After this call
+// is made, Elastic Beanstalk uses the associated operations role for permissions
+// to downstream services during subsequent calls acting on this environment.
+// For more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+// in the AWS Elastic Beanstalk Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation AssociateEnvironmentOperationsRole for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
+//   The specified account does not have sufficient privileges for one or more
+//   AWS services.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/AssociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRole(input *AssociateEnvironmentOperationsRoleInput) (*AssociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.AssociateEnvironmentOperationsRoleRequest(input)
+	return out, req.Send()
+}
+
+// AssociateEnvironmentOperationsRoleWithContext is the same as AssociateEnvironmentOperationsRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateEnvironmentOperationsRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRoleWithContext(ctx aws.Context, input *AssociateEnvironmentOperationsRoleInput, opts ...request.Option) (*AssociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.AssociateEnvironmentOperationsRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCheckDNSAvailability = "CheckDNSAvailability"
 
 // CheckDNSAvailabilityRequest generates a "aws/request.Request" representing the
@@ -479,8 +564,8 @@ func (c *ElasticBeanstalk) CreateApplicationVersionRequest(input *CreateApplicat
 // Omit both SourceBuildInformation and SourceBundle to use the default sample
 // application.
 //
-// Once you create an application version with a specified Amazon S3 bucket
-// and key location, you cannot change that Amazon S3 location. If you change
+// After you create an application version with a specified Amazon S3 bucket
+// and key location, you can't change that Amazon S3 location. If you change
 // the Amazon S3 location, you receive an exception when you attempt to launch
 // an environment from the application version.
 //
@@ -581,9 +666,11 @@ func (c *ElasticBeanstalk) CreateConfigurationTemplateRequest(input *CreateConfi
 
 // CreateConfigurationTemplate API operation for AWS Elastic Beanstalk.
 //
-// Creates a configuration template. Templates are associated with a specific
-// application and are used to deploy different versions of the application
-// with the same configuration settings.
+// Creates an AWS Elastic Beanstalk configuration template, associated with
+// a specific Elastic Beanstalk application. You define application configuration
+// settings in a configuration template. You can then use the configuration
+// template to deploy different versions of the application with the same configuration
+// settings.
 //
 // Templates aren't associated with any environment. The EnvironmentName response
 // element is always null.
@@ -680,8 +767,8 @@ func (c *ElasticBeanstalk) CreateEnvironmentRequest(input *CreateEnvironmentInpu
 
 // CreateEnvironment API operation for AWS Elastic Beanstalk.
 //
-// Launches an environment for the specified application using the specified
-// configuration.
+// Launches an AWS Elastic Beanstalk environment for the specified application
+// using the specified configuration.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2406,7 +2493,11 @@ func (c *ElasticBeanstalk) DescribePlatformVersionRequest(input *DescribePlatfor
 
 // DescribePlatformVersion API operation for AWS Elastic Beanstalk.
 //
-// Describes the version of the platform.
+// Describes a platform version. Provides full details. Compare to ListPlatformVersions,
+// which provides summary information about a list of platform versions.
+//
+// For definitions of platform version and other platform-related terms, see
+// AWS Elastic Beanstalk Platforms Glossary (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-glossary.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2440,6 +2531,91 @@ func (c *ElasticBeanstalk) DescribePlatformVersion(input *DescribePlatformVersio
 // for more information on using Contexts.
 func (c *ElasticBeanstalk) DescribePlatformVersionWithContext(ctx aws.Context, input *DescribePlatformVersionInput, opts ...request.Option) (*DescribePlatformVersionOutput, error) {
 	req, out := c.DescribePlatformVersionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDisassociateEnvironmentOperationsRole = "DisassociateEnvironmentOperationsRole"
+
+// DisassociateEnvironmentOperationsRoleRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateEnvironmentOperationsRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateEnvironmentOperationsRole for more information on using the DisassociateEnvironmentOperationsRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisassociateEnvironmentOperationsRoleRequest method.
+//    req, resp := client.DisassociateEnvironmentOperationsRoleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DisassociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRoleRequest(input *DisassociateEnvironmentOperationsRoleInput) (req *request.Request, output *DisassociateEnvironmentOperationsRoleOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateEnvironmentOperationsRole,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DisassociateEnvironmentOperationsRoleInput{}
+	}
+
+	output = &DisassociateEnvironmentOperationsRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DisassociateEnvironmentOperationsRole API operation for AWS Elastic Beanstalk.
+//
+// Disassociate the operations role from an environment. After this call is
+// made, Elastic Beanstalk uses the caller's permissions for permissions to
+// downstream services during subsequent calls acting on this environment. For
+// more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+// in the AWS Elastic Beanstalk Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation DisassociateEnvironmentOperationsRole for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
+//   The specified account does not have sufficient privileges for one or more
+//   AWS services.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DisassociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRole(input *DisassociateEnvironmentOperationsRoleInput) (*DisassociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentOperationsRoleRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateEnvironmentOperationsRoleWithContext is the same as DisassociateEnvironmentOperationsRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateEnvironmentOperationsRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRoleWithContext(ctx aws.Context, input *DisassociateEnvironmentOperationsRoleInput, opts ...request.Option) (*DisassociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentOperationsRoleRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2520,6 +2696,142 @@ func (c *ElasticBeanstalk) ListAvailableSolutionStacksWithContext(ctx aws.Contex
 	return out, req.Send()
 }
 
+const opListPlatformBranches = "ListPlatformBranches"
+
+// ListPlatformBranchesRequest generates a "aws/request.Request" representing the
+// client's request for the ListPlatformBranches operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListPlatformBranches for more information on using the ListPlatformBranches
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListPlatformBranchesRequest method.
+//    req, resp := client.ListPlatformBranchesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ListPlatformBranches
+func (c *ElasticBeanstalk) ListPlatformBranchesRequest(input *ListPlatformBranchesInput) (req *request.Request, output *ListPlatformBranchesOutput) {
+	op := &request.Operation{
+		Name:       opListPlatformBranches,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxRecords",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListPlatformBranchesInput{}
+	}
+
+	output = &ListPlatformBranchesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListPlatformBranches API operation for AWS Elastic Beanstalk.
+//
+// Lists the platform branches available for your account in an AWS Region.
+// Provides summary information about each platform branch.
+//
+// For definitions of platform branch and other platform-related terms, see
+// AWS Elastic Beanstalk Platforms Glossary (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-glossary.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation ListPlatformBranches for usage and error information.
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/ListPlatformBranches
+func (c *ElasticBeanstalk) ListPlatformBranches(input *ListPlatformBranchesInput) (*ListPlatformBranchesOutput, error) {
+	req, out := c.ListPlatformBranchesRequest(input)
+	return out, req.Send()
+}
+
+// ListPlatformBranchesWithContext is the same as ListPlatformBranches with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListPlatformBranches for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) ListPlatformBranchesWithContext(ctx aws.Context, input *ListPlatformBranchesInput, opts ...request.Option) (*ListPlatformBranchesOutput, error) {
+	req, out := c.ListPlatformBranchesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListPlatformBranchesPages iterates over the pages of a ListPlatformBranches operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPlatformBranches method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPlatformBranches operation.
+//    pageNum := 0
+//    err := client.ListPlatformBranchesPages(params,
+//        func(page *elasticbeanstalk.ListPlatformBranchesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ElasticBeanstalk) ListPlatformBranchesPages(input *ListPlatformBranchesInput, fn func(*ListPlatformBranchesOutput, bool) bool) error {
+	return c.ListPlatformBranchesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPlatformBranchesPagesWithContext same as ListPlatformBranchesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) ListPlatformBranchesPagesWithContext(ctx aws.Context, input *ListPlatformBranchesInput, fn func(*ListPlatformBranchesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPlatformBranchesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPlatformBranchesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPlatformBranchesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListPlatformVersions = "ListPlatformVersions"
 
 // ListPlatformVersionsRequest generates a "aws/request.Request" representing the
@@ -2564,7 +2876,12 @@ func (c *ElasticBeanstalk) ListPlatformVersionsRequest(input *ListPlatformVersio
 
 // ListPlatformVersions API operation for AWS Elastic Beanstalk.
 //
-// Lists the available platforms.
+// Lists the platform versions available for your account in an AWS Region.
+// Provides summary information about each platform version. Compare to DescribePlatformVersion,
+// which provides full details about a single platform version.
+//
+// For definitions of platform version and other platform-related terms, see
+// AWS Elastic Beanstalk Platforms Glossary (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/platforms-glossary.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2647,12 +2964,11 @@ func (c *ElasticBeanstalk) ListTagsForResourceRequest(input *ListTagsForResource
 
 // ListTagsForResource API operation for AWS Elastic Beanstalk.
 //
-// Returns the tags applied to an AWS Elastic Beanstalk resource. The response
+// Return the tags applied to an AWS Elastic Beanstalk resource. The response
 // contains a list of tag key-value pairs.
 //
-// Currently, Elastic Beanstalk only supports tagging of Elastic Beanstalk environments.
-// For details about environment tagging, see Tagging Resources in Your Elastic
-// Beanstalk Environment (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.tagging.html).
+// Elastic Beanstalk supports tagging of all of its resources. For details about
+// resource tagging, see Tagging Application Resources (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/applications-tagging-resources.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3641,9 +3957,8 @@ func (c *ElasticBeanstalk) UpdateTagsForResourceRequest(input *UpdateTagsForReso
 // Update the list of tags applied to an AWS Elastic Beanstalk resource. Two
 // lists can be passed: TagsToAdd for tags to add or update, and TagsToRemove.
 //
-// Currently, Elastic Beanstalk only supports tagging of Elastic Beanstalk environments.
-// For details about environment tagging, see Tagging Resources in Your Elastic
-// Beanstalk Environment (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.tagging.html).
+// Elastic Beanstalk supports tagging of all of its resources. For details about
+// resource tagging, see Tagging Application Resources (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/applications-tagging-resources.html).
 //
 // If you create a custom IAM user policy to control permission to this operation,
 // specify one of the following two virtual actions (or both) instead of the
@@ -4031,8 +4346,8 @@ func (s *ApplicationMetrics) SetStatusCodes(v *StatusCodes) *ApplicationMetrics 
 
 // The resource lifecycle configuration for an application. Defines lifecycle
 // settings for resources that belong to the application, and the service role
-// that Elastic Beanstalk assumes in order to apply lifecycle settings. The
-// version lifecycle configuration defines lifecycle settings for application
+// that AWS Elastic Beanstalk assumes in order to apply lifecycle settings.
+// The version lifecycle configuration defines lifecycle settings for application
 // versions.
 type ApplicationResourceLifecycleConfig struct {
 	_ struct{} `type:"structure"`
@@ -4048,7 +4363,7 @@ type ApplicationResourceLifecycleConfig struct {
 	// Role to another value.
 	ServiceRole *string `type:"string"`
 
-	// The application version lifecycle configuration.
+	// Defines lifecycle settings for application versions.
 	VersionLifecycleConfig *ApplicationVersionLifecycleConfig `type:"structure"`
 }
 
@@ -4405,6 +4720,80 @@ func (s *ApplyEnvironmentManagedActionOutput) SetActionType(v string) *ApplyEnvi
 func (s *ApplyEnvironmentManagedActionOutput) SetStatus(v string) *ApplyEnvironmentManagedActionOutput {
 	s.Status = &v
 	return s
+}
+
+// Request to add or change the operations role used by an environment.
+type AssociateEnvironmentOperationsRoleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the environment to which to set the operations role.
+	//
+	// EnvironmentName is a required field
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of an existing IAM role to be used as the
+	// environment's operations role.
+	//
+	// OperationsRole is a required field
+	OperationsRole *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateEnvironmentOperationsRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateEnvironmentOperationsRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateEnvironmentOperationsRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateEnvironmentOperationsRoleInput"}
+	if s.EnvironmentName == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentName"))
+	}
+	if s.EnvironmentName != nil && len(*s.EnvironmentName) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentName", 4))
+	}
+	if s.OperationsRole == nil {
+		invalidParams.Add(request.NewErrParamRequired("OperationsRole"))
+	}
+	if s.OperationsRole != nil && len(*s.OperationsRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OperationsRole", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnvironmentName sets the EnvironmentName field's value.
+func (s *AssociateEnvironmentOperationsRoleInput) SetEnvironmentName(v string) *AssociateEnvironmentOperationsRoleInput {
+	s.EnvironmentName = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *AssociateEnvironmentOperationsRoleInput) SetOperationsRole(v string) *AssociateEnvironmentOperationsRoleInput {
+	s.OperationsRole = &v
+	return s
+}
+
+type AssociateEnvironmentOperationsRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssociateEnvironmentOperationsRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateEnvironmentOperationsRoleOutput) GoString() string {
+	return s.String()
 }
 
 // Describes an Auto Scaling launch configuration.
@@ -4955,19 +5344,20 @@ func (s *ConfigurationOptionDescription) SetValueType(v string) *ConfigurationOp
 }
 
 // A specification identifying an individual configuration option along with
-// its current value. For a list of possible option values, go to Option Values
-// (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html)
+// its current value. For a list of possible namespaces and option values, see
+// Option Values (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html)
 // in the AWS Elastic Beanstalk Developer Guide.
 type ConfigurationOptionSetting struct {
 	_ struct{} `type:"structure"`
 
-	// A unique namespace identifying the option's associated AWS resource.
+	// A unique namespace that identifies the option's associated AWS resource.
 	Namespace *string `type:"string"`
 
 	// The name of the configuration option.
 	OptionName *string `type:"string"`
 
-	// A unique resource name for a time-based scaling configuration option.
+	// A unique resource name for the option setting. Use it for a time–based
+	// scaling configuration option.
 	ResourceName *string `min:"1" type:"string"`
 
 	// The current value for the configuration option.
@@ -5058,7 +5448,7 @@ type ConfigurationSettingsDescription struct {
 	// set.
 	OptionSettings []*ConfigurationOptionSetting `type:"list"`
 
-	// The ARN of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
 	// The name of the solution stack this configuration set uses.
@@ -5143,19 +5533,16 @@ func (s *ConfigurationSettingsDescription) SetTemplateName(v string) *Configurat
 type CreateApplicationInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the application.
-	//
-	// Constraint: This name must be unique within your account. If the specified
-	// name already exists, the action returns an InvalidParameterValue error.
+	// The name of the application. Must be unique within your account.
 	//
 	// ApplicationName is a required field
 	ApplicationName *string `min:"1" type:"string" required:"true"`
 
-	// Describes the application.
+	// Your description of the application.
 	Description *string `type:"string"`
 
-	// Specify an application resource lifecycle configuration to prevent your application
-	// from accumulating too many versions.
+	// Specifies an application resource lifecycle configuration to prevent your
+	// application from accumulating too many versions.
 	ResourceLifecycleConfig *ApplicationResourceLifecycleConfig `type:"structure"`
 
 	// Specifies the tags applied to the application.
@@ -5246,7 +5633,7 @@ type CreateApplicationVersionInput struct {
 	// Settings for an AWS CodeBuild build.
 	BuildConfiguration *BuildConfiguration `type:"structure"`
 
-	// Describes this version.
+	// A description of this application version.
 	Description *string `type:"string"`
 
 	// Pre-processes and validates the environment manifest (env.yaml) and configuration
@@ -5403,54 +5790,62 @@ func (s *CreateApplicationVersionInput) SetVersionLabel(v string) *CreateApplica
 type CreateConfigurationTemplateInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the application to associate with this configuration template.
-	// If no application is found with this name, AWS Elastic Beanstalk returns
-	// an InvalidParameterValue error.
+	// The name of the Elastic Beanstalk application to associate with this configuration
+	// template.
 	//
 	// ApplicationName is a required field
 	ApplicationName *string `min:"1" type:"string" required:"true"`
 
-	// Describes this configuration.
+	// An optional description for this configuration.
 	Description *string `type:"string"`
 
-	// The ID of the environment used with this configuration template.
+	// The ID of an environment whose settings you want to use to create the configuration
+	// template. You must specify EnvironmentId if you don't specify PlatformArn,
+	// SolutionStackName, or SourceConfiguration.
 	EnvironmentId *string `type:"string"`
 
-	// If specified, AWS Elastic Beanstalk sets the specified configuration option
-	// to the requested value. The new value overrides the value obtained from the
-	// solution stack or the source configuration template.
+	// Option values for the Elastic Beanstalk configuration, such as the instance
+	// type. If specified, these values override the values obtained from the solution
+	// stack or the source configuration template. For a complete list of Elastic
+	// Beanstalk configuration options, see Option Values (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
 	OptionSettings []*ConfigurationOptionSetting `type:"list"`
 
-	// The ARN of the custom platform.
+	// The Amazon Resource Name (ARN) of the custom platform. For more information,
+	// see Custom Platforms (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/custom-platforms.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	//
+	// If you specify PlatformArn, then don't specify SolutionStackName.
 	PlatformArn *string `type:"string"`
 
-	// The name of the solution stack used by this configuration. The solution stack
-	// specifies the operating system, architecture, and application server for
-	// a configuration template. It determines the set of configuration options
-	// as well as the possible and default values.
+	// The name of an Elastic Beanstalk solution stack (platform version) that this
+	// configuration uses. For example, 64bit Amazon Linux 2013.09 running Tomcat
+	// 7 Java 7. A solution stack specifies the operating system, runtime, and application
+	// server for a configuration template. It also determines the set of configuration
+	// options as well as the possible and default values. For more information,
+	// see Supported Platforms (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
 	//
-	// Use ListAvailableSolutionStacks to obtain a list of available solution stacks.
+	// You must specify SolutionStackName if you don't specify PlatformArn, EnvironmentId,
+	// or SourceConfiguration.
 	//
-	// A solution stack name or a source configuration parameter must be specified,
-	// otherwise AWS Elastic Beanstalk returns an InvalidParameterValue error.
-	//
-	// If a solution stack name is not specified and the source configuration parameter
-	// is specified, AWS Elastic Beanstalk uses the same solution stack as the source
-	// configuration template.
+	// Use the ListAvailableSolutionStacks (https://docs.aws.amazon.com/elasticbeanstalk/latest/api/API_ListAvailableSolutionStacks.html)
+	// API to obtain a list of available solution stacks.
 	SolutionStackName *string `type:"string"`
 
-	// If specified, AWS Elastic Beanstalk uses the configuration values from the
-	// specified configuration template to create a new configuration.
+	// An Elastic Beanstalk configuration template to base this one on. If specified,
+	// Elastic Beanstalk uses the configuration values from the specified configuration
+	// template to create a new configuration.
 	//
-	// Values specified in the OptionSettings parameter of this call overrides any
-	// values obtained from the SourceConfiguration.
+	// Values specified in OptionSettings override any values obtained from the
+	// SourceConfiguration.
 	//
-	// If no configuration template is found, returns an InvalidParameterValue error.
+	// You must specify SourceConfiguration if you don't specify PlatformArn, EnvironmentId,
+	// or SolutionStackName.
 	//
-	// Constraint: If both the solution stack name parameter and the source configuration
-	// parameters are specified, the solution stack of the source configuration
-	// template must match the specified solution stack name or else AWS Elastic
-	// Beanstalk returns an InvalidParameterCombination error.
+	// Constraint: If both solution stack name and source configuration are specified,
+	// the solution stack of the source configuration template must match the specified
+	// solution stack name.
 	SourceConfiguration *SourceConfiguration `type:"structure"`
 
 	// Specifies the tags applied to the configuration template.
@@ -5459,9 +5854,6 @@ type CreateConfigurationTemplateInput struct {
 	// The name of the configuration template.
 	//
 	// Constraint: This name must be unique per application.
-	//
-	// Default: If a configuration template already exists with this name, AWS Elastic
-	// Beanstalk returns an InvalidParameterValue error.
 	//
 	// TemplateName is a required field
 	TemplateName *string `min:"1" type:"string" required:"true"`
@@ -5581,31 +5973,29 @@ func (s *CreateConfigurationTemplateInput) SetTemplateName(v string) *CreateConf
 type CreateEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the application that contains the version to be deployed.
-	//
-	// If no application is found with this name, CreateEnvironment returns an InvalidParameterValue
-	// error.
+	// The name of the application that is associated with this environment.
 	//
 	// ApplicationName is a required field
 	ApplicationName *string `min:"1" type:"string" required:"true"`
 
 	// If specified, the environment attempts to use this value as the prefix for
-	// the CNAME. If not specified, the CNAME is generated automatically by appending
-	// a random alphanumeric string to the environment name.
+	// the CNAME in your Elastic Beanstalk environment URL. If not specified, the
+	// CNAME is generated automatically by appending a random alphanumeric string
+	// to the environment name.
 	CNAMEPrefix *string `min:"4" type:"string"`
 
-	// Describes this environment.
+	// Your description for this environment.
 	Description *string `type:"string"`
 
-	// A unique name for the deployment environment. Used in the application URL.
+	// A unique name for the environment.
 	//
 	// Constraint: Must be from 4 to 40 characters in length. The name can contain
-	// only letters, numbers, and hyphens. It cannot start or end with a hyphen.
+	// only letters, numbers, and hyphens. It can't start or end with a hyphen.
 	// This name must be unique within a region in your account. If the specified
-	// name already exists in the region, AWS Elastic Beanstalk returns an InvalidParameterValue
+	// name already exists in the region, Elastic Beanstalk returns an InvalidParameterValue
 	// error.
 	//
-	// Default: If the CNAME parameter is not specified, the environment name becomes
+	// If you don't specify the CNAMEPrefix parameter, the environment name becomes
 	// part of the CNAME, and therefore part of the visible URL for your application.
 	EnvironmentName *string `min:"4" type:"string"`
 
@@ -5615,6 +6005,15 @@ type CreateEnvironmentInput struct {
 	// (env.yaml) (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-cfg-manifest.html)
 	// for details.
 	GroupName *string `min:"1" type:"string"`
+
+	// The Amazon Resource Name (ARN) of an existing IAM role to be used as the
+	// environment's operations role. If specified, Elastic Beanstalk uses the operations
+	// role for permissions to downstream services during this call and during subsequent
+	// calls acting on this environment. To specify an operations role, you must
+	// have the iam:PassRole permission for the role. For more information, see
+	// Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	OperationsRole *string `min:"1" type:"string"`
 
 	// If specified, AWS Elastic Beanstalk sets the specified configuration options
 	// to the requested value in the configuration set for the new environment.
@@ -5626,35 +6025,42 @@ type CreateEnvironmentInput struct {
 	// set for this new environment.
 	OptionsToRemove []*OptionSpecification `type:"list"`
 
-	// The ARN of the platform.
+	// The Amazon Resource Name (ARN) of the custom platform to use with the environment.
+	// For more information, see Custom Platforms (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/custom-platforms.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	//
+	// If you specify PlatformArn, don't specify SolutionStackName.
 	PlatformArn *string `type:"string"`
 
-	// This is an alternative to specifying a template name. If specified, AWS Elastic
-	// Beanstalk sets the configuration values to the default values associated
-	// with the specified solution stack.
-	//
+	// The name of an Elastic Beanstalk solution stack (platform version) to use
+	// with the environment. If specified, Elastic Beanstalk sets the configuration
+	// values to the default values associated with the specified solution stack.
 	// For a list of current solution stacks, see Elastic Beanstalk Supported Platforms
-	// (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html).
+	// (https://docs.aws.amazon.com/elasticbeanstalk/latest/platforms/platforms-supported.html)
+	// in the AWS Elastic Beanstalk Platforms guide.
+	//
+	// If you specify SolutionStackName, don't specify PlatformArn or TemplateName.
 	SolutionStackName *string `type:"string"`
 
 	// Specifies the tags applied to resources in the environment.
 	Tags []*Tag `type:"list"`
 
-	// The name of the configuration template to use in deployment. If no configuration
-	// template is found with this name, AWS Elastic Beanstalk returns an InvalidParameterValue
-	// error.
+	// The name of the Elastic Beanstalk configuration template to use with the
+	// environment.
+	//
+	// If you specify TemplateName, then don't specify SolutionStackName.
 	TemplateName *string `min:"1" type:"string"`
 
-	// This specifies the tier to use for creating this environment.
+	// Specifies the tier to use in creating this environment. The environment tier
+	// that you choose determines whether Elastic Beanstalk provisions resources
+	// to support a web application that handles HTTP(S) requests or a web application
+	// that handles background-processing tasks.
 	Tier *EnvironmentTier `type:"structure"`
 
 	// The name of the application version to deploy.
 	//
-	// If the specified application has no associated application versions, AWS
-	// Elastic Beanstalk UpdateEnvironment returns an InvalidParameterValue error.
-	//
-	// Default: If not specified, AWS Elastic Beanstalk attempts to launch the sample
-	// application in the container.
+	// Default: If not specified, Elastic Beanstalk attempts to deploy the sample
+	// application.
 	VersionLabel *string `min:"1" type:"string"`
 }
 
@@ -5685,6 +6091,9 @@ func (s *CreateEnvironmentInput) Validate() error {
 	}
 	if s.GroupName != nil && len(*s.GroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
+	}
+	if s.OperationsRole != nil && len(*s.OperationsRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OperationsRole", 1))
 	}
 	if s.TemplateName != nil && len(*s.TemplateName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TemplateName", 1))
@@ -5756,6 +6165,12 @@ func (s *CreateEnvironmentInput) SetEnvironmentName(v string) *CreateEnvironment
 // SetGroupName sets the GroupName field's value.
 func (s *CreateEnvironmentInput) SetGroupName(v string) *CreateEnvironmentInput {
 	s.GroupName = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *CreateEnvironmentInput) SetOperationsRole(v string) *CreateEnvironmentInput {
+	s.OperationsRole = &v
 	return s
 }
 
@@ -6735,7 +7150,7 @@ type DescribeConfigurationOptionsOutput struct {
 	// A list of ConfigurationOptionDescription.
 	Options []*ConfigurationOptionDescription `type:"list"`
 
-	// The ARN of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
 	// The name of the solution stack these configuration options belong to.
@@ -7415,7 +7830,9 @@ type DescribeEventsInput struct {
 	// Pagination token. If specified, the events return the next batch of results.
 	NextToken *string `type:"string"`
 
-	// The ARN of the version of the custom platform.
+	// The ARN of a custom platform version. If specified, AWS Elastic Beanstalk
+	// restricts the returned descriptions to those associated with this custom
+	// platform version.
 	PlatformArn *string `type:"string"`
 
 	// If specified, AWS Elastic Beanstalk restricts the described events to include
@@ -7698,7 +8115,7 @@ func (s *DescribeInstancesHealthOutput) SetRefreshedAt(v time.Time) *DescribeIns
 type DescribePlatformVersionInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the version of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 }
 
@@ -7721,7 +8138,7 @@ func (s *DescribePlatformVersionInput) SetPlatformArn(v string) *DescribePlatfor
 type DescribePlatformVersionOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about the version of the platform.
+	// Detailed information about the platform version.
 	PlatformDescription *PlatformDescription `type:"structure"`
 }
 
@@ -7739,6 +8156,62 @@ func (s DescribePlatformVersionOutput) GoString() string {
 func (s *DescribePlatformVersionOutput) SetPlatformDescription(v *PlatformDescription) *DescribePlatformVersionOutput {
 	s.PlatformDescription = v
 	return s
+}
+
+// Request to disassociate the operations role from an environment.
+type DisassociateEnvironmentOperationsRoleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the environment from which to disassociate the operations role.
+	//
+	// EnvironmentName is a required field
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisassociateEnvironmentOperationsRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateEnvironmentOperationsRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateEnvironmentOperationsRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateEnvironmentOperationsRoleInput"}
+	if s.EnvironmentName == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentName"))
+	}
+	if s.EnvironmentName != nil && len(*s.EnvironmentName) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentName", 4))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnvironmentName sets the EnvironmentName field's value.
+func (s *DisassociateEnvironmentOperationsRoleInput) SetEnvironmentName(v string) *DisassociateEnvironmentOperationsRoleInput {
+	s.EnvironmentName = &v
+	return s
+}
+
+type DisassociateEnvironmentOperationsRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisassociateEnvironmentOperationsRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateEnvironmentOperationsRoleOutput) GoString() string {
+	return s.String()
 }
 
 // Describes the properties of an environment.
@@ -7807,7 +8280,12 @@ type EnvironmentDescription struct {
 	// For more information, see Health Colors and Statuses (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
 	HealthStatus *string `type:"string" enum:"EnvironmentHealthStatus"`
 
-	// The ARN of the platform.
+	// The Amazon Resource Name (ARN) of the environment's operations role. For
+	// more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	OperationsRole *string `min:"1" type:"string"`
+
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
 	// The description of the AWS resources used by this environment.
@@ -7926,6 +8404,12 @@ func (s *EnvironmentDescription) SetHealth(v string) *EnvironmentDescription {
 // SetHealthStatus sets the HealthStatus field's value.
 func (s *EnvironmentDescription) SetHealthStatus(v string) *EnvironmentDescription {
 	s.HealthStatus = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *EnvironmentDescription) SetOperationsRole(v string) *EnvironmentDescription {
+	s.OperationsRole = &v
 	return s
 }
 
@@ -8283,7 +8767,7 @@ type EventDescription struct {
 	// The event message.
 	Message *string `type:"string"`
 
-	// The ARN of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
 	// The web service request ID for the activity of this event.
@@ -8672,18 +9156,135 @@ func (s *ListAvailableSolutionStacksOutput) SetSolutionStacks(v []*string) *List
 	return s
 }
 
+type ListPlatformBranchesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Criteria for restricting the resulting list of platform branches. The filter
+	// is evaluated as a logical conjunction (AND) of the separate SearchFilter
+	// terms.
+	//
+	// The following list shows valid attribute values for each of the SearchFilter
+	// terms. Most operators take a single value. The in and not_in operators can
+	// take multiple values.
+	//
+	//    * Attribute = BranchName: Operator: = | != | begins_with | ends_with |
+	//    contains | in | not_in
+	//
+	//    * Attribute = LifecycleState: Operator: = | != | in | not_in Values: beta
+	//    | supported | deprecated | retired
+	//
+	//    * Attribute = PlatformName: Operator: = | != | begins_with | ends_with
+	//    | contains | in | not_in
+	//
+	//    * Attribute = TierType: Operator: = | != Values: WebServer/Standard |
+	//    Worker/SQS/HTTP
+	//
+	// Array size: limited to 10 SearchFilter objects.
+	//
+	// Within each SearchFilter item, the Values array is limited to 10 items.
+	Filters []*SearchFilter `type:"list"`
+
+	// The maximum number of platform branch values returned in one call.
+	MaxRecords *int64 `min:"1" type:"integer"`
+
+	// For a paginated request. Specify a token from a previous response page to
+	// retrieve the next response page. All other parameter values must be identical
+	// to the ones specified in the initial request.
+	//
+	// If no NextToken is specified, the first page is retrieved.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ListPlatformBranchesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPlatformBranchesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListPlatformBranchesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListPlatformBranchesInput"}
+	if s.MaxRecords != nil && *s.MaxRecords < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxRecords", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListPlatformBranchesInput) SetFilters(v []*SearchFilter) *ListPlatformBranchesInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxRecords sets the MaxRecords field's value.
+func (s *ListPlatformBranchesInput) SetMaxRecords(v int64) *ListPlatformBranchesInput {
+	s.MaxRecords = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPlatformBranchesInput) SetNextToken(v string) *ListPlatformBranchesInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListPlatformBranchesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// In a paginated request, if this value isn't null, it's the token that you
+	// can pass in a subsequent request to get the next response page.
+	NextToken *string `type:"string"`
+
+	// Summary information about the platform branches.
+	PlatformBranchSummaryList []*PlatformBranchSummary `type:"list"`
+}
+
+// String returns the string representation
+func (s ListPlatformBranchesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListPlatformBranchesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListPlatformBranchesOutput) SetNextToken(v string) *ListPlatformBranchesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetPlatformBranchSummaryList sets the PlatformBranchSummaryList field's value.
+func (s *ListPlatformBranchesOutput) SetPlatformBranchSummaryList(v []*PlatformBranchSummary) *ListPlatformBranchesOutput {
+	s.PlatformBranchSummaryList = v
+	return s
+}
+
 type ListPlatformVersionsInput struct {
 	_ struct{} `type:"structure"`
 
-	// List only the platforms where the platform member value relates to one of
-	// the supplied values.
+	// Criteria for restricting the resulting list of platform versions. The filter
+	// is interpreted as a logical conjunction (AND) of the separate PlatformFilter
+	// terms.
 	Filters []*PlatformFilter `type:"list"`
 
-	// The maximum number of platform values returned in one call.
+	// The maximum number of platform version values returned in one call.
 	MaxRecords *int64 `min:"1" type:"integer"`
 
-	// The starting index into the remaining list of platforms. Use the NextToken
-	// value from a previous ListPlatformVersion call.
+	// For a paginated request. Specify a token from a previous response page to
+	// retrieve the next response page. All other parameter values must be identical
+	// to the ones specified in the initial request.
+	//
+	// If no NextToken is specified, the first page is retrieved.
 	NextToken *string `type:"string"`
 }
 
@@ -8731,11 +9332,11 @@ func (s *ListPlatformVersionsInput) SetNextToken(v string) *ListPlatformVersions
 type ListPlatformVersionsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The starting index into the remaining list of platforms. if this value is
-	// not null, you can use it in a subsequent ListPlatformVersion call.
+	// In a paginated request, if this value isn't null, it's the token that you
+	// can pass in a subsequent request to get the next response page.
 	NextToken *string `type:"string"`
 
-	// Detailed information about the platforms.
+	// Summary information about the platform versions.
 	PlatformSummaryList []*PlatformSummary `type:"list"`
 }
 
@@ -8766,7 +9367,7 @@ type ListTagsForResourceInput struct {
 
 	// The Amazon Resource Name (ARN) of the resouce for which a tag list is requested.
 	//
-	// Must be the ARN of an Elastic Beanstalk environment.
+	// Must be the ARN of an Elastic Beanstalk resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
@@ -8804,7 +9405,7 @@ func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResource
 type ListTagsForResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resouce for which a tag list was requested.
+	// The Amazon Resource Name (ARN) of the resource for which a tag list was requested.
 	ResourceArn *string `type:"string"`
 
 	// A list of tag key-value pairs.
@@ -9289,62 +9890,149 @@ func (s *OptionSpecification) SetResourceName(v string) *OptionSpecification {
 	return s
 }
 
-// Detailed information about a platform.
+// Summary information about a platform branch.
+type PlatformBranchSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the platform branch.
+	BranchName *string `type:"string"`
+
+	// An ordinal number that designates the order in which platform branches have
+	// been added to a platform. This can be helpful, for example, if your code
+	// calls the ListPlatformBranches action and then displays a list of platform
+	// branches.
+	//
+	// A larger BranchOrder value designates a newer platform branch within the
+	// platform.
+	BranchOrder *int64 `type:"integer"`
+
+	// The support life cycle state of the platform branch.
+	//
+	// Possible values: beta | supported | deprecated | retired
+	LifecycleState *string `type:"string"`
+
+	// The name of the platform to which this platform branch belongs.
+	PlatformName *string `type:"string"`
+
+	// The environment tiers that platform versions in this branch support.
+	//
+	// Possible values: WebServer/Standard | Worker/SQS/HTTP
+	SupportedTierList []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s PlatformBranchSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PlatformBranchSummary) GoString() string {
+	return s.String()
+}
+
+// SetBranchName sets the BranchName field's value.
+func (s *PlatformBranchSummary) SetBranchName(v string) *PlatformBranchSummary {
+	s.BranchName = &v
+	return s
+}
+
+// SetBranchOrder sets the BranchOrder field's value.
+func (s *PlatformBranchSummary) SetBranchOrder(v int64) *PlatformBranchSummary {
+	s.BranchOrder = &v
+	return s
+}
+
+// SetLifecycleState sets the LifecycleState field's value.
+func (s *PlatformBranchSummary) SetLifecycleState(v string) *PlatformBranchSummary {
+	s.LifecycleState = &v
+	return s
+}
+
+// SetPlatformName sets the PlatformName field's value.
+func (s *PlatformBranchSummary) SetPlatformName(v string) *PlatformBranchSummary {
+	s.PlatformName = &v
+	return s
+}
+
+// SetSupportedTierList sets the SupportedTierList field's value.
+func (s *PlatformBranchSummary) SetSupportedTierList(v []*string) *PlatformBranchSummary {
+	s.SupportedTierList = v
+	return s
+}
+
+// Detailed information about a platform version.
 type PlatformDescription struct {
 	_ struct{} `type:"structure"`
 
-	// The custom AMIs supported by the platform.
+	// The custom AMIs supported by the platform version.
 	CustomAmiList []*CustomAmi `type:"list"`
 
-	// The date when the platform was created.
+	// The date when the platform version was created.
 	DateCreated *time.Time `type:"timestamp"`
 
-	// The date when the platform was last updated.
+	// The date when the platform version was last updated.
 	DateUpdated *time.Time `type:"timestamp"`
 
-	// The description of the platform.
+	// The description of the platform version.
 	Description *string `type:"string"`
 
-	// The frameworks supported by the platform.
+	// The frameworks supported by the platform version.
 	Frameworks []*PlatformFramework `type:"list"`
 
-	// Information about the maintainer of the platform.
+	// Information about the maintainer of the platform version.
 	Maintainer *string `type:"string"`
 
-	// The operating system used by the platform.
+	// The operating system used by the platform version.
 	OperatingSystemName *string `type:"string"`
 
-	// The version of the operating system used by the platform.
+	// The version of the operating system used by the platform version.
 	OperatingSystemVersion *string `type:"string"`
 
-	// The ARN of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
-	// The category of the platform.
+	// The state of the platform version's branch in its lifecycle.
+	//
+	// Possible values: Beta | Supported | Deprecated | Retired
+	PlatformBranchLifecycleState *string `type:"string"`
+
+	// The platform branch to which the platform version belongs.
+	PlatformBranchName *string `type:"string"`
+
+	// The category of the platform version.
 	PlatformCategory *string `type:"string"`
 
-	// The name of the platform.
+	// The state of the platform version in its lifecycle.
+	//
+	// Possible values: Recommended | null
+	//
+	// If a null value is returned, the platform version isn't the recommended one
+	// for its branch. Each platform branch has a single recommended platform version,
+	// typically the most recent one.
+	PlatformLifecycleState *string `type:"string"`
+
+	// The name of the platform version.
 	PlatformName *string `type:"string"`
 
-	// The AWS account ID of the person who created the platform.
+	// The AWS account ID of the person who created the platform version.
 	PlatformOwner *string `type:"string"`
 
-	// The status of the platform.
+	// The status of the platform version.
 	PlatformStatus *string `type:"string" enum:"PlatformStatus"`
 
-	// The version of the platform.
+	// The version of the platform version.
 	PlatformVersion *string `type:"string"`
 
-	// The programming languages supported by the platform.
+	// The programming languages supported by the platform version.
 	ProgrammingLanguages []*PlatformProgrammingLanguage `type:"list"`
 
-	// The name of the solution stack used by the platform.
+	// The name of the solution stack used by the platform version.
 	SolutionStackName *string `type:"string"`
 
-	// The additions supported by the platform.
+	// The additions supported by the platform version.
 	SupportedAddonList []*string `type:"list"`
 
-	// The tiers supported by the platform.
+	// The tiers supported by the platform version.
 	SupportedTierList []*string `type:"list"`
 }
 
@@ -9412,9 +10100,27 @@ func (s *PlatformDescription) SetPlatformArn(v string) *PlatformDescription {
 	return s
 }
 
+// SetPlatformBranchLifecycleState sets the PlatformBranchLifecycleState field's value.
+func (s *PlatformDescription) SetPlatformBranchLifecycleState(v string) *PlatformDescription {
+	s.PlatformBranchLifecycleState = &v
+	return s
+}
+
+// SetPlatformBranchName sets the PlatformBranchName field's value.
+func (s *PlatformDescription) SetPlatformBranchName(v string) *PlatformDescription {
+	s.PlatformBranchName = &v
+	return s
+}
+
 // SetPlatformCategory sets the PlatformCategory field's value.
 func (s *PlatformDescription) SetPlatformCategory(v string) *PlatformDescription {
 	s.PlatformCategory = &v
+	return s
+}
+
+// SetPlatformLifecycleState sets the PlatformLifecycleState field's value.
+func (s *PlatformDescription) SetPlatformLifecycleState(v string) *PlatformDescription {
+	s.PlatformLifecycleState = &v
 	return s
 }
 
@@ -9466,27 +10172,36 @@ func (s *PlatformDescription) SetSupportedTierList(v []*string) *PlatformDescrip
 	return s
 }
 
-// Specify criteria to restrict the results when listing custom platforms.
+// Describes criteria to restrict the results when listing platform versions.
 //
-// The filter is evaluated as the expression:
-//
-// Type Operator Values[i]
+// The filter is evaluated as follows: Type Operator Values[1]
 type PlatformFilter struct {
 	_ struct{} `type:"structure"`
 
 	// The operator to apply to the Type with each of the Values.
 	//
-	// Valid Values: = (equal to) | != (not equal to) | < (less than) | <= (less
-	// than or equal to) | > (greater than) | >= (greater than or equal to) | contains
-	// | begins_with | ends_with
+	// Valid values: = | != | < | <= | > | >= | contains | begins_with | ends_with
 	Operator *string `type:"string"`
 
-	// The custom platform attribute to which the filter values are applied.
+	// The platform version attribute to which the filter values are applied.
 	//
-	// Valid Values: PlatformName | PlatformVersion | PlatformStatus | PlatformOwner
+	// Valid values: PlatformName | PlatformVersion | PlatformStatus | PlatformBranchName
+	// | PlatformLifecycleState | PlatformOwner | SupportedTier | SupportedAddon
+	// | ProgrammingLanguageName | OperatingSystemName
 	Type *string `type:"string"`
 
-	// The list of values applied to the custom platform attribute.
+	// The list of values applied to the filtering platform version attribute. Only
+	// one value is supported for all current operators.
+	//
+	// The following list shows valid filter values for some filter attributes.
+	//
+	//    * PlatformStatus: Creating | Failed | Ready | Deleting | Deleted
+	//
+	//    * PlatformLifecycleState: recommended
+	//
+	//    * SupportedTier: WebServer/Standard | Worker/SQS/HTTP
+	//
+	//    * SupportedAddon: Log/S3 | Monitoring/Healthd | WorkerDaemon/SQSD
 	Values []*string `type:"list"`
 }
 
@@ -9518,7 +10233,7 @@ func (s *PlatformFilter) SetValues(v []*string) *PlatformFilter {
 	return s
 }
 
-// A framework supported by the custom platform.
+// A framework supported by the platform.
 type PlatformFramework struct {
 	_ struct{} `type:"structure"`
 
@@ -9584,33 +10299,52 @@ func (s *PlatformProgrammingLanguage) SetVersion(v string) *PlatformProgrammingL
 	return s
 }
 
-// Detailed information about a platform.
+// Summary information about a platform version.
 type PlatformSummary struct {
 	_ struct{} `type:"structure"`
 
-	// The operating system used by the platform.
+	// The operating system used by the platform version.
 	OperatingSystemName *string `type:"string"`
 
-	// The version of the operating system used by the platform.
+	// The version of the operating system used by the platform version.
 	OperatingSystemVersion *string `type:"string"`
 
-	// The ARN of the platform.
+	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
 
-	// The category of platform.
+	// The state of the platform version's branch in its lifecycle.
+	//
+	// Possible values: beta | supported | deprecated | retired
+	PlatformBranchLifecycleState *string `type:"string"`
+
+	// The platform branch to which the platform version belongs.
+	PlatformBranchName *string `type:"string"`
+
+	// The category of platform version.
 	PlatformCategory *string `type:"string"`
 
-	// The AWS account ID of the person who created the platform.
+	// The state of the platform version in its lifecycle.
+	//
+	// Possible values: recommended | empty
+	//
+	// If an empty value is returned, the platform version is supported but isn't
+	// the recommended one for its branch.
+	PlatformLifecycleState *string `type:"string"`
+
+	// The AWS account ID of the person who created the platform version.
 	PlatformOwner *string `type:"string"`
 
-	// The status of the platform. You can create an environment from the platform
-	// once it is ready.
+	// The status of the platform version. You can create an environment from the
+	// platform version once it is ready.
 	PlatformStatus *string `type:"string" enum:"PlatformStatus"`
 
-	// The additions associated with the platform.
+	// The version string of the platform version.
+	PlatformVersion *string `type:"string"`
+
+	// The additions associated with the platform version.
 	SupportedAddonList []*string `type:"list"`
 
-	// The tiers in which the platform runs.
+	// The tiers in which the platform version runs.
 	SupportedTierList []*string `type:"list"`
 }
 
@@ -9642,9 +10376,27 @@ func (s *PlatformSummary) SetPlatformArn(v string) *PlatformSummary {
 	return s
 }
 
+// SetPlatformBranchLifecycleState sets the PlatformBranchLifecycleState field's value.
+func (s *PlatformSummary) SetPlatformBranchLifecycleState(v string) *PlatformSummary {
+	s.PlatformBranchLifecycleState = &v
+	return s
+}
+
+// SetPlatformBranchName sets the PlatformBranchName field's value.
+func (s *PlatformSummary) SetPlatformBranchName(v string) *PlatformSummary {
+	s.PlatformBranchName = &v
+	return s
+}
+
 // SetPlatformCategory sets the PlatformCategory field's value.
 func (s *PlatformSummary) SetPlatformCategory(v string) *PlatformSummary {
 	s.PlatformCategory = &v
+	return s
+}
+
+// SetPlatformLifecycleState sets the PlatformLifecycleState field's value.
+func (s *PlatformSummary) SetPlatformLifecycleState(v string) *PlatformSummary {
+	s.PlatformLifecycleState = &v
 	return s
 }
 
@@ -9657,6 +10409,12 @@ func (s *PlatformSummary) SetPlatformOwner(v string) *PlatformSummary {
 // SetPlatformStatus sets the PlatformStatus field's value.
 func (s *PlatformSummary) SetPlatformStatus(v string) *PlatformSummary {
 	s.PlatformStatus = &v
+	return s
+}
+
+// SetPlatformVersion sets the PlatformVersion field's value.
+func (s *PlatformSummary) SetPlatformVersion(v string) *PlatformSummary {
+	s.PlatformVersion = &v
 	return s
 }
 
@@ -10144,6 +10902,63 @@ func (s *S3Location) SetS3Key(v string) *S3Location {
 	return s
 }
 
+// Describes criteria to restrict a list of results.
+//
+// For operators that apply a single value to the attribute, the filter is evaluated
+// as follows: Attribute Operator Values[1]
+//
+// Some operators, e.g. in, can apply multiple values. In this case, the filter
+// is evaluated as a logical union (OR) of applications of the operator to the
+// attribute with each one of the values: (Attribute Operator Values[1]) OR
+// (Attribute Operator Values[2]) OR ...
+//
+// The valid values for attributes of SearchFilter depend on the API action.
+// For valid values, see the reference page for the API action you're calling
+// that takes a SearchFilter parameter.
+type SearchFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The result attribute to which the filter values are applied. Valid values
+	// vary by API action.
+	Attribute *string `type:"string"`
+
+	// The operator to apply to the Attribute with each of the Values. Valid values
+	// vary by Attribute.
+	Operator *string `type:"string"`
+
+	// The list of values applied to the Attribute and Operator attributes. Number
+	// of values and valid values vary by Attribute.
+	Values []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s SearchFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SearchFilter) GoString() string {
+	return s.String()
+}
+
+// SetAttribute sets the Attribute field's value.
+func (s *SearchFilter) SetAttribute(v string) *SearchFilter {
+	s.Attribute = &v
+	return s
+}
+
+// SetOperator sets the Operator field's value.
+func (s *SearchFilter) SetOperator(v string) *SearchFilter {
+	s.Operator = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *SearchFilter) SetValues(v []*string) *SearchFilter {
+	s.Values = v
+	return s
+}
+
 // Detailed health information about an Amazon EC2 instance in your Elastic
 // Beanstalk environment.
 type SingleInstanceHealth struct {
@@ -10372,7 +11187,7 @@ func (s *SourceBuildInformation) SetSourceType(v string) *SourceBuildInformation
 	return s
 }
 
-// A specification for an environment configuration
+// A specification for an environment configuration.
 type SourceConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -11304,19 +12119,21 @@ type UpdateTagsForResourceInput struct {
 
 	// The Amazon Resource Name (ARN) of the resouce to be updated.
 	//
-	// Must be the ARN of an Elastic Beanstalk environment.
+	// Must be the ARN of an Elastic Beanstalk resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// A list of tags to add or update.
+	// A list of tags to add or update. If a key of an existing tag is added, the
+	// tag's value is updated.
 	//
-	// If a key of an existing tag is added, the tag's value is updated.
+	// Specify at least one of these parameters: TagsToAdd, TagsToRemove.
 	TagsToAdd []*Tag `type:"list"`
 
-	// A list of tag keys to remove.
+	// A list of tag keys to remove. If a tag key doesn't exist, it is silently
+	// ignored.
 	//
-	// If a tag key doesn't exist, it is silently ignored.
+	// Specify at least one of these parameters: TagsToAdd, TagsToRemove.
 	TagsToRemove []*string `type:"list"`
 }
 

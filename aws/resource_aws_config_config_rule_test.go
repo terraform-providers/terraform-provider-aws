@@ -41,22 +41,21 @@ func testAccConfigConfigRule_ownerAws(t *testing.T) {
 	var cr configservice.ConfigRule
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_config_config_rule.test"
-	expectedArn := regexp.MustCompile("arn:aws:config:[a-z0-9-]+:[0-9]{12}:config-rule/config-rule-([a-z0-9]+)")
-	expectedRuleId := regexp.MustCompile("config-rule-[a-z0-9]+")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckConfigConfigRuleDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigConfigRuleConfig_ownerAws(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckConfigConfigRuleExists(resourceName, &cr),
 					testAccCheckConfigConfigRuleName(resourceName, rName, &cr),
-					resource.TestMatchResourceAttr(resourceName, "arn", expectedArn),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "config", regexp.MustCompile("config-rule/config-rule-[a-z0-9]+$")),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestMatchResourceAttr(resourceName, "rule_id", expectedRuleId),
+					resource.TestMatchResourceAttr(resourceName, "rule_id", regexp.MustCompile("config-rule-[a-z0-9]+$")),
 					resource.TestCheckResourceAttr(resourceName, "description", "Terraform Acceptance tests"),
 					resource.TestCheckResourceAttr(resourceName, "source.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "source.0.owner", "AWS"),
@@ -75,38 +74,37 @@ func testAccConfigConfigRule_ownerAws(t *testing.T) {
 func testAccConfigConfigRule_customlambda(t *testing.T) {
 	var cr configservice.ConfigRule
 	rInt := acctest.RandInt()
+	resourceName := "aws_config_config_rule.test"
 
 	expectedName := fmt.Sprintf("tf-acc-test-%d", rInt)
 	path := "test-fixtures/lambdatest.zip"
-	expectedArn := regexp.MustCompile("arn:aws:config:[a-z0-9-]+:[0-9]{12}:config-rule/config-rule-([a-z0-9]+)")
-	expectedFunctionArn := regexp.MustCompile(fmt.Sprintf("arn:aws:lambda:[a-z0-9-]+:[0-9]{12}:function:tf_acc_lambda_awsconfig_%d", rInt))
-	expectedRuleId := regexp.MustCompile("config-rule-[a-z0-9]+")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckConfigConfigRuleDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckConfigConfigRuleDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigConfigRuleConfig_customLambda(rInt, path),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckConfigConfigRuleExists("aws_config_config_rule.foo", &cr),
-					testAccCheckConfigConfigRuleName("aws_config_config_rule.foo", expectedName, &cr),
-					resource.TestMatchResourceAttr("aws_config_config_rule.foo", "arn", expectedArn),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "name", expectedName),
-					resource.TestMatchResourceAttr("aws_config_config_rule.foo", "rule_id", expectedRuleId),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "description", "Terraform Acceptance tests"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "maximum_execution_frequency", "Six_Hours"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.#", "1"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.0.owner", "CUSTOM_LAMBDA"),
-					resource.TestMatchResourceAttr("aws_config_config_rule.foo", "source.0.source_identifier", expectedFunctionArn),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.0.source_detail.#", "1"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.0.source_detail.3026922761.event_source", "aws.config"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.0.source_detail.3026922761.message_type", "ConfigurationSnapshotDeliveryCompleted"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "source.0.source_detail.3026922761.maximum_execution_frequency", ""),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "scope.#", "1"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "scope.0.tag_key", "IsTemporary"),
-					resource.TestCheckResourceAttr("aws_config_config_rule.foo", "scope.0.tag_value", "yes"),
+					testAccCheckConfigConfigRuleExists(resourceName, &cr),
+					testAccCheckConfigConfigRuleName(resourceName, expectedName, &cr),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "config", regexp.MustCompile("config-rule/config-rule-[a-z0-9]+$")),
+					resource.TestCheckResourceAttr(resourceName, "name", expectedName),
+					resource.TestMatchResourceAttr(resourceName, "rule_id", regexp.MustCompile("config-rule-[a-z0-9]+$")),
+					resource.TestCheckResourceAttr(resourceName, "description", "Terraform Acceptance tests"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_execution_frequency", "Six_Hours"),
+					resource.TestCheckResourceAttr(resourceName, "source.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.owner", "CUSTOM_LAMBDA"),
+					resource.TestCheckResourceAttrPair(resourceName, "source.0.source_identifier", "aws_lambda_function.f", "arn"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.source_detail.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.source_detail.3026922761.event_source", "aws.config"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.source_detail.3026922761.message_type", "ConfigurationSnapshotDeliveryCompleted"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.source_detail.3026922761.maximum_execution_frequency", ""),
+					resource.TestCheckResourceAttr(resourceName, "scope.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_key", "IsTemporary"),
+					resource.TestCheckResourceAttr(resourceName, "scope.0.tag_value", "yes"),
 				),
 			},
 		},
@@ -136,7 +134,7 @@ func testAccConfigConfigRule_importAws(t *testing.T) {
 }
 
 func testAccConfigConfigRule_importLambda(t *testing.T) {
-	resourceName := "aws_config_config_rule.foo"
+	resourceName := "aws_config_config_rule.test"
 	rInt := acctest.RandInt()
 
 	path := "test-fixtures/lambdatest.zip"
@@ -430,7 +428,7 @@ PARAMS
 
 func testAccConfigConfigRuleConfig_customLambda(randInt int, path string) string {
 	return fmt.Sprintf(`
-resource "aws_config_config_rule" "foo" {
+resource "aws_config_config_rule" "test" {
   name                        = "tf-acc-test-%d"
   description                 = "Terraform Acceptance tests"
   maximum_execution_frequency = "Six_Hours"

@@ -54,4 +54,4 @@ output "result_entry_tf012" {
 ## Attributes Reference
 
  * `result` - String result of the lambda function invocation.
- * `result_map` - This field is set only if result is a map of primitive types, where the map is string keys and string values. In Terraform 0.12 and later, use the [`jsondecode()` function](/docs/configuration/functions/jsondecode.html) with the `result` attribute instead to convert the result to all supported native Terraform types.
+ * `result_map` - (**DEPRECATED**) This field is set only if result is a map of primitive types, where the map is string keys and string values. In Terraform 0.12 and later, use the [`jsondecode()` function](/docs/configuration/functions/jsondecode.html) with the `result` attribute instead to convert the result to all supported native Terraform types.

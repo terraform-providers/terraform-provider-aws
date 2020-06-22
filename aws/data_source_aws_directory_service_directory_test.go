@@ -2,8 +2,9 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -70,10 +71,37 @@ func TestAccDataSourceAwsDirectoryServiceDirectory_MicrosoftAD(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAWSDirectoryServiceDirectory_connector(t *testing.T) {
+	resourceName := "aws_directory_service_directory.connector"
+	dataSourceName := "data.aws_directory_service_directory.test-ad-connector"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSDirectoryService(t)
+			testAccPreCheckAWSDirectoryServiceSimpleDirectory(t)
+		},
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceDirectoryServiceDirectoryConfig_connector,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "connect_settings.0.connect_ips", resourceName, "connect_settings.0.connect_ips"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAwsDirectoryServiceDirectoryConfig_Prerequisites(adType string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "main" {
@@ -154,3 +182,67 @@ data "aws_directory_service_directory" "test-microsoft-ad" {
 }
 `, alias)
 }
+
+const testAccDataSourceDirectoryServiceDirectoryConfig_connector = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_directory_service_directory" "test" {
+  name = "corp.notexample.com"
+  password = "SuperSecretPassw0rd"
+  size = "Small"
+
+  vpc_settings {
+    vpc_id = "${aws_vpc.main.id}"
+    subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.test.id}"]
+  }
+}
+
+resource "aws_directory_service_directory" "connector" {
+  name = "corp.notexample.com"
+  password = "SuperSecretPassw0rd"
+  size = "Small"
+  type = "ADConnector"
+
+  connect_settings {
+    customer_dns_ips = aws_directory_service_directory.test.dns_ip_addresses
+    customer_username = "Administrator"
+    vpc_id = "${aws_vpc.main.id}"
+    subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.test.id}"]
+  }
+}
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+	tags = {
+		Name = "terraform-testacc-directory-service-directory-connector"
+	}
+}
+
+resource "aws_subnet" "foo" {
+  vpc_id = "${aws_vpc.main.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  cidr_block = "10.0.1.0/24"
+  tags = {
+    Name = "tf-acc-directory-service-directory-connector-foo"
+  }
+}
+resource "aws_subnet" "test" {
+  vpc_id = "${aws_vpc.main.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  cidr_block = "10.0.2.0/24"
+  tags = {
+    Name = "tf-acc-directory-service-directory-connector-test"
+  }
+}
+
+data "aws_directory_service_directory" "test-ad-connector" {
+	directory_id = "${aws_directory_service_directory.connector.id}"
+}
+`

@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -32,10 +33,16 @@ func resourceAwsRedshiftParameterGroup() *schema.Resource {
 			},
 
 			"name": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Required:     true,
-				ValidateFunc: validateRedshiftParamGroupName,
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Required: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 255),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
+					validation.StringMatch(regexp.MustCompile(`(?i)^[a-z]`), "first character must be a letter"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+				),
 			},
 
 			"family": {
@@ -94,11 +101,7 @@ func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interf
 	d.SetId(*createOpts.ParameterGroupName)
 
 	if v := d.Get("parameter").(*schema.Set); v.Len() > 0 {
-		parameters, err := expandRedshiftParameters(v.List())
-
-		if err != nil {
-			return fmt.Errorf("error expanding parameter: %s", err)
-		}
+		parameters := expandRedshiftParameters(v.List())
 
 		modifyOpts := redshift.ModifyClusterParameterGroupInput{
 			ParameterGroupName: aws.String(d.Id()),
@@ -115,6 +118,7 @@ func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeOpts := redshift.DescribeClusterParameterGroupsInput{
 		ParameterGroupName: aws.String(d.Id()),
@@ -126,7 +130,7 @@ func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interfac
 	}
 
 	if len(describeResp.ParameterGroups) != 1 ||
-		*describeResp.ParameterGroups[0].ParameterGroupName != d.Id() {
+		aws.StringValue(describeResp.ParameterGroups[0].ParameterGroupName) != d.Id() {
 		d.SetId("")
 		return fmt.Errorf("Unable to find Parameter Group: %#v", describeResp.ParameterGroups)
 	}
@@ -144,7 +148,7 @@ func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("name", describeResp.ParameterGroups[0].ParameterGroupName)
 	d.Set("family", describeResp.ParameterGroups[0].ParameterGroupFamily)
 	d.Set("description", describeResp.ParameterGroups[0].Description)
-	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(describeResp.ParameterGroups[0].Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.RedshiftKeyValueTags(describeResp.ParameterGroups[0].Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -165,8 +169,6 @@ func resourceAwsRedshiftParameterGroupRead(d *schema.ResourceData, meta interfac
 func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).redshiftconn
 
-	d.Partial(true)
-
 	if d.HasChange("parameter") {
 		o, n := d.GetChange("parameter")
 		if o == nil {
@@ -180,10 +182,7 @@ func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interf
 		ns := n.(*schema.Set)
 
 		// Expand the "parameter" set to aws-sdk-go compat []redshift.Parameter
-		parameters, err := expandRedshiftParameters(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
+		parameters := expandRedshiftParameters(ns.Difference(os).List())
 
 		if len(parameters) > 0 {
 			modifyOpts := redshift.ModifyClusterParameterGroupInput{
@@ -192,12 +191,11 @@ func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interf
 			}
 
 			log.Printf("[DEBUG] Modify Redshift Parameter Group: %s", modifyOpts)
-			_, err = conn.ModifyClusterParameterGroup(&modifyOpts)
+			_, err := conn.ModifyClusterParameterGroup(&modifyOpts)
 			if err != nil {
 				return fmt.Errorf("Error modifying Redshift Parameter Group: %s", err)
 			}
 		}
-		d.SetPartial("parameter")
 	}
 
 	if d.HasChange("tags") {
@@ -206,11 +204,8 @@ func resourceAwsRedshiftParameterGroupUpdate(d *schema.ResourceData, meta interf
 		if err := keyvaluetags.RedshiftUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating Redshift Parameter Group (%s) tags: %s", d.Get("arn").(string), err)
 		}
-
-		d.SetPartial("tags")
 	}
 
-	d.Partial(false)
 	return resourceAwsRedshiftParameterGroupRead(d, meta)
 }
 
@@ -234,29 +229,4 @@ func resourceAwsRedshiftParameterHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["value"].(string))))
 
 	return hashcode.String(buf.String())
-}
-
-func validateRedshiftParamGroupName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q", k))
-	}
-	if !regexp.MustCompile(`^[a-z]`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"first character of %q must be a letter", k))
-	}
-	if regexp.MustCompile(`--`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot contain two consecutive hyphens", k))
-	}
-	if regexp.MustCompile(`-$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot end with a hyphen", k))
-	}
-	if len(value) > 255 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be greater than 255 characters", k))
-	}
-	return
 }

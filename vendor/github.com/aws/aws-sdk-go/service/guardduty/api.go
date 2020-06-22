@@ -4,6 +4,7 @@ package guardduty
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -68,10 +69,10 @@ func (c *GuardDuty) AcceptInvitationRequest(input *AcceptInvitationInput) (req *
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/AcceptInvitation
 func (c *GuardDuty) AcceptInvitation(input *AcceptInvitationInput) (*AcceptInvitationOutput, error) {
@@ -140,9 +141,9 @@ func (c *GuardDuty) ArchiveFindingsRequest(input *ArchiveFindingsInput) (req *re
 
 // ArchiveFindings API operation for Amazon GuardDuty.
 //
-// Archives GuardDuty findings specified by the list of finding IDs.
+// Archives GuardDuty findings that are specified by the list of finding IDs.
 //
-// Only the master account can archive findings. Member accounts do not have
+// Only the master account can archive findings. Member accounts don't have
 // permission to archive findings from their accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -154,10 +155,10 @@ func (c *GuardDuty) ArchiveFindingsRequest(input *ArchiveFindingsInput) (req *re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ArchiveFindings
 func (c *GuardDuty) ArchiveFindings(input *ArchiveFindingsInput) (*ArchiveFindingsOutput, error) {
@@ -227,8 +228,8 @@ func (c *GuardDuty) CreateDetectorRequest(input *CreateDetectorInput) (req *requ
 //
 // Creates a single Amazon GuardDuty detector. A detector is a resource that
 // represents the GuardDuty service. To start using GuardDuty, you must create
-// a detector in each region that you enable the service. You can have only
-// one detector per account per region.
+// a detector in each Region where you enable the service. You can have only
+// one detector per account per Region.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -239,10 +240,10 @@ func (c *GuardDuty) CreateDetectorRequest(input *CreateDetectorInput) (req *requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateDetector
 func (c *GuardDuty) CreateDetector(input *CreateDetectorInput) (*CreateDetectorOutput, error) {
@@ -321,10 +322,10 @@ func (c *GuardDuty) CreateFilterRequest(input *CreateFilterInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateFilter
 func (c *GuardDuty) CreateFilter(input *CreateFilterInput) (*CreateFilterOutput, error) {
@@ -392,11 +393,11 @@ func (c *GuardDuty) CreateIPSetRequest(input *CreateIPSetInput) (req *request.Re
 
 // CreateIPSet API operation for Amazon GuardDuty.
 //
-// Creates a new IPSet, called Trusted IP list in the consoler user interface.
-// An IPSet is a list IP addresses trusted for secure communication with AWS
-// infrastructure and applications. GuardDuty does not generate findings for
-// IP addresses included in IPSets. Only users from the master account can use
-// this operation.
+// Creates a new IPSet, which is called a trusted IP list in the console user
+// interface. An IPSet is a list of IP addresses that are trusted for secure
+// communication with AWS infrastructure and applications. GuardDuty doesn't
+// generate findings for IP addresses that are included in IPSets. Only users
+// from the master account can use this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -407,10 +408,10 @@ func (c *GuardDuty) CreateIPSetRequest(input *CreateIPSetInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateIPSet
 func (c *GuardDuty) CreateIPSet(input *CreateIPSetInput) (*CreateIPSetOutput, error) {
@@ -491,10 +492,10 @@ func (c *GuardDuty) CreateMembersRequest(input *CreateMembersInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateMembers
 func (c *GuardDuty) CreateMembers(input *CreateMembersInput) (*CreateMembersOutput, error) {
@@ -562,7 +563,7 @@ func (c *GuardDuty) CreatePublishingDestinationRequest(input *CreatePublishingDe
 
 // CreatePublishingDestination API operation for Amazon GuardDuty.
 //
-// Creates a publishing destination to send findings to. The resource to send
+// Creates a publishing destination to export findings to. The resource to export
 // findings to must exist before you use this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -574,10 +575,10 @@ func (c *GuardDuty) CreatePublishingDestinationRequest(input *CreatePublishingDe
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreatePublishingDestination
 func (c *GuardDuty) CreatePublishingDestination(input *CreatePublishingDestinationInput) (*CreatePublishingDestinationOutput, error) {
@@ -659,10 +660,10 @@ func (c *GuardDuty) CreateSampleFindingsRequest(input *CreateSampleFindingsInput
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateSampleFindings
 func (c *GuardDuty) CreateSampleFindings(input *CreateSampleFindingsInput) (*CreateSampleFindingsOutput, error) {
@@ -730,9 +731,9 @@ func (c *GuardDuty) CreateThreatIntelSetRequest(input *CreateThreatIntelSetInput
 
 // CreateThreatIntelSet API operation for Amazon GuardDuty.
 //
-// Create a new ThreatIntelSet. ThreatIntelSets consist of known malicious IP
-// addresses. GuardDuty generates findings based on ThreatIntelSets. Only users
-// of the master account can use this operation.
+// Creates a new ThreatIntelSet. ThreatIntelSets consist of known malicious
+// IP addresses. GuardDuty generates findings based on ThreatIntelSets. Only
+// users of the master account can use this operation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -743,10 +744,10 @@ func (c *GuardDuty) CreateThreatIntelSetRequest(input *CreateThreatIntelSetInput
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/CreateThreatIntelSet
 func (c *GuardDuty) CreateThreatIntelSet(input *CreateThreatIntelSetInput) (*CreateThreatIntelSetOutput, error) {
@@ -814,7 +815,7 @@ func (c *GuardDuty) DeclineInvitationsRequest(input *DeclineInvitationsInput) (r
 
 // DeclineInvitations API operation for Amazon GuardDuty.
 //
-// Declines invitations sent to the current member account by AWS account specified
+// Declines invitations sent to the current member account by AWS accounts specified
 // by their account IDs.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -826,10 +827,10 @@ func (c *GuardDuty) DeclineInvitationsRequest(input *DeclineInvitationsInput) (r
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeclineInvitations
 func (c *GuardDuty) DeclineInvitations(input *DeclineInvitationsInput) (*DeclineInvitationsOutput, error) {
@@ -898,7 +899,7 @@ func (c *GuardDuty) DeleteDetectorRequest(input *DeleteDetectorInput) (req *requ
 
 // DeleteDetector API operation for Amazon GuardDuty.
 //
-// Deletes a Amazon GuardDuty detector specified by the detector ID.
+// Deletes an Amazon GuardDuty detector that is specified by the detector ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -909,10 +910,10 @@ func (c *GuardDuty) DeleteDetectorRequest(input *DeleteDetectorInput) (req *requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteDetector
 func (c *GuardDuty) DeleteDetector(input *DeleteDetectorInput) (*DeleteDetectorOutput, error) {
@@ -992,10 +993,10 @@ func (c *GuardDuty) DeleteFilterRequest(input *DeleteFilterInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteFilter
 func (c *GuardDuty) DeleteFilter(input *DeleteFilterInput) (*DeleteFilterOutput, error) {
@@ -1064,7 +1065,7 @@ func (c *GuardDuty) DeleteIPSetRequest(input *DeleteIPSetInput) (req *request.Re
 
 // DeleteIPSet API operation for Amazon GuardDuty.
 //
-// Deletes the IPSet specified by the ipSetId. IPSets are called Trusted IP
+// Deletes the IPSet specified by the ipSetId. IPSets are called trusted IP
 // lists in the console user interface.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1076,10 +1077,10 @@ func (c *GuardDuty) DeleteIPSetRequest(input *DeleteIPSetInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteIPSet
 func (c *GuardDuty) DeleteIPSet(input *DeleteIPSetInput) (*DeleteIPSetOutput, error) {
@@ -1159,10 +1160,10 @@ func (c *GuardDuty) DeleteInvitationsRequest(input *DeleteInvitationsInput) (req
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteInvitations
 func (c *GuardDuty) DeleteInvitations(input *DeleteInvitationsInput) (*DeleteInvitationsOutput, error) {
@@ -1242,10 +1243,10 @@ func (c *GuardDuty) DeleteMembersRequest(input *DeleteMembersInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteMembers
 func (c *GuardDuty) DeleteMembers(input *DeleteMembersInput) (*DeleteMembersOutput, error) {
@@ -1325,10 +1326,10 @@ func (c *GuardDuty) DeletePublishingDestinationRequest(input *DeletePublishingDe
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeletePublishingDestination
 func (c *GuardDuty) DeletePublishingDestination(input *DeletePublishingDestinationInput) (*DeletePublishingDestinationOutput, error) {
@@ -1397,7 +1398,7 @@ func (c *GuardDuty) DeleteThreatIntelSetRequest(input *DeleteThreatIntelSetInput
 
 // DeleteThreatIntelSet API operation for Amazon GuardDuty.
 //
-// Deletes ThreatIntelSet specified by the ThreatIntelSet ID.
+// Deletes the ThreatIntelSet specified by the ThreatIntelSet ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1408,10 +1409,10 @@ func (c *GuardDuty) DeleteThreatIntelSetRequest(input *DeleteThreatIntelSetInput
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DeleteThreatIntelSet
 func (c *GuardDuty) DeleteThreatIntelSet(input *DeleteThreatIntelSetInput) (*DeleteThreatIntelSetOutput, error) {
@@ -1430,6 +1431,89 @@ func (c *GuardDuty) DeleteThreatIntelSet(input *DeleteThreatIntelSetInput) (*Del
 // for more information on using Contexts.
 func (c *GuardDuty) DeleteThreatIntelSetWithContext(ctx aws.Context, input *DeleteThreatIntelSetInput, opts ...request.Option) (*DeleteThreatIntelSetOutput, error) {
 	req, out := c.DeleteThreatIntelSetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeOrganizationConfiguration = "DescribeOrganizationConfiguration"
+
+// DescribeOrganizationConfigurationRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeOrganizationConfiguration operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeOrganizationConfiguration for more information on using the DescribeOrganizationConfiguration
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeOrganizationConfigurationRequest method.
+//    req, resp := client.DescribeOrganizationConfigurationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DescribeOrganizationConfiguration
+func (c *GuardDuty) DescribeOrganizationConfigurationRequest(input *DescribeOrganizationConfigurationInput) (req *request.Request, output *DescribeOrganizationConfigurationOutput) {
+	op := &request.Operation{
+		Name:       opDescribeOrganizationConfiguration,
+		HTTPMethod: "GET",
+		HTTPPath:   "/detector/{detectorId}/admin",
+	}
+
+	if input == nil {
+		input = &DescribeOrganizationConfigurationInput{}
+	}
+
+	output = &DescribeOrganizationConfigurationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeOrganizationConfiguration API operation for Amazon GuardDuty.
+//
+// Returns information about the account selected as the delegated administrator
+// for GuardDuty.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation DescribeOrganizationConfiguration for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   A bad request exception object.
+//
+//   * InternalServerErrorException
+//   An internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DescribeOrganizationConfiguration
+func (c *GuardDuty) DescribeOrganizationConfiguration(input *DescribeOrganizationConfigurationInput) (*DescribeOrganizationConfigurationOutput, error) {
+	req, out := c.DescribeOrganizationConfigurationRequest(input)
+	return out, req.Send()
+}
+
+// DescribeOrganizationConfigurationWithContext is the same as DescribeOrganizationConfiguration with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeOrganizationConfiguration for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) DescribeOrganizationConfigurationWithContext(ctx aws.Context, input *DescribeOrganizationConfigurationInput, opts ...request.Option) (*DescribeOrganizationConfigurationOutput, error) {
+	req, out := c.DescribeOrganizationConfigurationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1491,10 +1575,10 @@ func (c *GuardDuty) DescribePublishingDestinationRequest(input *DescribePublishi
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DescribePublishingDestination
 func (c *GuardDuty) DescribePublishingDestination(input *DescribePublishingDestinationInput) (*DescribePublishingDestinationOutput, error) {
@@ -1513,6 +1597,90 @@ func (c *GuardDuty) DescribePublishingDestination(input *DescribePublishingDesti
 // for more information on using Contexts.
 func (c *GuardDuty) DescribePublishingDestinationWithContext(ctx aws.Context, input *DescribePublishingDestinationInput, opts ...request.Option) (*DescribePublishingDestinationOutput, error) {
 	req, out := c.DescribePublishingDestinationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDisableOrganizationAdminAccount = "DisableOrganizationAdminAccount"
+
+// DisableOrganizationAdminAccountRequest generates a "aws/request.Request" representing the
+// client's request for the DisableOrganizationAdminAccount operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisableOrganizationAdminAccount for more information on using the DisableOrganizationAdminAccount
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisableOrganizationAdminAccountRequest method.
+//    req, resp := client.DisableOrganizationAdminAccountRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisableOrganizationAdminAccount
+func (c *GuardDuty) DisableOrganizationAdminAccountRequest(input *DisableOrganizationAdminAccountInput) (req *request.Request, output *DisableOrganizationAdminAccountOutput) {
+	op := &request.Operation{
+		Name:       opDisableOrganizationAdminAccount,
+		HTTPMethod: "POST",
+		HTTPPath:   "/admin/disable",
+	}
+
+	if input == nil {
+		input = &DisableOrganizationAdminAccountInput{}
+	}
+
+	output = &DisableOrganizationAdminAccountOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DisableOrganizationAdminAccount API operation for Amazon GuardDuty.
+//
+// Disables an AWS account within the Organization as the GuardDuty delegated
+// administrator.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation DisableOrganizationAdminAccount for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   A bad request exception object.
+//
+//   * InternalServerErrorException
+//   An internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisableOrganizationAdminAccount
+func (c *GuardDuty) DisableOrganizationAdminAccount(input *DisableOrganizationAdminAccountInput) (*DisableOrganizationAdminAccountOutput, error) {
+	req, out := c.DisableOrganizationAdminAccountRequest(input)
+	return out, req.Send()
+}
+
+// DisableOrganizationAdminAccountWithContext is the same as DisableOrganizationAdminAccount with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisableOrganizationAdminAccount for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) DisableOrganizationAdminAccountWithContext(ctx aws.Context, input *DisableOrganizationAdminAccountInput, opts ...request.Option) (*DisableOrganizationAdminAccountOutput, error) {
+	req, out := c.DisableOrganizationAdminAccountRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1574,10 +1742,10 @@ func (c *GuardDuty) DisassociateFromMasterAccountRequest(input *DisassociateFrom
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisassociateFromMasterAccount
 func (c *GuardDuty) DisassociateFromMasterAccount(input *DisassociateFromMasterAccountInput) (*DisassociateFromMasterAccountOutput, error) {
@@ -1657,10 +1825,10 @@ func (c *GuardDuty) DisassociateMembersRequest(input *DisassociateMembersInput) 
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/DisassociateMembers
 func (c *GuardDuty) DisassociateMembers(input *DisassociateMembersInput) (*DisassociateMembersOutput, error) {
@@ -1679,6 +1847,90 @@ func (c *GuardDuty) DisassociateMembers(input *DisassociateMembersInput) (*Disas
 // for more information on using Contexts.
 func (c *GuardDuty) DisassociateMembersWithContext(ctx aws.Context, input *DisassociateMembersInput, opts ...request.Option) (*DisassociateMembersOutput, error) {
 	req, out := c.DisassociateMembersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opEnableOrganizationAdminAccount = "EnableOrganizationAdminAccount"
+
+// EnableOrganizationAdminAccountRequest generates a "aws/request.Request" representing the
+// client's request for the EnableOrganizationAdminAccount operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See EnableOrganizationAdminAccount for more information on using the EnableOrganizationAdminAccount
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the EnableOrganizationAdminAccountRequest method.
+//    req, resp := client.EnableOrganizationAdminAccountRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/EnableOrganizationAdminAccount
+func (c *GuardDuty) EnableOrganizationAdminAccountRequest(input *EnableOrganizationAdminAccountInput) (req *request.Request, output *EnableOrganizationAdminAccountOutput) {
+	op := &request.Operation{
+		Name:       opEnableOrganizationAdminAccount,
+		HTTPMethod: "POST",
+		HTTPPath:   "/admin/enable",
+	}
+
+	if input == nil {
+		input = &EnableOrganizationAdminAccountInput{}
+	}
+
+	output = &EnableOrganizationAdminAccountOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// EnableOrganizationAdminAccount API operation for Amazon GuardDuty.
+//
+// Enables an AWS account within the organization as the GuardDuty delegated
+// administrator.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation EnableOrganizationAdminAccount for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   A bad request exception object.
+//
+//   * InternalServerErrorException
+//   An internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/EnableOrganizationAdminAccount
+func (c *GuardDuty) EnableOrganizationAdminAccount(input *EnableOrganizationAdminAccountInput) (*EnableOrganizationAdminAccountOutput, error) {
+	req, out := c.EnableOrganizationAdminAccountRequest(input)
+	return out, req.Send()
+}
+
+// EnableOrganizationAdminAccountWithContext is the same as EnableOrganizationAdminAccount with the addition of
+// the ability to pass a context and additional request options.
+//
+// See EnableOrganizationAdminAccount for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) EnableOrganizationAdminAccountWithContext(ctx aws.Context, input *EnableOrganizationAdminAccountInput, opts ...request.Option) (*EnableOrganizationAdminAccountOutput, error) {
+	req, out := c.EnableOrganizationAdminAccountRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1739,10 +1991,10 @@ func (c *GuardDuty) GetDetectorRequest(input *GetDetectorInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetDetector
 func (c *GuardDuty) GetDetector(input *GetDetectorInput) (*GetDetectorOutput, error) {
@@ -1821,10 +2073,10 @@ func (c *GuardDuty) GetFilterRequest(input *GetFilterInput) (req *request.Reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFilter
 func (c *GuardDuty) GetFilter(input *GetFilterInput) (*GetFilterOutput, error) {
@@ -1903,10 +2155,10 @@ func (c *GuardDuty) GetFindingsRequest(input *GetFindingsInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFindings
 func (c *GuardDuty) GetFindings(input *GetFindingsInput) (*GetFindingsOutput, error) {
@@ -1974,7 +2226,7 @@ func (c *GuardDuty) GetFindingsStatisticsRequest(input *GetFindingsStatisticsInp
 
 // GetFindingsStatistics API operation for Amazon GuardDuty.
 //
-// Lists Amazon GuardDuty findings' statistics for the specified detector ID.
+// Lists Amazon GuardDuty findings statistics for the specified detector ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1985,10 +2237,10 @@ func (c *GuardDuty) GetFindingsStatisticsRequest(input *GetFindingsStatisticsInp
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetFindingsStatistics
 func (c *GuardDuty) GetFindingsStatistics(input *GetFindingsStatisticsInput) (*GetFindingsStatisticsOutput, error) {
@@ -2067,10 +2319,10 @@ func (c *GuardDuty) GetIPSetRequest(input *GetIPSetInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetIPSet
 func (c *GuardDuty) GetIPSet(input *GetIPSetInput) (*GetIPSetOutput, error) {
@@ -2150,10 +2402,10 @@ func (c *GuardDuty) GetInvitationsCountRequest(input *GetInvitationsCountInput) 
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetInvitationsCount
 func (c *GuardDuty) GetInvitationsCount(input *GetInvitationsCountInput) (*GetInvitationsCountOutput, error) {
@@ -2233,10 +2485,10 @@ func (c *GuardDuty) GetMasterAccountRequest(input *GetMasterAccountInput) (req *
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetMasterAccount
 func (c *GuardDuty) GetMasterAccount(input *GetMasterAccountInput) (*GetMasterAccountOutput, error) {
@@ -2316,10 +2568,10 @@ func (c *GuardDuty) GetMembersRequest(input *GetMembersInput) (req *request.Requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetMembers
 func (c *GuardDuty) GetMembers(input *GetMembersInput) (*GetMembersOutput, error) {
@@ -2398,10 +2650,10 @@ func (c *GuardDuty) GetThreatIntelSetRequest(input *GetThreatIntelSetInput) (req
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/GetThreatIntelSet
 func (c *GuardDuty) GetThreatIntelSet(input *GetThreatIntelSetInput) (*GetThreatIntelSetOutput, error) {
@@ -2470,9 +2722,9 @@ func (c *GuardDuty) InviteMembersRequest(input *InviteMembersInput) (req *reques
 // InviteMembers API operation for Amazon GuardDuty.
 //
 // Invites other AWS accounts (created as members of the current AWS account
-// by CreateMembers) to enable GuardDuty and allow the current AWS account to
-// view and manage these accounts' GuardDuty findings on their behalf as the
-// master account.
+// by CreateMembers) to enable GuardDuty, and allow the current AWS account
+// to view and manage these accounts' GuardDuty findings on their behalf as
+// the master account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2483,10 +2735,10 @@ func (c *GuardDuty) InviteMembersRequest(input *InviteMembersInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/InviteMembers
 func (c *GuardDuty) InviteMembers(input *InviteMembersInput) (*InviteMembersOutput, error) {
@@ -2571,10 +2823,10 @@ func (c *GuardDuty) ListDetectorsRequest(input *ListDetectorsInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListDetectors
 func (c *GuardDuty) ListDetectors(input *ListDetectorsInput) (*ListDetectorsOutput, error) {
@@ -2711,10 +2963,10 @@ func (c *GuardDuty) ListFiltersRequest(input *ListFiltersInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListFilters
 func (c *GuardDuty) ListFilters(input *ListFiltersInput) (*ListFiltersOutput, error) {
@@ -2851,10 +3103,10 @@ func (c *GuardDuty) ListFindingsRequest(input *ListFindingsInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListFindings
 func (c *GuardDuty) ListFindings(input *ListFindingsInput) (*ListFindingsOutput, error) {
@@ -2993,10 +3245,10 @@ func (c *GuardDuty) ListIPSetsRequest(input *ListIPSetsInput) (req *request.Requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListIPSets
 func (c *GuardDuty) ListIPSets(input *ListIPSetsInput) (*ListIPSetsOutput, error) {
@@ -3134,10 +3386,10 @@ func (c *GuardDuty) ListInvitationsRequest(input *ListInvitationsInput) (req *re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListInvitations
 func (c *GuardDuty) ListInvitations(input *ListInvitationsInput) (*ListInvitationsOutput, error) {
@@ -3275,10 +3527,10 @@ func (c *GuardDuty) ListMembersRequest(input *ListMembersInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListMembers
 func (c *GuardDuty) ListMembers(input *ListMembersInput) (*ListMembersOutput, error) {
@@ -3354,6 +3606,146 @@ func (c *GuardDuty) ListMembersPagesWithContext(ctx aws.Context, input *ListMemb
 	return p.Err()
 }
 
+const opListOrganizationAdminAccounts = "ListOrganizationAdminAccounts"
+
+// ListOrganizationAdminAccountsRequest generates a "aws/request.Request" representing the
+// client's request for the ListOrganizationAdminAccounts operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListOrganizationAdminAccounts for more information on using the ListOrganizationAdminAccounts
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListOrganizationAdminAccountsRequest method.
+//    req, resp := client.ListOrganizationAdminAccountsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListOrganizationAdminAccounts
+func (c *GuardDuty) ListOrganizationAdminAccountsRequest(input *ListOrganizationAdminAccountsInput) (req *request.Request, output *ListOrganizationAdminAccountsOutput) {
+	op := &request.Operation{
+		Name:       opListOrganizationAdminAccounts,
+		HTTPMethod: "GET",
+		HTTPPath:   "/admin",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListOrganizationAdminAccountsInput{}
+	}
+
+	output = &ListOrganizationAdminAccountsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListOrganizationAdminAccounts API operation for Amazon GuardDuty.
+//
+// Lists the accounts configured as GuardDuty delegated administrators.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation ListOrganizationAdminAccounts for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   A bad request exception object.
+//
+//   * InternalServerErrorException
+//   An internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListOrganizationAdminAccounts
+func (c *GuardDuty) ListOrganizationAdminAccounts(input *ListOrganizationAdminAccountsInput) (*ListOrganizationAdminAccountsOutput, error) {
+	req, out := c.ListOrganizationAdminAccountsRequest(input)
+	return out, req.Send()
+}
+
+// ListOrganizationAdminAccountsWithContext is the same as ListOrganizationAdminAccounts with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListOrganizationAdminAccounts for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) ListOrganizationAdminAccountsWithContext(ctx aws.Context, input *ListOrganizationAdminAccountsInput, opts ...request.Option) (*ListOrganizationAdminAccountsOutput, error) {
+	req, out := c.ListOrganizationAdminAccountsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListOrganizationAdminAccountsPages iterates over the pages of a ListOrganizationAdminAccounts operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListOrganizationAdminAccounts method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListOrganizationAdminAccounts operation.
+//    pageNum := 0
+//    err := client.ListOrganizationAdminAccountsPages(params,
+//        func(page *guardduty.ListOrganizationAdminAccountsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *GuardDuty) ListOrganizationAdminAccountsPages(input *ListOrganizationAdminAccountsInput, fn func(*ListOrganizationAdminAccountsOutput, bool) bool) error {
+	return c.ListOrganizationAdminAccountsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListOrganizationAdminAccountsPagesWithContext same as ListOrganizationAdminAccountsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) ListOrganizationAdminAccountsPagesWithContext(ctx aws.Context, input *ListOrganizationAdminAccountsInput, fn func(*ListOrganizationAdminAccountsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListOrganizationAdminAccountsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListOrganizationAdminAccountsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListOrganizationAdminAccountsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListPublishingDestinations = "ListPublishingDestinations"
 
 // ListPublishingDestinationsRequest generates a "aws/request.Request" representing the
@@ -3415,10 +3807,10 @@ func (c *GuardDuty) ListPublishingDestinationsRequest(input *ListPublishingDesti
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListPublishingDestinations
 func (c *GuardDuty) ListPublishingDestinations(input *ListPublishingDestinationsInput) (*ListPublishingDestinationsOutput, error) {
@@ -3539,9 +3931,9 @@ func (c *GuardDuty) ListTagsForResourceRequest(input *ListTagsForResourceInput) 
 // ListTagsForResource API operation for Amazon GuardDuty.
 //
 // Lists tags for a resource. Tagging is currently supported for detectors,
-// finding filters, IP sets, and Threat Intel sets, with a limit of 50 tags
+// finding filters, IP sets, and threat intel sets, with a limit of 50 tags
 // per resource. When invoked, this operation returns all assigned tags for
-// a given resource..
+// a given resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3552,10 +3944,10 @@ func (c *GuardDuty) ListTagsForResourceRequest(input *ListTagsForResourceInput) 
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListTagsForResource
 func (c *GuardDuty) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
@@ -3642,10 +4034,10 @@ func (c *GuardDuty) ListThreatIntelSetsRequest(input *ListThreatIntelSetsInput) 
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/ListThreatIntelSets
 func (c *GuardDuty) ListThreatIntelSets(input *ListThreatIntelSetsInput) (*ListThreatIntelSetsOutput, error) {
@@ -3778,10 +4170,10 @@ func (c *GuardDuty) StartMonitoringMembersRequest(input *StartMonitoringMembersI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/StartMonitoringMembers
 func (c *GuardDuty) StartMonitoringMembers(input *StartMonitoringMembersInput) (*StartMonitoringMembersOutput, error) {
@@ -3849,8 +4241,8 @@ func (c *GuardDuty) StopMonitoringMembersRequest(input *StopMonitoringMembersInp
 
 // StopMonitoringMembers API operation for Amazon GuardDuty.
 //
-// Stops GuardDuty monitoring for the specified member accounnts. Use the StartMonitoringMembers
-// to restart monitoring for those accounts.
+// Stops GuardDuty monitoring for the specified member accounts. Use the StartMonitoringMembers
+// operation to restart monitoring for those accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3861,10 +4253,10 @@ func (c *GuardDuty) StopMonitoringMembersRequest(input *StopMonitoringMembersInp
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/StopMonitoringMembers
 func (c *GuardDuty) StopMonitoringMembers(input *StopMonitoringMembersInput) (*StopMonitoringMembersOutput, error) {
@@ -3944,10 +4336,10 @@ func (c *GuardDuty) TagResourceRequest(input *TagResourceInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/TagResource
 func (c *GuardDuty) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
@@ -4027,10 +4419,10 @@ func (c *GuardDuty) UnarchiveFindingsRequest(input *UnarchiveFindingsInput) (req
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UnarchiveFindings
 func (c *GuardDuty) UnarchiveFindings(input *UnarchiveFindingsInput) (*UnarchiveFindingsOutput, error) {
@@ -4110,10 +4502,10 @@ func (c *GuardDuty) UntagResourceRequest(input *UntagResourceInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UntagResource
 func (c *GuardDuty) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
@@ -4193,10 +4585,10 @@ func (c *GuardDuty) UpdateDetectorRequest(input *UpdateDetectorInput) (req *requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateDetector
 func (c *GuardDuty) UpdateDetector(input *UpdateDetectorInput) (*UpdateDetectorOutput, error) {
@@ -4275,10 +4667,10 @@ func (c *GuardDuty) UpdateFilterRequest(input *UpdateFilterInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateFilter
 func (c *GuardDuty) UpdateFilter(input *UpdateFilterInput) (*UpdateFilterOutput, error) {
@@ -4358,10 +4750,10 @@ func (c *GuardDuty) UpdateFindingsFeedbackRequest(input *UpdateFindingsFeedbackI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateFindingsFeedback
 func (c *GuardDuty) UpdateFindingsFeedback(input *UpdateFindingsFeedbackInput) (*UpdateFindingsFeedbackOutput, error) {
@@ -4441,10 +4833,10 @@ func (c *GuardDuty) UpdateIPSetRequest(input *UpdateIPSetInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateIPSet
 func (c *GuardDuty) UpdateIPSet(input *UpdateIPSetInput) (*UpdateIPSetOutput, error) {
@@ -4463,6 +4855,89 @@ func (c *GuardDuty) UpdateIPSet(input *UpdateIPSetInput) (*UpdateIPSetOutput, er
 // for more information on using Contexts.
 func (c *GuardDuty) UpdateIPSetWithContext(ctx aws.Context, input *UpdateIPSetInput, opts ...request.Option) (*UpdateIPSetOutput, error) {
 	req, out := c.UpdateIPSetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateOrganizationConfiguration = "UpdateOrganizationConfiguration"
+
+// UpdateOrganizationConfigurationRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateOrganizationConfiguration operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateOrganizationConfiguration for more information on using the UpdateOrganizationConfiguration
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateOrganizationConfigurationRequest method.
+//    req, resp := client.UpdateOrganizationConfigurationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateOrganizationConfiguration
+func (c *GuardDuty) UpdateOrganizationConfigurationRequest(input *UpdateOrganizationConfigurationInput) (req *request.Request, output *UpdateOrganizationConfigurationOutput) {
+	op := &request.Operation{
+		Name:       opUpdateOrganizationConfiguration,
+		HTTPMethod: "POST",
+		HTTPPath:   "/detector/{detectorId}/admin",
+	}
+
+	if input == nil {
+		input = &UpdateOrganizationConfigurationInput{}
+	}
+
+	output = &UpdateOrganizationConfigurationOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateOrganizationConfiguration API operation for Amazon GuardDuty.
+//
+// Updates the delegated administrator account with the values provided.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GuardDuty's
+// API operation UpdateOrganizationConfiguration for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   A bad request exception object.
+//
+//   * InternalServerErrorException
+//   An internal server error exception object.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateOrganizationConfiguration
+func (c *GuardDuty) UpdateOrganizationConfiguration(input *UpdateOrganizationConfigurationInput) (*UpdateOrganizationConfigurationOutput, error) {
+	req, out := c.UpdateOrganizationConfigurationRequest(input)
+	return out, req.Send()
+}
+
+// UpdateOrganizationConfigurationWithContext is the same as UpdateOrganizationConfiguration with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateOrganizationConfiguration for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GuardDuty) UpdateOrganizationConfigurationWithContext(ctx aws.Context, input *UpdateOrganizationConfigurationInput, opts ...request.Option) (*UpdateOrganizationConfigurationOutput, error) {
+	req, out := c.UpdateOrganizationConfigurationRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4524,10 +4999,10 @@ func (c *GuardDuty) UpdatePublishingDestinationRequest(input *UpdatePublishingDe
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdatePublishingDestination
 func (c *GuardDuty) UpdatePublishingDestination(input *UpdatePublishingDestinationInput) (*UpdatePublishingDestinationOutput, error) {
@@ -4596,7 +5071,7 @@ func (c *GuardDuty) UpdateThreatIntelSetRequest(input *UpdateThreatIntelSetInput
 
 // UpdateThreatIntelSet API operation for Amazon GuardDuty.
 //
-// Updates the ThreatIntelSet specified by ThreatIntelSet ID.
+// Updates the ThreatIntelSet specified by the ThreatIntelSet ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4607,10 +5082,10 @@ func (c *GuardDuty) UpdateThreatIntelSetRequest(input *UpdateThreatIntelSetInput
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Bad request exception object.
+//   A bad request exception object.
 //
 //   * InternalServerErrorException
-//   Internal server error exception object.
+//   An internal server error exception object.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/guardduty-2017-11-28/UpdateThreatIntelSet
 func (c *GuardDuty) UpdateThreatIntelSet(input *UpdateThreatIntelSetInput) (*UpdateThreatIntelSetOutput, error) {
@@ -4642,7 +5117,7 @@ type AcceptInvitationInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// This value is used to validate the master account to the member account.
+	// The value that is used to validate the master account to the member account.
 	//
 	// InvitationId is a required field
 	InvitationId *string `locationName:"invitationId" type:"string" required:"true"`
@@ -4717,11 +5192,46 @@ func (s AcceptInvitationOutput) GoString() string {
 	return s.String()
 }
 
+// Contains information on the current access control policies for the bucket.
+type AccessControlList struct {
+	_ struct{} `type:"structure"`
+
+	// A value that indicates whether public read access for the bucket is enabled
+	// through an Access Control List (ACL).
+	AllowsPublicReadAccess *bool `locationName:"allowsPublicReadAccess" type:"boolean"`
+
+	// A value that indicates whether public write access for the bucket is enabled
+	// through an Access Control List (ACL).
+	AllowsPublicWriteAccess *bool `locationName:"allowsPublicWriteAccess" type:"boolean"`
+}
+
+// String returns the string representation
+func (s AccessControlList) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessControlList) GoString() string {
+	return s.String()
+}
+
+// SetAllowsPublicReadAccess sets the AllowsPublicReadAccess field's value.
+func (s *AccessControlList) SetAllowsPublicReadAccess(v bool) *AccessControlList {
+	s.AllowsPublicReadAccess = &v
+	return s
+}
+
+// SetAllowsPublicWriteAccess sets the AllowsPublicWriteAccess field's value.
+func (s *AccessControlList) SetAllowsPublicWriteAccess(v bool) *AccessControlList {
+	s.AllowsPublicWriteAccess = &v
+	return s
+}
+
 // Contains information about the access keys.
 type AccessKeyDetails struct {
 	_ struct{} `type:"structure"`
 
-	// Access key ID of the user.
+	// The access key ID of the user.
 	AccessKeyId *string `locationName:"accessKeyId" type:"string"`
 
 	// The principal ID of the user.
@@ -4772,12 +5282,12 @@ func (s *AccessKeyDetails) SetUserType(v string) *AccessKeyDetails {
 type AccountDetail struct {
 	_ struct{} `type:"structure"`
 
-	// Member account ID.
+	// The member account ID.
 	//
 	// AccountId is a required field
 	AccountId *string `locationName:"accountId" min:"12" type:"string" required:"true"`
 
-	// Member account's email address.
+	// The email address of the member account.
 	//
 	// Email is a required field
 	Email *string `locationName:"email" min:"1" type:"string" required:"true"`
@@ -4827,11 +5337,35 @@ func (s *AccountDetail) SetEmail(v string) *AccountDetail {
 	return s
 }
 
-// Contains information about action.
+// Contains information about the account level permissions on the S3 bucket.
+type AccountLevelPermissions struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the S3 Block Public Access settings of the bucket's parent account.
+	BlockPublicAccess *BlockPublicAccess `locationName:"blockPublicAccess" type:"structure"`
+}
+
+// String returns the string representation
+func (s AccountLevelPermissions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccountLevelPermissions) GoString() string {
+	return s.String()
+}
+
+// SetBlockPublicAccess sets the BlockPublicAccess field's value.
+func (s *AccountLevelPermissions) SetBlockPublicAccess(v *BlockPublicAccess) *AccountLevelPermissions {
+	s.BlockPublicAccess = v
+	return s
+}
+
+// Contains information about actions.
 type Action struct {
 	_ struct{} `type:"structure"`
 
-	// GuardDuty Finding activity type.
+	// The GuardDuty finding activity type.
 	ActionType *string `locationName:"actionType" type:"string"`
 
 	// Information about the AWS_API_CALL action described in this finding.
@@ -4887,6 +5421,40 @@ func (s *Action) SetPortProbeAction(v *PortProbeAction) *Action {
 	return s
 }
 
+// The account within the organization specified as the GuardDuty delegated
+// administrator.
+type AdminAccount struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS account ID for the account.
+	AdminAccountId *string `locationName:"adminAccountId" type:"string"`
+
+	// Indicates whether the account is enabled as the delegated administrator.
+	AdminStatus *string `locationName:"adminStatus" min:"1" type:"string" enum:"AdminStatus"`
+}
+
+// String returns the string representation
+func (s AdminAccount) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AdminAccount) GoString() string {
+	return s.String()
+}
+
+// SetAdminAccountId sets the AdminAccountId field's value.
+func (s *AdminAccount) SetAdminAccountId(v string) *AdminAccount {
+	s.AdminAccountId = &v
+	return s
+}
+
+// SetAdminStatus sets the AdminStatus field's value.
+func (s *AdminAccount) SetAdminStatus(v string) *AdminAccount {
+	s.AdminStatus = &v
+	return s
+}
+
 type ArchiveFindingsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4896,7 +5464,7 @@ type ArchiveFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// IDs of the findings that you want to archive.
+	// The IDs of the findings that you want to archive.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
@@ -4961,19 +5529,19 @@ func (s ArchiveFindingsOutput) GoString() string {
 type AwsApiCallAction struct {
 	_ struct{} `type:"structure"`
 
-	// AWS API name.
+	// The AWS API name.
 	Api *string `locationName:"api" type:"string"`
 
-	// AWS API caller type.
+	// The AWS API caller type.
 	CallerType *string `locationName:"callerType" type:"string"`
 
-	// Domain information for the AWS API call.
+	// The domain information for the AWS API call.
 	DomainDetails *DomainDetails `locationName:"domainDetails" type:"structure"`
 
-	// Remote IP information of the connection.
+	// The remote IP information of the connection.
 	RemoteIpDetails *RemoteIpDetails `locationName:"remoteIpDetails" type:"structure"`
 
-	// AWS service name whose API was invoked.
+	// The AWS service name whose API was invoked.
 	ServiceName *string `locationName:"serviceName" type:"string"`
 }
 
@@ -5017,10 +5585,10 @@ func (s *AwsApiCallAction) SetServiceName(v string) *AwsApiCallAction {
 	return s
 }
 
-// Bad request exception object.
+// A bad request exception object.
 type BadRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The error message.
 	Message_ *string `locationName:"message" type:"string"`
@@ -5041,17 +5609,17 @@ func (s BadRequestException) GoString() string {
 
 func newErrorBadRequestException(v protocol.ResponseMetadata) error {
 	return &BadRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s BadRequestException) Code() string {
+func (s *BadRequestException) Code() string {
 	return "BadRequestException"
 }
 
 // Message returns the exception's message.
-func (s BadRequestException) Message() string {
+func (s *BadRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5059,29 +5627,160 @@ func (s BadRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s BadRequestException) OrigErr() error {
+func (s *BadRequestException) OrigErr() error {
 	return nil
 }
 
-func (s BadRequestException) Error() string {
+func (s *BadRequestException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s BadRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *BadRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s BadRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *BadRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Contains information on how the bucker owner's S3 Block Public Access settings
+// are being applied to the S3 bucket. See S3 Block Public Access (https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html)
+// for more information.
+type BlockPublicAccess struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates if S3 Block Public Access is set to BlockPublicAcls.
+	BlockPublicAcls *bool `locationName:"blockPublicAcls" type:"boolean"`
+
+	// Indicates if S3 Block Public Access is set to BlockPublicPolicy.
+	BlockPublicPolicy *bool `locationName:"blockPublicPolicy" type:"boolean"`
+
+	// Indicates if S3 Block Public Access is set to IgnorePublicAcls.
+	IgnorePublicAcls *bool `locationName:"ignorePublicAcls" type:"boolean"`
+
+	// Indicates if S3 Block Public Access is set to RestrictPublicBuckets.
+	RestrictPublicBuckets *bool `locationName:"restrictPublicBuckets" type:"boolean"`
+}
+
+// String returns the string representation
+func (s BlockPublicAccess) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BlockPublicAccess) GoString() string {
+	return s.String()
+}
+
+// SetBlockPublicAcls sets the BlockPublicAcls field's value.
+func (s *BlockPublicAccess) SetBlockPublicAcls(v bool) *BlockPublicAccess {
+	s.BlockPublicAcls = &v
+	return s
+}
+
+// SetBlockPublicPolicy sets the BlockPublicPolicy field's value.
+func (s *BlockPublicAccess) SetBlockPublicPolicy(v bool) *BlockPublicAccess {
+	s.BlockPublicPolicy = &v
+	return s
+}
+
+// SetIgnorePublicAcls sets the IgnorePublicAcls field's value.
+func (s *BlockPublicAccess) SetIgnorePublicAcls(v bool) *BlockPublicAccess {
+	s.IgnorePublicAcls = &v
+	return s
+}
+
+// SetRestrictPublicBuckets sets the RestrictPublicBuckets field's value.
+func (s *BlockPublicAccess) SetRestrictPublicBuckets(v bool) *BlockPublicAccess {
+	s.RestrictPublicBuckets = &v
+	return s
+}
+
+// Contains information about the bucket level permissions for the S3 bucket.
+type BucketLevelPermissions struct {
+	_ struct{} `type:"structure"`
+
+	// Contains information on how Access Control Policies are applied to the bucket.
+	AccessControlList *AccessControlList `locationName:"accessControlList" type:"structure"`
+
+	// Contains information on which account level S3 Block Public Access settings
+	// are applied to the S3 bucket.
+	BlockPublicAccess *BlockPublicAccess `locationName:"blockPublicAccess" type:"structure"`
+
+	// Contains information on the bucket policies for the S3 bucket.
+	BucketPolicy *BucketPolicy `locationName:"bucketPolicy" type:"structure"`
+}
+
+// String returns the string representation
+func (s BucketLevelPermissions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BucketLevelPermissions) GoString() string {
+	return s.String()
+}
+
+// SetAccessControlList sets the AccessControlList field's value.
+func (s *BucketLevelPermissions) SetAccessControlList(v *AccessControlList) *BucketLevelPermissions {
+	s.AccessControlList = v
+	return s
+}
+
+// SetBlockPublicAccess sets the BlockPublicAccess field's value.
+func (s *BucketLevelPermissions) SetBlockPublicAccess(v *BlockPublicAccess) *BucketLevelPermissions {
+	s.BlockPublicAccess = v
+	return s
+}
+
+// SetBucketPolicy sets the BucketPolicy field's value.
+func (s *BucketLevelPermissions) SetBucketPolicy(v *BucketPolicy) *BucketLevelPermissions {
+	s.BucketPolicy = v
+	return s
+}
+
+// Contains information on the current bucket policies for the S3 bucket.
+type BucketPolicy struct {
+	_ struct{} `type:"structure"`
+
+	// A value that indicates whether public read access for the bucket is enabled
+	// through a bucket policy.
+	AllowsPublicReadAccess *bool `locationName:"allowsPublicReadAccess" type:"boolean"`
+
+	// A value that indicates whether public write access for the bucket is enabled
+	// through a bucket policy.
+	AllowsPublicWriteAccess *bool `locationName:"allowsPublicWriteAccess" type:"boolean"`
+}
+
+// String returns the string representation
+func (s BucketPolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BucketPolicy) GoString() string {
+	return s.String()
+}
+
+// SetAllowsPublicReadAccess sets the AllowsPublicReadAccess field's value.
+func (s *BucketPolicy) SetAllowsPublicReadAccess(v bool) *BucketPolicy {
+	s.AllowsPublicReadAccess = &v
+	return s
+}
+
+// SetAllowsPublicWriteAccess sets the AllowsPublicWriteAccess field's value.
+func (s *BucketPolicy) SetAllowsPublicWriteAccess(v bool) *BucketPolicy {
+	s.AllowsPublicWriteAccess = &v
+	return s
 }
 
 // Contains information about the city associated with the IP address.
 type City struct {
 	_ struct{} `type:"structure"`
 
-	// City name of the remote IP address.
+	// The city name of the remote IP address.
 	CityName *string `locationName:"cityName" type:"string"`
 }
 
@@ -5119,7 +5818,7 @@ type Condition struct {
 	// querying for findings.
 	GreaterThan *int64 `locationName:"greaterThan" type:"long"`
 
-	// Represents a greater than equal condition to be applied to a single field
+	// Represents a greater than or equal condition to be applied to a single field
 	// when querying for findings.
 	GreaterThanOrEqual *int64 `locationName:"greaterThanOrEqual" type:"long"`
 
@@ -5129,7 +5828,7 @@ type Condition struct {
 	// Deprecated: Gt has been deprecated
 	Gt *int64 `locationName:"gt" deprecated:"true" type:"integer"`
 
-	// Represents a greater than equal condition to be applied to a single field
+	// Represents a greater than or equal condition to be applied to a single field
 	// when querying for findings.
 	//
 	// Deprecated: Gte has been deprecated
@@ -5139,8 +5838,8 @@ type Condition struct {
 	// for findings.
 	LessThan *int64 `locationName:"lessThan" type:"long"`
 
-	// Represents a less than equal condition to be applied to a single field when
-	// querying for findings.
+	// Represents a less than or equal condition to be applied to a single field
+	// when querying for findings.
 	LessThanOrEqual *int64 `locationName:"lessThanOrEqual" type:"long"`
 
 	// Represents a less than condition to be applied to a single field when querying
@@ -5149,8 +5848,8 @@ type Condition struct {
 	// Deprecated: Lt has been deprecated
 	Lt *int64 `locationName:"lt" deprecated:"true" type:"integer"`
 
-	// Represents a less than equal condition to be applied to a single field when
-	// querying for findings.
+	// Represents a less than or equal condition to be applied to a single field
+	// when querying for findings.
 	//
 	// Deprecated: Lte has been deprecated
 	Lte *int64 `locationName:"lte" deprecated:"true" type:"integer"`
@@ -5161,7 +5860,7 @@ type Condition struct {
 	// Deprecated: Neq has been deprecated
 	Neq []*string `locationName:"neq" deprecated:"true" type:"list"`
 
-	// Represents an not equal condition to be applied to a single field when querying
+	// Represents a not equal condition to be applied to a single field when querying
 	// for findings.
 	NotEquals []*string `locationName:"notEquals" type:"list"`
 }
@@ -5248,15 +5947,14 @@ func (s *Condition) SetNotEquals(v []*string) *Condition {
 	return s
 }
 
-// Contains information about the country in which the remote IP address is
-// located.
+// Contains information about the country where the remote IP address is located.
 type Country struct {
 	_ struct{} `type:"structure"`
 
-	// Country code of the remote IP address.
+	// The country code of the remote IP address.
 	CountryCode *string `locationName:"countryCode" type:"string"`
 
-	// Country name of the remote IP address.
+	// The country name of the remote IP address.
 	CountryName *string `locationName:"countryName" type:"string"`
 }
 
@@ -5288,12 +5986,12 @@ type CreateDetectorInput struct {
 	// The idempotency token for the create request.
 	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
 
-	// A boolean value that specifies whether the detector is to be enabled.
+	// A Boolean value that specifies whether the detector is to be enabled.
 	//
 	// Enable is a required field
 	Enable *bool `locationName:"enable" type:"boolean" required:"true"`
 
-	// A enum value that specifies how frequently customer got Finding updates published.
+	// An enum value that specifies how frequently updated findings are exported.
 	FindingPublishingFrequency *string `locationName:"findingPublishingFrequency" type:"string" enum:"FindingPublishingFrequency"`
 
 	// The tags to be added to a new detector resource.
@@ -5386,13 +6084,118 @@ type CreateFilterInput struct {
 	// The description of the filter.
 	Description *string `locationName:"description" type:"string"`
 
-	// The unique ID of the detector of the GuardDuty account for which you want
-	// to create a filter.
+	// The unique ID of the detector of the GuardDuty account that you want to create
+	// a filter for.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
 	// Represents the criteria to be used in the filter for querying findings.
+	//
+	// You can only use the following attributes to query findings:
+	//
+	//    * accountId
+	//
+	//    * region
+	//
+	//    * confidence
+	//
+	//    * id
+	//
+	//    * resource.accessKeyDetails.accessKeyId
+	//
+	//    * resource.accessKeyDetails.principalId
+	//
+	//    * resource.accessKeyDetails.userName
+	//
+	//    * resource.accessKeyDetails.userType
+	//
+	//    * resource.instanceDetails.iamInstanceProfile.id
+	//
+	//    * resource.instanceDetails.imageId
+	//
+	//    * resource.instanceDetails.instanceId
+	//
+	//    * resource.instanceDetails.outpostArn
+	//
+	//    * resource.instanceDetails.networkInterfaces.ipv6Addresses
+	//
+	//    * resource.instanceDetails.networkInterfaces.privateIpAddresses.privateIpAddress
+	//
+	//    * resource.instanceDetails.networkInterfaces.publicDnsName
+	//
+	//    * resource.instanceDetails.networkInterfaces.publicIp
+	//
+	//    * resource.instanceDetails.networkInterfaces.securityGroups.groupId
+	//
+	//    * resource.instanceDetails.networkInterfaces.securityGroups.groupName
+	//
+	//    * resource.instanceDetails.networkInterfaces.subnetId
+	//
+	//    * resource.instanceDetails.networkInterfaces.vpcId
+	//
+	//    * resource.instanceDetails.tags.key
+	//
+	//    * resource.instanceDetails.tags.value
+	//
+	//    * resource.resourceType
+	//
+	//    * service.action.actionType
+	//
+	//    * service.action.awsApiCallAction.api
+	//
+	//    * service.action.awsApiCallAction.callerType
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.city.cityName
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.country.countryName
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.ipAddressV4
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.organization.asn
+	//
+	//    * service.action.awsApiCallAction.remoteIpDetails.organization.asnOrg
+	//
+	//    * service.action.awsApiCallAction.serviceName
+	//
+	//    * service.action.dnsRequestAction.domain
+	//
+	//    * service.action.networkConnectionAction.blocked
+	//
+	//    * service.action.networkConnectionAction.connectionDirection
+	//
+	//    * service.action.networkConnectionAction.localPortDetails.port
+	//
+	//    * service.action.networkConnectionAction.protocol
+	//
+	//    * service.action.networkConnectionAction.localIpDetails.ipAddressV4
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.city.cityName
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.country.countryName
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.ipAddressV4
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.organization.asn
+	//
+	//    * service.action.networkConnectionAction.remoteIpDetails.organization.asnOrg
+	//
+	//    * service.action.networkConnectionAction.remotePortDetails.port
+	//
+	//    * service.additionalInfo.threatListName
+	//
+	//    * service.archived When this attribute is set to TRUE, only archived findings
+	//    are listed. When it's set to FALSE, only unarchived findings are listed.
+	//    When this attribute is not set, all existing findings are listed.
+	//
+	//    * service.resourceRole
+	//
+	//    * severity
+	//
+	//    * type
+	//
+	//    * updatedAt Type: ISO 8601 string format: YYYY-MM-DDTHH:MM:SS.SSSZ or
+	//    YYYY-MM-DDTHH:MM:SSZ depending on whether the value contains milliseconds.
 	//
 	// FindingCriteria is a required field
 	FindingCriteria *FindingCriteria `locationName:"findingCriteria" type:"structure" required:"true"`
@@ -5530,7 +6333,7 @@ func (s *CreateFilterOutput) SetName(v string) *CreateFilterOutput {
 type CreateIPSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// A boolean value that indicates whether GuardDuty is to start using the uploaded
+	// A Boolean value that indicates whether GuardDuty is to start using the uploaded
 	// IPSet.
 	//
 	// Activate is a required field
@@ -5539,8 +6342,8 @@ type CreateIPSetInput struct {
 	// The idempotency token for the create request.
 	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
 
-	// The unique ID of the detector of the GuardDuty account for which you want
-	// to create an IPSet.
+	// The unique ID of the detector of the GuardDuty account that you want to create
+	// an IPSet for.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -5550,14 +6353,15 @@ type CreateIPSetInput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"IpSetFormat"`
 
-	// The URI of the file that contains the IPSet. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key)
+	// The URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
 
-	// The user friendly name to identify the IPSet. This name is displayed in all
-	// findings that are triggered by activity that involves IP addresses included
-	// in this IPSet.
+	// The user-friendly name to identify the IPSet.
+	//
+	// Allowed characters are alphanumerics, spaces, hyphens (-), and underscores
+	// (_).
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
@@ -5692,8 +6496,8 @@ type CreateMembersInput struct {
 	// AccountDetails is a required field
 	AccountDetails []*AccountDetail `locationName:"accountDetails" min:"1" type:"list" required:"true"`
 
-	// The unique ID of the detector of the GuardDuty account with which you want
-	// to associate member accounts.
+	// The unique ID of the detector of the GuardDuty account that you want to associate
+	// member accounts with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -5756,8 +6560,8 @@ func (s *CreateMembersInput) SetDetectorId(v string) *CreateMembersInput {
 type CreateMembersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that include the accountIds of the unprocessed accounts
+	// and a result string that explains why each was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -5785,14 +6589,14 @@ type CreatePublishingDestinationInput struct {
 	// The idempotency token for the request.
 	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
 
-	// Properties of the publishing destination, including the ARNs for the destination
-	// and the KMS key used for encryption.
+	// The properties of the publishing destination, including the ARNs for the
+	// destination and the KMS key used for encryption.
 	//
 	// DestinationProperties is a required field
 	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure" required:"true"`
 
-	// The type of resource for the publishing destination. Currently only S3 is
-	// supported.
+	// The type of resource for the publishing destination. Currently only Amazon
+	// S3 buckets are supported.
 	//
 	// DestinationType is a required field
 	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
@@ -5865,7 +6669,7 @@ func (s *CreatePublishingDestinationInput) SetDetectorId(v string) *CreatePublis
 type CreatePublishingDestinationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the publishing destination created.
+	// The ID of the publishing destination that is created.
 	//
 	// DestinationId is a required field
 	DestinationId *string `locationName:"destinationId" type:"string" required:"true"`
@@ -5895,7 +6699,7 @@ type CreateSampleFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Types of sample findings to generate.
+	// The types of sample findings to generate.
 	FindingTypes []*string `locationName:"findingTypes" type:"list"`
 }
 
@@ -5954,7 +6758,7 @@ func (s CreateSampleFindingsOutput) GoString() string {
 type CreateThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// A boolean value that indicates whether GuardDuty is to start using the uploaded
+	// A Boolean value that indicates whether GuardDuty is to start using the uploaded
 	// ThreatIntelSet.
 	//
 	// Activate is a required field
@@ -5963,8 +6767,8 @@ type CreateThreatIntelSetInput struct {
 	// The idempotency token for the create request.
 	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
 
-	// The unique ID of the detector of the GuardDuty account for which you want
-	// to create a threatIntelSet.
+	// The unique ID of the detector of the GuardDuty account that you want to create
+	// a threatIntelSet for.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -5974,18 +6778,18 @@ type CreateThreatIntelSetInput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"ThreatIntelSetFormat"`
 
-	// The URI of the file that contains the ThreatIntelSet. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key).
+	// The URI of the file that contains the ThreatIntelSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
 
-	// A user-friendly ThreatIntelSet name that is displayed in all finding generated
+	// A user-friendly ThreatIntelSet name displayed in all findings that are generated
 	// by activity that involves IP addresses included in this ThreatIntelSet.
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
-	// The tags to be added to a new Threat List resource.
+	// The tags to be added to a new threat list resource.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
 
@@ -6151,8 +6955,8 @@ func (s *DeclineInvitationsInput) SetAccountIds(v []*string) *DeclineInvitations
 type DeclineInvitationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -6171,6 +6975,42 @@ func (s DeclineInvitationsOutput) GoString() string {
 // SetUnprocessedAccounts sets the UnprocessedAccounts field's value.
 func (s *DeclineInvitationsOutput) SetUnprocessedAccounts(v []*UnprocessedAccount) *DeclineInvitationsOutput {
 	s.UnprocessedAccounts = v
+	return s
+}
+
+// Contains information on the server side encryption method used in the S3
+// bucket. See S3 Server-Side Encryption (https://docs.aws.amazon.com/AmazonS3/atest/dev/serv-side-encryption.html)
+// for more information.
+type DefaultServerSideEncryption struct {
+	_ struct{} `type:"structure"`
+
+	// The type of encryption used for objects within the S3 bucket.
+	EncryptionType *string `locationName:"encryptionType" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the KMS encryption key. Only available
+	// if the bucket EncryptionType is aws:kms.
+	KmsMasterKeyArn *string `locationName:"kmsMasterKeyArn" type:"string"`
+}
+
+// String returns the string representation
+func (s DefaultServerSideEncryption) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DefaultServerSideEncryption) GoString() string {
+	return s.String()
+}
+
+// SetEncryptionType sets the EncryptionType field's value.
+func (s *DefaultServerSideEncryption) SetEncryptionType(v string) *DefaultServerSideEncryption {
+	s.EncryptionType = &v
+	return s
+}
+
+// SetKmsMasterKeyArn sets the KmsMasterKeyArn field's value.
+func (s *DefaultServerSideEncryption) SetKmsMasterKeyArn(v string) *DefaultServerSideEncryption {
+	s.KmsMasterKeyArn = &v
 	return s
 }
 
@@ -6232,12 +7072,12 @@ func (s DeleteDetectorOutput) GoString() string {
 type DeleteFilterInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the filter is associated with.
+	// The unique ID of the detector that the filter is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The name of the filter you want to delete.
+	// The name of the filter that you want to delete.
 	//
 	// FilterName is a required field
 	FilterName *string `location:"uri" locationName:"filterName" type:"string" required:"true"`
@@ -6418,8 +7258,8 @@ func (s *DeleteInvitationsInput) SetAccountIds(v []*string) *DeleteInvitationsIn
 type DeleteInvitationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -6601,12 +7441,12 @@ func (s DeletePublishingDestinationOutput) GoString() string {
 type DeleteThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the threatIntelSet is associated with.
+	// The unique ID of the detector that the threatIntelSet is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The unique ID of the threatIntelSet you want to delete.
+	// The unique ID of the threatIntelSet that you want to delete.
 	//
 	// ThreatIntelSetId is a required field
 	ThreatIntelSetId *string `location:"uri" locationName:"threatIntelSetId" type:"string" required:"true"`
@@ -6668,6 +7508,86 @@ func (s DeleteThreatIntelSetOutput) String() string {
 // GoString returns the string representation
 func (s DeleteThreatIntelSetOutput) GoString() string {
 	return s.String()
+}
+
+type DescribeOrganizationConfigurationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the detector to retrieve information about the delegated administrator
+	// from.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeOrganizationConfigurationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeOrganizationConfigurationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeOrganizationConfigurationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeOrganizationConfigurationInput"}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *DescribeOrganizationConfigurationInput) SetDetectorId(v string) *DescribeOrganizationConfigurationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type DescribeOrganizationConfigurationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether GuardDuty is automatically enabled for accounts added to
+	// the organization.
+	//
+	// AutoEnable is a required field
+	AutoEnable *bool `locationName:"autoEnable" type:"boolean" required:"true"`
+
+	// Indicates whether the maximum number of allowed member accounts are already
+	// associated with the delegated administrator master account.
+	//
+	// MemberAccountLimitReached is a required field
+	MemberAccountLimitReached *bool `locationName:"memberAccountLimitReached" type:"boolean" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeOrganizationConfigurationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeOrganizationConfigurationOutput) GoString() string {
+	return s.String()
+}
+
+// SetAutoEnable sets the AutoEnable field's value.
+func (s *DescribeOrganizationConfigurationOutput) SetAutoEnable(v bool) *DescribeOrganizationConfigurationOutput {
+	s.AutoEnable = &v
+	return s
+}
+
+// SetMemberAccountLimitReached sets the MemberAccountLimitReached field's value.
+func (s *DescribeOrganizationConfigurationOutput) SetMemberAccountLimitReached(v bool) *DescribeOrganizationConfigurationOutput {
+	s.MemberAccountLimitReached = &v
+	return s
 }
 
 type DescribePublishingDestinationInput struct {
@@ -6743,7 +7663,8 @@ type DescribePublishingDestinationOutput struct {
 	// DestinationProperties is a required field
 	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure" required:"true"`
 
-	// The type of the publishing destination. Currently, only S3 is supported.
+	// The type of publishing destination. Currently, only Amazon S3 buckets are
+	// supported.
 	//
 	// DestinationType is a required field
 	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
@@ -6800,8 +7721,8 @@ func (s *DescribePublishingDestinationOutput) SetStatus(v string) *DescribePubli
 	return s
 }
 
-// Contains information about a publishing destination, including the ID, type,
-// and status.
+// Contains information about the publishing destination, including the ID,
+// type, and status.
 type Destination struct {
 	_ struct{} `type:"structure"`
 
@@ -6811,7 +7732,7 @@ type Destination struct {
 	DestinationId *string `locationName:"destinationId" type:"string" required:"true"`
 
 	// The type of resource used for the publishing destination. Currently, only
-	// S3 is supported.
+	// Amazon S3 buckets are supported.
 	//
 	// DestinationType is a required field
 	DestinationType *string `locationName:"destinationType" min:"1" type:"string" required:"true" enum:"DestinationType"`
@@ -6850,8 +7771,8 @@ func (s *Destination) SetStatus(v string) *Destination {
 	return s
 }
 
-// Contains the ARN of the resource to publish to, such as an S3 bucket, and
-// the ARN of the KMS key to use to encrypt published findings.
+// Contains the Amazon Resource Name (ARN) of the resource to publish to, such
+// as an S3 bucket, and the ARN of the KMS key to use to encrypt published findings.
 type DestinationProperties struct {
 	_ struct{} `type:"structure"`
 
@@ -6882,6 +7803,59 @@ func (s *DestinationProperties) SetDestinationArn(v string) *DestinationProperti
 func (s *DestinationProperties) SetKmsKeyArn(v string) *DestinationProperties {
 	s.KmsKeyArn = &v
 	return s
+}
+
+type DisableOrganizationAdminAccountInput struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS Account ID for the organizations account to be disabled as a GuardDuty
+	// delegated administrator.
+	//
+	// AdminAccountId is a required field
+	AdminAccountId *string `locationName:"adminAccountId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisableOrganizationAdminAccountInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableOrganizationAdminAccountInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisableOrganizationAdminAccountInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisableOrganizationAdminAccountInput"}
+	if s.AdminAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AdminAccountId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAdminAccountId sets the AdminAccountId field's value.
+func (s *DisableOrganizationAdminAccountInput) SetAdminAccountId(v string) *DisableOrganizationAdminAccountInput {
+	s.AdminAccountId = &v
+	return s
+}
+
+type DisableOrganizationAdminAccountOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableOrganizationAdminAccountOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableOrganizationAdminAccountOutput) GoString() string {
+	return s.String()
 }
 
 type DisassociateFromMasterAccountInput struct {
@@ -6943,13 +7917,13 @@ type DisassociateMembersInput struct {
 	_ struct{} `type:"structure"`
 
 	// A list of account IDs of the GuardDuty member accounts that you want to disassociate
-	// from master.
+	// from the master account.
 	//
 	// AccountIds is a required field
 	AccountIds []*string `locationName:"accountIds" min:"1" type:"list" required:"true"`
 
 	// The unique ID of the detector of the GuardDuty account whose members you
-	// want to disassociate from master.
+	// want to disassociate from the master account.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -7002,8 +7976,8 @@ func (s *DisassociateMembersInput) SetDetectorId(v string) *DisassociateMembersI
 type DisassociateMembersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -7029,7 +8003,7 @@ func (s *DisassociateMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccou
 type DnsRequestAction struct {
 	_ struct{} `type:"structure"`
 
-	// Domain information for the API request.
+	// The domain information for the API request.
 	Domain *string `locationName:"domain" type:"string"`
 }
 
@@ -7053,7 +8027,7 @@ func (s *DnsRequestAction) SetDomain(v string) *DnsRequestAction {
 type DomainDetails struct {
 	_ struct{} `type:"structure"`
 
-	// Domain information for the AWS API call.
+	// The domain information for the AWS API call.
 	Domain *string `locationName:"domain" type:"string"`
 }
 
@@ -7071,6 +8045,59 @@ func (s DomainDetails) GoString() string {
 func (s *DomainDetails) SetDomain(v string) *DomainDetails {
 	s.Domain = &v
 	return s
+}
+
+type EnableOrganizationAdminAccountInput struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS Account ID for the organization account to be enabled as a GuardDuty
+	// delegated administrator.
+	//
+	// AdminAccountId is a required field
+	AdminAccountId *string `locationName:"adminAccountId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s EnableOrganizationAdminAccountInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableOrganizationAdminAccountInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *EnableOrganizationAdminAccountInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "EnableOrganizationAdminAccountInput"}
+	if s.AdminAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("AdminAccountId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAdminAccountId sets the AdminAccountId field's value.
+func (s *EnableOrganizationAdminAccountInput) SetAdminAccountId(v string) *EnableOrganizationAdminAccountInput {
+	s.AdminAccountId = &v
+	return s
+}
+
+type EnableOrganizationAdminAccountOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableOrganizationAdminAccountOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableOrganizationAdminAccountOutput) GoString() string {
+	return s.String()
 }
 
 // Contains information about the reason that the finding was generated.
@@ -7107,7 +8134,7 @@ type Finding struct {
 	// AccountId is a required field
 	AccountId *string `locationName:"accountId" type:"string" required:"true"`
 
-	// The ARN for the finding.
+	// The ARN of the finding.
 	//
 	// Arn is a required field
 	Arn *string `locationName:"arn" type:"string" required:"true"`
@@ -7115,7 +8142,7 @@ type Finding struct {
 	// The confidence score for the finding.
 	Confidence *float64 `locationName:"confidence" type:"double"`
 
-	// The time and date at which the finding was created.
+	// The time and date when the finding was created.
 	//
 	// CreatedAt is a required field
 	CreatedAt *string `locationName:"createdAt" type:"string" required:"true"`
@@ -7131,7 +8158,7 @@ type Finding struct {
 	// The partition associated with the finding.
 	Partition *string `locationName:"partition" type:"string"`
 
-	// The Region in which the finding was generated.
+	// The Region where the finding was generated.
 	//
 	// Region is a required field
 	Region *string `locationName:"region" type:"string" required:"true"`
@@ -7155,15 +8182,15 @@ type Finding struct {
 	// Severity is a required field
 	Severity *float64 `locationName:"severity" type:"double" required:"true"`
 
-	// The title for the finding.
+	// The title of the finding.
 	Title *string `locationName:"title" type:"string"`
 
-	// The type of the finding.
+	// The type of finding.
 	//
 	// Type is a required field
 	Type *string `locationName:"type" min:"1" type:"string" required:"true"`
 
-	// The time and date at which the finding was laste updated.
+	// The time and date when the finding was last updated.
 	//
 	// UpdatedAt is a required field
 	UpdatedAt *string `locationName:"updatedAt" type:"string" required:"true"`
@@ -7298,7 +8325,7 @@ func (s *FindingCriteria) SetCriterion(v map[string]*Condition) *FindingCriteria
 type FindingStatistics struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a map of severity to count statistic for a set of findings
+	// Represents a map of severity to count statistics for a set of findings.
 	CountBySeverity map[string]*int64 `locationName:"countBySeverity" type:"map"`
 }
 
@@ -7322,10 +8349,10 @@ func (s *FindingStatistics) SetCountBySeverity(v map[string]*int64) *FindingStat
 type GeoLocation struct {
 	_ struct{} `type:"structure"`
 
-	// Latitude information of remote IP address.
+	// The latitude information of the remote IP address.
 	Lat *float64 `locationName:"lat" type:"double"`
 
-	// Longitude information of remote IP address.
+	// The longitude information of the remote IP address.
 	Lon *float64 `locationName:"lon" type:"double"`
 }
 
@@ -7395,10 +8422,10 @@ func (s *GetDetectorInput) SetDetectorId(v string) *GetDetectorInput {
 type GetDetectorOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detector creation timestamp.
+	// The timestamp of when the detector was created.
 	CreatedAt *string `locationName:"createdAt" type:"string"`
 
-	// Finding publishing frequency.
+	// The publishing frequency of the finding.
 	FindingPublishingFrequency *string `locationName:"findingPublishingFrequency" type:"string" enum:"FindingPublishingFrequency"`
 
 	// The GuardDuty service role.
@@ -7414,7 +8441,7 @@ type GetDetectorOutput struct {
 	// The tags of the detector resource.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// Detector last update timestamp.
+	// The last-updated timestamp for the detector.
 	UpdatedAt *string `locationName:"updatedAt" type:"string"`
 }
 
@@ -7467,7 +8494,7 @@ func (s *GetDetectorOutput) SetUpdatedAt(v string) *GetDetectorOutput {
 type GetFilterInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the filter is associated with.
+	// The unique ID of the detector that the filter is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -7607,7 +8634,7 @@ type GetFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// IDs of the findings that you want to retrieve.
+	// The IDs of the findings that you want to retrieve.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
@@ -7697,10 +8724,10 @@ type GetFindingsStatisticsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// Represents the criteria used for querying findings.
+	// Represents the criteria that is used for querying findings.
 	FindingCriteria *FindingCriteria `locationName:"findingCriteria" type:"structure"`
 
-	// Types of finding statistics to retrieve.
+	// The types of finding statistics to retrieve.
 	//
 	// FindingStatisticTypes is a required field
 	FindingStatisticTypes []*string `locationName:"findingStatisticTypes" type:"list" required:"true"`
@@ -7756,7 +8783,7 @@ func (s *GetFindingsStatisticsInput) SetFindingStatisticTypes(v []*string) *GetF
 type GetFindingsStatisticsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Finding statistics object.
+	// The finding statistics object.
 	//
 	// FindingStatistics is a required field
 	FindingStatistics *FindingStatistics `locationName:"findingStatistics" type:"structure" required:"true"`
@@ -7781,7 +8808,7 @@ func (s *GetFindingsStatisticsOutput) SetFindingStatistics(v *FindingStatistics)
 type GetIPSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the ipSet is associated with.
+	// The unique ID of the detector that the IPSet is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -7844,22 +8871,22 @@ type GetIPSetOutput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"IpSetFormat"`
 
-	// The URI of the file that contains the IPSet. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key)
+	// The URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
 
-	// The user friendly name for the IPSet.
+	// The user-friendly name for the IPSet.
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
-	// The status of ipSet file uploaded.
+	// The status of IPSet file that was uploaded.
 	//
 	// Status is a required field
 	Status *string `locationName:"status" min:"1" type:"string" required:"true" enum:"IpSetStatus"`
 
-	// The tags of the IP set resource.
+	// The tags of the IPSet resource.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
 
@@ -7984,7 +9011,7 @@ func (s *GetMasterAccountInput) SetDetectorId(v string) *GetMasterAccountInput {
 type GetMasterAccountOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Master account details.
+	// The master account details.
 	//
 	// Master is a required field
 	Master *Master `locationName:"master" type:"structure" required:"true"`
@@ -8073,8 +9100,8 @@ type GetMembersOutput struct {
 	// Members is a required field
 	Members []*Member `locationName:"members" type:"list" required:"true"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -8105,12 +9132,12 @@ func (s *GetMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccount) *GetM
 type GetThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the threatIntelSet is associated with.
+	// The unique ID of the detector that the threatIntelSet is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The unique ID of the threatIntelSet you want to get.
+	// The unique ID of the threatIntelSet that you want to get.
 	//
 	// ThreatIntelSetId is a required field
 	ThreatIntelSetId *string `location:"uri" locationName:"threatIntelSetId" type:"string" required:"true"`
@@ -8168,12 +9195,12 @@ type GetThreatIntelSetOutput struct {
 	// Format is a required field
 	Format *string `locationName:"format" min:"1" type:"string" required:"true" enum:"ThreatIntelSetFormat"`
 
-	// The URI of the file that contains the ThreatIntelSet. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key).
+	// The URI of the file that contains the ThreatIntelSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	//
 	// Location is a required field
 	Location *string `locationName:"location" min:"1" type:"string" required:"true"`
 
-	// A user-friendly ThreatIntelSet name that is displayed in all finding generated
+	// A user-friendly ThreatIntelSet name displayed in all findings that are generated
 	// by activity that involves IP addresses included in this ThreatIntelSet.
 	//
 	// Name is a required field
@@ -8184,7 +9211,7 @@ type GetThreatIntelSetOutput struct {
 	// Status is a required field
 	Status *string `locationName:"status" min:"1" type:"string" required:"true" enum:"ThreatIntelSetStatus"`
 
-	// The tags of the Threat List resource.
+	// The tags of the threat list resource.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
 
@@ -8232,10 +9259,10 @@ func (s *GetThreatIntelSetOutput) SetTags(v map[string]*string) *GetThreatIntelS
 type IamInstanceProfile struct {
 	_ struct{} `type:"structure"`
 
-	// AWS EC2 instance profile ARN.
+	// The profile ARN of the EC2 instance.
 	Arn *string `locationName:"arn" type:"string"`
 
-	// AWS EC2 instance profile ID.
+	// The profile ID of the EC2 instance.
 	Id *string `locationName:"id" type:"string"`
 }
 
@@ -8265,7 +9292,7 @@ func (s *IamInstanceProfile) SetId(v string) *IamInstanceProfile {
 type InstanceDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The availability zone of the EC2 instance.
+	// The Availability Zone of the EC2 instance.
 	AvailabilityZone *string `locationName:"availabilityZone" type:"string"`
 
 	// The profile information of the EC2 instance.
@@ -8289,8 +9316,12 @@ type InstanceDetails struct {
 	// The launch time of the EC2 instance.
 	LaunchTime *string `locationName:"launchTime" type:"string"`
 
-	// The network interface information of the EC2 instance.
+	// The elastic network interface information of the EC2 instance.
 	NetworkInterfaces []*NetworkInterface `locationName:"networkInterfaces" type:"list"`
+
+	// The Amazon Resource Name (ARN) of the AWS Outpost. Only applicable to AWS
+	// Outposts instances.
+	OutpostArn *string `locationName:"outpostArn" type:"string"`
 
 	// The platform of the EC2 instance.
 	Platform *string `locationName:"platform" type:"string"`
@@ -8366,6 +9397,12 @@ func (s *InstanceDetails) SetNetworkInterfaces(v []*NetworkInterface) *InstanceD
 	return s
 }
 
+// SetOutpostArn sets the OutpostArn field's value.
+func (s *InstanceDetails) SetOutpostArn(v string) *InstanceDetails {
+	s.OutpostArn = &v
+	return s
+}
+
 // SetPlatform sets the Platform field's value.
 func (s *InstanceDetails) SetPlatform(v string) *InstanceDetails {
 	s.Platform = &v
@@ -8384,10 +9421,10 @@ func (s *InstanceDetails) SetTags(v []*Tag) *InstanceDetails {
 	return s
 }
 
-// Internal server error exception object.
+// An internal server error exception object.
 type InternalServerErrorException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The error message.
 	Message_ *string `locationName:"message" type:"string"`
@@ -8408,17 +9445,17 @@ func (s InternalServerErrorException) GoString() string {
 
 func newErrorInternalServerErrorException(v protocol.ResponseMetadata) error {
 	return &InternalServerErrorException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServerErrorException) Code() string {
+func (s *InternalServerErrorException) Code() string {
 	return "InternalServerErrorException"
 }
 
 // Message returns the exception's message.
-func (s InternalServerErrorException) Message() string {
+func (s *InternalServerErrorException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8426,36 +9463,36 @@ func (s InternalServerErrorException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServerErrorException) OrigErr() error {
+func (s *InternalServerErrorException) OrigErr() error {
 	return nil
 }
 
-func (s InternalServerErrorException) Error() string {
+func (s *InternalServerErrorException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServerErrorException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServerErrorException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServerErrorException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServerErrorException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains information about the invitation to become a member account.
 type Invitation struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the account from which the invitations was sent.
+	// The ID of the account that the invitation was sent from.
 	AccountId *string `locationName:"accountId" min:"12" type:"string"`
 
 	// The ID of the invitation. This value is used to validate the inviter account
 	// to the member account.
 	InvitationId *string `locationName:"invitationId" type:"string"`
 
-	// Timestamp at which the invitation was sent.
+	// The timestamp when the invitation was sent.
 	InvitedAt *string `locationName:"invitedAt" type:"string"`
 
 	// The status of the relationship between the inviter and invitee accounts.
@@ -8505,13 +9542,13 @@ type InviteMembersInput struct {
 	// AccountIds is a required field
 	AccountIds []*string `locationName:"accountIds" min:"1" type:"list" required:"true"`
 
-	// The unique ID of the detector of the GuardDuty account with which you want
-	// to invite members.
+	// The unique ID of the detector of the GuardDuty account that you want to invite
+	// members with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// A boolean value that specifies whether you want to disable email notification
+	// A Boolean value that specifies whether you want to disable email notification
 	// to the accounts that you’re inviting to GuardDuty as members.
 	DisableEmailNotification *bool `locationName:"disableEmailNotification" type:"boolean"`
 
@@ -8579,8 +9616,8 @@ func (s *InviteMembersInput) SetMessage(v string) *InviteMembersInput {
 type InviteMembersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -8605,14 +9642,14 @@ func (s *InviteMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAccount) *I
 type ListDetectorsInput struct {
 	_ struct{} `type:"structure"`
 
-	// You can use this parameter to indicate the maximum number of items you want
-	// in the response. The default value is 50. The maximum value is 50.
+	// You can use this parameter to indicate the maximum number of items that you
+	// want in the response. The default value is 50. The maximum value is 50.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -8654,13 +9691,13 @@ func (s *ListDetectorsInput) SetNextToken(v string) *ListDetectorsInput {
 type ListDetectorsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of detector Ids.
+	// A list of detector IDs.
 	//
 	// DetectorIds is a required field
 	DetectorIds []*string `locationName:"detectorIds" type:"list" required:"true"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -8689,19 +9726,19 @@ func (s *ListDetectorsOutput) SetNextToken(v string) *ListDetectorsOutput {
 type ListFiltersInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the filter is associated with.
+	// The unique ID of the detector that the filter is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// You can use this parameter to indicate the maximum number of items you want
-	// in the response. The default value is 50. The maximum value is 50.
+	// You can use this parameter to indicate the maximum number of items that you
+	// want in the response. The default value is 50. The maximum value is 50.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -8755,13 +9792,13 @@ func (s *ListFiltersInput) SetNextToken(v string) *ListFiltersInput {
 type ListFiltersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of filter names
+	// A list of filter names.
 	//
 	// FilterNames is a required field
 	FilterNames []*string `locationName:"filterNames" type:"list" required:"true"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -8906,8 +9943,8 @@ type ListFindingsInput struct {
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// Represents the criteria used for sorting findings.
@@ -8976,13 +10013,13 @@ func (s *ListFindingsInput) SetSortCriteria(v *SortCriteria) *ListFindingsInput 
 type ListFindingsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The IDs of the findings you are listing.
+	// The IDs of the findings that you're listing.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -9011,7 +10048,7 @@ func (s *ListFindingsOutput) SetNextToken(v string) *ListFindingsOutput {
 type ListIPSetsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the ipSet is associated with.
+	// The unique ID of the detector that the IPSet is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -9022,8 +10059,8 @@ type ListIPSetsInput struct {
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -9082,8 +10119,8 @@ type ListIPSetsOutput struct {
 	// IpSetIds is a required field
 	IpSetIds []*string `locationName:"ipSetIds" type:"list" required:"true"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -9112,14 +10149,14 @@ func (s *ListIPSetsOutput) SetNextToken(v string) *ListIPSetsOutput {
 type ListInvitationsInput struct {
 	_ struct{} `type:"structure"`
 
-	// You can use this parameter to indicate the maximum number of items you want
-	// in the response. The default value is 50. The maximum value is 50.
+	// You can use this parameter to indicate the maximum number of items that you
+	// want in the response. The default value is 50. The maximum value is 50.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -9164,8 +10201,8 @@ type ListInvitationsOutput struct {
 	// A list of invitation descriptions.
 	Invitations []*Invitation `locationName:"invitations" type:"list"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -9205,12 +10242,12 @@ type ListMembersInput struct {
 
 	// You can use this parameter when paginating results. Set the value of this
 	// parameter to null on your first call to the list action. For subsequent calls
-	// to the action fill nextToken in the request with the value of NextToken from
-	// the previous response to continue listing data.
+	// to the action, fill nextToken in the request with the value of NextToken
+	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 
 	// Specifies whether to only return associated members or to return all members
-	// (including members which haven't been invited yet or have been disassociated).
+	// (including members who haven't been invited yet or have been disassociated).
 	OnlyAssociated *string `location:"querystring" locationName:"onlyAssociated" type:"string"`
 }
 
@@ -9273,8 +10310,8 @@ type ListMembersOutput struct {
 	// A list of members.
 	Members []*Member `locationName:"members" type:"list"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -9300,6 +10337,88 @@ func (s *ListMembersOutput) SetNextToken(v string) *ListMembersOutput {
 	return s
 }
 
+type ListOrganizationAdminAccountsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return in the response.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// A token to use for paginating results that are returned in the response.
+	// Set the value of this parameter to null for the first request to a list action.
+	// For subsequent calls, use the NextToken value returned from the previous
+	// request to continue listing results after the first page.
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListOrganizationAdminAccountsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListOrganizationAdminAccountsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListOrganizationAdminAccountsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListOrganizationAdminAccountsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListOrganizationAdminAccountsInput) SetMaxResults(v int64) *ListOrganizationAdminAccountsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListOrganizationAdminAccountsInput) SetNextToken(v string) *ListOrganizationAdminAccountsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListOrganizationAdminAccountsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An AdminAccounts object that includes a list of accounts configured as GuardDuty
+	// delegated administrators.
+	AdminAccounts []*AdminAccount `locationName:"adminAccounts" type:"list"`
+
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListOrganizationAdminAccountsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListOrganizationAdminAccountsOutput) GoString() string {
+	return s.String()
+}
+
+// SetAdminAccounts sets the AdminAccounts field's value.
+func (s *ListOrganizationAdminAccountsOutput) SetAdminAccounts(v []*AdminAccount) *ListOrganizationAdminAccountsOutput {
+	s.AdminAccounts = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListOrganizationAdminAccountsOutput) SetNextToken(v string) *ListOrganizationAdminAccountsOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListPublishingDestinationsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9311,10 +10430,10 @@ type ListPublishingDestinationsInput struct {
 	// The maximum number of results to return in the response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// A token to use for paginating results returned in the repsonse. Set the value
-	// of this parameter to null for the first request to a list action. For subsequent
-	// calls, use the NextToken value returned from the previous request to continue
-	// listing results after the first page.
+	// A token to use for paginating results that are returned in the response.
+	// Set the value of this parameter to null for the first request to a list action.
+	// For subsequent calls, use the NextToken value returned from the previous
+	// request to continue listing results after the first page.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -9368,16 +10487,16 @@ func (s *ListPublishingDestinationsInput) SetNextToken(v string) *ListPublishing
 type ListPublishingDestinationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A Destinations obect that includes information about each publishing destination
+	// A Destinations object that includes information about each publishing destination
 	// returned.
 	//
 	// Destinations is a required field
 	Destinations []*Destination `locationName:"destinations" type:"list" required:"true"`
 
-	// A token to use for paginating results returned in the repsonse. Set the value
-	// of this parameter to null for the first request to a list action. For subsequent
-	// calls, use the NextToken value returned from the previous request to continue
-	// listing results after the first page.
+	// A token to use for paginating results that are returned in the response.
+	// Set the value of this parameter to null for the first request to a list action.
+	// For subsequent calls, use the NextToken value returned from the previous
+	// request to continue listing results after the first page.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -9406,7 +10525,7 @@ func (s *ListPublishingDestinationsOutput) SetNextToken(v string) *ListPublishin
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) for the given GuardDuty resource
+	// The Amazon Resource Name (ARN) for the given GuardDuty resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -9470,18 +10589,18 @@ func (s *ListTagsForResourceOutput) SetTags(v map[string]*string) *ListTagsForRe
 type ListThreatIntelSetsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The unique ID of the detector the threatIntelSet is associated with.
+	// The unique ID of the detector that the threatIntelSet is associated with.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// You can use this parameter to indicate the maximum number of items you want
-	// in the response. The default value is 50. The maximum value is 50.
+	// You can use this parameter to indicate the maximum number of items that you
+	// want in the response. The default value is 50. The maximum value is 50.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
 	// You can use this parameter to paginate results in the response. Set the value
 	// of this parameter to null on your first call to the list action. For subsequent
-	// calls to the action fill nextToken in the request with the value of NextToken
+	// calls to the action, fill nextToken in the request with the value of NextToken
 	// from the previous response to continue listing data.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
@@ -9536,8 +10655,8 @@ func (s *ListThreatIntelSetsInput) SetNextToken(v string) *ListThreatIntelSetsIn
 type ListThreatIntelSetsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Pagination parameter to be used on the next list operation to retrieve more
-	// items.
+	// The pagination parameter to be used on the next list operation to retrieve
+	// more items.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The IDs of the ThreatIntelSet resources.
@@ -9568,14 +10687,38 @@ func (s *ListThreatIntelSetsOutput) SetThreatIntelSetIds(v []*string) *ListThrea
 	return s
 }
 
+// Contains information about the local IP address of the connection.
+type LocalIpDetails struct {
+	_ struct{} `type:"structure"`
+
+	// The IPv4 local address of the connection.
+	IpAddressV4 *string `locationName:"ipAddressV4" type:"string"`
+}
+
+// String returns the string representation
+func (s LocalIpDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LocalIpDetails) GoString() string {
+	return s.String()
+}
+
+// SetIpAddressV4 sets the IpAddressV4 field's value.
+func (s *LocalIpDetails) SetIpAddressV4(v string) *LocalIpDetails {
+	s.IpAddressV4 = &v
+	return s
+}
+
 // Contains information about the port for the local connection.
 type LocalPortDetails struct {
 	_ struct{} `type:"structure"`
 
-	// Port number of the local connection.
+	// The port number of the local connection.
 	Port *int64 `locationName:"port" type:"integer"`
 
-	// Port name of the local connection.
+	// The port name of the local connection.
 	PortName *string `locationName:"portName" type:"string"`
 }
 
@@ -9601,17 +10744,17 @@ func (s *LocalPortDetails) SetPortName(v string) *LocalPortDetails {
 	return s
 }
 
-// Contains information about the Master account and invitation.
+// Contains information about the master account and invitation.
 type Master struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the account used as the Master account.
+	// The ID of the account used as the master account.
 	AccountId *string `locationName:"accountId" min:"12" type:"string"`
 
-	// This value is used to validate the master account to the member account.
+	// The value used to validate the master account to the member account.
 	InvitationId *string `locationName:"invitationId" type:"string"`
 
-	// Timestamp at which the invitation was sent.
+	// The timestamp when the invitation was sent.
 	InvitedAt *string `locationName:"invitedAt" type:"string"`
 
 	// The status of the relationship between the master and member accounts.
@@ -9652,27 +10795,27 @@ func (s *Master) SetRelationshipStatus(v string) *Master {
 	return s
 }
 
-// Continas information about the member account
+// Contains information about the member account.
 type Member struct {
 	_ struct{} `type:"structure"`
 
-	// Member account ID.
+	// The ID of the member account.
 	//
 	// AccountId is a required field
 	AccountId *string `locationName:"accountId" min:"12" type:"string" required:"true"`
 
-	// Member account's detector ID.
+	// The detector ID of the member account.
 	DetectorId *string `locationName:"detectorId" min:"1" type:"string"`
 
-	// Member account's email address.
+	// The email address of the member account.
 	//
 	// Email is a required field
 	Email *string `locationName:"email" min:"1" type:"string" required:"true"`
 
-	// Timestamp at which the invitation was sent
+	// The timestamp when the invitation was sent.
 	InvitedAt *string `locationName:"invitedAt" type:"string"`
 
-	// Master account ID.
+	// The master account ID.
 	//
 	// MasterId is a required field
 	MasterId *string `locationName:"masterId" type:"string" required:"true"`
@@ -9682,7 +10825,7 @@ type Member struct {
 	// RelationshipStatus is a required field
 	RelationshipStatus *string `locationName:"relationshipStatus" type:"string" required:"true"`
 
-	// Member last updated timestamp.
+	// The last-updated timestamp of the member.
 	//
 	// UpdatedAt is a required field
 	UpdatedAt *string `locationName:"updatedAt" type:"string" required:"true"`
@@ -9745,22 +10888,25 @@ func (s *Member) SetUpdatedAt(v string) *Member {
 type NetworkConnectionAction struct {
 	_ struct{} `type:"structure"`
 
-	// Network connection blocked information.
+	// Indicates whether EC2 blocked the network connection to your instance.
 	Blocked *bool `locationName:"blocked" type:"boolean"`
 
-	// Network connection direction.
+	// The network connection direction.
 	ConnectionDirection *string `locationName:"connectionDirection" type:"string"`
 
-	// Local port information of the connection.
+	// The local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
+
+	// The local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
 
-	// Network connection protocol.
+	// The network connection protocol.
 	Protocol *string `locationName:"protocol" type:"string"`
 
-	// Remote IP information of the connection.
+	// The remote IP information of the connection.
 	RemoteIpDetails *RemoteIpDetails `locationName:"remoteIpDetails" type:"structure"`
 
-	// Remote port information of the connection.
+	// The remote port information of the connection.
 	RemotePortDetails *RemotePortDetails `locationName:"remotePortDetails" type:"structure"`
 }
 
@@ -9783,6 +10929,12 @@ func (s *NetworkConnectionAction) SetBlocked(v bool) *NetworkConnectionAction {
 // SetConnectionDirection sets the ConnectionDirection field's value.
 func (s *NetworkConnectionAction) SetConnectionDirection(v string) *NetworkConnectionAction {
 	s.ConnectionDirection = &v
+	return s
+}
+
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *NetworkConnectionAction) SetLocalIpDetails(v *LocalIpDetails) *NetworkConnectionAction {
+	s.LocalIpDetails = v
 	return s
 }
 
@@ -9810,32 +10962,32 @@ func (s *NetworkConnectionAction) SetRemotePortDetails(v *RemotePortDetails) *Ne
 	return s
 }
 
-// Contains information about the network interface of the Ec2 instance.
+// Contains information about the elastic network interface of the EC2 instance.
 type NetworkInterface struct {
 	_ struct{} `type:"structure"`
 
-	// A list of EC2 instance IPv6 address information.
+	// A list of IPv6 addresses for the EC2 instance.
 	Ipv6Addresses []*string `locationName:"ipv6Addresses" type:"list"`
 
-	// The ID of the network interface
+	// The ID of the network interface.
 	NetworkInterfaceId *string `locationName:"networkInterfaceId" type:"string"`
 
-	// Private DNS name of the EC2 instance.
+	// The private DNS name of the EC2 instance.
 	PrivateDnsName *string `locationName:"privateDnsName" type:"string"`
 
-	// Private IP address of the EC2 instance.
+	// The private IP address of the EC2 instance.
 	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string"`
 
 	// Other private IP address information of the EC2 instance.
 	PrivateIpAddresses []*PrivateIpAddressDetails `locationName:"privateIpAddresses" type:"list"`
 
-	// Public DNS name of the EC2 instance.
+	// The public DNS name of the EC2 instance.
 	PublicDnsName *string `locationName:"publicDnsName" type:"string"`
 
-	// Public IP address of the EC2 instance.
+	// The public IP address of the EC2 instance.
 	PublicIp *string `locationName:"publicIp" type:"string"`
 
-	// Security groups associated with the EC2 instance.
+	// The security groups associated with the EC2 instance.
 	SecurityGroups []*SecurityGroup `locationName:"securityGroups" type:"list"`
 
 	// The subnet ID of the EC2 instance.
@@ -9915,20 +11067,21 @@ func (s *NetworkInterface) SetVpcId(v string) *NetworkInterface {
 	return s
 }
 
-// Continas information about the ISP organization of the remote IP address.
+// Contains information about the ISP organization of the remote IP address.
 type Organization struct {
 	_ struct{} `type:"structure"`
 
-	// Autonomous system number of the internet provider of the remote IP address.
+	// The Autonomous System Number (ASN) of the internet provider of the remote
+	// IP address.
 	Asn *string `locationName:"asn" type:"string"`
 
-	// Organization that registered this ASN.
+	// The organization that registered this ASN.
 	AsnOrg *string `locationName:"asnOrg" type:"string"`
 
-	// ISP information for the internet provider.
+	// The ISP information for the internet provider.
 	Isp *string `locationName:"isp" type:"string"`
 
-	// Name of the internet provider.
+	// The name of the internet provider.
 	Org *string `locationName:"org" type:"string"`
 }
 
@@ -9966,14 +11119,73 @@ func (s *Organization) SetOrg(v string) *Organization {
 	return s
 }
 
+// Contains information on the owner of the bucket.
+type Owner struct {
+	_ struct{} `type:"structure"`
+
+	// The canonical user ID of the bucket owner. For information about locating
+	// your canonical user ID see Finding Your Account Canonical User ID. (https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html#FindingCanonicalId)
+	Id *string `locationName:"id" type:"string"`
+}
+
+// String returns the string representation
+func (s Owner) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Owner) GoString() string {
+	return s.String()
+}
+
+// SetId sets the Id field's value.
+func (s *Owner) SetId(v string) *Owner {
+	s.Id = &v
+	return s
+}
+
+// Contains information about how permissions are configured for the S3 bucket.
+type PermissionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Contains information about the account level permissions on the S3 bucket.
+	AccountLevelPermissions *AccountLevelPermissions `locationName:"accountLevelPermissions" type:"structure"`
+
+	// Contains information about the bucket level permissions for the S3 bucket.
+	BucketLevelPermissions *BucketLevelPermissions `locationName:"bucketLevelPermissions" type:"structure"`
+}
+
+// String returns the string representation
+func (s PermissionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PermissionConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetAccountLevelPermissions sets the AccountLevelPermissions field's value.
+func (s *PermissionConfiguration) SetAccountLevelPermissions(v *AccountLevelPermissions) *PermissionConfiguration {
+	s.AccountLevelPermissions = v
+	return s
+}
+
+// SetBucketLevelPermissions sets the BucketLevelPermissions field's value.
+func (s *PermissionConfiguration) SetBucketLevelPermissions(v *BucketLevelPermissions) *PermissionConfiguration {
+	s.BucketLevelPermissions = v
+	return s
+}
+
 // Contains information about the PORT_PROBE action described in the finding.
 type PortProbeAction struct {
 	_ struct{} `type:"structure"`
 
-	// Port probe blocked information.
+	// Indicates whether EC2 blocked the port probe to the instance, such as with
+	// an ACL.
 	Blocked *bool `locationName:"blocked" type:"boolean"`
 
-	// A list of port probe details objects.
+	// A list of objects related to port probe details.
 	PortProbeDetails []*PortProbeDetail `locationName:"portProbeDetails" type:"list"`
 }
 
@@ -10003,10 +11215,13 @@ func (s *PortProbeAction) SetPortProbeDetails(v []*PortProbeDetail) *PortProbeAc
 type PortProbeDetail struct {
 	_ struct{} `type:"structure"`
 
-	// Local port information of the connection.
+	// The local IP information of the connection.
+	LocalIpDetails *LocalIpDetails `locationName:"localIpDetails" type:"structure"`
+
+	// The local port information of the connection.
 	LocalPortDetails *LocalPortDetails `locationName:"localPortDetails" type:"structure"`
 
-	// Remote IP information of the connection.
+	// The remote IP information of the connection.
 	RemoteIpDetails *RemoteIpDetails `locationName:"remoteIpDetails" type:"structure"`
 }
 
@@ -10018,6 +11233,12 @@ func (s PortProbeDetail) String() string {
 // GoString returns the string representation
 func (s PortProbeDetail) GoString() string {
 	return s.String()
+}
+
+// SetLocalIpDetails sets the LocalIpDetails field's value.
+func (s *PortProbeDetail) SetLocalIpDetails(v *LocalIpDetails) *PortProbeDetail {
+	s.LocalIpDetails = v
+	return s
 }
 
 // SetLocalPortDetails sets the LocalPortDetails field's value.
@@ -10036,10 +11257,10 @@ func (s *PortProbeDetail) SetRemoteIpDetails(v *RemoteIpDetails) *PortProbeDetai
 type PrivateIpAddressDetails struct {
 	_ struct{} `type:"structure"`
 
-	// Private DNS name of the EC2 instance.
+	// The private DNS name of the EC2 instance.
 	PrivateDnsName *string `locationName:"privateDnsName" type:"string"`
 
-	// Private IP address of the EC2 instance.
+	// The private IP address of the EC2 instance.
 	PrivateIpAddress *string `locationName:"privateIpAddress" type:"string"`
 }
 
@@ -10065,14 +11286,14 @@ func (s *PrivateIpAddressDetails) SetPrivateIpAddress(v string) *PrivateIpAddres
 	return s
 }
 
-// Contains information about the product code for the Ec2 instance.
+// Contains information about the product code for the EC2 instance.
 type ProductCode struct {
 	_ struct{} `type:"structure"`
 
-	// Product code information.
+	// The product code information.
 	Code *string `locationName:"code" type:"string"`
 
-	// Product code type.
+	// The product code type.
 	ProductType *string `locationName:"productType" type:"string"`
 }
 
@@ -10098,23 +11319,57 @@ func (s *ProductCode) SetProductType(v string) *ProductCode {
 	return s
 }
 
-// Continas information about the remote IP address of the connection.
+// Describes the public access policies that apply to the S3 bucket.
+type PublicAccess struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the effective permission on this bucket after factoring all attached
+	// policies.
+	EffectivePermission *string `locationName:"effectivePermission" type:"string"`
+
+	// Contains information about how permissions are configured for the S3 bucket.
+	PermissionConfiguration *PermissionConfiguration `locationName:"permissionConfiguration" type:"structure"`
+}
+
+// String returns the string representation
+func (s PublicAccess) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PublicAccess) GoString() string {
+	return s.String()
+}
+
+// SetEffectivePermission sets the EffectivePermission field's value.
+func (s *PublicAccess) SetEffectivePermission(v string) *PublicAccess {
+	s.EffectivePermission = &v
+	return s
+}
+
+// SetPermissionConfiguration sets the PermissionConfiguration field's value.
+func (s *PublicAccess) SetPermissionConfiguration(v *PermissionConfiguration) *PublicAccess {
+	s.PermissionConfiguration = v
+	return s
+}
+
+// Contains information about the remote IP address of the connection.
 type RemoteIpDetails struct {
 	_ struct{} `type:"structure"`
 
-	// City information of the remote IP address.
+	// The city information of the remote IP address.
 	City *City `locationName:"city" type:"structure"`
 
-	// Country code of the remote IP address.
+	// The country code of the remote IP address.
 	Country *Country `locationName:"country" type:"structure"`
 
-	// Location information of the remote IP address.
+	// The location information of the remote IP address.
 	GeoLocation *GeoLocation `locationName:"geoLocation" type:"structure"`
 
-	// IPV4 remote address of the connection.
+	// The IPv4 remote address of the connection.
 	IpAddressV4 *string `locationName:"ipAddressV4" type:"string"`
 
-	// ISP Organization information of the remote IP address.
+	// The ISP organization information of the remote IP address.
 	Organization *Organization `locationName:"organization" type:"structure"`
 }
 
@@ -10162,10 +11417,10 @@ func (s *RemoteIpDetails) SetOrganization(v *Organization) *RemoteIpDetails {
 type RemotePortDetails struct {
 	_ struct{} `type:"structure"`
 
-	// Port number of the remote connection.
+	// The port number of the remote connection.
 	Port *int64 `locationName:"port" type:"integer"`
 
-	// Port name of the remote connection.
+	// The port name of the remote connection.
 	PortName *string `locationName:"portName" type:"string"`
 }
 
@@ -10204,8 +11459,11 @@ type Resource struct {
 	// prompted GuardDuty to generate a finding.
 	InstanceDetails *InstanceDetails `locationName:"instanceDetails" type:"structure"`
 
-	// The type of the AWS resource.
+	// The type of AWS resource.
 	ResourceType *string `locationName:"resourceType" type:"string"`
+
+	// Contains information on the S3 bucket.
+	S3BucketDetails []*S3BucketDetail `locationName:"s3BucketDetails" type:"list"`
 }
 
 // String returns the string representation
@@ -10236,14 +11494,106 @@ func (s *Resource) SetResourceType(v string) *Resource {
 	return s
 }
 
+// SetS3BucketDetails sets the S3BucketDetails field's value.
+func (s *Resource) SetS3BucketDetails(v []*S3BucketDetail) *Resource {
+	s.S3BucketDetails = v
+	return s
+}
+
+type S3BucketDetail struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the S3 bucket.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date and time the bucket was created at.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// Describes the server side encryption method used in the S3 bucket.
+	DefaultServerSideEncryption *DefaultServerSideEncryption `locationName:"defaultServerSideEncryption" type:"structure"`
+
+	// The name of the S3 bucket.
+	Name *string `locationName:"name" type:"string"`
+
+	// The owner of the S3 bucket.
+	Owner *Owner `locationName:"owner" type:"structure"`
+
+	// Describes the public access policies that apply to the S3 bucket.
+	PublicAccess *PublicAccess `locationName:"publicAccess" type:"structure"`
+
+	// All tags attached to the S3 bucket
+	Tags []*Tag `locationName:"tags" type:"list"`
+
+	// Describes whether the bucket is a source or destination bucket.
+	Type *string `locationName:"type" type:"string"`
+}
+
+// String returns the string representation
+func (s S3BucketDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s S3BucketDetail) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *S3BucketDetail) SetArn(v string) *S3BucketDetail {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *S3BucketDetail) SetCreatedAt(v time.Time) *S3BucketDetail {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDefaultServerSideEncryption sets the DefaultServerSideEncryption field's value.
+func (s *S3BucketDetail) SetDefaultServerSideEncryption(v *DefaultServerSideEncryption) *S3BucketDetail {
+	s.DefaultServerSideEncryption = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *S3BucketDetail) SetName(v string) *S3BucketDetail {
+	s.Name = &v
+	return s
+}
+
+// SetOwner sets the Owner field's value.
+func (s *S3BucketDetail) SetOwner(v *Owner) *S3BucketDetail {
+	s.Owner = v
+	return s
+}
+
+// SetPublicAccess sets the PublicAccess field's value.
+func (s *S3BucketDetail) SetPublicAccess(v *PublicAccess) *S3BucketDetail {
+	s.PublicAccess = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *S3BucketDetail) SetTags(v []*Tag) *S3BucketDetail {
+	s.Tags = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *S3BucketDetail) SetType(v string) *S3BucketDetail {
+	s.Type = &v
+	return s
+}
+
 // Contains information about the security groups associated with the EC2 instance.
 type SecurityGroup struct {
 	_ struct{} `type:"structure"`
 
-	// EC2 instance's security group ID.
+	// The security group ID of the EC2 instance.
 	GroupId *string `locationName:"groupId" type:"string"`
 
-	// EC2 instance's security group name.
+	// The security group name of the EC2 instance.
 	GroupName *string `locationName:"groupName" type:"string"`
 }
 
@@ -10273,36 +11623,36 @@ func (s *SecurityGroup) SetGroupName(v string) *SecurityGroup {
 type Service struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the activity described in a finding.
+	// Information about the activity that is described in a finding.
 	Action *Action `locationName:"action" type:"structure"`
 
 	// Indicates whether this finding is archived.
 	Archived *bool `locationName:"archived" type:"boolean"`
 
-	// Total count of the occurrences of this finding type.
+	// The total count of the occurrences of this finding type.
 	Count *int64 `locationName:"count" type:"integer"`
 
-	// Detector ID for the GuardDuty service.
+	// The detector ID for the GuardDuty service.
 	DetectorId *string `locationName:"detectorId" min:"1" type:"string"`
 
-	// First seen timestamp of the activity that prompted GuardDuty to generate
+	// The first-seen timestamp of the activity that prompted GuardDuty to generate
 	// this finding.
 	EventFirstSeen *string `locationName:"eventFirstSeen" type:"string"`
 
-	// Last seen timestamp of the activity that prompted GuardDuty to generate this
-	// finding.
+	// The last-seen timestamp of the activity that prompted GuardDuty to generate
+	// this finding.
 	EventLastSeen *string `locationName:"eventLastSeen" type:"string"`
 
 	// An evidence object associated with the service.
 	Evidence *Evidence `locationName:"evidence" type:"structure"`
 
-	// Resource role information for this finding.
+	// The resource role information for this finding.
 	ResourceRole *string `locationName:"resourceRole" type:"string"`
 
 	// The name of the AWS service (GuardDuty) that generated a finding.
 	ServiceName *string `locationName:"serviceName" type:"string"`
 
-	// Feedback left about the finding.
+	// Feedback that was submitted about the finding.
 	UserFeedback *string `locationName:"userFeedback" type:"string"`
 }
 
@@ -10380,11 +11730,11 @@ func (s *Service) SetUserFeedback(v string) *Service {
 type SortCriteria struct {
 	_ struct{} `type:"structure"`
 
-	// Represents the finding attribute (for example, accountId) by which to sort
-	// findings.
+	// Represents the finding attribute (for example, accountId) to sort findings
+	// by.
 	AttributeName *string `locationName:"attributeName" type:"string"`
 
-	// Order by which the sorted findings are to be displayed.
+	// The order by which the sorted findings are to be displayed.
 	OrderBy *string `locationName:"orderBy" type:"string" enum:"OrderBy"`
 }
 
@@ -10472,8 +11822,8 @@ func (s *StartMonitoringMembersInput) SetDetectorId(v string) *StartMonitoringMe
 type StartMonitoringMembersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain the unprocessed account and a result string
+	// that explains why it was unprocessed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -10498,14 +11848,13 @@ func (s *StartMonitoringMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAc
 type StopMonitoringMembersInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of account IDs of the GuardDuty member accounts whose findings you
-	// want the master account to stop monitoring.
+	// A list of account IDs for the member accounts to stop monitoring.
 	//
 	// AccountIds is a required field
 	AccountIds []*string `locationName:"accountIds" min:"1" type:"list" required:"true"`
 
-	// The unique ID of the detector of the GuardDuty account that you want to stop
-	// from monitor members' findings.
+	// The unique ID of the detector associated with the GuardDuty master account
+	// that is monitoring member accounts.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -10558,8 +11907,9 @@ func (s *StopMonitoringMembersInput) SetDetectorId(v string) *StopMonitoringMemb
 type StopMonitoringMembersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of objects containing the unprocessed account and a result string
-	// explaining why it was unprocessed.
+	// A list of objects that contain an accountId for each account that could not
+	// be processed, and a result string that indicates why the account was not
+	// processed.
 	//
 	// UnprocessedAccounts is a required field
 	UnprocessedAccounts []*UnprocessedAccount `locationName:"unprocessedAccounts" type:"list" required:"true"`
@@ -10581,14 +11931,14 @@ func (s *StopMonitoringMembersOutput) SetUnprocessedAccounts(v []*UnprocessedAcc
 	return s
 }
 
-// Contains information about a tag associated with the Ec2 instance.
+// Contains information about a tag associated with the EC2 instance.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
-	// EC2 instance tag key.
+	// The EC2 instance tag key.
 	Key *string `locationName:"key" type:"string"`
 
-	// EC2 instance tag value.
+	// The EC2 instance tag value.
 	Value *string `locationName:"value" type:"string"`
 }
 
@@ -10730,7 +12080,7 @@ type UnarchiveFindingsInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// IDs of the findings to unarchive.
+	// The IDs of the findings to unarchive.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
@@ -10791,11 +12141,11 @@ func (s UnarchiveFindingsOutput) GoString() string {
 	return s.String()
 }
 
-// Contains information about the accounts that were not processed.
+// Contains information about the accounts that weren't processed.
 type UnprocessedAccount struct {
 	_ struct{} `type:"structure"`
 
-	// AWS Account ID.
+	// The AWS account ID.
 	//
 	// AccountId is a required field
 	AccountId *string `locationName:"accountId" min:"12" type:"string" required:"true"`
@@ -10911,7 +12261,7 @@ type UpdateDetectorInput struct {
 	// Specifies whether the detector is enabled or not enabled.
 	Enable *bool `locationName:"enable" type:"boolean"`
 
-	// A enum value that specifies how frequently findings are exported, such as
+	// An enum value that specifies how frequently findings are exported, such as
 	// to CloudWatch Events.
 	FindingPublishingFrequency *string `locationName:"findingPublishingFrequency" type:"string" enum:"FindingPublishingFrequency"`
 }
@@ -11118,7 +12468,7 @@ type UpdateFindingsFeedbackInput struct {
 	// Feedback is a required field
 	Feedback *string `locationName:"feedback" type:"string" required:"true" enum:"Feedback"`
 
-	// IDs of the findings that you want to mark as useful or not useful.
+	// The IDs of the findings that you want to mark as useful or not useful.
 	//
 	// FindingIds is a required field
 	FindingIds []*string `locationName:"findingIds" type:"list" required:"true"`
@@ -11197,7 +12547,7 @@ func (s UpdateFindingsFeedbackOutput) GoString() string {
 type UpdateIPSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The updated boolean value that specifies whether the IPSet is active or not.
+	// The updated Boolean value that specifies whether the IPSet is active or not.
 	Activate *bool `locationName:"activate" type:"boolean"`
 
 	// The detectorID that specifies the GuardDuty service whose IPSet you want
@@ -11211,7 +12561,7 @@ type UpdateIPSetInput struct {
 	// IpSetId is a required field
 	IpSetId *string `location:"uri" locationName:"ipSetId" type:"string" required:"true"`
 
-	// The updated URI of the file that contains the IPSet. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key).
+	// The updated URI of the file that contains the IPSet. For example: https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	Location *string `locationName:"location" min:"1" type:"string"`
 
 	// The unique ID that specifies the IPSet that you want to update.
@@ -11300,10 +12650,79 @@ func (s UpdateIPSetOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateOrganizationConfigurationInput struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether to automatically enable member accounts in the organization.
+	//
+	// AutoEnable is a required field
+	AutoEnable *bool `locationName:"autoEnable" type:"boolean" required:"true"`
+
+	// The ID of the detector to update the delegated administrator for.
+	//
+	// DetectorId is a required field
+	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateOrganizationConfigurationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateOrganizationConfigurationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateOrganizationConfigurationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateOrganizationConfigurationInput"}
+	if s.AutoEnable == nil {
+		invalidParams.Add(request.NewErrParamRequired("AutoEnable"))
+	}
+	if s.DetectorId == nil {
+		invalidParams.Add(request.NewErrParamRequired("DetectorId"))
+	}
+	if s.DetectorId != nil && len(*s.DetectorId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DetectorId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAutoEnable sets the AutoEnable field's value.
+func (s *UpdateOrganizationConfigurationInput) SetAutoEnable(v bool) *UpdateOrganizationConfigurationInput {
+	s.AutoEnable = &v
+	return s
+}
+
+// SetDetectorId sets the DetectorId field's value.
+func (s *UpdateOrganizationConfigurationInput) SetDetectorId(v string) *UpdateOrganizationConfigurationInput {
+	s.DetectorId = &v
+	return s
+}
+
+type UpdateOrganizationConfigurationOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateOrganizationConfigurationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateOrganizationConfigurationOutput) GoString() string {
+	return s.String()
+}
+
 type UpdatePublishingDestinationInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the detector associated with the publishing destinations to update.
+	// The ID of the publishing destination to update.
 	//
 	// DestinationId is a required field
 	DestinationId *string `location:"uri" locationName:"destinationId" type:"string" required:"true"`
@@ -11312,7 +12731,7 @@ type UpdatePublishingDestinationInput struct {
 	// of the publishing destination.
 	DestinationProperties *DestinationProperties `locationName:"destinationProperties" type:"structure"`
 
-	// The ID of the
+	// The ID of the detector associated with the publishing destinations to update.
 	//
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
@@ -11385,7 +12804,7 @@ func (s UpdatePublishingDestinationOutput) GoString() string {
 type UpdateThreatIntelSetInput struct {
 	_ struct{} `type:"structure"`
 
-	// The updated boolean value that specifies whether the ThreateIntelSet is active
+	// The updated Boolean value that specifies whether the ThreateIntelSet is active
 	// or not.
 	Activate *bool `locationName:"activate" type:"boolean"`
 
@@ -11395,8 +12814,8 @@ type UpdateThreatIntelSetInput struct {
 	// DetectorId is a required field
 	DetectorId *string `location:"uri" locationName:"detectorId" min:"1" type:"string" required:"true"`
 
-	// The updated URI of the file that contains the ThreateIntelSet. For example
-	// (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key)
+	// The updated URI of the file that contains the ThreateIntelSet. For example:
+	// https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key.
 	Location *string `locationName:"location" min:"1" type:"string"`
 
 	// The unique ID that specifies the ThreatIntelSet that you want to update.
@@ -11489,6 +12908,14 @@ func (s UpdateThreatIntelSetOutput) String() string {
 func (s UpdateThreatIntelSetOutput) GoString() string {
 	return s.String()
 }
+
+const (
+	// AdminStatusEnabled is a AdminStatus enum value
+	AdminStatusEnabled = "ENABLED"
+
+	// AdminStatusDisableInProgress is a AdminStatus enum value
+	AdminStatusDisableInProgress = "DISABLE_IN_PROGRESS"
+)
 
 const (
 	// DestinationTypeS3 is a DestinationType enum value

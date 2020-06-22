@@ -63,7 +63,7 @@ resource "aws_dx_hosted_public_virtual_interface_accepter" "accepter" {
 The following arguments are supported:
 
 * `virtual_interface_id` - (Required) The ID of the Direct Connect virtual interface to accept.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Removing `aws_dx_hosted_public_virtual_interface_accepter` from your configuration
 

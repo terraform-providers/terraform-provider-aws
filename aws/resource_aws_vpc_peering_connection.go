@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsVpcPeeringConnection() *schema.Resource {
@@ -103,11 +104,18 @@ func resourceAwsVPCPeeringCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error waiting for VPC Peering Connection to become available: %s", err)
 	}
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
+			return fmt.Errorf("error adding tags: %s", err)
+		}
+	}
+
 	return resourceAwsVPCPeeringUpdate(d, meta)
 }
 
 func resourceAwsVPCPeeringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*AWSClient)
+	ignoreTagsConfig := client.IgnoreTagsConfig
 
 	pcRaw, statusCode, err := vpcPeeringConnectionRefreshState(client.ec2conn, d.Id())()
 	// Allow a failed VPC Peering Connection to fallthrough,
@@ -161,7 +169,7 @@ func resourceAwsVPCPeeringRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting VPC Peering Connection requester information: %s", err)
 	}
 
-	err = d.Set("tags", tagsToMap(pc.Tags))
+	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(pc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {
 		return fmt.Errorf("Error setting VPC Peering Connection tags: %s", err)
 	}
@@ -189,8 +197,8 @@ func resourceAwsVpcPeeringConnectionModifyOptions(d *schema.ResourceData, meta i
 
 	req := &ec2.ModifyVpcPeeringConnectionOptionsInput{
 		VpcPeeringConnectionId:            aws.String(d.Id()),
-		AccepterPeeringConnectionOptions:  expandVpcPeeringConnectionOptions(d.Get("accepter").(*schema.Set).List(), crossRegionPeering),
-		RequesterPeeringConnectionOptions: expandVpcPeeringConnectionOptions(d.Get("requester").(*schema.Set).List(), crossRegionPeering),
+		AccepterPeeringConnectionOptions:  expandVpcPeeringConnectionOptions(d.Get("accepter").([]interface{}), crossRegionPeering),
+		RequesterPeeringConnectionOptions: expandVpcPeeringConnectionOptions(d.Get("requester").([]interface{}), crossRegionPeering),
 	}
 
 	log.Printf("[DEBUG] Modifying VPC Peering Connection options: %#v", req)
@@ -202,10 +210,12 @@ func resourceAwsVpcPeeringConnectionModifyOptions(d *schema.ResourceData, meta i
 func resourceAwsVPCPeeringUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if err := setTags(conn, d); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
+	if d.HasChange("tags") && !d.IsNewResource() {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 VPC Peering Connection (%s) tags: %s", d.Id(), err)
+		}
 	}
 
 	pcRaw, statusCode, err := vpcPeeringConnectionRefreshState(conn, d.Id())()
@@ -227,7 +237,7 @@ func resourceAwsVPCPeeringUpdate(d *schema.ResourceData, meta interface{}) error
 		log.Printf("[DEBUG] VPC Peering Connection accept status: %s", statusCode)
 	}
 
-	if d.HasChange("accepter") || d.HasChange("requester") {
+	if d.HasChanges("accepter", "requester") {
 		if statusCode == ec2.VpcPeeringConnectionStateReasonCodeActive || statusCode == ec2.VpcPeeringConnectionStateReasonCodeProvisioning {
 			pc := pcRaw.(*ec2.VpcPeeringConnection)
 			crossRegionPeering := false
@@ -315,7 +325,7 @@ func vpcPeeringConnectionRefreshState(conn *ec2.EC2, id string) resource.StateRe
 
 func vpcPeeringConnectionOptionsSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Computed: true,
 		MaxItems: 1,

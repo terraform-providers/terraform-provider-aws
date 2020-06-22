@@ -89,7 +89,7 @@ func (c *MediaLive) WaitUntilChannelDeleted(input *DescribeChannelInput) error {
 func (c *MediaLive) WaitUntilChannelDeletedWithContext(ctx aws.Context, input *DescribeChannelInput, opts ...request.WaiterOption) error {
 	w := request.Waiter{
 		Name:        "WaitUntilChannelDeleted",
-		MaxAttempts: 20,
+		MaxAttempts: 84,
 		Delay:       request.ConstantWaiterDelay(5 * time.Second),
 		Acceptors: []request.WaiterAcceptor{
 			{
@@ -201,7 +201,7 @@ func (c *MediaLive) WaitUntilChannelStopped(input *DescribeChannelInput) error {
 func (c *MediaLive) WaitUntilChannelStoppedWithContext(ctx aws.Context, input *DescribeChannelInput, opts ...request.WaiterOption) error {
 	w := request.Waiter{
 		Name:        "WaitUntilChannelStopped",
-		MaxAttempts: 28,
+		MaxAttempts: 60,
 		Delay:       request.ConstantWaiterDelay(5 * time.Second),
 		Acceptors: []request.WaiterAcceptor{
 			{
@@ -228,6 +228,179 @@ func (c *MediaLive) WaitUntilChannelStoppedWithContext(ctx aws.Context, input *D
 				inCpy = &tmp
 			}
 			req, _ := c.DescribeChannelRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+// WaitUntilInputAttached uses the MediaLive API operation
+// DescribeInput to wait for a condition to be met before returning.
+// If the condition is not met within the max attempt window, an error will
+// be returned.
+func (c *MediaLive) WaitUntilInputAttached(input *DescribeInputInput) error {
+	return c.WaitUntilInputAttachedWithContext(aws.BackgroundContext(), input)
+}
+
+// WaitUntilInputAttachedWithContext is an extended version of WaitUntilInputAttached.
+// With the support for passing in a context and options to configure the
+// Waiter and the underlying request options.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaLive) WaitUntilInputAttachedWithContext(ctx aws.Context, input *DescribeInputInput, opts ...request.WaiterOption) error {
+	w := request.Waiter{
+		Name:        "WaitUntilInputAttached",
+		MaxAttempts: 20,
+		Delay:       request.ConstantWaiterDelay(5 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "ATTACHED",
+			},
+			{
+				State:   request.RetryWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "DETACHED",
+			},
+			{
+				State:    request.RetryWaiterState,
+				Matcher:  request.StatusWaiterMatch,
+				Expected: 500,
+			},
+		},
+		Logger: c.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *DescribeInputInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeInputRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+// WaitUntilInputDeleted uses the MediaLive API operation
+// DescribeInput to wait for a condition to be met before returning.
+// If the condition is not met within the max attempt window, an error will
+// be returned.
+func (c *MediaLive) WaitUntilInputDeleted(input *DescribeInputInput) error {
+	return c.WaitUntilInputDeletedWithContext(aws.BackgroundContext(), input)
+}
+
+// WaitUntilInputDeletedWithContext is an extended version of WaitUntilInputDeleted.
+// With the support for passing in a context and options to configure the
+// Waiter and the underlying request options.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaLive) WaitUntilInputDeletedWithContext(ctx aws.Context, input *DescribeInputInput, opts ...request.WaiterOption) error {
+	w := request.Waiter{
+		Name:        "WaitUntilInputDeleted",
+		MaxAttempts: 20,
+		Delay:       request.ConstantWaiterDelay(5 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "DELETED",
+			},
+			{
+				State:   request.RetryWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "DELETING",
+			},
+			{
+				State:    request.RetryWaiterState,
+				Matcher:  request.StatusWaiterMatch,
+				Expected: 500,
+			},
+		},
+		Logger: c.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *DescribeInputInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeInputRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+	w.ApplyOptions(opts...)
+
+	return w.WaitWithContext(ctx)
+}
+
+// WaitUntilInputDetached uses the MediaLive API operation
+// DescribeInput to wait for a condition to be met before returning.
+// If the condition is not met within the max attempt window, an error will
+// be returned.
+func (c *MediaLive) WaitUntilInputDetached(input *DescribeInputInput) error {
+	return c.WaitUntilInputDetachedWithContext(aws.BackgroundContext(), input)
+}
+
+// WaitUntilInputDetachedWithContext is an extended version of WaitUntilInputDetached.
+// With the support for passing in a context and options to configure the
+// Waiter and the underlying request options.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *MediaLive) WaitUntilInputDetachedWithContext(ctx aws.Context, input *DescribeInputInput, opts ...request.WaiterOption) error {
+	w := request.Waiter{
+		Name:        "WaitUntilInputDetached",
+		MaxAttempts: 84,
+		Delay:       request.ConstantWaiterDelay(5 * time.Second),
+		Acceptors: []request.WaiterAcceptor{
+			{
+				State:   request.SuccessWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "DETACHED",
+			},
+			{
+				State:   request.RetryWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "CREATING",
+			},
+			{
+				State:   request.RetryWaiterState,
+				Matcher: request.PathWaiterMatch, Argument: "State",
+				Expected: "ATTACHED",
+			},
+			{
+				State:    request.RetryWaiterState,
+				Matcher:  request.StatusWaiterMatch,
+				Expected: 500,
+			},
+		},
+		Logger: c.Config.Logger,
+		NewRequest: func(opts []request.Option) (*request.Request, error) {
+			var inCpy *DescribeInputInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeInputRequest(inCpy)
 			req.SetContext(ctx)
 			req.ApplyOptions(opts...)
 			return req, nil

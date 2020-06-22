@@ -43,6 +43,73 @@ resource "aws_cognito_user_pool_client" "client" {
 }
 ```
 
+### Create a user pool client with pinpoint analytics
+
+```hcl
+data "aws_caller_identity" "current" {}
+
+resource "aws_cognito_user_pool" "test" {
+  name = "pool"
+}
+
+resource "aws_pinpoint_app" "test" {
+  name = "pinpoint"
+}
+
+resource "aws_iam_role" "test" {
+  name = "role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "cognito-idp.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = "role_policy"
+  role = "${aws_iam_role.test.id}"
+
+  policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": [
+          "mobiletargeting:UpdateEndpoint",
+          "mobiletargeting:PutItems"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:mobiletargeting:*:${data.aws_caller_identity.current.account_id}:apps/${aws_pinpoint_app.test.application_id}*"
+      }
+    ]
+  }
+  EOF
+}
+
+resource "aws_cognito_user_pool_client" "test" {
+  name         = "pool_client"
+  user_pool_id = "${aws_cognito_user_pool.test.id}"
+
+  analytics_configuration {
+    application_id   = "${aws_pinpoint_app.test.application_id}"
+    external_id      = "some_id"
+    role_arn         = "${aws_iam_role.test.arn}"
+    user_data_shared = true
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -56,11 +123,20 @@ The following arguments are supported:
 * `generate_secret` - (Optional) Should an application secret be generated.
 * `logout_urls` - (Optional) List of allowed logout URLs for the identity providers.
 * `name` - (Required) The name of the application client.
+* `prevent_user_existence_errors` - (Optional) Choose which errors and responses are returned by Cognito APIs during authentication, account confirmation, and password recovery when the user does not exist in the user pool. When set to `ENABLED` and the user does not exist, authentication returns an error indicating either the username or password was incorrect, and account confirmation and password recovery return a response indicating a code was sent to a simulated destination. When set to `LEGACY`, those APIs will return a `UserNotFoundException` exception if the user does not exist in the user pool.
 * `read_attributes` - (Optional) List of user pool attributes the application client can read from.
 * `refresh_token_validity` - (Optional) The time limit in days refresh tokens are valid for.
 * `supported_identity_providers` - (Optional) List of provider names for the identity providers that are supported on this client.
 * `user_pool_id` - (Required) The user pool the client belongs to.
 * `write_attributes` - (Optional) List of user pool attributes the application client can write to.
+* `analytics_configuration` - (Optional) The Amazon Pinpoint analytics configuration for collecting metrics for this user pool.
+
+### Analytics Configuration
+
+* `application_id` - (Required) The application ID for an Amazon Pinpoint application.
+* `external_id`  - (Required) An ID for the Analytics Configuration.
+* `role_arn` - (Required) The ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics.
+* `user_data_shared` (Optional) If set to `true`, Amazon Cognito will include user data in the events it publishes to Amazon Pinpoint analytics.
 
 ## Attribute Reference
 

@@ -25,8 +25,8 @@ resource "aws_placement_group" "web" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the placement group.
-* `strategy` - (Required) The placement strategy.
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `strategy` - (Required) The placement strategy. Can be `"cluster"`, `"partition"` or `"spread"`.
+* `tags` - (Optional) Key-value map of resource tags.
 
 
 ## Attributes Reference

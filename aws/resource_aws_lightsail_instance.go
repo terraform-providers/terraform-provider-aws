@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -89,7 +88,7 @@ func resourceAwsLightsailInstance() *schema.Resource {
 				Computed: true,
 			},
 			"ram_size": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeFloat,
 				Computed: true,
 			},
 			"ipv6_address": {
@@ -172,6 +171,8 @@ func resourceAwsLightsailInstanceCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).lightsailconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	resp, err := conn.GetInstance(&lightsail.GetInstanceInput{
 		InstanceName: aws.String(d.Id()),
 	})
@@ -207,13 +208,13 @@ func resourceAwsLightsailInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("username", i.Username)
 	d.Set("created_at", i.CreatedAt.Format(time.RFC3339))
 	d.Set("cpu_count", i.Hardware.CpuCount)
-	d.Set("ram_size", strconv.FormatFloat(*i.Hardware.RamSizeInGb, 'f', 0, 64))
+	d.Set("ram_size", i.Hardware.RamSizeInGb)
 	d.Set("ipv6_address", i.Ipv6Address)
 	d.Set("is_static_ip", i.IsStaticIp)
 	d.Set("private_ip_address", i.PrivateIpAddress)
 	d.Set("public_ip_address", i.PublicIpAddress)
 
-	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.LightsailKeyValueTags(i.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

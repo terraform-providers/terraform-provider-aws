@@ -58,6 +58,7 @@ The `tfproviderdocs check` command verifies the Terraform Provider documentation
 
 - Verifies that no invalid directories are found in the documentation directory structure.
 - Ensures that there is not a mix (legacy and Terraform Registry) of directory structures, which is not supported during Terraform Registry documentation ingress.
+- Verifies side navigation for missing links and mismatched link text (if legacy directory structure).
 - Verifies number of documentation files is below Terraform Registry storage limits.
 - Verifies all known data sources and resources have an associated documentation file (if `-providers-schema-json` is provided)
 - Verifies no extraneous or incorrectly named documentation files exist (if `-providers-schema-json` is provided)

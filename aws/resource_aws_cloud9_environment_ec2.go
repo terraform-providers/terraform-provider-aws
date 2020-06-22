@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
@@ -61,6 +62,7 @@ func resourceAwsCloud9EnvironmentEc2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -72,6 +74,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 		InstanceType:       aws.String(d.Get("instance_type").(string)),
 		Name:               aws.String(d.Get("name").(string)),
 		ClientRequestToken: aws.String(resource.UniqueId()),
+		Tags:               keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().Cloud9Tags(),
 	}
 
 	if v, ok := d.GetOk("automatic_stop_time_minutes"); ok {
@@ -145,6 +148,7 @@ func resourceAwsCloud9EnvironmentEc2Create(d *schema.ResourceData, meta interfac
 
 func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloud9conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Reading Cloud9 Environment EC2 %s", d.Id())
 
@@ -166,11 +170,22 @@ func resourceAwsCloud9EnvironmentEc2Read(d *schema.ResourceData, meta interface{
 	}
 	env := out.Environments[0]
 
-	d.Set("arn", env.Arn)
+	arn := aws.StringValue(env.Arn)
+	d.Set("arn", arn)
 	d.Set("description", env.Description)
 	d.Set("name", env.Name)
 	d.Set("owner_arn", env.OwnerArn)
 	d.Set("type", env.Type)
+
+	tags, err := keyvaluetags.Cloud9ListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Cloud9 EC2 Environment (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
 
 	log.Printf("[DEBUG] Received Cloud9 Environment EC2: %s", env)
 
@@ -194,6 +209,15 @@ func resourceAwsCloud9EnvironmentEc2Update(d *schema.ResourceData, meta interfac
 	}
 
 	log.Printf("[DEBUG] Cloud9 Environment EC2 updated: %s", out)
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+		arn := d.Get("arn").(string)
+
+		if err := keyvaluetags.Cloud9UpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Cloud9 EC2 Environment (%s) tags: %s", arn, err)
+		}
+	}
 
 	return resourceAwsCloud9EnvironmentEc2Read(d, meta)
 }

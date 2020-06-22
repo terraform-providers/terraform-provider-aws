@@ -163,8 +163,9 @@ func TestAccAwsDxGatewayAssociationProposal_basicTransitGateway(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
-		CheckDestroy:      testAccCheckAwsDxGatewayAssociationProposalDestroy,
+		ProviderFactories:   testAccProviderFactories(&providers),
+		CheckDestroy:        testAccCheckAwsDxGatewayAssociationProposalDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDxGatewayAssociationProposalConfig_basicTransitGateway(rName, rBgpAsn),

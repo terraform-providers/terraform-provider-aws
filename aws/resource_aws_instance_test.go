@@ -6,11 +6,11 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -159,8 +159,7 @@ func TestAccAWSInstance_inDefaultVpcBySgName(t *testing.T) {
 			{
 				Config: testAccInstanceConfigInDefaultVpcBySgName(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 				),
 			},
 			{
@@ -185,8 +184,7 @@ func TestAccAWSInstance_inDefaultVpcBySgId(t *testing.T) {
 			{
 				Config: testAccInstanceConfigInDefaultVpcBySgId(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 				),
 			},
 			{
@@ -216,8 +214,7 @@ func TestAccAWSInstance_inEc2Classic(t *testing.T) {
 			{
 				Config: testAccInstanceConfigInEc2Classic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 				),
 			},
 			{
@@ -260,7 +257,7 @@ func TestAccAWSInstance_basic(t *testing.T) {
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
-			// Create a volume to cover #1249
+			// Create a volume to cover https://github.com/hashicorp/terraform/issues/1249
 			{
 				// Need a resource in this config so the provisioner will be available
 				Config: testAccInstanceConfig_pre(rInt),
@@ -277,19 +274,13 @@ func TestAccAWSInstance_basic(t *testing.T) {
 			{
 				Config: testAccInstanceConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 					testCheck(rInt),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"user_data",
-						"3dc39dda39be1205215e776bad998da361a5955d"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.#", "0"),
-					resource.TestMatchResourceAttr(
-						resourceName,
-						"arn",
-						regexp.MustCompile(`^arn:[^:]+:ec2:[^:]+:\d{12}:instance/i-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "user_data", "3dc39dda39be1205215e776bad998da361a5955d"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "0"), // This is an instance store AMI
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "outpost_arn", ""),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`instance/i-[a-z0-9]+`)),
 				),
 			},
 			{
@@ -303,15 +294,10 @@ func TestAccAWSInstance_basic(t *testing.T) {
 			{
 				Config: testAccInstanceConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 					testCheck(rInt),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"user_data",
-						"3dc39dda39be1205215e776bad998da361a5955d"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "user_data", "3dc39dda39be1205215e776bad998da361a5955d"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
 				),
 			},
 			// Clean up volume created above
@@ -333,9 +319,10 @@ func TestAccAWSInstance_EbsBlockDevice_KmsKeyArn(t *testing.T) {
 	resourceName := "aws_instance.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckInstanceDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccInstanceConfigEbsBlockDeviceKmsKeyArn,
@@ -392,12 +379,8 @@ func TestAccAWSInstance_userDataBase64(t *testing.T) {
 			{
 				Config: testAccInstanceConfigWithUserDataBase64(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"user_data_base64",
-						"aGVsbG8gd29ybGQ="),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "user_data_base64", "aGVsbG8gd29ybGQ="),
 				),
 			},
 			{
@@ -441,18 +424,12 @@ func TestAccAWSInstance_GP2IopsDevice(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccInstanceGP2IopsDevice,
-				//Config: testAccInstanceConfigBlockDevices,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_size", "11"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.iops", "100"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", "11"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", "100"),
 					testCheck(),
 				),
 			},
@@ -531,60 +508,41 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 		}
 	}
 
+	rootVolumeSize := "11"
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
-		IDRefreshName:   resourceName,
-		IDRefreshIgnore: []string{"ephemeral_block_device"},
-		Providers:       testAccProviders,
-		CheckDestroy:    testAccCheckInstanceDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		IDRefreshName:       resourceName,
+		IDRefreshIgnore:     []string{"ephemeral_block_device"},
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigBlockDevices,
+				Config: testAccAwsEc2InstanceConfigBlockDevices(rootVolumeSize),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.#", "1"),
-					resource.TestMatchResourceAttr(
-						resourceName, "root_block_device.0.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_size", "11"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.#", "3"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2576023345.device_name", "/dev/sdb"),
-					resource.TestMatchResourceAttr(
-						resourceName, "ebs_block_device.2576023345.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2576023345.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2554893574.device_name", "/dev/sdc"),
-					resource.TestMatchResourceAttr(
-						resourceName, "ebs_block_device.2554893574.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2554893574.volume_type", "io1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2554893574.iops", "100"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2634515331.device_name", "/dev/sdd"),
-					resource.TestMatchResourceAttr(
-						resourceName, "ebs_block_device.2634515331.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2634515331.encrypted", "true"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.2634515331.volume_size", "12"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.1692014856.device_name", "/dev/sde"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.1692014856.virtual_name", "ephemeral0"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "root_block_device.0.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.device_name", "/dev/sdb"),
+					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2576023345.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.device_name", "/dev/sdc"),
+					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2554893574.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_type", "io1"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.iops", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.device_name", "/dev/sdd"),
+					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2634515331.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.encrypted", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.1692014856.device_name", "/dev/sde"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.1692014856.virtual_name", "ephemeral0"),
 					testCheck(),
 				),
 			},
@@ -621,18 +579,12 @@ func TestAccAWSInstance_rootInstanceStore(t *testing.T) {
 						instance_type = "m3.medium"
 					}`,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "ami", "ami-44c36524"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.#", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_optimized", "false"),
-					resource.TestCheckResourceAttr(
-						resourceName, "instance_type", "m3.medium"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.#", "0"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ami", "ami-44c36524"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_optimized", "false"),
+					resource.TestCheckResourceAttr(resourceName, "instance_type", "m3.medium"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "0"),
 				),
 			},
 			{
@@ -676,11 +628,12 @@ func TestAccAWSInstance_noAMIEphemeralDevices(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
-		IDRefreshName:   resourceName,
-		IDRefreshIgnore: []string{"ephemeral_block_device"},
-		Providers:       testAccProviders,
-		CheckDestroy:    testAccCheckInstanceDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		IDRefreshName:       resourceName,
+		IDRefreshIgnore:     []string{"ephemeral_block_device"},
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -704,32 +657,19 @@ func TestAccAWSInstance_noAMIEphemeralDevices(t *testing.T) {
 						}
 					}`,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "ami", "ami-01f05461"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_optimized", "false"),
-					resource.TestCheckResourceAttr(
-						resourceName, "instance_type", "c3.large"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.#", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_size", "11"),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ebs_block_device.#", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.#", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.172787947.device_name", "/dev/sdb"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.172787947.no_device", "true"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.3336996981.device_name", "/dev/sdc"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ephemeral_block_device.3336996981.no_device", "true"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ami", "ami-01f05461"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_optimized", "false"),
+					resource.TestCheckResourceAttr(resourceName, "instance_type", "c3.large"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", "11"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.172787947.device_name", "/dev/sdb"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.172787947.no_device", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.3336996981.device_name", "/dev/sdc"),
+					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.3336996981.no_device", "true"),
 					testCheck(),
 				),
 			},
@@ -864,12 +804,8 @@ func TestAccAWSInstance_vpc(t *testing.T) {
 			{
 				Config: testAccInstanceConfigVPC(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"user_data",
-						"562a3e32810edf6ff09994f050f12e799452379d"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "user_data", "562a3e32810edf6ff09994f050f12e799452379d"),
 				),
 			},
 			{
@@ -877,6 +813,34 @@ func TestAccAWSInstance_vpc(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"associate_public_ip_address", "user_data"},
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_outpost(t *testing.T) {
+	var v ec2.Instance
+	outpostDataSourceName := "data.aws_outposts_outpost.test"
+	resourceName := "aws_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:        func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		IDRefreshName:   resourceName,
+		IDRefreshIgnore: []string{"associate_public_ip_address"},
+		Providers:       testAccProviders,
+		CheckDestroy:    testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigOutpost(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(resourceName, "outpost_arn", outpostDataSourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -897,12 +861,8 @@ func TestAccAWSInstance_placementGroup(t *testing.T) {
 			{
 				Config: testAccInstanceConfigPlacementGroup(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"placement_group",
-						rName),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "placement_group", rName),
 				),
 			},
 			{
@@ -927,12 +887,8 @@ func TestAccAWSInstance_ipv6_supportAddressCount(t *testing.T) {
 			{
 				Config: testAccInstanceConfigIpv6Support(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"ipv6_address_count",
-						"1"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_address_count", "1"),
 				),
 			},
 			{
@@ -973,12 +929,8 @@ func TestAccAWSInstance_ipv6_supportAddressCountWithIpv4(t *testing.T) {
 			{
 				Config: testAccInstanceConfigIpv6SupportWithIpv4(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"ipv6_address_count",
-						"1"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ipv6_address_count", "1"),
 				),
 			},
 			{
@@ -1006,10 +958,8 @@ func TestAccAWSInstance_multipleRegions(t *testing.T) {
 			{
 				Config: testAccInstanceConfigMultipleRegions,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExistsWithProvider(resourceName, &v,
-						testAccAwsRegionProviderFunc("us-west-2", &providers)),
-					testAccCheckInstanceExistsWithProvider("aws_instance.test2", &v,
-						testAccAwsRegionProviderFunc("us-east-1", &providers)),
+					testAccCheckInstanceExistsWithProvider(resourceName, &v, testAccAwsRegionProviderFunc("us-west-2", &providers)),
+					testAccCheckInstanceExistsWithProvider("aws_instance.test2", &v, testAccAwsRegionProviderFunc("us-east-1", &providers)),
 				),
 			},
 		},
@@ -1031,8 +981,7 @@ func TestAccAWSInstance_NetworkInstanceSecurityGroups(t *testing.T) {
 			{
 				Config: testAccInstanceNetworkInstanceSecurityGroups(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
+					testAccCheckInstanceExists(resourceName, &v),
 				),
 			},
 			{
@@ -1058,12 +1007,9 @@ func TestAccAWSInstance_NetworkInstanceRemovingAllSecurityGroups(t *testing.T) {
 			{
 				Config: testAccInstanceNetworkInstanceVPCSecurityGroupIDs(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "security_groups.#", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "vpc_security_group_ids.#", "1"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_security_group_ids.#", "1"),
 				),
 			},
 			{
@@ -1074,12 +1020,9 @@ func TestAccAWSInstance_NetworkInstanceRemovingAllSecurityGroups(t *testing.T) {
 			{
 				Config: testAccInstanceNetworkInstanceVPCRemoveSecurityGroupIDs(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "security_groups.#", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "vpc_security_group_ids.#", "1"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_security_group_ids.#", "1"),
 				),
 				ExpectError: regexp.MustCompile(`VPC-based instances require at least one security group to be attached`),
 			},
@@ -1101,12 +1044,9 @@ func TestAccAWSInstance_NetworkInstanceVPCSecurityGroupIDs(t *testing.T) {
 			{
 				Config: testAccInstanceNetworkInstanceVPCSecurityGroupIDs(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "security_groups.#", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "vpc_security_group_ids.#", "1"),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_security_group_ids.#", "1"),
 				),
 			},
 			{
@@ -1131,9 +1071,8 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "test", "test2"),
-					// Guard against regression of https://github.com/hashicorp/terraform/issues/914
-					testAccCheckTags(&v.Tags, "#", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.test", "test2"),
 				),
 			},
 			{
@@ -1145,8 +1084,8 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				Config: testAccCheckInstanceConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testAccCheckTags(&v.Tags, "test", ""),
-					testAccCheckTags(&v.Tags, "test2", "test3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.test2", "test3"),
 				),
 			},
 		},
@@ -1166,8 +1105,7 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 				Config: testAccCheckInstanceConfigNoVolumeTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckNoResourceAttr(
-						resourceName, "volume_tags"),
+					resource.TestCheckNoResourceAttr(resourceName, "volume_tags"),
 				),
 			},
 			{
@@ -1180,30 +1118,24 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 				Config: testAccCheckInstanceConfigWithVolumeTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "volume_tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "volume_tags.Name", "acceptance-test-volume-tag"),
+					resource.TestCheckResourceAttr(resourceName, "volume_tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "volume_tags.Name", "acceptance-test-volume-tag"),
 				),
 			},
 			{
 				Config: testAccCheckInstanceConfigWithVolumeTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "volume_tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "volume_tags.Name", "acceptance-test-volume-tag"),
-					resource.TestCheckResourceAttr(
-						resourceName, "volume_tags.Environment", "dev"),
+					resource.TestCheckResourceAttr(resourceName, "volume_tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "volume_tags.Name", "acceptance-test-volume-tag"),
+					resource.TestCheckResourceAttr(resourceName, "volume_tags.Environment", "dev"),
 				),
 			},
 			{
 				Config: testAccCheckInstanceConfigNoVolumeTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckNoResourceAttr(
-						resourceName, "volume_tags"),
+					resource.TestCheckNoResourceAttr(resourceName, "volume_tags"),
 				),
 			},
 		},
@@ -1403,6 +1335,45 @@ func TestAccAWSInstance_associatePublicIPAndPrivateIP(t *testing.T) {
 	})
 }
 
+// Allow Empty Private IP
+// https://github.com/terraform-providers/terraform-provider-aws/issues/13626
+func TestAccAWSInstance_Empty_PrivateIP(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := fmt.Sprintf("tf-testacc-instance-%s", acctest.RandStringFromCharSet(12, acctest.CharSetAlphaNum))
+
+	testCheckPrivateIP := func() resource.TestCheckFunc {
+		return func(*terraform.State) error {
+			if aws.StringValue(v.PrivateIpAddress) == "" {
+				return fmt.Errorf("bad computed private IP: %s", aws.StringValue(v.PrivateIpAddress))
+			}
+
+			return nil
+		}
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigEmptyPrivateIP(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					testCheckPrivateIP(),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 // Guard against regression with KeyPairs
 // https://github.com/hashicorp/terraform/issues/2302
 func TestAccAWSInstance_keyPairCheck(t *testing.T) {
@@ -1455,8 +1426,7 @@ func TestAccAWSInstance_rootBlockDeviceMismatch(t *testing.T) {
 				Config: testAccInstanceConfigRootBlockDeviceMismatch(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "root_block_device.0.volume_size", "13"),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", "13"),
 				),
 			},
 			{
@@ -1537,9 +1507,368 @@ func TestAccAWSInstance_changeInstanceType(t *testing.T) {
 				Config: testAccInstanceConfigUpdateInstanceType,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &after),
-					testAccCheckInstanceNotRecreated(
-						t, &before, &after),
+					testAccCheckInstanceNotRecreated(t, &before, &after),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_basic(t *testing.T) {
+	var instance ec2.Instance
+	resourceName := "aws_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceEbsRootDeviceBasic(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &instance),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.delete_on_termination"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.encrypted"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.iops"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.volume_size"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.volume_type"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.volume_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "root_block_device.0.device_name"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_ModifySize(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	deleteOnTermination := "true"
+	volumeType := "gp2"
+
+	originalSize := "30"
+	updatedSize := "32"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(originalSize, deleteOnTermination, volumeType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", originalSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(updatedSize, deleteOnTermination, volumeType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", updatedSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+				),
+			},
+		},
+	})
+}
+func TestAccAWSInstance_EbsRootDevice_ModifyType(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	volumeSize := "30"
+	deleteOnTermination := "true"
+
+	originalType := "gp2"
+	updatedType := "io1"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(volumeSize, deleteOnTermination, originalType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", originalType),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(volumeSize, deleteOnTermination, updatedType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", updatedType),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_ModifyIOPS(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	volumeSize := "30"
+	deleteOnTermination := "true"
+	volumeType := "io1"
+
+	originalIOPS := "100"
+	updatedIOPS := "200"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDeviceWithIOPS(volumeSize, deleteOnTermination, volumeType, originalIOPS),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", originalIOPS),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDeviceWithIOPS(volumeSize, deleteOnTermination, volumeType, updatedIOPS),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", updatedIOPS),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_ModifyDeleteOnTermination(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	volumeSize := "30"
+	volumeType := "gp2"
+
+	originalDeleteOnTermination := "false"
+	updatedDeleteOnTermination := "true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(volumeSize, originalDeleteOnTermination, volumeType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", originalDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(volumeSize, updatedDeleteOnTermination, volumeType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", updatedDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_ModifyAll(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	originalSize := "30"
+	updatedSize := "32"
+
+	originalType := "gp2"
+	updatedType := "io1"
+
+	updatedIOPS := "200"
+
+	originalDeleteOnTermination := "false"
+	updatedDeleteOnTermination := "true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDevice(originalSize, originalDeleteOnTermination, originalType),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", originalSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", originalDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", originalType),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDeviceWithIOPS(updatedSize, updatedDeleteOnTermination, updatedType, updatedIOPS),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", updatedSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", updatedDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", updatedType),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", updatedIOPS),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifySize(t *testing.T) {
+	var before ec2.Instance
+	var after ec2.Instance
+	resourceName := "aws_instance.test"
+
+	deleteOnTermination := "true"
+
+	originalRootVolumeSize := "10"
+	updatedRootVolumeSize := "14"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(originalRootVolumeSize, deleteOnTermination),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", originalRootVolumeSize),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(updatedRootVolumeSize, deleteOnTermination),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &after),
+					testAccCheckInstanceNotRecreated(t, &before, &after),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", updatedRootVolumeSize),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifyDeleteOnTermination(t *testing.T) {
+	var before ec2.Instance
+	var after ec2.Instance
+	resourceName := "aws_instance.test"
+
+	rootVolumeSize := "10"
+
+	originalDeleteOnTermination := "false"
+	updatedDeleteOnTermination := "true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(rootVolumeSize, originalDeleteOnTermination),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &before),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", originalDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(rootVolumeSize, updatedDeleteOnTermination),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &after),
+					testAccCheckInstanceNotRecreated(t, &before, &after),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", updatedDeleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+				),
+			},
+		},
+	})
+}
+
+// Test to validate fix for GH-ISSUE #1318 (dynamic ebs_block_devices forcing replacement after state refresh)
+func TestAccAWSInstance_EbsRootDevice_MultipleDynamicEBSBlockDevices(t *testing.T) {
+	var instance ec2.Instance
+
+	resourceName := "aws_instance.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckInstanceDestroy,
+		DisableBinaryDriver: true,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceConfigDynamicEBSBlockDevices,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &instance),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.delete_on_termination", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.device_name", "/dev/sdc"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.encrypted", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.iops", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.delete_on_termination", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.device_name", "/dev/sdb"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.encrypted", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.iops", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_type", "gp2"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.delete_on_termination", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.device_name", "/dev/sda"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.encrypted", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.iops", "100"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.volume_size", "10"),
+					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.volume_type", "gp2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -2530,6 +2859,50 @@ func TestAccAWSInstance_hibernation(t *testing.T) {
 	})
 }
 
+func TestAccAWSInstance_metadataOptions(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		// No subnet_id specified requires default VPC or EC2-Classic.
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckHasDefaultVpcOrEc2Classic(t)
+		},
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigMetadataOptions(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_endpoint", "disabled"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_tokens", "optional"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_put_response_hop_limit", "1"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigMetadataOptionsUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_endpoint", "enabled"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_tokens", "required"),
+					resource.TestCheckResourceAttr(resourceName, "metadata_options.0.http_put_response_hop_limit", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckInstanceNotRecreated(t *testing.T,
 	before, after *ec2.Instance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -2563,21 +2936,15 @@ func testAccCheckInstanceDestroyWithProvider(s *terraform.State, provider *schem
 		}
 
 		// Try to find the resource
-		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{aws.String(rs.Primary.ID)},
-		})
+		instance, err := resourceAwsInstanceFindByID(conn, rs.Primary.ID)
 		if err == nil {
-			for _, r := range resp.Reservations {
-				for _, i := range r.Instances {
-					if i.State != nil && *i.State.Name != "terminated" {
-						return fmt.Errorf("Found unterminated instance: %s", i)
-					}
-				}
+			if instance.State != nil && *instance.State.Name != "terminated" {
+				return fmt.Errorf("Found unterminated instance: %s", rs.Primary.ID)
 			}
 		}
 
 		// Verify the error is what we want
-		if ae, ok := err.(awserr.Error); ok && ae.Code() == "InvalidInstanceID.NotFound" {
+		if isAWSErr(err, "InvalidInstanceID.NotFound", "") {
 			continue
 		}
 
@@ -2605,15 +2972,13 @@ func testAccCheckInstanceExistsWithProvider(n string, i *ec2.Instance, providerF
 		provider := providerF()
 
 		conn := provider.Meta().(*AWSClient).ec2conn
-		resp, err := conn.DescribeInstances(&ec2.DescribeInstancesInput{
-			InstanceIds: []*string{aws.String(rs.Primary.ID)},
-		})
+		instance, err := resourceAwsInstanceFindByID(conn, rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if len(resp.Reservations) > 0 {
-			*i = *resp.Reservations[0].Instances[0]
+		if instance != nil {
+			*i = *instance
 			return nil
 		}
 
@@ -2637,34 +3002,18 @@ func testAccCheckInstanceDisappears(conf *ec2.Instance) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckStopInstance(conf *ec2.Instance) resource.TestCheckFunc {
+func testAccCheckStopInstance(instance *ec2.Instance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
 		params := &ec2.StopInstancesInput{
-			InstanceIds: []*string{conf.InstanceId},
+			InstanceIds: []*string{instance.InstanceId},
 		}
 		if _, err := conn.StopInstances(params); err != nil {
 			return err
 		}
 
-		return waitForInstanceStopping(conn, *conf.InstanceId, 10*time.Minute)
-	}
-}
-
-func TestInstanceTenancySchema(t *testing.T) {
-	actualSchema := resourceAwsInstance().Schema["tenancy"]
-	expectedSchema := &schema.Schema{
-		Type:     schema.TypeString,
-		Optional: true,
-		Computed: true,
-		ForceNew: true,
-	}
-	if !reflect.DeepEqual(actualSchema, expectedSchema) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			actualSchema,
-			expectedSchema)
+		return waitForInstanceStopping(conn, *instance.InstanceId, 10*time.Minute)
 	}
 }
 
@@ -2737,6 +3086,12 @@ func testAccInstanceConfigInDefaultVpcBySgName(rName string) string {
 data "aws_availability_zones" "current" {
   # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
   blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_vpc" "default" {
@@ -2763,6 +3118,12 @@ func testAccInstanceConfigInDefaultVpcBySgId(rName string) string {
 data "aws_availability_zones" "current" {
   # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
   blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_vpc" "default" {
@@ -2951,7 +3312,70 @@ resource "aws_instance" "test" {
 }
 `
 
-const testAccInstanceConfigBlockDevices = `
+func testAccAwsEc2InstanceEbsRootDeviceBasic() string {
+	return composeConfig(testAccAwsEc2InstanceAmiWithEbsRootVolume, `
+resource "aws_instance" "test" {
+  ami = data.aws_ami.ami.id
+
+  instance_type = "m3.medium"
+}
+`)
+}
+
+func testAccAwsEc2InstanceRootBlockDevice(size, delete, volumeType string) string {
+	return testAccAwsEc2InstanceRootBlockDeviceWithIOPS(size, delete, volumeType, "")
+}
+
+func testAccAwsEc2InstanceRootBlockDeviceWithIOPS(size, delete, volumeType, iops string) string {
+	if iops == "" {
+		iops = "null"
+	}
+	return composeConfig(testAccAwsEc2InstanceAmiWithEbsRootVolume,
+		fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami = data.aws_ami.ami.id
+
+  instance_type = "m3.medium"
+
+  root_block_device {
+    volume_size           = %[1]s
+    delete_on_termination = %[2]s
+    volume_type           = %[3]q
+    iops                  = %[4]s
+  }
+}
+`, size, delete, volumeType, iops))
+}
+
+const testAccAwsEc2InstanceAmiWithEbsRootVolume = `
+data "aws_ami" "ami" {
+  owners      = ["amazon"]
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-*"]
+  }
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+`
+
+func testAccAwsEc2InstanceConfigBlockDevices(size string) string {
+	return testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(size, "")
+}
+
+func testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(size, delete string) string {
+	if delete == "" {
+		delete = "null"
+	}
+	return fmt.Sprintf(`
 resource "aws_instance" "test" {
 	# us-west-2
 	ami = "ami-55a7ea65"
@@ -2962,8 +3386,9 @@ resource "aws_instance" "test" {
 	instance_type = "m3.medium"
 
 	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
+		volume_type           = "gp2"
+		volume_size           = %[1]s
+		delete_on_termination = %[2]s
 	}
 
 	ebs_block_device {
@@ -2990,7 +3415,8 @@ resource "aws_instance" "test" {
 		virtual_name = "ephemeral0"
 	}
 }
-`
+`, size, delete)
+}
 
 func testAccInstanceConfigSourceDestEnable(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
@@ -3034,6 +3460,44 @@ resource "aws_instance" "test" {
   tenancy                     = "dedicated"
   # pre-encoded base64 data
   user_data                   = "3dc39dda39be1205215e776bad998da361a5955d"
+}
+`)
+}
+
+func testAccInstanceConfigOutpost() string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_outposts_outpost_instance_types" "test" {
+  arn = data.aws_outposts_outpost.test.arn
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_outposts_outpost.test.availability_zone
+  cidr_block        = "10.1.1.0/24"
+  outpost_arn       = data.aws_outposts_outpost.test.arn
+  vpc_id            = aws_vpc.test.id
+}
+
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = tolist(data.aws_outposts_outpost_instance_types.test.instance_types)[0]
+  subnet_id     = aws_subnet.test.id
+
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 8
+  }
 }
 `)
 }
@@ -3435,6 +3899,17 @@ resource "aws_instance" "test" {
   instance_type = "t2.micro"
   subnet_id     = "${aws_subnet.test.id}"
   private_ip    = "10.1.1.42"
+}
+`)
+}
+
+func testAccInstanceConfigEmptyPrivateIP(rName string) string {
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  instance_type = "t2.micro"
+  subnet_id     = "${aws_subnet.test.id}"
+  private_ip    = ""
 }
 `)
 }
@@ -4124,6 +4599,12 @@ func testAccAwsInstanceVpcConfig(rName string, mapPublicIpOnLaunch bool) string 
 data "aws_availability_zones" "current" {
   # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
   blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -4189,6 +4670,12 @@ func testAccAwsInstanceVpcIpv6Config(rName string) string {
 data "aws_availability_zones" "current" {
   # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
   blacklisted_zone_ids = ["usw2-az4"]
+  state                = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -4224,7 +4711,7 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     name   = "name"
     values = ["amzn-ami-minimal-hvm-*"]
   }
-  
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
@@ -4262,3 +4749,82 @@ resource "aws_instance" "test" {
 }
 `, hibernation)
 }
+
+func testAccInstanceConfigMetadataOptions(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+
+  tags = {
+    Name = %[1]q
+  }
+
+  metadata_options {
+    http_endpoint = "disabled"
+  }
+}
+
+data "aws_instance" "test" {
+  instance_id = aws_instance.test.id
+}
+`, rName))
+}
+
+func testAccInstanceConfigMetadataOptionsUpdated(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+
+  tags = {
+    Name = %[1]q
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+}
+`, rName))
+}
+
+// testAccAvailableEc2InstanceTypeForRegion returns the configuration for a data source that describes
+// the first available EC2 instance type offering in the current region from a list of preferred instance types.
+// The data source is named 'available'.
+func testAccAvailableEc2InstanceTypeForRegion(preferredInstanceTypes ...string) string {
+	return fmt.Sprintf(`
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["%[1]v"]
+  }
+
+  preferred_instance_types = ["%[1]v"]
+}
+`, strings.Join(preferredInstanceTypes, "\", \""))
+}
+
+const testAccAwsEc2InstanceConfigDynamicEBSBlockDevices = `
+resource "aws_instance" "test" {
+  ami           = "ami-55a7ea65"
+  instance_type = "m3.medium"
+
+  dynamic "ebs_block_device" {
+    for_each = ["a", "b", "c"]
+    iterator = device
+    content {
+      device_name = format("/dev/sd%s", device.value)
+      volume_size = "10"
+      volume_type = "gp2"
+    }
+  }
+}
+`

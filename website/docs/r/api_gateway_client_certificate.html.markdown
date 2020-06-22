@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_client_certificate"
 description: |-
@@ -23,7 +23,7 @@ resource "aws_api_gateway_client_certificate" "demo" {
 The following arguments are supported:
 
 * `description` - (Optional) The description of the client certificate.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 
 ## Attribute Reference

@@ -91,7 +91,7 @@ resource "aws_api_gateway_integration" "S3Integration" {
   credentials = "${aws_iam_role.s3_api_gateyway_role.arn}"
 }
 
-resource "aws_api_gateway_method_response" "200" {
+resource "aws_api_gateway_method_response" "Status200" {
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
   resource_id = "${aws_api_gateway_rest_api.MyS3.root_resource_id}"
   http_method = "${aws_api_gateway_method.GetBuckets.http_method}"
@@ -108,7 +108,7 @@ resource "aws_api_gateway_method_response" "200" {
   }
 }
 
-resource "aws_api_gateway_method_response" "400" {
+resource "aws_api_gateway_method_response" "Status400" {
   depends_on = ["aws_api_gateway_integration.S3Integration"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
@@ -117,7 +117,7 @@ resource "aws_api_gateway_method_response" "400" {
   status_code = "400"
 }
 
-resource "aws_api_gateway_method_response" "500" {
+resource "aws_api_gateway_method_response" "Status500" {
   depends_on = ["aws_api_gateway_integration.S3Integration"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
@@ -126,13 +126,13 @@ resource "aws_api_gateway_method_response" "500" {
   status_code = "500"
 }
 
-resource "aws_api_gateway_integration_response" "200IntegrationResponse" {
+resource "aws_api_gateway_integration_response" "IntegrationResponse200" {
   depends_on = ["aws_api_gateway_integration.S3Integration"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
   resource_id = "${aws_api_gateway_rest_api.MyS3.root_resource_id}"
   http_method = "${aws_api_gateway_method.GetBuckets.http_method}"
-  status_code = "${aws_api_gateway_method_response.200.status_code}"
+  status_code = "${aws_api_gateway_method_response.Status200.status_code}"
 
   response_parameters = {
     "method.response.header.Timestamp"      = "integration.response.header.Date"
@@ -141,24 +141,24 @@ resource "aws_api_gateway_integration_response" "200IntegrationResponse" {
   }
 }
 
-resource "aws_api_gateway_integration_response" "400IntegrationResponse" {
+resource "aws_api_gateway_integration_response" "IntegrationResponse400" {
   depends_on = ["aws_api_gateway_integration.S3Integration"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
   resource_id = "${aws_api_gateway_rest_api.MyS3.root_resource_id}"
   http_method = "${aws_api_gateway_method.GetBuckets.http_method}"
-  status_code = "${aws_api_gateway_method_response.400.status_code}"
+  status_code = "${aws_api_gateway_method_response.Status400.status_code}"
 
   selection_pattern = "4\\d{2}"
 }
 
-resource "aws_api_gateway_integration_response" "500IntegrationResponse" {
+resource "aws_api_gateway_integration_response" "IntegrationResponse500" {
   depends_on = ["aws_api_gateway_integration.S3Integration"]
 
   rest_api_id = "${aws_api_gateway_rest_api.MyS3.id}"
   resource_id = "${aws_api_gateway_rest_api.MyS3.root_resource_id}"
   http_method = "${aws_api_gateway_method.GetBuckets.http_method}"
-  status_code = "${aws_api_gateway_method_response.500.status_code}"
+  status_code = "${aws_api_gateway_method_response.Status500.status_code}"
 
   selection_pattern = "5\\d{2}"
 }

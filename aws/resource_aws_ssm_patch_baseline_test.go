@@ -16,9 +16,10 @@ func TestAccAWSSSMPatchBaseline_basic(t *testing.T) {
 	name := acctest.RandString(10)
 	resourceName := "aws_ssm_patch_baseline.foo"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSSSMPatchBaselineDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckAWSSSMPatchBaselineDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSSSMPatchBaselineBasicConfig(name),

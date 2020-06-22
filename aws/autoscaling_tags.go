@@ -56,7 +56,7 @@ func setAutoscalingTags(conn *autoscaling.AutoScaling, d *schema.ResourceData) e
 	resourceID := d.Get("name").(string)
 	var createTags, removeTags []*autoscaling.Tag
 
-	if d.HasChange("tag") || d.HasChange("tags") {
+	if d.HasChanges("tag", "tags") {
 		oraw, nraw := d.GetChange("tag")
 		o := setToMapByKey(oraw.(*schema.Set))
 		n := setToMapByKey(nraw.(*schema.Set))
@@ -80,12 +80,12 @@ func setAutoscalingTags(conn *autoscaling.AutoScaling, d *schema.ResourceData) e
 		removeTags = append(removeTags, r...)
 
 		oraw, nraw = d.GetChange("tags")
-		old, err = autoscalingTagsFromList(oraw.([]interface{}), resourceID)
+		old, err = autoscalingTagsFromList(oraw.(*schema.Set).List(), resourceID)
 		if err != nil {
 			return err
 		}
 
-		new, err = autoscalingTagsFromList(nraw.([]interface{}), resourceID)
+		new, err = autoscalingTagsFromList(nraw.(*schema.Set).List(), resourceID)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func autoscalingTagsFromList(vs []interface{}, resourceID string) ([]*autoscalin
 	result := make([]*autoscaling.Tag, 0, len(vs))
 	for _, tag := range vs {
 		attr, ok := tag.(map[string]interface{})
-		if !ok {
+		if !ok || len(attr) == 0 {
 			continue
 		}
 
@@ -248,14 +248,21 @@ func autoscalingTagFromMap(attr map[string]interface{}, resourceID string) (*aut
 	return t, nil
 }
 
-// autoscalingTagDescriptionsToSlice turns the list of tags into a slice.
-func autoscalingTagDescriptionsToSlice(ts []*autoscaling.TagDescription) []map[string]interface{} {
+// autoscalingTagDescriptionsToSlice turns the list of tags into a slice. If
+// forceStrings is true, all values are converted to strings
+func autoscalingTagDescriptionsToSlice(ts []*autoscaling.TagDescription, forceStrings bool) []map[string]interface{} {
 	tags := make([]map[string]interface{}, 0, len(ts))
 	for _, t := range ts {
+		var propagateAtLaunch interface{}
+		if forceStrings {
+			propagateAtLaunch = strconv.FormatBool(aws.BoolValue(t.PropagateAtLaunch))
+		} else {
+			propagateAtLaunch = aws.BoolValue(t.PropagateAtLaunch)
+		}
 		tags = append(tags, map[string]interface{}{
-			"key":                 *t.Key,
-			"value":               *t.Value,
-			"propagate_at_launch": *t.PropagateAtLaunch,
+			"key":                 aws.StringValue(t.Key),
+			"value":               aws.StringValue(t.Value),
+			"propagate_at_launch": propagateAtLaunch,
 		})
 	}
 

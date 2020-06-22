@@ -41,6 +41,8 @@ func dataSourceAwsCustomerGateway() *schema.Resource {
 
 func dataSourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	input := ec2.DescribeCustomerGatewaysInput{}
 
 	if v, ok := d.GetOk("filter"); ok {
@@ -84,7 +86,7 @@ func dataSourceAwsCustomerGatewayRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("bgp_asn", int(asn))
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(cg.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(cg.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags for EC2 Customer Gateway %q: %s", aws.StringValue(cg.CustomerGatewayId), err)
 	}
 

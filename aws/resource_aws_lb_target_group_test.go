@@ -192,7 +192,7 @@ func TestAccAWSLBTargetGroup_withoutHealthcheck(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
-	var confBefore, confAfter elbv2.TargetGroup
+	var targetGroup1, targetGroup2, targetGroup3 elbv2.TargetGroup
 	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 	resourceName := "aws_lb_target_group.test"
 
@@ -205,7 +205,7 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCP(targetGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSLBTargetGroupExists(resourceName, &confBefore),
+					testAccCheckAWSLBTargetGroupExists(resourceName, &targetGroup1),
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
 					resource.TestCheckResourceAttr(resourceName, "port", "8082"),
@@ -216,15 +216,15 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&confBefore, 10),
+					testAccCheckAWSLBTargetGroupHealthCheckInterval(&targetGroup1, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "traffic-port"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&confBefore, 10),
+					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&targetGroup1, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&confBefore, 3),
+					testAccCheckAWSLBTargetGroupHealthyThreshold(&targetGroup1, 3),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "3"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&confBefore, 3),
+					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&targetGroup1, 3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "TestAcc_networkLB_TargetGroup"),
 				),
@@ -236,7 +236,8 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCPThresholdUpdated(targetGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckAWSLBTargetGroupExists(resourceName, &confAfter),
+					testAccCheckAWSLBTargetGroupExists(resourceName, &targetGroup2),
+					testAccCheckAWSLBTargetGroupNotRecreated(&targetGroup1, &targetGroup2),
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "name", targetGroupName),
 					resource.TestCheckResourceAttr(resourceName, "port", "8082"),
@@ -246,24 +247,57 @@ func TestAccAWSLBTargetGroup_networkLB_TargetGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.interval", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckInterval(&confAfter, 10),
+					testAccCheckAWSLBTargetGroupHealthCheckInterval(&targetGroup2, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.port", "traffic-port"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.timeout", "10"),
-					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&confAfter, 10),
+					testAccCheckAWSLBTargetGroupHealthCheckTimeout(&targetGroup2, 10),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.healthy_threshold", "5"),
-					testAccCheckAWSLBTargetGroupHealthyThreshold(&confAfter, 5),
+					testAccCheckAWSLBTargetGroupHealthyThreshold(&targetGroup2, 5),
 					resource.TestCheckResourceAttr(resourceName, "health_check.0.unhealthy_threshold", "5"),
-					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&confAfter, 5),
+					testAccCheckAWSLBTargetGroupUnhealthyThreshold(&targetGroup2, 5),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "TestAcc_networkLB_TargetGroup"),
 				),
 			},
 			{
 				Config: testAccAWSLBTargetGroupConfig_typeTCPIntervalUpdated(targetGroupName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &targetGroup3),
+					testAccCheckAWSLBTargetGroupRecreated(&targetGroup2, &targetGroup3),
+				),
+			},
+		},
+	})
+}
 
-				ExpectNonEmptyPlan: true,
-				ExpectError:        regexp.MustCompile("Health check interval cannot be updated"),
+func TestAccAWSLBTargetGroup_Protocol_Tcp_HealthCheck_Protocol(t *testing.T) {
+	var targetGroup1, targetGroup2 elbv2.TargetGroup
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	resourceName := "aws_lb_target_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBTargetGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBTargetGroupConfig_typeTCPIntervalUpdated(targetGroupName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &targetGroup1),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "TCP"),
+				),
+			},
+			{
+				Config: testAccAWSLBTargetGroupConfig_typeTCP_HTTPHealthCheck(targetGroupName, "/", 5),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBTargetGroupExists(resourceName, &targetGroup2),
+					testAccCheckAWSLBTargetGroupRecreated(&targetGroup1, &targetGroup2),
+					resource.TestCheckResourceAttr(resourceName, "health_check.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "health_check.0.protocol", "HTTPS"),
+				),
 			},
 		},
 	})
@@ -996,6 +1030,26 @@ func testAccCheckAWSLBTargetGroupExists(n string, res *elbv2.TargetGroup) resour
 		}
 
 		*res = *describe.TargetGroups[0]
+		return nil
+	}
+}
+
+func testAccCheckAWSLBTargetGroupNotRecreated(i, j *elbv2.TargetGroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(i.TargetGroupArn) != aws.StringValue(j.TargetGroupArn) {
+			return fmt.Errorf("ELBv2 Target Group (%s) unexpectedly recreated (%s)", aws.StringValue(i.TargetGroupArn), aws.StringValue(j.TargetGroupArn))
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSLBTargetGroupRecreated(i, j *elbv2.TargetGroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(i.TargetGroupArn) == aws.StringValue(j.TargetGroupArn) {
+			return fmt.Errorf("ELBv2 Target Group (%s) not recreated", aws.StringValue(i.TargetGroupArn))
+		}
+
 		return nil
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
 )
 
 func resourceAwsSecretsManagerSecret() *schema.Resource {
@@ -56,7 +57,7 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 			"recovery_window_in_days": {
@@ -76,17 +77,22 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 				},
 			},
 			"rotation_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeBool,
+				Computed:   true,
 			},
 			"rotation_lambda_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
 			},
 			"rotation_rules": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeList,
+				Computed:   true,
+				Optional:   true,
+				MaxItems:   1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"automatically_after_days": {
@@ -130,7 +136,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 
 	// Retry for secret recreation after deletion
 	var output *secretsmanager.CreateSecretOutput
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.DeletionPropagationTimeout, func() *resource.RetryError {
 		var err error
 		output, err = conn.CreateSecret(input)
 		// Temporarily retry on these errors to support immediate secret recreation:
@@ -198,6 +204,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 
 func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &secretsmanager.DescribeSecretInput{
 		SecretId: aws.String(d.Id()),
@@ -248,7 +255,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 		d.Set("rotation_rules", []interface{}{})
 	}
 
-	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -258,7 +265,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
 
-	if d.HasChange("description") || d.HasChange("kms_key_id") {
+	if d.HasChanges("description", "kms_key_id") {
 		input := &secretsmanager.UpdateSecretInput{
 			Description: aws.String(d.Get("description").(string)),
 			SecretId:    aws.String(d.Id()),
@@ -304,7 +311,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if d.HasChange("rotation_lambda_arn") || d.HasChange("rotation_rules") {
+	if d.HasChanges("rotation_lambda_arn", "rotation_rules") {
 		if v, ok := d.GetOk("rotation_lambda_arn"); ok && v.(string) != "" {
 			input := &secretsmanager.RotateSecretInput{
 				RotationLambdaARN: aws.String(v.(string)),
@@ -377,30 +384,4 @@ func resourceAwsSecretsManagerSecretDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
-}
-
-func expandSecretsManagerRotationRules(l []interface{}) *secretsmanager.RotationRulesType {
-	if len(l) == 0 {
-		return nil
-	}
-
-	m := l[0].(map[string]interface{})
-
-	rules := &secretsmanager.RotationRulesType{
-		AutomaticallyAfterDays: aws.Int64(int64(m["automatically_after_days"].(int))),
-	}
-
-	return rules
-}
-
-func flattenSecretsManagerRotationRules(rules *secretsmanager.RotationRulesType) []interface{} {
-	if rules == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"automatically_after_days": int(aws.Int64Value(rules.AutomaticallyAfterDays)),
-	}
-
-	return []interface{}{m}
 }

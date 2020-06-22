@@ -53,7 +53,7 @@ The following arguments are supported:
 * `name` - (Required) The name to use for the virtual service.
 * `mesh_name` - (Required) The name of the service mesh in which to create the virtual service.
 * `spec` - (Required) The virtual service specification to apply.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `spec` object supports the following:
 

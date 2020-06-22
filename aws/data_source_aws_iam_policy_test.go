@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -10,6 +9,7 @@ import (
 )
 
 func TestAccAWSDataSourceIAMPolicy_basic(t *testing.T) {
+	resourceName := "data.aws_iam_policy.test"
 	policyName := fmt.Sprintf("test-policy-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -19,12 +19,11 @@ func TestAccAWSDataSourceIAMPolicy_basic(t *testing.T) {
 			{
 				Config: testAccAwsDataSourceIamPolicyConfig(policyName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_iam_policy.test", "name", policyName),
-					resource.TestCheckResourceAttr("data.aws_iam_policy.test", "description", "My test policy"),
-					resource.TestCheckResourceAttr("data.aws_iam_policy.test", "path", "/"),
-					resource.TestCheckResourceAttrSet("data.aws_iam_policy.test", "policy"),
-					resource.TestMatchResourceAttr("data.aws_iam_policy.test", "arn",
-						regexp.MustCompile(`^arn:[\w-]+:([a-zA-Z0-9\-])+:([a-z]{2}-(gov-)?[a-z]+-\d{1})?:(\d{12})?:(.*)$`)),
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", "My test policy"),
+					resource.TestCheckResourceAttr(resourceName, "path", "/"),
+					resource.TestCheckResourceAttrSet(resourceName, "policy"),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_iam_policy.test_policy", "arn"),
 				),
 			},
 		},

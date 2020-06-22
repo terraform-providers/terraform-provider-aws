@@ -43,7 +43,7 @@ Route Table whose data will be exported as attributes.
 
 * `route_table_id` - (Optional) The id of the specific Route Table to retrieve.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired Route Table.
 
 * `vpc_id` - (Optional) The id of the VPC that the desired Route Table belongs to.

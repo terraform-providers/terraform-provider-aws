@@ -58,7 +58,7 @@ func resourceAwsGlacierVault() *schema.Resource {
 			"access_policy": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
@@ -102,7 +102,7 @@ func resourceAwsGlacierVaultCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(d.Get("name").(string))
-	d.Set("location", *out.Location)
+	d.Set("location", out.Location)
 
 	return resourceAwsGlacierVaultUpdate(d, meta)
 }
@@ -134,6 +134,7 @@ func resourceAwsGlacierVaultUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsGlacierVaultRead(d *schema.ResourceData, meta interface{}) error {
 	glacierconn := meta.(*AWSClient).glacierconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glacier.DescribeVaultInput{
 		VaultName: aws.String(d.Id()),
@@ -160,7 +161,7 @@ func resourceAwsGlacierVaultRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for Glacier Vault (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

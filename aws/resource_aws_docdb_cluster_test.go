@@ -43,6 +43,7 @@ func TestAccAWSDocDBCluster_basic(t *testing.T) {
 						"enabled_cloudwatch_logs_exports.0", "audit"),
 					resource.TestCheckResourceAttr(resourceName,
 						"enabled_cloudwatch_logs_exports.1", "profiler"),
+					resource.TestCheckResourceAttr(resourceName, "deletion_protection", "false"),
 				),
 			},
 			{
@@ -407,6 +408,59 @@ func TestAccAWSDocDBCluster_Port(t *testing.T) {
 	})
 }
 
+func TestAccAWSDocDBCluster_deleteProtection(t *testing.T) {
+	var dbCluster docdb.DBCluster
+	resourceName := "aws_docdb_cluster.default"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDocDBClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDocDBClusterConfigDeleteProtection(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDocDBClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "deletion_protection", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"apply_immediately",
+					"cluster_identifier_prefix",
+					"final_snapshot_identifier",
+					"master_password",
+					"skip_final_snapshot",
+				},
+			},
+			{
+				Config: testAccDocDBClusterConfigDeleteProtection(false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDocDBClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "deletion_protection", "false"),
+				),
+			},
+			{
+				Config: testAccDocDBClusterConfigDeleteProtection(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDocDBClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "deletion_protection", "true"),
+				),
+			},
+			{
+				Config: testAccDocDBClusterConfigDeleteProtection(false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDocDBClusterExists(resourceName, &dbCluster),
+					resource.TestCheckResourceAttr(resourceName, "deletion_protection", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDocDBClusterDestroy(s *terraform.State) error {
 	return testAccCheckDocDBClusterDestroyWithProvider(s, testAccProvider)
 }
@@ -729,7 +783,14 @@ resource "aws_docdb_cluster" "default" {
 
 func testAccDocDBClusterConfig_Port(rInt, port int) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_docdb_cluster" "test" {
   availability_zones              = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}", "${data.aws_availability_zones.available.names[2]}"]
@@ -742,4 +803,16 @@ resource "aws_docdb_cluster" "test" {
   skip_final_snapshot             = true
 }
 `, rInt, port)
+}
+
+func testAccDocDBClusterConfigDeleteProtection(isProtected bool) string {
+	return fmt.Sprintf(`
+resource "aws_docdb_cluster" "default" {
+  cluster_identifier_prefix = "tf-test-"
+  master_username           = "root"
+  master_password           = "password"
+  skip_final_snapshot       = true
+  deletion_protection       = %t
+}
+`, isProtected)
 }

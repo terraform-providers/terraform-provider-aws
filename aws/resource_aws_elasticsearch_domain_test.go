@@ -179,6 +179,53 @@ func TestAccAWSElasticSearchDomain_ClusterConfig_ZoneAwarenessConfig(t *testing.
 	})
 }
 
+func TestAccAWSElasticSearchDomain_warm(t *testing.T) {
+	var domain elasticsearch.ElasticsearchDomainStatus
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(16, acctest.CharSetAlphaNum)) // len = 28
+	resourceName := "aws_elasticsearch_domain.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckIamServiceLinkedRoleEs(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckESDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccESDomainConfigWarm(rName, "ultrawarm1.medium.elasticsearch", true, 6),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_count", "6"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_type", "ultrawarm1.medium.elasticsearch"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     rName,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccESDomainConfigWarm(rName, "ultrawarm1.medium.elasticsearch", true, 7),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_count", "7"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_type", "ultrawarm1.medium.elasticsearch"),
+				),
+			},
+			{
+				Config: testAccESDomainConfigWarm(rName, "ultrawarm1.large.elasticsearch", true, 7),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckESDomainExists(resourceName, &domain),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_count", "7"),
+					resource.TestCheckResourceAttr(resourceName, "cluster_config.0.warm_type", "ultrawarm1.large.elasticsearch"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSElasticSearchDomain_withDedicatedMaster(t *testing.T) {
 	var domain elasticsearch.ElasticsearchDomainStatus
 	ri := acctest.RandInt()
@@ -1065,6 +1112,36 @@ resource "aws_elasticsearch_domain" "test" {
 `, rName, zoneAwarenessEnabled)
 }
 
+func testAccESDomainConfigWarm(rName, warmType string, enabled bool, warmCnt int) string {
+	return fmt.Sprintf(`
+resource "aws_elasticsearch_domain" "test" {
+  domain_name           = %[1]q
+  elasticsearch_version = "6.8"
+
+  cluster_config {
+    zone_awareness_enabled   = true
+    instance_type            = "c5.large.elasticsearch"
+    instance_count           = "3"
+    dedicated_master_enabled = true
+    dedicated_master_count   = "3"
+    dedicated_master_type    = "c5.large.elasticsearch"
+    warm_enabled             = %[2]t
+    warm_count               = %[3]d
+    warm_type                = %[4]q
+
+    zone_awareness_config {
+      availability_zone_count = 3
+    }
+  }
+
+  ebs_options {
+    ebs_enabled = true
+    volume_size = 10
+  }
+}
+`, rName, enabled, warmCnt, warmType)
+}
+
 func testAccESDomainConfig_WithDedicatedClusterMaster(randInt int, enabled bool) string {
 	return fmt.Sprintf(`
 resource "aws_elasticsearch_domain" "test" {
@@ -1108,6 +1185,10 @@ resource "aws_elasticsearch_domain" "test" {
 
   snapshot_options {
     automated_snapshot_start_hour = %d
+  }
+
+  timeouts {
+    update = "180m"
   }
 }
 `, randInt, instanceInt, snapshotInt)
@@ -1375,6 +1456,11 @@ func testAccESDomainConfig_vpc(randInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "elasticsearch_in_vpc" {
@@ -1448,6 +1534,11 @@ func testAccESDomainConfig_vpc_update(randInt int, update bool) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "elasticsearch_in_vpc" {
@@ -1532,6 +1623,11 @@ func testAccESDomainConfig_internetToVpcEndpoint(randInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "elasticsearch_in_vpc" {

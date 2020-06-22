@@ -1,6 +1,7 @@
 package tfjson
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -26,6 +27,20 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+func (c *Config) UnmarshalJSON(b []byte) error {
+	type rawConfig Config
+	var config rawConfig
+
+	err := json.Unmarshal(b, &config)
+	if err != nil {
+		return err
+	}
+
+	*c = *(*Config)(&config)
+
+	return c.Validate()
 }
 
 // ProviderConfig describes a provider configuration instance.

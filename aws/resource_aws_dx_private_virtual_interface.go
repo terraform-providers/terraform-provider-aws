@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsDxPrivateVirtualInterface() *schema.Resource {
@@ -37,6 +39,10 @@ func resourceAwsDxPrivateVirtualInterface() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+			"amazon_side_asn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -147,8 +153,8 @@ func resourceAwsDxPrivateVirtualInterfaceCreate(d *schema.ResourceData, meta int
 	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
 		req.NewPrivateVirtualInterface.CustomerAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("tags"); ok {
-		req.NewPrivateVirtualInterface.Tags = tagsFromMapDX(v.(map[string]interface{}))
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		req.NewPrivateVirtualInterface.Tags = keyvaluetags.New(v).IgnoreAws().DirectconnectTags()
 	}
 
 	log.Printf("[DEBUG] Creating Direct Connect private virtual interface: %s", req)
@@ -168,6 +174,7 @@ func resourceAwsDxPrivateVirtualInterfaceCreate(d *schema.ResourceData, meta int
 
 func resourceAwsDxPrivateVirtualInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vif, err := dxVirtualInterfaceRead(d.Id(), conn)
 	if err != nil {
@@ -181,6 +188,7 @@ func resourceAwsDxPrivateVirtualInterfaceRead(d *schema.ResourceData, meta inter
 
 	d.Set("address_family", vif.AddressFamily)
 	d.Set("amazon_address", vif.AmazonAddress)
+	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vif.AmazonSideAsn), 10))
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
@@ -200,8 +208,15 @@ func resourceAwsDxPrivateVirtualInterfaceRead(d *schema.ResourceData, meta inter
 	d.Set("name", vif.VirtualInterfaceName)
 	d.Set("vlan", vif.Vlan)
 	d.Set("vpn_gateway_id", vif.VirtualGatewayId)
-	if err := getTagsDX(conn, d, d.Get("arn").(string)); err != nil {
-		return fmt.Errorf("error getting Direct Connect private virtual interface (%s) tags: %s", d.Id(), err)
+
+	tags, err := keyvaluetags.DirectconnectListTags(conn, arn)
+
+	if err != nil {
+		return fmt.Errorf("error listing tags for Direct Connect private virtual interface (%s): %s", arn, err)
+	}
+
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

@@ -1935,6 +1935,13 @@ func (c *DirectConnect) CreatePrivateVirtualInterfaceRequest(input *CreatePrivat
 // different AWS Regions. Connecting the private virtual interface to a VGW
 // only provides access to a single VPC within the same Region.
 //
+// Setting the MTU of a virtual interface to 9001 (jumbo frames) can cause an
+// update to the underlying physical connection if it wasn't updated to support
+// jumbo frames. Updating the connection disrupts network connectivity for all
+// virtual interfaces associated with the connection for up to 30 seconds. To
+// check whether your connection supports jumbo frames, call DescribeConnections.
+// To check whether your virtual interface supports jumbo frames, call DescribeVirtualInterfaces.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -2125,6 +2132,13 @@ func (c *DirectConnect) CreateTransitVirtualInterfaceRequest(input *CreateTransi
 // Connect gateway must be different. For example, if you use the default ASN
 // 64512 for both your the transit gateway and Direct Connect gateway, the association
 // request fails.
+//
+// Setting the MTU of a virtual interface to 8500 (jumbo frames) can cause an
+// update to the underlying physical connection if it wasn't updated to support
+// jumbo frames. Updating the connection disrupts network connectivity for all
+// virtual interfaces associated with the connection for up to 30 seconds. To
+// check whether your connection supports jumbo frames, call DescribeConnections.
+// To check whether your virtual interface supports jumbo frames, call DescribeVirtualInterfaces.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4331,6 +4345,262 @@ func (c *DirectConnect) DisassociateConnectionFromLagWithContext(ctx aws.Context
 	return out, req.Send()
 }
 
+const opListVirtualInterfaceTestHistory = "ListVirtualInterfaceTestHistory"
+
+// ListVirtualInterfaceTestHistoryRequest generates a "aws/request.Request" representing the
+// client's request for the ListVirtualInterfaceTestHistory operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListVirtualInterfaceTestHistory for more information on using the ListVirtualInterfaceTestHistory
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListVirtualInterfaceTestHistoryRequest method.
+//    req, resp := client.ListVirtualInterfaceTestHistoryRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ListVirtualInterfaceTestHistory
+func (c *DirectConnect) ListVirtualInterfaceTestHistoryRequest(input *ListVirtualInterfaceTestHistoryInput) (req *request.Request, output *ListVirtualInterfaceTestHistoryOutput) {
+	op := &request.Operation{
+		Name:       opListVirtualInterfaceTestHistory,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListVirtualInterfaceTestHistoryInput{}
+	}
+
+	output = &ListVirtualInterfaceTestHistoryOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListVirtualInterfaceTestHistory API operation for AWS Direct Connect.
+//
+// Lists the virtual interface failover test history.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Direct Connect's
+// API operation ListVirtualInterfaceTestHistory for usage and error information.
+//
+// Returned Error Types:
+//   * ServerException
+//   A server-side error occurred.
+//
+//   * ClientException
+//   One or more parameters are not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/ListVirtualInterfaceTestHistory
+func (c *DirectConnect) ListVirtualInterfaceTestHistory(input *ListVirtualInterfaceTestHistoryInput) (*ListVirtualInterfaceTestHistoryOutput, error) {
+	req, out := c.ListVirtualInterfaceTestHistoryRequest(input)
+	return out, req.Send()
+}
+
+// ListVirtualInterfaceTestHistoryWithContext is the same as ListVirtualInterfaceTestHistory with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListVirtualInterfaceTestHistory for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectConnect) ListVirtualInterfaceTestHistoryWithContext(ctx aws.Context, input *ListVirtualInterfaceTestHistoryInput, opts ...request.Option) (*ListVirtualInterfaceTestHistoryOutput, error) {
+	req, out := c.ListVirtualInterfaceTestHistoryRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStartBgpFailoverTest = "StartBgpFailoverTest"
+
+// StartBgpFailoverTestRequest generates a "aws/request.Request" representing the
+// client's request for the StartBgpFailoverTest operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StartBgpFailoverTest for more information on using the StartBgpFailoverTest
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StartBgpFailoverTestRequest method.
+//    req, resp := client.StartBgpFailoverTestRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/StartBgpFailoverTest
+func (c *DirectConnect) StartBgpFailoverTestRequest(input *StartBgpFailoverTestInput) (req *request.Request, output *StartBgpFailoverTestOutput) {
+	op := &request.Operation{
+		Name:       opStartBgpFailoverTest,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StartBgpFailoverTestInput{}
+	}
+
+	output = &StartBgpFailoverTestOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StartBgpFailoverTest API operation for AWS Direct Connect.
+//
+// Starts the virtual interface failover test that verifies your configuration
+// meets your resiliency requirements by placing the BGP peering session in
+// the DOWN state. You can then send traffic to verify that there are no outages.
+//
+// You can run the test on public, private, transit, and hosted virtual interfaces.
+//
+// You can use ListVirtualInterfaceTestHistory (https://docs.aws.amazon.com/directconnect/latest/APIReference/API_ListVirtualInterfaceTestHistory.html)
+// to view the virtual interface test history.
+//
+// If you need to stop the test before the test interval completes, use StopBgpFailoverTest
+// (https://docs.aws.amazon.com/directconnect/latest/APIReference/API_StopBgpFailoverTest.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Direct Connect's
+// API operation StartBgpFailoverTest for usage and error information.
+//
+// Returned Error Types:
+//   * ServerException
+//   A server-side error occurred.
+//
+//   * ClientException
+//   One or more parameters are not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/StartBgpFailoverTest
+func (c *DirectConnect) StartBgpFailoverTest(input *StartBgpFailoverTestInput) (*StartBgpFailoverTestOutput, error) {
+	req, out := c.StartBgpFailoverTestRequest(input)
+	return out, req.Send()
+}
+
+// StartBgpFailoverTestWithContext is the same as StartBgpFailoverTest with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StartBgpFailoverTest for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectConnect) StartBgpFailoverTestWithContext(ctx aws.Context, input *StartBgpFailoverTestInput, opts ...request.Option) (*StartBgpFailoverTestOutput, error) {
+	req, out := c.StartBgpFailoverTestRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopBgpFailoverTest = "StopBgpFailoverTest"
+
+// StopBgpFailoverTestRequest generates a "aws/request.Request" representing the
+// client's request for the StopBgpFailoverTest operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopBgpFailoverTest for more information on using the StopBgpFailoverTest
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopBgpFailoverTestRequest method.
+//    req, resp := client.StopBgpFailoverTestRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/StopBgpFailoverTest
+func (c *DirectConnect) StopBgpFailoverTestRequest(input *StopBgpFailoverTestInput) (req *request.Request, output *StopBgpFailoverTestOutput) {
+	op := &request.Operation{
+		Name:       opStopBgpFailoverTest,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopBgpFailoverTestInput{}
+	}
+
+	output = &StopBgpFailoverTestOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopBgpFailoverTest API operation for AWS Direct Connect.
+//
+// Stops the virtual interface failover test.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Direct Connect's
+// API operation StopBgpFailoverTest for usage and error information.
+//
+// Returned Error Types:
+//   * ServerException
+//   A server-side error occurred.
+//
+//   * ClientException
+//   One or more parameters are not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/directconnect-2012-10-25/StopBgpFailoverTest
+func (c *DirectConnect) StopBgpFailoverTest(input *StopBgpFailoverTestInput) (*StopBgpFailoverTestOutput, error) {
+	req, out := c.StopBgpFailoverTestRequest(input)
+	return out, req.Send()
+}
+
+// StopBgpFailoverTestWithContext is the same as StopBgpFailoverTest with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopBgpFailoverTest for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DirectConnect) StopBgpFailoverTestWithContext(ctx aws.Context, input *StopBgpFailoverTestInput, opts ...request.Option) (*StopBgpFailoverTestOutput, error) {
+	req, out := c.StopBgpFailoverTestRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opTagResource = "TagResource"
 
 // TagResourceRequest generates a "aws/request.Request" representing the
@@ -4738,7 +5008,7 @@ func (c *DirectConnect) UpdateVirtualInterfaceAttributesRequest(input *UpdateVir
 // jumbo frames. Updating the connection disrupts network connectivity for all
 // virtual interfaces associated with the connection for up to 30 seconds. To
 // check whether your connection supports jumbo frames, call DescribeConnections.
-// To check whether your virtual interface supports jumbo frames, call DescribeVirtualInterfaces.
+// To check whether your virtual q interface supports jumbo frames, call DescribeVirtualInterfaces.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5660,8 +5930,8 @@ func (s *BGPPeer) SetCustomerAddress(v string) *BGPPeer {
 
 // One or more parameters are not valid.
 type ClientException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5678,17 +5948,17 @@ func (s ClientException) GoString() string {
 
 func newErrorClientException(v protocol.ResponseMetadata) error {
 	return &ClientException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ClientException) Code() string {
+func (s *ClientException) Code() string {
 	return "DirectConnectClientException"
 }
 
 // Message returns the exception's message.
-func (s ClientException) Message() string {
+func (s *ClientException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5696,22 +5966,22 @@ func (s ClientException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ClientException) OrigErr() error {
+func (s *ClientException) OrigErr() error {
 	return nil
 }
 
-func (s ClientException) Error() string {
+func (s *ClientException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ClientException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ClientException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ClientException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ClientException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ConfirmConnectionInput struct {
@@ -8714,8 +8984,8 @@ func (s *DisassociateConnectionFromLagInput) SetLagId(v string) *DisassociateCon
 
 // A tag key was specified more than once.
 type DuplicateTagKeysException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8732,17 +9002,17 @@ func (s DuplicateTagKeysException) GoString() string {
 
 func newErrorDuplicateTagKeysException(v protocol.ResponseMetadata) error {
 	return &DuplicateTagKeysException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DuplicateTagKeysException) Code() string {
+func (s *DuplicateTagKeysException) Code() string {
 	return "DuplicateTagKeysException"
 }
 
 // Message returns the exception's message.
-func (s DuplicateTagKeysException) Message() string {
+func (s *DuplicateTagKeysException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8750,22 +9020,22 @@ func (s DuplicateTagKeysException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DuplicateTagKeysException) OrigErr() error {
+func (s *DuplicateTagKeysException) OrigErr() error {
 	return nil
 }
 
-func (s DuplicateTagKeysException) Error() string {
+func (s *DuplicateTagKeysException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DuplicateTagKeysException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DuplicateTagKeysException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DuplicateTagKeysException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DuplicateTagKeysException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about a Direct Connect gateway, which enables you to connect
@@ -9489,6 +9759,111 @@ func (s *Lag) SetTags(v []*Tag) *Lag {
 	return s
 }
 
+type ListVirtualInterfaceTestHistoryInput struct {
+	_ struct{} `type:"structure"`
+
+	// The BGP peers that were placed in the DOWN state during the virtual interface
+	// failover test.
+	BgpPeers []*string `locationName:"bgpPeers" type:"list"`
+
+	// The maximum number of results to return with a single call. To retrieve the
+	// remaining results, make another call with the returned nextToken value.
+	//
+	// If MaxResults is given a value larger than 100, only 100 results are returned.
+	MaxResults *int64 `locationName:"maxResults" type:"integer"`
+
+	// The token for the next page of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The status of the virtual interface failover test.
+	Status *string `locationName:"status" type:"string"`
+
+	// The ID of the virtual interface failover test.
+	TestId *string `locationName:"testId" type:"string"`
+
+	// The ID of the virtual interface that was tested.
+	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string"`
+}
+
+// String returns the string representation
+func (s ListVirtualInterfaceTestHistoryInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListVirtualInterfaceTestHistoryInput) GoString() string {
+	return s.String()
+}
+
+// SetBgpPeers sets the BgpPeers field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetBgpPeers(v []*string) *ListVirtualInterfaceTestHistoryInput {
+	s.BgpPeers = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetMaxResults(v int64) *ListVirtualInterfaceTestHistoryInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetNextToken(v string) *ListVirtualInterfaceTestHistoryInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetStatus(v string) *ListVirtualInterfaceTestHistoryInput {
+	s.Status = &v
+	return s
+}
+
+// SetTestId sets the TestId field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetTestId(v string) *ListVirtualInterfaceTestHistoryInput {
+	s.TestId = &v
+	return s
+}
+
+// SetVirtualInterfaceId sets the VirtualInterfaceId field's value.
+func (s *ListVirtualInterfaceTestHistoryInput) SetVirtualInterfaceId(v string) *ListVirtualInterfaceTestHistoryInput {
+	s.VirtualInterfaceId = &v
+	return s
+}
+
+type ListVirtualInterfaceTestHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The ID of the tested virtual interface.
+	VirtualInterfaceTestHistory []*VirtualInterfaceTestHistory `locationName:"virtualInterfaceTestHistory" type:"list"`
+}
+
+// String returns the string representation
+func (s ListVirtualInterfaceTestHistoryOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListVirtualInterfaceTestHistoryOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListVirtualInterfaceTestHistoryOutput) SetNextToken(v string) *ListVirtualInterfaceTestHistoryOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetVirtualInterfaceTestHistory sets the VirtualInterfaceTestHistory field's value.
+func (s *ListVirtualInterfaceTestHistoryOutput) SetVirtualInterfaceTestHistory(v []*VirtualInterfaceTestHistory) *ListVirtualInterfaceTestHistoryOutput {
+	s.VirtualInterfaceTestHistory = v
+	return s
+}
+
 // Information about a Letter of Authorization - Connecting Facility Assignment
 // (LOA-CFA) for a connection.
 type Loa struct {
@@ -9685,7 +10060,9 @@ type NewPrivateVirtualInterface struct {
 	// The ID of the virtual private gateway.
 	VirtualGatewayId *string `locationName:"virtualGatewayId" type:"string"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	//
 	// VirtualInterfaceName is a required field
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string" required:"true"`
@@ -9835,7 +10212,9 @@ type NewPrivateVirtualInterfaceAllocation struct {
 	// The tags associated with the private virtual interface.
 	Tags []*Tag `locationName:"tags" min:"1" type:"list"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	//
 	// VirtualInterfaceName is a required field
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string" required:"true"`
@@ -9973,7 +10352,9 @@ type NewPublicVirtualInterface struct {
 	// The tags associated with the public virtual interface.
 	Tags []*Tag `locationName:"tags" min:"1" type:"list"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	//
 	// VirtualInterfaceName is a required field
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string" required:"true"`
@@ -10111,7 +10492,9 @@ type NewPublicVirtualInterfaceAllocation struct {
 	// The tags associated with the public virtual interface.
 	Tags []*Tag `locationName:"tags" min:"1" type:"list"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	//
 	// VirtualInterfaceName is a required field
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string" required:"true"`
@@ -10250,7 +10633,9 @@ type NewTransitVirtualInterface struct {
 	// The tags associated with the transitive virtual interface.
 	Tags []*Tag `locationName:"tags" min:"1" type:"list"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string"`
 
 	// The ID of the VLAN.
@@ -10379,7 +10764,9 @@ type NewTransitVirtualInterfaceAllocation struct {
 	// The tags associated with the transitive virtual interface.
 	Tags []*Tag `locationName:"tags" min:"1" type:"list"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string"`
 
 	// The ID of the VLAN.
@@ -10534,8 +10921,8 @@ func (s *RouteFilterPrefix) SetCidr(v string) *RouteFilterPrefix {
 
 // A server-side error occurred.
 type ServerException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -10552,17 +10939,17 @@ func (s ServerException) GoString() string {
 
 func newErrorServerException(v protocol.ResponseMetadata) error {
 	return &ServerException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServerException) Code() string {
+func (s *ServerException) Code() string {
 	return "DirectConnectServerException"
 }
 
 // Message returns the exception's message.
-func (s ServerException) Message() string {
+func (s *ServerException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10570,22 +10957,166 @@ func (s ServerException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServerException) OrigErr() error {
+func (s *ServerException) OrigErr() error {
 	return nil
 }
 
-func (s ServerException) Error() string {
+func (s *ServerException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServerException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServerException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServerException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServerException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type StartBgpFailoverTestInput struct {
+	_ struct{} `type:"structure"`
+
+	// The BGP peers to place in the DOWN state.
+	BgpPeers []*string `locationName:"bgpPeers" type:"list"`
+
+	// The time in minutes that the virtual interface failover test will last.
+	//
+	// Maximum value: 180 minutes (3 hours).
+	//
+	// Default: 180 minutes (3 hours).
+	TestDurationInMinutes *int64 `locationName:"testDurationInMinutes" type:"integer"`
+
+	// The ID of the virtual interface you want to test.
+	//
+	// VirtualInterfaceId is a required field
+	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StartBgpFailoverTestInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartBgpFailoverTestInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartBgpFailoverTestInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartBgpFailoverTestInput"}
+	if s.VirtualInterfaceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualInterfaceId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBgpPeers sets the BgpPeers field's value.
+func (s *StartBgpFailoverTestInput) SetBgpPeers(v []*string) *StartBgpFailoverTestInput {
+	s.BgpPeers = v
+	return s
+}
+
+// SetTestDurationInMinutes sets the TestDurationInMinutes field's value.
+func (s *StartBgpFailoverTestInput) SetTestDurationInMinutes(v int64) *StartBgpFailoverTestInput {
+	s.TestDurationInMinutes = &v
+	return s
+}
+
+// SetVirtualInterfaceId sets the VirtualInterfaceId field's value.
+func (s *StartBgpFailoverTestInput) SetVirtualInterfaceId(v string) *StartBgpFailoverTestInput {
+	s.VirtualInterfaceId = &v
+	return s
+}
+
+type StartBgpFailoverTestOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the virtual interface failover test.
+	VirtualInterfaceTest *VirtualInterfaceTestHistory `locationName:"virtualInterfaceTest" type:"structure"`
+}
+
+// String returns the string representation
+func (s StartBgpFailoverTestOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartBgpFailoverTestOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualInterfaceTest sets the VirtualInterfaceTest field's value.
+func (s *StartBgpFailoverTestOutput) SetVirtualInterfaceTest(v *VirtualInterfaceTestHistory) *StartBgpFailoverTestOutput {
+	s.VirtualInterfaceTest = v
+	return s
+}
+
+type StopBgpFailoverTestInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the virtual interface you no longer want to test.
+	//
+	// VirtualInterfaceId is a required field
+	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StopBgpFailoverTestInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopBgpFailoverTestInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopBgpFailoverTestInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopBgpFailoverTestInput"}
+	if s.VirtualInterfaceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualInterfaceId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetVirtualInterfaceId sets the VirtualInterfaceId field's value.
+func (s *StopBgpFailoverTestInput) SetVirtualInterfaceId(v string) *StopBgpFailoverTestInput {
+	s.VirtualInterfaceId = &v
+	return s
+}
+
+type StopBgpFailoverTestOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the virtual interface failover test.
+	VirtualInterfaceTest *VirtualInterfaceTestHistory `locationName:"virtualInterfaceTest" type:"structure"`
+}
+
+// String returns the string representation
+func (s StopBgpFailoverTestOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopBgpFailoverTestOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualInterfaceTest sets the VirtualInterfaceTest field's value.
+func (s *StopBgpFailoverTestOutput) SetVirtualInterfaceTest(v *VirtualInterfaceTestHistory) *StopBgpFailoverTestOutput {
+	s.VirtualInterfaceTest = v
+	return s
 }
 
 // Information about a tag.
@@ -10720,8 +11251,8 @@ func (s TagResourceOutput) GoString() string {
 
 // You have reached the limit on the number of tags that can be assigned.
 type TooManyTagsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -10738,17 +11269,17 @@ func (s TooManyTagsException) GoString() string {
 
 func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
 	return &TooManyTagsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TooManyTagsException) Code() string {
+func (s *TooManyTagsException) Code() string {
 	return "TooManyTagsException"
 }
 
 // Message returns the exception's message.
-func (s TooManyTagsException) Message() string {
+func (s *TooManyTagsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10756,22 +11287,22 @@ func (s TooManyTagsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TooManyTagsException) OrigErr() error {
+func (s *TooManyTagsException) OrigErr() error {
 	return nil
 }
 
-func (s TooManyTagsException) Error() string {
+func (s *TooManyTagsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TooManyTagsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TooManyTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TooManyTagsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TooManyTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -11079,7 +11610,9 @@ type UpdateVirtualInterfaceAttributesOutput struct {
 	// The ID of the virtual interface.
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string"`
 
 	// The state of the virtual interface. The following are the possible values:
@@ -11387,7 +11920,9 @@ type VirtualInterface struct {
 	// The ID of the virtual interface.
 	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string"`
 
-	// The name of the virtual interface assigned by the customer network.
+	// The name of the virtual interface assigned by the customer network. The name
+	// has a maximum of 100 characters. The following are valid characters: a-z,
+	// 0-9 and a hyphen (-).
 	VirtualInterfaceName *string `locationName:"virtualInterfaceName" type:"string"`
 
 	// The state of the virtual interface. The following are the possible values:
@@ -11580,6 +12115,94 @@ func (s *VirtualInterface) SetVirtualInterfaceType(v string) *VirtualInterface {
 // SetVlan sets the Vlan field's value.
 func (s *VirtualInterface) SetVlan(v int64) *VirtualInterface {
 	s.Vlan = &v
+	return s
+}
+
+// Information about the virtual interface failover test.
+type VirtualInterfaceTestHistory struct {
+	_ struct{} `type:"structure"`
+
+	// The BGP peers that were put in the DOWN state as part of the virtual interface
+	// failover test.
+	BgpPeers []*string `locationName:"bgpPeers" type:"list"`
+
+	// The time that the virtual interface moves out of the DOWN state.
+	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
+
+	// The owner ID of the tested virtual interface.
+	OwnerAccount *string `locationName:"ownerAccount" type:"string"`
+
+	// The time that the virtual interface moves to the DOWN state.
+	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+
+	// The status of the virtual interface failover test.
+	Status *string `locationName:"status" type:"string"`
+
+	// The time that the virtual interface failover test ran in minutes.
+	TestDurationInMinutes *int64 `locationName:"testDurationInMinutes" type:"integer"`
+
+	// The ID of the virtual interface failover test.
+	TestId *string `locationName:"testId" type:"string"`
+
+	// The ID of the tested virtual interface.
+	VirtualInterfaceId *string `locationName:"virtualInterfaceId" type:"string"`
+}
+
+// String returns the string representation
+func (s VirtualInterfaceTestHistory) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualInterfaceTestHistory) GoString() string {
+	return s.String()
+}
+
+// SetBgpPeers sets the BgpPeers field's value.
+func (s *VirtualInterfaceTestHistory) SetBgpPeers(v []*string) *VirtualInterfaceTestHistory {
+	s.BgpPeers = v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *VirtualInterfaceTestHistory) SetEndTime(v time.Time) *VirtualInterfaceTestHistory {
+	s.EndTime = &v
+	return s
+}
+
+// SetOwnerAccount sets the OwnerAccount field's value.
+func (s *VirtualInterfaceTestHistory) SetOwnerAccount(v string) *VirtualInterfaceTestHistory {
+	s.OwnerAccount = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *VirtualInterfaceTestHistory) SetStartTime(v time.Time) *VirtualInterfaceTestHistory {
+	s.StartTime = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *VirtualInterfaceTestHistory) SetStatus(v string) *VirtualInterfaceTestHistory {
+	s.Status = &v
+	return s
+}
+
+// SetTestDurationInMinutes sets the TestDurationInMinutes field's value.
+func (s *VirtualInterfaceTestHistory) SetTestDurationInMinutes(v int64) *VirtualInterfaceTestHistory {
+	s.TestDurationInMinutes = &v
+	return s
+}
+
+// SetTestId sets the TestId field's value.
+func (s *VirtualInterfaceTestHistory) SetTestId(v string) *VirtualInterfaceTestHistory {
+	s.TestId = &v
+	return s
+}
+
+// SetVirtualInterfaceId sets the VirtualInterfaceId field's value.
+func (s *VirtualInterfaceTestHistory) SetVirtualInterfaceId(v string) *VirtualInterfaceTestHistory {
+	s.VirtualInterfaceId = &v
 	return s
 }
 

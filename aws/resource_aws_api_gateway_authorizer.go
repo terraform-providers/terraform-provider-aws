@@ -91,7 +91,7 @@ func resourceAwsApiGatewayAuthorizer() *schema.Resource {
 }
 
 func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.CreateAuthorizerInput{
 		IdentitySource: aws.String(d.Get("identity_source").(string)),
@@ -131,7 +131,7 @@ func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[INFO] Reading API Gateway Authorizer %s", d.Id())
 	input := apigateway.GetAuthorizerInput{
@@ -169,7 +169,7 @@ func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceAwsApiGatewayAuthorizerUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.UpdateAuthorizerInput{
 		AuthorizerId: aws.String(d.Id()),
@@ -262,7 +262,7 @@ func resourceAwsApiGatewayAuthorizerUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayAuthorizerDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	input := apigateway.DeleteAuthorizerInput{
 		AuthorizerId: aws.String(d.Id()),
 		RestApiId:    aws.String(d.Get("rest_api_id").(string)),

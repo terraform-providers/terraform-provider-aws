@@ -91,6 +91,16 @@ func resourceAwsEip() *schema.Resource {
 				Optional: true,
 			},
 
+			"customer_owned_ipv4_pool": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"customer_owned_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"public_ipv4_pool": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -120,6 +130,10 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 		allocOpts.PublicIpv4Pool = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("customer_owned_ipv4_pool"); ok {
+		allocOpts.CustomerOwnedIpv4Pool = aws.String(v.(string))
+	}
+
 	log.Printf("[DEBUG] EIP create configuration: %#v", allocOpts)
 	allocResp, err := ec2conn.AllocateAddress(allocOpts)
 	if err != nil {
@@ -143,7 +157,7 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] EIP ID: %s (domain: %v)", d.Id(), *allocResp.Domain)
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2UpdateTags(ec2conn, d.Id(), nil, v); err != nil {
+		if err := keyvaluetags.Ec2CreateTags(ec2conn, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
@@ -153,6 +167,7 @@ func resourceAwsEipCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 	ec2conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	domain := resourceAwsEipDomain(d)
 	id := d.Id()
@@ -251,12 +266,14 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		dashIP := strings.Replace(*address.PublicIp, ".", "-", -1)
 
 		if region == "us-east-1" {
-			d.Set("public_dns", fmt.Sprintf("ec2-%s.compute-1.amazonaws.com", dashIP))
+			d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.compute-1", dashIP)))
 		} else {
-			d.Set("public_dns", fmt.Sprintf("ec2-%s.%s.compute.amazonaws.com", dashIP, region))
+			d.Set("public_dns", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("ec2-%s.%s.compute", dashIP, region)))
 		}
 	}
 	d.Set("public_ipv4_pool", address.PublicIpv4Pool)
+	d.Set("customer_owned_ipv4_pool", address.CustomerOwnedIpv4Pool)
+	d.Set("customer_owned_ip", address.CustomerOwnedIp)
 
 	// On import (domain never set, which it must've been if we created),
 	// set the 'vpc' attribute depending on if we're in a VPC.
@@ -273,7 +290,7 @@ func resourceAwsEipRead(d *schema.ResourceData, meta interface{}) error {
 		d.SetId(*address.AllocationId)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(address.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(address.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -291,7 +308,7 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 	if !d.IsNewResource() {
 		if d.HasChange("instance") && d.Get("instance").(string) != "" {
 			disassociate = true
-		} else if (d.HasChange("network_interface") || d.HasChange("associate_with_private_ip")) && d.Get("association_id").(string) != "" {
+		} else if (d.HasChanges("network_interface", "associate_with_private_ip")) && d.Get("association_id").(string) != "" {
 			disassociate = true
 		}
 	}
@@ -308,7 +325,7 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("instance") && ok_instance {
 		associate = true
-	} else if (d.HasChange("network_interface") || d.HasChange("associate_with_private_ip")) && ok_interface {
+	} else if (d.HasChanges("network_interface", "associate_with_private_ip")) && ok_interface {
 		associate = true
 	}
 	if associate {
@@ -358,7 +375,7 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("tags") {
+	if d.HasChange("tags") && !d.IsNewResource() {
 		o, n := d.GetChange("tags")
 		if err := keyvaluetags.Ec2UpdateTags(ec2conn, d.Id(), o, n); err != nil {
 			return fmt.Errorf("error updating EIP (%s) tags: %s", d.Id(), err)

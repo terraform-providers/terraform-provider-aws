@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_rest_api"
 description: |-
@@ -9,6 +9,8 @@ description: |-
 # Resource: aws_api_gateway_rest_api
 
 Provides an API Gateway REST API.
+
+-> **Note:** Amazon API Gateway Version 1 resources are used for creating and deploying REST APIs. To create and deploy WebSocket and HTTP APIs, use Amazon API Gateway Version 2 [resources](https://www.terraform.io/docs/providers/aws/r/apigatewayv2_api.html).
 
 ## Example Usage
 
@@ -45,7 +47,7 @@ The following arguments are supported:
 * `body` - (Optional) An OpenAPI specification that defines the set of routes and integrations to create as part of the REST API.
 * `policy` - (Optional) JSON formatted policy document that controls access to the API Gateway. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy)
 * `api_key_source` - (Optional) The source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 __Note__: If the `body` argument is provided, the OpenAPI specification will be used to configure the resources, methods and integrations for the Rest API. If this argument is provided, the following resources should not be managed as separate ones, as updates may cause manual resource updates to be overwritten:
 

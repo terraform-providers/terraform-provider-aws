@@ -20,6 +20,7 @@ func TestAccAWSDbInstanceDataSource_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "address"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "allocated_storage"),
+					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "auto_minor_version_upgrade"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_instance_class"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_name"),
 					resource.TestCheckResourceAttrSet("data.aws_db_instance.bar", "db_subnet_group"),

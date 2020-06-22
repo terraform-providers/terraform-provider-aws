@@ -3,17 +3,32 @@
 // Package gamelift provides the client and types for making API
 // requests to Amazon GameLift.
 //
-// Amazon GameLift is a managed service for developers who need a scalable,
-// dedicated server solution for their multiplayer games. Use Amazon GameLift
-// for these tasks: (1) set up computing resources and deploy your game servers,
-// (2) run game sessions and get players into games, (3) automatically scale
-// your resources to meet player demand and manage costs, and (4) track in-depth
-// metrics on game server performance and player usage.
+// Amazon GameLift provides a range of multiplayer game hosting solutions. As
+// a fully managed service, GameLift helps you:
 //
-// When setting up hosting resources, you can deploy your custom game server
-// or use the Amazon GameLift Realtime Servers. Realtime Servers gives you the
-// ability to quickly stand up lightweight, efficient game servers with the
-// core Amazon GameLift infrastructure already built in.
+//    * Set up EC2-based computing resources and use GameLift FleetIQ to and
+//    deploy your game servers on low-cost, reliable Spot instances.
+//
+//    * Track game server availability and route players into game sessions
+//    to minimize latency.
+//
+//    * Automatically scale your resources to meet player demand and manage
+//    costs
+//
+//    * Optionally add FlexMatch matchmaking.
+//
+// With GameLift as a managed service, you have the option to deploy your custom
+// game server or use Amazon GameLift Realtime Servers to quickly stand up lightweight
+// game servers for your game. Realtime Servers provides an efficient game server
+// framework with core Amazon GameLift infrastructure already built in.
+//
+// Now in Public Preview:
+//
+// Use GameLift FleetIQ as a standalone feature with EC2 instances and Auto
+// Scaling groups. GameLift FleetIQ provides optimizations that make low-cost
+// Spot instances viable for game hosting. This extension of GameLift FleetIQ
+// gives you access to these optimizations while managing your EC2 instances
+// and Auto Scaling groups within your own AWS account.
 //
 // Get Amazon GameLift Tools and Resources
 //

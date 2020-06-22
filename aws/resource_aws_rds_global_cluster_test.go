@@ -270,6 +270,32 @@ func TestAccAWSRdsGlobalCluster_EngineVersion_AuroraMySQL(t *testing.T) {
 	})
 }
 
+func TestAccAWSRdsGlobalCluster_EngineVersion_AuroraPostgresql(t *testing.T) {
+	var globalCluster1 rds.GlobalCluster
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_rds_global_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRdsGlobalCluster(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRdsGlobalClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRdsGlobalClusterConfigEngineVersion(rName, "aurora-postgresql", "10.11"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRdsGlobalClusterExists(resourceName, &globalCluster1),
+					resource.TestCheckResourceAttr(resourceName, "engine_version", "10.11"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSRdsGlobalCluster_StorageEncrypted(t *testing.T) {
 	var globalCluster1, globalCluster2 rds.GlobalCluster
 	rName := acctest.RandomWithPrefix("tf-acc-test")

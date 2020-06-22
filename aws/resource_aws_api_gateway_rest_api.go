@@ -49,7 +49,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 
@@ -108,7 +108,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 							},
 						},
 						"vpc_endpoint_ids": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
@@ -128,7 +128,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 }
 
 func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Creating API Gateway")
 
 	var description *string
@@ -190,7 +190,9 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	log.Printf("[DEBUG] Reading API Gateway %s", d.Id())
 
 	api, err := conn.GetRestApi(&apigateway.GetRestApiInput{
@@ -265,7 +267,7 @@ func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(api.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(api.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -285,7 +287,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 
 	if d.HasChange("name") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/name"),
 			Value: aws.String(d.Get("name").(string)),
 		})
@@ -293,7 +295,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 
 	if d.HasChange("description") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/description"),
 			Value: aws.String(d.Get("description").(string)),
 		})
@@ -301,7 +303,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 
 	if d.HasChange("api_key_source") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/apiKeySource"),
 			Value: aws.String(d.Get("api_key_source").(string)),
 		})
@@ -309,7 +311,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 
 	if d.HasChange("policy") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/policy"),
 			Value: aws.String(d.Get("policy").(string)),
 		})
@@ -322,7 +324,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 			value = strconv.Itoa(minimumCompressionSize)
 		}
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/minimumCompressionSize"),
 			Value: aws.String(value),
 		})
@@ -339,7 +341,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 		// since there are no replacings.
 		for _, v := range old {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:   aws.String("remove"),
+				Op:   aws.String(apigateway.OpRemove),
 				Path: aws.String(fmt.Sprintf("/%s/%s", prefix, escapeJsonPointer(v.(string)))),
 			})
 		}
@@ -348,7 +350,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 		if len(new) > 0 {
 			for _, v := range new {
 				operations = append(operations, &apigateway.PatchOperation{
-					Op:   aws.String("add"),
+					Op:   aws.String(apigateway.OpAdd),
 					Path: aws.String(fmt.Sprintf("/%s/%s", prefix, escapeJsonPointer(v.(string)))),
 				})
 			}
@@ -362,7 +364,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 			m := v.([]interface{})[0].(map[string]interface{})
 
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("replace"),
+				Op:    aws.String(apigateway.OpReplace),
 				Path:  aws.String("/endpointConfiguration/types/0"),
 				Value: aws.String(m["types"].([]interface{})[0].(string)),
 			})
@@ -373,12 +375,12 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 		o, n := d.GetChange("endpoint_configuration.0.vpc_endpoint_ids")
 		prefix := "/endpointConfiguration/vpcEndpointIds"
 
-		old := o.([]interface{})
-		new := n.([]interface{})
+		old := o.(*schema.Set).List()
+		new := n.(*schema.Set).List()
 
 		for _, v := range old {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("remove"),
+				Op:    aws.String(apigateway.OpRemove),
 				Path:  aws.String(prefix),
 				Value: aws.String(v.(string)),
 			})
@@ -386,7 +388,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 
 		for _, v := range new {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:    aws.String("add"),
+				Op:    aws.String(apigateway.OpAdd),
 				Path:  aws.String(prefix),
 				Value: aws.String(v.(string)),
 			})
@@ -397,7 +399,7 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 }
 
 func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway %s", d.Id())
 
 	if d.HasChange("tags") {
@@ -435,7 +437,7 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayRestApiDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	input := &apigateway.DeleteRestApiInput{
 		RestApiId: aws.String(d.Id()),
@@ -467,7 +469,7 @@ func expandApiGatewayEndpointConfiguration(l []interface{}) *apigateway.Endpoint
 	}
 
 	if endpointIds, ok := m["vpc_endpoint_ids"]; ok {
-		endpointConfiguration.VpcEndpointIds = expandStringList(endpointIds.([]interface{}))
+		endpointConfiguration.VpcEndpointIds = expandStringSet(endpointIds.(*schema.Set))
 	}
 
 	return endpointConfiguration
@@ -483,7 +485,7 @@ func flattenApiGatewayEndpointConfiguration(endpointConfiguration *apigateway.En
 	}
 
 	if len(endpointConfiguration.VpcEndpointIds) > 0 {
-		m["vpc_endpoint_ids"] = flattenStringList(endpointConfiguration.VpcEndpointIds)
+		m["vpc_endpoint_ids"] = aws.StringValueSlice(endpointConfiguration.VpcEndpointIds)
 	}
 
 	return []interface{}{m}

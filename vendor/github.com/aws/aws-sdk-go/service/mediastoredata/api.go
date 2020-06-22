@@ -505,8 +505,8 @@ func (c *MediaStoreData) PutObjectWithContext(ctx aws.Context, input *PutObjectI
 
 // The specified container was not found for the specified account.
 type ContainerNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -523,17 +523,17 @@ func (s ContainerNotFoundException) GoString() string {
 
 func newErrorContainerNotFoundException(v protocol.ResponseMetadata) error {
 	return &ContainerNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ContainerNotFoundException) Code() string {
+func (s *ContainerNotFoundException) Code() string {
 	return "ContainerNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ContainerNotFoundException) Message() string {
+func (s *ContainerNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -541,22 +541,22 @@ func (s ContainerNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ContainerNotFoundException) OrigErr() error {
+func (s *ContainerNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ContainerNotFoundException) Error() string {
+func (s *ContainerNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ContainerNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ContainerNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ContainerNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ContainerNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type DeleteObjectInput struct {
@@ -892,8 +892,8 @@ func (s *GetObjectOutput) SetStatusCode(v int64) *GetObjectOutput {
 
 // The service is temporarily unavailable.
 type InternalServerError struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -910,17 +910,17 @@ func (s InternalServerError) GoString() string {
 
 func newErrorInternalServerError(v protocol.ResponseMetadata) error {
 	return &InternalServerError{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServerError) Code() string {
+func (s *InternalServerError) Code() string {
 	return "InternalServerError"
 }
 
 // Message returns the exception's message.
-func (s InternalServerError) Message() string {
+func (s *InternalServerError) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -928,22 +928,22 @@ func (s InternalServerError) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServerError) OrigErr() error {
+func (s *InternalServerError) OrigErr() error {
 	return nil
 }
 
-func (s InternalServerError) Error() string {
+func (s *InternalServerError) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServerError) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServerError) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A metadata entry for a folder or object.
@@ -1122,8 +1122,8 @@ func (s *ListItemsOutput) SetNextToken(v string) *ListItemsOutput {
 
 // Could not perform an operation on an object that does not exist.
 type ObjectNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -1140,17 +1140,17 @@ func (s ObjectNotFoundException) GoString() string {
 
 func newErrorObjectNotFoundException(v protocol.ResponseMetadata) error {
 	return &ObjectNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ObjectNotFoundException) Code() string {
+func (s *ObjectNotFoundException) Code() string {
 	return "ObjectNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ObjectNotFoundException) Message() string {
+func (s *ObjectNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1158,22 +1158,22 @@ func (s ObjectNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ObjectNotFoundException) OrigErr() error {
+func (s *ObjectNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ObjectNotFoundException) Error() string {
+func (s *ObjectNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ObjectNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ObjectNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ObjectNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ObjectNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type PutObjectInput struct {
@@ -1356,8 +1356,8 @@ func (s *PutObjectOutput) SetStorageClass(v string) *PutObjectOutput {
 
 // The requested content range is not valid.
 type RequestedRangeNotSatisfiableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -1374,17 +1374,17 @@ func (s RequestedRangeNotSatisfiableException) GoString() string {
 
 func newErrorRequestedRangeNotSatisfiableException(v protocol.ResponseMetadata) error {
 	return &RequestedRangeNotSatisfiableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s RequestedRangeNotSatisfiableException) Code() string {
+func (s *RequestedRangeNotSatisfiableException) Code() string {
 	return "RequestedRangeNotSatisfiableException"
 }
 
 // Message returns the exception's message.
-func (s RequestedRangeNotSatisfiableException) Message() string {
+func (s *RequestedRangeNotSatisfiableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -1392,22 +1392,22 @@ func (s RequestedRangeNotSatisfiableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s RequestedRangeNotSatisfiableException) OrigErr() error {
+func (s *RequestedRangeNotSatisfiableException) OrigErr() error {
 	return nil
 }
 
-func (s RequestedRangeNotSatisfiableException) Error() string {
+func (s *RequestedRangeNotSatisfiableException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s RequestedRangeNotSatisfiableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *RequestedRangeNotSatisfiableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s RequestedRangeNotSatisfiableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *RequestedRangeNotSatisfiableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 const (

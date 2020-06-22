@@ -49,6 +49,7 @@ func dataSourceAwsVpnGateway() *schema.Resource {
 
 func dataSourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeVpnGatewaysInput{}
 
@@ -107,7 +108,7 @@ func dataSourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("availability_zone", vgw.AvailabilityZone)
 	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vgw.AmazonSideAsn), 10))
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vgw.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vgw.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

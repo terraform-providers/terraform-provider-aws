@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsGuardDutyIpset() *schema.Resource {
@@ -25,6 +27,10 @@ func resourceAwsGuardDutyIpset() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"detector_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -55,6 +61,7 @@ func resourceAwsGuardDutyIpset() *schema.Resource {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -69,6 +76,10 @@ func resourceAwsGuardDutyIpsetCreate(d *schema.ResourceData, meta interface{}) e
 		Format:     aws.String(d.Get("format").(string)),
 		Location:   aws.String(d.Get("location").(string)),
 		Activate:   aws.Bool(d.Get("activate").(bool)),
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.Tags = keyvaluetags.New(v).IgnoreAws().GuarddutyTags()
 	}
 
 	resp, err := conn.CreateIPSet(input)
@@ -95,6 +106,7 @@ func resourceAwsGuardDutyIpsetCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAwsGuardDutyIpsetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).guarddutyconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	ipSetId, detectorId, err := decodeGuardDutyIpsetID(d.Id())
 	if err != nil {
@@ -115,11 +127,25 @@ func resourceAwsGuardDutyIpsetRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Service:   "guardduty",
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("detector/%s/ipset/%s", detectorId, ipSetId),
+	}.String()
+	d.Set("arn", arn)
+
 	d.Set("detector_id", detectorId)
 	d.Set("format", resp.Format)
 	d.Set("location", resp.Location)
 	d.Set("name", resp.Name)
 	d.Set("activate", *resp.Status == guardduty.IpSetStatusActive)
+
+	if err := d.Set("tags", keyvaluetags.GuarddutyKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	return nil
 }
 
@@ -130,24 +156,35 @@ func resourceAwsGuardDutyIpsetUpdate(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	input := &guardduty.UpdateIPSetInput{
-		DetectorId: aws.String(detectorId),
-		IpSetId:    aws.String(ipSetId),
+
+	if d.HasChanges("activate", "location", "name") {
+		input := &guardduty.UpdateIPSetInput{
+			DetectorId: aws.String(detectorId),
+			IpSetId:    aws.String(ipSetId),
+		}
+
+		if d.HasChange("name") {
+			input.Name = aws.String(d.Get("name").(string))
+		}
+		if d.HasChange("location") {
+			input.Location = aws.String(d.Get("location").(string))
+		}
+		if d.HasChange("activate") {
+			input.Activate = aws.Bool(d.Get("activate").(bool))
+		}
+
+		_, err = conn.UpdateIPSet(input)
+		if err != nil {
+			return err
+		}
 	}
 
-	if d.HasChange("name") {
-		input.Name = aws.String(d.Get("name").(string))
-	}
-	if d.HasChange("location") {
-		input.Location = aws.String(d.Get("location").(string))
-	}
-	if d.HasChange("activate") {
-		input.Activate = aws.Bool(d.Get("activate").(bool))
-	}
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
 
-	_, err = conn.UpdateIPSet(input)
-	if err != nil {
-		return err
+		if err := keyvaluetags.GuarddutyUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating GuardDuty IP Set (%s) tags: %s", d.Get("arn").(string), err)
+		}
 	}
 
 	return resourceAwsGuardDutyIpsetRead(d, meta)

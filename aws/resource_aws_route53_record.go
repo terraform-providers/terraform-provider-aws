@@ -25,6 +25,7 @@ var r53NoHostedZoneFound = errors.New("No matching Hosted Zone found")
 var r53ValidRecordTypes = regexp.MustCompile("^(A|AAAA|CAA|CNAME|MX|NAPTR|NS|PTR|SOA|SPF|SRV|TXT)$")
 
 func resourceAwsRoute53Record() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsRoute53RecordCreate,
 		Read:   resourceAwsRoute53RecordRead,
@@ -584,7 +585,7 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if record.MultiValueAnswer != nil {
-		if err := d.Set("multivalue_answer_routing_policy", *record.MultiValueAnswer); err != nil {
+		if err := d.Set("multivalue_answer_routing_policy", record.MultiValueAnswer); err != nil {
 			return fmt.Errorf("Error setting multivalue answer records for: %s, error: %#v", d.Id(), err)
 		}
 	}

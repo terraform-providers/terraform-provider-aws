@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -18,6 +17,7 @@ import (
 )
 
 func resourceAwsElasticacheReplicationGroup() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsElasticacheReplicationGroupCreate,
 		Read:   resourceAwsElasticacheReplicationGroupRead,
@@ -166,8 +166,8 @@ func resourceAwsElasticacheReplicationGroup() *schema.Resource {
 					validation.StringLenBetween(1, 40),
 					validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z-]+$`), "must contain only alphanumeric characters and hyphens"),
 					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z]`), "must begin with a letter"),
-					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
-					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
 				),
 				StateFunc: func(val interface{}) string {
 					return strings.ToLower(val.(string))

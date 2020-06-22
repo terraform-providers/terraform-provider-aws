@@ -1,7 +1,8 @@
 
 ACM PCA
 ACM
-API Gateway
+API Gateway (REST APIs)
+API Gateway v2 (WebSocket and HTTP APIs)
 Access Analyzer
 AppMesh
 AppSync
@@ -17,6 +18,7 @@ CloudFront
 CloudHSM v2
 CloudTrail
 CloudWatch
+CodeArtifact
 CodeBuild
 CodeCommit
 CodeDeploy
@@ -58,13 +60,15 @@ IAM
 Inspector
 IoT
 KMS
-Kinesis Firehose
 Kinesis
+Kinesis Data Analytics v2 (SQL and Java Applications)
+Kinesis Firehose
+Kinesis Video
 Lambda
 License Manager
 Lightsail
 MQ
-Macie
+Macie Classic
 Managed Streaming for Kafka (MSK)
 MediaConvert
 MediaPackage
@@ -72,6 +76,7 @@ MediaStore
 Neptune
 OpsWorks
 Organizations
+Outposts
 Pinpoint
 Pricing
 Quantum Ledger Database (QLDB)
@@ -80,6 +85,7 @@ RAM
 RDS
 Redshift
 Resource Groups
+Route53 Domains
 Route53 Resolver
 Route53
 S3
@@ -98,10 +104,13 @@ Shield
 SimpleDB
 Step Function (SFN)
 Storage Gateway
+Synthetics
 Transfer
+Transit Gateway Network Manager
 VPC
 WAF Regional
 WAF
+WAFv2
 WorkLink
 WorkMail
 WorkSpaces

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/efs"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -46,12 +45,12 @@ func testSweepEfsMountTargets(region string) error {
 				out, err := conn.DescribeMountTargets(input)
 				if err != nil {
 					errors = multierror.Append(errors, fmt.Errorf("error retrieving EFS Mount Targets on File System %q: %w", id, err))
-					continue
+					break
 				}
 
 				if out == nil || len(out.MountTargets) == 0 {
 					log.Printf("[INFO] No EFS Mount Targets to sweep on File System %q", id)
-					continue
+					break
 				}
 
 				for _, mounttarget := range out.MountTargets {
@@ -92,6 +91,7 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 	var mount efs.MountTargetDescription
 	ct := fmt.Sprintf("createtoken-%d", acctest.RandInt())
 	resourceName := "aws_efs_mount_target.test"
+	resourceName2 := "aws_efs_mount_target.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -101,16 +101,14 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 			{
 				Config: testAccAWSEFSMountTargetConfig(ct),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
 					testAccMatchResourceAttrRegionalARN(resourceName, "file_system_arn", "elasticfilesystem", regexp.MustCompile(`file-system/fs-.+`)),
-					testAccCheckEfsMountTarget(
-						resourceName,
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						resourceName,
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
+					resource.TestCheckResourceAttrSet(resourceName, "mount_target_dns_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_interface_id"),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
 			{
@@ -121,24 +119,10 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 			{
 				Config: testAccAWSEFSMountTargetConfigModified(ct),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckEfsMountTarget(
-						resourceName,
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						resourceName,
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
-					testAccCheckEfsMountTarget(
-						"aws_efs_mount_target.test2",
-						&mount,
-					),
-					resource.TestMatchResourceAttr(
-						"aws_efs_mount_target.test2",
-						"dns_name",
-						regexp.MustCompile("^[^.]+.efs.us-west-2.amazonaws.com$"),
-					),
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					testAccCheckEfsMountTarget(resourceName2, &mount),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
+					testAccMatchResourceAttrRegionalHostname(resourceName2, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
 				),
 			},
 		},
@@ -158,26 +142,13 @@ func TestAccAWSEFSMountTarget_disappears(t *testing.T) {
 			{
 				Config: testAccAWSEFSMountTargetConfig(ct),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckEfsMountTarget(
-						resourceName,
-						&mount,
-					),
-					testAccAWSEFSMountTargetDisappears(&mount),
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEfsMountTarget(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
-}
-
-func TestResourceAWSEFSMountTarget_mountTargetDnsName(t *testing.T) {
-	actual := resourceAwsEfsMountTargetDnsName("fs-123456ab", "us-west-2", "amazonaws.com")
-
-	expected := "fs-123456ab.efs.us-west-2.amazonaws.com"
-	if actual != expected {
-		t.Fatalf("Expected EFS mount target DNS name to be %s, got %s",
-			expected, actual)
-	}
 }
 
 func TestResourceAWSEFSMountTarget_hasEmptyMountTargets(t *testing.T) {
@@ -211,7 +182,7 @@ func testAccCheckEfsMountTargetDestroy(s *terraform.State) error {
 			MountTargetId: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
-			if efsErr, ok := err.(awserr.Error); ok && efsErr.Code() == "MountTargetNotFound" {
+			if isAWSErr(err, efs.ErrCodeMountTargetNotFound, "") {
 				// gone
 				return nil
 			}
@@ -249,7 +220,7 @@ func testAccCheckEfsMountTarget(resourceID string, mount *efs.MountTargetDescrip
 			return err
 		}
 
-		if *mt.MountTargets[0].MountTargetId != fs.Primary.ID {
+		if aws.StringValue(mt.MountTargets[0].MountTargetId) != fs.Primary.ID {
 			return fmt.Errorf("Mount target ID mismatch: %q != %q",
 				*mt.MountTargets[0].MountTargetId, fs.Primary.ID)
 		}
@@ -260,67 +231,41 @@ func testAccCheckEfsMountTarget(resourceID string, mount *efs.MountTargetDescrip
 	}
 }
 
-func testAccAWSEFSMountTargetDisappears(mount *efs.MountTargetDescription) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).efsconn
-
-		_, err := conn.DeleteMountTarget(&efs.DeleteMountTargetInput{
-			MountTargetId: mount.MountTargetId,
-		})
-
-		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "MountTargetNotFound" {
-				return nil
-			}
-			return err
-		}
-
-		return resource.Retry(3*time.Minute, func() *resource.RetryError {
-			resp, err := conn.DescribeMountTargets(&efs.DescribeMountTargetsInput{
-				MountTargetId: mount.MountTargetId,
-			})
-			if err != nil {
-				if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "MountTargetNotFound" {
-					return nil
-				}
-				return resource.NonRetryableError(
-					fmt.Errorf("Error reading EFS mount target: %s", err))
-			}
-			if resp.MountTargets == nil || len(resp.MountTargets) < 1 {
-				return nil
-			}
-			if *resp.MountTargets[0].LifeCycleState == "deleted" {
-				return nil
-			}
-			return resource.RetryableError(fmt.Errorf(
-				"Waiting for EFS mount target: %s", *mount.MountTargetId))
-		})
-	}
-
-}
-
 func testAccAWSEFSMountTargetConfig(ct string) string {
 	return fmt.Sprintf(`
-resource "aws_efs_file_system" "foo" {
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_efs_file_system" "test" {
   creation_token = "%s"
+
+  tags = {
+    Name = "tf-acc-efs-mount-target-test"
+  }
 }
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.foo.id}"
+  file_system_id = "${aws_efs_file_system.test.id}"
   subnet_id      = "${aws_subnet.test.id}"
 }
 
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-efs-mount-target"
+    Name = "tf-acc-efs-mount-target-test"
   }
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  availability_zone = "us-west-2a"
+  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -332,31 +277,44 @@ resource "aws_subnet" "test" {
 
 func testAccAWSEFSMountTargetConfigModified(ct string) string {
 	return fmt.Sprintf(`
-resource "aws_efs_file_system" "foo" {
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_efs_file_system" "test" {
   creation_token = "%s"
+
+  tags = {
+    Name = "tf-acc-efs-mount-target-test"
+  }
 }
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.foo.id}"
+  file_system_id = "${aws_efs_file_system.test.id}"
   subnet_id      = "${aws_subnet.test.id}"
 }
 
 resource "aws_efs_mount_target" "test2" {
-  file_system_id = "${aws_efs_file_system.foo.id}"
+  file_system_id = "${aws_efs_file_system.test.id}"
   subnet_id      = "${aws_subnet.test2.id}"
 }
 
-resource "aws_vpc" "foo" {
+resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-efs-mount-target-modified"
+    Name = "tf-acc-efs-mount-target-test"
   }
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  availability_zone = "us-west-2a"
+  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[0]}"
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -365,8 +323,8 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_subnet" "test2" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  availability_zone = "us-west-2b"
+  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = "${data.aws_availability_zones.available.names[1]}"
   cidr_block        = "10.0.2.0/24"
 
   tags = {

@@ -60,6 +60,7 @@ func TestAccAWSGlueJob_Basic(t *testing.T) {
 
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
 	resourceName := "aws_glue_job.test"
+	roleResourceName := "aws_iam_role.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +76,7 @@ func TestAccAWSGlueJob_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "command.0.script_location", "testscriptlocation"),
 					resource.TestCheckResourceAttr(resourceName, "default_arguments.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestMatchResourceAttr(resourceName, "role_arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:iam::[^:]+:role/%s", rName))),
+					resource.TestCheckResourceAttrPair(resourceName, "role_arn", roleResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "2880"),
 				),
@@ -336,6 +337,46 @@ func TestAccAWSGlueJob_MaxRetries(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGlueJobExists(resourceName, &job),
 					resource.TestCheckResourceAttr(resourceName, "max_retries", "10"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueJob_NotificationProperty(t *testing.T) {
+	var job glue.Job
+
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
+	resourceName := "aws_glue_job.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSGlueJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSGlueJobConfig_NotificationProperty(rName, 0),
+				ExpectError: regexp.MustCompile(`expected notification_property.0.notify_delay_after to be at least`),
+			},
+			{
+				Config: testAccAWSGlueJobConfig_NotificationProperty(rName, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueJobExists(resourceName, &job),
+					resource.TestCheckResourceAttr(resourceName, "notification_property.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification_property.0.notify_delay_after", "1"),
+				),
+			},
+			{
+				Config: testAccAWSGlueJobConfig_NotificationProperty(rName, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSGlueJobExists(resourceName, &job),
+					resource.TestCheckResourceAttr(resourceName, "notification_property.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification_property.0.notify_delay_after", "2"),
 				),
 			},
 			{
@@ -825,6 +866,28 @@ resource "aws_glue_job" "test" {
   depends_on = ["aws_iam_role_policy_attachment.test"]
 }
 `, testAccAWSGlueJobConfig_Base(rName), maxRetries, rName)
+}
+
+func testAccAWSGlueJobConfig_NotificationProperty(rName string, notifyDelayAfter int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "aws_glue_job" "test" {
+  name               = "%s"
+  role_arn           = "${aws_iam_role.test.arn}"
+  allocated_capacity = 10
+
+  command {
+    script_location = "testscriptlocation"
+  }
+
+  notification_property {
+    notify_delay_after = %d
+  }
+
+  depends_on = ["aws_iam_role_policy_attachment.test"]
+}
+`, testAccAWSGlueJobConfig_Base(rName), rName, notifyDelayAfter)
 }
 
 func testAccAWSGlueJobConfig_Required(rName string) string {

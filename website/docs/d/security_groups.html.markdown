@@ -38,7 +38,7 @@ data "aws_security_groups" "test" {
 
 ## Argument Reference
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match for
+* `tags` - (Optional) A map of tags, each pair of which must exactly match for
 desired security groups.
 
 * `filter` - (Optional) One or more name/value pairs to use as filters. There are

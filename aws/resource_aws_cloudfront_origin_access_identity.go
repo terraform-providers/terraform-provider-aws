@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -72,6 +73,11 @@ func resourceAwsCloudFrontOriginAccessIdentityRead(d *schema.ResourceData, meta 
 
 	resp, err := conn.GetCloudFrontOriginAccessIdentity(params)
 	if err != nil {
+		if isAWSErr(err, cloudfront.ErrCodeNoSuchCloudFrontOriginAccessIdentity, "") {
+			log.Printf("[WARN] CloudFront Origin Access Identity (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 

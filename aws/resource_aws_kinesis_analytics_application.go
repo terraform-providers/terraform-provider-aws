@@ -631,6 +631,8 @@ func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta i
 
 func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	name := d.Get("name").(string)
 
 	describeOpts := &kinesisanalytics.DescribeApplicationInput{
@@ -678,7 +680,7 @@ func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error listing tags for Kinesis Analytics Application (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -702,10 +704,7 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 			CurrentApplicationVersionId: aws.Int64(int64(version)),
 		}
 
-		applicationUpdate, err := createApplicationUpdateOpts(d)
-		if err != nil {
-			return err
-		}
+		applicationUpdate := createApplicationUpdateOpts(d)
 
 		if !reflect.DeepEqual(applicationUpdate, &kinesisanalytics.ApplicationUpdate{}) {
 			updateApplicationOpts.SetApplicationUpdate(applicationUpdate)
@@ -1083,7 +1082,7 @@ func expandKinesisAnalyticsReferenceData(rd map[string]interface{}) *kinesisanal
 	return referenceData
 }
 
-func createApplicationUpdateOpts(d *schema.ResourceData) (*kinesisanalytics.ApplicationUpdate, error) {
+func createApplicationUpdateOpts(d *schema.ResourceData) *kinesisanalytics.ApplicationUpdate {
 	applicationUpdate := &kinesisanalytics.ApplicationUpdate{}
 
 	if d.HasChange("code") {
@@ -1152,7 +1151,7 @@ func createApplicationUpdateOpts(d *schema.ResourceData) (*kinesisanalytics.Appl
 		}
 	}
 
-	return applicationUpdate, nil
+	return applicationUpdate
 }
 
 func expandKinesisAnalyticsInputUpdate(vL map[string]interface{}) *kinesisanalytics.InputUpdate {

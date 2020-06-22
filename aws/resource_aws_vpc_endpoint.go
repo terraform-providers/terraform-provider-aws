@@ -65,7 +65,7 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
@@ -154,6 +154,7 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		VpcEndpointType:   aws.String(d.Get("vpc_endpoint_type").(string)),
 		ServiceName:       aws.String(d.Get("service_name").(string)),
 		PrivateDnsEnabled: aws.Bool(d.Get("private_dns_enabled").(bool)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint"),
 	}
 
 	if v, ok := d.GetOk("policy"); ok {
@@ -187,17 +188,12 @@ func resourceAwsVpcEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v.(map[string]interface{})); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
-	}
-
 	return resourceAwsVpcEndpointRead(d, meta)
 }
 
 func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	vpceRaw, state, err := vpcEndpointStateRefresh(conn, d.Id())()
 	if err != nil && state != "failed" {
@@ -281,7 +277,7 @@ func resourceAwsVpcEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("vpc_endpoint_type", vpceType)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpce.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

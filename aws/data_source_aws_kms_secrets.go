@@ -19,7 +19,6 @@ func dataSourceAwsKmsSecrets() *schema.Resource {
 			"secret": {
 				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {

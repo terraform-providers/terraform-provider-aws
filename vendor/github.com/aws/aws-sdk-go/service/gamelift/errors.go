@@ -82,6 +82,14 @@ const (
 	// should not retry such requests.
 	ErrCodeNotFoundException = "NotFoundException"
 
+	// ErrCodeOutOfCapacityException for service response error code
+	// "OutOfCapacityException".
+	//
+	// The specified game server group has no available game servers to fulfill
+	// a ClaimGameServer request. Clients can retry such requests immediately or
+	// after a waiting period.
+	ErrCodeOutOfCapacityException = "OutOfCapacityException"
+
 	// ErrCodeTaggingFailedException for service response error code
 	// "TaggingFailedException".
 	//
@@ -124,6 +132,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidRequestException":              newErrorInvalidRequestException,
 	"LimitExceededException":               newErrorLimitExceededException,
 	"NotFoundException":                    newErrorNotFoundException,
+	"OutOfCapacityException":               newErrorOutOfCapacityException,
 	"TaggingFailedException":               newErrorTaggingFailedException,
 	"TerminalRoutingStrategyException":     newErrorTerminalRoutingStrategyException,
 	"UnauthorizedException":                newErrorUnauthorizedException,

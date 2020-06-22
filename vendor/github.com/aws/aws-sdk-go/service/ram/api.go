@@ -1005,6 +1005,9 @@ func (c *RAM) GetResourcePoliciesRequest(input *GetResourcePoliciesInput) (req *
 //   * InvalidParameterException
 //   A parameter is not valid.
 //
+//   * ResourceArnNotFoundException
+//   An Amazon Resource Name (ARN) was not found.
+//
 //   * ServerInternalException
 //   The service could not respond to the request due to an internal problem.
 //
@@ -1308,6 +1311,9 @@ func (c *RAM) GetResourceShareInvitationsRequest(input *GetResourceShareInvitati
 //
 //   * MalformedArnException
 //   The format of an Amazon Resource Name (ARN) is not valid.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
 //
 //   * InvalidNextTokenException
 //   The specified value for NextToken is not valid.
@@ -2051,6 +2057,94 @@ func (c *RAM) ListResourceSharePermissionsWithContext(ctx aws.Context, input *Li
 	return out, req.Send()
 }
 
+const opListResourceTypes = "ListResourceTypes"
+
+// ListResourceTypesRequest generates a "aws/request.Request" representing the
+// client's request for the ListResourceTypes operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListResourceTypes for more information on using the ListResourceTypes
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListResourceTypesRequest method.
+//    req, resp := client.ListResourceTypesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListResourceTypes
+func (c *RAM) ListResourceTypesRequest(input *ListResourceTypesInput) (req *request.Request, output *ListResourceTypesOutput) {
+	op := &request.Operation{
+		Name:       opListResourceTypes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/listresourcetypes",
+	}
+
+	if input == nil {
+		input = &ListResourceTypesInput{}
+	}
+
+	output = &ListResourceTypesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListResourceTypes API operation for AWS Resource Access Manager.
+//
+// Lists the shareable resource types supported by AWS RAM.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Resource Access Manager's
+// API operation ListResourceTypes for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidNextTokenException
+//   The specified value for NextToken is not valid.
+//
+//   * InvalidParameterException
+//   A parameter is not valid.
+//
+//   * ServerInternalException
+//   The service could not respond to the request due to an internal problem.
+//
+//   * ServiceUnavailableException
+//   The service is not available.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/ListResourceTypes
+func (c *RAM) ListResourceTypes(input *ListResourceTypesInput) (*ListResourceTypesOutput, error) {
+	req, out := c.ListResourceTypesRequest(input)
+	return out, req.Send()
+}
+
+// ListResourceTypesWithContext is the same as ListResourceTypes with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListResourceTypes for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RAM) ListResourceTypesWithContext(ctx aws.Context, input *ListResourceTypesInput, opts ...request.Option) (*ListResourceTypesOutput, error) {
+	req, out := c.ListResourceTypesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListResources = "ListResources"
 
 // ListResourcesRequest generates a "aws/request.Request" representing the
@@ -2287,6 +2381,9 @@ func (c *RAM) PromoteResourceShareCreatedFromPolicyRequest(input *PromoteResourc
 //
 //   * ServiceUnavailableException
 //   The service is not available.
+//
+//   * UnknownResourceException
+//   A specified resource was not found.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/ram-2018-01-04/PromoteResourceShareCreatedFromPolicy
 func (c *RAM) PromoteResourceShareCreatedFromPolicy(input *PromoteResourceShareCreatedFromPolicyInput) (*PromoteResourceShareCreatedFromPolicyOutput, error) {
@@ -3971,8 +4068,8 @@ func (s *GetResourceSharesOutput) SetResourceShares(v []*ResourceShare) *GetReso
 // one of the other input parameters is different from the previous call to
 // the operation.
 type IdempotentParameterMismatchException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -3989,17 +4086,17 @@ func (s IdempotentParameterMismatchException) GoString() string {
 
 func newErrorIdempotentParameterMismatchException(v protocol.ResponseMetadata) error {
 	return &IdempotentParameterMismatchException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IdempotentParameterMismatchException) Code() string {
+func (s *IdempotentParameterMismatchException) Code() string {
 	return "IdempotentParameterMismatchException"
 }
 
 // Message returns the exception's message.
-func (s IdempotentParameterMismatchException) Message() string {
+func (s *IdempotentParameterMismatchException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4007,28 +4104,28 @@ func (s IdempotentParameterMismatchException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IdempotentParameterMismatchException) OrigErr() error {
+func (s *IdempotentParameterMismatchException) OrigErr() error {
 	return nil
 }
 
-func (s IdempotentParameterMismatchException) Error() string {
+func (s *IdempotentParameterMismatchException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IdempotentParameterMismatchException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IdempotentParameterMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IdempotentParameterMismatchException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IdempotentParameterMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A client token is not valid.
 type InvalidClientTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4045,17 +4142,17 @@ func (s InvalidClientTokenException) GoString() string {
 
 func newErrorInvalidClientTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidClientTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidClientTokenException) Code() string {
+func (s *InvalidClientTokenException) Code() string {
 	return "InvalidClientTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidClientTokenException) Message() string {
+func (s *InvalidClientTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4063,28 +4160,28 @@ func (s InvalidClientTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidClientTokenException) OrigErr() error {
+func (s *InvalidClientTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidClientTokenException) Error() string {
+func (s *InvalidClientTokenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidClientTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidClientTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidClientTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidClientTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified value for MaxResults is not valid.
 type InvalidMaxResultsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4101,17 +4198,17 @@ func (s InvalidMaxResultsException) GoString() string {
 
 func newErrorInvalidMaxResultsException(v protocol.ResponseMetadata) error {
 	return &InvalidMaxResultsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidMaxResultsException) Code() string {
+func (s *InvalidMaxResultsException) Code() string {
 	return "InvalidMaxResultsException"
 }
 
 // Message returns the exception's message.
-func (s InvalidMaxResultsException) Message() string {
+func (s *InvalidMaxResultsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4119,28 +4216,28 @@ func (s InvalidMaxResultsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidMaxResultsException) OrigErr() error {
+func (s *InvalidMaxResultsException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidMaxResultsException) Error() string {
+func (s *InvalidMaxResultsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidMaxResultsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidMaxResultsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidMaxResultsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidMaxResultsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified value for NextToken is not valid.
 type InvalidNextTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4157,17 +4254,17 @@ func (s InvalidNextTokenException) GoString() string {
 
 func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidNextTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidNextTokenException) Code() string {
+func (s *InvalidNextTokenException) Code() string {
 	return "InvalidNextTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidNextTokenException) Message() string {
+func (s *InvalidNextTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4175,28 +4272,28 @@ func (s InvalidNextTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidNextTokenException) OrigErr() error {
+func (s *InvalidNextTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidNextTokenException) Error() string {
+func (s *InvalidNextTokenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidNextTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidNextTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A parameter is not valid.
 type InvalidParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4213,17 +4310,17 @@ func (s InvalidParameterException) GoString() string {
 
 func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterException) Code() string {
+func (s *InvalidParameterException) Code() string {
 	return "InvalidParameterException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterException) Message() string {
+func (s *InvalidParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4231,28 +4328,28 @@ func (s InvalidParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterException) OrigErr() error {
+func (s *InvalidParameterException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterException) Error() string {
+func (s *InvalidParameterException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified resource type is not valid.
 type InvalidResourceTypeException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4269,17 +4366,17 @@ func (s InvalidResourceTypeException) GoString() string {
 
 func newErrorInvalidResourceTypeException(v protocol.ResponseMetadata) error {
 	return &InvalidResourceTypeException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidResourceTypeException) Code() string {
+func (s *InvalidResourceTypeException) Code() string {
 	return "InvalidResourceTypeException"
 }
 
 // Message returns the exception's message.
-func (s InvalidResourceTypeException) Message() string {
+func (s *InvalidResourceTypeException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4287,28 +4384,28 @@ func (s InvalidResourceTypeException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidResourceTypeException) OrigErr() error {
+func (s *InvalidResourceTypeException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidResourceTypeException) Error() string {
+func (s *InvalidResourceTypeException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidResourceTypeException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidResourceTypeException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidResourceTypeException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidResourceTypeException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested state transition is not valid.
 type InvalidStateTransitionException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4325,17 +4422,17 @@ func (s InvalidStateTransitionException) GoString() string {
 
 func newErrorInvalidStateTransitionException(v protocol.ResponseMetadata) error {
 	return &InvalidStateTransitionException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidStateTransitionException) Code() string {
+func (s *InvalidStateTransitionException) Code() string {
 	return "InvalidStateTransitionException"
 }
 
 // Message returns the exception's message.
-func (s InvalidStateTransitionException) Message() string {
+func (s *InvalidStateTransitionException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4343,22 +4440,22 @@ func (s InvalidStateTransitionException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidStateTransitionException) OrigErr() error {
+func (s *InvalidStateTransitionException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidStateTransitionException) Error() string {
+func (s *InvalidStateTransitionException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidStateTransitionException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidStateTransitionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidStateTransitionException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidStateTransitionException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListPendingInvitationResourcesInput struct {
@@ -4569,9 +4666,11 @@ type ListPrincipalsInput struct {
 
 	// The resource type.
 	//
-	// Valid values: ec2:CapacityReservation | ec2:Subnet | ec2:TrafficMirrorTarget
-	// | ec2:TransitGateway | license-manager:LicenseConfiguration | rds:Cluster
-	// | route53resolver:ResolverRule I resource-groups:Group
+	// Valid values: codebuild:Project | codebuild:ReportGroup | ec2:CapacityReservation
+	// | ec2:DedicatedHost | ec2:Subnet | ec2:TrafficMirrorTarget | ec2:TransitGateway
+	// | imagebuilder:Component | imagebuilder:Image | imagebuilder:ImageRecipe
+	// | license-manager:LicenseConfiguration I resource-groups:Group | rds:Cluster
+	// | route53resolver:ResolverRule
 	ResourceType *string `locationName:"resourceType" type:"string"`
 }
 
@@ -4769,6 +4868,85 @@ func (s *ListResourceSharePermissionsOutput) SetPermissions(v []*ResourceSharePe
 	return s
 }
 
+type ListResourceTypesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return with a single call. To retrieve the
+	// remaining results, make another call with the returned nextToken value.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The token for the next page of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListResourceTypesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceTypesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListResourceTypesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListResourceTypesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListResourceTypesInput) SetMaxResults(v int64) *ListResourceTypesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResourceTypesInput) SetNextToken(v string) *ListResourceTypesInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListResourceTypesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The token to use to retrieve the next page of results. This value is null
+	// when there are no more results to return.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The shareable resource types supported by AWS RAM.
+	ResourceTypes []*ServiceNameAndResourceType `locationName:"resourceTypes" type:"list"`
+}
+
+// String returns the string representation
+func (s ListResourceTypesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResourceTypesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResourceTypesOutput) SetNextToken(v string) *ListResourceTypesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceTypes sets the ResourceTypes field's value.
+func (s *ListResourceTypesOutput) SetResourceTypes(v []*ServiceNameAndResourceType) *ListResourceTypesOutput {
+	s.ResourceTypes = v
+	return s
+}
+
 type ListResourcesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4795,9 +4973,11 @@ type ListResourcesInput struct {
 
 	// The resource type.
 	//
-	// Valid values: ec2:CapacityReservation | ec2:Subnet | ec2:TrafficMirrorTarget
-	// | ec2:TransitGateway | license-manager:LicenseConfiguration | rds:Cluster
-	// | route53resolver:ResolverRule | resource-groups:Group
+	// Valid values: codebuild:Project | codebuild:ReportGroup | ec2:CapacityReservation
+	// | ec2:DedicatedHost | ec2:Subnet | ec2:TrafficMirrorTarget | ec2:TransitGateway
+	// | imagebuilder:Component | imagebuilder:Image | imagebuilder:ImageRecipe
+	// | license-manager:LicenseConfiguration I resource-groups:Group | rds:Cluster
+	// | route53resolver:ResolverRule
 	ResourceType *string `locationName:"resourceType" type:"string"`
 }
 
@@ -4904,8 +5084,8 @@ func (s *ListResourcesOutput) SetResources(v []*Resource) *ListResourcesOutput {
 
 // The format of an Amazon Resource Name (ARN) is not valid.
 type MalformedArnException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4922,17 +5102,17 @@ func (s MalformedArnException) GoString() string {
 
 func newErrorMalformedArnException(v protocol.ResponseMetadata) error {
 	return &MalformedArnException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MalformedArnException) Code() string {
+func (s *MalformedArnException) Code() string {
 	return "MalformedArnException"
 }
 
 // Message returns the exception's message.
-func (s MalformedArnException) Message() string {
+func (s *MalformedArnException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4940,28 +5120,28 @@ func (s MalformedArnException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MalformedArnException) OrigErr() error {
+func (s *MalformedArnException) OrigErr() error {
 	return nil
 }
 
-func (s MalformedArnException) Error() string {
+func (s *MalformedArnException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MalformedArnException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MalformedArnException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MalformedArnException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MalformedArnException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A required input parameter is missing.
 type MissingRequiredParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4978,17 +5158,17 @@ func (s MissingRequiredParameterException) GoString() string {
 
 func newErrorMissingRequiredParameterException(v protocol.ResponseMetadata) error {
 	return &MissingRequiredParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MissingRequiredParameterException) Code() string {
+func (s *MissingRequiredParameterException) Code() string {
 	return "MissingRequiredParameterException"
 }
 
 // Message returns the exception's message.
-func (s MissingRequiredParameterException) Message() string {
+func (s *MissingRequiredParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4996,28 +5176,28 @@ func (s MissingRequiredParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MissingRequiredParameterException) OrigErr() error {
+func (s *MissingRequiredParameterException) OrigErr() error {
 	return nil
 }
 
-func (s MissingRequiredParameterException) Error() string {
+func (s *MissingRequiredParameterException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MissingRequiredParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MissingRequiredParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MissingRequiredParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MissingRequiredParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested operation is not permitted.
 type OperationNotPermittedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5034,17 +5214,17 @@ func (s OperationNotPermittedException) GoString() string {
 
 func newErrorOperationNotPermittedException(v protocol.ResponseMetadata) error {
 	return &OperationNotPermittedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s OperationNotPermittedException) Code() string {
+func (s *OperationNotPermittedException) Code() string {
 	return "OperationNotPermittedException"
 }
 
 // Message returns the exception's message.
-func (s OperationNotPermittedException) Message() string {
+func (s *OperationNotPermittedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5052,22 +5232,22 @@ func (s OperationNotPermittedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s OperationNotPermittedException) OrigErr() error {
+func (s *OperationNotPermittedException) OrigErr() error {
 	return nil
 }
 
-func (s OperationNotPermittedException) Error() string {
+func (s *OperationNotPermittedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s OperationNotPermittedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *OperationNotPermittedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s OperationNotPermittedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *OperationNotPermittedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a principal for use with AWS Resource Access Manager.
@@ -5363,8 +5543,8 @@ func (s *Resource) SetType(v string) *Resource {
 
 // An Amazon Resource Name (ARN) was not found.
 type ResourceArnNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5381,17 +5561,17 @@ func (s ResourceArnNotFoundException) GoString() string {
 
 func newErrorResourceArnNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceArnNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceArnNotFoundException) Code() string {
+func (s *ResourceArnNotFoundException) Code() string {
 	return "ResourceArnNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceArnNotFoundException) Message() string {
+func (s *ResourceArnNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5399,22 +5579,22 @@ func (s ResourceArnNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceArnNotFoundException) OrigErr() error {
+func (s *ResourceArnNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceArnNotFoundException) Error() string {
+func (s *ResourceArnNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceArnNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceArnNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceArnNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceArnNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a resource share.
@@ -5726,8 +5906,8 @@ func (s *ResourceShareInvitation) SetStatus(v string) *ResourceShareInvitation {
 
 // The invitation was already accepted.
 type ResourceShareInvitationAlreadyAcceptedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5744,17 +5924,17 @@ func (s ResourceShareInvitationAlreadyAcceptedException) GoString() string {
 
 func newErrorResourceShareInvitationAlreadyAcceptedException(v protocol.ResponseMetadata) error {
 	return &ResourceShareInvitationAlreadyAcceptedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceShareInvitationAlreadyAcceptedException) Code() string {
+func (s *ResourceShareInvitationAlreadyAcceptedException) Code() string {
 	return "ResourceShareInvitationAlreadyAcceptedException"
 }
 
 // Message returns the exception's message.
-func (s ResourceShareInvitationAlreadyAcceptedException) Message() string {
+func (s *ResourceShareInvitationAlreadyAcceptedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5762,28 +5942,28 @@ func (s ResourceShareInvitationAlreadyAcceptedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceShareInvitationAlreadyAcceptedException) OrigErr() error {
+func (s *ResourceShareInvitationAlreadyAcceptedException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceShareInvitationAlreadyAcceptedException) Error() string {
+func (s *ResourceShareInvitationAlreadyAcceptedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceShareInvitationAlreadyAcceptedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceShareInvitationAlreadyAcceptedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceShareInvitationAlreadyAcceptedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceShareInvitationAlreadyAcceptedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The invitation was already rejected.
 type ResourceShareInvitationAlreadyRejectedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5800,17 +5980,17 @@ func (s ResourceShareInvitationAlreadyRejectedException) GoString() string {
 
 func newErrorResourceShareInvitationAlreadyRejectedException(v protocol.ResponseMetadata) error {
 	return &ResourceShareInvitationAlreadyRejectedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceShareInvitationAlreadyRejectedException) Code() string {
+func (s *ResourceShareInvitationAlreadyRejectedException) Code() string {
 	return "ResourceShareInvitationAlreadyRejectedException"
 }
 
 // Message returns the exception's message.
-func (s ResourceShareInvitationAlreadyRejectedException) Message() string {
+func (s *ResourceShareInvitationAlreadyRejectedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5818,28 +5998,28 @@ func (s ResourceShareInvitationAlreadyRejectedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceShareInvitationAlreadyRejectedException) OrigErr() error {
+func (s *ResourceShareInvitationAlreadyRejectedException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceShareInvitationAlreadyRejectedException) Error() string {
+func (s *ResourceShareInvitationAlreadyRejectedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceShareInvitationAlreadyRejectedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceShareInvitationAlreadyRejectedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceShareInvitationAlreadyRejectedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceShareInvitationAlreadyRejectedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The Amazon Resource Name (ARN) for an invitation was not found.
 type ResourceShareInvitationArnNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5856,17 +6036,17 @@ func (s ResourceShareInvitationArnNotFoundException) GoString() string {
 
 func newErrorResourceShareInvitationArnNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceShareInvitationArnNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceShareInvitationArnNotFoundException) Code() string {
+func (s *ResourceShareInvitationArnNotFoundException) Code() string {
 	return "ResourceShareInvitationArnNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceShareInvitationArnNotFoundException) Message() string {
+func (s *ResourceShareInvitationArnNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5874,28 +6054,28 @@ func (s ResourceShareInvitationArnNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceShareInvitationArnNotFoundException) OrigErr() error {
+func (s *ResourceShareInvitationArnNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceShareInvitationArnNotFoundException) Error() string {
+func (s *ResourceShareInvitationArnNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceShareInvitationArnNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceShareInvitationArnNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceShareInvitationArnNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceShareInvitationArnNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The invitation is expired.
 type ResourceShareInvitationExpiredException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5912,17 +6092,17 @@ func (s ResourceShareInvitationExpiredException) GoString() string {
 
 func newErrorResourceShareInvitationExpiredException(v protocol.ResponseMetadata) error {
 	return &ResourceShareInvitationExpiredException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceShareInvitationExpiredException) Code() string {
+func (s *ResourceShareInvitationExpiredException) Code() string {
 	return "ResourceShareInvitationExpiredException"
 }
 
 // Message returns the exception's message.
-func (s ResourceShareInvitationExpiredException) Message() string {
+func (s *ResourceShareInvitationExpiredException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5930,28 +6110,28 @@ func (s ResourceShareInvitationExpiredException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceShareInvitationExpiredException) OrigErr() error {
+func (s *ResourceShareInvitationExpiredException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceShareInvitationExpiredException) Error() string {
+func (s *ResourceShareInvitationExpiredException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceShareInvitationExpiredException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceShareInvitationExpiredException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceShareInvitationExpiredException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceShareInvitationExpiredException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested resource share exceeds the limit for your account.
 type ResourceShareLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5968,17 +6148,17 @@ func (s ResourceShareLimitExceededException) GoString() string {
 
 func newErrorResourceShareLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ResourceShareLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceShareLimitExceededException) Code() string {
+func (s *ResourceShareLimitExceededException) Code() string {
 	return "ResourceShareLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ResourceShareLimitExceededException) Message() string {
+func (s *ResourceShareLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5986,22 +6166,22 @@ func (s ResourceShareLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceShareLimitExceededException) OrigErr() error {
+func (s *ResourceShareLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceShareLimitExceededException) Error() string {
+func (s *ResourceShareLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceShareLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceShareLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceShareLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceShareLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about an AWS RAM permission.
@@ -6184,8 +6364,8 @@ func (s *ResourceSharePermissionSummary) SetVersion(v string) *ResourceSharePerm
 
 // The service could not respond to the request due to an internal problem.
 type ServerInternalException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -6202,17 +6382,17 @@ func (s ServerInternalException) GoString() string {
 
 func newErrorServerInternalException(v protocol.ResponseMetadata) error {
 	return &ServerInternalException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServerInternalException) Code() string {
+func (s *ServerInternalException) Code() string {
 	return "ServerInternalException"
 }
 
 // Message returns the exception's message.
-func (s ServerInternalException) Message() string {
+func (s *ServerInternalException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6220,28 +6400,62 @@ func (s ServerInternalException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServerInternalException) OrigErr() error {
+func (s *ServerInternalException) OrigErr() error {
 	return nil
 }
 
-func (s ServerInternalException) Error() string {
+func (s *ServerInternalException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServerInternalException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServerInternalException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServerInternalException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServerInternalException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Information about the shareable resource types and the AWS services to which
+// they belong.
+type ServiceNameAndResourceType struct {
+	_ struct{} `type:"structure"`
+
+	// The shareable resource types.
+	ResourceType *string `locationName:"resourceType" type:"string"`
+
+	// The name of the AWS services to which the resources belong.
+	ServiceName *string `locationName:"serviceName" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceNameAndResourceType) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceNameAndResourceType) GoString() string {
+	return s.String()
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ServiceNameAndResourceType) SetResourceType(v string) *ServiceNameAndResourceType {
+	s.ResourceType = &v
+	return s
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *ServiceNameAndResourceType) SetServiceName(v string) *ServiceNameAndResourceType {
+	s.ServiceName = &v
+	return s
 }
 
 // The service is not available.
 type ServiceUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -6258,17 +6472,17 @@ func (s ServiceUnavailableException) GoString() string {
 
 func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableException) Code() string {
+func (s *ServiceUnavailableException) Code() string {
 	return "ServiceUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableException) Message() string {
+func (s *ServiceUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6276,22 +6490,22 @@ func (s ServiceUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableException) OrigErr() error {
+func (s *ServiceUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableException) Error() string {
+func (s *ServiceUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about a tag.
@@ -6362,8 +6576,8 @@ func (s *TagFilter) SetTagValues(v []*string) *TagFilter {
 
 // The requested tags exceed the limit for your account.
 type TagLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -6380,17 +6594,17 @@ func (s TagLimitExceededException) GoString() string {
 
 func newErrorTagLimitExceededException(v protocol.ResponseMetadata) error {
 	return &TagLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TagLimitExceededException) Code() string {
+func (s *TagLimitExceededException) Code() string {
 	return "TagLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s TagLimitExceededException) Message() string {
+func (s *TagLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6398,28 +6612,28 @@ func (s TagLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TagLimitExceededException) OrigErr() error {
+func (s *TagLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s TagLimitExceededException) Error() string {
+func (s *TagLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TagLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TagLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TagLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TagLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified tag is a reserved word and cannot be used.
 type TagPolicyViolationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -6436,17 +6650,17 @@ func (s TagPolicyViolationException) GoString() string {
 
 func newErrorTagPolicyViolationException(v protocol.ResponseMetadata) error {
 	return &TagPolicyViolationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TagPolicyViolationException) Code() string {
+func (s *TagPolicyViolationException) Code() string {
 	return "TagPolicyViolationException"
 }
 
 // Message returns the exception's message.
-func (s TagPolicyViolationException) Message() string {
+func (s *TagPolicyViolationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6454,22 +6668,22 @@ func (s TagPolicyViolationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TagPolicyViolationException) OrigErr() error {
+func (s *TagPolicyViolationException) OrigErr() error {
 	return nil
 }
 
-func (s TagPolicyViolationException) Error() string {
+func (s *TagPolicyViolationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TagPolicyViolationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TagPolicyViolationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TagPolicyViolationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TagPolicyViolationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type TagResourceInput struct {
@@ -6540,8 +6754,8 @@ func (s TagResourceOutput) GoString() string {
 
 // A specified resource was not found.
 type UnknownResourceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -6558,17 +6772,17 @@ func (s UnknownResourceException) GoString() string {
 
 func newErrorUnknownResourceException(v protocol.ResponseMetadata) error {
 	return &UnknownResourceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnknownResourceException) Code() string {
+func (s *UnknownResourceException) Code() string {
 	return "UnknownResourceException"
 }
 
 // Message returns the exception's message.
-func (s UnknownResourceException) Message() string {
+func (s *UnknownResourceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6576,22 +6790,22 @@ func (s UnknownResourceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnknownResourceException) OrigErr() error {
+func (s *UnknownResourceException) OrigErr() error {
 	return nil
 }
 
-func (s UnknownResourceException) Error() string {
+func (s *UnknownResourceException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnknownResourceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnknownResourceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnknownResourceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnknownResourceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {

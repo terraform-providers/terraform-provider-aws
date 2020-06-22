@@ -28,7 +28,7 @@ func testAccAwsOrganizationsPolicy_basic(t *testing.T) {
 				Config: testAccAwsOrganizationsPolicyConfig_Required(rName, content1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsPolicyExists(resourceName, &policy),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:[^:]+:organizations::[^:]+:policy/o-.+/service_control_policy/p-.+$`)),
+					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "organizations", regexp.MustCompile("policy/o-.+/service_control_policy/p-.+$")),
 					resource.TestCheckResourceAttr(resourceName, "content", content1),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
@@ -122,7 +122,7 @@ func testAccAwsOrganizationsPolicy_type(t *testing.T) {
 	tagPolicyContent := `{ "tags": { "Product": { "tag_key": { "@@assign": "Product" }, "enforced_for": { "@@assign": [ "ec2:instance" ] } } } }`
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOrganizationsPolicyDestroy,
 		Steps: []resource.TestStep{

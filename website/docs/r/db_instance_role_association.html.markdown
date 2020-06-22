@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_db_instance_role_association"
 description: |-
-  Manages a RDS DB Instance association with an IAM Role.
+  Manages an RDS DB Instance association with an IAM Role.
 ---
 
 # Resource: aws_db_instance_role_association
 
-Manages a RDS DB Instance association with an IAM Role. Example use cases:
+Manages an RDS DB Instance association with an IAM Role. Example use cases:
 
 * [Amazon RDS Oracle integration with Amazon S3](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/oracle-s3-integration.html)
 * [Importing Amazon S3 Data into an RDS PostgreSQL DB Instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PostgreSQL.S3Import.html)

@@ -5569,8 +5569,8 @@ func (s *AcceptSharedDirectoryOutput) SetSharedDirectory(v *SharedDirectory) *Ac
 
 // You do not have sufficient access to perform this action.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -5591,17 +5591,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5609,22 +5609,22 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type AddIpRoutesInput struct {
@@ -5872,8 +5872,8 @@ func (s *Attribute) SetValue(v string) *Attribute {
 
 // An authentication error occurred.
 type AuthenticationFailedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The textual message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -5894,17 +5894,17 @@ func (s AuthenticationFailedException) GoString() string {
 
 func newErrorAuthenticationFailedException(v protocol.ResponseMetadata) error {
 	return &AuthenticationFailedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AuthenticationFailedException) Code() string {
+func (s *AuthenticationFailedException) Code() string {
 	return "AuthenticationFailedException"
 }
 
 // Message returns the exception's message.
-func (s AuthenticationFailedException) Message() string {
+func (s *AuthenticationFailedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5912,22 +5912,22 @@ func (s AuthenticationFailedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AuthenticationFailedException) OrigErr() error {
+func (s *AuthenticationFailedException) OrigErr() error {
 	return nil
 }
 
-func (s AuthenticationFailedException) Error() string {
+func (s *AuthenticationFailedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AuthenticationFailedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AuthenticationFailedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AuthenticationFailedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AuthenticationFailedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CancelSchemaExtensionInput struct {
@@ -6067,8 +6067,8 @@ func (s *Certificate) SetStateReason(v string) *Certificate {
 
 // The certificate has already been registered into the system.
 type CertificateAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6089,17 +6089,17 @@ func (s CertificateAlreadyExistsException) GoString() string {
 
 func newErrorCertificateAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &CertificateAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateAlreadyExistsException) Code() string {
+func (s *CertificateAlreadyExistsException) Code() string {
 	return "CertificateAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s CertificateAlreadyExistsException) Message() string {
+func (s *CertificateAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6107,28 +6107,28 @@ func (s CertificateAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateAlreadyExistsException) OrigErr() error {
+func (s *CertificateAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateAlreadyExistsException) Error() string {
+func (s *CertificateAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The certificate is not present in the system for describe or deregister activities.
 type CertificateDoesNotExistException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6149,17 +6149,17 @@ func (s CertificateDoesNotExistException) GoString() string {
 
 func newErrorCertificateDoesNotExistException(v protocol.ResponseMetadata) error {
 	return &CertificateDoesNotExistException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateDoesNotExistException) Code() string {
+func (s *CertificateDoesNotExistException) Code() string {
 	return "CertificateDoesNotExistException"
 }
 
 // Message returns the exception's message.
-func (s CertificateDoesNotExistException) Message() string {
+func (s *CertificateDoesNotExistException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6167,29 +6167,29 @@ func (s CertificateDoesNotExistException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateDoesNotExistException) OrigErr() error {
+func (s *CertificateDoesNotExistException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateDoesNotExistException) Error() string {
+func (s *CertificateDoesNotExistException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateDoesNotExistException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateDoesNotExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateDoesNotExistException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateDoesNotExistException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The certificate is being used for the LDAP security connection and cannot
 // be removed without disabling LDAP security.
 type CertificateInUseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6210,17 +6210,17 @@ func (s CertificateInUseException) GoString() string {
 
 func newErrorCertificateInUseException(v protocol.ResponseMetadata) error {
 	return &CertificateInUseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateInUseException) Code() string {
+func (s *CertificateInUseException) Code() string {
 	return "CertificateInUseException"
 }
 
 // Message returns the exception's message.
-func (s CertificateInUseException) Message() string {
+func (s *CertificateInUseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6228,22 +6228,22 @@ func (s CertificateInUseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateInUseException) OrigErr() error {
+func (s *CertificateInUseException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateInUseException) Error() string {
+func (s *CertificateInUseException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateInUseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateInUseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains general information about a certificate.
@@ -6255,6 +6255,9 @@ type CertificateInfo struct {
 
 	// The common name for the certificate.
 	CommonName *string `type:"string"`
+
+	// The date and time when the certificate will expire.
+	ExpiryDateTime *time.Time `type:"timestamp"`
 
 	// The state of the certificate.
 	State *string `type:"string" enum:"CertificateState"`
@@ -6282,6 +6285,12 @@ func (s *CertificateInfo) SetCommonName(v string) *CertificateInfo {
 	return s
 }
 
+// SetExpiryDateTime sets the ExpiryDateTime field's value.
+func (s *CertificateInfo) SetExpiryDateTime(v time.Time) *CertificateInfo {
+	s.ExpiryDateTime = &v
+	return s
+}
+
 // SetState sets the State field's value.
 func (s *CertificateInfo) SetState(v string) *CertificateInfo {
 	s.State = &v
@@ -6291,8 +6300,8 @@ func (s *CertificateInfo) SetState(v string) *CertificateInfo {
 // The certificate could not be added because the certificate limit has been
 // reached.
 type CertificateLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6313,17 +6322,17 @@ func (s CertificateLimitExceededException) GoString() string {
 
 func newErrorCertificateLimitExceededException(v protocol.ResponseMetadata) error {
 	return &CertificateLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateLimitExceededException) Code() string {
+func (s *CertificateLimitExceededException) Code() string {
 	return "CertificateLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s CertificateLimitExceededException) Message() string {
+func (s *CertificateLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6331,28 +6340,28 @@ func (s CertificateLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateLimitExceededException) OrigErr() error {
+func (s *CertificateLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateLimitExceededException) Error() string {
+func (s *CertificateLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A client exception has occurred.
 type ClientException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6373,17 +6382,17 @@ func (s ClientException) GoString() string {
 
 func newErrorClientException(v protocol.ResponseMetadata) error {
 	return &ClientException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ClientException) Code() string {
+func (s *ClientException) Code() string {
 	return "ClientException"
 }
 
 // Message returns the exception's message.
-func (s ClientException) Message() string {
+func (s *ClientException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6391,22 +6400,22 @@ func (s ClientException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ClientException) OrigErr() error {
+func (s *ClientException) OrigErr() error {
 	return nil
 }
 
-func (s ClientException) Error() string {
+func (s *ClientException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ClientException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ClientException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ClientException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ClientException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains information about a computer account in a directory.
@@ -8422,8 +8431,7 @@ type DescribeLDAPSSettingsInput struct {
 	// The type of next token used for pagination.
 	NextToken *string `type:"string"`
 
-	// The type of LDAP security the customer wants to enable, either server or
-	// client. Currently supports only Client, (the default).
+	// The type of LDAP security to enable. Currently only the value Client is supported.
 	Type *string `type:"string" enum:"LDAPSType"`
 }
 
@@ -8805,8 +8813,8 @@ func (s *DescribeTrustsOutput) SetTrusts(v []*Trust) *DescribeTrustsOutput {
 
 // The specified directory has already been shared with this AWS account.
 type DirectoryAlreadySharedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -8827,17 +8835,17 @@ func (s DirectoryAlreadySharedException) GoString() string {
 
 func newErrorDirectoryAlreadySharedException(v protocol.ResponseMetadata) error {
 	return &DirectoryAlreadySharedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DirectoryAlreadySharedException) Code() string {
+func (s *DirectoryAlreadySharedException) Code() string {
 	return "DirectoryAlreadySharedException"
 }
 
 // Message returns the exception's message.
-func (s DirectoryAlreadySharedException) Message() string {
+func (s *DirectoryAlreadySharedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8845,22 +8853,22 @@ func (s DirectoryAlreadySharedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DirectoryAlreadySharedException) OrigErr() error {
+func (s *DirectoryAlreadySharedException) OrigErr() error {
 	return nil
 }
 
-func (s DirectoryAlreadySharedException) Error() string {
+func (s *DirectoryAlreadySharedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DirectoryAlreadySharedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DirectoryAlreadySharedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DirectoryAlreadySharedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DirectoryAlreadySharedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains information for the ConnectDirectory operation when an AD Connector
@@ -9276,8 +9284,8 @@ func (s *DirectoryDescription) SetVpcSettings(v *DirectoryVpcSettingsDescription
 
 // The specified directory does not exist in the system.
 type DirectoryDoesNotExistException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -9298,17 +9306,17 @@ func (s DirectoryDoesNotExistException) GoString() string {
 
 func newErrorDirectoryDoesNotExistException(v protocol.ResponseMetadata) error {
 	return &DirectoryDoesNotExistException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DirectoryDoesNotExistException) Code() string {
+func (s *DirectoryDoesNotExistException) Code() string {
 	return "DirectoryDoesNotExistException"
 }
 
 // Message returns the exception's message.
-func (s DirectoryDoesNotExistException) Message() string {
+func (s *DirectoryDoesNotExistException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9316,30 +9324,30 @@ func (s DirectoryDoesNotExistException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DirectoryDoesNotExistException) OrigErr() error {
+func (s *DirectoryDoesNotExistException) OrigErr() error {
 	return nil
 }
 
-func (s DirectoryDoesNotExistException) Error() string {
+func (s *DirectoryDoesNotExistException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DirectoryDoesNotExistException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DirectoryDoesNotExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DirectoryDoesNotExistException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DirectoryDoesNotExistException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The maximum number of directories in the region has been reached. You can
 // use the GetDirectoryLimits operation to determine your directory limits in
 // the region.
 type DirectoryLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -9360,17 +9368,17 @@ func (s DirectoryLimitExceededException) GoString() string {
 
 func newErrorDirectoryLimitExceededException(v protocol.ResponseMetadata) error {
 	return &DirectoryLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DirectoryLimitExceededException) Code() string {
+func (s *DirectoryLimitExceededException) Code() string {
 	return "DirectoryLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s DirectoryLimitExceededException) Message() string {
+func (s *DirectoryLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9378,22 +9386,22 @@ func (s DirectoryLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DirectoryLimitExceededException) OrigErr() error {
+func (s *DirectoryLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s DirectoryLimitExceededException) Error() string {
+func (s *DirectoryLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DirectoryLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DirectoryLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DirectoryLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DirectoryLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains directory limit information for a Region.
@@ -9495,8 +9503,8 @@ func (s *DirectoryLimits) SetConnectedDirectoriesLimitReached(v bool) *Directory
 
 // The specified directory has not been shared with this AWS account.
 type DirectoryNotSharedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -9517,17 +9525,17 @@ func (s DirectoryNotSharedException) GoString() string {
 
 func newErrorDirectoryNotSharedException(v protocol.ResponseMetadata) error {
 	return &DirectoryNotSharedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DirectoryNotSharedException) Code() string {
+func (s *DirectoryNotSharedException) Code() string {
 	return "DirectoryNotSharedException"
 }
 
 // Message returns the exception's message.
-func (s DirectoryNotSharedException) Message() string {
+func (s *DirectoryNotSharedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9535,28 +9543,28 @@ func (s DirectoryNotSharedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DirectoryNotSharedException) OrigErr() error {
+func (s *DirectoryNotSharedException) OrigErr() error {
 	return nil
 }
 
-func (s DirectoryNotSharedException) Error() string {
+func (s *DirectoryNotSharedException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DirectoryNotSharedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DirectoryNotSharedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DirectoryNotSharedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DirectoryNotSharedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified directory is unavailable or could not be found.
 type DirectoryUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -9577,17 +9585,17 @@ func (s DirectoryUnavailableException) GoString() string {
 
 func newErrorDirectoryUnavailableException(v protocol.ResponseMetadata) error {
 	return &DirectoryUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DirectoryUnavailableException) Code() string {
+func (s *DirectoryUnavailableException) Code() string {
 	return "DirectoryUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s DirectoryUnavailableException) Message() string {
+func (s *DirectoryUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9595,22 +9603,22 @@ func (s DirectoryUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DirectoryUnavailableException) OrigErr() error {
+func (s *DirectoryUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s DirectoryUnavailableException) Error() string {
+func (s *DirectoryUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DirectoryUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DirectoryUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DirectoryUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DirectoryUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains VPC information for the CreateDirectory or CreateMicrosoftAD operation.
@@ -9727,9 +9735,7 @@ type DisableLDAPSInput struct {
 	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
-	// The type of LDAP security that the customer wants to enable. The security
-	// can be either server or client, but currently only the default Client is
-	// supported.
+	// The type of LDAP security to enable. Currently only the value Client is supported.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"LDAPSType"`
@@ -10037,8 +10043,8 @@ func (s *DomainController) SetVpcId(v string) *DomainController {
 // The maximum allowed number of domain controllers per directory was exceeded.
 // The default limit per directory is 20 domain controllers.
 type DomainControllerLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10059,17 +10065,17 @@ func (s DomainControllerLimitExceededException) GoString() string {
 
 func newErrorDomainControllerLimitExceededException(v protocol.ResponseMetadata) error {
 	return &DomainControllerLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DomainControllerLimitExceededException) Code() string {
+func (s *DomainControllerLimitExceededException) Code() string {
 	return "DomainControllerLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s DomainControllerLimitExceededException) Message() string {
+func (s *DomainControllerLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10077,22 +10083,22 @@ func (s DomainControllerLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DomainControllerLimitExceededException) OrigErr() error {
+func (s *DomainControllerLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s DomainControllerLimitExceededException) Error() string {
+func (s *DomainControllerLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DomainControllerLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DomainControllerLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DomainControllerLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DomainControllerLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type EnableLDAPSInput struct {
@@ -10103,8 +10109,7 @@ type EnableLDAPSInput struct {
 	// DirectoryId is a required field
 	DirectoryId *string `type:"string" required:"true"`
 
-	// The type of LDAP security the customer wants to enable. The security can
-	// be either server or client, but currently only the default Client is supported.
+	// The type of LDAP security to enable. Currently only the value Client is supported.
 	//
 	// Type is a required field
 	Type *string `type:"string" required:"true" enum:"LDAPSType"`
@@ -10325,8 +10330,8 @@ func (s EnableSsoOutput) GoString() string {
 
 // The specified entity already exists.
 type EntityAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10347,17 +10352,17 @@ func (s EntityAlreadyExistsException) GoString() string {
 
 func newErrorEntityAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &EntityAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s EntityAlreadyExistsException) Code() string {
+func (s *EntityAlreadyExistsException) Code() string {
 	return "EntityAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s EntityAlreadyExistsException) Message() string {
+func (s *EntityAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10365,28 +10370,28 @@ func (s EntityAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s EntityAlreadyExistsException) OrigErr() error {
+func (s *EntityAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s EntityAlreadyExistsException) Error() string {
+func (s *EntityAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s EntityAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *EntityAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s EntityAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *EntityAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified entity could not be found.
 type EntityDoesNotExistException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10407,17 +10412,17 @@ func (s EntityDoesNotExistException) GoString() string {
 
 func newErrorEntityDoesNotExistException(v protocol.ResponseMetadata) error {
 	return &EntityDoesNotExistException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s EntityDoesNotExistException) Code() string {
+func (s *EntityDoesNotExistException) Code() string {
 	return "EntityDoesNotExistException"
 }
 
 // Message returns the exception's message.
-func (s EntityDoesNotExistException) Message() string {
+func (s *EntityDoesNotExistException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10425,22 +10430,22 @@ func (s EntityDoesNotExistException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s EntityDoesNotExistException) OrigErr() error {
+func (s *EntityDoesNotExistException) OrigErr() error {
 	return nil
 }
 
-func (s EntityDoesNotExistException) Error() string {
+func (s *EntityDoesNotExistException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s EntityDoesNotExistException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *EntityDoesNotExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s EntityDoesNotExistException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *EntityDoesNotExistException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about SNS topic and AWS Directory Service directory associations.
@@ -10610,8 +10615,8 @@ func (s *GetSnapshotLimitsOutput) SetSnapshotLimits(v *SnapshotLimits) *GetSnaps
 
 // The account does not have sufficient permission to perform the operation.
 type InsufficientPermissionsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10632,17 +10637,17 @@ func (s InsufficientPermissionsException) GoString() string {
 
 func newErrorInsufficientPermissionsException(v protocol.ResponseMetadata) error {
 	return &InsufficientPermissionsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InsufficientPermissionsException) Code() string {
+func (s *InsufficientPermissionsException) Code() string {
 	return "InsufficientPermissionsException"
 }
 
 // Message returns the exception's message.
-func (s InsufficientPermissionsException) Message() string {
+func (s *InsufficientPermissionsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10650,28 +10655,28 @@ func (s InsufficientPermissionsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InsufficientPermissionsException) OrigErr() error {
+func (s *InsufficientPermissionsException) OrigErr() error {
 	return nil
 }
 
-func (s InsufficientPermissionsException) Error() string {
+func (s *InsufficientPermissionsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InsufficientPermissionsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InsufficientPermissionsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InsufficientPermissionsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InsufficientPermissionsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The certificate PEM that was provided has incorrect encoding.
 type InvalidCertificateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10692,17 +10697,17 @@ func (s InvalidCertificateException) GoString() string {
 
 func newErrorInvalidCertificateException(v protocol.ResponseMetadata) error {
 	return &InvalidCertificateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidCertificateException) Code() string {
+func (s *InvalidCertificateException) Code() string {
 	return "InvalidCertificateException"
 }
 
 // Message returns the exception's message.
-func (s InvalidCertificateException) Message() string {
+func (s *InvalidCertificateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10710,29 +10715,29 @@ func (s InvalidCertificateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidCertificateException) OrigErr() error {
+func (s *InvalidCertificateException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidCertificateException) Error() string {
+func (s *InvalidCertificateException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidCertificateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidCertificateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidCertificateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidCertificateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The LDAP activities could not be performed because they are limited by the
 // LDAPS status.
 type InvalidLDAPSStatusException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10753,17 +10758,17 @@ func (s InvalidLDAPSStatusException) GoString() string {
 
 func newErrorInvalidLDAPSStatusException(v protocol.ResponseMetadata) error {
 	return &InvalidLDAPSStatusException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidLDAPSStatusException) Code() string {
+func (s *InvalidLDAPSStatusException) Code() string {
 	return "InvalidLDAPSStatusException"
 }
 
 // Message returns the exception's message.
-func (s InvalidLDAPSStatusException) Message() string {
+func (s *InvalidLDAPSStatusException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10771,28 +10776,28 @@ func (s InvalidLDAPSStatusException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidLDAPSStatusException) OrigErr() error {
+func (s *InvalidLDAPSStatusException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidLDAPSStatusException) Error() string {
+func (s *InvalidLDAPSStatusException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidLDAPSStatusException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidLDAPSStatusException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidLDAPSStatusException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidLDAPSStatusException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The NextToken value is not valid.
 type InvalidNextTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10813,17 +10818,17 @@ func (s InvalidNextTokenException) GoString() string {
 
 func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidNextTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidNextTokenException) Code() string {
+func (s *InvalidNextTokenException) Code() string {
 	return "InvalidNextTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidNextTokenException) Message() string {
+func (s *InvalidNextTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10831,28 +10836,28 @@ func (s InvalidNextTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidNextTokenException) OrigErr() error {
+func (s *InvalidNextTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidNextTokenException) Error() string {
+func (s *InvalidNextTokenException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidNextTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidNextTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // One or more parameters are not valid.
 type InvalidParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10873,17 +10878,17 @@ func (s InvalidParameterException) GoString() string {
 
 func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterException) Code() string {
+func (s *InvalidParameterException) Code() string {
 	return "InvalidParameterException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterException) Message() string {
+func (s *InvalidParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10891,29 +10896,29 @@ func (s InvalidParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterException) OrigErr() error {
+func (s *InvalidParameterException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterException) Error() string {
+func (s *InvalidParameterException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The new password provided by the user does not meet the password complexity
 // requirements defined in your directory.
 type InvalidPasswordException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10934,17 +10939,17 @@ func (s InvalidPasswordException) GoString() string {
 
 func newErrorInvalidPasswordException(v protocol.ResponseMetadata) error {
 	return &InvalidPasswordException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidPasswordException) Code() string {
+func (s *InvalidPasswordException) Code() string {
 	return "InvalidPasswordException"
 }
 
 // Message returns the exception's message.
-func (s InvalidPasswordException) Message() string {
+func (s *InvalidPasswordException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -10952,28 +10957,28 @@ func (s InvalidPasswordException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidPasswordException) OrigErr() error {
+func (s *InvalidPasswordException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidPasswordException) Error() string {
+func (s *InvalidPasswordException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidPasswordException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidPasswordException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidPasswordException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidPasswordException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified shared target is not valid.
 type InvalidTargetException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -10994,17 +10999,17 @@ func (s InvalidTargetException) GoString() string {
 
 func newErrorInvalidTargetException(v protocol.ResponseMetadata) error {
 	return &InvalidTargetException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidTargetException) Code() string {
+func (s *InvalidTargetException) Code() string {
 	return "InvalidTargetException"
 }
 
 // Message returns the exception's message.
-func (s InvalidTargetException) Message() string {
+func (s *InvalidTargetException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11012,22 +11017,22 @@ func (s InvalidTargetException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidTargetException) OrigErr() error {
+func (s *InvalidTargetException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidTargetException) Error() string {
+func (s *InvalidTargetException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidTargetException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidTargetException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidTargetException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidTargetException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // IP address block. This is often the address block of the DNS server used
@@ -11138,8 +11143,8 @@ func (s *IpRouteInfo) SetIpRouteStatusReason(v string) *IpRouteInfo {
 // The maximum allowed number of IP addresses was exceeded. The default limit
 // is 100 IP address blocks.
 type IpRouteLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -11160,17 +11165,17 @@ func (s IpRouteLimitExceededException) GoString() string {
 
 func newErrorIpRouteLimitExceededException(v protocol.ResponseMetadata) error {
 	return &IpRouteLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IpRouteLimitExceededException) Code() string {
+func (s *IpRouteLimitExceededException) Code() string {
 	return "IpRouteLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s IpRouteLimitExceededException) Message() string {
+func (s *IpRouteLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11178,22 +11183,22 @@ func (s IpRouteLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IpRouteLimitExceededException) OrigErr() error {
+func (s *IpRouteLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s IpRouteLimitExceededException) Error() string {
+func (s *IpRouteLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IpRouteLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IpRouteLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IpRouteLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IpRouteLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains general information about the LDAPS settings.
@@ -11729,8 +11734,8 @@ func (s *LogSubscription) SetSubscriptionCreatedDateTime(v time.Time) *LogSubscr
 // The LDAP activities could not be performed because at least one valid certificate
 // must be registered with the system.
 type NoAvailableCertificateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -11751,17 +11756,17 @@ func (s NoAvailableCertificateException) GoString() string {
 
 func newErrorNoAvailableCertificateException(v protocol.ResponseMetadata) error {
 	return &NoAvailableCertificateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NoAvailableCertificateException) Code() string {
+func (s *NoAvailableCertificateException) Code() string {
 	return "NoAvailableCertificateException"
 }
 
 // Message returns the exception's message.
-func (s NoAvailableCertificateException) Message() string {
+func (s *NoAvailableCertificateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11769,28 +11774,28 @@ func (s NoAvailableCertificateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NoAvailableCertificateException) OrigErr() error {
+func (s *NoAvailableCertificateException) OrigErr() error {
 	return nil
 }
 
-func (s NoAvailableCertificateException) Error() string {
+func (s *NoAvailableCertificateException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NoAvailableCertificateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NoAvailableCertificateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NoAvailableCertificateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NoAvailableCertificateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Exception encountered while trying to access your AWS organization.
 type OrganizationsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -11811,17 +11816,17 @@ func (s OrganizationsException) GoString() string {
 
 func newErrorOrganizationsException(v protocol.ResponseMetadata) error {
 	return &OrganizationsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s OrganizationsException) Code() string {
+func (s *OrganizationsException) Code() string {
 	return "OrganizationsException"
 }
 
 // Message returns the exception's message.
-func (s OrganizationsException) Message() string {
+func (s *OrganizationsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11829,22 +11834,22 @@ func (s OrganizationsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s OrganizationsException) OrigErr() error {
+func (s *OrganizationsException) OrigErr() error {
 	return nil
 }
 
-func (s OrganizationsException) Error() string {
+func (s *OrganizationsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s OrganizationsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *OrganizationsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s OrganizationsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *OrganizationsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes the directory owner account details that have been shared to the
@@ -12598,8 +12603,8 @@ func (s *SchemaExtensionInfo) SetStartDateTime(v time.Time) *SchemaExtensionInfo
 
 // An exception has occurred in AWS Directory Service.
 type ServiceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -12620,17 +12625,17 @@ func (s ServiceException) GoString() string {
 
 func newErrorServiceException(v protocol.ResponseMetadata) error {
 	return &ServiceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceException) Code() string {
+func (s *ServiceException) Code() string {
 	return "ServiceException"
 }
 
 // Message returns the exception's message.
-func (s ServiceException) Message() string {
+func (s *ServiceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -12638,22 +12643,22 @@ func (s ServiceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceException) OrigErr() error {
+func (s *ServiceException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceException) Error() string {
+func (s *ServiceException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ShareDirectoryInput struct {
@@ -12769,8 +12774,8 @@ func (s *ShareDirectoryOutput) SetSharedDirectoryId(v string) *ShareDirectoryOut
 // The maximum number of AWS accounts that you can share with this directory
 // has been reached.
 type ShareLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -12791,17 +12796,17 @@ func (s ShareLimitExceededException) GoString() string {
 
 func newErrorShareLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ShareLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ShareLimitExceededException) Code() string {
+func (s *ShareLimitExceededException) Code() string {
 	return "ShareLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ShareLimitExceededException) Message() string {
+func (s *ShareLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -12809,22 +12814,22 @@ func (s ShareLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ShareLimitExceededException) OrigErr() error {
+func (s *ShareLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ShareLimitExceededException) Error() string {
+func (s *ShareLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ShareLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ShareLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ShareLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ShareLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Identifier that contains details about the directory consumer account.
@@ -13060,8 +13065,8 @@ func (s *Snapshot) SetType(v string) *Snapshot {
 // You can use the GetSnapshotLimits operation to determine the snapshot limits
 // for a directory.
 type SnapshotLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -13082,17 +13087,17 @@ func (s SnapshotLimitExceededException) GoString() string {
 
 func newErrorSnapshotLimitExceededException(v protocol.ResponseMetadata) error {
 	return &SnapshotLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SnapshotLimitExceededException) Code() string {
+func (s *SnapshotLimitExceededException) Code() string {
 	return "SnapshotLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s SnapshotLimitExceededException) Message() string {
+func (s *SnapshotLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -13100,22 +13105,22 @@ func (s SnapshotLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SnapshotLimitExceededException) OrigErr() error {
+func (s *SnapshotLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s SnapshotLimitExceededException) Error() string {
+func (s *SnapshotLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SnapshotLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SnapshotLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SnapshotLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SnapshotLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Contains manual snapshot limit information for a directory.
@@ -13332,8 +13337,8 @@ func (s *Tag) SetValue(v string) *Tag {
 
 // The maximum allowed number of tags was exceeded.
 type TagLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -13354,17 +13359,17 @@ func (s TagLimitExceededException) GoString() string {
 
 func newErrorTagLimitExceededException(v protocol.ResponseMetadata) error {
 	return &TagLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TagLimitExceededException) Code() string {
+func (s *TagLimitExceededException) Code() string {
 	return "TagLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s TagLimitExceededException) Message() string {
+func (s *TagLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -13372,22 +13377,22 @@ func (s TagLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TagLimitExceededException) OrigErr() error {
+func (s *TagLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s TagLimitExceededException) Error() string {
+func (s *TagLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TagLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TagLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TagLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TagLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a trust relationship between an AWS Managed Microsoft AD directory
@@ -13648,8 +13653,8 @@ func (s *UnshareTarget) SetType(v string) *UnshareTarget {
 
 // The operation is not supported.
 type UnsupportedOperationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -13670,17 +13675,17 @@ func (s UnsupportedOperationException) GoString() string {
 
 func newErrorUnsupportedOperationException(v protocol.ResponseMetadata) error {
 	return &UnsupportedOperationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnsupportedOperationException) Code() string {
+func (s *UnsupportedOperationException) Code() string {
 	return "UnsupportedOperationException"
 }
 
 // Message returns the exception's message.
-func (s UnsupportedOperationException) Message() string {
+func (s *UnsupportedOperationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -13688,22 +13693,22 @@ func (s UnsupportedOperationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnsupportedOperationException) OrigErr() error {
+func (s *UnsupportedOperationException) OrigErr() error {
 	return nil
 }
 
-func (s UnsupportedOperationException) Error() string {
+func (s *UnsupportedOperationException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnsupportedOperationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnsupportedOperationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnsupportedOperationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnsupportedOperationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Updates a conditional forwarder.
@@ -14015,8 +14020,8 @@ func (s *UpdateTrustOutput) SetTrustId(v string) *UpdateTrustOutput {
 
 // The user provided a username that does not exist in your directory.
 type UserDoesNotExistException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The descriptive message for the exception.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -14037,17 +14042,17 @@ func (s UserDoesNotExistException) GoString() string {
 
 func newErrorUserDoesNotExistException(v protocol.ResponseMetadata) error {
 	return &UserDoesNotExistException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UserDoesNotExistException) Code() string {
+func (s *UserDoesNotExistException) Code() string {
 	return "UserDoesNotExistException"
 }
 
 // Message returns the exception's message.
-func (s UserDoesNotExistException) Message() string {
+func (s *UserDoesNotExistException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -14055,22 +14060,22 @@ func (s UserDoesNotExistException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UserDoesNotExistException) OrigErr() error {
+func (s *UserDoesNotExistException) OrigErr() error {
 	return nil
 }
 
-func (s UserDoesNotExistException) Error() string {
+func (s *UserDoesNotExistException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UserDoesNotExistException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UserDoesNotExistException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UserDoesNotExistException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UserDoesNotExistException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Initiates the verification of an existing trust relationship between an AWS

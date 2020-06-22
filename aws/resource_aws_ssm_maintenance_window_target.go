@@ -2,13 +2,13 @@ package aws
 
 import (
 	"fmt"
-	"log"
-	"regexp"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"log"
+	"regexp"
+	"strings"
 )
 
 func resourceAwsSsmMaintenanceWindowTarget() *schema.Resource {
@@ -17,6 +17,17 @@ func resourceAwsSsmMaintenanceWindowTarget() *schema.Resource {
 		Read:   resourceAwsSsmMaintenanceWindowTargetRead,
 		Update: resourceAwsSsmMaintenanceWindowTargetUpdate,
 		Delete: resourceAwsSsmMaintenanceWindowTargetDelete,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), "/")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected WINDOW_ID/WINDOW_TARGET_ID", d.Id())
+				}
+				d.Set("window_id", idParts[0])
+				d.SetId(idParts[1])
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"window_id": {
@@ -29,6 +40,10 @@ func resourceAwsSsmMaintenanceWindowTarget() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					ssm.MaintenanceWindowResourceTypeInstance,
+					ssm.MaintenanceWindowResourceTypeResourceGroup,
+				}, true),
 			},
 
 			"targets": {

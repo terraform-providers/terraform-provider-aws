@@ -42,4 +42,8 @@ const (
 	// ErrCodeTooManyRequestsException for service response error code
 	// "TooManyRequestsException".
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
+
+	// ErrCodeTooManyTagsException for service response error code
+	// "TooManyTagsException".
+	ErrCodeTooManyTagsException = "TooManyTagsException"
 )

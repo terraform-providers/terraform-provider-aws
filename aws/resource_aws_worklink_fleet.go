@@ -234,7 +234,7 @@ func resourceAwsWorkLinkFleetUpdate(d *schema.ResourceData, meta interface{}) er
 		input.DisplayName = aws.String(v.(string))
 	}
 
-	if d.HasChange("display_name") || d.HasChange("optimize_for_end_user_location") {
+	if d.HasChanges("display_name", "optimize_for_end_user_location") {
 		_, err := conn.UpdateFleetMetadata(input)
 		if err != nil {
 			if isAWSErr(err, worklink.ErrCodeResourceNotFoundException, "") {

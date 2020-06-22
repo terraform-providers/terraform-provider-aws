@@ -7,20 +7,20 @@
 // appliance with cloud-based storage to provide seamless and secure integration
 // between an organization's on-premises IT environment and the AWS storage
 // infrastructure. The service enables you to securely upload data to the AWS
-// cloud for cost effective backup and rapid disaster recovery.
+// Cloud for cost effective backup and rapid disaster recovery.
 //
 // Use the following links to get started using the AWS Storage Gateway Service
 // API Reference:
 //
-//    * AWS Storage Gateway Required Request Headers (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewayHTTPRequestsHeaders):
+//    * AWS Storage Gateway required request headers (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewayHTTPRequestsHeaders):
 //    Describes the required headers that you must send with every POST request
 //    to AWS Storage Gateway.
 //
-//    * Signing Requests (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewaySigningRequests):
+//    * Signing requests (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#AWSStorageGatewaySigningRequests):
 //    AWS Storage Gateway requires that you authenticate every request you send;
 //    this topic describes how sign such a request.
 //
-//    * Error Responses (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#APIErrorResponses):
+//    * Error responses (https://docs.aws.amazon.com/storagegateway/latest/userguide/AWSStorageGatewayAPI.html#APIErrorResponses):
 //    Provides reference information about AWS Storage Gateway errors.
 //
 //    * Operations in AWS Storage Gateway (https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_Operations.html):
@@ -28,7 +28,7 @@
 //    their request parameters, response elements, possible errors, and examples
 //    of requests and responses.
 //
-//    * AWS Storage Gateway Regions and Endpoints: (http://docs.aws.amazon.com/general/latest/gr/rande.html#sg_region)
+//    * AWS Storage Gateway endpoints and quotas: (https://docs.aws.amazon.com/general/latest/gr/sg.html)
 //    Provides a list of each AWS Region and the endpoints available for use
 //    with AWS Storage Gateway.
 //
@@ -44,7 +44,7 @@
 // volumes and snapshots will be created with a 17-character string. Starting
 // in April 2016, you will be able to use these longer IDs so you can test your
 // systems with the new format. For more information, see Longer EC2 and EBS
-// Resource IDs (https://aws.amazon.com/ec2/faqs/#longer-ids).
+// resource IDs (http://aws.amazon.com/ec2/faqs/#longer-ids).
 //
 // For example, a volume Amazon Resource Name (ARN) with the longer volume ID
 // format looks like the following:
@@ -54,7 +54,7 @@
 // A snapshot ID with the longer ID format looks like the following: snap-78e226633445566ee.
 //
 // For more information, see Announcement: Heads-up – Longer AWS Storage Gateway
-// volume and snapshot IDs coming in 2016 (https://forums.aws.amazon.com/ann.jspa?annID=3557).
+// volume and snapshot IDs coming in 2016 (http://forums.aws.amazon.com/ann.jspa?annID=3557).
 //
 // See https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30 for more information on this service.
 //

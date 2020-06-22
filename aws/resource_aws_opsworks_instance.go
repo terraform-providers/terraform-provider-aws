@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
 )
 
@@ -488,11 +487,9 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.DescribeInstances(req)
 	if err != nil {
-		if awserr, ok := err.(awserr.Error); ok {
-			if awserr.Code() == "ResourceNotFoundException" {
-				d.SetId("")
-				return nil
-			}
+		if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
+			d.SetId("")
+			return nil
 		}
 		return err
 	}
@@ -529,7 +526,7 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("last_service_error_id", instance.LastServiceErrorId)
 	var layerIds []string
 	for _, v := range instance.LayerIds {
-		layerIds = append(layerIds, *v)
+		layerIds = append(layerIds, aws.StringValue(v))
 	}
 	layerIds, err = sortListBasedonTFFile(layerIds, d)
 	if err != nil {
@@ -561,10 +558,7 @@ func resourceAwsOpsworksInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("virtualization_type", instance.VirtualizationType)
 
 	// Read BlockDeviceMapping
-	ibds, err := readOpsworksBlockDevices(instance)
-	if err != nil {
-		return err
-	}
+	ibds := readOpsworksBlockDevices(instance)
 
 	if err := d.Set("ebs_block_device", ibds["ebs"]); err != nil {
 		return err
@@ -739,7 +733,7 @@ func resourceAwsOpsworksInstanceCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error launching instance: no instance returned in response")
 	}
 
-	instanceId := *resp.InstanceId
+	instanceId := aws.StringValue(resp.InstanceId)
 	d.SetId(instanceId)
 
 	if v, ok := d.GetOk("state"); ok && v.(string) == "running" {
@@ -939,7 +933,7 @@ func stopOpsworksInstance(d *schema.ResourceData, meta interface{}, timeout time
 	return nil
 }
 
-func readOpsworksBlockDevices(instance *opsworks.Instance) (map[string]interface{}, error) {
+func readOpsworksBlockDevices(instance *opsworks.Instance) map[string]interface{} {
 
 	blockDevices := make(map[string]interface{})
 	blockDevices["ebs"] = make([]map[string]interface{}, 0)
@@ -947,41 +941,41 @@ func readOpsworksBlockDevices(instance *opsworks.Instance) (map[string]interface
 	blockDevices["root"] = nil
 
 	if len(instance.BlockDeviceMappings) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	for _, bdm := range instance.BlockDeviceMappings {
 		bd := make(map[string]interface{})
 		if bdm.Ebs != nil && bdm.Ebs.DeleteOnTermination != nil {
-			bd["delete_on_termination"] = *bdm.Ebs.DeleteOnTermination
+			bd["delete_on_termination"] = aws.BoolValue(bdm.Ebs.DeleteOnTermination)
 		}
 		if bdm.Ebs != nil && bdm.Ebs.VolumeSize != nil {
-			bd["volume_size"] = *bdm.Ebs.VolumeSize
+			bd["volume_size"] = aws.Int64Value(bdm.Ebs.VolumeSize)
 		}
 		if bdm.Ebs != nil && bdm.Ebs.VolumeType != nil {
-			bd["volume_type"] = *bdm.Ebs.VolumeType
+			bd["volume_type"] = aws.StringValue(bdm.Ebs.VolumeType)
 		}
 		if bdm.Ebs != nil && bdm.Ebs.Iops != nil {
-			bd["iops"] = *bdm.Ebs.Iops
+			bd["iops"] = aws.Int64Value(bdm.Ebs.Iops)
 		}
-		if bdm.DeviceName != nil && *bdm.DeviceName == "ROOT_DEVICE" {
+		if aws.StringValue(bdm.DeviceName) == "ROOT_DEVICE" {
 			blockDevices["root"] = bd
 		} else {
 			if bdm.DeviceName != nil {
-				bd["device_name"] = *bdm.DeviceName
+				bd["device_name"] = aws.StringValue(bdm.DeviceName)
 			}
 			if bdm.VirtualName != nil {
-				bd["virtual_name"] = *bdm.VirtualName
+				bd["virtual_name"] = aws.StringValue(bdm.VirtualName)
 				blockDevices["ephemeral"] = append(blockDevices["ephemeral"].([]map[string]interface{}), bd)
 			} else {
 				if bdm.Ebs != nil && bdm.Ebs.SnapshotId != nil {
-					bd["snapshot_id"] = *bdm.Ebs.SnapshotId
+					bd["snapshot_id"] = aws.StringValue(bdm.Ebs.SnapshotId)
 				}
 				blockDevices["ebs"] = append(blockDevices["ebs"].([]map[string]interface{}), bd)
 			}
 		}
 	}
-	return blockDevices, nil
+	return blockDevices
 }
 
 func OpsworksInstanceStateRefreshFunc(conn *opsworks.OpsWorks, instanceID string) resource.StateRefreshFunc {
@@ -990,8 +984,7 @@ func OpsworksInstanceStateRefreshFunc(conn *opsworks.OpsWorks, instanceID string
 			InstanceIds: []*string{aws.String(instanceID)},
 		})
 		if err != nil {
-			if awserr, ok := err.(awserr.Error); ok && awserr.Code() == "ResourceNotFoundException" {
-				// Set this to nil as if we didn't find anything.
+			if isAWSErr(err, opsworks.ErrCodeResourceNotFoundException, "") {
 				resp = nil
 			} else {
 				log.Printf("Error on OpsworksInstanceStateRefresh: %s", err)
@@ -1006,6 +999,6 @@ func OpsworksInstanceStateRefreshFunc(conn *opsworks.OpsWorks, instanceID string
 		}
 
 		i := resp.Instances[0]
-		return i, *i.Status, nil
+		return i, aws.StringValue(i.Status), nil
 	}
 }

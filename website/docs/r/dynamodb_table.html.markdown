@@ -63,6 +63,33 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 }
 ```
 
+### Global Tables
+
+This resource implements support for [DynamoDB Global Tables V2 (version 2019.11.21)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html) via `replica` configuration blocks. For working with [DynamoDB Global Tables V1 (version 2017.11.29)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V1.html), see the [`aws_dynamodb_global_table` resource](/docs/providers/aws/r/dynamodb_global_table.html).
+
+```hcl
+resource "aws_dynamodb_table" "example" {
+  name             = "example"
+  hash_key         = "TestTableHashKey"
+  billing_mode     = "PAY_PER_REQUEST"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+    name = "TestTableHashKey"
+    type = "S"
+  }
+
+  replica {
+    region_name = "us-east-2"
+  }
+
+  replica {
+    region_name = "us-west-2"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -86,6 +113,7 @@ definition after you have created the resource.
 * `global_secondary_index` - (Optional) Describe a GSI for the table;
   subject to the normal limits on the number of GSIs, projected
 attributes, etc.
+* `replica` - (Optional) Configuration block(s) with [DynamoDB Global Tables V2 (version 2019.11.21)](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/globaltables.V2.html) replication configurations. Detailed below.
 * `stream_enabled` - (Optional) Indicates whether Streams are to be enabled (true) or disabled (false).
 * `stream_view_type` - (Optional) When an item in the table is modified, StreamViewType determines what information is written to the table's stream. Valid values are `KEYS_ONLY`, `NEW_IMAGE`, `OLD_IMAGE`, `NEW_AND_OLD_IMAGES`.
 * `server_side_encryption` - (Optional) Encryption at rest options. AWS DynamoDB tables are automatically encrypted at rest with an AWS owned Customer Master Key if this argument isn't specified.
@@ -97,7 +125,7 @@ attributes, etc.
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 10 mins) Used when creating the table
-* `update` - (Defaults to 60 mins) Used when updating the table configuration and reset for each individual Global Secondary Index update
+* `update` - (Defaults to 60 mins) Used when updating the table configuration and reset for each individual Global Secondary Index and Replica update
 * `delete` - (Defaults to 10 mins) Used when deleting the table
 
 ### Nested fields
@@ -131,6 +159,12 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `non_key_attributes` - (Optional) Only required with `INCLUDE` as a
   projection type; a list of attributes to project into the index. These
   do not need to be defined as attributes on the table.
+
+#### `replica`
+
+The `replica` configuration block supports the following arguments:
+
+* `region_name` - (Required) Region name of the replica.
 
 #### `server_side_encryption`
 

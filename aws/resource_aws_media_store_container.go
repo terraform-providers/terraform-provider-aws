@@ -48,7 +48,10 @@ func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface
 
 	input := &mediastore.CreateContainerInput{
 		ContainerName: aws.String(d.Get("name").(string)),
-		Tags:          keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().MediastoreTags(),
+	}
+
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.Tags = keyvaluetags.New(v).IgnoreAws().MediastoreTags()
 	}
 
 	resp, err := conn.CreateContainer(input)
@@ -77,6 +80,7 @@ func resourceAwsMediaStoreContainerCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).mediastoreconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &mediastore.DescribeContainerInput{
 		ContainerName: aws.String(d.Id()),
@@ -102,7 +106,7 @@ func resourceAwsMediaStoreContainerRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for media store container (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

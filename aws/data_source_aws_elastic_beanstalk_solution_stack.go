@@ -18,14 +18,12 @@ func dataSourceAwsElasticBeanstalkSolutionStack() *schema.Resource {
 			"name_regex": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.ValidateRegexp,
+				ValidateFunc: validation.StringIsValidRegExp,
 			},
 			"most_recent": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 			// Computed values.
 			"name": {

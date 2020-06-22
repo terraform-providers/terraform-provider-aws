@@ -139,6 +139,7 @@ func resourceAwsDataSyncTask() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								datasync.VerifyModeNone,
 								datasync.VerifyModePointInTimeConsistent,
+								datasync.VerifyModeOnlyFilesTransferred,
 							}, false),
 						},
 					},
@@ -231,6 +232,7 @@ func resourceAwsDataSyncTaskCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &datasync.DescribeTaskInput{
 		TaskArn: aws.String(d.Id()),
@@ -266,7 +268,7 @@ func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error listing tags for DataSync Task (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -276,7 +278,7 @@ func resourceAwsDataSyncTaskRead(d *schema.ResourceData, meta interface{}) error
 func resourceAwsDataSyncTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).datasyncconn
 
-	if d.HasChange("options") || d.HasChange("name") {
+	if d.HasChanges("options", "name") {
 		input := &datasync.UpdateTaskInput{
 			Options: expandDataSyncOptions(d.Get("options").([]interface{})),
 			Name:    aws.String(d.Get("name").(string)),

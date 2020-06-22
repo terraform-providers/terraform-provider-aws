@@ -13,7 +13,7 @@ import (
 )
 
 // Transfer provides the API operation methods for making requests to
-// AWS Transfer for SFTP. See this package's package overview docs
+// AWS Transfer Family. See this package's package overview docs
 // for details on the service.
 //
 // Transfer methods are safe to use concurrently. It is not safe to

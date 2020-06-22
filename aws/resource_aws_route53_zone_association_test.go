@@ -111,26 +111,29 @@ func TestAccAWSRoute53ZoneAssociation_disappears_Zone(t *testing.T) {
 
 func TestAccAWSRoute53ZoneAssociation_region(t *testing.T) {
 	var vpc route53.VPC
-	resourceName := "aws_route53_zone_association.foobar"
+	resourceName := "aws_route53_zone_association.test"
 
 	// record the initialized providers so that we can use them to
 	// check for the instances in each region
 	var providers []*schema.Provider
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccMultipleRegionsPreCheck(t)
+			testAccAlternateRegionPreCheck(t)
+		},
 		ProviderFactories: testAccProviderFactories(&providers),
-		CheckDestroy:      testAccCheckWithProviders(testAccCheckRoute53ZoneAssociationDestroyWithProvider, &providers),
+		CheckDestroy:      testAccCheckRoute53ZoneAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoute53ZoneAssociationRegionConfig,
+				Config: testAccRoute53ZoneAssociationRegionConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53ZoneAssociationExistsWithProvider(resourceName, &vpc,
-						testAccAwsRegionProviderFunc("us-west-2", &providers)),
+					testAccCheckRoute53ZoneAssociationExists(resourceName, &vpc),
 				),
 			},
 			{
-				Config:            testAccRoute53ZoneAssociationRegionConfig,
+				Config:            testAccRoute53ZoneAssociationRegionConfig(),
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -140,11 +143,7 @@ func TestAccAWSRoute53ZoneAssociation_region(t *testing.T) {
 }
 
 func testAccCheckRoute53ZoneAssociationDestroy(s *terraform.State) error {
-	return testAccCheckRoute53ZoneAssociationDestroyWithProvider(s, testAccProvider)
-}
-
-func testAccCheckRoute53ZoneAssociationDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	conn := provider.Meta().(*AWSClient).r53conn
+	conn := testAccProvider.Meta().(*AWSClient).r53conn
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_route53_zone_association" {
 			continue
@@ -174,10 +173,6 @@ func testAccCheckRoute53ZoneAssociationDestroyWithProvider(s *terraform.State, p
 }
 
 func testAccCheckRoute53ZoneAssociationExists(n string, vpc *route53.VPC) resource.TestCheckFunc {
-	return testAccCheckRoute53ZoneAssociationExistsWithProvider(n, vpc, func() *schema.Provider { return testAccProvider })
-}
-
-func testAccCheckRoute53ZoneAssociationExistsWithProvider(n string, vpc *route53.VPC, providerF func() *schema.Provider) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -194,8 +189,7 @@ func testAccCheckRoute53ZoneAssociationExistsWithProvider(n string, vpc *route53
 			return err
 		}
 
-		provider := providerF()
-		conn := provider.Meta().(*AWSClient).r53conn
+		conn := testAccProvider.Meta().(*AWSClient).r53conn
 
 		associationVPC, err := route53GetZoneAssociation(conn, zoneID, vpcID)
 
@@ -264,53 +258,53 @@ resource "aws_route53_zone_association" "foobar" {
 }
 `
 
-const testAccRoute53ZoneAssociationRegionConfig = `
-provider "aws" {
-	alias = "west"
-	region = "us-west-2"
+func testAccRoute53ZoneAssociationRegionConfig() string {
+	return testAccAlternateRegionProviderConfig() + `
+data "aws_region" "alternate" {
+  provider = "aws.alternate"
 }
 
-provider "aws" {
-	alias = "east"
-	region = "us-east-1"
+data "aws_region" "current" {}
+
+resource "aws_vpc" "test" {
+  cidr_block           = "10.6.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name = "terraform-testacc-route53-zone-association-region-foo"
+  }
 }
 
-resource "aws_vpc" "foo" {
-	provider = "aws.west"
-	cidr_block = "10.6.0.0/16"
-	enable_dns_hostnames = true
-	enable_dns_support = true
-	tags = {
-		Name = "terraform-testacc-route53-zone-association-region-foo"
-	}
+resource "aws_vpc" "alternate" {
+  provider = "aws.alternate"
+
+  cidr_block           = "10.7.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name = "terraform-testacc-route53-zone-association-region-bar"
+  }
 }
 
-resource "aws_vpc" "bar" {
-	provider = "aws.east"
-	cidr_block = "10.7.0.0/16"
-	enable_dns_hostnames = true
-	enable_dns_support = true
-	tags = {
-		Name = "terraform-testacc-route53-zone-association-region-bar"
-	}
+resource "aws_route53_zone" "test" {
+  name = "foo.com"
+
+  vpc {
+    vpc_id     = aws_vpc.test.id
+    vpc_region = data.aws_region.current.name
+  }
+
+  lifecycle {
+    ignore_changes = [vpc]
+  }
 }
 
-resource "aws_route53_zone" "foo" {
-	provider = "aws.west"
-	name = "foo.com"
-	vpc {
-		vpc_id     = "${aws_vpc.foo.id}"
-		vpc_region = "us-west-2"
-	}
-	lifecycle {
-		ignore_changes = ["vpc"]
-	}
-}
-
-resource "aws_route53_zone_association" "foobar" {
-	provider = "aws.west"
-	zone_id = "${aws_route53_zone.foo.id}"
-	vpc_id  = "${aws_vpc.bar.id}"
-	vpc_region = "us-east-1"
+resource "aws_route53_zone_association" "test" {
+  vpc_id     = aws_vpc.alternate.id
+  vpc_region = data.aws_region.alternate.name
+  zone_id    = aws_route53_zone.test.id
 }
 `
+}

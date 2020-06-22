@@ -41,7 +41,7 @@ The following arguments are supported:
 * `name` - (Required) The resource group's name. A resource group name can have a maximum of 127 characters, including letters, numbers, hyphens, dots, and underscores. The name cannot start with `AWS` or `aws`.
 * `description` - (Optional) A description of the resource group.
 * `resource_query` - (Required) A `resource_query` block. Resource queries are documented below.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 An `resource_query` block supports the following arguments:
 

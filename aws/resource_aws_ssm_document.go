@@ -107,6 +107,10 @@ func resourceAwsSsmDocument() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"document_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"hash": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -159,20 +163,8 @@ func resourceAwsSsmDocument() *schema.Resource {
 			"permissions": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ssm.DocumentPermissionTypeShare,
-							}, false),
-						},
-						"account_ids": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"tags": tagsSchema(),
@@ -186,6 +178,14 @@ func resourceAwsSsmDocument() *schema.Resource {
 
 func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+
+	// Validates permissions keys, if set, to be type and account_ids
+	// since ValidateFunc validates only the value not the key.
+	if v, ok := d.GetOk("permissions"); ok {
+		if errors := validateSSMDocumentPermissions(v.(map[string]interface{})); len(errors) > 0 {
+			return fmt.Errorf("Error validating Permissions: %v", errors)
+		}
+	}
 
 	log.Printf("[INFO] Creating SSM Document: %s", d.Get("name").(string))
 
@@ -208,21 +208,8 @@ func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) erro
 		docInput.TargetType = aws.String(v.(string))
 	}
 
-	log.Printf("[DEBUG] Waiting for SSM Document %q to be created", d.Get("name").(string))
-	var resp *ssm.CreateDocumentOutput
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		var err error
-		resp, err = ssmconn.CreateDocument(docInput)
+	resp, err := ssmconn.CreateDocument(docInput)
 
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
-	if isResourceTimeoutError(err) {
-		resp, err = ssmconn.CreateDocument(docInput)
-	}
 	if err != nil {
 		return fmt.Errorf("Error creating SSM document: %s", err)
 	}
@@ -242,6 +229,7 @@ func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading SSM Document: %s", d.Id())
 
@@ -343,7 +331,7 @@ func resourceAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(doc.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.SsmKeyValueTags(doc.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -356,6 +344,14 @@ func resourceAwsSsmDocumentRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceAwsSsmDocumentUpdate(d *schema.ResourceData, meta interface{}) error {
 	ssmconn := meta.(*AWSClient).ssmconn
+
+	// Validates permissions keys, if set, to be type and account_ids
+	// since ValidateFunc validates only the value not the key.
+	if v, ok := d.GetOk("permissions"); ok {
+		if errors := validateSSMDocumentPermissions(v.(map[string]interface{})); len(errors) > 0 {
+			return fmt.Errorf("Error validating Permissions: %v", errors)
+		}
+	}
 
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
@@ -684,4 +680,24 @@ func updateAwsSSMDocument(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error updating the default document version to that of the updated document: %s", err)
 	}
 	return nil
+}
+
+//Validates that type and account_ids are defined
+func validateSSMDocumentPermissions(v map[string]interface{}) (errors []error) {
+	k := "permissions"
+	t, hasType := v["type"].(string)
+	_, hasAccountIds := v["account_ids"].(string)
+
+	if hasType {
+		if t != ssm.DocumentPermissionTypeShare {
+			errors = append(errors, fmt.Errorf("%q: only %s \"type\" supported", k, ssm.DocumentPermissionTypeShare))
+		}
+	} else {
+		errors = append(errors, fmt.Errorf("%q: \"type\" must be defined", k))
+	}
+	if !hasAccountIds {
+		errors = append(errors, fmt.Errorf("%q: \"account_ids\" must be defined", k))
+	}
+
+	return
 }

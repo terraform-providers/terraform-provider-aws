@@ -25,7 +25,7 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
   gateway_arn          = "${aws_storagegateway_cache.example.gateway_arn}"
   network_interface_id = "${aws_instance.example.private_ip}"
   target_name          = "example"
-  volume_size_in_bytes = 5368709120                                        # 5 GB
+  volume_size_in_bytes = 5368709120 # 5 GB
 }
 ```
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 * `volume_size_in_bytes` - (Required) The size of the volume in bytes.
 * `snapshot_id` - (Optional) The snapshot ID of the snapshot to restore as the new cached volume. e.g. `snap-1122aabb`.
 * `source_volume_arn` - (Optional) The ARN for an existing volume. Specifying this ARN makes the new volume into an exact copy of the specified existing volume's latest recovery point. The `volume_size_in_bytes` value for this new volume must be equal to or larger than the size of the existing volume, in bytes.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Attribute Reference
 

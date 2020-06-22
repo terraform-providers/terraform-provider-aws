@@ -1410,6 +1410,39 @@ func TestValidateApiGatewayUsagePlanQuotaSettings(t *testing.T) {
 	}
 }
 
+func TestValidateDocDBIdentifier(t *testing.T) {
+	validNames := []string{
+		"a",
+		"hello-world",
+		"hello-world-0123456789",
+		strings.Repeat("w", 63),
+	}
+	for _, v := range validNames {
+		_, errors := validateDocDBIdentifier(v, "name")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid DocDB Identifier: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"",
+		"special@character",
+		"slash/in-the-middle",
+		"dot.in-the-middle",
+		"two-hyphen--in-the-middle",
+		"0-first-numeric",
+		"-first-hyphen",
+		"end-hyphen-",
+		strings.Repeat("W", 64),
+	}
+	for _, v := range invalidNames {
+		_, errors := validateDocDBIdentifier(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid DocDB Identifier", v)
+		}
+	}
+}
+
 func TestValidateElbName(t *testing.T) {
 	validNames := []string{
 		"tf-test-elb",
@@ -2808,6 +2841,8 @@ func TestValidateCloudFrontPublicKeyNamePrefix(t *testing.T) {
 func TestValidateDxConnectionBandWidth(t *testing.T) {
 	validBandwidths := []string{
 		"1Gbps",
+		"2Gbps",
+		"5Gbps",
 		"10Gbps",
 		"50Mbps",
 		"100Mbps",

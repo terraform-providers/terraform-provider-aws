@@ -30,7 +30,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test_attach" {
   role       = "${aws_iam_role.test_role.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_ssm_activation" "foo" {
@@ -51,7 +51,7 @@ The following arguments are supported:
 * `expiration_date` - (Optional) UTC timestamp in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8) by which this activation request should expire. The default value is 24 hours from resource creation time. Terraform will only perform drift detection of its value when present in a configuration.
 * `iam_role` - (Required) The IAM Role to attach to the managed instance.
 * `registration_limit` - (Optional) The maximum number of managed instances you want to register. The default value is 1 instance.
-* `tags` - (Optional) A mapping of tags to assign to the object.
+* `tags` - (Optional) A map of tags to assign to the object.
 
 ## Attributes Reference
 
@@ -66,3 +66,13 @@ In addition to all arguments above, the following attributes are exported:
 * `iam_role` - The IAM Role attached to the managed instance.
 * `registration_limit` - The maximum number of managed instances you want to be registered. The default value is 1 instance.
 * `registration_count` - The number of managed instances that are currently registered using this activation.
+
+## Import
+
+AWS SSM Activation can be imported using the `id`, e.g.
+
+```sh
+$ terraform import aws_ssm_activation.example e488f2f6-e686-4afb-8a04-ef6dfEXAMPLE
+```
+
+-> **Note:** The `activation_code` attribute cannot be imported.

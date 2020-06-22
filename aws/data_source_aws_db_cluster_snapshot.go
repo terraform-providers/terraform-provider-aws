@@ -112,6 +112,7 @@ func dataSourceAwsDbClusterSnapshot() *schema.Resource {
 
 func dataSourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterIdentifier, clusterIdentifierOk := d.GetOk("db_cluster_identifier")
 	snapshotIdentifier, snapshotIdentifierOk := d.GetOk("db_cluster_snapshot_identifier")
@@ -185,7 +186,7 @@ func dataSourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error listing tags for RDS DB Cluster Snapshot (%s): %s", d.Get("db_cluster_snapshot_arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

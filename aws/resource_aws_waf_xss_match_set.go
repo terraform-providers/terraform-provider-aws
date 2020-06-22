@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAwsWafXssMatchSet() *schema.Resource {
@@ -37,7 +37,7 @@ func resourceAwsWafXssMatchSet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"field_to_match": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -49,6 +49,15 @@ func resourceAwsWafXssMatchSet() *schema.Resource {
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											waf.MatchFieldTypeUri,
+											waf.MatchFieldTypeSingleQueryArg,
+											waf.MatchFieldTypeQueryString,
+											waf.MatchFieldTypeMethod,
+											waf.MatchFieldTypeHeader,
+											waf.MatchFieldTypeBody,
+											waf.MatchFieldTypeAllQueryArgs,
+										}, false),
 									},
 								},
 							},
@@ -56,6 +65,14 @@ func resourceAwsWafXssMatchSet() *schema.Resource {
 						"text_transformation": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								waf.TextTransformationUrlDecode,
+								waf.TextTransformationNone,
+								waf.TextTransformationHtmlEntityDecode,
+								waf.TextTransformationCompressWhiteSpace,
+								waf.TextTransformationCmdLine,
+								waf.TextTransformationLowercase,
+							}, false),
 						},
 					},
 				},
@@ -79,26 +96,32 @@ func resourceAwsWafXssMatchSetCreate(d *schema.ResourceData, meta interface{}) e
 		return conn.CreateXssMatchSet(params)
 	})
 	if err != nil {
-		return fmt.Errorf("Error creating XssMatchSet: %s", err)
+		return fmt.Errorf("Error creating WAF XSS Match Set: %s", err)
 	}
 	resp := out.(*waf.CreateXssMatchSetOutput)
 
 	d.SetId(*resp.XssMatchSet.XssMatchSetId)
 
-	return resourceAwsWafXssMatchSetUpdate(d, meta)
+	if v, ok := d.GetOk("xss_match_tuples"); ok && v.(*schema.Set).Len() > 0 {
+		err := updateXssMatchSetResource(d.Id(), nil, v.(*schema.Set).List(), conn)
+		if err != nil {
+			return fmt.Errorf("Error setting WAF XSS Match Set tuples: %s", err)
+		}
+	}
+	return resourceAwsWafXssMatchSetRead(d, meta)
 }
 
 func resourceAwsWafXssMatchSetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
-	log.Printf("[INFO] Reading XssMatchSet: %s", d.Get("name").(string))
+	log.Printf("[INFO] Reading WAF XSS Match Set: %s", d.Get("name").(string))
 	params := &waf.GetXssMatchSetInput{
 		XssMatchSetId: aws.String(d.Id()),
 	}
 
 	resp, err := conn.GetXssMatchSet(params)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == waf.ErrCodeNonexistentItemException {
-			log.Printf("[WARN] WAF IPSet (%s) not found, removing from state", d.Id())
+		if isAWSErr(err, waf.ErrCodeNonexistentItemException, "") {
+			log.Printf("[WARN] WAF XSS Match Set (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -129,7 +152,7 @@ func resourceAwsWafXssMatchSetUpdate(d *schema.ResourceData, meta interface{}) e
 
 		err := updateXssMatchSetResource(d.Id(), oldT, newT, conn)
 		if err != nil {
-			return fmt.Errorf("Error updating XssMatchSet: %s", err)
+			return fmt.Errorf("Error updating WAF XSS Match Set: %s", err)
 		}
 	}
 
@@ -141,10 +164,9 @@ func resourceAwsWafXssMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 
 	oldTuples := d.Get("xss_match_tuples").(*schema.Set).List()
 	if len(oldTuples) > 0 {
-		noTuples := []interface{}{}
-		err := updateXssMatchSetResource(d.Id(), oldTuples, noTuples, conn)
+		err := updateXssMatchSetResource(d.Id(), oldTuples, nil, conn)
 		if err != nil {
-			return fmt.Errorf("Error updating IPSetDescriptors: %s", err)
+			return fmt.Errorf("Error removing WAF XSS Match Set tuples: %s", err)
 		}
 	}
 
@@ -158,7 +180,7 @@ func resourceAwsWafXssMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 		return conn.DeleteXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting XssMatchSet: %s", err)
+		return fmt.Errorf("Error deleting WAF XSS Match Set: %s", err)
 	}
 
 	return nil
@@ -173,11 +195,11 @@ func updateXssMatchSetResource(id string, oldT, newT []interface{}, conn *waf.WA
 			Updates:       diffWafXssMatchSetTuples(oldT, newT),
 		}
 
-		log.Printf("[INFO] Updating XssMatchSet tuples: %s", req)
+		log.Printf("[INFO] Updating WAF XSS Match Set tuples: %s", req)
 		return conn.UpdateXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Error updating XssMatchSet: %s", err)
+		return fmt.Errorf("Error updating WAF XSS Match Set: %s", err)
 	}
 
 	return nil
@@ -188,7 +210,7 @@ func flattenWafXssMatchTuples(ts []*waf.XssMatchTuple) []interface{} {
 	for i, t := range ts {
 		m := make(map[string]interface{})
 		m["field_to_match"] = flattenFieldToMatch(t.FieldToMatch)
-		m["text_transformation"] = *t.TextTransformation
+		m["text_transformation"] = aws.StringValue(t.TextTransformation)
 		out[i] = m
 	}
 	return out
@@ -208,7 +230,7 @@ func diffWafXssMatchSetTuples(oldT, newT []interface{}) []*waf.XssMatchSetUpdate
 		updates = append(updates, &waf.XssMatchSetUpdate{
 			Action: aws.String(waf.ChangeActionDelete),
 			XssMatchTuple: &waf.XssMatchTuple{
-				FieldToMatch:       expandFieldToMatch(tuple["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(tuple["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				TextTransformation: aws.String(tuple["text_transformation"].(string)),
 			},
 		})
@@ -220,7 +242,7 @@ func diffWafXssMatchSetTuples(oldT, newT []interface{}) []*waf.XssMatchSetUpdate
 		updates = append(updates, &waf.XssMatchSetUpdate{
 			Action: aws.String(waf.ChangeActionInsert),
 			XssMatchTuple: &waf.XssMatchTuple{
-				FieldToMatch:       expandFieldToMatch(tuple["field_to_match"].(*schema.Set).List()[0].(map[string]interface{})),
+				FieldToMatch:       expandFieldToMatch(tuple["field_to_match"].([]interface{})[0].(map[string]interface{})),
 				TextTransformation: aws.String(tuple["text_transformation"].(string)),
 			},
 		})

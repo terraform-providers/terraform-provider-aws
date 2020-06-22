@@ -81,7 +81,7 @@ func resourceAwsVpnGatewayCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), nil, v); err != nil {
+		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding EC2 VPN Gateway (%s) tags: %s", d.Id(), err)
 		}
 	}
@@ -91,6 +91,7 @@ func resourceAwsVpnGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeVpnGateways(&ec2.DescribeVpnGatewaysInput{
 		VpnGatewayIds: []*string{aws.String(d.Id())},
@@ -117,7 +118,7 @@ func resourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
 		// Gateway exists but not attached to the VPC
 		d.Set("vpc_id", "")
 	} else {
-		d.Set("vpc_id", *vpnAttachment.VpcId)
+		d.Set("vpc_id", vpnAttachment.VpcId)
 	}
 
 	if vpnGateway.AvailabilityZone != nil && *vpnGateway.AvailabilityZone != "" {
@@ -125,7 +126,7 @@ func resourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vpnGateway.AmazonSideAsn), 10))
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpnGateway.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(vpnGateway.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -18,7 +18,6 @@ func dataSourceAwsEcrRepository() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -39,6 +38,7 @@ func dataSourceAwsEcrRepository() *schema.Resource {
 
 func dataSourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecrconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &ecr.DescribeRepositoriesInput{
 		RepositoryNames: aws.StringSlice([]string{d.Get("name").(string)}),
@@ -69,7 +69,7 @@ func dataSourceAwsEcrRepositoryRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error listing tags for ECR Repository (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

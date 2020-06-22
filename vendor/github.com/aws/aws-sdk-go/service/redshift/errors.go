@@ -421,6 +421,12 @@ const (
 	// The tag is invalid.
 	ErrCodeInvalidTagFault = "InvalidTagFault"
 
+	// ErrCodeInvalidUsageLimitFault for service response error code
+	// "InvalidUsageLimit".
+	//
+	// The usage limit is not valid.
+	ErrCodeInvalidUsageLimitFault = "InvalidUsageLimit"
+
 	// ErrCodeInvalidVPCNetworkStateFault for service response error code
 	// "InvalidVPCNetworkStateFault".
 	//
@@ -695,4 +701,16 @@ const (
 	//
 	// A request option was specified that is not supported.
 	ErrCodeUnsupportedOptionFault = "UnsupportedOptionFault"
+
+	// ErrCodeUsageLimitAlreadyExistsFault for service response error code
+	// "UsageLimitAlreadyExists".
+	//
+	// The usage limit already exists.
+	ErrCodeUsageLimitAlreadyExistsFault = "UsageLimitAlreadyExists"
+
+	// ErrCodeUsageLimitNotFoundFault for service response error code
+	// "UsageLimitNotFound".
+	//
+	// The usage limit identifier can't be found.
+	ErrCodeUsageLimitNotFoundFault = "UsageLimitNotFound"
 )

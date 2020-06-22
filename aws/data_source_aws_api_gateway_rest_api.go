@@ -59,7 +59,7 @@ func dataSourceAwsApiGatewayRestApi() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"vpc_endpoint_ids": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -76,7 +76,9 @@ func dataSourceAwsApiGatewayRestApi() *schema.Resource {
 }
 
 func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	params := &apigateway.GetRestApisInput{}
 
 	target := d.Get("name")
@@ -127,7 +129,7 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(match.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(match.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

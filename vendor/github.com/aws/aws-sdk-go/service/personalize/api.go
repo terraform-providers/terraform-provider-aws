@@ -727,6 +727,95 @@ func (c *Personalize) CreateEventTrackerWithContext(ctx aws.Context, input *Crea
 	return out, req.Send()
 }
 
+const opCreateFilter = "CreateFilter"
+
+// CreateFilterRequest generates a "aws/request.Request" representing the
+// client's request for the CreateFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateFilter for more information on using the CreateFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateFilterRequest method.
+//    req, resp := client.CreateFilterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/CreateFilter
+func (c *Personalize) CreateFilterRequest(input *CreateFilterInput) (req *request.Request, output *CreateFilterOutput) {
+	op := &request.Operation{
+		Name:       opCreateFilter,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateFilterInput{}
+	}
+
+	output = &CreateFilterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateFilter API operation for Amazon Personalize.
+//
+// Creates a recommendation filter. For more information, see Using Filters
+// with Amazon Personalize.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Personalize's
+// API operation CreateFilter for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   Provide a valid value for the field or parameter.
+//
+//   * ResourceAlreadyExistsException
+//   The specified resource already exists.
+//
+//   * ResourceNotFoundException
+//   Could not find the specified resource.
+//
+//   * LimitExceededException
+//   The limit on the number of requests per second has been exceeded.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/CreateFilter
+func (c *Personalize) CreateFilter(input *CreateFilterInput) (*CreateFilterOutput, error) {
+	req, out := c.CreateFilterRequest(input)
+	return out, req.Send()
+}
+
+// CreateFilterWithContext is the same as CreateFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Personalize) CreateFilterWithContext(ctx aws.Context, input *CreateFilterInput, opts ...request.Option) (*CreateFilterOutput, error) {
+	req, out := c.CreateFilterRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateSchema = "CreateSchema"
 
 // CreateSchemaRequest generates a "aws/request.Request" representing the
@@ -1424,6 +1513,89 @@ func (c *Personalize) DeleteEventTracker(input *DeleteEventTrackerInput) (*Delet
 // for more information on using Contexts.
 func (c *Personalize) DeleteEventTrackerWithContext(ctx aws.Context, input *DeleteEventTrackerInput, opts ...request.Option) (*DeleteEventTrackerOutput, error) {
 	req, out := c.DeleteEventTrackerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteFilter = "DeleteFilter"
+
+// DeleteFilterRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteFilter for more information on using the DeleteFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteFilterRequest method.
+//    req, resp := client.DeleteFilterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/DeleteFilter
+func (c *Personalize) DeleteFilterRequest(input *DeleteFilterInput) (req *request.Request, output *DeleteFilterOutput) {
+	op := &request.Operation{
+		Name:       opDeleteFilter,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteFilterInput{}
+	}
+
+	output = &DeleteFilterOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteFilter API operation for Amazon Personalize.
+//
+// Deletes a filter.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Personalize's
+// API operation DeleteFilter for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   Provide a valid value for the field or parameter.
+//
+//   * ResourceNotFoundException
+//   Could not find the specified resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/DeleteFilter
+func (c *Personalize) DeleteFilter(input *DeleteFilterInput) (*DeleteFilterOutput, error) {
+	req, out := c.DeleteFilterRequest(input)
+	return out, req.Send()
+}
+
+// DeleteFilterWithContext is the same as DeleteFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Personalize) DeleteFilterWithContext(ctx aws.Context, input *DeleteFilterInput, opts ...request.Option) (*DeleteFilterOutput, error) {
+	req, out := c.DeleteFilterRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2274,6 +2446,88 @@ func (c *Personalize) DescribeFeatureTransformation(input *DescribeFeatureTransf
 // for more information on using Contexts.
 func (c *Personalize) DescribeFeatureTransformationWithContext(ctx aws.Context, input *DescribeFeatureTransformationInput, opts ...request.Option) (*DescribeFeatureTransformationOutput, error) {
 	req, out := c.DescribeFeatureTransformationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeFilter = "DescribeFilter"
+
+// DescribeFilterRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeFilter operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeFilter for more information on using the DescribeFilter
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeFilterRequest method.
+//    req, resp := client.DescribeFilterRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/DescribeFilter
+func (c *Personalize) DescribeFilterRequest(input *DescribeFilterInput) (req *request.Request, output *DescribeFilterOutput) {
+	op := &request.Operation{
+		Name:       opDescribeFilter,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeFilterInput{}
+	}
+
+	output = &DescribeFilterOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeFilter API operation for Amazon Personalize.
+//
+// Describes a filter's properties.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Personalize's
+// API operation DescribeFilter for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   Provide a valid value for the field or parameter.
+//
+//   * ResourceNotFoundException
+//   Could not find the specified resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/DescribeFilter
+func (c *Personalize) DescribeFilter(input *DescribeFilterInput) (*DescribeFilterOutput, error) {
+	req, out := c.DescribeFilterRequest(input)
+	return out, req.Send()
+}
+
+// DescribeFilterWithContext is the same as DescribeFilter with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeFilter for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Personalize) DescribeFilterWithContext(ctx aws.Context, input *DescribeFilterInput, opts ...request.Option) (*DescribeFilterOutput, error) {
+	req, out := c.DescribeFilterRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3561,6 +3815,88 @@ func (c *Personalize) ListEventTrackersPagesWithContext(ctx aws.Context, input *
 	return p.Err()
 }
 
+const opListFilters = "ListFilters"
+
+// ListFiltersRequest generates a "aws/request.Request" representing the
+// client's request for the ListFilters operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListFilters for more information on using the ListFilters
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListFiltersRequest method.
+//    req, resp := client.ListFiltersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/ListFilters
+func (c *Personalize) ListFiltersRequest(input *ListFiltersInput) (req *request.Request, output *ListFiltersOutput) {
+	op := &request.Operation{
+		Name:       opListFilters,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListFiltersInput{}
+	}
+
+	output = &ListFiltersOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListFilters API operation for Amazon Personalize.
+//
+// Lists all filters that belong to a given dataset group.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Personalize's
+// API operation ListFilters for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   Provide a valid value for the field or parameter.
+//
+//   * InvalidNextTokenException
+//   The token is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/ListFilters
+func (c *Personalize) ListFilters(input *ListFiltersInput) (*ListFiltersOutput, error) {
+	req, out := c.ListFiltersRequest(input)
+	return out, req.Send()
+}
+
+// ListFiltersWithContext is the same as ListFilters with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListFilters for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Personalize) ListFiltersWithContext(ctx aws.Context, input *ListFiltersInput, opts ...request.Option) (*ListFiltersOutput, error) {
+	req, out := c.ListFiltersRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListRecipes = "ListRecipes"
 
 // ListRecipesRequest generates a "aws/request.Request" representing the
@@ -4437,6 +4773,9 @@ type BatchInferenceJob struct {
 	// If the batch inference job failed, the reason for the failure.
 	FailureReason *string `locationName:"failureReason" type:"string"`
 
+	// The ARN of the filter used on the batch inference job.
+	FilterArn *string `locationName:"filterArn" type:"string"`
+
 	// The Amazon S3 path that leads to the input data used to generate the batch
 	// inference job.
 	JobInput *BatchInferenceJobInput `locationName:"jobInput" type:"structure"`
@@ -4501,6 +4840,12 @@ func (s *BatchInferenceJob) SetCreationDateTime(v time.Time) *BatchInferenceJob 
 // SetFailureReason sets the FailureReason field's value.
 func (s *BatchInferenceJob) SetFailureReason(v string) *BatchInferenceJob {
 	s.FailureReason = &v
+	return s
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *BatchInferenceJob) SetFilterArn(v string) *BatchInferenceJob {
+	s.FilterArn = &v
 	return s
 }
 
@@ -4662,6 +5007,9 @@ type BatchInferenceJobSummary struct {
 	// The time at which the batch inference job was last updated.
 	LastUpdatedDateTime *time.Time `locationName:"lastUpdatedDateTime" type:"timestamp"`
 
+	// The ARN of the solution version used by the batch inference job.
+	SolutionVersionArn *string `locationName:"solutionVersionArn" type:"string"`
+
 	// The status of the batch inference job. The status is one of the following
 	// values:
 	//
@@ -4712,6 +5060,12 @@ func (s *BatchInferenceJobSummary) SetJobName(v string) *BatchInferenceJobSummar
 // SetLastUpdatedDateTime sets the LastUpdatedDateTime field's value.
 func (s *BatchInferenceJobSummary) SetLastUpdatedDateTime(v time.Time) *BatchInferenceJobSummary {
 	s.LastUpdatedDateTime = &v
+	return s
+}
+
+// SetSolutionVersionArn sets the SolutionVersionArn field's value.
+func (s *BatchInferenceJobSummary) SetSolutionVersionArn(v string) *BatchInferenceJobSummary {
+	s.SolutionVersionArn = &v
 	return s
 }
 
@@ -5073,6 +5427,10 @@ func (s *ContinuousHyperParameterRange) SetName(v string) *ContinuousHyperParame
 type CreateBatchInferenceJobInput struct {
 	_ struct{} `type:"structure"`
 
+	// The ARN of the filter to apply to the batch inference job. For more information
+	// on using filters, see Using Filters with Amazon Personalize.
+	FilterArn *string `locationName:"filterArn" type:"string"`
+
 	// The Amazon S3 path that leads to the input file to base your recommendations
 	// on. The input material must be in JSON format.
 	//
@@ -5151,6 +5509,12 @@ func (s *CreateBatchInferenceJobInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *CreateBatchInferenceJobInput) SetFilterArn(v string) *CreateBatchInferenceJobInput {
+	s.FilterArn = &v
+	return s
 }
 
 // SetJobInput sets the JobInput field's value.
@@ -5701,6 +6065,108 @@ func (s *CreateEventTrackerOutput) SetEventTrackerArn(v string) *CreateEventTrac
 // SetTrackingId sets the TrackingId field's value.
 func (s *CreateEventTrackerOutput) SetTrackingId(v string) *CreateEventTrackerOutput {
 	s.TrackingId = &v
+	return s
+}
+
+type CreateFilterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the dataset group that the filter will belong to.
+	//
+	// DatasetGroupArn is a required field
+	DatasetGroupArn *string `locationName:"datasetGroupArn" type:"string" required:"true"`
+
+	// The filter expression that designates the interaction types that the filter
+	// will filter out. A filter expression must follow the following format:
+	//
+	// EXCLUDE itemId WHERE INTERACTIONS.event_type in ("EVENT_TYPE")
+	//
+	// Where "EVENT_TYPE" is the type of event to filter out. To filter out all
+	// items with any interactions history, set "*" as the EVENT_TYPE. For more
+	// information, see Using Filters with Amazon Personalize.
+	//
+	// FilterExpression is a required field
+	FilterExpression *string `locationName:"filterExpression" min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The name of the filter to create.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateFilterInput"}
+	if s.DatasetGroupArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatasetGroupArn"))
+	}
+	if s.FilterExpression == nil {
+		invalidParams.Add(request.NewErrParamRequired("FilterExpression"))
+	}
+	if s.FilterExpression != nil && len(*s.FilterExpression) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FilterExpression", 1))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDatasetGroupArn sets the DatasetGroupArn field's value.
+func (s *CreateFilterInput) SetDatasetGroupArn(v string) *CreateFilterInput {
+	s.DatasetGroupArn = &v
+	return s
+}
+
+// SetFilterExpression sets the FilterExpression field's value.
+func (s *CreateFilterInput) SetFilterExpression(v string) *CreateFilterInput {
+	s.FilterExpression = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateFilterInput) SetName(v string) *CreateFilterInput {
+	s.Name = &v
+	return s
+}
+
+type CreateFilterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the new filter.
+	FilterArn *string `locationName:"filterArn" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateFilterOutput) GoString() string {
+	return s.String()
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *CreateFilterOutput) SetFilterArn(v string) *CreateFilterOutput {
+	s.FilterArn = &v
 	return s
 }
 
@@ -7088,6 +7554,58 @@ func (s DeleteEventTrackerOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteFilterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the filter to delete.
+	//
+	// FilterArn is a required field
+	FilterArn *string `locationName:"filterArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteFilterInput"}
+	if s.FilterArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("FilterArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *DeleteFilterInput) SetFilterArn(v string) *DeleteFilterInput {
+	s.FilterArn = &v
+	return s
+}
+
+type DeleteFilterOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteFilterOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteSchemaInput struct {
 	_ struct{} `type:"structure"`
 
@@ -7690,6 +8208,67 @@ func (s *DescribeFeatureTransformationOutput) SetFeatureTransformation(v *Featur
 	return s
 }
 
+type DescribeFilterInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the filter to describe.
+	//
+	// FilterArn is a required field
+	FilterArn *string `locationName:"filterArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeFilterInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFilterInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeFilterInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeFilterInput"}
+	if s.FilterArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("FilterArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *DescribeFilterInput) SetFilterArn(v string) *DescribeFilterInput {
+	s.FilterArn = &v
+	return s
+}
+
+type DescribeFilterOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The filter's details.
+	Filter *Filter `locationName:"filter" type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeFilterOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeFilterOutput) GoString() string {
+	return s.String()
+}
+
+// SetFilter sets the Filter field's value.
+func (s *DescribeFilterOutput) SetFilter(v *Filter) *DescribeFilterOutput {
+	s.Filter = v
+	return s
+}
+
 type DescribeRecipeInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8171,6 +8750,178 @@ func (s *FeatureTransformation) SetStatus(v string) *FeatureTransformation {
 	return s
 }
 
+// Contains information on a recommendation filter, including its ARN, status,
+// and filter expression.
+type Filter struct {
+	_ struct{} `type:"structure"`
+
+	// The time at which the filter was created.
+	CreationDateTime *time.Time `locationName:"creationDateTime" type:"timestamp"`
+
+	// The ARN of the dataset group to which the filter belongs.
+	DatasetGroupArn *string `locationName:"datasetGroupArn" type:"string"`
+
+	// If the filter failed, the reason for its failure.
+	FailureReason *string `locationName:"failureReason" type:"string"`
+
+	// The ARN of the filter.
+	FilterArn *string `locationName:"filterArn" type:"string"`
+
+	// Specifies the type of item interactions to filter out of recommendation results.
+	// The filter expression must follow the following format:
+	//
+	// EXCLUDE itemId WHERE INTERACTIONS.event_type in ("EVENT_TYPE")
+	//
+	// Where "EVENT_TYPE" is the type of event to filter out. For more information,
+	// see Using Filters with Amazon Personalize.
+	FilterExpression *string `locationName:"filterExpression" min:"1" type:"string" sensitive:"true"`
+
+	// The time at which the filter was last updated.
+	LastUpdatedDateTime *time.Time `locationName:"lastUpdatedDateTime" type:"timestamp"`
+
+	// The name of the filter.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The status of the filter.
+	Status *string `locationName:"status" type:"string"`
+}
+
+// String returns the string representation
+func (s Filter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Filter) GoString() string {
+	return s.String()
+}
+
+// SetCreationDateTime sets the CreationDateTime field's value.
+func (s *Filter) SetCreationDateTime(v time.Time) *Filter {
+	s.CreationDateTime = &v
+	return s
+}
+
+// SetDatasetGroupArn sets the DatasetGroupArn field's value.
+func (s *Filter) SetDatasetGroupArn(v string) *Filter {
+	s.DatasetGroupArn = &v
+	return s
+}
+
+// SetFailureReason sets the FailureReason field's value.
+func (s *Filter) SetFailureReason(v string) *Filter {
+	s.FailureReason = &v
+	return s
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *Filter) SetFilterArn(v string) *Filter {
+	s.FilterArn = &v
+	return s
+}
+
+// SetFilterExpression sets the FilterExpression field's value.
+func (s *Filter) SetFilterExpression(v string) *Filter {
+	s.FilterExpression = &v
+	return s
+}
+
+// SetLastUpdatedDateTime sets the LastUpdatedDateTime field's value.
+func (s *Filter) SetLastUpdatedDateTime(v time.Time) *Filter {
+	s.LastUpdatedDateTime = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *Filter) SetName(v string) *Filter {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *Filter) SetStatus(v string) *Filter {
+	s.Status = &v
+	return s
+}
+
+// A short summary of a filter's attributes.
+type FilterSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The time at which the filter was created.
+	CreationDateTime *time.Time `locationName:"creationDateTime" type:"timestamp"`
+
+	// The ARN of the dataset group to which the filter belongs.
+	DatasetGroupArn *string `locationName:"datasetGroupArn" type:"string"`
+
+	// If the filter failed, the reason for the failure.
+	FailureReason *string `locationName:"failureReason" type:"string"`
+
+	// The ARN of the filter.
+	FilterArn *string `locationName:"filterArn" type:"string"`
+
+	// The time at which the filter was last updated.
+	LastUpdatedDateTime *time.Time `locationName:"lastUpdatedDateTime" type:"timestamp"`
+
+	// The name of the filter.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The status of the filter.
+	Status *string `locationName:"status" type:"string"`
+}
+
+// String returns the string representation
+func (s FilterSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s FilterSummary) GoString() string {
+	return s.String()
+}
+
+// SetCreationDateTime sets the CreationDateTime field's value.
+func (s *FilterSummary) SetCreationDateTime(v time.Time) *FilterSummary {
+	s.CreationDateTime = &v
+	return s
+}
+
+// SetDatasetGroupArn sets the DatasetGroupArn field's value.
+func (s *FilterSummary) SetDatasetGroupArn(v string) *FilterSummary {
+	s.DatasetGroupArn = &v
+	return s
+}
+
+// SetFailureReason sets the FailureReason field's value.
+func (s *FilterSummary) SetFailureReason(v string) *FilterSummary {
+	s.FailureReason = &v
+	return s
+}
+
+// SetFilterArn sets the FilterArn field's value.
+func (s *FilterSummary) SetFilterArn(v string) *FilterSummary {
+	s.FilterArn = &v
+	return s
+}
+
+// SetLastUpdatedDateTime sets the LastUpdatedDateTime field's value.
+func (s *FilterSummary) SetLastUpdatedDateTime(v time.Time) *FilterSummary {
+	s.LastUpdatedDateTime = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *FilterSummary) SetName(v string) *FilterSummary {
+	s.Name = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *FilterSummary) SetStatus(v string) *FilterSummary {
+	s.Status = &v
+	return s
+}
+
 type GetSolutionMetricsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -8310,7 +9061,7 @@ type HPOObjective struct {
 	// A regular expression for finding the metric in the training job logs.
 	MetricRegex *string `locationName:"metricRegex" type:"string"`
 
-	// The data type of the metric.
+	// The type of the metric. Valid values are Maximize and Minimize.
 	Type *string `locationName:"type" type:"string"`
 }
 
@@ -8507,8 +9258,8 @@ func (s *IntegerHyperParameterRange) SetName(v string) *IntegerHyperParameterRan
 
 // Provide a valid value for the field or parameter.
 type InvalidInputException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8525,17 +9276,17 @@ func (s InvalidInputException) GoString() string {
 
 func newErrorInvalidInputException(v protocol.ResponseMetadata) error {
 	return &InvalidInputException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidInputException) Code() string {
+func (s *InvalidInputException) Code() string {
 	return "InvalidInputException"
 }
 
 // Message returns the exception's message.
-func (s InvalidInputException) Message() string {
+func (s *InvalidInputException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8543,28 +9294,28 @@ func (s InvalidInputException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidInputException) OrigErr() error {
+func (s *InvalidInputException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidInputException) Error() string {
+func (s *InvalidInputException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidInputException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidInputException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidInputException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidInputException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The token is not valid.
 type InvalidNextTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8581,17 +9332,17 @@ func (s InvalidNextTokenException) GoString() string {
 
 func newErrorInvalidNextTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidNextTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidNextTokenException) Code() string {
+func (s *InvalidNextTokenException) Code() string {
 	return "InvalidNextTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidNextTokenException) Message() string {
+func (s *InvalidNextTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8599,28 +9350,28 @@ func (s InvalidNextTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidNextTokenException) OrigErr() error {
+func (s *InvalidNextTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidNextTokenException) Error() string {
+func (s *InvalidNextTokenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidNextTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidNextTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidNextTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidNextTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The limit on the number of requests per second has been exceeded.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8637,17 +9388,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8655,22 +9406,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListBatchInferenceJobsInput struct {
@@ -9192,6 +9943,93 @@ func (s *ListEventTrackersOutput) SetNextToken(v string) *ListEventTrackersOutpu
 	return s
 }
 
+type ListFiltersInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the dataset group that contains the filters.
+	DatasetGroupArn *string `locationName:"datasetGroupArn" type:"string"`
+
+	// The maximum number of filters to return.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// A token returned from the previous call to ListFilters for getting the next
+	// set of filters (if they exist).
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListFiltersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListFiltersInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListFiltersInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListFiltersInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDatasetGroupArn sets the DatasetGroupArn field's value.
+func (s *ListFiltersInput) SetDatasetGroupArn(v string) *ListFiltersInput {
+	s.DatasetGroupArn = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListFiltersInput) SetMaxResults(v int64) *ListFiltersInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListFiltersInput) SetNextToken(v string) *ListFiltersInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListFiltersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of returned filters.
+	Filters []*FilterSummary `type:"list"`
+
+	// A token for getting the next set of filters (if they exist).
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListFiltersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListFiltersOutput) GoString() string {
+	return s.String()
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListFiltersOutput) SetFilters(v []*FilterSummary) *ListFiltersOutput {
+	s.Filters = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListFiltersOutput) SetNextToken(v string) *ListFiltersOutput {
+	s.NextToken = &v
+	return s
+}
+
 type ListRecipesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9699,8 +10537,8 @@ func (s *RecipeSummary) SetStatus(v string) *RecipeSummary {
 
 // The specified resource already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9717,17 +10555,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9735,28 +10573,28 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified resource is in use.
 type ResourceInUseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9773,17 +10611,17 @@ func (s ResourceInUseException) GoString() string {
 
 func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
 	return &ResourceInUseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceInUseException) Code() string {
+func (s *ResourceInUseException) Code() string {
 	return "ResourceInUseException"
 }
 
 // Message returns the exception's message.
-func (s ResourceInUseException) Message() string {
+func (s *ResourceInUseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9791,28 +10629,28 @@ func (s ResourceInUseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceInUseException) OrigErr() error {
+func (s *ResourceInUseException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceInUseException) Error() string {
+func (s *ResourceInUseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceInUseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceInUseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Could not find the specified resource.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9829,17 +10667,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9847,22 +10685,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The configuration details of an Amazon S3 input or output bucket.
@@ -10275,6 +11113,10 @@ type SolutionVersion struct {
 	// The UPDATE option can only be used after you've created a solution version
 	// with the FULL option and the training solution uses the native-recipe-hrnn-coldstart.
 	TrainingMode *string `locationName:"trainingMode" type:"string" enum:"TrainingMode"`
+
+	// If hyperparameter optimization was performed, contains the hyperparameter
+	// values of the best performing model.
+	TunedHPOParams *TunedHPOParams `locationName:"tunedHPOParams" type:"structure"`
 }
 
 // String returns the string representation
@@ -10371,6 +11213,12 @@ func (s *SolutionVersion) SetTrainingMode(v string) *SolutionVersion {
 	return s
 }
 
+// SetTunedHPOParams sets the TunedHPOParams field's value.
+func (s *SolutionVersion) SetTunedHPOParams(v *TunedHPOParams) *SolutionVersion {
+	s.TunedHPOParams = v
+	return s
+}
+
 // Provides a summary of the properties of a solution version. For a complete
 // listing, call the DescribeSolutionVersion API.
 type SolutionVersionSummary struct {
@@ -10433,6 +11281,31 @@ func (s *SolutionVersionSummary) SetSolutionVersionArn(v string) *SolutionVersio
 // SetStatus sets the Status field's value.
 func (s *SolutionVersionSummary) SetStatus(v string) *SolutionVersionSummary {
 	s.Status = &v
+	return s
+}
+
+// If hyperparameter optimization (HPO) was performed, contains the hyperparameter
+// values of the best performing model.
+type TunedHPOParams struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the hyperparameter values of the best performing model.
+	AlgorithmHyperParameters map[string]*string `locationName:"algorithmHyperParameters" type:"map"`
+}
+
+// String returns the string representation
+func (s TunedHPOParams) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TunedHPOParams) GoString() string {
+	return s.String()
+}
+
+// SetAlgorithmHyperParameters sets the AlgorithmHyperParameters field's value.
+func (s *TunedHPOParams) SetAlgorithmHyperParameters(v map[string]*string) *TunedHPOParams {
+	s.AlgorithmHyperParameters = v
 	return s
 }
 

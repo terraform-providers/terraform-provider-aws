@@ -13,6 +13,96 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
+const opCancelJournalKinesisStream = "CancelJournalKinesisStream"
+
+// CancelJournalKinesisStreamRequest generates a "aws/request.Request" representing the
+// client's request for the CancelJournalKinesisStream operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CancelJournalKinesisStream for more information on using the CancelJournalKinesisStream
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CancelJournalKinesisStreamRequest method.
+//    req, resp := client.CancelJournalKinesisStreamRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/CancelJournalKinesisStream
+func (c *QLDB) CancelJournalKinesisStreamRequest(input *CancelJournalKinesisStreamInput) (req *request.Request, output *CancelJournalKinesisStreamOutput) {
+	op := &request.Operation{
+		Name:       opCancelJournalKinesisStream,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/ledgers/{name}/journal-kinesis-streams/{streamId}",
+	}
+
+	if input == nil {
+		input = &CancelJournalKinesisStreamInput{}
+	}
+
+	output = &CancelJournalKinesisStreamOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CancelJournalKinesisStream API operation for Amazon QLDB.
+//
+// Ends a given Amazon QLDB journal stream. Before a stream can be canceled,
+// its current status must be ACTIVE.
+//
+// You can't restart a stream after you cancel it. Canceled QLDB stream resources
+// are subject to a 7-day retention period, so they are automatically deleted
+// after this limit expires.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QLDB's
+// API operation CancelJournalKinesisStream for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in the request aren't valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * ResourcePreconditionNotMetException
+//   The operation failed because a condition wasn't satisfied in advance.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/CancelJournalKinesisStream
+func (c *QLDB) CancelJournalKinesisStream(input *CancelJournalKinesisStreamInput) (*CancelJournalKinesisStreamOutput, error) {
+	req, out := c.CancelJournalKinesisStreamRequest(input)
+	return out, req.Send()
+}
+
+// CancelJournalKinesisStreamWithContext is the same as CancelJournalKinesisStream with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CancelJournalKinesisStream for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QLDB) CancelJournalKinesisStreamWithContext(ctx aws.Context, input *CancelJournalKinesisStreamInput, opts ...request.Option) (*CancelJournalKinesisStreamOutput, error) {
+	req, out := c.CancelJournalKinesisStreamRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateLedger = "CreateLedger"
 
 // CreateLedgerRequest generates a "aws/request.Request" representing the
@@ -196,6 +286,93 @@ func (c *QLDB) DeleteLedgerWithContext(ctx aws.Context, input *DeleteLedgerInput
 	return out, req.Send()
 }
 
+const opDescribeJournalKinesisStream = "DescribeJournalKinesisStream"
+
+// DescribeJournalKinesisStreamRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeJournalKinesisStream operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeJournalKinesisStream for more information on using the DescribeJournalKinesisStream
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeJournalKinesisStreamRequest method.
+//    req, resp := client.DescribeJournalKinesisStreamRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/DescribeJournalKinesisStream
+func (c *QLDB) DescribeJournalKinesisStreamRequest(input *DescribeJournalKinesisStreamInput) (req *request.Request, output *DescribeJournalKinesisStreamOutput) {
+	op := &request.Operation{
+		Name:       opDescribeJournalKinesisStream,
+		HTTPMethod: "GET",
+		HTTPPath:   "/ledgers/{name}/journal-kinesis-streams/{streamId}",
+	}
+
+	if input == nil {
+		input = &DescribeJournalKinesisStreamInput{}
+	}
+
+	output = &DescribeJournalKinesisStreamOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeJournalKinesisStream API operation for Amazon QLDB.
+//
+// Returns detailed information about a given Amazon QLDB journal stream. The
+// output includes the Amazon Resource Name (ARN), stream name, current status,
+// creation time, and the parameters of your original stream creation request.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QLDB's
+// API operation DescribeJournalKinesisStream for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in the request aren't valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * ResourcePreconditionNotMetException
+//   The operation failed because a condition wasn't satisfied in advance.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/DescribeJournalKinesisStream
+func (c *QLDB) DescribeJournalKinesisStream(input *DescribeJournalKinesisStreamInput) (*DescribeJournalKinesisStreamOutput, error) {
+	req, out := c.DescribeJournalKinesisStreamRequest(input)
+	return out, req.Send()
+}
+
+// DescribeJournalKinesisStreamWithContext is the same as DescribeJournalKinesisStream with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeJournalKinesisStream for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QLDB) DescribeJournalKinesisStreamWithContext(ctx aws.Context, input *DescribeJournalKinesisStreamInput, opts ...request.Option) (*DescribeJournalKinesisStreamOutput, error) {
+	req, out := c.DescribeJournalKinesisStreamRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeJournalS3Export = "DescribeJournalS3Export"
 
 // DescribeJournalS3ExportRequest generates a "aws/request.Request" representing the
@@ -243,6 +420,10 @@ func (c *QLDB) DescribeJournalS3ExportRequest(input *DescribeJournalS3ExportInpu
 // Returns information about a journal export job, including the ledger name,
 // export ID, when it was created, current status, and its start and end time
 // export parameters.
+//
+// This action does not return any expired export jobs. For more information,
+// see Export Job Expiration (https://docs.aws.amazon.com/qldb/latest/developerguide/export-journal.request.html#export-journal.request.expiration)
+// in the Amazon QLDB Developer Guide.
 //
 // If the export job with the given ExportId doesn't exist, then throws ResourceNotFoundException.
 //
@@ -498,8 +679,12 @@ func (c *QLDB) GetBlockRequest(input *GetBlockInput) (req *request.Request, outp
 
 // GetBlock API operation for Amazon QLDB.
 //
-// Returns a journal block object at a specified address in a ledger. Also returns
+// Returns a block object at a specified address in a journal. Also returns
 // a proof of the specified block for verification if DigestTipAddress is provided.
+//
+// For information about the data contents in a block, see Journal contents
+// (https://docs.aws.amazon.com/qldb/latest/developerguide/journal-contents.html)
+// in the Amazon QLDB Developer Guide.
 //
 // If the specified ledger doesn't exist or is in DELETING status, then throws
 // ResourceNotFoundException.
@@ -720,6 +905,155 @@ func (c *QLDB) GetRevisionWithContext(ctx aws.Context, input *GetRevisionInput, 
 	return out, req.Send()
 }
 
+const opListJournalKinesisStreamsForLedger = "ListJournalKinesisStreamsForLedger"
+
+// ListJournalKinesisStreamsForLedgerRequest generates a "aws/request.Request" representing the
+// client's request for the ListJournalKinesisStreamsForLedger operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListJournalKinesisStreamsForLedger for more information on using the ListJournalKinesisStreamsForLedger
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListJournalKinesisStreamsForLedgerRequest method.
+//    req, resp := client.ListJournalKinesisStreamsForLedgerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/ListJournalKinesisStreamsForLedger
+func (c *QLDB) ListJournalKinesisStreamsForLedgerRequest(input *ListJournalKinesisStreamsForLedgerInput) (req *request.Request, output *ListJournalKinesisStreamsForLedgerOutput) {
+	op := &request.Operation{
+		Name:       opListJournalKinesisStreamsForLedger,
+		HTTPMethod: "GET",
+		HTTPPath:   "/ledgers/{name}/journal-kinesis-streams",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListJournalKinesisStreamsForLedgerInput{}
+	}
+
+	output = &ListJournalKinesisStreamsForLedgerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListJournalKinesisStreamsForLedger API operation for Amazon QLDB.
+//
+// Returns an array of all Amazon QLDB journal stream descriptors for a given
+// ledger. The output of each stream descriptor includes the same details that
+// are returned by DescribeJournalKinesisStream.
+//
+// This action returns a maximum of MaxResults items. It is paginated so that
+// you can retrieve all the items by calling ListJournalKinesisStreamsForLedger
+// multiple times.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QLDB's
+// API operation ListJournalKinesisStreamsForLedger for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in the request aren't valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * ResourcePreconditionNotMetException
+//   The operation failed because a condition wasn't satisfied in advance.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/ListJournalKinesisStreamsForLedger
+func (c *QLDB) ListJournalKinesisStreamsForLedger(input *ListJournalKinesisStreamsForLedgerInput) (*ListJournalKinesisStreamsForLedgerOutput, error) {
+	req, out := c.ListJournalKinesisStreamsForLedgerRequest(input)
+	return out, req.Send()
+}
+
+// ListJournalKinesisStreamsForLedgerWithContext is the same as ListJournalKinesisStreamsForLedger with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListJournalKinesisStreamsForLedger for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QLDB) ListJournalKinesisStreamsForLedgerWithContext(ctx aws.Context, input *ListJournalKinesisStreamsForLedgerInput, opts ...request.Option) (*ListJournalKinesisStreamsForLedgerOutput, error) {
+	req, out := c.ListJournalKinesisStreamsForLedgerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListJournalKinesisStreamsForLedgerPages iterates over the pages of a ListJournalKinesisStreamsForLedger operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJournalKinesisStreamsForLedger method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJournalKinesisStreamsForLedger operation.
+//    pageNum := 0
+//    err := client.ListJournalKinesisStreamsForLedgerPages(params,
+//        func(page *qldb.ListJournalKinesisStreamsForLedgerOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *QLDB) ListJournalKinesisStreamsForLedgerPages(input *ListJournalKinesisStreamsForLedgerInput, fn func(*ListJournalKinesisStreamsForLedgerOutput, bool) bool) error {
+	return c.ListJournalKinesisStreamsForLedgerPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJournalKinesisStreamsForLedgerPagesWithContext same as ListJournalKinesisStreamsForLedgerPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QLDB) ListJournalKinesisStreamsForLedgerPagesWithContext(ctx aws.Context, input *ListJournalKinesisStreamsForLedgerInput, fn func(*ListJournalKinesisStreamsForLedgerOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJournalKinesisStreamsForLedgerInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJournalKinesisStreamsForLedgerRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListJournalKinesisStreamsForLedgerOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListJournalS3Exports = "ListJournalS3Exports"
 
 // ListJournalS3ExportsRequest generates a "aws/request.Request" representing the
@@ -775,6 +1109,10 @@ func (c *QLDB) ListJournalS3ExportsRequest(input *ListJournalS3ExportsInput) (re
 //
 // This action returns a maximum of MaxResults items, and is paginated so that
 // you can retrieve all the items by calling ListJournalS3Exports multiple times.
+//
+// This action does not return any expired export jobs. For more information,
+// see Export Job Expiration (https://docs.aws.amazon.com/qldb/latest/developerguide/export-journal.request.html#export-journal.request.expiration)
+// in the Amazon QLDB Developer Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -911,6 +1249,10 @@ func (c *QLDB) ListJournalS3ExportsForLedgerRequest(input *ListJournalS3ExportsF
 // This action returns a maximum of MaxResults items, and is paginated so that
 // you can retrieve all the items by calling ListJournalS3ExportsForLedger multiple
 // times.
+//
+// This action does not return any expired export jobs. For more information,
+// see Export Job Expiration (https://docs.aws.amazon.com/qldb/latest/developerguide/export-journal.request.html#export-journal.request.expiration)
+// in the Amazon QLDB Developer Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1210,6 +1552,93 @@ func (c *QLDB) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsFo
 	return out, req.Send()
 }
 
+const opStreamJournalToKinesis = "StreamJournalToKinesis"
+
+// StreamJournalToKinesisRequest generates a "aws/request.Request" representing the
+// client's request for the StreamJournalToKinesis operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StreamJournalToKinesis for more information on using the StreamJournalToKinesis
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StreamJournalToKinesisRequest method.
+//    req, resp := client.StreamJournalToKinesisRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/StreamJournalToKinesis
+func (c *QLDB) StreamJournalToKinesisRequest(input *StreamJournalToKinesisInput) (req *request.Request, output *StreamJournalToKinesisOutput) {
+	op := &request.Operation{
+		Name:       opStreamJournalToKinesis,
+		HTTPMethod: "POST",
+		HTTPPath:   "/ledgers/{name}/journal-kinesis-streams",
+	}
+
+	if input == nil {
+		input = &StreamJournalToKinesisInput{}
+	}
+
+	output = &StreamJournalToKinesisOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StreamJournalToKinesis API operation for Amazon QLDB.
+//
+// Creates a journal stream for a given Amazon QLDB ledger. The stream captures
+// every document revision that is committed to the ledger's journal and delivers
+// the data to a specified Amazon Kinesis Data Streams resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon QLDB's
+// API operation StreamJournalToKinesis for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in the request aren't valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * ResourcePreconditionNotMetException
+//   The operation failed because a condition wasn't satisfied in advance.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/qldb-2019-01-02/StreamJournalToKinesis
+func (c *QLDB) StreamJournalToKinesis(input *StreamJournalToKinesisInput) (*StreamJournalToKinesisOutput, error) {
+	req, out := c.StreamJournalToKinesisRequest(input)
+	return out, req.Send()
+}
+
+// StreamJournalToKinesisWithContext is the same as StreamJournalToKinesis with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StreamJournalToKinesis for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *QLDB) StreamJournalToKinesisWithContext(ctx aws.Context, input *StreamJournalToKinesisInput, opts ...request.Option) (*StreamJournalToKinesisOutput, error) {
+	req, out := c.StreamJournalToKinesisRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opTagResource = "TagResource"
 
 // TagResourceRequest generates a "aws/request.Request" representing the
@@ -1462,6 +1891,87 @@ func (c *QLDB) UpdateLedgerWithContext(ctx aws.Context, input *UpdateLedgerInput
 	return out, req.Send()
 }
 
+type CancelJournalKinesisStreamInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the ledger.
+	//
+	// LedgerName is a required field
+	LedgerName *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// The unique ID that QLDB assigns to each QLDB journal stream.
+	//
+	// StreamId is a required field
+	StreamId *string `location:"uri" locationName:"streamId" min:"22" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CancelJournalKinesisStreamInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelJournalKinesisStreamInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CancelJournalKinesisStreamInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CancelJournalKinesisStreamInput"}
+	if s.LedgerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LedgerName"))
+	}
+	if s.LedgerName != nil && len(*s.LedgerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LedgerName", 1))
+	}
+	if s.StreamId == nil {
+		invalidParams.Add(request.NewErrParamRequired("StreamId"))
+	}
+	if s.StreamId != nil && len(*s.StreamId) < 22 {
+		invalidParams.Add(request.NewErrParamMinLen("StreamId", 22))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLedgerName sets the LedgerName field's value.
+func (s *CancelJournalKinesisStreamInput) SetLedgerName(v string) *CancelJournalKinesisStreamInput {
+	s.LedgerName = &v
+	return s
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *CancelJournalKinesisStreamInput) SetStreamId(v string) *CancelJournalKinesisStreamInput {
+	s.StreamId = &v
+	return s
+}
+
+type CancelJournalKinesisStreamOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ID that QLDB assigns to each QLDB journal stream.
+	StreamId *string `min:"22" type:"string"`
+}
+
+// String returns the string representation
+func (s CancelJournalKinesisStreamOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CancelJournalKinesisStreamOutput) GoString() string {
+	return s.String()
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *CancelJournalKinesisStreamOutput) SetStreamId(v string) *CancelJournalKinesisStreamOutput {
+	s.StreamId = &v
+	return s
+}
+
 type CreateLedgerInput struct {
 	_ struct{} `type:"structure"`
 
@@ -1477,6 +1987,10 @@ type CreateLedgerInput struct {
 
 	// The name of the ledger that you want to create. The name must be unique among
 	// all of your ledgers in the current AWS Region.
+	//
+	// Naming constraints for ledger names are defined in Quotas in Amazon QLDB
+	// (https://docs.aws.amazon.com/qldb/latest/developerguide/limits.html#limits.naming)
+	// in the Amazon QLDB Developer Guide.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
@@ -1665,6 +2179,88 @@ func (s DeleteLedgerOutput) String() string {
 // GoString returns the string representation
 func (s DeleteLedgerOutput) GoString() string {
 	return s.String()
+}
+
+type DescribeJournalKinesisStreamInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the ledger.
+	//
+	// LedgerName is a required field
+	LedgerName *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// The unique ID that QLDB assigns to each QLDB journal stream.
+	//
+	// StreamId is a required field
+	StreamId *string `location:"uri" locationName:"streamId" min:"22" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeJournalKinesisStreamInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeJournalKinesisStreamInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeJournalKinesisStreamInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeJournalKinesisStreamInput"}
+	if s.LedgerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LedgerName"))
+	}
+	if s.LedgerName != nil && len(*s.LedgerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LedgerName", 1))
+	}
+	if s.StreamId == nil {
+		invalidParams.Add(request.NewErrParamRequired("StreamId"))
+	}
+	if s.StreamId != nil && len(*s.StreamId) < 22 {
+		invalidParams.Add(request.NewErrParamMinLen("StreamId", 22))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLedgerName sets the LedgerName field's value.
+func (s *DescribeJournalKinesisStreamInput) SetLedgerName(v string) *DescribeJournalKinesisStreamInput {
+	s.LedgerName = &v
+	return s
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *DescribeJournalKinesisStreamInput) SetStreamId(v string) *DescribeJournalKinesisStreamInput {
+	s.StreamId = &v
+	return s
+}
+
+type DescribeJournalKinesisStreamOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the QLDB journal stream returned by a DescribeJournalS3Export
+	// request.
+	Stream *JournalKinesisStreamDescription `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeJournalKinesisStreamOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeJournalKinesisStreamOutput) GoString() string {
+	return s.String()
+}
+
+// SetStream sets the Stream field's value.
+func (s *DescribeJournalKinesisStreamOutput) SetStream(v *JournalKinesisStreamDescription) *DescribeJournalKinesisStreamOutput {
+	s.Stream = v
+	return s
 }
 
 type DescribeJournalS3ExportInput struct {
@@ -2348,8 +2944,8 @@ func (s *GetRevisionOutput) SetRevision(v *ValueHolder) *GetRevisionOutput {
 
 // One or more parameters in the request aren't valid.
 type InvalidParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -2369,17 +2965,17 @@ func (s InvalidParameterException) GoString() string {
 
 func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterException) Code() string {
+func (s *InvalidParameterException) Code() string {
 	return "InvalidParameterException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterException) Message() string {
+func (s *InvalidParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2387,22 +2983,157 @@ func (s InvalidParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterException) OrigErr() error {
+func (s *InvalidParameterException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterException) Error() string {
+func (s *InvalidParameterException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The information about an Amazon QLDB journal stream, including the Amazon
+// Resource Name (ARN), stream name, creation time, current status, and the
+// parameters of your original stream creation request.
+type JournalKinesisStreamDescription struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the QLDB journal stream.
+	Arn *string `min:"20" type:"string"`
+
+	// The date and time, in epoch time format, when the QLDB journal stream was
+	// created. (Epoch time format is the number of seconds elapsed since 12:00:00
+	// AM January 1, 1970 UTC.)
+	CreationTime *time.Time `type:"timestamp"`
+
+	// The error message that describes the reason that a stream has a status of
+	// IMPAIRED or FAILED. This is not applicable to streams that have other status
+	// values.
+	ErrorCause *string `type:"string" enum:"ErrorCause"`
+
+	// The exclusive date and time that specifies when the stream ends. If this
+	// parameter is blank, the stream runs indefinitely until you cancel it.
+	ExclusiveEndTime *time.Time `type:"timestamp"`
+
+	// The inclusive start date and time from which to start streaming journal data.
+	InclusiveStartTime *time.Time `type:"timestamp"`
+
+	// The configuration settings of the Amazon Kinesis Data Streams destination
+	// for your QLDB journal stream.
+	//
+	// KinesisConfiguration is a required field
+	KinesisConfiguration *KinesisConfiguration `type:"structure" required:"true"`
+
+	// The name of the ledger.
+	//
+	// LedgerName is a required field
+	LedgerName *string `min:"1" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the IAM role that grants QLDB permissions
+	// for a journal stream to write data records to a Kinesis Data Streams resource.
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"20" type:"string" required:"true"`
+
+	// The current state of the QLDB journal stream.
+	//
+	// Status is a required field
+	Status *string `type:"string" required:"true" enum:"StreamStatus"`
+
+	// The unique ID that QLDB assigns to each QLDB journal stream.
+	//
+	// StreamId is a required field
+	StreamId *string `min:"22" type:"string" required:"true"`
+
+	// The user-defined name of the QLDB journal stream.
+	//
+	// StreamName is a required field
+	StreamName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s JournalKinesisStreamDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s JournalKinesisStreamDescription) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *JournalKinesisStreamDescription) SetArn(v string) *JournalKinesisStreamDescription {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *JournalKinesisStreamDescription) SetCreationTime(v time.Time) *JournalKinesisStreamDescription {
+	s.CreationTime = &v
+	return s
+}
+
+// SetErrorCause sets the ErrorCause field's value.
+func (s *JournalKinesisStreamDescription) SetErrorCause(v string) *JournalKinesisStreamDescription {
+	s.ErrorCause = &v
+	return s
+}
+
+// SetExclusiveEndTime sets the ExclusiveEndTime field's value.
+func (s *JournalKinesisStreamDescription) SetExclusiveEndTime(v time.Time) *JournalKinesisStreamDescription {
+	s.ExclusiveEndTime = &v
+	return s
+}
+
+// SetInclusiveStartTime sets the InclusiveStartTime field's value.
+func (s *JournalKinesisStreamDescription) SetInclusiveStartTime(v time.Time) *JournalKinesisStreamDescription {
+	s.InclusiveStartTime = &v
+	return s
+}
+
+// SetKinesisConfiguration sets the KinesisConfiguration field's value.
+func (s *JournalKinesisStreamDescription) SetKinesisConfiguration(v *KinesisConfiguration) *JournalKinesisStreamDescription {
+	s.KinesisConfiguration = v
+	return s
+}
+
+// SetLedgerName sets the LedgerName field's value.
+func (s *JournalKinesisStreamDescription) SetLedgerName(v string) *JournalKinesisStreamDescription {
+	s.LedgerName = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *JournalKinesisStreamDescription) SetRoleArn(v string) *JournalKinesisStreamDescription {
+	s.RoleArn = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *JournalKinesisStreamDescription) SetStatus(v string) *JournalKinesisStreamDescription {
+	s.Status = &v
+	return s
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *JournalKinesisStreamDescription) SetStreamId(v string) *JournalKinesisStreamDescription {
+	s.StreamId = &v
+	return s
+}
+
+// SetStreamName sets the StreamName field's value.
+func (s *JournalKinesisStreamDescription) SetStreamName(v string) *JournalKinesisStreamDescription {
+	s.StreamName = &v
+	return s
 }
 
 // The information about a journal export job, including the ledger name, export
@@ -2521,6 +3252,60 @@ func (s *JournalS3ExportDescription) SetStatus(v string) *JournalS3ExportDescrip
 	return s
 }
 
+// The configuration settings of the Amazon Kinesis Data Streams destination
+// for your Amazon QLDB journal stream.
+type KinesisConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Enables QLDB to publish multiple data records in a single Kinesis Data Streams
+	// record. To learn more, see KPL Key Concepts (https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html)
+	// in the Amazon Kinesis Data Streams Developer Guide.
+	AggregationEnabled *bool `type:"boolean"`
+
+	// The Amazon Resource Name (ARN) of the Kinesis data stream resource.
+	//
+	// StreamArn is a required field
+	StreamArn *string `min:"20" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s KinesisConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s KinesisConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *KinesisConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "KinesisConfiguration"}
+	if s.StreamArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("StreamArn"))
+	}
+	if s.StreamArn != nil && len(*s.StreamArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("StreamArn", 20))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAggregationEnabled sets the AggregationEnabled field's value.
+func (s *KinesisConfiguration) SetAggregationEnabled(v bool) *KinesisConfiguration {
+	s.AggregationEnabled = &v
+	return s
+}
+
+// SetStreamArn sets the StreamArn field's value.
+func (s *KinesisConfiguration) SetStreamArn(v string) *KinesisConfiguration {
+	s.StreamArn = &v
+	return s
+}
+
 // Information about a ledger, including its name, state, and when it was created.
 type LedgerSummary struct {
 	_ struct{} `type:"structure"`
@@ -2567,8 +3352,8 @@ func (s *LedgerSummary) SetState(v string) *LedgerSummary {
 
 // You have reached the limit on the maximum number of resources allowed.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -2588,17 +3373,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2606,22 +3391,129 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type ListJournalKinesisStreamsForLedgerInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the ledger.
+	//
+	// LedgerName is a required field
+	LedgerName *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// The maximum number of results to return in a single ListJournalKinesisStreamsForLedger
+	// request. (The actual number of results returned might be fewer.)
+	MaxResults *int64 `location:"querystring" locationName:"max_results" min:"1" type:"integer"`
+
+	// A pagination token, indicating that you want to retrieve the next page of
+	// results. If you received a value for NextToken in the response from a previous
+	// ListJournalKinesisStreamsForLedger call, you should use that value as input
+	// here.
+	NextToken *string `location:"querystring" locationName:"next_token" min:"4" type:"string"`
+}
+
+// String returns the string representation
+func (s ListJournalKinesisStreamsForLedgerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListJournalKinesisStreamsForLedgerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListJournalKinesisStreamsForLedgerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListJournalKinesisStreamsForLedgerInput"}
+	if s.LedgerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LedgerName"))
+	}
+	if s.LedgerName != nil && len(*s.LedgerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LedgerName", 1))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 4))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLedgerName sets the LedgerName field's value.
+func (s *ListJournalKinesisStreamsForLedgerInput) SetLedgerName(v string) *ListJournalKinesisStreamsForLedgerInput {
+	s.LedgerName = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListJournalKinesisStreamsForLedgerInput) SetMaxResults(v int64) *ListJournalKinesisStreamsForLedgerInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListJournalKinesisStreamsForLedgerInput) SetNextToken(v string) *ListJournalKinesisStreamsForLedgerInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListJournalKinesisStreamsForLedgerOutput struct {
+	_ struct{} `type:"structure"`
+
+	//    * If NextToken is empty, the last page of results has been processed and
+	//    there are no more results to be retrieved.
+	//
+	//    * If NextToken is not empty, more results are available. To retrieve the
+	//    next page of results, use the value of NextToken in a subsequent ListJournalKinesisStreamsForLedger
+	//    call.
+	NextToken *string `min:"4" type:"string"`
+
+	// The array of QLDB journal stream descriptors that are associated with the
+	// given ledger.
+	Streams []*JournalKinesisStreamDescription `type:"list"`
+}
+
+// String returns the string representation
+func (s ListJournalKinesisStreamsForLedgerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListJournalKinesisStreamsForLedgerOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListJournalKinesisStreamsForLedgerOutput) SetNextToken(v string) *ListJournalKinesisStreamsForLedgerOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetStreams sets the Streams field's value.
+func (s *ListJournalKinesisStreamsForLedgerOutput) SetStreams(v []*JournalKinesisStreamDescription) *ListJournalKinesisStreamsForLedgerOutput {
+	s.Streams = v
+	return s
 }
 
 type ListJournalS3ExportsForLedgerInput struct {
@@ -2979,8 +3871,8 @@ func (s *ListTagsForResourceOutput) SetTags(v map[string]*string) *ListTagsForRe
 
 // The specified resource already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -3003,17 +3895,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3021,28 +3913,28 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified resource can't be modified at this time.
 type ResourceInUseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -3065,17 +3957,17 @@ func (s ResourceInUseException) GoString() string {
 
 func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
 	return &ResourceInUseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceInUseException) Code() string {
+func (s *ResourceInUseException) Code() string {
 	return "ResourceInUseException"
 }
 
 // Message returns the exception's message.
-func (s ResourceInUseException) Message() string {
+func (s *ResourceInUseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3083,28 +3975,28 @@ func (s ResourceInUseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceInUseException) OrigErr() error {
+func (s *ResourceInUseException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceInUseException) Error() string {
+func (s *ResourceInUseException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceInUseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceInUseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified resource doesn't exist.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -3127,17 +4019,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3145,28 +4037,28 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The operation failed because a condition wasn't satisfied in advance.
 type ResourcePreconditionNotMetException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" type:"string"`
 
@@ -3189,17 +4081,17 @@ func (s ResourcePreconditionNotMetException) GoString() string {
 
 func newErrorResourcePreconditionNotMetException(v protocol.ResponseMetadata) error {
 	return &ResourcePreconditionNotMetException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourcePreconditionNotMetException) Code() string {
+func (s *ResourcePreconditionNotMetException) Code() string {
 	return "ResourcePreconditionNotMetException"
 }
 
 // Message returns the exception's message.
-func (s ResourcePreconditionNotMetException) Message() string {
+func (s *ResourcePreconditionNotMetException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3207,22 +4099,22 @@ func (s ResourcePreconditionNotMetException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourcePreconditionNotMetException) OrigErr() error {
+func (s *ResourcePreconditionNotMetException) OrigErr() error {
 	return nil
 }
 
-func (s ResourcePreconditionNotMetException) Error() string {
+func (s *ResourcePreconditionNotMetException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourcePreconditionNotMetException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourcePreconditionNotMetException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourcePreconditionNotMetException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourcePreconditionNotMetException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The encryption settings that are used by a journal export job to write data
@@ -3230,8 +4122,9 @@ func (s ResourcePreconditionNotMetException) RequestID() string {
 type S3EncryptionConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) for a customer master key (CMK) in AWS Key
-	// Management Service (AWS KMS).
+	// The Amazon Resource Name (ARN) for a symmetric customer master key (CMK)
+	// in AWS Key Management Service (AWS KMS). Amazon QLDB does not support asymmetric
+	// CMKs.
 	//
 	// You must provide a KmsKeyArn if you specify SSE_KMS as the ObjectEncryptionType.
 	//
@@ -3378,6 +4271,175 @@ func (s *S3ExportConfiguration) SetEncryptionConfiguration(v *S3EncryptionConfig
 // SetPrefix sets the Prefix field's value.
 func (s *S3ExportConfiguration) SetPrefix(v string) *S3ExportConfiguration {
 	s.Prefix = &v
+	return s
+}
+
+type StreamJournalToKinesisInput struct {
+	_ struct{} `type:"structure"`
+
+	// The exclusive date and time that specifies when the stream ends. If you don't
+	// define this parameter, the stream runs indefinitely until you cancel it.
+	//
+	// The ExclusiveEndTime must be in ISO 8601 date and time format and in Universal
+	// Coordinated Time (UTC). For example: 2019-06-13T21:36:34Z
+	ExclusiveEndTime *time.Time `type:"timestamp"`
+
+	// The inclusive start date and time from which to start streaming journal data.
+	// This parameter must be in ISO 8601 date and time format and in Universal
+	// Coordinated Time (UTC). For example: 2019-06-13T21:36:34Z
+	//
+	// The InclusiveStartTime cannot be in the future and must be before ExclusiveEndTime.
+	//
+	// If you provide an InclusiveStartTime that is before the ledger's CreationDateTime,
+	// QLDB effectively defaults it to the ledger's CreationDateTime.
+	//
+	// InclusiveStartTime is a required field
+	InclusiveStartTime *time.Time `type:"timestamp" required:"true"`
+
+	// The configuration settings of the Kinesis Data Streams destination for your
+	// stream request.
+	//
+	// KinesisConfiguration is a required field
+	KinesisConfiguration *KinesisConfiguration `type:"structure" required:"true"`
+
+	// The name of the ledger.
+	//
+	// LedgerName is a required field
+	LedgerName *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the IAM role that grants QLDB permissions
+	// for a journal stream to write data records to a Kinesis Data Streams resource.
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"20" type:"string" required:"true"`
+
+	// The name that you want to assign to the QLDB journal stream. User-defined
+	// names can help identify and indicate the purpose of a stream.
+	//
+	// Your stream name must be unique among other active streams for a given ledger.
+	// Stream names have the same naming constraints as ledger names, as defined
+	// in Quotas in Amazon QLDB (https://docs.aws.amazon.com/qldb/latest/developerguide/limits.html#limits.naming)
+	// in the Amazon QLDB Developer Guide.
+	//
+	// StreamName is a required field
+	StreamName *string `min:"1" type:"string" required:"true"`
+
+	// The key-value pairs to add as tags to the stream that you want to create.
+	// Tag keys are case sensitive. Tag values are case sensitive and can be null.
+	Tags map[string]*string `type:"map"`
+}
+
+// String returns the string representation
+func (s StreamJournalToKinesisInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamJournalToKinesisInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StreamJournalToKinesisInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StreamJournalToKinesisInput"}
+	if s.InclusiveStartTime == nil {
+		invalidParams.Add(request.NewErrParamRequired("InclusiveStartTime"))
+	}
+	if s.KinesisConfiguration == nil {
+		invalidParams.Add(request.NewErrParamRequired("KinesisConfiguration"))
+	}
+	if s.LedgerName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LedgerName"))
+	}
+	if s.LedgerName != nil && len(*s.LedgerName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LedgerName", 1))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
+	}
+	if s.StreamName == nil {
+		invalidParams.Add(request.NewErrParamRequired("StreamName"))
+	}
+	if s.StreamName != nil && len(*s.StreamName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("StreamName", 1))
+	}
+	if s.KinesisConfiguration != nil {
+		if err := s.KinesisConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("KinesisConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetExclusiveEndTime sets the ExclusiveEndTime field's value.
+func (s *StreamJournalToKinesisInput) SetExclusiveEndTime(v time.Time) *StreamJournalToKinesisInput {
+	s.ExclusiveEndTime = &v
+	return s
+}
+
+// SetInclusiveStartTime sets the InclusiveStartTime field's value.
+func (s *StreamJournalToKinesisInput) SetInclusiveStartTime(v time.Time) *StreamJournalToKinesisInput {
+	s.InclusiveStartTime = &v
+	return s
+}
+
+// SetKinesisConfiguration sets the KinesisConfiguration field's value.
+func (s *StreamJournalToKinesisInput) SetKinesisConfiguration(v *KinesisConfiguration) *StreamJournalToKinesisInput {
+	s.KinesisConfiguration = v
+	return s
+}
+
+// SetLedgerName sets the LedgerName field's value.
+func (s *StreamJournalToKinesisInput) SetLedgerName(v string) *StreamJournalToKinesisInput {
+	s.LedgerName = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *StreamJournalToKinesisInput) SetRoleArn(v string) *StreamJournalToKinesisInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetStreamName sets the StreamName field's value.
+func (s *StreamJournalToKinesisInput) SetStreamName(v string) *StreamJournalToKinesisInput {
+	s.StreamName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *StreamJournalToKinesisInput) SetTags(v map[string]*string) *StreamJournalToKinesisInput {
+	s.Tags = v
+	return s
+}
+
+type StreamJournalToKinesisOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique ID that QLDB assigns to each QLDB journal stream.
+	StreamId *string `min:"22" type:"string"`
+}
+
+// String returns the string representation
+func (s StreamJournalToKinesisOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StreamJournalToKinesisOutput) GoString() string {
+	return s.String()
+}
+
+// SetStreamId sets the StreamId field's value.
+func (s *StreamJournalToKinesisOutput) SetStreamId(v string) *StreamJournalToKinesisOutput {
+	s.StreamId = &v
 	return s
 }
 
@@ -3652,7 +4714,7 @@ func (s *UpdateLedgerOutput) SetState(v string) *UpdateLedgerOutput {
 	return s
 }
 
-// A structure that can contain an Amazon Ion value in multiple encoding formats.
+// A structure that can contain a value in multiple encoding formats.
 type ValueHolder struct {
 	_ struct{} `type:"structure" sensitive:"true"`
 
@@ -3688,6 +4750,14 @@ func (s *ValueHolder) SetIonText(v string) *ValueHolder {
 	s.IonText = &v
 	return s
 }
+
+const (
+	// ErrorCauseKinesisStreamNotFound is a ErrorCause enum value
+	ErrorCauseKinesisStreamNotFound = "KINESIS_STREAM_NOT_FOUND"
+
+	// ErrorCauseIamPermissionRevoked is a ErrorCause enum value
+	ErrorCauseIamPermissionRevoked = "IAM_PERMISSION_REVOKED"
+)
 
 const (
 	// ExportStatusInProgress is a ExportStatus enum value
@@ -3728,4 +4798,21 @@ const (
 
 	// S3ObjectEncryptionTypeNoEncryption is a S3ObjectEncryptionType enum value
 	S3ObjectEncryptionTypeNoEncryption = "NO_ENCRYPTION"
+)
+
+const (
+	// StreamStatusActive is a StreamStatus enum value
+	StreamStatusActive = "ACTIVE"
+
+	// StreamStatusCompleted is a StreamStatus enum value
+	StreamStatusCompleted = "COMPLETED"
+
+	// StreamStatusCanceled is a StreamStatus enum value
+	StreamStatusCanceled = "CANCELED"
+
+	// StreamStatusFailed is a StreamStatus enum value
+	StreamStatusFailed = "FAILED"
+
+	// StreamStatusImpaired is a StreamStatus enum value
+	StreamStatusImpaired = "IMPAIRED"
 )

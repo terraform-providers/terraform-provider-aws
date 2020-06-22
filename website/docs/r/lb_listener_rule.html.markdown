@@ -52,6 +52,40 @@ resource "aws_lb_listener_rule" "host_based_routing" {
   priority     = 99
 
   action {
+    type = "forward"
+    forward {
+      target_group {
+        arn    = "${aws_lb_target_group.main.arn}"
+        weight = 80
+      }
+
+      target_group {
+        arn    = "${aws_lb_target_group.canary.arn}"
+        weight = 20
+      }
+
+      stickiness {
+        enabled  = true
+        duration = 600
+      }
+
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["my-service.*.terraform.io"]
+    }
+  }
+}
+
+# Weighted Forward action
+
+resource "aws_lb_listener_rule" "host_based_weighted_routing" {
+  listener_arn = "${aws_lb_listener.front_end.arn}"
+  priority     = 99
+
+  action {
     type             = "forward"
     target_group_arn = "${aws_lb_target_group.static.arn}"
   }
@@ -185,11 +219,27 @@ The following arguments are supported:
 Action Blocks (for `action`) support the following:
 
 * `type` - (Required) The type of routing action. Valid values are `forward`, `redirect`, `fixed-response`, `authenticate-cognito` and `authenticate-oidc`.
-* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Required if `type` is `forward`.
+* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Specify only if `type` is `forward` and you want to route to a single target group. To route to one or more target groups, use a `forward` block instead.
+* `forward` - (Optional) Information for creating an action that distributes requests among one or more target groups. Specify only if `type` is `forward`. If you specify both `forward` block and `target_group_arn` attribute, you can specify only one target group using `forward` and it must be the same target group specified in `target_group_arn`.
 * `redirect` - (Optional) Information for creating a redirect action. Required if `type` is `redirect`.
 * `fixed_response` - (Optional) Information for creating an action that returns a custom HTTP response. Required if `type` is `fixed-response`.
 * `authenticate_cognito` - (Optional) Information for creating an authenticate action using Cognito. Required if `type` is `authenticate-cognito`.
 * `authenticate_oidc` - (Optional) Information for creating an authenticate action using OIDC. Required if `type` is `authenticate-oidc`.
+
+Forward Blocks (for `forward`) support the following:
+
+* `target_group` - (Required) One or more target groups block.
+* `stickiness` - (Optional) The target group stickiness for the rule.
+
+Target Group Blocks (for `target_group`) supports the following:
+
+* `arn` - (Required) The Amazon Resource Name (ARN) of the target group.
+* `weight` - (Optional) The weight. The range is 0 to 999.
+
+Target Group Stickiness Config Blocks (for `stickiness`) supports the following:
+
+* `enabled` - (Required) Indicates whether target group stickiness is enabled.
+* `duration` - (Optional) The time period, in seconds, during which requests from a client should be routed to the same target group. The range is 1-604800 seconds (7 days).
 
 Redirect Blocks (for `redirect`) support the following:
 
@@ -249,9 +299,9 @@ Condition Blocks (for `condition`) support the following:
 * `host_header` - (Optional) Contains a single `values` item which is a list of host header patterns to match. The maximum size of each pattern is 128 characters. Comparison is case insensitive. Wildcard characters supported: * (matches 0 or more characters) and ? (matches exactly 1 character). Only one pattern needs to match for the condition to be satisfied.
 * `http_header` - (Optional) HTTP headers to match. [HTTP Header block](#http-header-blocks) fields documented below.
 * `http_request_method` - (Optional) Contains a single `values` item which is a list of HTTP request methods or verbs to match. Maximum size is 40 characters. Only allowed characters are A-Z, hyphen (-) and underscore (\_). Comparison is case sensitive. Wildcards are not supported. Only one needs to match for the condition to be satisfied. AWS recommends that GET and HEAD requests are routed in the same way because the response to a HEAD request may be cached.
-* `path_pattern` - (Optional) Contains a single `values` item which is a list of path patterns to match against the request URL. Maximum size of each pattern is 128 characters. Comparison is case sensitive. Wildcard charaters supported: * (matches 0 or more characters) and ? (matches exactly 1 character). Only one pattern needs to match for the condition to be satisfied. Path pattern is compared only to the path of the URL, not to its query string. To compare against the query string, use a `query-string` condition.
+* `path_pattern` - (Optional) Contains a single `values` item which is a list of path patterns to match against the request URL. Maximum size of each pattern is 128 characters. Comparison is case sensitive. Wildcard characters supported: * (matches 0 or more characters) and ? (matches exactly 1 character). Only one pattern needs to match for the condition to be satisfied. Path pattern is compared only to the path of the URL, not to its query string. To compare against the query string, use a `query_string` condition.
 * `query_string` - (Optional) Query strings to match. [Query String block](#query-string-blocks) fields documented below.
-* `source_ip` - (Optional) Contains a single `values` item which is a list of source IP CIDR notations to match. You can use both IPv4 and IPv6 addresses. Wildcards are not supported. Condition is satisfied if the source IP address of the request matches one of the CIDR blocks. Condition is not satisfied by the addresses in the `X-Forwarded-For` header, use `http-header` condition instead.
+* `source_ip` - (Optional) Contains a single `values` item which is a list of source IP CIDR notations to match. You can use both IPv4 and IPv6 addresses. Wildcards are not supported. Condition is satisfied if the source IP address of the request matches one of the CIDR blocks. Condition is not satisfied by the addresses in the `X-Forwarded-For` header, use `http_header` condition instead.
 
 ~> **NOTE::** Exactly one of `field`, `host_header`, `http_header`, `http_request_method`, `path_pattern`, `query_string` or `source_ip` must be set per condition.
 

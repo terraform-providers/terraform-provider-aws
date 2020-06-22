@@ -9,6 +9,7 @@ import (
 
 // See http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html#attach-bucket-policy
 var elbAccountIdPerRegionMap = map[string]string{
+	"af-south-1":     "098369216593",
 	"ap-east-1":      "754344448648",
 	"ap-northeast-1": "582318560864",
 	"ap-northeast-2": "600734575887",
@@ -21,6 +22,7 @@ var elbAccountIdPerRegionMap = map[string]string{
 	"cn-northwest-1": "037604701340",
 	"eu-central-1":   "054676820928",
 	"eu-north-1":     "897822967062",
+	"eu-south-1":     "635631232127",
 	"eu-west-1":      "156460612806",
 	"eu-west-2":      "652711504416",
 	"eu-west-3":      "009996457667",

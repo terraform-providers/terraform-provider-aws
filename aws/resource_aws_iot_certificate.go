@@ -62,7 +62,7 @@ func resourceAwsIotCertificateCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		log.Printf("[DEBUG] Created certificate from CSR")
 
-		d.SetId(*out.CertificateId)
+		d.SetId(aws.StringValue(out.CertificateId))
 	} else {
 		log.Printf("[DEBUG] Creating keys and certificate")
 		out, err := conn.CreateKeysAndCertificate(&iot.CreateKeysAndCertificateInput{
@@ -73,9 +73,9 @@ func resourceAwsIotCertificateCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		log.Printf("[DEBUG] Created keys and certificate")
 
-		d.SetId(*out.CertificateId)
-		d.Set("public_key", *out.KeyPair.PublicKey)
-		d.Set("private_key", *out.KeyPair.PrivateKey)
+		d.SetId(aws.StringValue(out.CertificateId))
+		d.Set("public_key", out.KeyPair.PublicKey)
+		d.Set("private_key", out.KeyPair.PrivateKey)
 	}
 
 	return resourceAwsIotCertificateRead(d, meta)

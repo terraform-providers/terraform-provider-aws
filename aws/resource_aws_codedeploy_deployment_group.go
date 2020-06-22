@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -553,7 +552,20 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		resp, err = conn.CreateDeploymentGroup(&input)
-		return handleCreateError(err)
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
+			return resource.RetryableError(err)
+		}
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {
@@ -673,8 +685,8 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 		input.DeploymentConfigName = aws.String(n.(string))
 	}
 
-	// include (original or new) autoscaling groups when blue_green_deployment_config changes
-	if d.HasChange("autoscaling_groups") || d.HasChange("blue_green_deployment_config") {
+	// include (original or new) autoscaling groups when blue_green_deployment_config changes except for ECS
+	if _, isEcs := d.GetOk("ecs_service"); d.HasChange("autoscaling_groups") || (d.HasChange("blue_green_deployment_config") && !isEcs) {
 		_, n := d.GetChange("autoscaling_groups")
 		input.AutoScalingGroups = expandStringList(n.(*schema.Set).List())
 	}
@@ -733,7 +745,20 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		_, err = conn.UpdateDeploymentGroup(&input)
-		return handleUpdateError(err)
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidRoleException, "") {
+			return resource.RetryableError(err)
+		}
+
+		if isAWSErr(err, codedeploy.ErrCodeInvalidTriggerConfigException, "Topic ARN") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {
@@ -756,44 +781,6 @@ func resourceAwsCodeDeployDeploymentGroupDelete(d *schema.ResourceData, meta int
 	})
 
 	return err
-}
-
-func handleCreateError(err error) *resource.RetryError {
-	return handleCodeDeployApiError(err, "create")
-}
-
-func handleUpdateError(err error) *resource.RetryError {
-	return handleCodeDeployApiError(err, "update")
-}
-
-func handleCodeDeployApiError(err error, operation string) *resource.RetryError {
-	if err == nil {
-		return nil
-	}
-
-	retry := false
-	codedeployErr, ok := err.(awserr.Error)
-	if !ok {
-		return resource.NonRetryableError(err)
-	}
-
-	if codedeployErr.Code() == "InvalidRoleException" {
-		retry = true
-	}
-
-	if codedeployErr.Code() == "InvalidTriggerConfigException" {
-		r := regexp.MustCompile("^Topic ARN .+ is not valid$")
-		if r.MatchString(codedeployErr.Message()) {
-			retry = true
-		}
-	}
-
-	if retry {
-		log.Printf("[DEBUG] Trying to %s DeploymentGroup again: %q", operation, codedeployErr.Message())
-		return resource.RetryableError(err)
-	}
-
-	return resource.NonRetryableError(err)
 }
 
 // buildOnPremTagFilters converts raw schema lists into a list of

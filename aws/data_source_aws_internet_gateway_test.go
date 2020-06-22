@@ -23,6 +23,7 @@ func TestAccDataSourceAwsInternetGateway_typical(t *testing.T) {
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "internet_gateway_id", igwResourceName, "id"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "owner_id", igwResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds1ResourceName, "attachments.0.vpc_id", vpcResourceName, "id"),
+					resource.TestCheckResourceAttrPair(ds1ResourceName, "arn", igwResourceName, "arn"),
 
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "internet_gateway_id", igwResourceName, "id"),
 					resource.TestCheckResourceAttrPair(ds2ResourceName, "owner_id", igwResourceName, "owner_id"),
@@ -32,17 +33,12 @@ func TestAccDataSourceAwsInternetGateway_typical(t *testing.T) {
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "owner_id", igwResourceName, "owner_id"),
 					resource.TestCheckResourceAttrPair(ds3ResourceName, "attachments.0.vpc_id", vpcResourceName, "id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 const testAccDataSourceAwsInternetGatewayConfig = `
-provider "aws" {
-  region = "eu-central-1"
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
@@ -71,10 +67,8 @@ data "aws_internet_gateway" "by_tags" {
 
 data "aws_internet_gateway" "by_filter" {
   filter {
-    name = "attachment.vpc-id"
-    values = ["${aws_vpc.test.id}"]
+    name = "internet-gateway-id"
+    values = ["${aws_internet_gateway.test.id}"]
   }
-
-  depends_on = ["aws_internet_gateway.test"]
 }
 `

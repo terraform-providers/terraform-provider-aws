@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsNetworkAcls() *schema.Resource {
@@ -52,7 +53,7 @@ func dataSourceAwsNetworkAclsRead(d *schema.ResourceData, meta interface{}) erro
 
 	if tagsOk {
 		req.Filters = append(req.Filters, buildEC2TagFilterList(
-			tagsFromMap(tags.(map[string]interface{})),
+			keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
 		)...)
 	}
 

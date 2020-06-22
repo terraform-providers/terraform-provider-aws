@@ -40,7 +40,7 @@ func resourceAwsSesIdentityPolicy() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 		},
@@ -48,7 +48,7 @@ func resourceAwsSesIdentityPolicy() *schema.Resource {
 }
 
 func resourceAwsSesIdentityPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity := d.Get("identity").(string)
 	policyName := d.Get("name").(string)
@@ -70,7 +70,7 @@ func resourceAwsSesIdentityPolicyCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesIdentityPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity, policyName, err := resourceAwsSesIdentityPolicyParseID(d.Id())
 	if err != nil {
@@ -92,7 +92,7 @@ func resourceAwsSesIdentityPolicyUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesIdentityPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity, policyName, err := resourceAwsSesIdentityPolicyParseID(d.Id())
 	if err != nil {
@@ -135,7 +135,7 @@ func resourceAwsSesIdentityPolicyRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsSesIdentityPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	identity, policyName, err := resourceAwsSesIdentityPolicyParseID(d.Id())
 	if err != nil {

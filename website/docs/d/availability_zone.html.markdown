@@ -74,29 +74,25 @@ The arguments of this data source act as filters for querying the available
 availability zones. The given filters must match exactly one availability
 zone whose data will be exported as attributes.
 
+* `all_availability_zones` - (Optional) Set to `true` to include all Availability Zones and Local Zones regardless of your opt in status.
+* `filter` - (Optional) Configuration block(s) for filtering. Detailed below.
 * `name` - (Optional) The full name of the availability zone to select.
-
-* `state` - (Optional) A specific availability zone state to require. May
-  be any of `"available"`, `"information"` or `"impaired"`.
-
+* `state` - (Optional) A specific availability zone state to require. May be any of `"available"`, `"information"` or `"impaired"`.
 * `zone_id` - (Optional) The zone ID of the availability zone to select.
 
-All reasonable uses of this data source will specify `name`, since `state`
-alone would match a single AZ only in a region that itself has only one AZ.
+### filter Configuration Block
+
+The following arguments are supported by the `filter` configuration block:
+
+* `name` - (Required) The name of the filter field. Valid values can be found in the [EC2 DescribeAvailabilityZones API Reference](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAvailabilityZones.html).
+* `values` - (Required) Set of values that are accepted for the given filter field. Results will be selected if any given value matches.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `name` - The name of the selected availability zone.
-
-* `region` - The region where the selected availability zone resides.
-  This is always the region selected on the provider, since this data source
-  searches only within that region.
-
-* `name_suffix` - The part of the AZ name that appears after the region name,
-  uniquely identifying the AZ within its region.
-
-* `state` - The current state of the AZ.
-
-* `zone_id` - (Optional) The zone ID of the selected availability zone.
+* `group_name` - For Availability Zones, this is the same value as the Region name. For Local Zones, the name of the associated group, for example `us-west-2-lax-1`.
+* `name_suffix` - The part of the AZ name that appears after the region name, uniquely identifying the AZ within its region.
+* `network_border_group` - The name of the location from which the address is advertised.
+* `opt_in_status` - For Availability Zones, this always has the value of `opt-in-not-required`. For Local Zones, this is the opt in status. The possible values are `opted-in` and `not-opted-in`.
+* `region` - The region where the selected availability zone resides. This is always the region selected on the provider, since this data source searches only within that region.

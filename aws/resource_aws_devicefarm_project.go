@@ -15,6 +15,9 @@ func resourceAwsDevicefarmProject() *schema.Resource {
 		Read:   resourceAwsDevicefarmProjectRead,
 		Update: resourceAwsDevicefarmProjectUpdate,
 		Delete: resourceAwsDevicefarmProjectDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -66,6 +69,11 @@ func resourceAwsDevicefarmProjectRead(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Reading DeviceFarm Project: %s", d.Id())
 	out, err := conn.GetProject(input)
 	if err != nil {
+		if isAWSErr(err, devicefarm.ErrCodeNotFoundException, "") {
+			log.Printf("[WARN] DeviceFarm Project (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DeviceFarm Project: %s", err)
 	}
 

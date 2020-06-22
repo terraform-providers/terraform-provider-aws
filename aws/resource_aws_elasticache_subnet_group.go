@@ -127,7 +127,7 @@ func resourceAwsElasticacheSubnetGroupRead(d *schema.ResourceData, meta interfac
 
 func resourceAwsElasticacheSubnetGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).elasticacheconn
-	if d.HasChange("subnet_ids") || d.HasChange("description") {
+	if d.HasChanges("subnet_ids", "description") {
 		var subnets []*string
 		if v := d.Get("subnet_ids"); v != nil {
 			for _, v := range v.(*schema.Set).List() {

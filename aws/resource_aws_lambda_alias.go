@@ -29,6 +29,14 @@ func resourceAwsLambdaAlias() *schema.Resource {
 			"function_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Using function name or ARN should not be shown as a diff.
+					// Try to convert the old and new values from ARN to function name
+					oldFunctionName, oldFunctionNameErr := getFunctionNameFromLambdaArn(old)
+					newFunctionName, newFunctionNameErr := getFunctionNameFromLambdaArn(new)
+					return (oldFunctionName == new && oldFunctionNameErr == nil) || (newFunctionName == old && newFunctionNameErr == nil)
+				},
 			},
 			"function_version": {
 				Type:     schema.TypeString,

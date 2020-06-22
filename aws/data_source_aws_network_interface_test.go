@@ -25,6 +25,7 @@ func TestAccDataSourceAwsNetworkInterface_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.aws_network_interface.test", "interface_type"),
 					resource.TestCheckResourceAttrPair("data.aws_network_interface.test", "private_dns_name", "aws_network_interface.test", "private_dns_name"),
 					resource.TestCheckResourceAttrPair("data.aws_network_interface.test", "subnet_id", "aws_network_interface.test", "subnet_id"),
+					resource.TestCheckResourceAttr("data.aws_network_interface.test", "outpost_arn", ""),
 					resource.TestCheckResourceAttrSet("data.aws_network_interface.test", "vpc_id"),
 				),
 			},
@@ -34,7 +35,14 @@ func TestAccDataSourceAwsNetworkInterface_basic(t *testing.T) {
 
 func testAccDataSourceAwsNetworkInterface_basic(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
@@ -90,7 +98,14 @@ func TestAccDataSourceAwsNetworkInterface_filters(t *testing.T) {
 
 func testAccDataSourceAwsNetworkInterface_filters(rName string) string {
 	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"

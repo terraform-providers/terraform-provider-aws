@@ -72,13 +72,13 @@ func (c *DocDB) AddTagsToResourceRequest(input *AddTagsToResourceInput) (req *re
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeDBSnapshotNotFoundFault "DBSnapshotNotFound"
-//   DBSnapshotIdentifier doesn't refer to an existing DB snapshot.
+//   DBSnapshotIdentifier doesn't refer to an existing snapshot.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/AddTagsToResource
 func (c *DocDB) AddTagsToResource(input *AddTagsToResourceInput) (*AddTagsToResourceOutput, error) {
@@ -161,10 +161,10 @@ func (c *DocDB) ApplyPendingMaintenanceActionRequest(input *ApplyPendingMaintena
 //   The specified resource ID was not found.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/ApplyPendingMaintenanceAction
 func (c *DocDB) ApplyPendingMaintenanceAction(input *ApplyPendingMaintenanceActionInput) (*ApplyPendingMaintenanceActionOutput, error) {
@@ -232,7 +232,7 @@ func (c *DocDB) CopyDBClusterParameterGroupRequest(input *CopyDBClusterParameter
 
 // CopyDBClusterParameterGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Copies the specified DB cluster parameter group.
+// Copies the specified cluster parameter group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -243,14 +243,13 @@ func (c *DocDB) CopyDBClusterParameterGroupRequest(input *CopyDBClusterParameter
 //
 // Returned Error Codes:
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 //   * ErrCodeDBParameterGroupQuotaExceededFault "DBParameterGroupQuotaExceeded"
-//   This request would cause you to exceed the allowed number of DB parameter
-//   groups.
+//   This request would cause you to exceed the allowed number of parameter groups.
 //
 //   * ErrCodeDBParameterGroupAlreadyExistsFault "DBParameterGroupAlreadyExists"
-//   A DB parameter group with the same name already exists.
+//   A parameter group with the same name already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/CopyDBClusterParameterGroup
 func (c *DocDB) CopyDBClusterParameterGroup(input *CopyDBClusterParameterGroupInput) (*CopyDBClusterParameterGroupOutput, error) {
@@ -318,14 +317,14 @@ func (c *DocDB) CopyDBClusterSnapshotRequest(input *CopyDBClusterSnapshotInput) 
 
 // CopyDBClusterSnapshot API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Copies a snapshot of a DB cluster.
+// Copies a snapshot of a cluster.
 //
-// To copy a DB cluster snapshot from a shared manual DB cluster snapshot, SourceDBClusterSnapshotIdentifier
-// must be the Amazon Resource Name (ARN) of the shared DB cluster snapshot.
+// To copy a cluster snapshot from a shared manual cluster snapshot, SourceDBClusterSnapshotIdentifier
+// must be the Amazon Resource Name (ARN) of the shared cluster snapshot.
 //
-// To cancel the copy operation after it is in progress, delete the target DB
-// cluster snapshot identified by TargetDBClusterSnapshotIdentifier while that
-// DB cluster snapshot is in the copying status.
+// To cancel the copy operation after it is in progress, delete the target cluster
+// snapshot identified by TargetDBClusterSnapshotIdentifier while that DB cluster
+// snapshot is in the copying status.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -336,19 +335,19 @@ func (c *DocDB) CopyDBClusterSnapshotRequest(input *CopyDBClusterSnapshotInput) 
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterSnapshotAlreadyExistsFault "DBClusterSnapshotAlreadyExistsFault"
-//   You already have a DB cluster snapshot with the given identifier.
+//   You already have a cluster snapshot with the given identifier.
 //
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 //   * ErrCodeSnapshotQuotaExceededFault "SnapshotQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB snapshots.
+//   The request would cause you to exceed the allowed number of snapshots.
 //
 //   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   An error occurred when accessing an AWS KMS key.
@@ -419,7 +418,7 @@ func (c *DocDB) CreateDBClusterRequest(input *CreateDBClusterInput) (req *reques
 
 // CreateDBCluster API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a new Amazon DocumentDB DB cluster.
+// Creates a new Amazon DocumentDB cluster.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -430,7 +429,7 @@ func (c *DocDB) CreateDBClusterRequest(input *CreateDBClusterInput) (req *reques
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterAlreadyExistsFault "DBClusterAlreadyExistsFault"
-//   You already have a DB cluster with the given identifier.
+//   You already have a cluster with the given identifier.
 //
 //   * ErrCodeInsufficientStorageClusterCapacityFault "InsufficientStorageClusterCapacity"
 //   There is not enough storage available for the current action. You might be
@@ -438,48 +437,48 @@ func (c *DocDB) CreateDBClusterRequest(input *CreateDBClusterInput) (req *reques
 //   Availability Zones that have more storage available.
 //
 //   * ErrCodeDBClusterQuotaExceededFault "DBClusterQuotaExceededFault"
-//   The DB cluster can't be created because you have reached the maximum allowed
-//   quota of DB clusters.
+//   The cluster can't be created because you have reached the maximum allowed
+//   quota of clusters.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBSubnetGroupStateFault "InvalidDBSubnetGroupStateFault"
-//   The DB subnet group can't be deleted because it's in use.
+//   The subnet group can't be deleted because it's in use.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The requested subnet is not valid, or multiple subnets were requested that
 //   are not all in a common virtual private cloud (VPC).
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 //   * ErrCodeDBClusterParameterGroupNotFoundFault "DBClusterParameterGroupNotFound"
-//   DBClusterParameterGroupName doesn't refer to an existing DB cluster parameter
+//   DBClusterParameterGroupName doesn't refer to an existing cluster parameter
 //   group.
 //
 //   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
 //   An error occurred when accessing an AWS KMS key.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs "DBSubnetGroupDoesNotCoverEnoughAZs"
-//   Subnets in the DB subnet group should cover at least two Availability Zones
+//   Subnets in the subnet group should cover at least two Availability Zones
 //   unless there is only one Availability Zone.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/CreateDBCluster
@@ -548,27 +547,27 @@ func (c *DocDB) CreateDBClusterParameterGroupRequest(input *CreateDBClusterParam
 
 // CreateDBClusterParameterGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a new DB cluster parameter group.
+// Creates a new cluster parameter group.
 //
-// Parameters in a DB cluster parameter group apply to all of the instances
-// in a DB cluster.
+// Parameters in a cluster parameter group apply to all of the instances in
+// a DB cluster.
 //
-// A DB cluster parameter group is initially created with the default parameters
-// for the database engine used by instances in the DB cluster. To provide custom
+// A cluster parameter group is initially created with the default parameters
+// for the database engine used by instances in the cluster. To provide custom
 // values for any of the parameters, you must modify the group after you create
 // it. After you create a DB cluster parameter group, you must associate it
-// with your DB cluster. For the new DB cluster parameter group and associated
-// settings to take effect, you must then reboot the DB instances in the DB
-// cluster without failover.
+// with your cluster. For the new DB cluster parameter group and associated
+// settings to take effect, you must then reboot the instances in the cluster
+// without failover.
 //
-// After you create a DB cluster parameter group, you should wait at least 5
-// minutes before creating your first DB cluster that uses that DB cluster parameter
-// group as the default parameter group. This allows Amazon DocumentDB to fully
-// complete the create action before the DB cluster parameter group is used
-// as the default for a new DB cluster. This step is especially important for
-// parameters that are critical when creating the default database for a DB
-// cluster, such as the character set for the default database defined by the
-// character_set_database parameter.
+// After you create a cluster parameter group, you should wait at least 5 minutes
+// before creating your first cluster that uses that cluster parameter group
+// as the default parameter group. This allows Amazon DocumentDB to fully complete
+// the create action before the cluster parameter group is used as the default
+// for a new cluster. This step is especially important for parameters that
+// are critical when creating the default database for a cluster, such as the
+// character set for the default database defined by the character_set_database
+// parameter.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -579,11 +578,10 @@ func (c *DocDB) CreateDBClusterParameterGroupRequest(input *CreateDBClusterParam
 //
 // Returned Error Codes:
 //   * ErrCodeDBParameterGroupQuotaExceededFault "DBParameterGroupQuotaExceeded"
-//   This request would cause you to exceed the allowed number of DB parameter
-//   groups.
+//   This request would cause you to exceed the allowed number of parameter groups.
 //
 //   * ErrCodeDBParameterGroupAlreadyExistsFault "DBParameterGroupAlreadyExists"
-//   A DB parameter group with the same name already exists.
+//   A parameter group with the same name already exists.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/CreateDBClusterParameterGroup
 func (c *DocDB) CreateDBClusterParameterGroup(input *CreateDBClusterParameterGroupInput) (*CreateDBClusterParameterGroupOutput, error) {
@@ -651,7 +649,7 @@ func (c *DocDB) CreateDBClusterSnapshotRequest(input *CreateDBClusterSnapshotInp
 
 // CreateDBClusterSnapshot API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a snapshot of a DB cluster.
+// Creates a snapshot of a cluster.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -662,19 +660,19 @@ func (c *DocDB) CreateDBClusterSnapshotRequest(input *CreateDBClusterSnapshotInp
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterSnapshotAlreadyExistsFault "DBClusterSnapshotAlreadyExistsFault"
-//   You already have a DB cluster snapshot with the given identifier.
+//   You already have a cluster snapshot with the given identifier.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeSnapshotQuotaExceededFault "SnapshotQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB snapshots.
+//   The request would cause you to exceed the allowed number of snapshots.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/CreateDBClusterSnapshot
 func (c *DocDB) CreateDBClusterSnapshot(input *CreateDBClusterSnapshotInput) (*CreateDBClusterSnapshotOutput, error) {
@@ -742,7 +740,7 @@ func (c *DocDB) CreateDBInstanceRequest(input *CreateDBInstanceInput) (req *requ
 
 // CreateDBInstance API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a new DB instance.
+// Creates a new instance.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -753,52 +751,52 @@ func (c *DocDB) CreateDBInstanceRequest(input *CreateDBInstanceInput) (req *requ
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceAlreadyExistsFault "DBInstanceAlreadyExists"
-//   You already have a DB instance with the given identifier.
+//   You already have a instance with the given identifier.
 //
 //   * ErrCodeInsufficientDBInstanceCapacityFault "InsufficientDBInstanceCapacity"
-//   The specified DB instance class isn't available in the specified Availability
+//   The specified instance class isn't available in the specified Availability
 //   Zone.
 //
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 //   * ErrCodeDBSecurityGroupNotFoundFault "DBSecurityGroupNotFound"
-//   DBSecurityGroupName doesn't refer to an existing DB security group.
+//   DBSecurityGroupName doesn't refer to an existing security group.
 //
 //   * ErrCodeInstanceQuotaExceededFault "InstanceQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB instances.
+//   The request would cause you to exceed the allowed number of instances.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs "DBSubnetGroupDoesNotCoverEnoughAZs"
-//   Subnets in the DB subnet group should cover at least two Availability Zones
+//   Subnets in the subnet group should cover at least two Availability Zones
 //   unless there is only one Availability Zone.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The requested subnet is not valid, or multiple subnets were requested that
 //   are not all in a common virtual private cloud (VPC).
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeStorageTypeNotSupportedFault "StorageTypeNotSupported"
 //   Storage of the specified StorageType can't be associated with the DB instance.
 //
 //   * ErrCodeAuthorizationNotFoundFault "AuthorizationNotFound"
 //   The specified CIDR IP or Amazon EC2 security group isn't authorized for the
-//   specified DB security group.
+//   specified security group.
 //
 //   Amazon DocumentDB also might not be authorized to perform necessary actions
 //   on your behalf using IAM.
@@ -872,8 +870,8 @@ func (c *DocDB) CreateDBSubnetGroupRequest(input *CreateDBSubnetGroupInput) (req
 
 // CreateDBSubnetGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a new DB subnet group. DB subnet groups must contain at least one
-// subnet in at least two Availability Zones in the AWS Region.
+// Creates a new subnet group. subnet groups must contain at least one subnet
+// in at least two Availability Zones in the AWS Region.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -884,17 +882,17 @@ func (c *DocDB) CreateDBSubnetGroupRequest(input *CreateDBSubnetGroupInput) (req
 //
 // Returned Error Codes:
 //   * ErrCodeDBSubnetGroupAlreadyExistsFault "DBSubnetGroupAlreadyExists"
-//   DBSubnetGroupName is already being used by an existing DB subnet group.
+//   DBSubnetGroupName is already being used by an existing subnet group.
 //
 //   * ErrCodeDBSubnetGroupQuotaExceededFault "DBSubnetGroupQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB subnet groups.
+//   The request would cause you to exceed the allowed number of subnet groups.
 //
 //   * ErrCodeDBSubnetQuotaExceededFault "DBSubnetQuotaExceededFault"
 //   The request would cause you to exceed the allowed number of subnets in a
-//   DB subnet group.
+//   subnet group.
 //
 //   * ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs "DBSubnetGroupDoesNotCoverEnoughAZs"
-//   Subnets in the DB subnet group should cover at least two Availability Zones
+//   Subnets in the subnet group should cover at least two Availability Zones
 //   unless there is only one Availability Zone.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
@@ -967,9 +965,9 @@ func (c *DocDB) DeleteDBClusterRequest(input *DeleteDBClusterInput) (req *reques
 
 // DeleteDBCluster API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Deletes a previously provisioned DB cluster. When you delete a DB cluster,
-// all automated backups for that DB cluster are deleted and can't be recovered.
-// Manual DB cluster snapshots of the specified DB cluster are not deleted.
+// Deletes a previously provisioned cluster. When you delete a cluster, all
+// automated backups for that cluster are deleted and can't be recovered. Manual
+// DB cluster snapshots of the specified cluster are not deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -980,19 +978,19 @@ func (c *DocDB) DeleteDBClusterRequest(input *DeleteDBClusterInput) (req *reques
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeDBClusterSnapshotAlreadyExistsFault "DBClusterSnapshotAlreadyExistsFault"
-//   You already have a DB cluster snapshot with the given identifier.
+//   You already have a cluster snapshot with the given identifier.
 //
 //   * ErrCodeSnapshotQuotaExceededFault "SnapshotQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB snapshots.
+//   The request would cause you to exceed the allowed number of snapshots.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DeleteDBCluster
 func (c *DocDB) DeleteDBCluster(input *DeleteDBClusterInput) (*DeleteDBClusterOutput, error) {
@@ -1061,8 +1059,8 @@ func (c *DocDB) DeleteDBClusterParameterGroupRequest(input *DeleteDBClusterParam
 
 // DeleteDBClusterParameterGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Deletes a specified DB cluster parameter group. The DB cluster parameter
-// group to be deleted can't be associated with any DB clusters.
+// Deletes a specified cluster parameter group. The cluster parameter group
+// to be deleted can't be associated with any clusters.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1073,12 +1071,12 @@ func (c *DocDB) DeleteDBClusterParameterGroupRequest(input *DeleteDBClusterParam
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBParameterGroupStateFault "InvalidDBParameterGroupState"
-//   The DB parameter group is in use, or it is in a state that is not valid.
-//   If you are trying to delete the parameter group, you can't delete it when
-//   the parameter group is in this state.
+//   The parameter group is in use, or it is in a state that is not valid. If
+//   you are trying to delete the parameter group, you can't delete it when the
+//   parameter group is in this state.
 //
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DeleteDBClusterParameterGroup
 func (c *DocDB) DeleteDBClusterParameterGroup(input *DeleteDBClusterParameterGroupInput) (*DeleteDBClusterParameterGroupOutput, error) {
@@ -1146,10 +1144,10 @@ func (c *DocDB) DeleteDBClusterSnapshotRequest(input *DeleteDBClusterSnapshotInp
 
 // DeleteDBClusterSnapshot API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Deletes a DB cluster snapshot. If the snapshot is being copied, the copy
-// operation is terminated.
+// Deletes a cluster snapshot. If the snapshot is being copied, the copy operation
+// is terminated.
 //
-// The DB cluster snapshot must be in the available state to be deleted.
+// The cluster snapshot must be in the available state to be deleted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1160,10 +1158,10 @@ func (c *DocDB) DeleteDBClusterSnapshotRequest(input *DeleteDBClusterSnapshotInp
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DeleteDBClusterSnapshot
 func (c *DocDB) DeleteDBClusterSnapshot(input *DeleteDBClusterSnapshotInput) (*DeleteDBClusterSnapshotOutput, error) {
@@ -1231,7 +1229,7 @@ func (c *DocDB) DeleteDBInstanceRequest(input *DeleteDBInstanceInput) (req *requ
 
 // DeleteDBInstance API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Deletes a previously provisioned DB instance.
+// Deletes a previously provisioned instance.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1242,19 +1240,19 @@ func (c *DocDB) DeleteDBInstanceRequest(input *DeleteDBInstanceInput) (req *requ
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 //   * ErrCodeDBSnapshotAlreadyExistsFault "DBSnapshotAlreadyExists"
 //   DBSnapshotIdentifier is already being used by an existing snapshot.
 //
 //   * ErrCodeSnapshotQuotaExceededFault "SnapshotQuotaExceeded"
-//   The request would cause you to exceed the allowed number of DB snapshots.
+//   The request would cause you to exceed the allowed number of snapshots.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DeleteDBInstance
 func (c *DocDB) DeleteDBInstance(input *DeleteDBInstanceInput) (*DeleteDBInstanceOutput, error) {
@@ -1323,7 +1321,7 @@ func (c *DocDB) DeleteDBSubnetGroupRequest(input *DeleteDBSubnetGroupInput) (req
 
 // DeleteDBSubnetGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Deletes a DB subnet group.
+// Deletes a subnet group.
 //
 // The specified database subnet group must not be associated with any DB instances.
 //
@@ -1336,13 +1334,13 @@ func (c *DocDB) DeleteDBSubnetGroupRequest(input *DeleteDBSubnetGroupInput) (req
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBSubnetGroupStateFault "InvalidDBSubnetGroupStateFault"
-//   The DB subnet group can't be deleted because it's in use.
+//   The subnet group can't be deleted because it's in use.
 //
 //   * ErrCodeInvalidDBSubnetStateFault "InvalidDBSubnetStateFault"
-//   The DB subnet isn't in the available state.
+//   The subnet isn't in the available state.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DeleteDBSubnetGroup
 func (c *DocDB) DeleteDBSubnetGroup(input *DeleteDBSubnetGroupInput) (*DeleteDBSubnetGroupOutput, error) {
@@ -1411,7 +1409,7 @@ func (c *DocDB) DescribeCertificatesRequest(input *DescribeCertificatesInput) (r
 // DescribeCertificates API operation for Amazon DocumentDB with MongoDB compatibility.
 //
 // Returns a list of certificate authority (CA) certificates provided by Amazon
-// RDS for this AWS account.
+// DocumentDB for this AWS account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1492,7 +1490,7 @@ func (c *DocDB) DescribeDBClusterParameterGroupsRequest(input *DescribeDBCluster
 //
 // Returns a list of DBClusterParameterGroup descriptions. If a DBClusterParameterGroupName
 // parameter is specified, the list contains only the description of the specified
-// DB cluster parameter group.
+// cluster parameter group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1503,7 +1501,7 @@ func (c *DocDB) DescribeDBClusterParameterGroupsRequest(input *DescribeDBCluster
 //
 // Returned Error Codes:
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBClusterParameterGroups
 func (c *DocDB) DescribeDBClusterParameterGroups(input *DescribeDBClusterParameterGroupsInput) (*DescribeDBClusterParameterGroupsOutput, error) {
@@ -1571,8 +1569,7 @@ func (c *DocDB) DescribeDBClusterParametersRequest(input *DescribeDBClusterParam
 
 // DescribeDBClusterParameters API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns the detailed parameter list for a particular DB cluster parameter
-// group.
+// Returns the detailed parameter list for a particular cluster parameter group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1583,7 +1580,7 @@ func (c *DocDB) DescribeDBClusterParametersRequest(input *DescribeDBClusterParam
 //
 // Returned Error Codes:
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBClusterParameters
 func (c *DocDB) DescribeDBClusterParameters(input *DescribeDBClusterParametersInput) (*DescribeDBClusterParametersOutput, error) {
@@ -1651,14 +1648,14 @@ func (c *DocDB) DescribeDBClusterSnapshotAttributesRequest(input *DescribeDBClus
 
 // DescribeDBClusterSnapshotAttributes API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns a list of DB cluster snapshot attribute names and values for a manual
+// Returns a list of cluster snapshot attribute names and values for a manual
 // DB cluster snapshot.
 //
 // When you share snapshots with other AWS accounts, DescribeDBClusterSnapshotAttributes
 // returns the restore attribute and a list of IDs for the AWS accounts that
-// are authorized to copy or restore the manual DB cluster snapshot. If all
-// is included in the list of values for the restore attribute, then the manual
-// DB cluster snapshot is public and can be copied or restored by all AWS accounts.
+// are authorized to copy or restore the manual cluster snapshot. If all is
+// included in the list of values for the restore attribute, then the manual
+// cluster snapshot is public and can be copied or restored by all AWS accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1669,7 +1666,7 @@ func (c *DocDB) DescribeDBClusterSnapshotAttributesRequest(input *DescribeDBClus
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBClusterSnapshotAttributes
 func (c *DocDB) DescribeDBClusterSnapshotAttributes(input *DescribeDBClusterSnapshotAttributesInput) (*DescribeDBClusterSnapshotAttributesOutput, error) {
@@ -1737,7 +1734,7 @@ func (c *DocDB) DescribeDBClusterSnapshotsRequest(input *DescribeDBClusterSnapsh
 
 // DescribeDBClusterSnapshots API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns information about DB cluster snapshots. This API operation supports
+// Returns information about cluster snapshots. This API operation supports
 // pagination.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1749,7 +1746,7 @@ func (c *DocDB) DescribeDBClusterSnapshotsRequest(input *DescribeDBClusterSnapsh
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBClusterSnapshots
 func (c *DocDB) DescribeDBClusterSnapshots(input *DescribeDBClusterSnapshotsInput) (*DescribeDBClusterSnapshotsOutput, error) {
@@ -1823,8 +1820,11 @@ func (c *DocDB) DescribeDBClustersRequest(input *DescribeDBClustersInput) (req *
 
 // DescribeDBClusters API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns information about provisioned Amazon DocumentDB DB clusters. This
-// API operation supports pagination.
+// Returns information about provisioned Amazon DocumentDB clusters. This API
+// operation supports pagination. For certain management features such as cluster
+// and instance lifecycle management, Amazon DocumentDB leverages operational
+// technology that is shared with Amazon RDS and Amazon Neptune. Use the filterName=engine,Values=docdb
+// filter parameter to return only Amazon DocumentDB clusters.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1835,7 +1835,7 @@ func (c *DocDB) DescribeDBClustersRequest(input *DescribeDBClustersInput) (req *
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBClusters
 func (c *DocDB) DescribeDBClusters(input *DescribeDBClustersInput) (*DescribeDBClustersOutput, error) {
@@ -1961,7 +1961,7 @@ func (c *DocDB) DescribeDBEngineVersionsRequest(input *DescribeDBEngineVersionsI
 
 // DescribeDBEngineVersions API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns a list of the available DB engines.
+// Returns a list of the available engines.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2105,7 +2105,7 @@ func (c *DocDB) DescribeDBInstancesRequest(input *DescribeDBInstancesInput) (req
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBInstances
 func (c *DocDB) DescribeDBInstances(input *DescribeDBInstancesInput) (*DescribeDBInstancesOutput, error) {
@@ -2243,7 +2243,7 @@ func (c *DocDB) DescribeDBSubnetGroupsRequest(input *DescribeDBSubnetGroupsInput
 //
 // Returned Error Codes:
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/DescribeDBSubnetGroups
 func (c *DocDB) DescribeDBSubnetGroups(input *DescribeDBSubnetGroupsInput) (*DescribeDBSubnetGroupsOutput, error) {
@@ -2519,11 +2519,10 @@ func (c *DocDB) DescribeEventsRequest(input *DescribeEventsInput) (req *request.
 
 // DescribeEvents API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns events related to DB instances, DB security groups, DB snapshots,
-// and DB parameter groups for the past 14 days. You can obtain events specific
-// to a particular DB instance, DB security group, DB snapshot, or DB parameter
-// group by providing the name as a parameter. By default, the events of the
-// past hour are returned.
+// Returns events related to instances, security groups, snapshots, and DB parameter
+// groups for the past 14 days. You can obtain events specific to a particular
+// DB instance, security group, snapshot, or parameter group by providing the
+// name as a parameter. By default, the events of the past hour are returned.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2655,7 +2654,7 @@ func (c *DocDB) DescribeOrderableDBInstanceOptionsRequest(input *DescribeOrderab
 
 // DescribeOrderableDBInstanceOptions API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns a list of orderable DB instance options for the specified engine.
+// Returns a list of orderable instance options for the specified engine.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2781,8 +2780,8 @@ func (c *DocDB) DescribePendingMaintenanceActionsRequest(input *DescribePendingM
 
 // DescribePendingMaintenanceActions API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Returns a list of resources (for example, DB instances) that have at least
-// one pending maintenance action.
+// Returns a list of resources (for example, instances) that have at least one
+// pending maintenance action.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2861,11 +2860,10 @@ func (c *DocDB) FailoverDBClusterRequest(input *FailoverDBClusterInput) (req *re
 
 // FailoverDBCluster API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Forces a failover for a DB cluster.
+// Forces a failover for a cluster.
 //
-// A failover for a DB cluster promotes one of the Amazon DocumentDB replicas
-// (read-only instances) in the DB cluster to be the primary instance (the cluster
-// writer).
+// A failover for a cluster promotes one of the Amazon DocumentDB replicas (read-only
+// instances) in the cluster to be the primary instance (the cluster writer).
 //
 // If the primary instance fails, Amazon DocumentDB automatically fails over
 // to an Amazon DocumentDB replica, if one exists. You can force a failover
@@ -2880,13 +2878,13 @@ func (c *DocDB) FailoverDBClusterRequest(input *FailoverDBClusterInput) (req *re
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/FailoverDBCluster
 func (c *DocDB) FailoverDBCluster(input *FailoverDBClusterInput) (*FailoverDBClusterOutput, error) {
@@ -2965,13 +2963,13 @@ func (c *DocDB) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeDBSnapshotNotFoundFault "DBSnapshotNotFound"
-//   DBSnapshotIdentifier doesn't refer to an existing DB snapshot.
+//   DBSnapshotIdentifier doesn't refer to an existing snapshot.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/ListTagsForResource
 func (c *DocDB) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
@@ -3039,9 +3037,9 @@ func (c *DocDB) ModifyDBClusterRequest(input *ModifyDBClusterInput) (req *reques
 
 // ModifyDBCluster API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Modifies a setting for an Amazon DocumentDB DB cluster. You can change one
-// or more database configuration parameters by specifying these parameters
-// and the new values in the request.
+// Modifies a setting for an Amazon DocumentDB cluster. You can change one or
+// more database configuration parameters by specifying these parameters and
+// the new values in the request.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3052,41 +3050,41 @@ func (c *DocDB) ModifyDBClusterRequest(input *ModifyDBClusterInput) (req *reques
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeInvalidDBSubnetGroupStateFault "InvalidDBSubnetGroupStateFault"
-//   The DB subnet group can't be deleted because it's in use.
+//   The subnet group can't be deleted because it's in use.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The requested subnet is not valid, or multiple subnets were requested that
 //   are not all in a common virtual private cloud (VPC).
 //
 //   * ErrCodeDBClusterParameterGroupNotFoundFault "DBClusterParameterGroupNotFound"
-//   DBClusterParameterGroupName doesn't refer to an existing DB cluster parameter
+//   DBClusterParameterGroupName doesn't refer to an existing cluster parameter
 //   group.
 //
 //   * ErrCodeInvalidDBSecurityGroupStateFault "InvalidDBSecurityGroupState"
-//   The state of the DB security group doesn't allow deletion.
+//   The state of the security group doesn't allow deletion.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 //   * ErrCodeDBClusterAlreadyExistsFault "DBClusterAlreadyExistsFault"
-//   You already have a DB cluster with the given identifier.
+//   You already have a cluster with the given identifier.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/ModifyDBCluster
 func (c *DocDB) ModifyDBCluster(input *ModifyDBClusterInput) (*ModifyDBClusterOutput, error) {
@@ -3154,7 +3152,7 @@ func (c *DocDB) ModifyDBClusterParameterGroupRequest(input *ModifyDBClusterParam
 
 // ModifyDBClusterParameterGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Modifies the parameters of a DB cluster parameter group. To modify more than
+// Modifies the parameters of a cluster parameter group. To modify more than
 // one parameter, submit a list of the following: ParameterName, ParameterValue,
 // and ApplyMethod. A maximum of 20 parameters can be modified in a single request.
 //
@@ -3162,14 +3160,13 @@ func (c *DocDB) ModifyDBClusterParameterGroupRequest(input *ModifyDBClusterParam
 // parameters require a reboot or maintenance window before the change can take
 // effect.
 //
-// After you create a DB cluster parameter group, you should wait at least 5
-// minutes before creating your first DB cluster that uses that DB cluster parameter
-// group as the default parameter group. This allows Amazon DocumentDB to fully
-// complete the create action before the parameter group is used as the default
-// for a new DB cluster. This step is especially important for parameters that
-// are critical when creating the default database for a DB cluster, such as
-// the character set for the default database defined by the character_set_database
-// parameter.
+// After you create a cluster parameter group, you should wait at least 5 minutes
+// before creating your first cluster that uses that cluster parameter group
+// as the default parameter group. This allows Amazon DocumentDB to fully complete
+// the create action before the parameter group is used as the default for a
+// new cluster. This step is especially important for parameters that are critical
+// when creating the default database for a cluster, such as the character set
+// for the default database defined by the character_set_database parameter.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3180,12 +3177,12 @@ func (c *DocDB) ModifyDBClusterParameterGroupRequest(input *ModifyDBClusterParam
 //
 // Returned Error Codes:
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 //   * ErrCodeInvalidDBParameterGroupStateFault "InvalidDBParameterGroupState"
-//   The DB parameter group is in use, or it is in a state that is not valid.
-//   If you are trying to delete the parameter group, you can't delete it when
-//   the parameter group is in this state.
+//   The parameter group is in use, or it is in a state that is not valid. If
+//   you are trying to delete the parameter group, you can't delete it when the
+//   parameter group is in this state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/ModifyDBClusterParameterGroup
 func (c *DocDB) ModifyDBClusterParameterGroup(input *ModifyDBClusterParameterGroupInput) (*ModifyDBClusterParameterGroupOutput, error) {
@@ -3256,16 +3253,16 @@ func (c *DocDB) ModifyDBClusterSnapshotAttributeRequest(input *ModifyDBClusterSn
 // Adds an attribute and values to, or removes an attribute and values from,
 // a manual DB cluster snapshot.
 //
-// To share a manual DB cluster snapshot with other AWS accounts, specify restore
+// To share a manual cluster snapshot with other AWS accounts, specify restore
 // as the AttributeName, and use the ValuesToAdd parameter to add a list of
-// IDs of the AWS accounts that are authorized to restore the manual DB cluster
-// snapshot. Use the value all to make the manual DB cluster snapshot public,
-// which means that it can be copied or restored by all AWS accounts. Do not
-// add the all value for any manual DB cluster snapshots that contain private
-// information that you don't want available to all AWS accounts. If a manual
-// DB cluster snapshot is encrypted, it can be shared, but only by specifying
-// a list of authorized AWS account IDs for the ValuesToAdd parameter. You can't
-// use all as a value for that parameter in this case.
+// IDs of the AWS accounts that are authorized to restore the manual cluster
+// snapshot. Use the value all to make the manual cluster snapshot public, which
+// means that it can be copied or restored by all AWS accounts. Do not add the
+// all value for any manual DB cluster snapshots that contain private information
+// that you don't want available to all AWS accounts. If a manual cluster snapshot
+// is encrypted, it can be shared, but only by specifying a list of authorized
+// AWS account IDs for the ValuesToAdd parameter. You can't use all as a value
+// for that parameter in this case.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3276,10 +3273,10 @@ func (c *DocDB) ModifyDBClusterSnapshotAttributeRequest(input *ModifyDBClusterSn
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 //   * ErrCodeSharedSnapshotQuotaExceededFault "SharedSnapshotQuotaExceeded"
 //   You have exceeded the maximum number of accounts that you can share a manual
@@ -3351,9 +3348,8 @@ func (c *DocDB) ModifyDBInstanceRequest(input *ModifyDBInstanceInput) (req *requ
 
 // ModifyDBInstance API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Modifies settings for a DB instance. You can change one or more database
-// configuration parameters by specifying these parameters and the new values
-// in the request.
+// Modifies settings for an instance. You can change one or more database configuration
+// parameters by specifying these parameters and the new values in the request.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3364,45 +3360,44 @@ func (c *DocDB) ModifyDBInstanceRequest(input *ModifyDBInstanceInput) (req *requ
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 //   * ErrCodeInvalidDBSecurityGroupStateFault "InvalidDBSecurityGroupState"
-//   The state of the DB security group doesn't allow deletion.
+//   The state of the security group doesn't allow deletion.
 //
 //   * ErrCodeDBInstanceAlreadyExistsFault "DBInstanceAlreadyExists"
-//   You already have a DB instance with the given identifier.
+//   You already have a instance with the given identifier.
 //
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeDBSecurityGroupNotFoundFault "DBSecurityGroupNotFound"
-//   DBSecurityGroupName doesn't refer to an existing DB security group.
+//   DBSecurityGroupName doesn't refer to an existing security group.
 //
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 //   * ErrCodeInsufficientDBInstanceCapacityFault "InsufficientDBInstanceCapacity"
-//   The specified DB instance class isn't available in the specified Availability
+//   The specified instance class isn't available in the specified Availability
 //   Zone.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeDBUpgradeDependencyFailureFault "DBUpgradeDependencyFailure"
-//   The DB upgrade failed because a resource that the DB depends on can't be
-//   modified.
+//   The upgrade failed because a resource that the depends on can't be modified.
 //
 //   * ErrCodeStorageTypeNotSupportedFault "StorageTypeNotSupported"
 //   Storage of the specified StorageType can't be associated with the DB instance.
 //
 //   * ErrCodeAuthorizationNotFoundFault "AuthorizationNotFound"
 //   The specified CIDR IP or Amazon EC2 security group isn't authorized for the
-//   specified DB security group.
+//   specified security group.
 //
 //   Amazon DocumentDB also might not be authorized to perform necessary actions
 //   on your behalf using IAM.
@@ -3476,8 +3471,8 @@ func (c *DocDB) ModifyDBSubnetGroupRequest(input *ModifyDBSubnetGroupInput) (req
 
 // ModifyDBSubnetGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Modifies an existing DB subnet group. DB subnet groups must contain at least
-// one subnet in at least two Availability Zones in the AWS Region.
+// Modifies an existing subnet group. subnet groups must contain at least one
+// subnet in at least two Availability Zones in the AWS Region.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3488,17 +3483,17 @@ func (c *DocDB) ModifyDBSubnetGroupRequest(input *ModifyDBSubnetGroupInput) (req
 //
 // Returned Error Codes:
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeDBSubnetQuotaExceededFault "DBSubnetQuotaExceededFault"
 //   The request would cause you to exceed the allowed number of subnets in a
-//   DB subnet group.
+//   subnet group.
 //
 //   * ErrCodeSubnetAlreadyInUse "SubnetAlreadyInUse"
-//   The DB subnet is already in use in the Availability Zone.
+//   The subnet is already in use in the Availability Zone.
 //
 //   * ErrCodeDBSubnetGroupDoesNotCoverEnoughAZs "DBSubnetGroupDoesNotCoverEnoughAZs"
-//   Subnets in the DB subnet group should cover at least two Availability Zones
+//   Subnets in the subnet group should cover at least two Availability Zones
 //   unless there is only one Availability Zone.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
@@ -3571,13 +3566,13 @@ func (c *DocDB) RebootDBInstanceRequest(input *RebootDBInstanceInput) (req *requ
 
 // RebootDBInstance API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// You might need to reboot your DB instance, usually for maintenance reasons.
-// For example, if you make certain changes, or if you change the DB cluster
-// parameter group that is associated with the DB instance, you must reboot
-// the instance for the changes to take effect.
+// You might need to reboot your instance, usually for maintenance reasons.
+// For example, if you make certain changes, or if you change the cluster parameter
+// group that is associated with the instance, you must reboot the instance
+// for the changes to take effect.
 //
-// Rebooting a DB instance restarts the database engine service. Rebooting a
-// DB instance results in a momentary outage, during which the DB instance status
+// Rebooting an instance restarts the database engine service. Rebooting an
+// instance results in a momentary outage, during which the instance status
 // is set to rebooting.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3589,10 +3584,10 @@ func (c *DocDB) RebootDBInstanceRequest(input *RebootDBInstanceInput) (req *requ
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/RebootDBInstance
 func (c *DocDB) RebootDBInstance(input *RebootDBInstanceInput) (*RebootDBInstanceOutput, error) {
@@ -3672,13 +3667,13 @@ func (c *DocDB) RemoveTagsFromResourceRequest(input *RemoveTagsFromResourceInput
 //
 // Returned Error Codes:
 //   * ErrCodeDBInstanceNotFoundFault "DBInstanceNotFound"
-//   DBInstanceIdentifier doesn't refer to an existing DB instance.
+//   DBInstanceIdentifier doesn't refer to an existing instance.
 //
 //   * ErrCodeDBSnapshotNotFoundFault "DBSnapshotNotFound"
-//   DBSnapshotIdentifier doesn't refer to an existing DB snapshot.
+//   DBSnapshotIdentifier doesn't refer to an existing snapshot.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/RemoveTagsFromResource
 func (c *DocDB) RemoveTagsFromResource(input *RemoveTagsFromResourceInput) (*RemoveTagsFromResourceOutput, error) {
@@ -3746,10 +3741,10 @@ func (c *DocDB) ResetDBClusterParameterGroupRequest(input *ResetDBClusterParamet
 
 // ResetDBClusterParameterGroup API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Modifies the parameters of a DB cluster parameter group to the default value.
+// Modifies the parameters of a cluster parameter group to the default value.
 // To reset specific parameters, submit a list of the following: ParameterName
-// and ApplyMethod. To reset the entire DB cluster parameter group, specify
-// the DBClusterParameterGroupName and ResetAllParameters parameters.
+// and ApplyMethod. To reset the entire cluster parameter group, specify the
+// DBClusterParameterGroupName and ResetAllParameters parameters.
 //
 // When you reset the entire group, dynamic parameters are updated immediately
 // and static parameters are set to pending-reboot to take effect on the next
@@ -3764,12 +3759,12 @@ func (c *DocDB) ResetDBClusterParameterGroupRequest(input *ResetDBClusterParamet
 //
 // Returned Error Codes:
 //   * ErrCodeInvalidDBParameterGroupStateFault "InvalidDBParameterGroupState"
-//   The DB parameter group is in use, or it is in a state that is not valid.
-//   If you are trying to delete the parameter group, you can't delete it when
-//   the parameter group is in this state.
+//   The parameter group is in use, or it is in a state that is not valid. If
+//   you are trying to delete the parameter group, you can't delete it when the
+//   parameter group is in this state.
 //
 //   * ErrCodeDBParameterGroupNotFoundFault "DBParameterGroupNotFound"
-//   DBParameterGroupName doesn't refer to an existing DB parameter group.
+//   DBParameterGroupName doesn't refer to an existing parameter group.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/ResetDBClusterParameterGroup
 func (c *DocDB) ResetDBClusterParameterGroup(input *ResetDBClusterParameterGroupInput) (*ResetDBClusterParameterGroupOutput, error) {
@@ -3837,14 +3832,14 @@ func (c *DocDB) RestoreDBClusterFromSnapshotRequest(input *RestoreDBClusterFromS
 
 // RestoreDBClusterFromSnapshot API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Creates a new DB cluster from a DB snapshot or DB cluster snapshot.
+// Creates a new cluster from a snapshot or cluster snapshot.
 //
-// If a DB snapshot is specified, the target DB cluster is created from the
-// source DB snapshot with a default configuration and default security group.
+// If a snapshot is specified, the target cluster is created from the source
+// DB snapshot with a default configuration and default security group.
 //
-// If a DB cluster snapshot is specified, the target DB cluster is created from
-// the source DB cluster restore point with the same configuration as the original
-// source DB cluster, except that the new DB cluster is created with the default
+// If a cluster snapshot is specified, the target cluster is created from the
+// source cluster restore point with the same configuration as the original
+// source DB cluster, except that the new cluster is created with the default
 // security group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3856,27 +3851,27 @@ func (c *DocDB) RestoreDBClusterFromSnapshotRequest(input *RestoreDBClusterFromS
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterAlreadyExistsFault "DBClusterAlreadyExistsFault"
-//   You already have a DB cluster with the given identifier.
+//   You already have a cluster with the given identifier.
 //
 //   * ErrCodeDBClusterQuotaExceededFault "DBClusterQuotaExceededFault"
-//   The DB cluster can't be created because you have reached the maximum allowed
-//   quota of DB clusters.
+//   The cluster can't be created because you have reached the maximum allowed
+//   quota of clusters.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeDBSnapshotNotFoundFault "DBSnapshotNotFound"
-//   DBSnapshotIdentifier doesn't refer to an existing DB snapshot.
+//   DBSnapshotIdentifier doesn't refer to an existing snapshot.
 //
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 //   * ErrCodeInsufficientDBClusterCapacityFault "InsufficientDBClusterCapacityFault"
-//   The DB cluster doesn't have enough capacity for the current operation.
+//   The cluster doesn't have enough capacity for the current operation.
 //
 //   * ErrCodeInsufficientStorageClusterCapacityFault "InsufficientStorageClusterCapacity"
 //   There is not enough storage available for the current action. You might be
@@ -3884,17 +3879,17 @@ func (c *DocDB) RestoreDBClusterFromSnapshotRequest(input *RestoreDBClusterFromS
 //   Availability Zones that have more storage available.
 //
 //   * ErrCodeInvalidDBSnapshotStateFault "InvalidDBSnapshotState"
-//   The state of the DB snapshot doesn't allow deletion.
+//   The state of the snapshot doesn't allow deletion.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeInvalidRestoreFault "InvalidRestoreFault"
@@ -3902,7 +3897,7 @@ func (c *DocDB) RestoreDBClusterFromSnapshotRequest(input *RestoreDBClusterFromS
 //   DB instance.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeInvalidSubnet "InvalidSubnet"
 //   The requested subnet is not valid, or multiple subnets were requested that
@@ -3977,11 +3972,11 @@ func (c *DocDB) RestoreDBClusterToPointInTimeRequest(input *RestoreDBClusterToPo
 
 // RestoreDBClusterToPointInTime API operation for Amazon DocumentDB with MongoDB compatibility.
 //
-// Restores a DB cluster to an arbitrary point in time. Users can restore to
-// any point in time before LatestRestorableTime for up to BackupRetentionPeriod
-// days. The target DB cluster is created from the source DB cluster with the
-// same configuration as the original DB cluster, except that the new DB cluster
-// is created with the default DB security group.
+// Restores a cluster to an arbitrary point in time. Users can restore to any
+// point in time before LatestRestorableTime for up to BackupRetentionPeriod
+// days. The target cluster is created from the source cluster with the same
+// configuration as the original cluster, except that the new cluster is created
+// with the default security group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3992,23 +3987,23 @@ func (c *DocDB) RestoreDBClusterToPointInTimeRequest(input *RestoreDBClusterToPo
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterAlreadyExistsFault "DBClusterAlreadyExistsFault"
-//   You already have a DB cluster with the given identifier.
+//   You already have a cluster with the given identifier.
 //
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeDBClusterQuotaExceededFault "DBClusterQuotaExceededFault"
-//   The DB cluster can't be created because you have reached the maximum allowed
-//   quota of DB clusters.
+//   The cluster can't be created because you have reached the maximum allowed
+//   quota of clusters.
 //
 //   * ErrCodeDBClusterSnapshotNotFoundFault "DBClusterSnapshotNotFoundFault"
-//   DBClusterSnapshotIdentifier doesn't refer to an existing DB cluster snapshot.
+//   DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot.
 //
 //   * ErrCodeDBSubnetGroupNotFoundFault "DBSubnetGroupNotFoundFault"
-//   DBSubnetGroupName doesn't refer to an existing DB subnet group.
+//   DBSubnetGroupName doesn't refer to an existing subnet group.
 //
 //   * ErrCodeInsufficientDBClusterCapacityFault "InsufficientDBClusterCapacityFault"
-//   The DB cluster doesn't have enough capacity for the current operation.
+//   The cluster doesn't have enough capacity for the current operation.
 //
 //   * ErrCodeInsufficientStorageClusterCapacityFault "InsufficientStorageClusterCapacity"
 //   There is not enough storage available for the current action. You might be
@@ -4016,13 +4011,13 @@ func (c *DocDB) RestoreDBClusterToPointInTimeRequest(input *RestoreDBClusterToPo
 //   Availability Zones that have more storage available.
 //
 //   * ErrCodeInvalidDBClusterSnapshotStateFault "InvalidDBClusterSnapshotStateFault"
-//   The provided value isn't a valid DB cluster snapshot state.
+//   The provided value isn't a valid cluster snapshot state.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBSnapshotStateFault "InvalidDBSnapshotState"
-//   The state of the DB snapshot doesn't allow deletion.
+//   The state of the snapshot doesn't allow deletion.
 //
 //   * ErrCodeInvalidRestoreFault "InvalidRestoreFault"
 //   You cannot restore from a virtual private cloud (VPC) backup to a non-VPC
@@ -4033,7 +4028,7 @@ func (c *DocDB) RestoreDBClusterToPointInTimeRequest(input *RestoreDBClusterToPo
 //   are not all in a common virtual private cloud (VPC).
 //
 //   * ErrCodeInvalidVPCNetworkStateFault "InvalidVPCNetworkStateFault"
-//   The DB subnet group doesn't cover all Availability Zones after it is created
+//   The subnet group doesn't cover all Availability Zones after it is created
 //   because of changes that were made.
 //
 //   * ErrCodeKMSKeyNotAccessibleFault "KMSKeyNotAccessibleFault"
@@ -4041,7 +4036,7 @@ func (c *DocDB) RestoreDBClusterToPointInTimeRequest(input *RestoreDBClusterToPo
 //
 //   * ErrCodeStorageQuotaExceededFault "StorageQuotaExceeded"
 //   The request would cause you to exceed the allowed amount of storage available
-//   across all DB instances.
+//   across all instances.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/RestoreDBClusterToPointInTime
 func (c *DocDB) RestoreDBClusterToPointInTime(input *RestoreDBClusterToPointInTimeInput) (*RestoreDBClusterToPointInTimeOutput, error) {
@@ -4122,13 +4117,13 @@ func (c *DocDB) StartDBClusterRequest(input *StartDBClusterInput) (req *request.
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/StartDBCluster
 func (c *DocDB) StartDBCluster(input *StartDBClusterInput) (*StartDBClusterOutput, error) {
@@ -4209,13 +4204,13 @@ func (c *DocDB) StopDBClusterRequest(input *StopDBClusterInput) (req *request.Re
 //
 // Returned Error Codes:
 //   * ErrCodeDBClusterNotFoundFault "DBClusterNotFoundFault"
-//   DBClusterIdentifier doesn't refer to an existing DB cluster.
+//   DBClusterIdentifier doesn't refer to an existing cluster.
 //
 //   * ErrCodeInvalidDBClusterStateFault "InvalidDBClusterStateFault"
-//   The DB cluster isn't in a valid state.
+//   The cluster isn't in a valid state.
 //
 //   * ErrCodeInvalidDBInstanceStateFault "InvalidDBInstanceState"
-//   The specified DB instance isn't in the available state.
+//   The specified instance isn't in the available state.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/docdb-2014-10-31/StopDBCluster
 func (c *DocDB) StopDBCluster(input *StopDBClusterInput) (*StopDBClusterOutput, error) {
@@ -4514,11 +4509,11 @@ func (s *Certificate) SetValidTill(v time.Time) *Certificate {
 }
 
 // The configuration setting for the log types to be enabled for export to Amazon
-// CloudWatch Logs for a specific DB instance or DB cluster.
+// CloudWatch Logs for a specific instance or cluster.
 //
 // The EnableLogTypes and DisableLogTypes arrays determine which logs are exported
 // (or not exported) to CloudWatch Logs. The values within these arrays depend
-// on the DB engine that is being used.
+// on the engine that is being used.
 type CloudwatchLogsExportConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -4555,19 +4550,19 @@ func (s *CloudwatchLogsExportConfiguration) SetEnableLogTypes(v []*string) *Clou
 type CopyDBClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier or Amazon Resource Name (ARN) for the source DB cluster parameter
+	// The identifier or Amazon Resource Name (ARN) for the source cluster parameter
 	// group.
 	//
 	// Constraints:
 	//
-	//    * Must specify a valid DB cluster parameter group.
+	//    * Must specify a valid cluster parameter group.
 	//
-	//    * If the source DB cluster parameter group is in the same AWS Region as
-	//    the copy, specify a valid DB parameter group identifier; for example,
-	//    my-db-cluster-param-group, or a valid ARN.
+	//    * If the source cluster parameter group is in the same AWS Region as the
+	//    copy, specify a valid parameter group identifier; for example, my-db-cluster-param-group,
+	//    or a valid ARN.
 	//
-	//    * If the source DB parameter group is in a different AWS Region than the
-	//    copy, specify a valid DB cluster parameter group ARN; for example, arn:aws:rds:us-east-1:123456789012:cluster-pg:custom-cluster-group1.
+	//    * If the source parameter group is in a different AWS Region than the
+	//    copy, specify a valid cluster parameter group ARN; for example, arn:aws:rds:us-east-1:123456789012:cluster-pg:custom-cluster-group1.
 	//
 	// SourceDBClusterParameterGroupIdentifier is a required field
 	SourceDBClusterParameterGroupIdentifier *string `type:"string" required:"true"`
@@ -4575,12 +4570,12 @@ type CopyDBClusterParameterGroupInput struct {
 	// The tags that are to be assigned to the parameter group.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
-	// A description for the copied DB cluster parameter group.
+	// A description for the copied cluster parameter group.
 	//
 	// TargetDBClusterParameterGroupDescription is a required field
 	TargetDBClusterParameterGroupDescription *string `type:"string" required:"true"`
 
-	// The identifier for the copied DB cluster parameter group.
+	// The identifier for the copied cluster parameter group.
 	//
 	// Constraints:
 	//
@@ -4654,7 +4649,7 @@ func (s *CopyDBClusterParameterGroupInput) SetTargetDBClusterParameterGroupIdent
 type CopyDBClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster parameter group.
+	// Detailed information about a cluster parameter group.
 	DBClusterParameterGroup *DBClusterParameterGroup `type:"structure"`
 }
 
@@ -4678,37 +4673,36 @@ func (s *CopyDBClusterParameterGroupOutput) SetDBClusterParameterGroup(v *DBClus
 type CopyDBClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
-	// Set to true to copy all tags from the source DB cluster snapshot to the target
-	// DB cluster snapshot, and otherwise false. The default is false.
+	// Set to true to copy all tags from the source cluster snapshot to the target
+	// cluster snapshot, and otherwise false. The default is false.
 	CopyTags *bool `type:"boolean"`
 
-	// The AWS KMS key ID for an encrypted DB cluster snapshot. The AWS KMS key
-	// ID is the Amazon Resource Name (ARN), AWS KMS key identifier, or the AWS
-	// KMS key alias for the AWS KMS encryption key.
+	// The AWS KMS key ID for an encrypted cluster snapshot. The AWS KMS key ID
+	// is the Amazon Resource Name (ARN), AWS KMS key identifier, or the AWS KMS
+	// key alias for the AWS KMS encryption key.
 	//
-	// If you copy an encrypted DB cluster snapshot from your AWS account, you can
+	// If you copy an encrypted cluster snapshot from your AWS account, you can
 	// specify a value for KmsKeyId to encrypt the copy with a new AWS KMS encryption
-	// key. If you don't specify a value for KmsKeyId, then the copy of the DB cluster
-	// snapshot is encrypted with the same AWS KMS key as the source DB cluster
-	// snapshot.
+	// key. If you don't specify a value for KmsKeyId, then the copy of the cluster
+	// snapshot is encrypted with the same AWS KMS key as the source cluster snapshot.
 	//
-	// If you copy an encrypted DB cluster snapshot that is shared from another
-	// AWS account, then you must specify a value for KmsKeyId.
+	// If you copy an encrypted cluster snapshot that is shared from another AWS
+	// account, then you must specify a value for KmsKeyId.
 	//
-	// To copy an encrypted DB cluster snapshot to another AWS Region, set KmsKeyId
-	// to the AWS KMS key ID that you want to use to encrypt the copy of the DB
-	// cluster snapshot in the destination Region. AWS KMS encryption keys are specific
+	// To copy an encrypted cluster snapshot to another AWS Region, set KmsKeyId
+	// to the AWS KMS key ID that you want to use to encrypt the copy of the cluster
+	// snapshot in the destination Region. AWS KMS encryption keys are specific
 	// to the AWS Region that they are created in, and you can't use encryption
 	// keys from one Region in another Region.
 	//
-	// If you copy an unencrypted DB cluster snapshot and specify a value for the
-	// KmsKeyId parameter, an error is returned.
+	// If you copy an unencrypted cluster snapshot and specify a value for the KmsKeyId
+	// parameter, an error is returned.
 	KmsKeyId *string `type:"string"`
 
 	// The URL that contains a Signature Version 4 signed request for the CopyDBClusterSnapshot
-	// API action in the AWS Region that contains the source DB cluster snapshot
-	// to copy. You must use the PreSignedUrl parameter when copying an encrypted
-	// DB cluster snapshot from another AWS Region.
+	// API action in the AWS Region that contains the source cluster snapshot to
+	// copy. You must use the PreSignedUrl parameter when copying an encrypted cluster
+	// snapshot from another AWS Region.
 	//
 	// The presigned URL must be a valid request for the CopyDBSClusterSnapshot
 	// API action that can be executed in the source AWS Region that contains the
@@ -4716,26 +4710,26 @@ type CopyDBClusterSnapshotInput struct {
 	// contain the following parameter values:
 	//
 	//    * KmsKeyId - The AWS KMS key identifier for the key to use to encrypt
-	//    the copy of the DB cluster snapshot in the destination AWS Region. This
-	//    is the same identifier for both the CopyDBClusterSnapshot action that
-	//    is called in the destination AWS Region, and the action contained in the
+	//    the copy of the cluster snapshot in the destination AWS Region. This is
+	//    the same identifier for both the CopyDBClusterSnapshot action that is
+	//    called in the destination AWS Region, and the action contained in the
 	//    presigned URL.
 	//
 	//    * DestinationRegion - The name of the AWS Region that the DB cluster snapshot
 	//    will be created in.
 	//
-	//    * SourceDBClusterSnapshotIdentifier - The DB cluster snapshot identifier
-	//    for the encrypted DB cluster snapshot to be copied. This identifier must
+	//    * SourceDBClusterSnapshotIdentifier - The cluster snapshot identifier
+	//    for the encrypted cluster snapshot to be copied. This identifier must
 	//    be in the Amazon Resource Name (ARN) format for the source AWS Region.
-	//    For example, if you are copying an encrypted DB cluster snapshot from
-	//    the us-west-2 AWS Region, then your SourceDBClusterSnapshotIdentifier
-	//    looks like the following example: arn:aws:rds:us-west-2:123456789012:cluster-snapshot:my-cluster-snapshot-20161115.
+	//    For example, if you are copying an encrypted cluster snapshot from the
+	//    us-west-2 AWS Region, then your SourceDBClusterSnapshotIdentifier looks
+	//    like the following example: arn:aws:rds:us-west-2:123456789012:cluster-snapshot:my-cluster-snapshot-20161115.
 	PreSignedUrl *string `type:"string"`
 
-	// The identifier of the DB cluster snapshot to copy. This parameter is not
-	// case sensitive.
+	// The identifier of the cluster snapshot to copy. This parameter is not case
+	// sensitive.
 	//
-	// You can't copy an encrypted, shared DB cluster snapshot from one AWS Region
+	// You can't copy an encrypted, shared cluster snapshot from one AWS Region
 	// to another.
 	//
 	// Constraints:
@@ -4743,21 +4737,21 @@ type CopyDBClusterSnapshotInput struct {
 	//    * Must specify a valid system snapshot in the "available" state.
 	//
 	//    * If the source snapshot is in the same AWS Region as the copy, specify
-	//    a valid DB snapshot identifier.
+	//    a valid snapshot identifier.
 	//
 	//    * If the source snapshot is in a different AWS Region than the copy, specify
-	//    a valid DB cluster snapshot ARN.
+	//    a valid cluster snapshot ARN.
 	//
 	// Example: my-cluster-snapshot1
 	//
 	// SourceDBClusterSnapshotIdentifier is a required field
 	SourceDBClusterSnapshotIdentifier *string `type:"string" required:"true"`
 
-	// The tags to be assigned to the DB cluster snapshot.
+	// The tags to be assigned to the cluster snapshot.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
-	// The identifier of the new DB cluster snapshot to create from the source DB
-	// cluster snapshot. This parameter is not case sensitive.
+	// The identifier of the new cluster snapshot to create from the source cluster
+	// snapshot. This parameter is not case sensitive.
 	//
 	// Constraints:
 	//
@@ -4838,7 +4832,7 @@ func (s *CopyDBClusterSnapshotInput) SetTargetDBClusterSnapshotIdentifier(v stri
 type CopyDBClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster snapshot.
+	// Detailed information about a cluster snapshot.
 	DBClusterSnapshot *DBClusterSnapshot `type:"structure"`
 }
 
@@ -4862,8 +4856,8 @@ func (s *CopyDBClusterSnapshotOutput) SetDBClusterSnapshot(v *DBClusterSnapshot)
 type CreateDBClusterInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of Amazon EC2 Availability Zones that instances in the DB cluster
-	// can be created in.
+	// A list of Amazon EC2 Availability Zones that instances in the cluster can
+	// be created in.
 	AvailabilityZones []*string `locationNameList:"AvailabilityZone" type:"list"`
 
 	// The number of days for which automated backups are retained. You must specify
@@ -4876,7 +4870,7 @@ type CreateDBClusterInput struct {
 	//    * Must be a value from 1 to 35.
 	BackupRetentionPeriod *int64 `type:"integer"`
 
-	// The DB cluster identifier. This parameter is stored as a lowercase string.
+	// The cluster identifier. This parameter is stored as a lowercase string.
 	//
 	// Constraints:
 	//
@@ -4891,10 +4885,10 @@ type CreateDBClusterInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The name of the DB cluster parameter group to associate with this DB cluster.
+	// The name of the cluster parameter group to associate with this cluster.
 	DBClusterParameterGroupName *string `type:"string"`
 
-	// A DB subnet group to associate with this DB cluster.
+	// A subnet group to associate with this cluster.
 	//
 	// Constraints: Must match the name of an existing DBSubnetGroup. Must not be
 	// default.
@@ -4912,7 +4906,7 @@ type CreateDBClusterInput struct {
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
 
-	// The name of the database engine to be used for this DB cluster.
+	// The name of the database engine to be used for this cluster.
 	//
 	// Valid values: docdb
 	//
@@ -4922,11 +4916,11 @@ type CreateDBClusterInput struct {
 	// The version number of the database engine to use.
 	EngineVersion *string `type:"string"`
 
-	// The AWS KMS key identifier for an encrypted DB cluster.
+	// The AWS KMS key identifier for an encrypted cluster.
 	//
 	// The AWS KMS key identifier is the Amazon Resource Name (ARN) for the AWS
-	// KMS encryption key. If you are creating a DB cluster using the same AWS account
-	// that owns the AWS KMS encryption key that is used to encrypt the new DB cluster,
+	// KMS encryption key. If you are creating a cluster using the same AWS account
+	// that owns the AWS KMS encryption key that is used to encrypt the new cluster,
 	// you can use the AWS KMS key alias instead of the ARN for the AWS KMS encryption
 	// key.
 	//
@@ -4942,9 +4936,9 @@ type CreateDBClusterInput struct {
 	// AWS KMS creates the default encryption key for your AWS account. Your AWS
 	// account has a different default encryption key for each AWS Region.
 	//
-	// If you create a replica of an encrypted DB cluster in another AWS Region,
-	// you must set KmsKeyId to a KMS key ID that is valid in the destination AWS
-	// Region. This key is used to encrypt the replica in that AWS Region.
+	// If you create a replica of an encrypted cluster in another AWS Region, you
+	// must set KmsKeyId to a KMS key ID that is valid in the destination AWS Region.
+	// This key is used to encrypt the replica in that AWS Region.
 	KmsKeyId *string `type:"string"`
 
 	// The password for the master database user. This password can contain any
@@ -4956,7 +4950,7 @@ type CreateDBClusterInput struct {
 	// MasterUserPassword is a required field
 	MasterUserPassword *string `type:"string" required:"true"`
 
-	// The name of the master user for the DB cluster.
+	// The name of the master user for the cluster.
 	//
 	// Constraints:
 	//
@@ -4969,7 +4963,7 @@ type CreateDBClusterInput struct {
 	// MasterUsername is a required field
 	MasterUsername *string `type:"string" required:"true"`
 
-	// The port number on which the instances in the DB cluster accept connections.
+	// The port number on which the instances in the cluster accept connections.
 	Port *int64 `type:"integer"`
 
 	// The daily time range during which automated backups are created if automated
@@ -5002,13 +4996,13 @@ type CreateDBClusterInput struct {
 	// Constraints: Minimum 30-minute window.
 	PreferredMaintenanceWindow *string `type:"string"`
 
-	// Specifies whether the DB cluster is encrypted.
+	// Specifies whether the cluster is encrypted.
 	StorageEncrypted *bool `type:"boolean"`
 
-	// The tags to be assigned to the DB cluster.
+	// The tags to be assigned to the cluster.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
-	// A list of EC2 VPC security groups to associate with this DB cluster.
+	// A list of EC2 VPC security groups to associate with this cluster.
 	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
@@ -5155,7 +5149,7 @@ func (s *CreateDBClusterInput) SetVpcSecurityGroupIds(v []*string) *CreateDBClus
 type CreateDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -5179,28 +5173,28 @@ func (s *CreateDBClusterOutput) SetDBCluster(v *DBCluster) *CreateDBClusterOutpu
 type CreateDBClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group.
+	// The name of the cluster parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must match the name of an existing DBClusterParameterGroup.
+	//    * Must not match the name of an existing DBClusterParameterGroup.
 	//
 	// This value is stored as a lowercase string.
 	//
 	// DBClusterParameterGroupName is a required field
 	DBClusterParameterGroupName *string `type:"string" required:"true"`
 
-	// The DB cluster parameter group family name.
+	// The cluster parameter group family name.
 	//
 	// DBParameterGroupFamily is a required field
 	DBParameterGroupFamily *string `type:"string" required:"true"`
 
-	// The description for the DB cluster parameter group.
+	// The description for the cluster parameter group.
 	//
 	// Description is a required field
 	Description *string `type:"string" required:"true"`
 
-	// The tags to be assigned to the DB cluster parameter group.
+	// The tags to be assigned to the cluster parameter group.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 }
 
@@ -5260,7 +5254,7 @@ func (s *CreateDBClusterParameterGroupInput) SetTags(v []*Tag) *CreateDBClusterP
 type CreateDBClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster parameter group.
+	// Detailed information about a cluster parameter group.
 	DBClusterParameterGroup *DBClusterParameterGroup `type:"structure"`
 }
 
@@ -5284,8 +5278,8 @@ func (s *CreateDBClusterParameterGroupOutput) SetDBClusterParameterGroup(v *DBCl
 type CreateDBClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier of the DB cluster to create a snapshot for. This parameter
-	// is not case sensitive.
+	// The identifier of the cluster to create a snapshot for. This parameter is
+	// not case sensitive.
 	//
 	// Constraints:
 	//
@@ -5296,8 +5290,8 @@ type CreateDBClusterSnapshotInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The identifier of the DB cluster snapshot. This parameter is stored as a
-	// lowercase string.
+	// The identifier of the cluster snapshot. This parameter is stored as a lowercase
+	// string.
 	//
 	// Constraints:
 	//
@@ -5312,7 +5306,7 @@ type CreateDBClusterSnapshotInput struct {
 	// DBClusterSnapshotIdentifier is a required field
 	DBClusterSnapshotIdentifier *string `type:"string" required:"true"`
 
-	// The tags to be assigned to the DB cluster snapshot.
+	// The tags to be assigned to the cluster snapshot.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 }
 
@@ -5363,7 +5357,7 @@ func (s *CreateDBClusterSnapshotInput) SetTags(v []*Tag) *CreateDBClusterSnapsho
 type CreateDBClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster snapshot.
+	// Detailed information about a cluster snapshot.
 	DBClusterSnapshot *DBClusterSnapshot `type:"structure"`
 }
 
@@ -5387,13 +5381,13 @@ func (s *CreateDBClusterSnapshotOutput) SetDBClusterSnapshot(v *DBClusterSnapsho
 type CreateDBInstanceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Indicates that minor engine upgrades are applied automatically to the DB
-	// instance during the maintenance window.
+	// Indicates that minor engine upgrades are applied automatically to the instance
+	// during the maintenance window.
 	//
 	// Default: true
 	AutoMinorVersionUpgrade *bool `type:"boolean"`
 
-	// The Amazon EC2 Availability Zone that the DB instance is created in.
+	// The Amazon EC2 Availability Zone that the instance is created in.
 	//
 	// Default: A random, system-chosen Availability Zone in the endpoint's AWS
 	// Region.
@@ -5405,17 +5399,17 @@ type CreateDBInstanceInput struct {
 	// same AWS Region as the current endpoint.
 	AvailabilityZone *string `type:"string"`
 
-	// The identifier of the DB cluster that the instance will belong to.
+	// The identifier of the cluster that the instance will belong to.
 	//
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The compute and memory capacity of the DB instance; for example, db.r5.large.
+	// The compute and memory capacity of the instance; for example, db.r5.large.
 	//
 	// DBInstanceClass is a required field
 	DBInstanceClass *string `type:"string" required:"true"`
 
-	// The DB instance identifier. This parameter is stored as a lowercase string.
+	// The instance identifier. This parameter is stored as a lowercase string.
 	//
 	// Constraints:
 	//
@@ -5459,8 +5453,8 @@ type CreateDBInstanceInput struct {
 	// Valid values: 0-15
 	PromotionTier *int64 `type:"integer"`
 
-	// The tags to be assigned to the DB instance. You can assign up to 10 tags
-	// to an instance.
+	// The tags to be assigned to the instance. You can assign up to 10 tags to
+	// an instance.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 }
 
@@ -5553,7 +5547,7 @@ func (s *CreateDBInstanceInput) SetTags(v []*Tag) *CreateDBInstanceInput {
 type CreateDBInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB instance.
+	// Detailed information about an instance.
 	DBInstance *DBInstance `type:"structure"`
 }
 
@@ -5577,12 +5571,12 @@ func (s *CreateDBInstanceOutput) SetDBInstance(v *DBInstance) *CreateDBInstanceO
 type CreateDBSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The description for the DB subnet group.
+	// The description for the subnet group.
 	//
 	// DBSubnetGroupDescription is a required field
 	DBSubnetGroupDescription *string `type:"string" required:"true"`
 
-	// The name for the DB subnet group. This value is stored as a lowercase string.
+	// The name for the subnet group. This value is stored as a lowercase string.
 	//
 	// Constraints: Must contain no more than 255 letters, numbers, periods, underscores,
 	// spaces, or hyphens. Must not be default.
@@ -5592,12 +5586,12 @@ type CreateDBSubnetGroupInput struct {
 	// DBSubnetGroupName is a required field
 	DBSubnetGroupName *string `type:"string" required:"true"`
 
-	// The Amazon EC2 subnet IDs for the DB subnet group.
+	// The Amazon EC2 subnet IDs for the subnet group.
 	//
 	// SubnetIds is a required field
 	SubnetIds []*string `locationNameList:"SubnetIdentifier" type:"list" required:"true"`
 
-	// The tags to be assigned to the DB subnet group.
+	// The tags to be assigned to the subnet group.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 }
 
@@ -5657,7 +5651,7 @@ func (s *CreateDBSubnetGroupInput) SetTags(v []*Tag) *CreateDBSubnetGroupInput {
 type CreateDBSubnetGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB subnet group.
+	// Detailed information about a subnet group.
 	DBSubnetGroup *DBSubnetGroup `type:"structure"`
 }
 
@@ -5677,47 +5671,46 @@ func (s *CreateDBSubnetGroupOutput) SetDBSubnetGroup(v *DBSubnetGroup) *CreateDB
 	return s
 }
 
-// Detailed information about a DB cluster.
+// Detailed information about a cluster.
 type DBCluster struct {
 	_ struct{} `type:"structure"`
 
 	// Provides a list of the AWS Identity and Access Management (IAM) roles that
-	// are associated with the DB cluster. IAM roles that are associated with a
-	// DB cluster grant permission for the DB cluster to access other AWS services
-	// on your behalf.
+	// are associated with the cluster. IAM roles that are associated with a cluster
+	// grant permission for the cluster to access other AWS services on your behalf.
 	AssociatedRoles []*DBClusterRole `locationNameList:"DBClusterRole" type:"list"`
 
 	// Provides the list of Amazon EC2 Availability Zones that instances in the
-	// DB cluster can be created in.
+	// cluster can be created in.
 	AvailabilityZones []*string `locationNameList:"AvailabilityZone" type:"list"`
 
-	// Specifies the number of days for which automatic DB snapshots are retained.
+	// Specifies the number of days for which automatic snapshots are retained.
 	BackupRetentionPeriod *int64 `type:"integer"`
 
-	// Specifies the time when the DB cluster was created, in Universal Coordinated
+	// Specifies the time when the cluster was created, in Universal Coordinated
 	// Time (UTC).
 	ClusterCreateTime *time.Time `type:"timestamp"`
 
-	// The Amazon Resource Name (ARN) for the DB cluster.
+	// The Amazon Resource Name (ARN) for the cluster.
 	DBClusterArn *string `type:"string"`
 
-	// Contains a user-supplied DB cluster identifier. This identifier is the unique
-	// key that identifies a DB cluster.
+	// Contains a user-supplied cluster identifier. This identifier is the unique
+	// key that identifies a cluster.
 	DBClusterIdentifier *string `type:"string"`
 
-	// Provides the list of instances that make up the DB cluster.
+	// Provides the list of instances that make up the cluster.
 	DBClusterMembers []*DBClusterMember `locationNameList:"DBClusterMember" type:"list"`
 
-	// Specifies the name of the DB cluster parameter group for the DB cluster.
+	// Specifies the name of the cluster parameter group for the cluster.
 	DBClusterParameterGroup *string `type:"string"`
 
-	// Specifies information on the subnet group that is associated with the DB
-	// cluster, including the name, description, and subnets in the subnet group.
+	// Specifies information on the subnet group that is associated with the cluster,
+	// including the name, description, and subnets in the subnet group.
 	DBSubnetGroup *string `type:"string"`
 
-	// The AWS Region-unique, immutable identifier for the DB cluster. This identifier
-	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the DB
-	// cluster is accessed.
+	// The AWS Region-unique, immutable identifier for the cluster. This identifier
+	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the cluster
+	// is accessed.
 	DbClusterResourceId *string `type:"string"`
 
 	// Specifies whether this cluster can be deleted. If DeletionProtection is enabled,
@@ -5730,14 +5723,14 @@ type DBCluster struct {
 	// restore.
 	EarliestRestorableTime *time.Time `type:"timestamp"`
 
-	// A list of log types that this DB cluster is configured to export to Amazon
-	// CloudWatch Logs.
+	// A list of log types that this cluster is configured to export to Amazon CloudWatch
+	// Logs.
 	EnabledCloudwatchLogsExports []*string `type:"list"`
 
-	// Specifies the connection endpoint for the primary instance of the DB cluster.
+	// Specifies the connection endpoint for the primary instance of the cluster.
 	Endpoint *string `type:"string"`
 
-	// Provides the name of the database engine to be used for this DB cluster.
+	// Provides the name of the database engine to be used for this cluster.
 	Engine *string `type:"string"`
 
 	// Indicates the database engine version.
@@ -5747,17 +5740,17 @@ type DBCluster struct {
 	HostedZoneId *string `type:"string"`
 
 	// If StorageEncrypted is true, the AWS KMS key identifier for the encrypted
-	// DB cluster.
+	// cluster.
 	KmsKeyId *string `type:"string"`
 
 	// Specifies the latest time to which a database can be restored with point-in-time
 	// restore.
 	LatestRestorableTime *time.Time `type:"timestamp"`
 
-	// Contains the master user name for the DB cluster.
+	// Contains the master user name for the cluster.
 	MasterUsername *string `type:"string"`
 
-	// Specifies whether the DB cluster has instances in multiple Availability Zones.
+	// Specifies whether the cluster has instances in multiple Availability Zones.
 	MultiAZ *bool `type:"boolean"`
 
 	// Specifies the progress of the operation as a percentage.
@@ -5774,13 +5767,12 @@ type DBCluster struct {
 	// in Universal Coordinated Time (UTC).
 	PreferredMaintenanceWindow *string `type:"string"`
 
-	// The reader endpoint for the DB cluster. The reader endpoint for a DB cluster
-	// load balances connections across the Amazon DocumentDB replicas that are
-	// available in a DB cluster. As clients request new connections to the reader
-	// endpoint, Amazon DocumentDB distributes the connection requests among the
-	// Amazon DocumentDB replicas in the DB cluster. This functionality can help
-	// balance your read workload across multiple Amazon DocumentDB replicas in
-	// your DB cluster.
+	// The reader endpoint for the cluster. The reader endpoint for a cluster load
+	// balances connections across the Amazon DocumentDB replicas that are available
+	// in a cluster. As clients request new connections to the reader endpoint,
+	// Amazon DocumentDB distributes the connection requests among the Amazon DocumentDB
+	// replicas in the cluster. This functionality can help balance your read workload
+	// across multiple Amazon DocumentDB replicas in your cluster.
 	//
 	// If a failover occurs, and the Amazon DocumentDB replica that you are connected
 	// to is promoted to be the primary instance, your connection is dropped. To
@@ -5788,14 +5780,14 @@ type DBCluster struct {
 	// the cluster, you can then reconnect to the reader endpoint.
 	ReaderEndpoint *string `type:"string"`
 
-	// Specifies the current state of this DB cluster.
+	// Specifies the current state of this cluster.
 	Status *string `type:"string"`
 
-	// Specifies whether the DB cluster is encrypted.
+	// Specifies whether the cluster is encrypted.
 	StorageEncrypted *bool `type:"boolean"`
 
-	// Provides a list of virtual private cloud (VPC) security groups that the DB
-	// cluster belongs to.
+	// Provides a list of virtual private cloud (VPC) security groups that the cluster
+	// belongs to.
 	VpcSecurityGroups []*VpcSecurityGroupMembership `locationNameList:"VpcSecurityGroupMembership" type:"list"`
 }
 
@@ -5983,19 +5975,19 @@ func (s *DBCluster) SetVpcSecurityGroups(v []*VpcSecurityGroupMembership) *DBClu
 	return s
 }
 
-// Contains information about an instance that is part of a DB cluster.
+// Contains information about an instance that is part of a cluster.
 type DBClusterMember struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies the status of the DB cluster parameter group for this member of
-	// the DB cluster.
+	// Specifies the status of the cluster parameter group for this member of the
+	// DB cluster.
 	DBClusterParameterGroupStatus *string `type:"string"`
 
-	// Specifies the instance identifier for this member of the DB cluster.
+	// Specifies the instance identifier for this member of the cluster.
 	DBInstanceIdentifier *string `type:"string"`
 
 	// A value that is true if the cluster member is the primary instance for the
-	// DB cluster and false otherwise.
+	// cluster and false otherwise.
 	IsClusterWriter *bool `type:"boolean"`
 
 	// A value that specifies the order in which an Amazon DocumentDB replica is
@@ -6038,22 +6030,21 @@ func (s *DBClusterMember) SetPromotionTier(v int64) *DBClusterMember {
 	return s
 }
 
-// Detailed information about a DB cluster parameter group.
+// Detailed information about a cluster parameter group.
 type DBClusterParameterGroup struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) for the DB cluster parameter group.
+	// The Amazon Resource Name (ARN) for the cluster parameter group.
 	DBClusterParameterGroupArn *string `type:"string"`
 
-	// Provides the name of the DB cluster parameter group.
+	// Provides the name of the cluster parameter group.
 	DBClusterParameterGroupName *string `type:"string"`
 
-	// Provides the name of the DB parameter group family that this DB cluster parameter
+	// Provides the name of the parameter group family that this cluster parameter
 	// group is compatible with.
 	DBParameterGroupFamily *string `type:"string"`
 
-	// Provides the customer-specified description for this DB cluster parameter
-	// group.
+	// Provides the customer-specified description for this cluster parameter group.
 	Description *string `type:"string"`
 }
 
@@ -6092,7 +6083,7 @@ func (s *DBClusterParameterGroup) SetDescription(v string) *DBClusterParameterGr
 }
 
 // Describes an AWS Identity and Access Management (IAM) role that is associated
-// with a DB cluster.
+// with a cluster.
 type DBClusterRole struct {
 	_ struct{} `type:"structure"`
 
@@ -6100,17 +6091,16 @@ type DBClusterRole struct {
 	// DB cluster.
 	RoleArn *string `type:"string"`
 
-	// Describes the state of association between the IAM role and the DB cluster.
+	// Describes the state of association between the IAM role and the cluster.
 	// The Status property returns one of the following values:
 	//
-	//    * ACTIVE - The IAM role ARN is associated with the DB cluster and can
-	//    be used to access other AWS services on your behalf.
+	//    * ACTIVE - The IAM role ARN is associated with the cluster and can be
+	//    used to access other AWS services on your behalf.
 	//
 	//    * PENDING - The IAM role ARN is being associated with the DB cluster.
 	//
-	//    * INVALID - The IAM role ARN is associated with the DB cluster, but the
-	//    DB cluster cannot assume the IAM role to access other AWS services on
-	//    your behalf.
+	//    * INVALID - The IAM role ARN is associated with the cluster, but the cluster
+	//    cannot assume the IAM role to access other AWS services on your behalf.
 	Status *string `type:"string"`
 }
 
@@ -6136,66 +6126,65 @@ func (s *DBClusterRole) SetStatus(v string) *DBClusterRole {
 	return s
 }
 
-// Detailed information about a DB cluster snapshot.
+// Detailed information about a cluster snapshot.
 type DBClusterSnapshot struct {
 	_ struct{} `type:"structure"`
 
 	// Provides the list of Amazon EC2 Availability Zones that instances in the
-	// DB cluster snapshot can be restored in.
+	// cluster snapshot can be restored in.
 	AvailabilityZones []*string `locationNameList:"AvailabilityZone" type:"list"`
 
-	// Specifies the time when the DB cluster was created, in Universal Coordinated
+	// Specifies the time when the cluster was created, in Universal Coordinated
 	// Time (UTC).
 	ClusterCreateTime *time.Time `type:"timestamp"`
 
-	// Specifies the DB cluster identifier of the DB cluster that this DB cluster
-	// snapshot was created from.
+	// Specifies the cluster identifier of the cluster that this cluster snapshot
+	// was created from.
 	DBClusterIdentifier *string `type:"string"`
 
-	// The Amazon Resource Name (ARN) for the DB cluster snapshot.
+	// The Amazon Resource Name (ARN) for the cluster snapshot.
 	DBClusterSnapshotArn *string `type:"string"`
 
-	// Specifies the identifier for the DB cluster snapshot.
+	// Specifies the identifier for the cluster snapshot.
 	DBClusterSnapshotIdentifier *string `type:"string"`
 
 	// Specifies the name of the database engine.
 	Engine *string `type:"string"`
 
-	// Provides the version of the database engine for this DB cluster snapshot.
+	// Provides the version of the database engine for this cluster snapshot.
 	EngineVersion *string `type:"string"`
 
 	// If StorageEncrypted is true, the AWS KMS key identifier for the encrypted
-	// DB cluster snapshot.
+	// cluster snapshot.
 	KmsKeyId *string `type:"string"`
 
-	// Provides the master user name for the DB cluster snapshot.
+	// Provides the master user name for the cluster snapshot.
 	MasterUsername *string `type:"string"`
 
 	// Specifies the percentage of the estimated data that has been transferred.
 	PercentProgress *int64 `type:"integer"`
 
-	// Specifies the port that the DB cluster was listening on at the time of the
-	// snapshot.
+	// Specifies the port that the cluster was listening on at the time of the snapshot.
 	Port *int64 `type:"integer"`
 
 	// Provides the time when the snapshot was taken, in UTC.
 	SnapshotCreateTime *time.Time `type:"timestamp"`
 
-	// Provides the type of the DB cluster snapshot.
+	// Provides the type of the cluster snapshot.
 	SnapshotType *string `type:"string"`
 
-	// If the DB cluster snapshot was copied from a source DB cluster snapshot,
-	// the ARN for the source DB cluster snapshot; otherwise, a null value.
+	// If the cluster snapshot was copied from a source cluster snapshot, the ARN
+	// for the source cluster snapshot; otherwise, a null value.
 	SourceDBClusterSnapshotArn *string `type:"string"`
 
-	// Specifies the status of this DB cluster snapshot.
+	// Specifies the status of this cluster snapshot.
 	Status *string `type:"string"`
 
-	// Specifies whether the DB cluster snapshot is encrypted.
+	// Specifies whether the cluster snapshot is encrypted.
 	StorageEncrypted *bool `type:"boolean"`
 
-	// Provides the virtual private cloud (VPC) ID that is associated with the DB
-	// cluster snapshot.
+	// Provides the virtual private cloud (VPC) ID that is associated with the cluster
+	// snapshot.
 	VpcId *string `type:"string"`
 }
 
@@ -6311,26 +6300,25 @@ func (s *DBClusterSnapshot) SetVpcId(v string) *DBClusterSnapshot {
 	return s
 }
 
-// Contains the name and values of a manual DB cluster snapshot attribute.
+// Contains the name and values of a manual cluster snapshot attribute.
 //
-// Manual DB cluster snapshot attributes are used to authorize other AWS accounts
-// to restore a manual DB cluster snapshot.
+// Manual cluster snapshot attributes are used to authorize other AWS accounts
+// to restore a manual cluster snapshot.
 type DBClusterSnapshotAttribute struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the manual DB cluster snapshot attribute.
+	// The name of the manual cluster snapshot attribute.
 	//
 	// The attribute named restore refers to the list of AWS accounts that have
-	// permission to copy or restore the manual DB cluster snapshot.
+	// permission to copy or restore the manual cluster snapshot.
 	AttributeName *string `type:"string"`
 
-	// The values for the manual DB cluster snapshot attribute.
+	// The values for the manual cluster snapshot attribute.
 	//
 	// If the AttributeName field is set to restore, then this element returns a
 	// list of IDs of the AWS accounts that are authorized to copy or restore the
-	// manual DB cluster snapshot. If a value of all is in the list, then the manual
-	// DB cluster snapshot is public and available for any AWS account to copy or
-	// restore.
+	// manual cluster snapshot. If a value of all is in the list, then the manual
+	// cluster snapshot is public and available for any AWS account to copy or restore.
 	AttributeValues []*string `locationNameList:"AttributeValue" type:"list"`
 }
 
@@ -6356,15 +6344,15 @@ func (s *DBClusterSnapshotAttribute) SetAttributeValues(v []*string) *DBClusterS
 	return s
 }
 
-// Detailed information about the attributes that are associated with a DB cluster
+// Detailed information about the attributes that are associated with a cluster
 // snapshot.
 type DBClusterSnapshotAttributesResult struct {
 	_ struct{} `type:"structure"`
 
-	// The list of attributes and values for the DB cluster snapshot.
+	// The list of attributes and values for the cluster snapshot.
 	DBClusterSnapshotAttributes []*DBClusterSnapshotAttribute `locationNameList:"DBClusterSnapshotAttribute" type:"list"`
 
-	// The identifier of the DB cluster snapshot that the attributes apply to.
+	// The identifier of the cluster snapshot that the attributes apply to.
 	DBClusterSnapshotIdentifier *string `type:"string"`
 }
 
@@ -6390,7 +6378,7 @@ func (s *DBClusterSnapshotAttributesResult) SetDBClusterSnapshotIdentifier(v str
 	return s
 }
 
-// Detailed information about a DB engine version.
+// Detailed information about an engine version.
 type DBEngineVersion struct {
 	_ struct{} `type:"structure"`
 
@@ -6400,7 +6388,7 @@ type DBEngineVersion struct {
 	// The description of the database engine version.
 	DBEngineVersionDescription *string `type:"string"`
 
-	// The name of the DB parameter group family for the database engine.
+	// The name of the parameter group family for the database engine.
 	DBParameterGroupFamily *string `type:"string"`
 
 	// The name of the database engine.
@@ -6480,74 +6468,74 @@ func (s *DBEngineVersion) SetValidUpgradeTarget(v []*UpgradeTarget) *DBEngineVer
 	return s
 }
 
-// Detailed information about a DB instance.
+// Detailed information about an instance.
 type DBInstance struct {
 	_ struct{} `type:"structure"`
 
 	// Indicates that minor version patches are applied automatically.
 	AutoMinorVersionUpgrade *bool `type:"boolean"`
 
-	// Specifies the name of the Availability Zone that the DB instance is located
+	// Specifies the name of the Availability Zone that the instance is located
 	// in.
 	AvailabilityZone *string `type:"string"`
 
-	// Specifies the number of days for which automatic DB snapshots are retained.
+	// Specifies the number of days for which automatic snapshots are retained.
 	BackupRetentionPeriod *int64 `type:"integer"`
 
 	// The identifier of the CA certificate for this DB instance.
 	CACertificateIdentifier *string `type:"string"`
 
-	// Contains the name of the DB cluster that the DB instance is a member of if
-	// the DB instance is a member of a DB cluster.
+	// Contains the name of the cluster that the instance is a member of if the
+	// instance is a member of a cluster.
 	DBClusterIdentifier *string `type:"string"`
 
-	// The Amazon Resource Name (ARN) for the DB instance.
+	// The Amazon Resource Name (ARN) for the instance.
 	DBInstanceArn *string `type:"string"`
 
-	// Contains the name of the compute and memory capacity class of the DB instance.
+	// Contains the name of the compute and memory capacity class of the instance.
 	DBInstanceClass *string `type:"string"`
 
 	// Contains a user-provided database identifier. This identifier is the unique
-	// key that identifies a DB instance.
+	// key that identifies an instance.
 	DBInstanceIdentifier *string `type:"string"`
 
 	// Specifies the current state of this database.
 	DBInstanceStatus *string `type:"string"`
 
-	// Specifies information on the subnet group that is associated with the DB
-	// instance, including the name, description, and subnets in the subnet group.
+	// Specifies information on the subnet group that is associated with the instance,
+	// including the name, description, and subnets in the subnet group.
 	DBSubnetGroup *DBSubnetGroup `type:"structure"`
 
-	// The AWS Region-unique, immutable identifier for the DB instance. This identifier
-	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the DB
-	// instance is accessed.
+	// The AWS Region-unique, immutable identifier for the instance. This identifier
+	// is found in AWS CloudTrail log entries whenever the AWS KMS key for the instance
+	// is accessed.
 	DbiResourceId *string `type:"string"`
 
-	// A list of log types that this DB instance is configured to export to Amazon
+	// A list of log types that this instance is configured to export to Amazon
 	// CloudWatch Logs.
 	EnabledCloudwatchLogsExports []*string `type:"list"`
 
 	// Specifies the connection endpoint.
 	Endpoint *Endpoint `type:"structure"`
 
-	// Provides the name of the database engine to be used for this DB instance.
+	// Provides the name of the database engine to be used for this instance.
 	Engine *string `type:"string"`
 
 	// Indicates the database engine version.
 	EngineVersion *string `type:"string"`
 
-	// Provides the date and time that the DB instance was created.
+	// Provides the date and time that the instance was created.
 	InstanceCreateTime *time.Time `type:"timestamp"`
 
 	// If StorageEncrypted is true, the AWS KMS key identifier for the encrypted
-	// DB instance.
+	// instance.
 	KmsKeyId *string `type:"string"`
 
 	// Specifies the latest time to which a database can be restored with point-in-time
 	// restore.
 	LatestRestorableTime *time.Time `type:"timestamp"`
 
-	// Specifies that changes to the DB instance are pending. This element is included
+	// Specifies that changes to the instance are pending. This element is included
 	// only when changes are pending. Specific changes are identified by subelements.
 	PendingModifiedValues *PendingModifiedValues `type:"structure"`
 
@@ -6572,10 +6560,10 @@ type DBInstance struct {
 	// is blank.
 	StatusInfos []*DBInstanceStatusInfo `locationNameList:"DBInstanceStatusInfo" type:"list"`
 
-	// Specifies whether or not the DB instance is encrypted.
+	// Specifies whether or not the instance is encrypted.
 	StorageEncrypted *bool `type:"boolean"`
 
-	// Provides a list of VPC security group elements that the DB instance belongs
+	// Provides a list of VPC security group elements that the instance belongs
 	// to.
 	VpcSecurityGroups []*VpcSecurityGroupMembership `locationNameList:"VpcSecurityGroupMembership" type:"list"`
 }
@@ -6746,7 +6734,7 @@ func (s *DBInstance) SetVpcSecurityGroups(v []*VpcSecurityGroupMembership) *DBIn
 	return s
 }
 
-// Provides a list of status information for a DB instance.
+// Provides a list of status information for an instance.
 type DBInstanceStatusInfo struct {
 	_ struct{} `type:"structure"`
 
@@ -6758,7 +6746,7 @@ type DBInstanceStatusInfo struct {
 	// if the instance is in an error state.
 	Normal *bool `type:"boolean"`
 
-	// Status of the DB instance. For a StatusType of read replica, the values can
+	// Status of the instance. For a StatusType of read replica, the values can
 	// be replicating, error, stopped, or terminated.
 	Status *string `type:"string"`
 
@@ -6800,26 +6788,26 @@ func (s *DBInstanceStatusInfo) SetStatusType(v string) *DBInstanceStatusInfo {
 	return s
 }
 
-// Detailed information about a DB subnet group.
+// Detailed information about a subnet group.
 type DBSubnetGroup struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) for the DB subnet group.
 	DBSubnetGroupArn *string `type:"string"`
 
-	// Provides the description of the DB subnet group.
+	// Provides the description of the subnet group.
 	DBSubnetGroupDescription *string `type:"string"`
 
-	// The name of the DB subnet group.
+	// The name of the subnet group.
 	DBSubnetGroupName *string `type:"string"`
 
-	// Provides the status of the DB subnet group.
+	// Provides the status of the subnet group.
 	SubnetGroupStatus *string `type:"string"`
 
-	// Detailed information about one or more subnets within a DB subnet group.
+	// Detailed information about one or more subnets within a subnet group.
 	Subnets []*Subnet `locationNameList:"Subnet" type:"list"`
 
-	// Provides the virtual private cloud (VPC) ID of the DB subnet group.
+	// Provides the virtual private cloud (VPC) ID of the subnet group.
 	VpcId *string `type:"string"`
 }
 
@@ -6873,8 +6861,8 @@ func (s *DBSubnetGroup) SetVpcId(v string) *DBSubnetGroup {
 type DeleteDBClusterInput struct {
 	_ struct{} `type:"structure"`
 
-	// The DB cluster identifier for the DB cluster to be deleted. This parameter
-	// isn't case sensitive.
+	// The cluster identifier for the cluster to be deleted. This parameter isn't
+	// case sensitive.
 	//
 	// Constraints:
 	//
@@ -6883,8 +6871,8 @@ type DeleteDBClusterInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The DB cluster snapshot identifier of the new DB cluster snapshot created
-	// when SkipFinalSnapshot is set to false.
+	// The cluster snapshot identifier of the new cluster snapshot created when
+	// SkipFinalSnapshot is set to false.
 	//
 	// Specifying this parameter and also setting the SkipFinalShapshot parameter
 	// to true results in an error.
@@ -6898,9 +6886,9 @@ type DeleteDBClusterInput struct {
 	//    * Cannot end with a hyphen or contain two consecutive hyphens.
 	FinalDBSnapshotIdentifier *string `type:"string"`
 
-	// Determines whether a final DB cluster snapshot is created before the DB cluster
-	// is deleted. If true is specified, no DB cluster snapshot is created. If false
-	// is specified, a DB cluster snapshot is created before the DB cluster is deleted.
+	// Determines whether a final cluster snapshot is created before the cluster
+	// is deleted. If true is specified, no cluster snapshot is created. If false
+	// is specified, a cluster snapshot is created before the DB cluster is deleted.
 	//
 	// If SkipFinalSnapshot is false, you must specify a FinalDBSnapshotIdentifier
 	// parameter.
@@ -6953,7 +6941,7 @@ func (s *DeleteDBClusterInput) SetSkipFinalSnapshot(v bool) *DeleteDBClusterInpu
 type DeleteDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -6977,15 +6965,15 @@ func (s *DeleteDBClusterOutput) SetDBCluster(v *DBCluster) *DeleteDBClusterOutpu
 type DeleteDBClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group.
+	// The name of the cluster parameter group.
 	//
 	// Constraints:
 	//
-	//    * Must be the name of an existing DB cluster parameter group.
+	//    * Must be the name of an existing cluster parameter group.
 	//
-	//    * You can't delete a default DB cluster parameter group.
+	//    * You can't delete a default cluster parameter group.
 	//
-	//    * Cannot be associated with any DB clusters.
+	//    * Cannot be associated with any clusters.
 	//
 	// DBClusterParameterGroupName is a required field
 	DBClusterParameterGroupName *string `type:"string" required:"true"`
@@ -7038,9 +7026,9 @@ func (s DeleteDBClusterParameterGroupOutput) GoString() string {
 type DeleteDBClusterSnapshotInput struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier of the DB cluster snapshot to delete.
+	// The identifier of the cluster snapshot to delete.
 	//
-	// Constraints: Must be the name of an existing DB cluster snapshot in the available
+	// Constraints: Must be the name of an existing cluster snapshot in the available
 	// state.
 	//
 	// DBClusterSnapshotIdentifier is a required field
@@ -7079,7 +7067,7 @@ func (s *DeleteDBClusterSnapshotInput) SetDBClusterSnapshotIdentifier(v string) 
 type DeleteDBClusterSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster snapshot.
+	// Detailed information about a cluster snapshot.
 	DBClusterSnapshot *DBClusterSnapshot `type:"structure"`
 }
 
@@ -7103,12 +7091,12 @@ func (s *DeleteDBClusterSnapshotOutput) SetDBClusterSnapshot(v *DBClusterSnapsho
 type DeleteDBInstanceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The DB instance identifier for the DB instance to be deleted. This parameter
-	// isn't case sensitive.
+	// The instance identifier for the instance to be deleted. This parameter isn't
+	// case sensitive.
 	//
 	// Constraints:
 	//
-	//    * Must match the name of an existing DB instance.
+	//    * Must match the name of an existing instance.
 	//
 	// DBInstanceIdentifier is a required field
 	DBInstanceIdentifier *string `type:"string" required:"true"`
@@ -7146,7 +7134,7 @@ func (s *DeleteDBInstanceInput) SetDBInstanceIdentifier(v string) *DeleteDBInsta
 type DeleteDBInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB instance.
+	// Detailed information about an instance.
 	DBInstance *DBInstance `type:"structure"`
 }
 
@@ -7355,7 +7343,7 @@ func (s *DescribeCertificatesOutput) SetMarker(v string) *DescribeCertificatesOu
 type DescribeDBClusterParameterGroupsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of a specific DB cluster parameter group to return details for.
+	// The name of a specific cluster parameter group to return details for.
 	//
 	// Constraints:
 	//
@@ -7438,7 +7426,7 @@ func (s *DescribeDBClusterParameterGroupsInput) SetMaxRecords(v int64) *Describe
 type DescribeDBClusterParameterGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of DB cluster parameter groups.
+	// A list of cluster parameter groups.
 	DBClusterParameterGroups []*DBClusterParameterGroup `locationNameList:"DBClusterParameterGroup" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -7473,7 +7461,7 @@ func (s *DescribeDBClusterParameterGroupsOutput) SetMarker(v string) *DescribeDB
 type DescribeDBClusterParametersInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of a specific DB cluster parameter group to return parameter details
+	// The name of a specific cluster parameter group to return parameter details
 	// for.
 	//
 	// Constraints:
@@ -7577,7 +7565,7 @@ type DescribeDBClusterParametersOutput struct {
 	// the value specified by MaxRecords.
 	Marker *string `type:"string"`
 
-	// Provides a list of parameters for the DB cluster parameter group.
+	// Provides a list of parameters for the cluster parameter group.
 	Parameters []*Parameter `locationNameList:"Parameter" type:"list"`
 }
 
@@ -7607,7 +7595,7 @@ func (s *DescribeDBClusterParametersOutput) SetParameters(v []*Parameter) *Descr
 type DescribeDBClusterSnapshotAttributesInput struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier for the DB cluster snapshot to describe the attributes for.
+	// The identifier for the cluster snapshot to describe the attributes for.
 	//
 	// DBClusterSnapshotIdentifier is a required field
 	DBClusterSnapshotIdentifier *string `type:"string" required:"true"`
@@ -7645,7 +7633,7 @@ func (s *DescribeDBClusterSnapshotAttributesInput) SetDBClusterSnapshotIdentifie
 type DescribeDBClusterSnapshotAttributesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about the attributes that are associated with a DB cluster
+	// Detailed information about the attributes that are associated with a cluster
 	// snapshot.
 	DBClusterSnapshotAttributesResult *DBClusterSnapshotAttributesResult `type:"structure"`
 }
@@ -7670,16 +7658,16 @@ func (s *DescribeDBClusterSnapshotAttributesOutput) SetDBClusterSnapshotAttribut
 type DescribeDBClusterSnapshotsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the DB cluster to retrieve the list of DB cluster snapshots for.
-	// This parameter can't be used with the DBClusterSnapshotIdentifier parameter.
-	// This parameter is not case sensitive.
+	// The ID of the cluster to retrieve the list of cluster snapshots for. This
+	// parameter can't be used with the DBClusterSnapshotIdentifier parameter. This
+	// parameter is not case sensitive.
 	//
 	// Constraints:
 	//
 	//    * If provided, must match the identifier of an existing DBCluster.
 	DBClusterIdentifier *string `type:"string"`
 
-	// A specific DB cluster snapshot identifier to describe. This parameter can't
+	// A specific cluster snapshot identifier to describe. This parameter can't
 	// be used with the DBClusterIdentifier parameter. This value is stored as a
 	// lowercase string.
 	//
@@ -7694,14 +7682,14 @@ type DescribeDBClusterSnapshotsInput struct {
 	// This parameter is not currently supported.
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
-	// Set to true to include manual DB cluster snapshots that are public and can
-	// be copied or restored by any AWS account, and otherwise false. The default
-	// is false.
+	// Set to true to include manual cluster snapshots that are public and can be
+	// copied or restored by any AWS account, and otherwise false. The default is
+	// false.
 	IncludePublic *bool `type:"boolean"`
 
-	// Set to true to include shared manual DB cluster snapshots from other AWS
-	// accounts that this AWS account has been given permission to copy or restore,
-	// and otherwise false. The default is false.
+	// Set to true to include shared manual cluster snapshots from other AWS accounts
+	// that this AWS account has been given permission to copy or restore, and otherwise
+	// false. The default is false.
 	IncludeShared *bool `type:"boolean"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -7718,24 +7706,24 @@ type DescribeDBClusterSnapshotsInput struct {
 	// Constraints: Minimum 20, maximum 100.
 	MaxRecords *int64 `type:"integer"`
 
-	// The type of DB cluster snapshots to be returned. You can specify one of the
+	// The type of cluster snapshots to be returned. You can specify one of the
 	// following values:
 	//
-	//    * automated - Return all DB cluster snapshots that Amazon DocumentDB has
+	//    * automated - Return all cluster snapshots that Amazon DocumentDB has
 	//    automatically created for your AWS account.
 	//
-	//    * manual - Return all DB cluster snapshots that you have manually created
+	//    * manual - Return all cluster snapshots that you have manually created
 	//    for your AWS account.
 	//
-	//    * shared - Return all manual DB cluster snapshots that have been shared
-	//    to your AWS account.
+	//    * shared - Return all manual cluster snapshots that have been shared to
+	//    your AWS account.
 	//
-	//    * public - Return all DB cluster snapshots that have been marked as public.
+	//    * public - Return all cluster snapshots that have been marked as public.
 	//
 	// If you don't specify a SnapshotType value, then both automated and manual
-	// DB cluster snapshots are returned. You can include shared DB cluster snapshots
+	// cluster snapshots are returned. You can include shared cluster snapshots
 	// with these results by setting the IncludeShared parameter to true. You can
-	// include public DB cluster snapshots with these results by setting the IncludePublic
+	// include public cluster snapshots with these results by setting the IncludePublic
 	// parameter to true.
 	//
 	// The IncludeShared and IncludePublic parameters don't apply for SnapshotType
@@ -7827,7 +7815,7 @@ func (s *DescribeDBClusterSnapshotsInput) SetSnapshotType(v string) *DescribeDBC
 type DescribeDBClusterSnapshotsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Provides a list of DB cluster snapshots.
+	// Provides a list of cluster snapshots.
 	DBClusterSnapshots []*DBClusterSnapshot `locationNameList:"DBClusterSnapshot" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -7862,22 +7850,21 @@ func (s *DescribeDBClusterSnapshotsOutput) SetMarker(v string) *DescribeDBCluste
 type DescribeDBClustersInput struct {
 	_ struct{} `type:"structure"`
 
-	// The user-provided DB cluster identifier. If this parameter is specified,
-	// information from only the specific DB cluster is returned. This parameter
-	// isn't case sensitive.
+	// The user-provided cluster identifier. If this parameter is specified, information
+	// from only the specific cluster is returned. This parameter isn't case sensitive.
 	//
 	// Constraints:
 	//
 	//    * If provided, must match an existing DBClusterIdentifier.
 	DBClusterIdentifier *string `type:"string"`
 
-	// A filter that specifies one or more DB clusters to describe.
+	// A filter that specifies one or more clusters to describe.
 	//
 	// Supported filters:
 	//
-	//    * db-cluster-id - Accepts DB cluster identifiers and DB cluster Amazon
-	//    Resource Names (ARNs). The results list only includes information about
-	//    the DB clusters identified by these ARNs.
+	//    * db-cluster-id - Accepts cluster identifiers and cluster Amazon Resource
+	//    Names (ARNs). The results list only includes information about the clusters
+	//    identified by these ARNs.
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -7953,7 +7940,7 @@ func (s *DescribeDBClustersInput) SetMaxRecords(v int64) *DescribeDBClustersInpu
 type DescribeDBClustersOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of DB clusters.
+	// A list of clusters.
 	DBClusters []*DBCluster `locationNameList:"DBCluster" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -7988,7 +7975,7 @@ func (s *DescribeDBClustersOutput) SetMarker(v string) *DescribeDBClustersOutput
 type DescribeDBEngineVersionsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of a specific DB parameter group family to return details for.
+	// The name of a specific parameter group family to return details for.
 	//
 	// Constraints:
 	//
@@ -8123,7 +8110,7 @@ func (s *DescribeDBEngineVersionsInput) SetMaxRecords(v int64) *DescribeDBEngine
 type DescribeDBEngineVersionsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about one or more DB engine versions.
+	// Detailed information about one or more engine versions.
 	DBEngineVersions []*DBEngineVersion `locationNameList:"DBEngineVersion" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -8159,26 +8146,25 @@ type DescribeDBInstancesInput struct {
 	_ struct{} `type:"structure"`
 
 	// The user-provided instance identifier. If this parameter is specified, information
-	// from only the specific DB instance is returned. This parameter isn't case
-	// sensitive.
+	// from only the specific instance is returned. This parameter isn't case sensitive.
 	//
 	// Constraints:
 	//
 	//    * If provided, must match the identifier of an existing DBInstance.
 	DBInstanceIdentifier *string `type:"string"`
 
-	// A filter that specifies one or more DB instances to describe.
+	// A filter that specifies one or more instances to describe.
 	//
 	// Supported filters:
 	//
-	//    * db-cluster-id - Accepts DB cluster identifiers and DB cluster Amazon
-	//    Resource Names (ARNs). The results list includes only the information
-	//    about the DB instances that are associated with the DB clusters that are
-	//    identified by these ARNs.
+	//    * db-cluster-id - Accepts cluster identifiers and cluster Amazon Resource
+	//    Names (ARNs). The results list includes only the information about the
+	//    instances that are associated with the clusters that are identified by
+	//    these ARNs.
 	//
-	//    * db-instance-id - Accepts DB instance identifiers and DB instance ARNs.
-	//    The results list includes only the information about the DB instances
-	//    that are identified by these ARNs.
+	//    * db-instance-id - Accepts instance identifiers and instance ARNs. The
+	//    results list includes only the information about the instances that are
+	//    identified by these ARNs.
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -8254,7 +8240,7 @@ func (s *DescribeDBInstancesInput) SetMaxRecords(v int64) *DescribeDBInstancesIn
 type DescribeDBInstancesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about one or more DB instances.
+	// Detailed information about one or more instances.
 	DBInstances []*DBInstance `locationNameList:"DBInstance" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -8289,7 +8275,7 @@ func (s *DescribeDBInstancesOutput) SetMarker(v string) *DescribeDBInstancesOutp
 type DescribeDBSubnetGroupsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB subnet group to return details for.
+	// The name of the subnet group to return details for.
 	DBSubnetGroupName *string `type:"string"`
 
 	// This parameter is not currently supported.
@@ -8368,7 +8354,7 @@ func (s *DescribeDBSubnetGroupsInput) SetMaxRecords(v int64) *DescribeDBSubnetGr
 type DescribeDBSubnetGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about one or more DB subnet groups.
+	// Detailed information about one or more subnet groups.
 	DBSubnetGroups []*DBSubnetGroup `locationNameList:"DBSubnetGroup" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -8403,7 +8389,7 @@ func (s *DescribeDBSubnetGroupsOutput) SetMarker(v string) *DescribeDBSubnetGrou
 type DescribeEngineDefaultClusterParametersInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group family to return the engine parameter
+	// The name of the cluster parameter group family to return the engine parameter
 	// information for.
 	//
 	// DBParameterGroupFamily is a required field
@@ -8777,11 +8763,11 @@ func (s *DescribeEventsOutput) SetMarker(v string) *DescribeEventsOutput {
 type DescribeOrderableDBInstanceOptionsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The DB instance class filter value. Specify this parameter to show only the
-	// available offerings that match the specified DB instance class.
+	// The instance class filter value. Specify this parameter to show only the
+	// available offerings that match the specified instance class.
 	DBInstanceClass *string `type:"string"`
 
-	// The name of the engine to retrieve DB instance options for.
+	// The name of the engine to retrieve instance options for.
 	//
 	// Engine is a required field
 	Engine *string `type:"string" required:"true"`
@@ -8906,7 +8892,7 @@ type DescribeOrderableDBInstanceOptionsOutput struct {
 	// the value specified by MaxRecords.
 	Marker *string `type:"string"`
 
-	// The options that are available for a particular orderable DB instance.
+	// The options that are available for a particular orderable instance.
 	OrderableDBInstanceOptions []*OrderableDBInstanceOption `locationNameList:"OrderableDBInstanceOption" type:"list"`
 }
 
@@ -8941,13 +8927,13 @@ type DescribePendingMaintenanceActionsInput struct {
 	//
 	// Supported filters:
 	//
-	//    * db-cluster-id - Accepts DB cluster identifiers and DB cluster Amazon
-	//    Resource Names (ARNs). The results list includes only pending maintenance
-	//    actions for the DB clusters identified by these ARNs.
+	//    * db-cluster-id - Accepts cluster identifiers and cluster Amazon Resource
+	//    Names (ARNs). The results list includes only pending maintenance actions
+	//    for the clusters identified by these ARNs.
 	//
-	//    * db-instance-id - Accepts DB instance identifiers and DB instance ARNs.
-	//    The results list includes only pending maintenance actions for the DB
-	//    instances identified by these ARNs.
+	//    * db-instance-id - Accepts instance identifiers and instance ARNs. The
+	//    results list includes only pending maintenance actions for the DB instances
+	//    identified by these ARNs.
 	Filters []*Filter `locationNameList:"Filter" type:"list"`
 
 	// An optional pagination token provided by a previous request. If this parameter
@@ -9057,12 +9043,12 @@ func (s *DescribePendingMaintenanceActionsOutput) SetPendingMaintenanceActions(v
 	return s
 }
 
-// Network information for accessing a DB cluster or DB instance. Client programs
+// Network information for accessing a cluster or instance. Client programs
 // must specify a valid endpoint to access these Amazon DocumentDB resources.
 type Endpoint struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies the DNS address of the DB instance.
+	// Specifies the DNS address of the instance.
 	Address *string `type:"string"`
 
 	// Specifies the ID that Amazon Route 53 assigns when you create a hosted zone.
@@ -9105,7 +9091,7 @@ func (s *Endpoint) SetPort(v int64) *Endpoint {
 type EngineDefaults struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group family to return the engine parameter
+	// The name of the cluster parameter group family to return the engine parameter
 	// information for.
 	DBParameterGroupFamily *string `type:"string"`
 
@@ -9114,7 +9100,7 @@ type EngineDefaults struct {
 	// the value specified by MaxRecords.
 	Marker *string `type:"string"`
 
-	// The parameters of a particular DB cluster parameter group family.
+	// The parameters of a particular cluster parameter group family.
 	Parameters []*Parameter `locationNameList:"Parameter" type:"list"`
 }
 
@@ -9252,7 +9238,7 @@ func (s *EventCategoriesMap) SetSourceType(v string) *EventCategoriesMap {
 type FailoverDBClusterInput struct {
 	_ struct{} `type:"structure"`
 
-	// A DB cluster identifier to force a failover for. This parameter is not case
+	// A cluster identifier to force a failover for. This parameter is not case
 	// sensitive.
 	//
 	// Constraints:
@@ -9263,7 +9249,7 @@ type FailoverDBClusterInput struct {
 	// The name of the instance to promote to the primary instance.
 	//
 	// You must specify the instance identifier for an Amazon DocumentDB replica
-	// in the DB cluster. For example, mydbcluster-replica1.
+	// in the cluster. For example, mydbcluster-replica1.
 	TargetDBInstanceIdentifier *string `type:"string"`
 }
 
@@ -9292,7 +9278,7 @@ func (s *FailoverDBClusterInput) SetTargetDBInstanceIdentifier(v string) *Failov
 type FailoverDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -9458,8 +9444,8 @@ type ModifyDBClusterInput struct {
 
 	// A value that specifies whether the changes in this request and any pending
 	// changes are asynchronously applied as soon as possible, regardless of the
-	// PreferredMaintenanceWindow setting for the DB cluster. If this parameter
-	// is set to false, changes to the DB cluster are applied during the next maintenance
+	// PreferredMaintenanceWindow setting for the cluster. If this parameter is
+	// set to false, changes to the cluster are applied during the next maintenance
 	// window.
 	//
 	// The ApplyImmediately parameter affects only the NewDBClusterIdentifier and
@@ -9482,12 +9468,12 @@ type ModifyDBClusterInput struct {
 	BackupRetentionPeriod *int64 `type:"integer"`
 
 	// The configuration setting for the log types to be enabled for export to Amazon
-	// CloudWatch Logs for a specific DB instance or DB cluster. The EnableLogTypes
-	// and DisableLogTypes arrays determine which logs are exported (or not exported)
+	// CloudWatch Logs for a specific instance or cluster. The EnableLogTypes and
+	// DisableLogTypes arrays determine which logs are exported (or not exported)
 	// to CloudWatch Logs.
 	CloudwatchLogsExportConfiguration *CloudwatchLogsExportConfiguration `type:"structure"`
 
-	// The DB cluster identifier for the cluster that is being modified. This parameter
+	// The cluster identifier for the cluster that is being modified. This parameter
 	// is not case sensitive.
 	//
 	// Constraints:
@@ -9497,7 +9483,7 @@ type ModifyDBClusterInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The name of the DB cluster parameter group to use for the DB cluster.
+	// The name of the cluster parameter group to use for the cluster.
 	DBClusterParameterGroupName *string `type:"string"`
 
 	// Specifies whether this cluster can be deleted. If DeletionProtection is enabled,
@@ -9518,8 +9504,8 @@ type ModifyDBClusterInput struct {
 	// Constraints: Must contain from 8 to 100 characters.
 	MasterUserPassword *string `type:"string"`
 
-	// The new DB cluster identifier for the DB cluster when renaming a DB cluster.
-	// This value is stored as a lowercase string.
+	// The new cluster identifier for the cluster when renaming a cluster. This
+	// value is stored as a lowercase string.
 	//
 	// Constraints:
 	//
@@ -9532,11 +9518,11 @@ type ModifyDBClusterInput struct {
 	// Example: my-cluster2
 	NewDBClusterIdentifier *string `type:"string"`
 
-	// The port number on which the DB cluster accepts connections.
+	// The port number on which the cluster accepts connections.
 	//
 	// Constraints: Must be a value from 1150 to 65535.
 	//
-	// Default: The same port as the original DB cluster.
+	// Default: The same port as the original cluster.
 	Port *int64 `type:"integer"`
 
 	// The daily time range during which automated backups are created if automated
@@ -9569,8 +9555,8 @@ type ModifyDBClusterInput struct {
 	// Constraints: Minimum 30-minute window.
 	PreferredMaintenanceWindow *string `type:"string"`
 
-	// A list of virtual private cloud (VPC) security groups that the DB cluster
-	// will belong to.
+	// A list of virtual private cloud (VPC) security groups that the cluster will
+	// belong to.
 	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
@@ -9678,7 +9664,7 @@ func (s *ModifyDBClusterInput) SetVpcSecurityGroupIds(v []*string) *ModifyDBClus
 type ModifyDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -9702,12 +9688,12 @@ func (s *ModifyDBClusterOutput) SetDBCluster(v *DBCluster) *ModifyDBClusterOutpu
 type ModifyDBClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group to modify.
+	// The name of the cluster parameter group to modify.
 	//
 	// DBClusterParameterGroupName is a required field
 	DBClusterParameterGroupName *string `type:"string" required:"true"`
 
-	// A list of parameters in the DB cluster parameter group to modify.
+	// A list of parameters in the cluster parameter group to modify.
 	//
 	// Parameters is a required field
 	Parameters []*Parameter `locationNameList:"Parameter" type:"list" required:"true"`
@@ -9751,11 +9737,11 @@ func (s *ModifyDBClusterParameterGroupInput) SetParameters(v []*Parameter) *Modi
 	return s
 }
 
-// Contains the name of a DB cluster parameter group.
+// Contains the name of a cluster parameter group.
 type ModifyDBClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of a DB cluster parameter group.
+	// The name of a cluster parameter group.
 	//
 	// Constraints:
 	//
@@ -9789,38 +9775,38 @@ func (s *ModifyDBClusterParameterGroupOutput) SetDBClusterParameterGroupName(v s
 type ModifyDBClusterSnapshotAttributeInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster snapshot attribute to modify.
+	// The name of the cluster snapshot attribute to modify.
 	//
 	// To manage authorization for other AWS accounts to copy or restore a manual
-	// DB cluster snapshot, set this value to restore.
+	// cluster snapshot, set this value to restore.
 	//
 	// AttributeName is a required field
 	AttributeName *string `type:"string" required:"true"`
 
-	// The identifier for the DB cluster snapshot to modify the attributes for.
+	// The identifier for the cluster snapshot to modify the attributes for.
 	//
 	// DBClusterSnapshotIdentifier is a required field
 	DBClusterSnapshotIdentifier *string `type:"string" required:"true"`
 
-	// A list of DB cluster snapshot attributes to add to the attribute specified
-	// by AttributeName.
+	// A list of cluster snapshot attributes to add to the attribute specified by
+	// AttributeName.
 	//
-	// To authorize other AWS accounts to copy or restore a manual DB cluster snapshot,
+	// To authorize other AWS accounts to copy or restore a manual cluster snapshot,
 	// set this list to include one or more AWS account IDs. To make the manual
-	// DB cluster snapshot restorable by any AWS account, set it to all. Do not
-	// add the all value for any manual DB cluster snapshots that contain private
-	// information that you don't want to be available to all AWS accounts.
+	// cluster snapshot restorable by any AWS account, set it to all. Do not add
+	// the all value for any manual cluster snapshots that contain private information
+	// that you don't want to be available to all AWS accounts.
 	ValuesToAdd []*string `locationNameList:"AttributeValue" type:"list"`
 
-	// A list of DB cluster snapshot attributes to remove from the attribute specified
+	// A list of cluster snapshot attributes to remove from the attribute specified
 	// by AttributeName.
 	//
 	// To remove authorization for other AWS accounts to copy or restore a manual
-	// DB cluster snapshot, set this list to include one or more AWS account identifiers.
-	// To remove authorization for any AWS account to copy or restore the DB cluster
+	// cluster snapshot, set this list to include one or more AWS account identifiers.
+	// To remove authorization for any AWS account to copy or restore the cluster
 	// snapshot, set it to all . If you specify all, an AWS account whose account
 	// ID is explicitly added to the restore attribute can still copy or restore
-	// a manual DB cluster snapshot.
+	// a manual cluster snapshot.
 	ValuesToRemove []*string `locationNameList:"AttributeValue" type:"list"`
 }
 
@@ -9877,7 +9863,7 @@ func (s *ModifyDBClusterSnapshotAttributeInput) SetValuesToRemove(v []*string) *
 type ModifyDBClusterSnapshotAttributeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about the attributes that are associated with a DB cluster
+	// Detailed information about the attributes that are associated with a cluster
 	// snapshot.
 	DBClusterSnapshotAttributesResult *DBClusterSnapshotAttributesResult `type:"structure"`
 }
@@ -9904,18 +9890,18 @@ type ModifyDBInstanceInput struct {
 
 	// Specifies whether the modifications in this request and any pending modifications
 	// are asynchronously applied as soon as possible, regardless of the PreferredMaintenanceWindow
-	// setting for the DB instance.
+	// setting for the instance.
 	//
-	// If this parameter is set to false, changes to the DB instance are applied
-	// during the next maintenance window. Some parameter changes can cause an outage
-	// and are applied on the next reboot.
+	// If this parameter is set to false, changes to the instance are applied during
+	// the next maintenance window. Some parameter changes can cause an outage and
+	// are applied on the next reboot.
 	//
 	// Default: false
 	ApplyImmediately *bool `type:"boolean"`
 
-	// Indicates that minor version upgrades are applied automatically to the DB
-	// instance during the maintenance window. Changing this parameter doesn't result
-	// in an outage except in the following case, and the change is asynchronously
+	// Indicates that minor version upgrades are applied automatically to the instance
+	// during the maintenance window. Changing this parameter doesn't result in
+	// an outage except in the following case, and the change is asynchronously
 	// applied as soon as possible. An outage results if this parameter is set to
 	// true during the maintenance window, and a newer minor version is available,
 	// and Amazon DocumentDB has enabled automatic patching for that engine version.
@@ -9924,17 +9910,17 @@ type ModifyDBInstanceInput struct {
 	// Indicates the certificate that needs to be associated with the instance.
 	CACertificateIdentifier *string `type:"string"`
 
-	// The new compute and memory capacity of the DB instance; for example, db.r5.large.
-	// Not all DB instance classes are available in all AWS Regions.
+	// The new compute and memory capacity of the instance; for example, db.r5.large.
+	// Not all instance classes are available in all AWS Regions.
 	//
-	// If you modify the DB instance class, an outage occurs during the change.
-	// The change is applied during the next maintenance window, unless ApplyImmediately
+	// If you modify the instance class, an outage occurs during the change. The
+	// change is applied during the next maintenance window, unless ApplyImmediately
 	// is specified as true for this request.
 	//
 	// Default: Uses existing setting.
 	DBInstanceClass *string `type:"string"`
 
-	// The DB instance identifier. This value is stored as a lowercase string.
+	// The instance identifier. This value is stored as a lowercase string.
 	//
 	// Constraints:
 	//
@@ -9943,8 +9929,8 @@ type ModifyDBInstanceInput struct {
 	// DBInstanceIdentifier is a required field
 	DBInstanceIdentifier *string `type:"string" required:"true"`
 
-	// The new DB instance identifier for the DB instance when renaming a DB instance.
-	// When you change the DB instance identifier, an instance reboot occurs immediately
+	// The new instance identifier for the instance when renaming an instance. When
+	// you change the instance identifier, an instance reboot occurs immediately
 	// if you set Apply Immediately to true. It occurs during the next maintenance
 	// window if you set Apply Immediately to false. This value is stored as a lowercase
 	// string.
@@ -9965,9 +9951,9 @@ type ModifyDBInstanceInput struct {
 	// an outage except in the following situation, and the change is asynchronously
 	// applied as soon as possible. If there are pending actions that cause a reboot,
 	// and the maintenance window is changed to include the current time, changing
-	// this parameter causes a reboot of the DB instance. If you are moving this
-	// window to the current time, there must be at least 30 minutes between the
-	// current time and end of the window to ensure that pending changes are applied.
+	// this parameter causes a reboot of the instance. If you are moving this window
+	// to the current time, there must be at least 30 minutes between the current
+	// time and end of the window to ensure that pending changes are applied.
 	//
 	// Default: Uses existing setting.
 	//
@@ -10062,7 +10048,7 @@ func (s *ModifyDBInstanceInput) SetPromotionTier(v int64) *ModifyDBInstanceInput
 type ModifyDBInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB instance.
+	// Detailed information about an instance.
 	DBInstance *DBInstance `type:"structure"`
 }
 
@@ -10086,10 +10072,10 @@ func (s *ModifyDBInstanceOutput) SetDBInstance(v *DBInstance) *ModifyDBInstanceO
 type ModifyDBSubnetGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The description for the DB subnet group.
+	// The description for the subnet group.
 	DBSubnetGroupDescription *string `type:"string"`
 
-	// The name for the DB subnet group. This value is stored as a lowercase string.
+	// The name for the subnet group. This value is stored as a lowercase string.
 	// You can't modify the default subnet group.
 	//
 	// Constraints: Must match the name of an existing DBSubnetGroup. Must not be
@@ -10100,7 +10086,7 @@ type ModifyDBSubnetGroupInput struct {
 	// DBSubnetGroupName is a required field
 	DBSubnetGroupName *string `type:"string" required:"true"`
 
-	// The Amazon EC2 subnet IDs for the DB subnet group.
+	// The Amazon EC2 subnet IDs for the subnet group.
 	//
 	// SubnetIds is a required field
 	SubnetIds []*string `locationNameList:"SubnetIdentifier" type:"list" required:"true"`
@@ -10153,7 +10139,7 @@ func (s *ModifyDBSubnetGroupInput) SetSubnetIds(v []*string) *ModifyDBSubnetGrou
 type ModifyDBSubnetGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB subnet group.
+	// Detailed information about a subnet group.
 	DBSubnetGroup *DBSubnetGroup `type:"structure"`
 }
 
@@ -10173,26 +10159,26 @@ func (s *ModifyDBSubnetGroupOutput) SetDBSubnetGroup(v *DBSubnetGroup) *ModifyDB
 	return s
 }
 
-// The options that are available for a DB instance.
+// The options that are available for an instance.
 type OrderableDBInstanceOption struct {
 	_ struct{} `type:"structure"`
 
-	// A list of Availability Zones for a DB instance.
+	// A list of Availability Zones for an instance.
 	AvailabilityZones []*AvailabilityZone `locationNameList:"AvailabilityZone" type:"list"`
 
-	// The DB instance class for a DB instance.
+	// The instance class for an instance.
 	DBInstanceClass *string `type:"string"`
 
-	// The engine type of a DB instance.
+	// The engine type of an instance.
 	Engine *string `type:"string"`
 
-	// The engine version of a DB instance.
+	// The engine version of an instance.
 	EngineVersion *string `type:"string"`
 
-	// The license model for a DB instance.
+	// The license model for an instance.
 	LicenseModel *string `type:"string"`
 
-	// Indicates whether a DB instance is in a virtual private cloud (VPC).
+	// Indicates whether an instance is in a virtual private cloud (VPC).
 	Vpc *bool `type:"boolean"`
 }
 
@@ -10461,12 +10447,12 @@ func (s *PendingMaintenanceAction) SetOptInStatus(v string) *PendingMaintenanceA
 	return s
 }
 
-// One or more modified settings for a DB instance. These modified settings
-// have been requested, but haven't been applied yet.
+// One or more modified settings for an instance. These modified settings have
+// been requested, but haven't been applied yet.
 type PendingModifiedValues struct {
 	_ struct{} `type:"structure"`
 
-	// Contains the new AllocatedStorage size for the DB instance that will be applied
+	// Contains the new AllocatedStorage size for then instance that will be applied
 	// or is currently being applied.
 	AllocatedStorage *int64 `type:"integer"`
 
@@ -10477,44 +10463,44 @@ type PendingModifiedValues struct {
 	// the DB instance.
 	CACertificateIdentifier *string `type:"string"`
 
-	// Contains the new DBInstanceClass for the DB instance that will be applied
-	// or is currently being applied.
+	// Contains the new DBInstanceClass for the instance that will be applied or
+	// is currently being applied.
 	DBInstanceClass *string `type:"string"`
 
-	// Contains the new DBInstanceIdentifier for the DB instance that will be applied
+	// Contains the new DBInstanceIdentifier for the instance that will be applied
 	// or is currently being applied.
 	DBInstanceIdentifier *string `type:"string"`
 
-	// The new DB subnet group for the DB instance.
+	// The new subnet group for the instance.
 	DBSubnetGroupName *string `type:"string"`
 
 	// Indicates the database engine version.
 	EngineVersion *string `type:"string"`
 
-	// Specifies the new Provisioned IOPS value for the DB instance that will be
-	// applied or is currently being applied.
+	// Specifies the new Provisioned IOPS value for the instance that will be applied
+	// or is currently being applied.
 	Iops *int64 `type:"integer"`
 
-	// The license model for the DB instance.
+	// The license model for the instance.
 	//
 	// Valid values: license-included, bring-your-own-license, general-public-license
 	LicenseModel *string `type:"string"`
 
 	// Contains the pending or currently in-progress change of the master credentials
-	// for the DB instance.
+	// for the instance.
 	MasterUserPassword *string `type:"string"`
 
-	// Indicates that the Single-AZ DB instance is to change to a Multi-AZ deployment.
+	// Indicates that the Single-AZ instance is to change to a Multi-AZ deployment.
 	MultiAZ *bool `type:"boolean"`
 
 	// A list of the log types whose configuration is still pending. These log types
 	// are in the process of being activated or deactivated.
 	PendingCloudwatchLogsExports *PendingCloudwatchLogsExports `type:"structure"`
 
-	// Specifies the pending port for the DB instance.
+	// Specifies the pending port for the instance.
 	Port *int64 `type:"integer"`
 
-	// Specifies the storage type to be associated with the DB instance.
+	// Specifies the storage type to be associated with the instance.
 	StorageType *string `type:"string"`
 }
 
@@ -10616,7 +10602,7 @@ func (s *PendingModifiedValues) SetStorageType(v string) *PendingModifiedValues 
 type RebootDBInstanceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The DB instance identifier. This parameter is stored as a lowercase string.
+	// The instance identifier. This parameter is stored as a lowercase string.
 	//
 	// Constraints:
 	//
@@ -10670,7 +10656,7 @@ func (s *RebootDBInstanceInput) SetForceFailover(v bool) *RebootDBInstanceInput 
 type RebootDBInstanceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB instance.
+	// Detailed information about an instance.
 	DBInstance *DBInstance `type:"structure"`
 }
 
@@ -10762,17 +10748,17 @@ func (s RemoveTagsFromResourceOutput) GoString() string {
 type ResetDBClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the DB cluster parameter group to reset.
+	// The name of the cluster parameter group to reset.
 	//
 	// DBClusterParameterGroupName is a required field
 	DBClusterParameterGroupName *string `type:"string" required:"true"`
 
-	// A list of parameter names in the DB cluster parameter group to reset to the
+	// A list of parameter names in the cluster parameter group to reset to the
 	// default values. You can't use this parameter if the ResetAllParameters parameter
 	// is set to true.
 	Parameters []*Parameter `locationNameList:"Parameter" type:"list"`
 
-	// A value that is set to true to reset all parameters in the DB cluster parameter
+	// A value that is set to true to reset all parameters in the cluster parameter
 	// group to their default values, and false otherwise. You can't use this parameter
 	// if there is a list of parameter names specified for the Parameters parameter.
 	ResetAllParameters *bool `type:"boolean"`
@@ -10819,11 +10805,11 @@ func (s *ResetDBClusterParameterGroupInput) SetResetAllParameters(v bool) *Reset
 	return s
 }
 
-// Contains the name of a DB cluster parameter group.
+// Contains the name of a cluster parameter group.
 type ResetDBClusterParameterGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of a DB cluster parameter group.
+	// The name of a cluster parameter group.
 	//
 	// Constraints:
 	//
@@ -10896,7 +10882,7 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// restored DB cluster can be created in.
 	AvailabilityZones []*string `locationNameList:"AvailabilityZone" type:"list"`
 
-	// The name of the DB cluster to create from the DB snapshot or DB cluster snapshot.
+	// The name of the cluster to create from the snapshot or cluster snapshot.
 	// This parameter isn't case sensitive.
 	//
 	// Constraints:
@@ -10912,7 +10898,7 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The name of the DB subnet group to use for the new DB cluster.
+	// The name of the subnet group to use for the new cluster.
 	//
 	// Constraints: If provided, must match the name of an existing DBSubnetGroup.
 	//
@@ -10929,7 +10915,7 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
 
-	// The database engine to use for the new DB cluster.
+	// The database engine to use for the new cluster.
 	//
 	// Default: The same as source.
 	//
@@ -10938,41 +10924,40 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// Engine is a required field
 	Engine *string `type:"string" required:"true"`
 
-	// The version of the database engine to use for the new DB cluster.
+	// The version of the database engine to use for the new cluster.
 	EngineVersion *string `type:"string"`
 
-	// The AWS KMS key identifier to use when restoring an encrypted DB cluster
-	// from a DB snapshot or DB cluster snapshot.
+	// The AWS KMS key identifier to use when restoring an encrypted cluster from
+	// a DB snapshot or cluster snapshot.
 	//
 	// The AWS KMS key identifier is the Amazon Resource Name (ARN) for the AWS
-	// KMS encryption key. If you are restoring a DB cluster with the same AWS account
-	// that owns the AWS KMS encryption key used to encrypt the new DB cluster,
-	// then you can use the AWS KMS key alias instead of the ARN for the AWS KMS
-	// encryption key.
+	// KMS encryption key. If you are restoring a cluster with the same AWS account
+	// that owns the AWS KMS encryption key used to encrypt the new cluster, then
+	// you can use the AWS KMS key alias instead of the ARN for the AWS KMS encryption
+	// key.
 	//
 	// If you do not specify a value for the KmsKeyId parameter, then the following
 	// occurs:
 	//
-	//    * If the DB snapshot or DB cluster snapshot in SnapshotIdentifier is encrypted,
-	//    then the restored DB cluster is encrypted using the AWS KMS key that was
-	//    used to encrypt the DB snapshot or the DB cluster snapshot.
+	//    * If the snapshot or cluster snapshot in SnapshotIdentifier is encrypted,
+	//    then the restored cluster is encrypted using the AWS KMS key that was
+	//    used to encrypt the snapshot or the cluster snapshot.
 	//
-	//    * If the DB snapshot or the DB cluster snapshot in SnapshotIdentifier
-	//    is not encrypted, then the restored DB cluster is not encrypted.
+	//    * If the snapshot or the cluster snapshot in SnapshotIdentifier is not
+	//    encrypted, then the restored DB cluster is not encrypted.
 	KmsKeyId *string `type:"string"`
 
-	// The port number on which the new DB cluster accepts connections.
+	// The port number on which the new cluster accepts connections.
 	//
 	// Constraints: Must be a value from 1150 to 65535.
 	//
-	// Default: The same port as the original DB cluster.
+	// Default: The same port as the original cluster.
 	Port *int64 `type:"integer"`
 
-	// The identifier for the DB snapshot or DB cluster snapshot to restore from.
+	// The identifier for the snapshot or cluster snapshot to restore from.
 	//
 	// You can use either the name or the Amazon Resource Name (ARN) to specify
-	// a DB cluster snapshot. However, you can use only the ARN to specify a DB
-	// snapshot.
+	// a cluster snapshot. However, you can use only the ARN to specify a snapshot.
 	//
 	// Constraints:
 	//
@@ -10981,10 +10966,10 @@ type RestoreDBClusterFromSnapshotInput struct {
 	// SnapshotIdentifier is a required field
 	SnapshotIdentifier *string `type:"string" required:"true"`
 
-	// The tags to be assigned to the restored DB cluster.
+	// The tags to be assigned to the restored cluster.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
-	// A list of virtual private cloud (VPC) security groups that the new DB cluster
+	// A list of virtual private cloud (VPC) security groups that the new cluster
 	// will belong to.
 	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
@@ -11093,7 +11078,7 @@ func (s *RestoreDBClusterFromSnapshotInput) SetVpcSecurityGroupIds(v []*string) 
 type RestoreDBClusterFromSnapshotOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -11117,7 +11102,7 @@ func (s *RestoreDBClusterFromSnapshotOutput) SetDBCluster(v *DBCluster) *Restore
 type RestoreDBClusterToPointInTimeInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the new DB cluster to be created.
+	// The name of the new cluster to be created.
 	//
 	// Constraints:
 	//
@@ -11130,7 +11115,7 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// DBClusterIdentifier is a required field
 	DBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The DB subnet group name to use for the new DB cluster.
+	// The subnet group name to use for the new cluster.
 	//
 	// Constraints: If provided, must match the name of an existing DBSubnetGroup.
 	//
@@ -11147,47 +11132,46 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// Logs.
 	EnableCloudwatchLogsExports []*string `type:"list"`
 
-	// The AWS KMS key identifier to use when restoring an encrypted DB cluster
-	// from an encrypted DB cluster.
+	// The AWS KMS key identifier to use when restoring an encrypted cluster from
+	// an encrypted cluster.
 	//
 	// The AWS KMS key identifier is the Amazon Resource Name (ARN) for the AWS
-	// KMS encryption key. If you are restoring a DB cluster with the same AWS account
-	// that owns the AWS KMS encryption key used to encrypt the new DB cluster,
-	// then you can use the AWS KMS key alias instead of the ARN for the AWS KMS
-	// encryption key.
+	// KMS encryption key. If you are restoring a cluster with the same AWS account
+	// that owns the AWS KMS encryption key used to encrypt the new cluster, then
+	// you can use the AWS KMS key alias instead of the ARN for the AWS KMS encryption
+	// key.
 	//
-	// You can restore to a new DB cluster and encrypt the new DB cluster with an
-	// AWS KMS key that is different from the AWS KMS key used to encrypt the source
-	// DB cluster. The new DB cluster is encrypted with the AWS KMS key identified
+	// You can restore to a new cluster and encrypt the new cluster with an AWS
+	// KMS key that is different from the AWS KMS key used to encrypt the source
+	// cluster. The new DB cluster is encrypted with the AWS KMS key identified
 	// by the KmsKeyId parameter.
 	//
 	// If you do not specify a value for the KmsKeyId parameter, then the following
 	// occurs:
 	//
-	//    * If the DB cluster is encrypted, then the restored DB cluster is encrypted
-	//    using the AWS KMS key that was used to encrypt the source DB cluster.
+	//    * If the cluster is encrypted, then the restored cluster is encrypted
+	//    using the AWS KMS key that was used to encrypt the source cluster.
 	//
-	//    * If the DB cluster is not encrypted, then the restored DB cluster is
-	//    not encrypted.
+	//    * If the cluster is not encrypted, then the restored cluster is not encrypted.
 	//
-	// If DBClusterIdentifier refers to a DB cluster that is not encrypted, then
-	// the restore request is rejected.
+	// If DBClusterIdentifier refers to a cluster that is not encrypted, then the
+	// restore request is rejected.
 	KmsKeyId *string `type:"string"`
 
-	// The port number on which the new DB cluster accepts connections.
+	// The port number on which the new cluster accepts connections.
 	//
 	// Constraints: Must be a value from 1150 to 65535.
 	//
 	// Default: The default port for the engine.
 	Port *int64 `type:"integer"`
 
-	// The date and time to restore the DB cluster to.
+	// The date and time to restore the cluster to.
 	//
 	// Valid values: A time in Universal Coordinated Time (UTC) format.
 	//
 	// Constraints:
 	//
-	//    * Must be before the latest restorable time for the DB instance.
+	//    * Must be before the latest restorable time for the instance.
 	//
 	//    * Must be specified if the UseLatestRestorableTime parameter is not provided.
 	//
@@ -11198,7 +11182,7 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// Example: 2015-03-07T23:45:00Z
 	RestoreToTime *time.Time `type:"timestamp"`
 
-	// The identifier of the source DB cluster from which to restore.
+	// The identifier of the source cluster from which to restore.
 	//
 	// Constraints:
 	//
@@ -11207,10 +11191,10 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// SourceDBClusterIdentifier is a required field
 	SourceDBClusterIdentifier *string `type:"string" required:"true"`
 
-	// The tags to be assigned to the restored DB cluster.
+	// The tags to be assigned to the restored cluster.
 	Tags []*Tag `locationNameList:"Tag" type:"list"`
 
-	// A value that is set to true to restore the DB cluster to the latest restorable
+	// A value that is set to true to restore the cluster to the latest restorable
 	// backup time, and false otherwise.
 	//
 	// Default: false
@@ -11218,7 +11202,7 @@ type RestoreDBClusterToPointInTimeInput struct {
 	// Constraints: Cannot be specified if the RestoreToTime parameter is provided.
 	UseLatestRestorableTime *bool `type:"boolean"`
 
-	// A list of VPC security groups that the new DB cluster belongs to.
+	// A list of VPC security groups that the new cluster belongs to.
 	VpcSecurityGroupIds []*string `locationNameList:"VpcSecurityGroupId" type:"list"`
 }
 
@@ -11317,7 +11301,7 @@ func (s *RestoreDBClusterToPointInTimeInput) SetVpcSecurityGroupIds(v []*string)
 type RestoreDBClusterToPointInTimeOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -11378,7 +11362,7 @@ func (s *StartDBClusterInput) SetDBClusterIdentifier(v string) *StartDBClusterIn
 type StartDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -11439,7 +11423,7 @@ func (s *StopDBClusterInput) SetDBClusterIdentifier(v string) *StopDBClusterInpu
 type StopDBClusterOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Detailed information about a DB cluster.
+	// Detailed information about a cluster.
 	DBCluster *DBCluster `type:"structure"`
 }
 
@@ -11541,7 +11525,7 @@ func (s *Tag) SetValue(v string) *Tag {
 	return s
 }
 
-// The version of the database engine that a DB instance can be upgraded to.
+// The version of the database engine that an instance can be upgraded to.
 type UpgradeTarget struct {
 	_ struct{} `type:"structure"`
 
@@ -11549,7 +11533,7 @@ type UpgradeTarget struct {
 	// DB instances that have AutoMinorVersionUpgrade set to true.
 	AutoUpgrade *bool `type:"boolean"`
 
-	// The version of the database engine that a DB instance can be upgraded to.
+	// The version of the database engine that an instance can be upgraded to.
 	Description *string `type:"string"`
 
 	// The name of the upgrade target database engine.

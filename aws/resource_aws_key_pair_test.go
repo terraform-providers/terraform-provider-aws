@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
@@ -60,7 +60,8 @@ func testSweepKeyPairs(region string) error {
 func TestAccAWSKeyPair_basic(t *testing.T) {
 	var keyPair ec2.KeyPairInfo
 	fingerprint := "d7:ff:a6:63:18:64:9c:57:a1:ee:ca:a4:ad:c2:81:62"
-	resourceName := "aws_key_pair.a_key_pair"
+	resourceName := "aws_key_pair.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,12 +69,13 @@ func TestAccAWSKeyPair_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSKeyPairConfig,
+				Config: testAccAWSKeyPairConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ec2", fmt.Sprintf("key-pair/%s", rName)),
 					testAccCheckAWSKeyPairFingerprint(&keyPair, fingerprint),
 					resource.TestCheckResourceAttr(resourceName, "fingerprint", fingerprint),
-					resource.TestCheckResourceAttr(resourceName, "key_name", "tf-acc-key-pair"),
+					resource.TestCheckResourceAttr(resourceName, "key_name", rName),
 				),
 			},
 			{
@@ -88,7 +90,8 @@ func TestAccAWSKeyPair_basic(t *testing.T) {
 
 func TestAccAWSKeyPair_tags(t *testing.T) {
 	var keyPair ec2.KeyPairInfo
-	resourceName := "aws_key_pair.a_key_pair"
+	resourceName := "aws_key_pair.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,7 +99,7 @@ func TestAccAWSKeyPair_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSKeyPairConfigTags1("key1", "value1"),
+				Config: testAccAWSKeyPairConfigTags1(rName, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -110,7 +113,7 @@ func TestAccAWSKeyPair_tags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"public_key"},
 			},
 			{
-				Config: testAccAWSKeyPairConfigTags2("key1", "value1updated", "key2", "value2"),
+				Config: testAccAWSKeyPairConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -119,7 +122,7 @@ func TestAccAWSKeyPair_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSKeyPairConfigTags1("key2", "value2"),
+				Config: testAccAWSKeyPairConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -132,7 +135,7 @@ func TestAccAWSKeyPair_tags(t *testing.T) {
 
 func TestAccAWSKeyPair_generatedName(t *testing.T) {
 	var keyPair ec2.KeyPairInfo
-	resourceName := "aws_key_pair.a_key_pair"
+	resourceName := "aws_key_pair.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -159,11 +162,11 @@ func TestAccAWSKeyPair_generatedName(t *testing.T) {
 
 func TestAccAWSKeyPair_namePrefix(t *testing.T) {
 	var keyPair ec2.KeyPairInfo
-	resourceName := "aws_key_pair.a_key_pair"
+	resourceName := "aws_key_pair.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
-		IDRefreshName:   "aws_key_pair.a_key_pair",
+		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"key_name_prefix"},
 		Providers:       testAccProviders,
 		CheckDestroy:    testAccCheckAWSKeyPairDestroy,
@@ -188,7 +191,8 @@ func TestAccAWSKeyPair_namePrefix(t *testing.T) {
 
 func TestAccAWSKeyPair_disappears(t *testing.T) {
 	var keyPair ec2.KeyPairInfo
-	resourceName := "aws_key_pair.a_key_pair"
+	resourceName := "aws_key_pair.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -196,10 +200,10 @@ func TestAccAWSKeyPair_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAWSKeyPairDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSKeyPairConfig,
+				Config: testAccAWSKeyPairConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
-					testAccCheckAWSKeyPairDisappears(&keyPair),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsKeyPair(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -226,32 +230,12 @@ func testAccCheckAWSKeyPairDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		// Verify the error is what we want
-		ec2err, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if ec2err.Code() != "InvalidKeyPair.NotFound" {
+		if !isAWSErr(err, "InvalidKeyPair.NotFound", "") {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func testAccCheckAWSKeyPairDisappears(keyPair *ec2.KeyPairInfo) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		req := &ec2.DeleteKeyPairInput{
-			KeyName: keyPair.KeyName,
-		}
-		if _, err := conn.DeleteKeyPair(req); err != nil {
-			return err
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckAWSKeyPairFingerprint(conf *ec2.KeyPairInfo, expectedFingerprint string) resource.TestCheckFunc {
@@ -292,7 +276,7 @@ func testAccCheckAWSKeyPairExists(n string, res *ec2.KeyPairInfo) resource.TestC
 			return err
 		}
 		if len(resp.KeyPairs) != 1 ||
-			*resp.KeyPairs[0].KeyName != rs.Primary.ID {
+			aws.StringValue(resp.KeyPairs[0].KeyName) != rs.Primary.ID {
 			return fmt.Errorf("KeyPair not found")
 		}
 
@@ -302,48 +286,50 @@ func testAccCheckAWSKeyPairExists(n string, res *ec2.KeyPairInfo) resource.TestC
 	}
 }
 
-const testAccAWSKeyPairConfig = `
-resource "aws_key_pair" "a_key_pair" {
-  key_name   = "tf-acc-key-pair"
+func testAccAWSKeyPairConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_key_pair" "test" {
+  key_name   = %[1]q
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 }
-`
+`, rName)
+}
 
-func testAccAWSKeyPairConfigTags1(tagKey1, tagValue1 string) string {
+func testAccAWSKeyPairConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
-resource "aws_key_pair" "a_key_pair" {
-  key_name   = "tf-acc-key-pair"
+resource "aws_key_pair" "test" {
+  key_name   = %[1]q
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 
   tags = {
-    %[1]q = %[2]q
+    %[2]q = %[3]q
   }
 }
-`, tagKey1, tagValue1)
+`, rName, tagKey1, tagValue1)
 }
 
-func testAccAWSKeyPairConfigTags2(tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+func testAccAWSKeyPairConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
-resource "aws_key_pair" "a_key_pair" {
-  key_name   = "tf-acc-key-pair"
+resource "aws_key_pair" "test" {
+  key_name   = %[1]q
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 
   tags = {
-    %[1]q = %[2]q
-    %[3]q = %[4]q
+    %[2]q = %[3]q
+    %[4]q = %[5]q
   }
 }
-`, tagKey1, tagValue1, tagKey2, tagValue2)
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 const testAccAWSKeyPairConfig_generatedName = `
-resource "aws_key_pair" "a_key_pair" {
+resource "aws_key_pair" "test" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 }
 `
 
 const testAccCheckAWSKeyPairPrefixNameConfig = `
-resource "aws_key_pair" "a_key_pair" {
+resource "aws_key_pair" "test" {
   key_name_prefix   = "baz-"
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 }

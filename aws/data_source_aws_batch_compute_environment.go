@@ -17,7 +17,6 @@ func dataSourceAwsBatchComputeEnvironment() *schema.Resource {
 			"compute_environment_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"arn": {

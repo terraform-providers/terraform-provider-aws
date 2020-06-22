@@ -58,8 +58,12 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"force_update_version": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"instance_types": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -201,8 +205,8 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.DiskSize = aws.Int64(int64(v.(int)))
 	}
 
-	if v := d.Get("instance_types").(*schema.Set); v.Len() > 0 {
-		input.InstanceTypes = expandStringSet(v)
+	if v := d.Get("instance_types").([]interface{}); len(v) > 0 {
+		input.InstanceTypes = expandStringList(v)
 	}
 
 	if v := d.Get("labels").(map[string]interface{}); len(v) > 0 {
@@ -255,6 +259,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, nodeGroupName, err := resourceAwsEksNodeGroupParseId(d.Id())
 	if err != nil {
@@ -320,7 +325,7 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting subnets: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -337,7 +342,7 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if d.HasChange("labels") || d.HasChange("scaling_config") {
+	if d.HasChanges("labels", "scaling_config") {
 		oldLabelsRaw, newLabelsRaw := d.GetChange("labels")
 
 		input := &eks.UpdateNodegroupConfigInput{
@@ -369,15 +374,15 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("release_version") || d.HasChange("version") {
+	if d.HasChanges("release_version", "version") {
 		input := &eks.UpdateNodegroupVersionInput{
 			ClientRequestToken: aws.String(resource.UniqueId()),
 			ClusterName:        aws.String(clusterName),
-			Force:              aws.Bool(false),
+			Force:              aws.Bool(d.Get("force_update_version").(bool)),
 			NodegroupName:      aws.String(nodeGroupName),
 		}
 
-		if v, ok := d.GetOk("release_version"); ok {
+		if v, ok := d.GetOk("release_version"); ok && d.HasChange("release_version") {
 			input.ReleaseVersion = aws.String(v.(string))
 		}
 

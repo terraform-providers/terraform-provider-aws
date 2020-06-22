@@ -135,7 +135,7 @@ The following arguments are supported:
 * `enable_sso` - (Optional) Whether to enable single-sign on for the directory. Requires `alias`. Defaults to `false`.
 * `type` (Optional) - The directory type (`SimpleAD`, `ADConnector` or `MicrosoftAD` are accepted values). Defaults to `SimpleAD`.
 * `edition` - (Optional) The MicrosoftAD edition (`Standard` or `Enterprise`). Defaults to `Enterprise` (applies to MicrosoftAD type only).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 **vpc_settings** supports the following:
 
@@ -158,6 +158,9 @@ In addition to all arguments above, the following attributes are exported:
 * `dns_ip_addresses` - A list of IP addresses of the DNS servers for the directory or connector.
 * `security_group_id` - The ID of the security group created by the directory.
 
+`connect_settings` (for `ADConnector`) is also exported with the following attributes:
+
+ * `connect_ips` - The IP addresses of the AD Connector servers.
 
 ## Import
 

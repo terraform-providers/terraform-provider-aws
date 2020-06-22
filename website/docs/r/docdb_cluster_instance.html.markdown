@@ -61,7 +61,7 @@ The following arguments are supported:
 * `preferred_maintenance_window` - (Optional) The window to perform maintenance in.
   Syntax: "ddd:hh24:mi-ddd:hh24:mi". Eg: "Mon:00:00-Mon:03:00".
 * `promotion_tier` - (Optional) Default 0. Failover Priority setting on instance level. The reader who has lower tier has higher priority to get promoter to writer.
-* `tags` - (Optional) A mapping of tags to assign to the instance.
+* `tags` - (Optional) A map of tags to assign to the instance.
 
 ## Attributes Reference
 

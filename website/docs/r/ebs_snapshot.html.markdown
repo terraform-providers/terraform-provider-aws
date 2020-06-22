@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `volume_id` - (Required) The Volume ID of which to make a snapshot.
 * `description` - (Optional) A description of what the snapshot is.
-* `tags` - (Optional) A mapping of tags to assign to the snapshot
+* `tags` - (Optional) A map of tags to assign to the snapshot
 
 ### Timeouts
 
@@ -58,4 +58,4 @@ In addition to all arguments above, the following attributes are exported:
 * `volume_size` - The size of the drive in GiBs.
 * `kms_key_id` - The ARN for the KMS encryption key.
 * `data_encryption_key_id` - The data encryption key identifier for the snapshot.
-* `tags` - A mapping of tags for the snapshot.
+* `tags` - A map of tags for the snapshot.

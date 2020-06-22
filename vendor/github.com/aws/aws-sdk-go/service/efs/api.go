@@ -2280,8 +2280,8 @@ func (c *EFS) PutFileSystemPolicyRequest(input *PutFileSystemPolicyInput) (req *
 // statements. A file system always has exactly one file system policy, which
 // can be the default policy or an explicit policy set or updated using this
 // API operation. When an explicit policy is set, it overrides the default policy.
-// For more information about the default file system policy, see Using Resource-based
-// Policies with EFS (https://docs.aws.amazon.com/efs/latest/ug/res-based-policies-efs.html).
+// For more information about the default file system policy, see Default EFS
+// File System Policy (https://docs.aws.amazon.com/efs/latest/ug/iam-access-control-nfs-efs.html#default-filesystempolicy).
 //
 // This operation requires permissions for the elasticfilesystem:PutFileSystemPolicy
 // action.
@@ -2749,8 +2749,8 @@ func (c *EFS) UpdateFileSystemWithContext(ctx aws.Context, input *UpdateFileSyst
 // Returned if the access point you are trying to create already exists, with
 // the creation token you provided in the request.
 type AccessPointAlreadyExists struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// AccessPointId is a required field
 	AccessPointId *string `type:"string" required:"true"`
@@ -2773,17 +2773,17 @@ func (s AccessPointAlreadyExists) GoString() string {
 
 func newErrorAccessPointAlreadyExists(v protocol.ResponseMetadata) error {
 	return &AccessPointAlreadyExists{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessPointAlreadyExists) Code() string {
+func (s *AccessPointAlreadyExists) Code() string {
 	return "AccessPointAlreadyExists"
 }
 
 // Message returns the exception's message.
-func (s AccessPointAlreadyExists) Message() string {
+func (s *AccessPointAlreadyExists) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2791,22 +2791,22 @@ func (s AccessPointAlreadyExists) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessPointAlreadyExists) OrigErr() error {
+func (s *AccessPointAlreadyExists) OrigErr() error {
 	return nil
 }
 
-func (s AccessPointAlreadyExists) Error() string {
+func (s *AccessPointAlreadyExists) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessPointAlreadyExists) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessPointAlreadyExists) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessPointAlreadyExists) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessPointAlreadyExists) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Provides a description of an EFS file system access point.
@@ -2920,8 +2920,8 @@ func (s *AccessPointDescription) SetTags(v []*Tag) *AccessPointDescription {
 // Returned if the AWS account has already created the maximum number of access
 // points allowed per file system.
 type AccessPointLimitExceeded struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -2941,17 +2941,17 @@ func (s AccessPointLimitExceeded) GoString() string {
 
 func newErrorAccessPointLimitExceeded(v protocol.ResponseMetadata) error {
 	return &AccessPointLimitExceeded{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessPointLimitExceeded) Code() string {
+func (s *AccessPointLimitExceeded) Code() string {
 	return "AccessPointLimitExceeded"
 }
 
 // Message returns the exception's message.
-func (s AccessPointLimitExceeded) Message() string {
+func (s *AccessPointLimitExceeded) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2959,29 +2959,29 @@ func (s AccessPointLimitExceeded) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessPointLimitExceeded) OrigErr() error {
+func (s *AccessPointLimitExceeded) OrigErr() error {
 	return nil
 }
 
-func (s AccessPointLimitExceeded) Error() string {
+func (s *AccessPointLimitExceeded) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessPointLimitExceeded) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessPointLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessPointLimitExceeded) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessPointLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the specified AccessPointId value doesn't exist in the requester's
 // AWS account.
 type AccessPointNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -3001,17 +3001,17 @@ func (s AccessPointNotFound) GoString() string {
 
 func newErrorAccessPointNotFound(v protocol.ResponseMetadata) error {
 	return &AccessPointNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessPointNotFound) Code() string {
+func (s *AccessPointNotFound) Code() string {
 	return "AccessPointNotFound"
 }
 
 // Message returns the exception's message.
-func (s AccessPointNotFound) Message() string {
+func (s *AccessPointNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3019,29 +3019,29 @@ func (s AccessPointNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessPointNotFound) OrigErr() error {
+func (s *AccessPointNotFound) OrigErr() error {
 	return nil
 }
 
-func (s AccessPointNotFound) Error() string {
+func (s *AccessPointNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessPointNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessPointNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessPointNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessPointNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the request is malformed or contains an error such as an invalid
 // parameter value or a missing required parameter.
 type BadRequest struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -3061,17 +3061,17 @@ func (s BadRequest) GoString() string {
 
 func newErrorBadRequest(v protocol.ResponseMetadata) error {
 	return &BadRequest{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s BadRequest) Code() string {
+func (s *BadRequest) Code() string {
 	return "BadRequest"
 }
 
 // Message returns the exception's message.
-func (s BadRequest) Message() string {
+func (s *BadRequest) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -3079,22 +3079,22 @@ func (s BadRequest) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s BadRequest) OrigErr() error {
+func (s *BadRequest) OrigErr() error {
 	return nil
 }
 
-func (s BadRequest) Error() string {
+func (s *BadRequest) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s BadRequest) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *BadRequest) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s BadRequest) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *BadRequest) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CreateAccessPointInput struct {
@@ -3340,6 +3340,9 @@ type CreateFileSystemInput struct {
 	//
 	// If KmsKeyId is specified, the CreateFileSystemRequest$Encrypted parameter
 	// must be set to true.
+	//
+	// EFS accepts only symmetric CMKs. You cannot use asymmetric CMKs with EFS
+	// file systems.
 	KmsKeyId *string `min:"1" type:"string"`
 
 	// The performance mode of the file system. We recommend generalPurpose performance
@@ -3977,8 +3980,8 @@ func (s DeleteTagsOutput) GoString() string {
 // The service timed out trying to fulfill the request, and the client should
 // try the call again.
 type DependencyTimeout struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -3998,17 +4001,17 @@ func (s DependencyTimeout) GoString() string {
 
 func newErrorDependencyTimeout(v protocol.ResponseMetadata) error {
 	return &DependencyTimeout{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DependencyTimeout) Code() string {
+func (s *DependencyTimeout) Code() string {
 	return "DependencyTimeout"
 }
 
 // Message returns the exception's message.
-func (s DependencyTimeout) Message() string {
+func (s *DependencyTimeout) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4016,22 +4019,22 @@ func (s DependencyTimeout) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DependencyTimeout) OrigErr() error {
+func (s *DependencyTimeout) OrigErr() error {
 	return nil
 }
 
-func (s DependencyTimeout) Error() string {
+func (s *DependencyTimeout) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DependencyTimeout) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DependencyTimeout) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DependencyTimeout) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DependencyTimeout) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type DescribeAccessPointsInput struct {
@@ -4699,8 +4702,8 @@ func (s *DescribeTagsOutput) SetTags(v []*Tag) *DescribeTagsOutput {
 // Returned if the file system you are trying to create already exists, with
 // the creation token you provided.
 type FileSystemAlreadyExists struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -4723,17 +4726,17 @@ func (s FileSystemAlreadyExists) GoString() string {
 
 func newErrorFileSystemAlreadyExists(v protocol.ResponseMetadata) error {
 	return &FileSystemAlreadyExists{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s FileSystemAlreadyExists) Code() string {
+func (s *FileSystemAlreadyExists) Code() string {
 	return "FileSystemAlreadyExists"
 }
 
 // Message returns the exception's message.
-func (s FileSystemAlreadyExists) Message() string {
+func (s *FileSystemAlreadyExists) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4741,22 +4744,22 @@ func (s FileSystemAlreadyExists) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s FileSystemAlreadyExists) OrigErr() error {
+func (s *FileSystemAlreadyExists) OrigErr() error {
 	return nil
 }
 
-func (s FileSystemAlreadyExists) Error() string {
+func (s *FileSystemAlreadyExists) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s FileSystemAlreadyExists) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *FileSystemAlreadyExists) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s FileSystemAlreadyExists) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *FileSystemAlreadyExists) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A description of the file system.
@@ -4943,8 +4946,8 @@ func (s *FileSystemDescription) SetThroughputMode(v string) *FileSystemDescripti
 
 // Returned if a file system has mount targets.
 type FileSystemInUse struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -4964,17 +4967,17 @@ func (s FileSystemInUse) GoString() string {
 
 func newErrorFileSystemInUse(v protocol.ResponseMetadata) error {
 	return &FileSystemInUse{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s FileSystemInUse) Code() string {
+func (s *FileSystemInUse) Code() string {
 	return "FileSystemInUse"
 }
 
 // Message returns the exception's message.
-func (s FileSystemInUse) Message() string {
+func (s *FileSystemInUse) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4982,29 +4985,29 @@ func (s FileSystemInUse) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s FileSystemInUse) OrigErr() error {
+func (s *FileSystemInUse) OrigErr() error {
 	return nil
 }
 
-func (s FileSystemInUse) Error() string {
+func (s *FileSystemInUse) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s FileSystemInUse) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *FileSystemInUse) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s FileSystemInUse) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *FileSystemInUse) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the AWS account has already created the maximum number of file
 // systems allowed per account.
 type FileSystemLimitExceeded struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5024,17 +5027,17 @@ func (s FileSystemLimitExceeded) GoString() string {
 
 func newErrorFileSystemLimitExceeded(v protocol.ResponseMetadata) error {
 	return &FileSystemLimitExceeded{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s FileSystemLimitExceeded) Code() string {
+func (s *FileSystemLimitExceeded) Code() string {
 	return "FileSystemLimitExceeded"
 }
 
 // Message returns the exception's message.
-func (s FileSystemLimitExceeded) Message() string {
+func (s *FileSystemLimitExceeded) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5042,29 +5045,29 @@ func (s FileSystemLimitExceeded) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s FileSystemLimitExceeded) OrigErr() error {
+func (s *FileSystemLimitExceeded) OrigErr() error {
 	return nil
 }
 
-func (s FileSystemLimitExceeded) Error() string {
+func (s *FileSystemLimitExceeded) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s FileSystemLimitExceeded) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *FileSystemLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s FileSystemLimitExceeded) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *FileSystemLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the specified FileSystemId value doesn't exist in the requester's
 // AWS account.
 type FileSystemNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5084,17 +5087,17 @@ func (s FileSystemNotFound) GoString() string {
 
 func newErrorFileSystemNotFound(v protocol.ResponseMetadata) error {
 	return &FileSystemNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s FileSystemNotFound) Code() string {
+func (s *FileSystemNotFound) Code() string {
 	return "FileSystemNotFound"
 }
 
 // Message returns the exception's message.
-func (s FileSystemNotFound) Message() string {
+func (s *FileSystemNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5102,22 +5105,22 @@ func (s FileSystemNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s FileSystemNotFound) OrigErr() error {
+func (s *FileSystemNotFound) OrigErr() error {
 	return nil
 }
 
-func (s FileSystemNotFound) Error() string {
+func (s *FileSystemNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s FileSystemNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *FileSystemNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s FileSystemNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *FileSystemNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The latest known metered size (in bytes) of data stored in the file system,
@@ -5185,8 +5188,8 @@ func (s *FileSystemSize) SetValueInStandard(v int64) *FileSystemSize {
 
 // Returned if the file system's lifecycle state is not "available".
 type IncorrectFileSystemLifeCycleState struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5206,17 +5209,17 @@ func (s IncorrectFileSystemLifeCycleState) GoString() string {
 
 func newErrorIncorrectFileSystemLifeCycleState(v protocol.ResponseMetadata) error {
 	return &IncorrectFileSystemLifeCycleState{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IncorrectFileSystemLifeCycleState) Code() string {
+func (s *IncorrectFileSystemLifeCycleState) Code() string {
 	return "IncorrectFileSystemLifeCycleState"
 }
 
 // Message returns the exception's message.
-func (s IncorrectFileSystemLifeCycleState) Message() string {
+func (s *IncorrectFileSystemLifeCycleState) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5224,28 +5227,28 @@ func (s IncorrectFileSystemLifeCycleState) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IncorrectFileSystemLifeCycleState) OrigErr() error {
+func (s *IncorrectFileSystemLifeCycleState) OrigErr() error {
 	return nil
 }
 
-func (s IncorrectFileSystemLifeCycleState) Error() string {
+func (s *IncorrectFileSystemLifeCycleState) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IncorrectFileSystemLifeCycleState) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IncorrectFileSystemLifeCycleState) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IncorrectFileSystemLifeCycleState) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IncorrectFileSystemLifeCycleState) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the mount target is not in the correct state for the operation.
 type IncorrectMountTargetState struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5265,17 +5268,17 @@ func (s IncorrectMountTargetState) GoString() string {
 
 func newErrorIncorrectMountTargetState(v protocol.ResponseMetadata) error {
 	return &IncorrectMountTargetState{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IncorrectMountTargetState) Code() string {
+func (s *IncorrectMountTargetState) Code() string {
 	return "IncorrectMountTargetState"
 }
 
 // Message returns the exception's message.
-func (s IncorrectMountTargetState) Message() string {
+func (s *IncorrectMountTargetState) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5283,22 +5286,22 @@ func (s IncorrectMountTargetState) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IncorrectMountTargetState) OrigErr() error {
+func (s *IncorrectMountTargetState) OrigErr() error {
 	return nil
 }
 
-func (s IncorrectMountTargetState) Error() string {
+func (s *IncorrectMountTargetState) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IncorrectMountTargetState) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IncorrectMountTargetState) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IncorrectMountTargetState) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IncorrectMountTargetState) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if there's not enough capacity to provision additional throughput.
@@ -5307,8 +5310,8 @@ func (s IncorrectMountTargetState) RequestID() string {
 // of an existing file system, or when you attempt to change an existing file
 // system from bursting to provisioned throughput mode.
 type InsufficientThroughputCapacity struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5328,17 +5331,17 @@ func (s InsufficientThroughputCapacity) GoString() string {
 
 func newErrorInsufficientThroughputCapacity(v protocol.ResponseMetadata) error {
 	return &InsufficientThroughputCapacity{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InsufficientThroughputCapacity) Code() string {
+func (s *InsufficientThroughputCapacity) Code() string {
 	return "InsufficientThroughputCapacity"
 }
 
 // Message returns the exception's message.
-func (s InsufficientThroughputCapacity) Message() string {
+func (s *InsufficientThroughputCapacity) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5346,28 +5349,28 @@ func (s InsufficientThroughputCapacity) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InsufficientThroughputCapacity) OrigErr() error {
+func (s *InsufficientThroughputCapacity) OrigErr() error {
 	return nil
 }
 
-func (s InsufficientThroughputCapacity) Error() string {
+func (s *InsufficientThroughputCapacity) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InsufficientThroughputCapacity) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InsufficientThroughputCapacity) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InsufficientThroughputCapacity) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InsufficientThroughputCapacity) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if an error occurred on the server side.
 type InternalServerError struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5387,17 +5390,17 @@ func (s InternalServerError) GoString() string {
 
 func newErrorInternalServerError(v protocol.ResponseMetadata) error {
 	return &InternalServerError{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServerError) Code() string {
+func (s *InternalServerError) Code() string {
 	return "InternalServerError"
 }
 
 // Message returns the exception's message.
-func (s InternalServerError) Message() string {
+func (s *InternalServerError) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5405,30 +5408,30 @@ func (s InternalServerError) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServerError) OrigErr() error {
+func (s *InternalServerError) OrigErr() error {
 	return nil
 }
 
-func (s InternalServerError) Error() string {
+func (s *InternalServerError) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServerError) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServerError) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServerError) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServerError) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the FileSystemPolicy is is malformed or contains an error such
 // as an invalid parameter value or a missing required parameter. Returned in
 // the case of a policy lockout safety check error.
 type InvalidPolicyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	ErrorCode *string `min:"1" type:"string"`
 
@@ -5447,17 +5450,17 @@ func (s InvalidPolicyException) GoString() string {
 
 func newErrorInvalidPolicyException(v protocol.ResponseMetadata) error {
 	return &InvalidPolicyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidPolicyException) Code() string {
+func (s *InvalidPolicyException) Code() string {
 	return "InvalidPolicyException"
 }
 
 // Message returns the exception's message.
-func (s InvalidPolicyException) Message() string {
+func (s *InvalidPolicyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5465,29 +5468,29 @@ func (s InvalidPolicyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidPolicyException) OrigErr() error {
+func (s *InvalidPolicyException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidPolicyException) Error() string {
+func (s *InvalidPolicyException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidPolicyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidPolicyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the request specified an IpAddress that is already in use in
 // the subnet.
 type IpAddressInUse struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5507,17 +5510,17 @@ func (s IpAddressInUse) GoString() string {
 
 func newErrorIpAddressInUse(v protocol.ResponseMetadata) error {
 	return &IpAddressInUse{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IpAddressInUse) Code() string {
+func (s *IpAddressInUse) Code() string {
 	return "IpAddressInUse"
 }
 
 // Message returns the exception's message.
-func (s IpAddressInUse) Message() string {
+func (s *IpAddressInUse) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5525,22 +5528,22 @@ func (s IpAddressInUse) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IpAddressInUse) OrigErr() error {
+func (s *IpAddressInUse) OrigErr() error {
 	return nil
 }
 
-func (s IpAddressInUse) Error() string {
+func (s *IpAddressInUse) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IpAddressInUse) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IpAddressInUse) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IpAddressInUse) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IpAddressInUse) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a policy used by EFS lifecycle management to transition files to
@@ -5735,8 +5738,8 @@ func (s ModifyMountTargetSecurityGroupsOutput) GoString() string {
 // Returned if the mount target would violate one of the specified restrictions
 // based on the file system's existing mount targets.
 type MountTargetConflict struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5756,17 +5759,17 @@ func (s MountTargetConflict) GoString() string {
 
 func newErrorMountTargetConflict(v protocol.ResponseMetadata) error {
 	return &MountTargetConflict{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MountTargetConflict) Code() string {
+func (s *MountTargetConflict) Code() string {
 	return "MountTargetConflict"
 }
 
 // Message returns the exception's message.
-func (s MountTargetConflict) Message() string {
+func (s *MountTargetConflict) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5774,22 +5777,22 @@ func (s MountTargetConflict) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MountTargetConflict) OrigErr() error {
+func (s *MountTargetConflict) OrigErr() error {
 	return nil
 }
 
-func (s MountTargetConflict) Error() string {
+func (s *MountTargetConflict) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MountTargetConflict) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MountTargetConflict) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MountTargetConflict) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MountTargetConflict) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Provides a description of a mount target.
@@ -5905,8 +5908,8 @@ func (s *MountTargetDescription) SetSubnetId(v string) *MountTargetDescription {
 // Returned if there is no mount target with the specified ID found in the caller's
 // account.
 type MountTargetNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5926,17 +5929,17 @@ func (s MountTargetNotFound) GoString() string {
 
 func newErrorMountTargetNotFound(v protocol.ResponseMetadata) error {
 	return &MountTargetNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MountTargetNotFound) Code() string {
+func (s *MountTargetNotFound) Code() string {
 	return "MountTargetNotFound"
 }
 
 // Message returns the exception's message.
-func (s MountTargetNotFound) Message() string {
+func (s *MountTargetNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5944,22 +5947,22 @@ func (s MountTargetNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MountTargetNotFound) OrigErr() error {
+func (s *MountTargetNotFound) OrigErr() error {
 	return nil
 }
 
-func (s MountTargetNotFound) Error() string {
+func (s *MountTargetNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MountTargetNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MountTargetNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MountTargetNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MountTargetNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The calling account has reached the limit for elastic network interfaces
@@ -5969,8 +5972,8 @@ func (s MountTargetNotFound) RequestID() string {
 // in the Amazon VPC User Guide (see the Network interfaces per VPC entry in
 // the table).
 type NetworkInterfaceLimitExceeded struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -5990,17 +5993,17 @@ func (s NetworkInterfaceLimitExceeded) GoString() string {
 
 func newErrorNetworkInterfaceLimitExceeded(v protocol.ResponseMetadata) error {
 	return &NetworkInterfaceLimitExceeded{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NetworkInterfaceLimitExceeded) Code() string {
+func (s *NetworkInterfaceLimitExceeded) Code() string {
 	return "NetworkInterfaceLimitExceeded"
 }
 
 // Message returns the exception's message.
-func (s NetworkInterfaceLimitExceeded) Message() string {
+func (s *NetworkInterfaceLimitExceeded) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6008,29 +6011,29 @@ func (s NetworkInterfaceLimitExceeded) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NetworkInterfaceLimitExceeded) OrigErr() error {
+func (s *NetworkInterfaceLimitExceeded) OrigErr() error {
 	return nil
 }
 
-func (s NetworkInterfaceLimitExceeded) Error() string {
+func (s *NetworkInterfaceLimitExceeded) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NetworkInterfaceLimitExceeded) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NetworkInterfaceLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NetworkInterfaceLimitExceeded) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NetworkInterfaceLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if IpAddress was not specified in the request and there are no free
 // IP addresses in the subnet.
 type NoFreeAddressesInSubnet struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6050,17 +6053,17 @@ func (s NoFreeAddressesInSubnet) GoString() string {
 
 func newErrorNoFreeAddressesInSubnet(v protocol.ResponseMetadata) error {
 	return &NoFreeAddressesInSubnet{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NoFreeAddressesInSubnet) Code() string {
+func (s *NoFreeAddressesInSubnet) Code() string {
 	return "NoFreeAddressesInSubnet"
 }
 
 // Message returns the exception's message.
-func (s NoFreeAddressesInSubnet) Message() string {
+func (s *NoFreeAddressesInSubnet) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6068,29 +6071,29 @@ func (s NoFreeAddressesInSubnet) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NoFreeAddressesInSubnet) OrigErr() error {
+func (s *NoFreeAddressesInSubnet) OrigErr() error {
 	return nil
 }
 
-func (s NoFreeAddressesInSubnet) Error() string {
+func (s *NoFreeAddressesInSubnet) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NoFreeAddressesInSubnet) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NoFreeAddressesInSubnet) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NoFreeAddressesInSubnet) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NoFreeAddressesInSubnet) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if the default file system policy is in effect for the EFS file
 // system specified.
 type PolicyNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	ErrorCode *string `min:"1" type:"string"`
 
@@ -6109,17 +6112,17 @@ func (s PolicyNotFound) GoString() string {
 
 func newErrorPolicyNotFound(v protocol.ResponseMetadata) error {
 	return &PolicyNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s PolicyNotFound) Code() string {
+func (s *PolicyNotFound) Code() string {
 	return "PolicyNotFound"
 }
 
 // Message returns the exception's message.
-func (s PolicyNotFound) Message() string {
+func (s *PolicyNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6127,22 +6130,22 @@ func (s PolicyNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s PolicyNotFound) OrigErr() error {
+func (s *PolicyNotFound) OrigErr() error {
 	return nil
 }
 
-func (s PolicyNotFound) Error() string {
+func (s *PolicyNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s PolicyNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *PolicyNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s PolicyNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *PolicyNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The full POSIX identity, including the user ID, group ID, and any secondary
@@ -6468,8 +6471,8 @@ func (s *RootDirectory) SetPath(v string) *RootDirectory {
 // Returned if the size of SecurityGroups specified in the request is greater
 // than five.
 type SecurityGroupLimitExceeded struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6489,17 +6492,17 @@ func (s SecurityGroupLimitExceeded) GoString() string {
 
 func newErrorSecurityGroupLimitExceeded(v protocol.ResponseMetadata) error {
 	return &SecurityGroupLimitExceeded{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SecurityGroupLimitExceeded) Code() string {
+func (s *SecurityGroupLimitExceeded) Code() string {
 	return "SecurityGroupLimitExceeded"
 }
 
 // Message returns the exception's message.
-func (s SecurityGroupLimitExceeded) Message() string {
+func (s *SecurityGroupLimitExceeded) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6507,29 +6510,29 @@ func (s SecurityGroupLimitExceeded) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SecurityGroupLimitExceeded) OrigErr() error {
+func (s *SecurityGroupLimitExceeded) OrigErr() error {
 	return nil
 }
 
-func (s SecurityGroupLimitExceeded) Error() string {
+func (s *SecurityGroupLimitExceeded) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SecurityGroupLimitExceeded) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SecurityGroupLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SecurityGroupLimitExceeded) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SecurityGroupLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if one of the specified security groups doesn't exist in the subnet's
 // VPC.
 type SecurityGroupNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6549,17 +6552,17 @@ func (s SecurityGroupNotFound) GoString() string {
 
 func newErrorSecurityGroupNotFound(v protocol.ResponseMetadata) error {
 	return &SecurityGroupNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SecurityGroupNotFound) Code() string {
+func (s *SecurityGroupNotFound) Code() string {
 	return "SecurityGroupNotFound"
 }
 
 // Message returns the exception's message.
-func (s SecurityGroupNotFound) Message() string {
+func (s *SecurityGroupNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6567,28 +6570,28 @@ func (s SecurityGroupNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SecurityGroupNotFound) OrigErr() error {
+func (s *SecurityGroupNotFound) OrigErr() error {
 	return nil
 }
 
-func (s SecurityGroupNotFound) Error() string {
+func (s *SecurityGroupNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SecurityGroupNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SecurityGroupNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SecurityGroupNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SecurityGroupNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if there is no subnet with ID SubnetId provided in the request.
 type SubnetNotFound struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6608,17 +6611,17 @@ func (s SubnetNotFound) GoString() string {
 
 func newErrorSubnetNotFound(v protocol.ResponseMetadata) error {
 	return &SubnetNotFound{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SubnetNotFound) Code() string {
+func (s *SubnetNotFound) Code() string {
 	return "SubnetNotFound"
 }
 
 // Message returns the exception's message.
-func (s SubnetNotFound) Message() string {
+func (s *SubnetNotFound) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6626,22 +6629,22 @@ func (s SubnetNotFound) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SubnetNotFound) OrigErr() error {
+func (s *SubnetNotFound) OrigErr() error {
 	return nil
 }
 
-func (s SubnetNotFound) Error() string {
+func (s *SubnetNotFound) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SubnetNotFound) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SubnetNotFound) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SubnetNotFound) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SubnetNotFound) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A tag is a key-value pair. Allowed characters are letters, white space, and
@@ -6782,8 +6785,8 @@ func (s TagResourceOutput) GoString() string {
 // Returned if the throughput mode or amount of provisioned throughput can't
 // be changed because the throughput limit of 1024 MiB/s has been reached.
 type ThroughputLimitExceeded struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6803,17 +6806,17 @@ func (s ThroughputLimitExceeded) GoString() string {
 
 func newErrorThroughputLimitExceeded(v protocol.ResponseMetadata) error {
 	return &ThroughputLimitExceeded{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ThroughputLimitExceeded) Code() string {
+func (s *ThroughputLimitExceeded) Code() string {
 	return "ThroughputLimitExceeded"
 }
 
 // Message returns the exception's message.
-func (s ThroughputLimitExceeded) Message() string {
+func (s *ThroughputLimitExceeded) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6821,29 +6824,29 @@ func (s ThroughputLimitExceeded) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ThroughputLimitExceeded) OrigErr() error {
+func (s *ThroughputLimitExceeded) OrigErr() error {
 	return nil
 }
 
-func (s ThroughputLimitExceeded) Error() string {
+func (s *ThroughputLimitExceeded) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ThroughputLimitExceeded) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ThroughputLimitExceeded) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ThroughputLimitExceeded) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ThroughputLimitExceeded) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Returned if you don’t wait at least 24 hours before changing the throughput
 // mode, or decreasing the Provisioned Throughput value.
 type TooManyRequests struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6863,17 +6866,17 @@ func (s TooManyRequests) GoString() string {
 
 func newErrorTooManyRequests(v protocol.ResponseMetadata) error {
 	return &TooManyRequests{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TooManyRequests) Code() string {
+func (s *TooManyRequests) Code() string {
 	return "TooManyRequests"
 }
 
 // Message returns the exception's message.
-func (s TooManyRequests) Message() string {
+func (s *TooManyRequests) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6881,27 +6884,27 @@ func (s TooManyRequests) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TooManyRequests) OrigErr() error {
+func (s *TooManyRequests) OrigErr() error {
 	return nil
 }
 
-func (s TooManyRequests) Error() string {
+func (s *TooManyRequests) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TooManyRequests) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TooManyRequests) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TooManyRequests) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TooManyRequests) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UnsupportedAvailabilityZone struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// ErrorCode is a required field
 	ErrorCode *string `min:"1" type:"string" required:"true"`
@@ -6921,17 +6924,17 @@ func (s UnsupportedAvailabilityZone) GoString() string {
 
 func newErrorUnsupportedAvailabilityZone(v protocol.ResponseMetadata) error {
 	return &UnsupportedAvailabilityZone{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnsupportedAvailabilityZone) Code() string {
+func (s *UnsupportedAvailabilityZone) Code() string {
 	return "UnsupportedAvailabilityZone"
 }
 
 // Message returns the exception's message.
-func (s UnsupportedAvailabilityZone) Message() string {
+func (s *UnsupportedAvailabilityZone) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6939,22 +6942,22 @@ func (s UnsupportedAvailabilityZone) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnsupportedAvailabilityZone) OrigErr() error {
+func (s *UnsupportedAvailabilityZone) OrigErr() error {
 	return nil
 }
 
-func (s UnsupportedAvailabilityZone) Error() string {
+func (s *UnsupportedAvailabilityZone) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnsupportedAvailabilityZone) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnsupportedAvailabilityZone) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnsupportedAvailabilityZone) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnsupportedAvailabilityZone) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -6967,7 +6970,9 @@ type UntagResourceInput struct {
 
 	// The keys of the key:value tag pairs that you want to remove from the specified
 	// EFS resource.
-	TagKeys []*string `min:"1" type:"list"`
+	//
+	// TagKeys is a required field
+	TagKeys []*string `location:"querystring" locationName:"tagKeys" min:"1" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -6988,6 +6993,9 @@ func (s *UntagResourceInput) Validate() error {
 	}
 	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
 	}
 	if s.TagKeys != nil && len(s.TagKeys) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TagKeys", 1))

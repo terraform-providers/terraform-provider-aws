@@ -1,5 +1,7 @@
 //go:generate go run -tags generate generators/servicetags/main.go
 //go:generate go run -tags generate generators/listtags/main.go
+//go:generate go run -tags generate generators/gettag/main.go
+//go:generate go run -tags generate generators/createtags/main.go
 //go:generate go run -tags generate generators/updatetags/main.go
 
 package keyvaluetags
@@ -19,6 +21,12 @@ const (
 	RdsTagKeyPrefix              = `rds:`
 )
 
+// IgnoreConfig contains various options for removing resource tags.
+type IgnoreConfig struct {
+	Keys        KeyValueTags
+	KeyPrefixes KeyValueTags
+}
+
 // KeyValueTags is a standard implementation for AWS key-value resource tags.
 // The AWS Go SDK is split into multiple service packages, each service with
 // its own Go struct type representing a resource tag. To standardize logic
@@ -34,6 +42,18 @@ func (tags KeyValueTags) IgnoreAws() KeyValueTags {
 			result[k] = v
 		}
 	}
+
+	return result
+}
+
+// IgnoreConfig returns any tags not removed by a given configuration.
+func (tags KeyValueTags) IgnoreConfig(config *IgnoreConfig) KeyValueTags {
+	if config == nil {
+		return tags
+	}
+
+	result := tags.IgnorePrefixes(config.KeyPrefixes)
+	result = result.Ignore(config.Keys)
 
 	return result
 }
@@ -117,6 +137,28 @@ func (tags KeyValueTags) Ignore(ignoreTags KeyValueTags) KeyValueTags {
 	}
 
 	return result
+}
+
+// KeyExists returns true if a tag key exists.
+// If the key is not found, returns nil.
+// Use KeyExists to determine if key is present.
+func (tags KeyValueTags) KeyExists(key string) bool {
+	if _, ok := tags[key]; ok {
+		return true
+	}
+
+	return false
+}
+
+// KeyValue returns a tag key value.
+// If the key is not found, returns nil.
+// Use KeyExists to determine if key is present.
+func (tags KeyValueTags) KeyValue(key string) *string {
+	if v, ok := tags[key]; ok {
+		return v
+	}
+
+	return nil
 }
 
 // Keys returns tag keys.

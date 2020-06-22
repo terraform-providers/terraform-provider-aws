@@ -43,7 +43,7 @@ The following arguments are supported:
 * `new_game_session_protection_policy` - (Optional) Game session protection policy to apply to all instances in this fleet. e.g. `FullProtection`. Defaults to `NoProtection`.
 * `resource_creation_limit_policy` - (Optional) Policy that limits the number of game sessions an individual player can create over a span of time for this fleet. See below.
 * `runtime_configuration` - (Optional) Instructions for launching server processes on each instance in the fleet. See below.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ### Nested Fields
 

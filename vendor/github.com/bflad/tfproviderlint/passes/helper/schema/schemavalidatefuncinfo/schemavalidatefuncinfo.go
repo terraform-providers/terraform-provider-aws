@@ -30,48 +30,29 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var result []*schema.SchemaValidateFuncInfo
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		funcDecl, funcDeclOk := n.(*ast.FuncDecl)
-		funcLit, funcLitOk := n.(*ast.FuncLit)
+		funcType := astutils.FuncTypeFromNode(n)
 
-		var funcType *ast.FuncType
-
-		if funcDeclOk && funcDecl != nil {
-			funcType = funcDecl.Type
-		} else if funcLitOk && funcLit != nil {
-			funcType = funcLit.Type
-		} else {
+		if funcType == nil {
 			return
 		}
 
-		params := funcType.Params
-
-		if params == nil || len(params.List) != 2 {
+		if !astutils.IsFieldListType(funcType.Params, 0, astutils.IsExprTypeInterface) {
 			return
 		}
 
-		if !astutils.IsFunctionParameterTypeInterface(params.List[0].Type) {
+		if !astutils.IsFieldListType(funcType.Params, 1, astutils.IsExprTypeString) {
 			return
 		}
 
-		if !astutils.IsFunctionParameterTypeString(params.List[1].Type) {
+		if !astutils.IsFieldListType(funcType.Results, 0, astutils.IsExprTypeArrayString) {
 			return
 		}
 
-		results := funcType.Results
-
-		if results == nil || len(results.List) != 2 {
+		if !astutils.IsFieldListType(funcType.Results, 1, astutils.IsExprTypeArrayError) {
 			return
 		}
 
-		if !astutils.IsFunctionParameterTypeArrayString(results.List[0].Type) {
-			return
-		}
-
-		if !astutils.IsFunctionParameterTypeArrayError(results.List[1].Type) {
-			return
-		}
-
-		result = append(result, schema.NewSchemaValidateFuncInfo(funcDecl, funcLit, pass.TypesInfo))
+		result = append(result, schema.NewSchemaValidateFuncInfo(n, pass.TypesInfo))
 	})
 
 	return result, nil

@@ -52,9 +52,10 @@ func TestAccAWSBeanstalkConfigurationTemplate_Setting(t *testing.T) {
 	var config elasticbeanstalk.ConfigurationSettingsDescription
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckBeanstalkConfigurationTemplateDestroy,
+		PreCheck:            func() { testAccPreCheck(t) },
+		Providers:           testAccProviders,
+		CheckDestroy:        testAccCheckBeanstalkConfigurationTemplateDestroy,
+		DisableBinaryDriver: true,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBeanstalkConfigurationTemplateConfig_Setting(acctest.RandString(5)),

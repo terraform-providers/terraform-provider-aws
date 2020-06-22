@@ -53,3 +53,11 @@ The `metric_transformation` block supports the following arguments:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the metric filter.
+
+## Import
+
+CloudWatch Log Metric Filter can be imported using the `log_group_name:name`, e.g.
+
+```
+$ terraform import aws_cloudwatch_log_metric_filter.test /aws/lambda/function:test
+```

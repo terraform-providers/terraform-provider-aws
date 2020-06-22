@@ -103,7 +103,7 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.All(
 					validation.StringLenBetween(1, 128),
-					validation.StringMatch(regexp.MustCompile(`^[a-zA-z0-9._-]+$`), "must contain only alphanumeric characters, periods, underscores, and hyphens"),
+					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9._-]+$`), "must contain only alphanumeric characters, periods, underscores, and hyphens"),
 				),
 			},
 			"state": {
@@ -114,6 +114,11 @@ func resourceAwsAthenaWorkgroup() *schema.Resource {
 					athena.WorkGroupStateDisabled,
 					athena.WorkGroupStateEnabled,
 				}, false),
+			},
+			"force_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"tags": tagsSchema(),
 		},
@@ -164,6 +169,7 @@ func resourceAwsAthenaWorkgroupCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAwsAthenaWorkgroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).athenaconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &athena.GetWorkGroupInput{
 		WorkGroup: aws.String(d.Id()),
@@ -199,13 +205,19 @@ func resourceAwsAthenaWorkgroupRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.WorkGroup.Name)
 	d.Set("state", resp.WorkGroup.State)
 
+	if v, ok := d.GetOk("force_destroy"); ok {
+		d.Set("force_destroy", v.(bool))
+	} else {
+		d.Set("force_destroy", false)
+	}
+
 	tags, err := keyvaluetags.AthenaListTags(conn, arn.String())
 
 	if err != nil {
 		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -219,6 +231,9 @@ func resourceAwsAthenaWorkgroupDelete(d *schema.ResourceData, meta interface{}) 
 		WorkGroup: aws.String(d.Id()),
 	}
 
+	if v, ok := d.GetOk("force_destroy"); ok {
+		input.RecursiveDeleteOption = aws.Bool(v.(bool))
+	}
 	_, err := conn.DeleteWorkGroup(input)
 
 	if err != nil {

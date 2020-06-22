@@ -43,17 +43,13 @@ func testAccAwsPinpointADMChannelConfigurationFromEnv(t *testing.T) *testAccAwsP
 }
 
 func TestAccAWSPinpointADMChannel_basic(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.ADMChannelResponse
 	resourceName := "aws_pinpoint_adm_channel.channel"
 
 	config := testAccAwsPinpointADMChannelConfigurationFromEnv(t)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointADMChannelDestroy,
@@ -113,10 +109,6 @@ func testAccCheckAWSPinpointADMChannelExists(n string, channel *pinpoint.ADMChan
 
 func testAccAWSPinpointADMChannelConfig_basic(conf *testAccAwsPinpointADMChannelConfiguration) string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_adm_channel" "channel" {

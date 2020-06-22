@@ -23,6 +23,10 @@ resource "aws_vpc" "example" {
 
 resource "aws_egress_only_internet_gateway" "example" {
   vpc_id = "${aws_vpc.example.id}"
+
+  tags = {
+    Name = "main"
+  }
 }
 ```
 
@@ -31,6 +35,7 @@ resource "aws_egress_only_internet_gateway" "example" {
 The following arguments are supported:
 
 * `vpc_id` - (Required) The VPC ID to create in.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

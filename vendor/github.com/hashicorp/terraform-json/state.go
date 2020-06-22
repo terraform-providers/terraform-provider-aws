@@ -1,6 +1,7 @@
 package tfjson
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -31,7 +32,7 @@ func (s *State) Validate() error {
 	}
 
 	if s.FormatVersion == "" {
-		return errors.New("unexpected plan input, format version is missing")
+		return errors.New("unexpected state input, format version is missing")
 	}
 
 	if StateFormatVersion != s.FormatVersion {
@@ -39,6 +40,20 @@ func (s *State) Validate() error {
 	}
 
 	return nil
+}
+
+func (s *State) UnmarshalJSON(b []byte) error {
+	type rawState State
+	var state rawState
+
+	err := json.Unmarshal(b, &state)
+	if err != nil {
+		return err
+	}
+
+	*s = *(*State)(&state)
+
+	return s.Validate()
 }
 
 // StateValues is the common representation of resolved values for both the

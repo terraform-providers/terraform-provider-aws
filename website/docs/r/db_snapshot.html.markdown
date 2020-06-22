@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_db_snapshot"
 description: |-
-  Manages a RDS database instance snapshot.
+  Manages an RDS database instance snapshot.
 ---
 
 # Resource: aws_db_snapshot
 
-Manages a RDS database instance snapshot. For managing RDS database cluster snapshots, see the [`aws_db_cluster_snapshot` resource](/docs/providers/aws/r/db_cluster_snapshot.html).
+Manages an RDS database instance snapshot. For managing RDS database cluster snapshots, see the [`aws_db_cluster_snapshot` resource](/docs/providers/aws/r/db_cluster_snapshot.html).
 
 ## Example Usage
 
@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `db_instance_identifier` - (Required) The DB Instance Identifier from which to take the snapshot.
 * `db_snapshot_identifier` - (Required) The Identifier for the snapshot.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 
 ## Attributes Reference
@@ -61,3 +61,17 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - Specifies the status of this DB snapshot.
 * `storage_type` - Specifies the storage type associated with DB snapshot.
 * `vpc_id` - Specifies the storage type associated with DB snapshot.
+
+## Timeouts
+
+`aws_db_snapshot` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `read` - (Default `20 minutes`)  Length of time to wait for the snapshot to become available
+
+## Import
+
+`aws_db_snapshot` can be imported by using the snapshot identifier, e.g.
+
+```
+$ terraform import aws_db_snapshot.example my-snapshot
+```

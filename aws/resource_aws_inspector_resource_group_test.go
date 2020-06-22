@@ -34,7 +34,7 @@ func TestAccAWSInspectorResourceGroup_basic(t *testing.T) {
 					testAccCheckAWSInspectorResourceGroupExists(resourceName, &v2),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "inspector", regexp.MustCompile(`resourcegroup/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "bar"),
-					testAccCheckAWSInspectorResourceGroupRecreated(t, &v1, &v2),
+					testAccCheckAWSInspectorResourceGroupRecreated(&v1, &v2),
 				),
 			},
 		},
@@ -69,7 +69,7 @@ func testAccCheckAWSInspectorResourceGroupExists(name string, rg *inspector.Reso
 	}
 }
 
-func testAccCheckAWSInspectorResourceGroupRecreated(t *testing.T, v1, v2 *inspector.ResourceGroup) resource.TestCheckFunc {
+func testAccCheckAWSInspectorResourceGroupRecreated(v1, v2 *inspector.ResourceGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if v2.CreatedAt.Equal(*v1.CreatedAt) {
 			return fmt.Errorf("Inspector resource group not recreated when changing tags")

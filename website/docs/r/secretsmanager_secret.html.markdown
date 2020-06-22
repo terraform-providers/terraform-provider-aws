@@ -8,7 +8,7 @@ description: |-
 
 # Resource: aws_secretsmanager_secret
 
-Provides a resource to manage AWS Secrets Manager secret metadata. To manage a secret value, see the [`aws_secretsmanager_secret_version` resource](/docs/providers/aws/r/secretsmanager_secret_version.html).
+Provides a resource to manage AWS Secrets Manager secret metadata. To manage secret rotation, see the [`aws_secretsmanager_secret_rotation` resource](/docs/providers/aws/r/secretsmanager_secret_rotation.html). To manage a secret value, see the [`aws_secretsmanager_secret_version` resource](/docs/providers/aws/r/secretsmanager_secret_version.html).
 
 ## Example Usage
 
@@ -49,8 +49,8 @@ The following arguments are supported:
 * `kms_key_id` - (Optional) Specifies the ARN or alias of the AWS KMS customer master key (CMK) to be used to encrypt the secret values in the versions stored in this secret. If you don't specify this value, then Secrets Manager defaults to using the AWS account's default CMK (the one named `aws/secretsmanager`). If the default KMS CMK with that name doesn't yet exist, then AWS Secrets Manager creates it for you automatically the first time.
 * `policy` - (Optional) A valid JSON document representing a [resource policy](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_resource-based-policies.html). For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 * `recovery_window_in_days` - (Optional) Specifies the number of days that AWS Secrets Manager waits before it can delete the secret. This value can be `0` to force deletion without recovery or range from `7` to `30` days. The default value is `30`.
-* `rotation_lambda_arn` - (Optional) Specifies the ARN of the Lambda function that can rotate the secret.
-* `rotation_rules` - (Optional) A structure that defines the rotation configuration for this secret. Defined below.
+* `rotation_lambda_arn` - (Optional, **DEPRECATED**) Specifies the ARN of the Lambda function that can rotate the secret. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
+* `rotation_rules` - (Optional, **DEPRECATED**) A structure that defines the rotation configuration for this secret. Defined below. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.
 * `tags` - (Optional) Specifies a key-value map of user-defined tags that are attached to the secret.
 
 ### rotation_rules

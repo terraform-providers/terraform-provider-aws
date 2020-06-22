@@ -421,7 +421,7 @@ func TestAccAWSDataSyncTask_DefaultSyncOptions_Uid(t *testing.T) {
 }
 
 func TestAccAWSDataSyncTask_DefaultSyncOptions_VerifyMode(t *testing.T) {
-	var task1, task2 datasync.DescribeTaskOutput
+	var task1, task2, task3 datasync.DescribeTaskOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_datasync_task.test"
 
@@ -450,6 +450,15 @@ func TestAccAWSDataSyncTask_DefaultSyncOptions_VerifyMode(t *testing.T) {
 					testAccCheckAWSDataSyncTaskNotRecreated(&task1, &task2),
 					resource.TestCheckResourceAttr(resourceName, "options.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "options.0.verify_mode", "POINT_IN_TIME_CONSISTENT"),
+				),
+			},
+			{
+				Config: testAccAWSDataSyncTaskConfigDefaultSyncOptionsVerifyMode(rName, "ONLY_FILES_TRANSFERRED"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDataSyncTaskExists(resourceName, &task3),
+					testAccCheckAWSDataSyncTaskNotRecreated(&task2, &task3),
+					resource.TestCheckResourceAttr(resourceName, "options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "options.0.verify_mode", "ONLY_FILES_TRANSFERRED"),
 				),
 			},
 		},

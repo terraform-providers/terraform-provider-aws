@@ -1,6 +1,7 @@
 package tfjson
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -70,6 +71,20 @@ func (p *Plan) Validate() error {
 	}
 
 	return nil
+}
+
+func (p *Plan) UnmarshalJSON(b []byte) error {
+	type rawPlan Plan
+	var plan rawPlan
+
+	err := json.Unmarshal(b, &plan)
+	if err != nil {
+		return err
+	}
+
+	*p = *(*Plan)(&plan)
+
+	return p.Validate()
 }
 
 // ResourceChange is a description of an individual change action

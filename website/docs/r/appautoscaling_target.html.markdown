@@ -10,6 +10,8 @@ description: |-
 
 Provides an Application AutoScaling ScalableTarget resource. To manage policies which get attached to the target, see the [`aws_appautoscaling_policy` resource](/docs/providers/aws/r/appautoscaling_policy.html).
 
+~> **NOTE:** The [Application Auto Scaling service automatically attempts to manage IAM Service-Linked Roles](https://docs.aws.amazon.com/autoscaling/application/userguide/security_iam_service-with-iam.html#security_iam_service-with-iam-roles) when registering certain service namespaces for the first time. To manually manage this role, see the [`aws_iam_service_linked_role` resource](/docs/providers/aws/r/iam_service_linked_role.html).
+
 ## Example Usage
 
 ### DynamoDB Table Autoscaling
@@ -19,7 +21,6 @@ resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
   max_capacity       = 100
   min_capacity       = 5
   resource_id        = "table/${aws_dynamodb_table.example.name}"
-  role_arn           = "${data.aws_iam_role.DynamoDBAutoscaleRole.arn}"
   scalable_dimension = "dynamodb:table:ReadCapacityUnits"
   service_namespace  = "dynamodb"
 }
@@ -32,7 +33,6 @@ resource "aws_appautoscaling_target" "dynamodb_index_read_target" {
   max_capacity       = 100
   min_capacity       = 5
   resource_id        = "table/${aws_dynamodb_table.example.name}/index/${var.index_name}"
-  role_arn           = "${data.aws_iam_role.DynamoDBAutoscaleRole.arn}"
   scalable_dimension = "dynamodb:index:ReadCapacityUnits"
   service_namespace  = "dynamodb"
 }
@@ -45,7 +45,6 @@ resource "aws_appautoscaling_target" "ecs_target" {
   max_capacity       = 4
   min_capacity       = 1
   resource_id        = "service/${aws_ecs_cluster.example.name}/${aws_ecs_service.example.name}"
-  role_arn           = "${var.ecs_iam_role}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
@@ -70,8 +69,7 @@ The following arguments are supported:
 * `max_capacity` - (Required) The max capacity of the scalable target.
 * `min_capacity` - (Required) The min capacity of the scalable target.
 * `resource_id` - (Required) The resource type and unique identifier string for the resource associated with the scaling policy. Documentation can be found in the `ResourceId` parameter at: [AWS Application Auto Scaling API Reference](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
-* `role_arn` - (Optional) The ARN of the IAM role that allows Application
-AutoScaling to modify your scalable target on your behalf.
+* `role_arn` - (Optional) The ARN of the IAM role that allows Application AutoScaling to modify your scalable target on your behalf. This defaults to an IAM Service-Linked Role for most services and custom IAM Roles are ignored by the API for those namespaces. See the [AWS Application Auto Scaling documentation](https://docs.aws.amazon.com/autoscaling/application/userguide/security_iam_service-with-iam.html#security_iam_service-with-iam-roles) for more information about how this service interacts with IAM.
 * `scalable_dimension` - (Required) The scalable dimension of the scalable target. Documentation can be found in the `ScalableDimension` parameter at: [AWS Application Auto Scaling API Reference](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 * `service_namespace` - (Required) The AWS service namespace of the scalable target. Documentation can be found in the `ServiceNamespace` parameter at: [AWS Application Auto Scaling API Reference](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html#API_RegisterScalableTarget_RequestParameters)
 

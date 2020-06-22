@@ -12,6 +12,10 @@ import (
 // RetrieveGPGKey returns the PGP key specified as the pgpKey parameter, or queries
 // the public key from the keybase service if the parameter is a keybase username
 // prefixed with the phrase "keybase:"
+//
+// Deprecated: This function will be removed in v2 without replacement. Please
+// see https://www.terraform.io/docs/extend/best-practices/sensitive-state.html#don-39-t-encrypt-state
+// for more information.
 func RetrieveGPGKey(pgpKey string) (string, error) {
 	const keybasePrefix = "keybase:"
 
@@ -29,6 +33,10 @@ func RetrieveGPGKey(pgpKey string) (string, error) {
 
 // EncryptValue encrypts the given value with the given encryption key. Description
 // should be set such that errors return a meaningful user-facing response.
+//
+// Deprecated: This function will be removed in v2 without replacement. Please
+// see https://www.terraform.io/docs/extend/best-practices/sensitive-state.html#don-39-t-encrypt-state
+// for more information.
 func EncryptValue(encryptionKey, value, description string) (string, string, error) {
 	fingerprints, encryptedValue, err :=
 		pgpkeys.EncryptShares([][]byte{[]byte(value)}, []string{encryptionKey})

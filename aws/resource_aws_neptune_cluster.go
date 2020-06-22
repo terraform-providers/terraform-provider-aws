@@ -21,6 +21,8 @@ const (
 	// is not currently available in the AWS sdk-for-go
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/neptune/#pkg-constants
 	CloudwatchLogsExportsAudit = "audit"
+
+	neptuneDefaultPort = 8182
 )
 
 func resourceAwsNeptuneCluster() *schema.Resource {
@@ -194,7 +196,7 @@ func resourceAwsNeptuneCluster() *schema.Resource {
 			"port": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  8182,
+				Default:  neptuneDefaultPort,
 				ForceNew: true,
 			},
 
@@ -244,7 +246,6 @@ func resourceAwsNeptuneCluster() *schema.Resource {
 			"snapshot_identifier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tagsSchema(),
@@ -469,6 +470,7 @@ func resourceAwsNeptuneClusterRead(d *schema.ResourceData, meta interface{}) err
 
 func flattenAwsNeptuneClusterResource(d *schema.ResourceData, meta interface{}, dbc *neptune.DBCluster) error {
 	conn := meta.(*AWSClient).neptuneconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	if err := d.Set("availability_zones", aws.StringValueSlice(dbc.AvailabilityZones)); err != nil {
 		return fmt.Errorf("Error saving AvailabilityZones to state for Neptune Cluster (%s): %s", d.Id(), err)
@@ -532,7 +534,7 @@ func flattenAwsNeptuneClusterResource(d *schema.ResourceData, meta interface{}, 
 		return fmt.Errorf("error listing tags for Neptune Cluster (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -594,7 +596,6 @@ func resourceAwsNeptuneClusterUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("neptune_cluster_parameter_group_name") {
-		d.SetPartial("neptune_cluster_parameter_group_name")
 		req.DBClusterParameterGroupName = aws.String(d.Get("neptune_cluster_parameter_group_name").(string))
 		requestUpdate = true
 	}
@@ -681,7 +682,6 @@ func resourceAwsNeptuneClusterUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("error updating Neptune Cluster (%s) tags: %s", d.Get("arn").(string), err)
 		}
 
-		d.SetPartial("tags")
 	}
 
 	return resourceAwsNeptuneClusterRead(d, meta)

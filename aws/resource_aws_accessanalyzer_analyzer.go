@@ -70,6 +70,7 @@ func resourceAwsAccessAnalyzerAnalyzerCreate(d *schema.ResourceData, meta interf
 
 func resourceAwsAccessAnalyzerAnalyzerRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).accessanalyzerconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &accessanalyzer.GetAnalyzerInput{
 		AnalyzerName: aws.String(d.Id()),
@@ -94,7 +95,7 @@ func resourceAwsAccessAnalyzerAnalyzerRead(d *schema.ResourceData, meta interfac
 	d.Set("analyzer_name", output.Analyzer.Name)
 	d.Set("arn", output.Analyzer.Arn)
 
-	if err := d.Set("tags", keyvaluetags.AccessanalyzerKeyValueTags(output.Analyzer.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.AccessanalyzerKeyValueTags(output.Analyzer.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

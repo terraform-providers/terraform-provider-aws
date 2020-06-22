@@ -29,7 +29,6 @@ func resourceAwsApiGatewayAccount() *schema.Resource {
 			"throttle_settings": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"burst_limit": {
@@ -48,7 +47,7 @@ func resourceAwsApiGatewayAccount() *schema.Resource {
 }
 
 func resourceAwsApiGatewayAccountRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[INFO] Reading API Gateway Account %s", d.Id())
 	account, err := conn.GetAccount(&apigateway.GetAccountInput{})
@@ -70,7 +69,7 @@ func resourceAwsApiGatewayAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsApiGatewayAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	conn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.UpdateAccountInput{}
 	operations := make([]*apigateway.PatchOperation, 0)

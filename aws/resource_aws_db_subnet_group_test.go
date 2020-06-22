@@ -68,9 +68,6 @@ func testSweepRdsDbSubnetGroups(region string) error {
 func TestAccAWSDBSubnetGroup_basic(t *testing.T) {
 	var v rds.DBSubnetGroup
 
-	testCheck := func(*terraform.State) error {
-		return nil
-	}
 	resourceName := "aws_db_subnet_group.test"
 	rName := fmt.Sprintf("tf-test-%d", acctest.RandInt())
 
@@ -82,23 +79,17 @@ func TestAccAWSDBSubnetGroup_basic(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "name", rName),
-					resource.TestCheckResourceAttr(
-						resourceName, "description", "Managed by Terraform"),
-					resource.TestMatchResourceAttr(
-						resourceName, "arn", regexp.MustCompile(fmt.Sprintf("^arn:[^:]+:rds:[^:]+:\\d{12}:subgrp:%s", rName))),
-					testCheck,
+					testAccCheckDBSubnetGroupExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "rds", regexp.MustCompile(fmt.Sprintf("subgrp:%s$", rName))),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"description"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"description"},
 			},
 		},
 	})
@@ -116,10 +107,8 @@ func TestAccAWSDBSubnetGroup_namePrefix(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig_namePrefix,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						resourceName, &v),
-					resource.TestMatchResourceAttr(
-						resourceName, "name", regexp.MustCompile("^tf_test-")),
+					testAccCheckDBSubnetGroupExists(resourceName, &v),
+					resource.TestMatchResourceAttr(resourceName, "name", regexp.MustCompile("^tf_test-")),
 				),
 			},
 		},
@@ -138,8 +127,7 @@ func TestAccAWSDBSubnetGroup_generatedName(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig_generatedName,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						resourceName, &v),
+					testAccCheckDBSubnetGroupExists(resourceName, &v),
 				),
 			},
 		},
@@ -164,21 +152,17 @@ func TestAccAWSDBSubnetGroup_withUndocumentedCharacters(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig_withUnderscoresAndPeriodsAndSpaces,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						"aws_db_subnet_group.underscores", &v),
-					testAccCheckDBSubnetGroupExists(
-						"aws_db_subnet_group.periods", &v),
-					testAccCheckDBSubnetGroupExists(
-						"aws_db_subnet_group.spaces", &v),
+					testAccCheckDBSubnetGroupExists("aws_db_subnet_group.underscores", &v),
+					testAccCheckDBSubnetGroupExists("aws_db_subnet_group.periods", &v),
+					testAccCheckDBSubnetGroupExists("aws_db_subnet_group.spaces", &v),
 					testCheck,
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"description"},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"description"},
 			},
 		},
 	})
@@ -197,10 +181,8 @@ func TestAccAWSDBSubnetGroup_updateDescription(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "description", "Managed by Terraform"),
+					testAccCheckDBSubnetGroupExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
 				),
 			},
 			{
@@ -213,10 +195,8 @@ func TestAccAWSDBSubnetGroup_updateDescription(t *testing.T) {
 			{
 				Config: testAccDBSubnetGroupConfig_updatedDescription(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBSubnetGroupExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "description", "test description updated"),
+					testAccCheckDBSubnetGroupExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "description", "test description updated"),
 				),
 			},
 		},
@@ -286,6 +266,11 @@ func testAccDBSubnetGroupConfig(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -331,6 +316,11 @@ func testAccDBSubnetGroupConfig_updatedDescription(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -376,6 +366,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_namePrefix = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -411,6 +406,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_generatedName = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "test" {
@@ -445,6 +445,11 @@ resource "aws_db_subnet_group" "test" {
 const testAccDBSubnetGroupConfig_withUnderscoresAndPeriodsAndSpaces = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_vpc" "main" {

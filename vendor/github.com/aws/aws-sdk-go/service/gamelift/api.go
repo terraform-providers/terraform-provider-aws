@@ -145,6 +145,161 @@ func (c *GameLift) AcceptMatchWithContext(ctx aws.Context, input *AcceptMatchInp
 	return out, req.Send()
 }
 
+const opClaimGameServer = "ClaimGameServer"
+
+// ClaimGameServerRequest generates a "aws/request.Request" representing the
+// client's request for the ClaimGameServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ClaimGameServer for more information on using the ClaimGameServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ClaimGameServerRequest method.
+//    req, resp := client.ClaimGameServerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ClaimGameServer
+func (c *GameLift) ClaimGameServerRequest(input *ClaimGameServerInput) (req *request.Request, output *ClaimGameServerOutput) {
+	op := &request.Operation{
+		Name:       opClaimGameServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ClaimGameServerInput{}
+	}
+
+	output = &ClaimGameServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ClaimGameServer API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Locates an available game server and temporarily reserves it to host gameplay
+// and players. This action is called by a game client or client service (such
+// as a matchmaker) to request hosting resources for a new game session. In
+// response, GameLift FleetIQ searches for an available game server in the specified
+// game server group, places the game server in "claimed" status for 60 seconds,
+// and returns connection information back to the requester so that players
+// can connect to the game server.
+//
+// There are two ways you can claim a game server. For the first option, you
+// provide a game server group ID only, which prompts GameLift FleetIQ to search
+// for an available game server in the specified group and claim it. With this
+// option, GameLift FleetIQ attempts to consolidate gameplay on as few instances
+// as possible to minimize hosting costs. For the second option, you request
+// a specific game server by its ID. This option results in a less efficient
+// claiming process because it does not take advantage of consolidation and
+// may fail if the requested game server is unavailable.
+//
+// To claim a game server, identify a game server group and (optionally) a game
+// server ID. If your game requires that game data be provided to the game server
+// at the start of a game, such as a game map or player information, you can
+// provide it in your claim request.
+//
+// When a game server is successfully claimed, connection information is returned.
+// A claimed game server's utilization status remains AVAILABLE, while the claim
+// status is set to CLAIMED for up to 60 seconds. This time period allows the
+// game server to be prompted to update its status to UTILIZED (using UpdateGameServer).
+// If the game server's status is not updated within 60 seconds, the game server
+// reverts to unclaimed status and is available to be claimed by another request.
+//
+// If you try to claim a specific game server, this request will fail in the
+// following cases: (1) if the game server utilization status is UTILIZED, (2)
+// if the game server claim status is CLAIMED, or (3) if the instance that the
+// game server is running on is flagged as draining.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation ClaimGameServer for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * ConflictException
+//   The requested operation would cause a conflict with the current state of
+//   a service resource associated with the request. Resolve the conflict before
+//   retrying this request.
+//
+//   * OutOfCapacityException
+//   The specified game server group has no available game servers to fulfill
+//   a ClaimGameServer request. Clients can retry such requests immediately or
+//   after a waiting period.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ClaimGameServer
+func (c *GameLift) ClaimGameServer(input *ClaimGameServerInput) (*ClaimGameServerOutput, error) {
+	req, out := c.ClaimGameServerRequest(input)
+	return out, req.Send()
+}
+
+// ClaimGameServerWithContext is the same as ClaimGameServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ClaimGameServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) ClaimGameServerWithContext(ctx aws.Context, input *ClaimGameServerInput, opts ...request.Option) (*ClaimGameServerOutput, error) {
+	req, out := c.ClaimGameServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateAlias = "CreateAlias"
 
 // CreateAliasRequest generates a "aws/request.Request" representing the
@@ -319,45 +474,40 @@ func (c *GameLift) CreateBuildRequest(input *CreateBuildInput) (req *request.Req
 
 // CreateBuild API operation for Amazon GameLift.
 //
-// Creates a new Amazon GameLift build record for your game server binary files
-// and points to the location of your game server build files in an Amazon Simple
-// Storage Service (Amazon S3) location.
+// Creates a new Amazon GameLift build resource for your game server binary
+// files. Game server binaries must be combined into a zip file for use with
+// Amazon GameLift.
 //
-// Game server binaries must be combined into a zip file for use with Amazon
-// GameLift.
+// When setting up a new game build for GameLift, we recommend using the AWS
+// CLI command upload-build (https://docs.aws.amazon.com/cli/latest/reference/gamelift/upload-build.html)
+// . This helper command combines two tasks: (1) it uploads your build files
+// from a file directory to a GameLift Amazon S3 location, and (2) it creates
+// a new build resource.
 //
-// To create new builds directly from a file directory, use the AWS CLI command
-// upload-build (https://docs.aws.amazon.com/cli/latest/reference/gamelift/upload-build.html)
-// . This helper command uploads build files and creates a new build record
-// in one step, and automatically handles the necessary permissions.
+// The CreateBuild operation can used in the following scenarios:
 //
-// The CreateBuild operation should be used only in the following scenarios:
+//    * To create a new game build with build files that are in an S3 location
+//    under an AWS account that you control. To use this option, you must first
+//    give Amazon GameLift access to the S3 bucket. With permissions in place,
+//    call CreateBuild and specify a build name, operating system, and the S3
+//    storage location of your game build.
 //
-//    * To create a new game build with build files that are in an Amazon S3
-//    bucket under your own AWS account. To use this option, you must first
-//    give Amazon GameLift access to that Amazon S3 bucket. Then call CreateBuild
-//    and specify a build name, operating system, and the Amazon S3 storage
-//    location of your game build.
+//    * To directly upload your build files to a GameLift S3 location. To use
+//    this option, first call CreateBuild and specify a build name and operating
+//    system. This action creates a new build resource and also returns an S3
+//    location with temporary access credentials. Use the credentials to manually
+//    upload your build files to the specified S3 location. For more information,
+//    see Uploading Objects (https://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html)
+//    in the Amazon S3 Developer Guide. Build files can be uploaded to the GameLift
+//    S3 location once only; that can't be updated.
 //
-//    * To upload build files directly to Amazon GameLift's Amazon S3 account.
-//    To use this option, first call CreateBuild and specify a build name and
-//    operating system. This action creates a new build record and returns an
-//    Amazon S3 storage location (bucket and key only) and temporary access
-//    credentials. Use the credentials to manually upload your build file to
-//    the provided storage location (see the Amazon S3 topic Uploading Objects
-//    (https://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html)).
-//    You can upload build files to the GameLift Amazon S3 location only once.
-//
-// If successful, this operation creates a new build record with a unique build
-// ID and places it in INITIALIZED status. You can use DescribeBuild to check
-// the status of your build. A build must be in READY status before it can be
-// used to create fleets.
+// If successful, this operation creates a new build resource with a unique
+// build ID and places it in INITIALIZED status. A build must be in READY status
+// before you can create fleets with it.
 //
 // Learn more
 //
 // Uploading Your Game (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
-// https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-// (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)
 //
 //  Create a Build with Files in Amazon S3 (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-cli-uploading.html#gamelift-build-cli-uploading-create-build)
 //
@@ -476,17 +626,16 @@ func (c *GameLift) CreateFleetRequest(input *CreateFleetInput) (req *request.Req
 // set some configuration options, and specify the game server to deploy on
 // the new fleet.
 //
-// To create a new fleet, you must provide the following: (1) a fleet name,
-// (2) an EC2 instance type and fleet type (spot or on-demand), (3) the build
-// ID for your game build or script ID if using Realtime Servers, and (4) a
-// runtime configuration, which determines how game servers will run on each
-// instance in the fleet.
+// To create a new fleet, provide the following: (1) a fleet name, (2) an EC2
+// instance type and fleet type (spot or on-demand), (3) the build ID for your
+// game build or script ID if using Realtime Servers, and (4) a runtime configuration,
+// which determines how game servers will run on each instance in the fleet.
 //
 // If the CreateFleet call is successful, Amazon GameLift performs the following
 // tasks. You can track the process of a fleet by checking the fleet status
 // or by monitoring fleet creation events:
 //
-//    * Creates a fleet record. Status: NEW.
+//    * Creates a fleet resource. Status: NEW.
 //
 //    * Begins writing events to the fleet event log, which can be accessed
 //    in the Amazon GameLift console.
@@ -506,9 +655,9 @@ func (c *GameLift) CreateFleetRequest(input *CreateFleetInput) (req *request.Req
 //
 // Learn more
 //
-//  Setting Up Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
+// Setting Up Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
-//  Debug Fleet Creation Issues (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-creating-debug.html#fleets-creating-debug-creation)
+// Debug Fleet Creation Issues (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-creating-debug.html#fleets-creating-debug-creation)
 //
 // Related operations
 //
@@ -522,7 +671,7 @@ func (c *GameLift) CreateFleetRequest(input *CreateFleetInput) (req *request.Req
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -579,6 +728,162 @@ func (c *GameLift) CreateFleet(input *CreateFleetInput) (*CreateFleetOutput, err
 // for more information on using Contexts.
 func (c *GameLift) CreateFleetWithContext(ctx aws.Context, input *CreateFleetInput, opts ...request.Option) (*CreateFleetOutput, error) {
 	req, out := c.CreateFleetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateGameServerGroup = "CreateGameServerGroup"
+
+// CreateGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the CreateGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateGameServerGroup for more information on using the CreateGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateGameServerGroupRequest method.
+//    req, resp := client.CreateGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/CreateGameServerGroup
+func (c *GameLift) CreateGameServerGroupRequest(input *CreateGameServerGroupInput) (req *request.Request, output *CreateGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opCreateGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateGameServerGroupInput{}
+	}
+
+	output = &CreateGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Creates a GameLift FleetIQ game server group to manage a collection of EC2
+// instances for game hosting. In addition to creating the game server group,
+// this action also creates an Auto Scaling group in your AWS account and establishes
+// a link between the two groups. You have full control over configuration of
+// the Auto Scaling group, but GameLift FleetIQ routinely certain Auto Scaling
+// group properties in order to optimize the group's instances for low-cost
+// game hosting. You can view the status of your game server groups in the GameLift
+// Console. Game server group metrics and events are emitted to Amazon CloudWatch.
+//
+// Prior creating a new game server group, you must set up the following:
+//
+//    * An EC2 launch template. The template provides configuration settings
+//    for a set of EC2 instances and includes the game server build that you
+//    want to deploy and run on each instance. For more information on creating
+//    a launch template, see Launching an Instance from a Launch Template (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html)
+//    in the Amazon EC2 User Guide.
+//
+//    * An IAM role. The role sets up limited access to your AWS account, allowing
+//    GameLift FleetIQ to create and manage the EC2 Auto Scaling group, get
+//    instance data, and emit metrics and events to CloudWatch. For more information
+//    on setting up an IAM permissions policy with principal access for GameLift,
+//    see Specifying a Principal in a Policy (https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-bucket-user-policy-specifying-principal-intro.html)
+//    in the Amazon S3 Developer Guide.
+//
+// To create a new game server group, provide a name and specify the IAM role
+// and EC2 launch template. You also need to provide a list of instance types
+// to be used in the group and set initial maximum and minimum limits on the
+// group's instance count. You can optionally set an autoscaling policy with
+// target tracking based on a GameLift FleetIQ metric.
+//
+// Once the game server group and corresponding Auto Scaling group are created,
+// you have full access to change the Auto Scaling group's configuration as
+// needed. Keep in mind, however, that some properties are periodically updated
+// by GameLift FleetIQ as it balances the group's instances based on availability
+// and cost.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Updating a GameLift FleetIQ-Linked Auto Scaling Group (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-asgroups.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation CreateGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * ConflictException
+//   The requested operation would cause a conflict with the current state of
+//   a service resource associated with the request. Resolve the conflict before
+//   retrying this request.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+//   * LimitExceededException
+//   The requested operation would cause the resource to exceed the allowed service
+//   limit. Resolve the issue before retrying.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/CreateGameServerGroup
+func (c *GameLift) CreateGameServerGroup(input *CreateGameServerGroupInput) (*CreateGameServerGroupOutput, error) {
+	req, out := c.CreateGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// CreateGameServerGroupWithContext is the same as CreateGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) CreateGameServerGroupWithContext(ctx aws.Context, input *CreateGameServerGroupInput, opts ...request.Option) (*CreateGameServerGroupOutput, error) {
+	req, out := c.CreateGameServerGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -823,6 +1128,14 @@ func (c *GameLift) CreateGameSessionQueueRequest(input *CreateGameSessionQueueIn
 // To create a new queue, provide a name, timeout value, a list of destinations
 // and, if desired, a set of latency policies. If successful, a new queue object
 // is returned.
+//
+// Learn more
+//
+//  Design a Game Session Queue (https://docs.aws.amazon.com/gamelift/latest/developerguide/queues-design.html)
+//
+//  Create a Game Session Queue (https://docs.aws.amazon.com/gamelift/latest/developerguide/queues-creating.html)
+//
+// Related operations
 //
 //    * CreateGameSessionQueue
 //
@@ -1969,16 +2282,16 @@ func (c *GameLift) DeleteBuildRequest(input *DeleteBuildInput) (req *request.Req
 
 // DeleteBuild API operation for Amazon GameLift.
 //
-// Deletes a build. This action permanently deletes the build record and any
-// uploaded build files.
+// Deletes a build. This action permanently deletes the build resource and any
+// uploaded build files. Deleting a build does not affect the status of any
+// active fleets using the build, but you can no longer create new fleets with
+// the deleted build.
 //
-// To delete a build, specify its ID. Deleting a build does not affect the status
-// of any active fleets using the build, but you can no longer create new fleets
-// with the deleted build.
+// To delete a build, specify the build ID.
 //
 // Learn more
 //
-//  Working with Builds (https://docs.aws.amazon.com/gamelift/latest/developerguide/build-intro.html)
+//  Upload a Custom Server Build (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
 //
 // Related operations
 //
@@ -2096,12 +2409,12 @@ func (c *GameLift) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Req
 // You do not need to explicitly delete the VPC peering connection--this is
 // done as part of the delete fleet process.
 //
-// This action removes the fleet's resources and the fleet record. Once a fleet
-// is deleted, you can no longer use that fleet.
+// This action removes the fleet and its resources. Once a fleet is deleted,
+// you can no longer use any of the resource in that fleet.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -2115,7 +2428,7 @@ func (c *GameLift) DeleteFleetRequest(input *DeleteFleetInput) (req *request.Req
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2173,6 +2486,139 @@ func (c *GameLift) DeleteFleetWithContext(ctx aws.Context, input *DeleteFleetInp
 	return out, req.Send()
 }
 
+const opDeleteGameServerGroup = "DeleteGameServerGroup"
+
+// DeleteGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteGameServerGroup for more information on using the DeleteGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteGameServerGroupRequest method.
+//    req, resp := client.DeleteGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DeleteGameServerGroup
+func (c *GameLift) DeleteGameServerGroupRequest(input *DeleteGameServerGroupInput) (req *request.Request, output *DeleteGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opDeleteGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteGameServerGroupInput{}
+	}
+
+	output = &DeleteGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Terminates a game server group and permanently deletes the game server group
+// record. You have several options for how these resources are impacted when
+// deleting the game server group. Depending on the type of delete action selected,
+// this action may affect three types of resources: the game server group, the
+// corresponding Auto Scaling group, and all game servers currently running
+// in the group.
+//
+// To delete a game server group, identify the game server group to delete and
+// specify the type of delete action to initiate. Game server groups can only
+// be deleted if they are in ACTIVE or ERROR status.
+//
+// If the delete request is successful, a series of actions are kicked off.
+// The game server group status is changed to DELETE_SCHEDULED, which prevents
+// new game servers from being registered and stops autoscaling activity. Once
+// all game servers in the game server group are de-registered, GameLift FleetIQ
+// can begin deleting resources. If any of the delete actions fail, the game
+// server group is placed in ERROR status.
+//
+// GameLift FleetIQ emits delete events to Amazon CloudWatch.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation DeleteGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DeleteGameServerGroup
+func (c *GameLift) DeleteGameServerGroup(input *DeleteGameServerGroupInput) (*DeleteGameServerGroupOutput, error) {
+	req, out := c.DeleteGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// DeleteGameServerGroupWithContext is the same as DeleteGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) DeleteGameServerGroupWithContext(ctx aws.Context, input *DeleteGameServerGroupInput, opts ...request.Option) (*DeleteGameServerGroupOutput, error) {
+	req, out := c.DeleteGameServerGroupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteGameSessionQueue = "DeleteGameSessionQueue"
 
 // DeleteGameSessionQueueRequest generates a "aws/request.Request" representing the
@@ -2221,6 +2667,12 @@ func (c *GameLift) DeleteGameSessionQueueRequest(input *DeleteGameSessionQueueIn
 // Deletes a game session queue. This action means that any StartGameSessionPlacement
 // requests that reference this queue will fail. To delete a queue, specify
 // the queue name.
+//
+// Learn more
+//
+//  Using Multi-Region Queues (https://docs.aws.amazon.com/gamelift/latest/developerguide/queues-intro.html)
+//
+// Related operations
 //
 //    * CreateGameSessionQueue
 //
@@ -2971,6 +3423,126 @@ func (c *GameLift) DeleteVpcPeeringConnectionWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opDeregisterGameServer = "DeregisterGameServer"
+
+// DeregisterGameServerRequest generates a "aws/request.Request" representing the
+// client's request for the DeregisterGameServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeregisterGameServer for more information on using the DeregisterGameServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeregisterGameServerRequest method.
+//    req, resp := client.DeregisterGameServerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DeregisterGameServer
+func (c *GameLift) DeregisterGameServerRequest(input *DeregisterGameServerInput) (req *request.Request, output *DeregisterGameServerOutput) {
+	op := &request.Operation{
+		Name:       opDeregisterGameServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeregisterGameServerInput{}
+	}
+
+	output = &DeregisterGameServerOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeregisterGameServer API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Removes the game server resource from the game server group. As a result
+// of this action, the de-registered game server can no longer be claimed and
+// will not returned in a list of active game servers.
+//
+// To de-register a game server, specify the game server group and game server
+// ID. If successful, this action emits a CloudWatch event with termination
+// time stamp and reason.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation DeregisterGameServer for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DeregisterGameServer
+func (c *GameLift) DeregisterGameServer(input *DeregisterGameServerInput) (*DeregisterGameServerOutput, error) {
+	req, out := c.DeregisterGameServerRequest(input)
+	return out, req.Send()
+}
+
+// DeregisterGameServerWithContext is the same as DeregisterGameServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeregisterGameServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) DeregisterGameServerWithContext(ctx aws.Context, input *DeregisterGameServerInput, opts ...request.Option) (*DeregisterGameServerOutput, error) {
+	req, out := c.DeregisterGameServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeAlias = "DescribeAlias"
 
 // DescribeAliasRequest generates a "aws/request.Request" representing the
@@ -3123,12 +3695,13 @@ func (c *GameLift) DescribeBuildRequest(input *DescribeBuildInput) (req *request
 
 // DescribeBuild API operation for Amazon GameLift.
 //
-// Retrieves properties for a build. To request a build record, specify a build
-// ID. If successful, an object containing the build properties is returned.
+// Retrieves properties for a custom game build. To request a build resource,
+// specify a build ID. If successful, an object containing the build properties
+// is returned.
 //
 // Learn more
 //
-//  Working with Builds (https://docs.aws.amazon.com/gamelift/latest/developerguide/build-intro.html)
+//  Upload a Custom Server Build (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
 //
 // Related operations
 //
@@ -3234,17 +3807,17 @@ func (c *GameLift) DescribeEC2InstanceLimitsRequest(input *DescribeEC2InstanceLi
 //
 // Retrieves the following information for the specified EC2 instance type:
 //
-//    * maximum number of instances allowed per AWS account (service limit)
+//    * Maximum number of instances allowed per AWS account (service limit).
 //
-//    * current usage level for the AWS account
+//    * Current usage for the AWS account.
 //
-// Service limits vary depending on Region. Available Regions for Amazon GameLift
-// can be found in the AWS Management Console for Amazon GameLift (see the drop-down
-// list in the upper right corner).
+// To learn more about the capabilities of each instance type, see Amazon EC2
+// Instance Types (http://aws.amazon.com/ec2/instance-types/). Note that the
+// instance types offered may vary depending on the region.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -3254,14 +3827,11 @@ func (c *GameLift) DescribeEC2InstanceLimitsRequest(input *DescribeEC2InstanceLi
 //
 //    * DeleteFleet
 //
-//    * Describe fleets: DescribeFleetAttributes DescribeFleetCapacity DescribeFleetPortSettings
-//    DescribeFleetUtilization DescribeRuntimeConfiguration DescribeEC2InstanceLimits
-//    DescribeFleetEvents
+//    * DescribeFleetAttributes
 //
-//    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
-//    UpdateRuntimeConfiguration
+//    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3349,21 +3919,23 @@ func (c *GameLift) DescribeFleetAttributesRequest(input *DescribeFleetAttributes
 
 // DescribeFleetAttributes API operation for Amazon GameLift.
 //
-// Retrieves fleet properties, including metadata, status, and configuration,
-// for one or more fleets. You can request attributes for all fleets, or specify
-// a list of one or more fleet IDs. When requesting multiple fleets, use the
-// pagination parameters to retrieve results as a set of sequential pages. If
-// successful, a FleetAttributes object is returned for each requested fleet
-// ID. When specifying a list of fleet IDs, attribute objects are returned only
-// for fleets that currently exist.
+// Retrieves core properties, including configuration, status, and metadata,
+// for a fleet.
+//
+// To get attributes for one or more fleets, provide a list of fleet IDs or
+// fleet ARNs. To get attributes for all fleets, do not specify a fleet identifier.
+// When requesting attributes for multiple fleets, use the pagination parameters
+// to retrieve results as a set of sequential pages. If successful, a FleetAttributes
+// object is returned for each fleet requested, unless the fleet identifier
+// is not found.
 //
 // Some API actions may limit the number of fleet IDs allowed in one request.
 // If a request exceeds this limit, the request fails and the error message
-// includes the maximum allowed.
+// includes the maximum allowed number.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -3379,7 +3951,7 @@ func (c *GameLift) DescribeFleetAttributesRequest(input *DescribeFleetAttributes
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3471,14 +4043,17 @@ func (c *GameLift) DescribeFleetCapacityRequest(input *DescribeFleetCapacityInpu
 
 // DescribeFleetCapacity API operation for Amazon GameLift.
 //
-// Retrieves the current status of fleet capacity for one or more fleets. This
-// information includes the number of instances that have been requested for
-// the fleet and the number currently active. You can request capacity for all
-// fleets, or specify a list of one or more fleet IDs. When requesting multiple
-// fleets, use the pagination parameters to retrieve results as a set of sequential
-// pages. If successful, a FleetCapacity object is returned for each requested
-// fleet ID. When specifying a list of fleet IDs, attribute objects are returned
-// only for fleets that currently exist.
+// Retrieves the current capacity statistics for one or more fleets. These statistics
+// present a snapshot of the fleet's instances and provide insight on current
+// or imminent scaling activity. To get statistics on game hosting activity
+// in the fleet, see DescribeFleetUtilization.
+//
+// You can request capacity for all fleets or specify a list of one or more
+// fleet identifiers. When requesting multiple fleets, use the pagination parameters
+// to retrieve results as a set of sequential pages. If successful, a FleetCapacity
+// object is returned for each requested fleet ID. When a list of fleet IDs
+// is provided, attribute objects are returned only for fleets that currently
+// exist.
 //
 // Some API actions may limit the number of fleet IDs allowed in one request.
 // If a request exceeds this limit, the request fails and the error message
@@ -3486,7 +4061,9 @@ func (c *GameLift) DescribeFleetCapacityRequest(input *DescribeFleetCapacityInpu
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
+//
+// GameLift Metrics for Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/monitoring-cloudwatch.html#gamelift-metrics-fleet)
 //
 // Related operations
 //
@@ -3502,7 +4079,7 @@ func (c *GameLift) DescribeFleetCapacityRequest(input *DescribeFleetCapacityInpu
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3601,7 +4178,7 @@ func (c *GameLift) DescribeFleetEventsRequest(input *DescribeFleetEventsInput) (
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -3617,7 +4194,7 @@ func (c *GameLift) DescribeFleetEventsRequest(input *DescribeFleetEventsInput) (
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3709,16 +4286,19 @@ func (c *GameLift) DescribeFleetPortSettingsRequest(input *DescribeFleetPortSett
 
 // DescribeFleetPortSettings API operation for Amazon GameLift.
 //
-// Retrieves the inbound connection permissions for a fleet. Connection permissions
-// include a range of IP addresses and port settings that incoming traffic can
-// use to access server processes in the fleet. To get a fleet's inbound connection
-// permissions, specify a fleet ID. If successful, a collection of IpPermission
-// objects is returned for the requested fleet ID. If the requested fleet has
-// been deleted, the result set is empty.
+// Retrieves a fleet's inbound connection permissions. Connection permissions
+// specify the range of IP addresses and port settings that incoming traffic
+// can use to access server processes in the fleet. Game sessions that are running
+// on instances in the fleet use connections that fall in this range.
+//
+// To get a fleet's inbound connection permissions, specify the fleet's unique
+// identifier. If successful, a collection of IpPermission objects is returned
+// for the requested fleet ID. If the requested fleet has been deleted, the
+// result set is empty.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -3734,7 +4314,7 @@ func (c *GameLift) DescribeFleetPortSettingsRequest(input *DescribeFleetPortSett
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3826,12 +4406,15 @@ func (c *GameLift) DescribeFleetUtilizationRequest(input *DescribeFleetUtilizati
 
 // DescribeFleetUtilization API operation for Amazon GameLift.
 //
-// Retrieves utilization statistics for one or more fleets. You can request
-// utilization data for all fleets, or specify a list of one or more fleet IDs.
-// When requesting multiple fleets, use the pagination parameters to retrieve
-// results as a set of sequential pages. If successful, a FleetUtilization object
-// is returned for each requested fleet ID. When specifying a list of fleet
-// IDs, utilization objects are returned only for fleets that currently exist.
+// Retrieves utilization statistics for one or more fleets. These statistics
+// provide insight into how available hosting resources are currently being
+// used. To get statistics on available hosting resources, see DescribeFleetCapacity.
+//
+// You can request utilization data for all fleets, or specify a list of one
+// or more fleet IDs. When requesting multiple fleets, use the pagination parameters
+// to retrieve results as a set of sequential pages. If successful, a FleetUtilization
+// object is returned for each requested fleet ID, unless the fleet identifier
+// is not found.
 //
 // Some API actions may limit the number of fleet IDs allowed in one request.
 // If a request exceeds this limit, the request fails and the error message
@@ -3839,7 +4422,9 @@ func (c *GameLift) DescribeFleetUtilizationRequest(input *DescribeFleetUtilizati
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
+//
+// GameLift Metrics for Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/monitoring-cloudwatch.html#gamelift-metrics-fleet)
 //
 // Related operations
 //
@@ -3855,7 +4440,7 @@ func (c *GameLift) DescribeFleetUtilizationRequest(input *DescribeFleetUtilizati
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3898,6 +4483,242 @@ func (c *GameLift) DescribeFleetUtilization(input *DescribeFleetUtilizationInput
 // for more information on using Contexts.
 func (c *GameLift) DescribeFleetUtilizationWithContext(ctx aws.Context, input *DescribeFleetUtilizationInput, opts ...request.Option) (*DescribeFleetUtilizationOutput, error) {
 	req, out := c.DescribeFleetUtilizationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeGameServer = "DescribeGameServer"
+
+// DescribeGameServerRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeGameServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeGameServer for more information on using the DescribeGameServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeGameServerRequest method.
+//    req, resp := client.DescribeGameServerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeGameServer
+func (c *GameLift) DescribeGameServerRequest(input *DescribeGameServerInput) (req *request.Request, output *DescribeGameServerOutput) {
+	op := &request.Operation{
+		Name:       opDescribeGameServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeGameServerInput{}
+	}
+
+	output = &DescribeGameServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeGameServer API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Retrieves information for a game server resource. Information includes the
+// game server statuses, health check info, and the instance the game server
+// is running on.
+//
+// To retrieve game server information, specify the game server ID. If successful,
+// the requested game server object is returned.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation DescribeGameServer for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeGameServer
+func (c *GameLift) DescribeGameServer(input *DescribeGameServerInput) (*DescribeGameServerOutput, error) {
+	req, out := c.DescribeGameServerRequest(input)
+	return out, req.Send()
+}
+
+// DescribeGameServerWithContext is the same as DescribeGameServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeGameServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) DescribeGameServerWithContext(ctx aws.Context, input *DescribeGameServerInput, opts ...request.Option) (*DescribeGameServerOutput, error) {
+	req, out := c.DescribeGameServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeGameServerGroup = "DescribeGameServerGroup"
+
+// DescribeGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeGameServerGroup for more information on using the DescribeGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeGameServerGroupRequest method.
+//    req, resp := client.DescribeGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeGameServerGroup
+func (c *GameLift) DescribeGameServerGroupRequest(input *DescribeGameServerGroupInput) (req *request.Request, output *DescribeGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opDescribeGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeGameServerGroupInput{}
+	}
+
+	output = &DescribeGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Retrieves information on a game server group.
+//
+// To get attributes for a game server group, provide a group name or ARN value.
+// If successful, a GameServerGroup object is returned.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation DescribeGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/DescribeGameServerGroup
+func (c *GameLift) DescribeGameServerGroup(input *DescribeGameServerGroupInput) (*DescribeGameServerGroupOutput, error) {
+	req, out := c.DescribeGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// DescribeGameServerGroupWithContext is the same as DescribeGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) DescribeGameServerGroupWithContext(ctx aws.Context, input *DescribeGameServerGroupInput, opts ...request.Option) (*DescribeGameServerGroupOutput, error) {
+	req, out := c.DescribeGameServerGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4186,6 +5007,12 @@ func (c *GameLift) DescribeGameSessionQueuesRequest(input *DescribeGameSessionQu
 // for each requested queue. When specifying a list of queues, objects are returned
 // only for queues that currently exist in the Region.
 //
+// Learn more
+//
+//  View Your Queues (https://docs.aws.amazon.com/gamelift/latest/developerguide/queues-console.html)
+//
+// Related operations
+//
 //    * CreateGameSessionQueue
 //
 //    * DescribeGameSessionQueues
@@ -4417,6 +5244,18 @@ func (c *GameLift) DescribeInstancesRequest(input *DescribeInstancesInput) (req 
 // instances in a fleet, specify a fleet ID only. Use the pagination parameters
 // to retrieve results as a set of sequential pages. If successful, an Instance
 // object is returned for each result.
+//
+// Learn more
+//
+// Remotely Access Fleet Instances (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-remote-access.html)
+//
+// Debug Fleet Issues (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-creating-debug.html)
+//
+// Related operations
+//
+//    * DescribeInstances
+//
+//    * GetInstanceAccess
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4973,13 +5812,19 @@ func (c *GameLift) DescribeRuntimeConfigurationRequest(input *DescribeRuntimeCon
 
 // DescribeRuntimeConfiguration API operation for Amazon GameLift.
 //
-// Retrieves the current runtime configuration for the specified fleet. The
-// runtime configuration tells Amazon GameLift how to launch server processes
-// on instances in the fleet.
+// Retrieves a fleet's runtime configuration settings. The runtime configuration
+// tells Amazon GameLift which server processes to run (and how) on each instance
+// in the fleet.
+//
+// To get a runtime configuration, specify the fleet's unique identifier. If
+// successful, a RuntimeConfiguration object is returned for the requested fleet.
+// If the requested fleet has been deleted, the result set is empty.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
+//
+// Running Multiple Processes on a Fleet (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-multiprocess.html)
 //
 // Related operations
 //
@@ -4995,7 +5840,7 @@ func (c *GameLift) DescribeRuntimeConfigurationRequest(input *DescribeRuntimeCon
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5639,22 +6484,34 @@ func (c *GameLift) GetInstanceAccessRequest(input *GetInstanceAccessInput) (req 
 // GetInstanceAccess API operation for Amazon GameLift.
 //
 // Requests remote access to a fleet instance. Remote access is useful for debugging,
-// gathering benchmarking data, or watching activity in real time.
+// gathering benchmarking data, or observing activity in real time.
 //
-// Access requires credentials that match the operating system of the instance.
-// For a Windows instance, Amazon GameLift returns a user name and password
-// as strings for use with a Windows Remote Desktop client. For a Linux instance,
-// Amazon GameLift returns a user name and RSA private key, also as strings,
-// for use with an SSH client. The private key must be saved in the proper format
-// to a .pem file before using. If you're making this request using the AWS
-// CLI, saving the secret can be handled as part of the GetInstanceAccess request.
-// (See the example later in this topic). For more information on remote access,
-// see Remotely Accessing an Instance (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-remote-access.html).
+// To remotely access an instance, you need credentials that match the operating
+// system of the instance. For a Windows instance, Amazon GameLift returns a
+// user name and password as strings for use with a Windows Remote Desktop client.
+// For a Linux instance, Amazon GameLift returns a user name and RSA private
+// key, also as strings, for use with an SSH client. The private key must be
+// saved in the proper format to a .pem file before using. If you're making
+// this request using the AWS CLI, saving the secret can be handled as part
+// of the GetInstanceAccess request, as shown in one of the examples for this
+// action.
 //
 // To request access to a specific instance, specify the IDs of both the instance
 // and the fleet it belongs to. You can retrieve a fleet's instance IDs by calling
-// DescribeInstances. If successful, an InstanceAccess object is returned containing
-// the instance's IP address and a set of credentials.
+// DescribeInstances. If successful, an InstanceAccess object is returned that
+// contains the instance's IP address and a set of credentials.
+//
+// Learn more
+//
+// Remotely Access Fleet Instances (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-remote-access.html)
+//
+// Debug Fleet Issues (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-creating-debug.html)
+//
+// Related operations
+//
+//    * DescribeInstances
+//
+//    * GetInstanceAccess
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5850,16 +6707,16 @@ func (c *GameLift) ListBuildsRequest(input *ListBuildsInput) (req *request.Reque
 
 // ListBuilds API operation for Amazon GameLift.
 //
-// Retrieves build records for all builds associated with the AWS account in
-// use. You can limit results to builds that are in a specific status by using
-// the Status parameter. Use the pagination parameters to retrieve results in
-// a set of sequential pages.
+// Retrieves build resources for all builds associated with the AWS account
+// in use. You can limit results to builds that are in a specific status by
+// using the Status parameter. Use the pagination parameters to retrieve results
+// in a set of sequential pages.
 //
-// Build records are not listed in any particular order.
+// Build resources are not listed in any particular order.
 //
 // Learn more
 //
-//  Working with Builds (https://docs.aws.amazon.com/gamelift/latest/developerguide/build-intro.html)
+//  Upload a Custom Server Build (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
 //
 // Related operations
 //
@@ -5959,16 +6816,16 @@ func (c *GameLift) ListFleetsRequest(input *ListFleetsInput) (req *request.Reque
 
 // ListFleets API operation for Amazon GameLift.
 //
-// Retrieves a collection of fleet records for this AWS account. You can filter
+// Retrieves a collection of fleet resources for this AWS account. You can filter
 // the result set to find only those fleets that are deployed with a specific
 // build or script. Use the pagination parameters to retrieve results in sequential
 // pages.
 //
-// Fleet records are not listed in a particular order.
+// Fleet resources are not listed in a particular order.
 //
 // Learn more
 //
-//  Set Up Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -5982,7 +6839,7 @@ func (c *GameLift) ListFleetsRequest(input *ListFleetsInput) (req *request.Reque
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6025,6 +6882,232 @@ func (c *GameLift) ListFleets(input *ListFleetsInput) (*ListFleetsOutput, error)
 // for more information on using Contexts.
 func (c *GameLift) ListFleetsWithContext(ctx aws.Context, input *ListFleetsInput, opts ...request.Option) (*ListFleetsOutput, error) {
 	req, out := c.ListFleetsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListGameServerGroups = "ListGameServerGroups"
+
+// ListGameServerGroupsRequest generates a "aws/request.Request" representing the
+// client's request for the ListGameServerGroups operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListGameServerGroups for more information on using the ListGameServerGroups
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListGameServerGroupsRequest method.
+//    req, resp := client.ListGameServerGroupsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ListGameServerGroups
+func (c *GameLift) ListGameServerGroupsRequest(input *ListGameServerGroupsInput) (req *request.Request, output *ListGameServerGroupsOutput) {
+	op := &request.Operation{
+		Name:       opListGameServerGroups,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListGameServerGroupsInput{}
+	}
+
+	output = &ListGameServerGroupsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListGameServerGroups API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Retrieves information on all game servers groups that exist in the current
+// AWS account for the selected region. Use the pagination parameters to retrieve
+// results in a set of sequential pages.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation ListGameServerGroups for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ListGameServerGroups
+func (c *GameLift) ListGameServerGroups(input *ListGameServerGroupsInput) (*ListGameServerGroupsOutput, error) {
+	req, out := c.ListGameServerGroupsRequest(input)
+	return out, req.Send()
+}
+
+// ListGameServerGroupsWithContext is the same as ListGameServerGroups with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListGameServerGroups for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) ListGameServerGroupsWithContext(ctx aws.Context, input *ListGameServerGroupsInput, opts ...request.Option) (*ListGameServerGroupsOutput, error) {
+	req, out := c.ListGameServerGroupsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListGameServers = "ListGameServers"
+
+// ListGameServersRequest generates a "aws/request.Request" representing the
+// client's request for the ListGameServers operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListGameServers for more information on using the ListGameServers
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListGameServersRequest method.
+//    req, resp := client.ListGameServersRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ListGameServers
+func (c *GameLift) ListGameServersRequest(input *ListGameServersInput) (req *request.Request, output *ListGameServersOutput) {
+	op := &request.Operation{
+		Name:       opListGameServers,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListGameServersInput{}
+	}
+
+	output = &ListGameServersOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListGameServers API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Retrieves information on all game servers that are currently running in a
+// specified game server group. If there are custom key sort values for your
+// game servers, you can opt to have the returned list sorted based on these
+// values. Use the pagination parameters to retrieve results in a set of sequential
+// pages.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation ListGameServers for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ListGameServers
+func (c *GameLift) ListGameServers(input *ListGameServersInput) (*ListGameServersOutput, error) {
+	req, out := c.ListGameServersRequest(input)
+	return out, req.Send()
+}
+
+// ListGameServersWithContext is the same as ListGameServers with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListGameServers for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) ListGameServersWithContext(ctx aws.Context, input *ListGameServersInput, opts ...request.Option) (*ListGameServersOutput, error) {
+	req, out := c.ListGameServersRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6439,6 +7522,139 @@ func (c *GameLift) PutScalingPolicyWithContext(ctx aws.Context, input *PutScalin
 	return out, req.Send()
 }
 
+const opRegisterGameServer = "RegisterGameServer"
+
+// RegisterGameServerRequest generates a "aws/request.Request" representing the
+// client's request for the RegisterGameServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RegisterGameServer for more information on using the RegisterGameServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RegisterGameServerRequest method.
+//    req, resp := client.RegisterGameServerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/RegisterGameServer
+func (c *GameLift) RegisterGameServerRequest(input *RegisterGameServerInput) (req *request.Request, output *RegisterGameServerOutput) {
+	op := &request.Operation{
+		Name:       opRegisterGameServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RegisterGameServerInput{}
+	}
+
+	output = &RegisterGameServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RegisterGameServer API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Creates a new game server resource and notifies GameLift FleetIQ that the
+// game server is ready to host gameplay and players. This action is called
+// by a game server process that is running on an instance in a game server
+// group. Registering game servers enables GameLift FleetIQ to track available
+// game servers and enables game clients and services to claim a game server
+// for a new game session.
+//
+// To register a game server, identify the game server group and instance where
+// the game server is running, and provide a unique identifier for the game
+// server. You can also include connection and game server data; when a game
+// client or service requests a game server by calling ClaimGameServer, this
+// information is returned in response.
+//
+// Once a game server is successfully registered, it is put in status AVAILABLE.
+// A request to register a game server may fail if the instance it is in the
+// process of shutting down as part of instance rebalancing or scale-down activity.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation RegisterGameServer for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * ConflictException
+//   The requested operation would cause a conflict with the current state of
+//   a service resource associated with the request. Resolve the conflict before
+//   retrying this request.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+//   * LimitExceededException
+//   The requested operation would cause the resource to exceed the allowed service
+//   limit. Resolve the issue before retrying.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/RegisterGameServer
+func (c *GameLift) RegisterGameServer(input *RegisterGameServerInput) (*RegisterGameServerOutput, error) {
+	req, out := c.RegisterGameServerRequest(input)
+	return out, req.Send()
+}
+
+// RegisterGameServerWithContext is the same as RegisterGameServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RegisterGameServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) RegisterGameServerWithContext(ctx aws.Context, input *RegisterGameServerInput, opts ...request.Option) (*RegisterGameServerOutput, error) {
+	req, out := c.RegisterGameServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRequestUploadCredentials = "RequestUploadCredentials"
 
 // RequestUploadCredentialsRequest generates a "aws/request.Request" representing the
@@ -6493,7 +7709,7 @@ func (c *GameLift) RequestUploadCredentialsRequest(input *RequestUploadCredentia
 //
 // Learn more
 //
-// Uploading Your Game (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
+//  Create a Build with Files in S3 (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-cli-uploading.html#gamelift-build-cli-uploading-create-build)
 //
 // Related operations
 //
@@ -6659,6 +7875,129 @@ func (c *GameLift) ResolveAlias(input *ResolveAliasInput) (*ResolveAliasOutput, 
 // for more information on using Contexts.
 func (c *GameLift) ResolveAliasWithContext(ctx aws.Context, input *ResolveAliasInput, opts ...request.Option) (*ResolveAliasOutput, error) {
 	req, out := c.ResolveAliasRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opResumeGameServerGroup = "ResumeGameServerGroup"
+
+// ResumeGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the ResumeGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResumeGameServerGroup for more information on using the ResumeGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResumeGameServerGroupRequest method.
+//    req, resp := client.ResumeGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ResumeGameServerGroup
+func (c *GameLift) ResumeGameServerGroupRequest(input *ResumeGameServerGroupInput) (req *request.Request, output *ResumeGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opResumeGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResumeGameServerGroupInput{}
+	}
+
+	output = &ResumeGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResumeGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Reinstates activity on a game server group after it has been suspended. A
+// game server group may be suspended by calling SuspendGameServerGroup, or
+// it may have been involuntarily suspended due to a configuration problem.
+// You can manually resume activity on the group once the configuration problem
+// has been resolved. Refer to the game server group status and status reason
+// for more information on why group activity is suspended.
+//
+// To resume activity, specify a game server group ARN and the type of activity
+// to be resumed.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation ResumeGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/ResumeGameServerGroup
+func (c *GameLift) ResumeGameServerGroup(input *ResumeGameServerGroupInput) (*ResumeGameServerGroupOutput, error) {
+	req, out := c.ResumeGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// ResumeGameServerGroupWithContext is the same as ResumeGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResumeGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) ResumeGameServerGroupWithContext(ctx aws.Context, input *ResumeGameServerGroupInput, opts ...request.Option) (*ResumeGameServerGroupOutput, error) {
+	req, out := c.ResumeGameServerGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6882,7 +8221,7 @@ func (c *GameLift) StartFleetActionsRequest(input *StartFleetActionsInput) (req 
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -6892,14 +8231,11 @@ func (c *GameLift) StartFleetActionsRequest(input *StartFleetActionsInput) (req 
 //
 //    * DeleteFleet
 //
-//    * Describe fleets: DescribeFleetAttributes DescribeFleetCapacity DescribeFleetPortSettings
-//    DescribeFleetUtilization DescribeRuntimeConfiguration DescribeEC2InstanceLimits
-//    DescribeFleetEvents
+//    * DescribeFleetAttributes
 //
-//    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
-//    UpdateRuntimeConfiguration
+//    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7446,19 +8782,18 @@ func (c *GameLift) StopFleetActionsRequest(input *StopFleetActionsInput) (req *r
 // StopFleetActions API operation for Amazon GameLift.
 //
 // Suspends activity on a fleet. Currently, this operation is used to stop a
-// fleet's auto-scaling activity. It is used to temporarily stop scaling events
-// triggered by the fleet's scaling policies. The policies can be retained and
-// auto-scaling activity can be restarted using StartFleetActions. You can view
-// a fleet's stopped actions using DescribeFleetAttributes.
+// fleet's auto-scaling activity. It is used to temporarily stop triggering
+// scaling events. The policies can be retained and auto-scaling activity can
+// be restarted using StartFleetActions. You can view a fleet's stopped actions
+// using DescribeFleetAttributes.
 //
 // To stop fleet actions, specify the fleet ID and the type of actions to suspend.
 // When auto-scaling fleet actions are stopped, Amazon GameLift no longer initiates
-// scaling events except to maintain the fleet's desired instances setting (FleetCapacity.
-// Changes to the fleet's capacity must be done manually using UpdateFleetCapacity.
+// scaling events except in response to manual changes using UpdateFleetCapacity.
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -7468,14 +8803,11 @@ func (c *GameLift) StopFleetActionsRequest(input *StopFleetActionsInput) (req *r
 //
 //    * DeleteFleet
 //
-//    * Describe fleets: DescribeFleetAttributes DescribeFleetCapacity DescribeFleetPortSettings
-//    DescribeFleetUtilization DescribeRuntimeConfiguration DescribeEC2InstanceLimits
-//    DescribeFleetEvents
+//    * DescribeFleetAttributes
 //
-//    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
-//    UpdateRuntimeConfiguration
+//    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7751,6 +9083,135 @@ func (c *GameLift) StopMatchmakingWithContext(ctx aws.Context, input *StopMatchm
 	return out, req.Send()
 }
 
+const opSuspendGameServerGroup = "SuspendGameServerGroup"
+
+// SuspendGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the SuspendGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See SuspendGameServerGroup for more information on using the SuspendGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the SuspendGameServerGroupRequest method.
+//    req, resp := client.SuspendGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/SuspendGameServerGroup
+func (c *GameLift) SuspendGameServerGroupRequest(input *SuspendGameServerGroupInput) (req *request.Request, output *SuspendGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opSuspendGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &SuspendGameServerGroupInput{}
+	}
+
+	output = &SuspendGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// SuspendGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Temporarily stops activity on a game server group without terminating instances
+// or the game server group. Activity can be restarted by calling ResumeGameServerGroup.
+// Activities that can suspended are:
+//
+//    * Instance type replacement. This activity evaluates the current Spot
+//    viability of all instance types that are defined for the game server group.
+//    It updates the Auto Scaling group to remove nonviable Spot instance types
+//    (which have a higher chance of game server interruptions) and rebalances
+//    capacity across the remaining viable Spot instance types. When this activity
+//    is suspended, the Auto Scaling group continues with its current balance,
+//    regardless of viability. Instance protection, utilization metrics, and
+//    capacity autoscaling activities continue to be active.
+//
+// To suspend activity, specify a game server group ARN and the type of activity
+// to be suspended.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation SuspendGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/SuspendGameServerGroup
+func (c *GameLift) SuspendGameServerGroup(input *SuspendGameServerGroupInput) (*SuspendGameServerGroupOutput, error) {
+	req, out := c.SuspendGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// SuspendGameServerGroupWithContext is the same as SuspendGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See SuspendGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) SuspendGameServerGroupWithContext(ctx aws.Context, input *SuspendGameServerGroupInput, opts ...request.Option) (*SuspendGameServerGroupOutput, error) {
+	req, out := c.SuspendGameServerGroupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opTagResource = "TagResource"
 
 // TagResourceRequest generates a "aws/request.Request" representing the
@@ -7817,7 +9278,7 @@ func (c *GameLift) TagResourceRequest(input *TagResourceInput) (req *request.Req
 //    * MatchmakingRuleSet
 //
 // To add a tag to a resource, specify the unique ARN value for the resource
-// and provide a trig list containing one or more tags. The operation succeeds
+// and provide a tag list containing one or more tags. The operation succeeds
 // even if the list includes tags that are already assigned to the specified
 // resource.
 //
@@ -8167,14 +9628,14 @@ func (c *GameLift) UpdateBuildRequest(input *UpdateBuildInput) (req *request.Req
 
 // UpdateBuild API operation for Amazon GameLift.
 //
-// Updates metadata in a build record, including the build name and version.
+// Updates metadata in a build resource, including the build name and version.
 // To update the metadata, specify the build ID to update and provide the new
 // values. If successful, a build object containing the updated metadata is
 // returned.
 //
 // Learn more
 //
-//  Working with Builds (https://docs.aws.amazon.com/gamelift/latest/developerguide/build-intro.html)
+//  Upload a Custom Server Build (https://docs.aws.amazon.com/gamelift/latest/developerguide/gamelift-build-intro.html)
 //
 // Related operations
 //
@@ -8284,7 +9745,7 @@ func (c *GameLift) UpdateFleetAttributesRequest(input *UpdateFleetAttributesInpu
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -8299,7 +9760,7 @@ func (c *GameLift) UpdateFleetAttributesRequest(input *UpdateFleetAttributesInpu
 //    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
 //    UpdateRuntimeConfiguration
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8424,7 +9885,7 @@ func (c *GameLift) UpdateFleetCapacityRequest(input *UpdateFleetCapacityInput) (
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -8439,7 +9900,7 @@ func (c *GameLift) UpdateFleetCapacityRequest(input *UpdateFleetCapacityInput) (
 //    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
 //    UpdateRuntimeConfiguration
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8554,7 +10015,7 @@ func (c *GameLift) UpdateFleetPortSettingsRequest(input *UpdateFleetPortSettings
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -8569,7 +10030,7 @@ func (c *GameLift) UpdateFleetPortSettingsRequest(input *UpdateFleetPortSettings
 //    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
 //    UpdateRuntimeConfiguration
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8626,6 +10087,273 @@ func (c *GameLift) UpdateFleetPortSettings(input *UpdateFleetPortSettingsInput) 
 // for more information on using Contexts.
 func (c *GameLift) UpdateFleetPortSettingsWithContext(ctx aws.Context, input *UpdateFleetPortSettingsInput, opts ...request.Option) (*UpdateFleetPortSettingsOutput, error) {
 	req, out := c.UpdateFleetPortSettingsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateGameServer = "UpdateGameServer"
+
+// UpdateGameServerRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateGameServer operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateGameServer for more information on using the UpdateGameServer
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateGameServerRequest method.
+//    req, resp := client.UpdateGameServerRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateGameServer
+func (c *GameLift) UpdateGameServerRequest(input *UpdateGameServerInput) (req *request.Request, output *UpdateGameServerOutput) {
+	op := &request.Operation{
+		Name:       opUpdateGameServer,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateGameServerInput{}
+	}
+
+	output = &UpdateGameServerOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateGameServer API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Updates information about a registered game server. This action is called
+// by a game server process that is running on an instance in a game server
+// group. There are three reasons to update game server information: (1) to
+// change the utilization status of the game server, (2) to report game server
+// health status, and (3) to change game server metadata. A registered game
+// server should regularly report health and should update utilization status
+// when it is supporting gameplay so that GameLift FleetIQ can accurately track
+// game server availability. You can make all three types of updates in the
+// same request.
+//
+//    * To update the game server's utilization status, identify the game server
+//    and game server group and specify the current utilization status. Use
+//    this status to identify when game servers are currently hosting games
+//    and when they are available to be claimed.
+//
+//    * To report health status, identify the game server and game server group
+//    and set health check to HEALTHY. If a game server does not report health
+//    status for a certain length of time, the game server is no longer considered
+//    healthy and will be eventually de-registered from the game server group
+//    to avoid affecting utilization metrics. The best practice is to report
+//    health every 60 seconds.
+//
+//    * To change game server metadata, provide updated game server data and
+//    custom sort key values.
+//
+// Once a game server is successfully updated, the relevant statuses and timestamps
+// are updated.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Related operations
+//
+//    * RegisterGameServer
+//
+//    * ListGameServers
+//
+//    * ClaimGameServer
+//
+//    * DescribeGameServer
+//
+//    * UpdateGameServer
+//
+//    * DeregisterGameServer
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation UpdateGameServer for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateGameServer
+func (c *GameLift) UpdateGameServer(input *UpdateGameServerInput) (*UpdateGameServerOutput, error) {
+	req, out := c.UpdateGameServerRequest(input)
+	return out, req.Send()
+}
+
+// UpdateGameServerWithContext is the same as UpdateGameServer with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateGameServer for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) UpdateGameServerWithContext(ctx aws.Context, input *UpdateGameServerInput, opts ...request.Option) (*UpdateGameServerOutput, error) {
+	req, out := c.UpdateGameServerRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateGameServerGroup = "UpdateGameServerGroup"
+
+// UpdateGameServerGroupRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateGameServerGroup operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateGameServerGroup for more information on using the UpdateGameServerGroup
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateGameServerGroupRequest method.
+//    req, resp := client.UpdateGameServerGroupRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateGameServerGroup
+func (c *GameLift) UpdateGameServerGroupRequest(input *UpdateGameServerGroupInput) (req *request.Request, output *UpdateGameServerGroupOutput) {
+	op := &request.Operation{
+		Name:       opUpdateGameServerGroup,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateGameServerGroupInput{}
+	}
+
+	output = &UpdateGameServerGroupOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateGameServerGroup API operation for Amazon GameLift.
+//
+// This action is part of Amazon GameLift FleetIQ with game server groups, which
+// is in preview release and is subject to change.
+//
+// Updates GameLift FleetIQ-specific properties for a game server group. These
+// properties include instance rebalancing and game server protection. Many
+// Auto Scaling group properties are updated directly. These include autoscaling
+// policies, minimum/maximum/desired instance counts, and launch template.
+//
+// To update the game server group, specify the game server group ID and provide
+// the updated values.
+//
+// Updated properties are validated to ensure that GameLift FleetIQ can continue
+// to perform its core instance rebalancing activity. When you change Auto Scaling
+// group properties directly and the changes cause errors with GameLift FleetIQ
+// activities, an alert is sent.
+//
+// Learn more
+//
+// GameLift FleetIQ Guide (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-intro.html)
+//
+// Updating a GameLift FleetIQ-Linked Auto Scaling Group (https://docs.aws.amazon.com/gamelift/latest/developerguide/gsg-asgroups.html)
+//
+// Related operations
+//
+//    * CreateGameServerGroup
+//
+//    * ListGameServerGroups
+//
+//    * DescribeGameServerGroup
+//
+//    * UpdateGameServerGroup
+//
+//    * DeleteGameServerGroup
+//
+//    * ResumeGameServerGroup
+//
+//    * SuspendGameServerGroup
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon GameLift's
+// API operation UpdateGameServerGroup for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   One or more parameter values in the request are invalid. Correct the invalid
+//   parameter values before retrying.
+//
+//   * NotFoundException
+//   A service resource associated with the request could not be found. Clients
+//   should not retry such requests.
+//
+//   * UnauthorizedException
+//   The client failed authentication. Clients should not retry such requests.
+//
+//   * InternalServiceException
+//   The service encountered an unrecoverable internal failure while processing
+//   the request. Clients can retry such requests immediately or after a waiting
+//   period.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/gamelift-2015-10-01/UpdateGameServerGroup
+func (c *GameLift) UpdateGameServerGroup(input *UpdateGameServerGroupInput) (*UpdateGameServerGroupOutput, error) {
+	req, out := c.UpdateGameServerGroupRequest(input)
+	return out, req.Send()
+}
+
+// UpdateGameServerGroupWithContext is the same as UpdateGameServerGroup with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateGameServerGroup for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *GameLift) UpdateGameServerGroupWithContext(ctx aws.Context, input *UpdateGameServerGroupInput, opts ...request.Option) (*UpdateGameServerGroupOutput, error) {
+	req, out := c.UpdateGameServerGroupRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -8802,6 +10530,12 @@ func (c *GameLift) UpdateGameSessionQueueRequest(input *UpdateGameSessionQueueIn
 // session requests in the queue are processed. To update settings, specify
 // the queue name to be updated and provide the new settings. When updating
 // destinations, provide a complete list of destinations.
+//
+// Learn more
+//
+//  Using Multi-Region Queues (https://docs.aws.amazon.com/gamelift/latest/developerguide/queues-intro.html)
+//
+// Related operations
 //
 //    * CreateGameSessionQueue
 //
@@ -9035,7 +10769,7 @@ func (c *GameLift) UpdateRuntimeConfigurationRequest(input *UpdateRuntimeConfigu
 //
 // Learn more
 //
-//  Working with Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html).
+// Setting up GameLift Fleets (https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-intro.html)
 //
 // Related operations
 //
@@ -9050,7 +10784,7 @@ func (c *GameLift) UpdateRuntimeConfigurationRequest(input *UpdateRuntimeConfigu
 //    * Update fleets: UpdateFleetAttributes UpdateFleetCapacity UpdateFleetPortSettings
 //    UpdateRuntimeConfiguration
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9438,9 +11172,9 @@ type Alias struct {
 
 	// Amazon Resource Name (ARN (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html))
 	// that is assigned to a GameLift alias resource and uniquely identifies it.
-	// ARNs are unique across all Regions.. In a GameLift alias ARN, the resource
+	// ARNs are unique across all Regions. In a GameLift alias ARN, the resource
 	// ID matches the alias ID value.
-	AliasArn *string `min:"1" type:"string"`
+	AliasArn *string `type:"string"`
 
 	// A unique identifier for an alias. Alias IDs are unique within a Region.
 	AliasId *string `type:"string"`
@@ -9795,12 +11529,106 @@ func (s *CertificateConfiguration) SetCertificateType(v string) *CertificateConf
 	return s
 }
 
+type ClaimGameServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// A set of custom game server properties, formatted as a single string value,
+	// to be passed to the claimed game server.
+	GameServerData *string `min:"1" type:"string"`
+
+	// An identifier for the game server group. When claiming a specific game server,
+	// this is the game server group whether the game server is located. When requesting
+	// that GameLift FleetIQ locate an available game server, this is the game server
+	// group to search on. You can use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// A custom string that uniquely identifies the game server to claim. If this
+	// parameter is left empty, GameLift FleetIQ searches for an available game
+	// server in the specified game server group.
+	GameServerId *string `min:"3" type:"string"`
+}
+
+// String returns the string representation
+func (s ClaimGameServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClaimGameServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ClaimGameServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ClaimGameServerInput"}
+	if s.GameServerData != nil && len(*s.GameServerData) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerData", 1))
+	}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.GameServerId != nil && len(*s.GameServerId) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerId", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerData sets the GameServerData field's value.
+func (s *ClaimGameServerInput) SetGameServerData(v string) *ClaimGameServerInput {
+	s.GameServerData = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *ClaimGameServerInput) SetGameServerGroupName(v string) *ClaimGameServerInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *ClaimGameServerInput) SetGameServerId(v string) *ClaimGameServerInput {
+	s.GameServerId = &v
+	return s
+}
+
+type ClaimGameServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Object that describes the newly claimed game server resource.
+	GameServer *GameServer `type:"structure"`
+}
+
+// String returns the string representation
+func (s ClaimGameServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ClaimGameServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServer sets the GameServer field's value.
+func (s *ClaimGameServerOutput) SetGameServer(v *GameServer) *ClaimGameServerOutput {
+	s.GameServer = v
+	return s
+}
+
 // The requested operation would cause a conflict with the current state of
 // a service resource associated with the request. Resolve the conflict before
 // retrying this request.
 type ConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -9817,17 +11645,17 @@ func (s ConflictException) GoString() string {
 
 func newErrorConflictException(v protocol.ResponseMetadata) error {
 	return &ConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConflictException) Code() string {
+func (s *ConflictException) Code() string {
 	return "ConflictException"
 }
 
 // Message returns the exception's message.
-func (s ConflictException) Message() string {
+func (s *ConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9835,22 +11663,22 @@ func (s ConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConflictException) OrigErr() error {
+func (s *ConflictException) OrigErr() error {
 	return nil
 }
 
-func (s ConflictException) Error() string {
+func (s *ConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input for a request action.
@@ -9990,11 +11818,11 @@ type CreateBuildInput struct {
 	OperatingSystem *string `type:"string" enum:"OperatingSystem"`
 
 	// Information indicating where your game build files are stored. Use this parameter
-	// only when creating a build with files stored in an Amazon S3 bucket that
-	// you own. The storage location must specify an Amazon S3 bucket name and key.
-	// The location must also specify a role ARN that you set up to allow Amazon
-	// GameLift to access your Amazon S3 bucket. The S3 bucket and your new build
-	// must be in the same Region.
+	// only when creating a build with files stored in an S3 bucket that you own.
+	// The storage location must specify an S3 bucket name and key. The location
+	// must also specify a role ARN that you set up to allow Amazon GameLift to
+	// access your S3 bucket. The S3 bucket and your new build must be in the same
+	// Region.
 	StorageLocation *S3Location `type:"structure"`
 
 	// A list of labels to assign to the new build resource. Tags are developer-defined
@@ -10087,7 +11915,7 @@ func (s *CreateBuildInput) SetVersion(v string) *CreateBuildInput {
 type CreateBuildOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The newly created build record, including a unique build IDs and status.
+	// The newly created build resource, including a unique build IDs and status.
 	Build *Build `type:"structure"`
 
 	// Amazon S3 location for your game build file, including bucket name and key.
@@ -10095,8 +11923,8 @@ type CreateBuildOutput struct {
 
 	// This element is returned only when the operation is called without a storage
 	// location. It contains credentials to use when you are uploading a build file
-	// to an Amazon S3 bucket that is owned by Amazon GameLift. Credentials have
-	// a limited life span. To refresh these credentials, call RequestUploadCredentials.
+	// to an S3 bucket that is owned by Amazon GameLift. Credentials have a limited
+	// life span. To refresh these credentials, call RequestUploadCredentials.
 	UploadCredentials *AwsCredentials `type:"structure" sensitive:"true"`
 }
 
@@ -10495,6 +12323,281 @@ func (s CreateFleetOutput) GoString() string {
 // SetFleetAttributes sets the FleetAttributes field's value.
 func (s *CreateFleetOutput) SetFleetAttributes(v *FleetAttributes) *CreateFleetOutput {
 	s.FleetAttributes = v
+	return s
+}
+
+type CreateGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// Configuration settings to define a scaling policy for the Auto Scaling group
+	// that is optimized for game hosting. The scaling policy uses the metric "PercentUtilizedGameServers"
+	// to maintain a buffer of idle game servers that can immediately accommodate
+	// new games and players. Once the game server and Auto Scaling groups are created,
+	// you can update the scaling policy settings directly in Auto Scaling Groups.
+	AutoScalingPolicy *GameServerGroupAutoScalingPolicy `type:"structure"`
+
+	// The fallback balancing method to use for the game server group when Spot
+	// instances in a Region become unavailable or are not viable for game hosting.
+	// Once triggered, this method remains active until Spot instances can once
+	// again be used. Method options include:
+	//
+	//    * SPOT_ONLY -- If Spot instances are unavailable, the game server group
+	//    provides no hosting capacity. No new instances are started, and the existing
+	//    nonviable Spot instances are terminated (once current gameplay ends) and
+	//    not replaced.
+	//
+	//    * SPOT_PREFERRED -- If Spot instances are unavailable, the game server
+	//    group continues to provide hosting capacity by using On-Demand instances.
+	//    Existing nonviable Spot instances are terminated (once current gameplay
+	//    ends) and replaced with new On-Demand instances.
+	BalancingStrategy *string `type:"string" enum:"BalancingStrategy"`
+
+	// An identifier for the new game server group. This value is used to generate
+	// unique ARN identifiers for the EC2 Auto Scaling group and the GameLift FleetIQ
+	// game server group. The name must be unique per Region per AWS account.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// A flag that indicates whether instances in the game server group are protected
+	// from early termination. Unprotected instances that have active game servers
+	// running may by terminated during a scale-down event, causing players to be
+	// dropped from the game. Protected instances cannot be terminated while there
+	// are active game servers running. An exception to this is Spot Instances,
+	// which may be terminated by AWS regardless of protection status. This property
+	// is set to NO_PROTECTION by default.
+	GameServerProtectionPolicy *string `type:"string" enum:"GameServerProtectionPolicy"`
+
+	// A set of EC2 instance types to use when creating instances in the group.
+	// The instance definitions must specify at least two different instance types
+	// that are supported by GameLift FleetIQ. For more information on instance
+	// types, see EC2 Instance Types (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
+	// in the Amazon EC2 User Guide.
+	//
+	// InstanceDefinitions is a required field
+	InstanceDefinitions []*InstanceDefinition `min:"2" type:"list" required:"true"`
+
+	// The EC2 launch template that contains configuration settings and game server
+	// code to be deployed to all instances in the game server group. You can specify
+	// the template using either the template name or ID. For help with creating
+	// a launch template, see Creating a Launch Template for an Auto Scaling Group
+	// (https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-launch-template.html)
+	// in the Amazon EC2 Auto Scaling User Guide.
+	//
+	// LaunchTemplate is a required field
+	LaunchTemplate *LaunchTemplateSpecification `type:"structure" required:"true"`
+
+	// The maximum number of instances allowed in the EC2 Auto Scaling group. During
+	// autoscaling events, GameLift FleetIQ and EC2 do not scale up the group above
+	// this maximum.
+	//
+	// MaxSize is a required field
+	MaxSize *int64 `min:"1" type:"integer" required:"true"`
+
+	// The minimum number of instances allowed in the EC2 Auto Scaling group. During
+	// autoscaling events, GameLift FleetIQ and EC2 do not scale down the group
+	// below this minimum. In production, this value should be set to at least 1.
+	//
+	// MinSize is a required field
+	MinSize *int64 `type:"integer" required:"true"`
+
+	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html))
+	// for an IAM role that allows Amazon GameLift to access your EC2 Auto Scaling
+	// groups. The submitted role is validated to ensure that it contains the necessary
+	// permissions for game server groups.
+	//
+	// RoleArn is a required field
+	RoleArn *string `min:"1" type:"string" required:"true"`
+
+	// A list of labels to assign to the new game server group resource. Tags are
+	// developer-defined key-value pairs. Tagging AWS resources are useful for resource
+	// management, access management, and cost allocation. For more information,
+	// see Tagging AWS Resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+	// in the AWS General Reference. Once the resource is created, you can use TagResource,
+	// UntagResource, and ListTagsForResource to add, remove, and view tags. The
+	// maximum tag limit may be lower than stated. See the AWS General Reference
+	// for actual tagging limits.
+	Tags []*Tag `type:"list"`
+
+	// A list of virtual private cloud (VPC) subnets to use with instances in the
+	// game server group. By default, all GameLift FleetIQ-supported availability
+	// zones are used; this parameter allows you to specify VPCs that you've set
+	// up.
+	VpcSubnets []*string `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.InstanceDefinitions == nil {
+		invalidParams.Add(request.NewErrParamRequired("InstanceDefinitions"))
+	}
+	if s.InstanceDefinitions != nil && len(s.InstanceDefinitions) < 2 {
+		invalidParams.Add(request.NewErrParamMinLen("InstanceDefinitions", 2))
+	}
+	if s.LaunchTemplate == nil {
+		invalidParams.Add(request.NewErrParamRequired("LaunchTemplate"))
+	}
+	if s.MaxSize == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaxSize"))
+	}
+	if s.MaxSize != nil && *s.MaxSize < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxSize", 1))
+	}
+	if s.MinSize == nil {
+		invalidParams.Add(request.NewErrParamRequired("MinSize"))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 1))
+	}
+	if s.VpcSubnets != nil && len(s.VpcSubnets) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VpcSubnets", 1))
+	}
+	if s.AutoScalingPolicy != nil {
+		if err := s.AutoScalingPolicy.Validate(); err != nil {
+			invalidParams.AddNested("AutoScalingPolicy", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.InstanceDefinitions != nil {
+		for i, v := range s.InstanceDefinitions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InstanceDefinitions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.LaunchTemplate != nil {
+		if err := s.LaunchTemplate.Validate(); err != nil {
+			invalidParams.AddNested("LaunchTemplate", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAutoScalingPolicy sets the AutoScalingPolicy field's value.
+func (s *CreateGameServerGroupInput) SetAutoScalingPolicy(v *GameServerGroupAutoScalingPolicy) *CreateGameServerGroupInput {
+	s.AutoScalingPolicy = v
+	return s
+}
+
+// SetBalancingStrategy sets the BalancingStrategy field's value.
+func (s *CreateGameServerGroupInput) SetBalancingStrategy(v string) *CreateGameServerGroupInput {
+	s.BalancingStrategy = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *CreateGameServerGroupInput) SetGameServerGroupName(v string) *CreateGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerProtectionPolicy sets the GameServerProtectionPolicy field's value.
+func (s *CreateGameServerGroupInput) SetGameServerProtectionPolicy(v string) *CreateGameServerGroupInput {
+	s.GameServerProtectionPolicy = &v
+	return s
+}
+
+// SetInstanceDefinitions sets the InstanceDefinitions field's value.
+func (s *CreateGameServerGroupInput) SetInstanceDefinitions(v []*InstanceDefinition) *CreateGameServerGroupInput {
+	s.InstanceDefinitions = v
+	return s
+}
+
+// SetLaunchTemplate sets the LaunchTemplate field's value.
+func (s *CreateGameServerGroupInput) SetLaunchTemplate(v *LaunchTemplateSpecification) *CreateGameServerGroupInput {
+	s.LaunchTemplate = v
+	return s
+}
+
+// SetMaxSize sets the MaxSize field's value.
+func (s *CreateGameServerGroupInput) SetMaxSize(v int64) *CreateGameServerGroupInput {
+	s.MaxSize = &v
+	return s
+}
+
+// SetMinSize sets the MinSize field's value.
+func (s *CreateGameServerGroupInput) SetMinSize(v int64) *CreateGameServerGroupInput {
+	s.MinSize = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CreateGameServerGroupInput) SetRoleArn(v string) *CreateGameServerGroupInput {
+	s.RoleArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateGameServerGroupInput) SetTags(v []*Tag) *CreateGameServerGroupInput {
+	s.Tags = v
+	return s
+}
+
+// SetVpcSubnets sets the VpcSubnets field's value.
+func (s *CreateGameServerGroupInput) SetVpcSubnets(v []*string) *CreateGameServerGroupInput {
+	s.VpcSubnets = v
+	return s
+}
+
+type CreateGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The newly created game server group object, including the new ARN value for
+	// the GameLift FleetIQ game server group and the object's status. The EC2 Auto
+	// Scaling group ARN is initially null, since the group has not yet been created.
+	// This value is added once the game server group status reaches ACTIVE.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *CreateGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *CreateGameServerGroupOutput {
+	s.GameServerGroup = v
 	return s
 }
 
@@ -11883,6 +13986,91 @@ func (s DeleteFleetOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The type of delete to perform. Options include:
+	//
+	//    * SAFE_DELETE – Terminates the game server group and EC2 Auto Scaling
+	//    group only when it has no game servers that are in IN_USE status.
+	//
+	//    * FORCE_DELETE – Terminates the game server group, including all active
+	//    game servers regardless of their utilization status, and the EC2 Auto
+	//    Scaling group.
+	//
+	//    * RETAIN – Does a safe delete of the game server group but retains the
+	//    EC2 Auto Scaling group as is.
+	DeleteOption *string `type:"string" enum:"GameServerGroupDeleteOption"`
+
+	// The unique identifier of the game server group to delete. Use either the
+	// GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDeleteOption sets the DeleteOption field's value.
+func (s *DeleteGameServerGroupInput) SetDeleteOption(v string) *DeleteGameServerGroupInput {
+	s.DeleteOption = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *DeleteGameServerGroupInput) SetGameServerGroupName(v string) *DeleteGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+type DeleteGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the deleted game server group resource, with status
+	// updated to DELETE_SCHEDULED.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *DeleteGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *DeleteGameServerGroupOutput {
+	s.GameServerGroup = v
+	return s
+}
+
 // Represents the input for a request action.
 type DeleteGameSessionQueueInput struct {
 	_ struct{} `type:"structure"`
@@ -12334,6 +14522,79 @@ func (s DeleteVpcPeeringConnectionOutput) GoString() string {
 	return s.String()
 }
 
+type DeregisterGameServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// An identifier for the game server group where the game server to be de-registered
+	// is running. Use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The identifier for the game server to be de-registered.
+	//
+	// GameServerId is a required field
+	GameServerId *string `min:"3" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeregisterGameServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeregisterGameServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeregisterGameServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeregisterGameServerInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.GameServerId == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerId"))
+	}
+	if s.GameServerId != nil && len(*s.GameServerId) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerId", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *DeregisterGameServerInput) SetGameServerGroupName(v string) *DeregisterGameServerInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *DeregisterGameServerInput) SetGameServerId(v string) *DeregisterGameServerInput {
+	s.GameServerId = &v
+	return s
+}
+
+type DeregisterGameServerOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeregisterGameServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeregisterGameServerOutput) GoString() string {
+	return s.String()
+}
+
 // Represents the input for a request action.
 type DescribeAliasInput struct {
 	_ struct{} `type:"structure"`
@@ -12519,8 +14780,11 @@ func (s *DescribeEC2InstanceLimitsOutput) SetEC2InstanceLimits(v []*EC2InstanceL
 type DescribeFleetAttributesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A unique identifier for a fleet(s) to retrieve attributes for. You can use
-	// either the fleet ID or ARN value.
+	// A list of unique fleet identifiers to retrieve attributes for. You can use
+	// either the fleet ID or ARN value. To retrieve attributes for all current
+	// fleets, do not include this parameter. If the list of fleet identifiers includes
+	// fleets that don't currently exist, the request succeeds but no attributes
+	// for that fleet are returned.
 	FleetIds []*string `min:"1" type:"list"`
 
 	// The maximum number of results to return. Use this parameter with NextToken
@@ -12587,7 +14851,7 @@ type DescribeFleetAttributesOutput struct {
 	_ struct{} `type:"structure"`
 
 	// A collection of objects containing attribute metadata for each requested
-	// fleet ID.
+	// fleet ID. Attribute objects are returned only for fleets that currently exist.
 	FleetAttributes []*FleetAttributes `type:"list"`
 
 	// Token that indicates where to resume retrieving results on the next call
@@ -12916,7 +15180,10 @@ type DescribeFleetUtilizationInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for a fleet(s) to retrieve utilization data for. You
-	// can use either the fleet ID or ARN value.
+	// can use either the fleet ID or ARN value. To retrieve attributes for all
+	// current fleets, do not include this parameter. If the list of fleet identifiers
+	// includes fleets that don't currently exist, the request succeeds but no attributes
+	// for that fleet are returned.
 	FleetIds []*string `min:"1" type:"list"`
 
 	// The maximum number of results to return. Use this parameter with NextToken
@@ -13011,6 +15278,153 @@ func (s *DescribeFleetUtilizationOutput) SetFleetUtilization(v []*FleetUtilizati
 // SetNextToken sets the NextToken field's value.
 func (s *DescribeFleetUtilizationOutput) SetNextToken(v string) *DescribeFleetUtilizationOutput {
 	s.NextToken = &v
+	return s
+}
+
+type DescribeGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier for the game server group being requested. Use either
+	// the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *DescribeGameServerGroupInput) SetGameServerGroupName(v string) *DescribeGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+type DescribeGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the requested game server group resource.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *DescribeGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *DescribeGameServerGroupOutput {
+	s.GameServerGroup = v
+	return s
+}
+
+type DescribeGameServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// An identifier for the game server group where the game server is running.
+	// Use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The identifier for the game server to be retrieved.
+	//
+	// GameServerId is a required field
+	GameServerId *string `min:"3" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeGameServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGameServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeGameServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeGameServerInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.GameServerId == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerId"))
+	}
+	if s.GameServerId != nil && len(*s.GameServerId) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerId", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *DescribeGameServerInput) SetGameServerGroupName(v string) *DescribeGameServerInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *DescribeGameServerInput) SetGameServerId(v string) *DescribeGameServerInput {
+	s.GameServerId = &v
+	return s
+}
+
+type DescribeGameServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Object that describes the requested game server resource.
+	GameServer *GameServer `type:"structure"`
+}
+
+// String returns the string representation
+func (s DescribeGameServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGameServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServer sets the GameServer field's value.
+func (s *DescribeGameServerOutput) SetGameServer(v *GameServer) *DescribeGameServerOutput {
+	s.GameServer = v
 	return s
 }
 
@@ -14393,7 +16807,7 @@ func (s *DesiredPlayerSession) SetPlayerId(v string) *DesiredPlayerSession {
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 type EC2InstanceCounts struct {
 	_ struct{} `type:"structure"`
 
@@ -14532,7 +16946,7 @@ type Event struct {
 	//
 	// Fleet creation events (ordered by fleet creation activity):
 	//
-	//    * FLEET_CREATED -- A fleet record was successfully created with a status
+	//    * FLEET_CREATED -- A fleet resource was successfully created with a status
 	//    of NEW. Event messaging includes the fleet ID.
 	//
 	//    * FLEET_STATE_DOWNLOADING -- Fleet status changed from NEW to DOWNLOADING.
@@ -14700,7 +17114,7 @@ func (s *Event) SetResourceId(v string) *Event {
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 type FleetAttributes struct {
 	_ struct{} `type:"structure"`
 
@@ -14727,7 +17141,7 @@ type FleetAttributes struct {
 	// that is assigned to a GameLift fleet resource and uniquely identifies it.
 	// ARNs are unique across all Regions. In a GameLift fleet ARN, the resource
 	// ID matches the FleetId value.
-	FleetArn *string `min:"1" type:"string"`
+	FleetArn *string `type:"string"`
 
 	// A unique identifier for a fleet.
 	FleetId *string `type:"string"`
@@ -15002,7 +17416,7 @@ func (s *FleetAttributes) SetTerminationTime(v time.Time) *FleetAttributes {
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 type FleetCapacity struct {
 	_ struct{} `type:"structure"`
 
@@ -15051,8 +17465,8 @@ func (s *FleetCapacity) SetInstanceType(v string) *FleetCapacity {
 // The specified fleet has no available instances to fulfill a CreateGameSession
 // request. Clients can retry such requests immediately or after a waiting period.
 type FleetCapacityExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -15069,17 +17483,17 @@ func (s FleetCapacityExceededException) GoString() string {
 
 func newErrorFleetCapacityExceededException(v protocol.ResponseMetadata) error {
 	return &FleetCapacityExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s FleetCapacityExceededException) Code() string {
+func (s *FleetCapacityExceededException) Code() string {
 	return "FleetCapacityExceededException"
 }
 
 // Message returns the exception's message.
-func (s FleetCapacityExceededException) Message() string {
+func (s *FleetCapacityExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15087,22 +17501,22 @@ func (s FleetCapacityExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s FleetCapacityExceededException) OrigErr() error {
+func (s *FleetCapacityExceededException) OrigErr() error {
 	return nil
 }
 
-func (s FleetCapacityExceededException) Error() string {
+func (s *FleetCapacityExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s FleetCapacityExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *FleetCapacityExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s FleetCapacityExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *FleetCapacityExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Current status of fleet utilization, including the number of game and player
@@ -15118,7 +17532,7 @@ func (s FleetCapacityExceededException) RequestID() string {
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 type FleetUtilization struct {
 	_ struct{} `type:"structure"`
 
@@ -15240,6 +17654,414 @@ func (s *GameProperty) SetValue(v string) *GameProperty {
 	return s
 }
 
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// Properties describing a game server resource.
+//
+// A game server resource is created by a successful call to RegisterGameServer
+// and deleted by calling DeregisterGameServer.
+type GameServer struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates when an available game server has been reserved but has not yet
+	// started hosting a game. Once it is claimed, game server remains in CLAIMED
+	// status for a maximum of one minute. During this time, game clients must connect
+	// to the game server and start the game, which triggers the game server to
+	// update its utilization status. After one minute, the game server claim status
+	// reverts to null.
+	ClaimStatus *string `type:"string" enum:"GameServerClaimStatus"`
+
+	// The port and IP address that must be used to establish a client connection
+	// to the game server.
+	ConnectionInfo *string `min:"1" type:"string"`
+
+	// A game server tag that can be used to request sorted lists of game servers
+	// when calling ListGameServers. Custom sort keys are developer-defined. This
+	// property can be updated using UpdateGameServer.
+	CustomSortKey *string `min:"1" type:"string"`
+
+	// A set of custom game server properties, formatted as a single string value.
+	// This data is passed to a game client or service in response to requests ListGameServers
+	// or ClaimGameServer. This property can be updated using UpdateGameServer.
+	GameServerData *string `min:"1" type:"string"`
+
+	// The ARN identifier for the game server group where the game server is located.
+	GameServerGroupArn *string `min:"1" type:"string"`
+
+	// The name identifier for the game server group where the game server is located.
+	GameServerGroupName *string `min:"1" type:"string"`
+
+	// A custom string that uniquely identifies the game server. Game server IDs
+	// are developer-defined and are unique across all game server groups in an
+	// AWS account.
+	GameServerId *string `min:"3" type:"string"`
+
+	// The unique identifier for the instance where the game server is located.
+	InstanceId *string `min:"19" type:"string"`
+
+	// Time stamp indicating the last time the game server was claimed with a ClaimGameServer
+	// request. Format is a number expressed in Unix time as milliseconds (for example
+	// "1469498468.057"). This value is used to calculate when the game server's
+	// claim status.
+	LastClaimTime *time.Time `type:"timestamp"`
+
+	// Time stamp indicating the last time the game server was updated with health
+	// status using an UpdateGameServer request. Format is a number expressed in
+	// Unix time as milliseconds (for example "1469498468.057"). After game server
+	// registration, this property is only changed when a game server update specifies
+	// a health check value.
+	LastHealthCheckTime *time.Time `type:"timestamp"`
+
+	// Time stamp indicating when the game server resource was created with a RegisterGameServer
+	// request. Format is a number expressed in Unix time as milliseconds (for example
+	// "1469498468.057").
+	RegistrationTime *time.Time `type:"timestamp"`
+
+	// Indicates whether the game server is currently available for new games or
+	// is busy. Possible statuses include:
+	//
+	//    * AVAILABLE - The game server is available to be claimed. A game server
+	//    that has been claimed remains in this status until it reports game hosting
+	//    activity.
+	//
+	//    * IN_USE - The game server is currently hosting a game session with players.
+	UtilizationStatus *string `type:"string" enum:"GameServerUtilizationStatus"`
+}
+
+// String returns the string representation
+func (s GameServer) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GameServer) GoString() string {
+	return s.String()
+}
+
+// SetClaimStatus sets the ClaimStatus field's value.
+func (s *GameServer) SetClaimStatus(v string) *GameServer {
+	s.ClaimStatus = &v
+	return s
+}
+
+// SetConnectionInfo sets the ConnectionInfo field's value.
+func (s *GameServer) SetConnectionInfo(v string) *GameServer {
+	s.ConnectionInfo = &v
+	return s
+}
+
+// SetCustomSortKey sets the CustomSortKey field's value.
+func (s *GameServer) SetCustomSortKey(v string) *GameServer {
+	s.CustomSortKey = &v
+	return s
+}
+
+// SetGameServerData sets the GameServerData field's value.
+func (s *GameServer) SetGameServerData(v string) *GameServer {
+	s.GameServerData = &v
+	return s
+}
+
+// SetGameServerGroupArn sets the GameServerGroupArn field's value.
+func (s *GameServer) SetGameServerGroupArn(v string) *GameServer {
+	s.GameServerGroupArn = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *GameServer) SetGameServerGroupName(v string) *GameServer {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *GameServer) SetGameServerId(v string) *GameServer {
+	s.GameServerId = &v
+	return s
+}
+
+// SetInstanceId sets the InstanceId field's value.
+func (s *GameServer) SetInstanceId(v string) *GameServer {
+	s.InstanceId = &v
+	return s
+}
+
+// SetLastClaimTime sets the LastClaimTime field's value.
+func (s *GameServer) SetLastClaimTime(v time.Time) *GameServer {
+	s.LastClaimTime = &v
+	return s
+}
+
+// SetLastHealthCheckTime sets the LastHealthCheckTime field's value.
+func (s *GameServer) SetLastHealthCheckTime(v time.Time) *GameServer {
+	s.LastHealthCheckTime = &v
+	return s
+}
+
+// SetRegistrationTime sets the RegistrationTime field's value.
+func (s *GameServer) SetRegistrationTime(v time.Time) *GameServer {
+	s.RegistrationTime = &v
+	return s
+}
+
+// SetUtilizationStatus sets the UtilizationStatus field's value.
+func (s *GameServer) SetUtilizationStatus(v string) *GameServer {
+	s.UtilizationStatus = &v
+	return s
+}
+
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// Properties describing a game server group resource. A game server group manages
+// certain properties of a corresponding EC2 Auto Scaling group.
+//
+// A game server group is created by a successful call to CreateGameServerGroup
+// and deleted by calling DeleteGameServerGroup. Game server group activity
+// can be temporarily suspended and resumed by calling SuspendGameServerGroup
+// and ResumeGameServerGroup.
+type GameServerGroup struct {
+	_ struct{} `type:"structure"`
+
+	// A generated unique ID for the EC2 Auto Scaling group with is associated with
+	// this game server group.
+	AutoScalingGroupArn *string `type:"string"`
+
+	// The fallback balancing method to use for the game server group when Spot
+	// instances in a Region become unavailable or are not viable for game hosting.
+	// Once triggered, this method remains active until Spot instances can once
+	// again be used. Method options include:
+	//
+	//    * SPOT_ONLY -- If Spot instances are unavailable, the game server group
+	//    provides no hosting capacity. No new instances are started, and the existing
+	//    nonviable Spot instances are terminated (once current gameplay ends) and
+	//    not replaced.
+	//
+	//    * SPOT_PREFERRED -- If Spot instances are unavailable, the game server
+	//    group continues to provide hosting capacity by using On-Demand instances.
+	//    Existing nonviable Spot instances are terminated (once current gameplay
+	//    ends) and replaced with new On-Demand instances.
+	BalancingStrategy *string `type:"string" enum:"BalancingStrategy"`
+
+	// A time stamp indicating when this data object was created. Format is a number
+	// expressed in Unix time as milliseconds (for example "1469498468.057").
+	CreationTime *time.Time `type:"timestamp"`
+
+	// A generated unique ID for the game server group.
+	GameServerGroupArn *string `min:"1" type:"string"`
+
+	// A developer-defined identifier for the game server group. The name is unique
+	// per Region per AWS account.
+	GameServerGroupName *string `min:"1" type:"string"`
+
+	// A flag that indicates whether instances in the game server group are protected
+	// from early termination. Unprotected instances that have active game servers
+	// running may be terminated during a scale-down event, causing players to be
+	// dropped from the game. Protected instances cannot be terminated while there
+	// are active game servers running except in the event of a forced game server
+	// group deletion (see DeleteGameServerGroup). An exception to this is Spot
+	// Instances, which may be terminated by AWS regardless of protection status.
+	GameServerProtectionPolicy *string `type:"string" enum:"GameServerProtectionPolicy"`
+
+	// The set of EC2 instance types that GameLift FleetIQ can use when rebalancing
+	// and autoscaling instances in the group.
+	InstanceDefinitions []*InstanceDefinition `min:"2" type:"list"`
+
+	// A time stamp indicating when this game server group was last updated.
+	LastUpdatedTime *time.Time `type:"timestamp"`
+
+	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html))
+	// for an IAM role that allows Amazon GameLift to access your EC2 Auto Scaling
+	// groups. The submitted role is validated to ensure that it contains the necessary
+	// permissions for game server groups.
+	RoleArn *string `min:"1" type:"string"`
+
+	// The current status of the game server group. Possible statuses include:
+	//
+	//    * NEW - GameLift FleetIQ has validated the CreateGameServerGroup() request.
+	//
+	//    * ACTIVATING - GameLift FleetIQ is setting up a game server group, which
+	//    includes creating an autoscaling group in your AWS account.
+	//
+	//    * ACTIVE - The game server group has been successfully created.
+	//
+	//    * DELETE_SCHEDULED - A request to delete the game server group has been
+	//    received.
+	//
+	//    * DELETING - GameLift FleetIQ has received a valid DeleteGameServerGroup()
+	//    request and is processing it. GameLift FleetIQ must first complete and
+	//    release hosts before it deletes the autoscaling group and the game server
+	//    group.
+	//
+	//    * DELETED - The game server group has been successfully deleted.
+	//
+	//    * ERROR - The asynchronous processes of activating or deleting a game
+	//    server group has failed, resulting in an error state.
+	Status *string `type:"string" enum:"GameServerGroupStatus"`
+
+	// Additional information about the current game server group status. This information
+	// may provide additional insight on groups that in ERROR status.
+	StatusReason *string `min:"1" type:"string"`
+
+	// A list of activities that are currently suspended for this game server group.
+	// If this property is empty, all activities are occurring.
+	SuspendedActions []*string `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s GameServerGroup) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GameServerGroup) GoString() string {
+	return s.String()
+}
+
+// SetAutoScalingGroupArn sets the AutoScalingGroupArn field's value.
+func (s *GameServerGroup) SetAutoScalingGroupArn(v string) *GameServerGroup {
+	s.AutoScalingGroupArn = &v
+	return s
+}
+
+// SetBalancingStrategy sets the BalancingStrategy field's value.
+func (s *GameServerGroup) SetBalancingStrategy(v string) *GameServerGroup {
+	s.BalancingStrategy = &v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *GameServerGroup) SetCreationTime(v time.Time) *GameServerGroup {
+	s.CreationTime = &v
+	return s
+}
+
+// SetGameServerGroupArn sets the GameServerGroupArn field's value.
+func (s *GameServerGroup) SetGameServerGroupArn(v string) *GameServerGroup {
+	s.GameServerGroupArn = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *GameServerGroup) SetGameServerGroupName(v string) *GameServerGroup {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerProtectionPolicy sets the GameServerProtectionPolicy field's value.
+func (s *GameServerGroup) SetGameServerProtectionPolicy(v string) *GameServerGroup {
+	s.GameServerProtectionPolicy = &v
+	return s
+}
+
+// SetInstanceDefinitions sets the InstanceDefinitions field's value.
+func (s *GameServerGroup) SetInstanceDefinitions(v []*InstanceDefinition) *GameServerGroup {
+	s.InstanceDefinitions = v
+	return s
+}
+
+// SetLastUpdatedTime sets the LastUpdatedTime field's value.
+func (s *GameServerGroup) SetLastUpdatedTime(v time.Time) *GameServerGroup {
+	s.LastUpdatedTime = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *GameServerGroup) SetRoleArn(v string) *GameServerGroup {
+	s.RoleArn = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *GameServerGroup) SetStatus(v string) *GameServerGroup {
+	s.Status = &v
+	return s
+}
+
+// SetStatusReason sets the StatusReason field's value.
+func (s *GameServerGroup) SetStatusReason(v string) *GameServerGroup {
+	s.StatusReason = &v
+	return s
+}
+
+// SetSuspendedActions sets the SuspendedActions field's value.
+func (s *GameServerGroup) SetSuspendedActions(v []*string) *GameServerGroup {
+	s.SuspendedActions = v
+	return s
+}
+
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// Configuration settings for intelligent autoscaling that uses target tracking.
+// An autoscaling policy can be specified when a new game server group is created
+// with CreateGameServerGroup. If a group has an autoscaling policy, the Auto
+// Scaling group takes action based on this policy, in addition to (and potentially
+// in conflict with) any other autoscaling policies that are separately applied
+// to the Auto Scaling group.
+type GameServerGroupAutoScalingPolicy struct {
+	_ struct{} `type:"structure"`
+
+	// Length of time, in seconds, it takes for a new instance to start new game
+	// server processes and register with GameLift FleetIQ. Specifying a warm-up
+	// time can be useful, particularly with game servers that take a long time
+	// to start up, because it avoids prematurely starting new instances
+	EstimatedInstanceWarmup *int64 `min:"1" type:"integer"`
+
+	// Settings for a target-based scaling policy applied to Auto Scaling group.
+	// These settings are used to create a target-based policy that tracks the GameLift
+	// FleetIQ metric "PercentUtilizedGameServers" and specifies a target value
+	// for the metric. As player usage changes, the policy triggers to adjust the
+	// game server group capacity so that the metric returns to the target value.
+	//
+	// TargetTrackingConfiguration is a required field
+	TargetTrackingConfiguration *TargetTrackingConfiguration `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s GameServerGroupAutoScalingPolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GameServerGroupAutoScalingPolicy) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GameServerGroupAutoScalingPolicy) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GameServerGroupAutoScalingPolicy"}
+	if s.EstimatedInstanceWarmup != nil && *s.EstimatedInstanceWarmup < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("EstimatedInstanceWarmup", 1))
+	}
+	if s.TargetTrackingConfiguration == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetTrackingConfiguration"))
+	}
+	if s.TargetTrackingConfiguration != nil {
+		if err := s.TargetTrackingConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("TargetTrackingConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEstimatedInstanceWarmup sets the EstimatedInstanceWarmup field's value.
+func (s *GameServerGroupAutoScalingPolicy) SetEstimatedInstanceWarmup(v int64) *GameServerGroupAutoScalingPolicy {
+	s.EstimatedInstanceWarmup = &v
+	return s
+}
+
+// SetTargetTrackingConfiguration sets the TargetTrackingConfiguration field's value.
+func (s *GameServerGroupAutoScalingPolicy) SetTargetTrackingConfiguration(v *TargetTrackingConfiguration) *GameServerGroupAutoScalingPolicy {
+	s.TargetTrackingConfiguration = v
+	return s
+}
+
 // Properties describing a game session.
 //
 // A game session in ACTIVE status can host players. When a game session ends,
@@ -15292,7 +18114,7 @@ type GameSession struct {
 
 	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html))
 	// associated with the GameLift fleet that this game session is running on.
-	FleetArn *string `min:"1" type:"string"`
+	FleetArn *string `type:"string"`
 
 	// A unique identifier for a fleet that the game session is running on.
 	FleetId *string `type:"string"`
@@ -15595,8 +18417,8 @@ func (s *GameSessionDetail) SetProtectionPolicy(v string) *GameSessionDetail {
 // The game instance is currently full and cannot allow the requested player(s)
 // to join. Clients can retry such requests immediately or after a waiting period.
 type GameSessionFullException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -15613,17 +18435,17 @@ func (s GameSessionFullException) GoString() string {
 
 func newErrorGameSessionFullException(v protocol.ResponseMetadata) error {
 	return &GameSessionFullException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s GameSessionFullException) Code() string {
+func (s *GameSessionFullException) Code() string {
 	return "GameSessionFullException"
 }
 
 // Message returns the exception's message.
-func (s GameSessionFullException) Message() string {
+func (s *GameSessionFullException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -15631,22 +18453,22 @@ func (s GameSessionFullException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s GameSessionFullException) OrigErr() error {
+func (s *GameSessionFullException) OrigErr() error {
 	return nil
 }
 
-func (s GameSessionFullException) Error() string {
+func (s *GameSessionFullException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s GameSessionFullException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *GameSessionFullException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s GameSessionFullException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *GameSessionFullException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Object that describes a StartGameSessionPlacement request. This object includes
@@ -16192,8 +19014,8 @@ func (s *GetInstanceAccessOutput) SetInstanceAccess(v *InstanceAccess) *GetInsta
 // A game session with this custom ID string already exists in this fleet. Resolve
 // this conflict before retrying this request.
 type IdempotentParameterMismatchException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16210,17 +19032,17 @@ func (s IdempotentParameterMismatchException) GoString() string {
 
 func newErrorIdempotentParameterMismatchException(v protocol.ResponseMetadata) error {
 	return &IdempotentParameterMismatchException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IdempotentParameterMismatchException) Code() string {
+func (s *IdempotentParameterMismatchException) Code() string {
 	return "IdempotentParameterMismatchException"
 }
 
 // Message returns the exception's message.
-func (s IdempotentParameterMismatchException) Message() string {
+func (s *IdempotentParameterMismatchException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16228,22 +19050,22 @@ func (s IdempotentParameterMismatchException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IdempotentParameterMismatchException) OrigErr() error {
+func (s *IdempotentParameterMismatchException) OrigErr() error {
 	return nil
 }
 
-func (s IdempotentParameterMismatchException) Error() string {
+func (s *IdempotentParameterMismatchException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IdempotentParameterMismatchException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IdempotentParameterMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IdempotentParameterMismatchException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IdempotentParameterMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Properties that describe an instance of a virtual computing resource that
@@ -16454,12 +19276,73 @@ func (s *InstanceCredentials) SetUserName(v string) *InstanceCredentials {
 	return s
 }
 
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// An allowed instance type for your game server group. GameLift FleetIQ periodically
+// evaluates each defined instance type for viability. It then updates the Auto
+// Scaling group with the list of viable instance types.
+type InstanceDefinition struct {
+	_ struct{} `type:"structure"`
+
+	// An EC2 instance type designation.
+	//
+	// InstanceType is a required field
+	InstanceType *string `type:"string" required:"true" enum:"GameServerGroupInstanceType"`
+
+	// Instance weighting that indicates how much this instance type contributes
+	// to the total capacity of a game server group. Instance weights are used by
+	// GameLift FleetIQ to calculate the instance type's cost per unit hour and
+	// better identify the most cost-effective options. For detailed information
+	// on weighting instance capacity, see Instance Weighting (https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-instance-weighting.html)
+	// in the Amazon EC2 Auto Scaling User Guide. Default value is "1".
+	WeightedCapacity *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s InstanceDefinition) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InstanceDefinition) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *InstanceDefinition) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "InstanceDefinition"}
+	if s.InstanceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("InstanceType"))
+	}
+	if s.WeightedCapacity != nil && len(*s.WeightedCapacity) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("WeightedCapacity", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetInstanceType sets the InstanceType field's value.
+func (s *InstanceDefinition) SetInstanceType(v string) *InstanceDefinition {
+	s.InstanceType = &v
+	return s
+}
+
+// SetWeightedCapacity sets the WeightedCapacity field's value.
+func (s *InstanceDefinition) SetWeightedCapacity(v string) *InstanceDefinition {
+	s.WeightedCapacity = &v
+	return s
+}
+
 // The service encountered an unrecoverable internal failure while processing
 // the request. Clients can retry such requests immediately or after a waiting
 // period.
 type InternalServiceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16476,17 +19359,17 @@ func (s InternalServiceException) GoString() string {
 
 func newErrorInternalServiceException(v protocol.ResponseMetadata) error {
 	return &InternalServiceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServiceException) Code() string {
+func (s *InternalServiceException) Code() string {
 	return "InternalServiceException"
 }
 
 // Message returns the exception's message.
-func (s InternalServiceException) Message() string {
+func (s *InternalServiceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16494,30 +19377,30 @@ func (s InternalServiceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServiceException) OrigErr() error {
+func (s *InternalServiceException) OrigErr() error {
 	return nil
 }
 
-func (s InternalServiceException) Error() string {
+func (s *InternalServiceException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServiceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServiceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested operation would cause a conflict with the current state of
 // a resource associated with the request and/or the fleet. Resolve the conflict
 // before retrying.
 type InvalidFleetStatusException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16534,17 +19417,17 @@ func (s InvalidFleetStatusException) GoString() string {
 
 func newErrorInvalidFleetStatusException(v protocol.ResponseMetadata) error {
 	return &InvalidFleetStatusException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidFleetStatusException) Code() string {
+func (s *InvalidFleetStatusException) Code() string {
 	return "InvalidFleetStatusException"
 }
 
 // Message returns the exception's message.
-func (s InvalidFleetStatusException) Message() string {
+func (s *InvalidFleetStatusException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16552,30 +19435,30 @@ func (s InvalidFleetStatusException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidFleetStatusException) OrigErr() error {
+func (s *InvalidFleetStatusException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidFleetStatusException) Error() string {
+func (s *InvalidFleetStatusException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidFleetStatusException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidFleetStatusException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidFleetStatusException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidFleetStatusException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested operation would cause a conflict with the current state of
 // a resource associated with the request and/or the game instance. Resolve
 // the conflict before retrying.
 type InvalidGameSessionStatusException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16592,17 +19475,17 @@ func (s InvalidGameSessionStatusException) GoString() string {
 
 func newErrorInvalidGameSessionStatusException(v protocol.ResponseMetadata) error {
 	return &InvalidGameSessionStatusException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidGameSessionStatusException) Code() string {
+func (s *InvalidGameSessionStatusException) Code() string {
 	return "InvalidGameSessionStatusException"
 }
 
 // Message returns the exception's message.
-func (s InvalidGameSessionStatusException) Message() string {
+func (s *InvalidGameSessionStatusException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16610,29 +19493,29 @@ func (s InvalidGameSessionStatusException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidGameSessionStatusException) OrigErr() error {
+func (s *InvalidGameSessionStatusException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidGameSessionStatusException) Error() string {
+func (s *InvalidGameSessionStatusException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidGameSessionStatusException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidGameSessionStatusException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidGameSessionStatusException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidGameSessionStatusException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // One or more parameter values in the request are invalid. Correct the invalid
 // parameter values before retrying.
 type InvalidRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16649,17 +19532,17 @@ func (s InvalidRequestException) GoString() string {
 
 func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidRequestException) Code() string {
+func (s *InvalidRequestException) Code() string {
 	return "InvalidRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidRequestException) Message() string {
+func (s *InvalidRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16667,22 +19550,22 @@ func (s InvalidRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidRequestException) OrigErr() error {
+func (s *InvalidRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidRequestException) Error() string {
+func (s *InvalidRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A range of IP addresses and port settings that allow inbound traffic to connect
@@ -16781,11 +19664,78 @@ func (s *IpPermission) SetToPort(v int64) *IpPermission {
 	return s
 }
 
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// An EC2 launch template that contains configuration settings and game server
+// code to be deployed to all instances in a game server group.
+type LaunchTemplateSpecification struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for an existing EC2 launch template.
+	LaunchTemplateId *string `min:"1" type:"string"`
+
+	// A readable identifier for an existing EC2 launch template.
+	LaunchTemplateName *string `min:"3" type:"string"`
+
+	// The version of the EC2 launch template to use. If no version is specified,
+	// the default version will be used. EC2 allows you to specify a default version
+	// for a launch template, if none is set, the default is the first version created.
+	Version *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s LaunchTemplateSpecification) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LaunchTemplateSpecification) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LaunchTemplateSpecification) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LaunchTemplateSpecification"}
+	if s.LaunchTemplateId != nil && len(*s.LaunchTemplateId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("LaunchTemplateId", 1))
+	}
+	if s.LaunchTemplateName != nil && len(*s.LaunchTemplateName) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("LaunchTemplateName", 3))
+	}
+	if s.Version != nil && len(*s.Version) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Version", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLaunchTemplateId sets the LaunchTemplateId field's value.
+func (s *LaunchTemplateSpecification) SetLaunchTemplateId(v string) *LaunchTemplateSpecification {
+	s.LaunchTemplateId = &v
+	return s
+}
+
+// SetLaunchTemplateName sets the LaunchTemplateName field's value.
+func (s *LaunchTemplateSpecification) SetLaunchTemplateName(v string) *LaunchTemplateSpecification {
+	s.LaunchTemplateName = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *LaunchTemplateSpecification) SetVersion(v string) *LaunchTemplateSpecification {
+	s.Version = &v
+	return s
+}
+
 // The requested operation would cause the resource to exceed the allowed service
 // limit. Resolve the issue before retrying.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -16802,17 +19752,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -16820,22 +19770,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Represents the input for a request action.
@@ -17037,7 +19987,7 @@ func (s *ListBuildsInput) SetStatus(v string) *ListBuildsInput {
 type ListBuildsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A collection of build records that match the request.
+	// A collection of build resources that match the request.
 	Builds []*Build `type:"list"`
 
 	// Token that indicates where to resume retrieving results on the next call
@@ -17073,8 +20023,9 @@ type ListFleetsInput struct {
 	_ struct{} `type:"structure"`
 
 	// A unique identifier for a build to return fleets for. Use this parameter
-	// to return only fleets using the specified build. Use either the build ID
-	// or ARN value.To retrieve all fleets, leave this parameter empty.
+	// to return only fleets using a specified build. Use either the build ID or
+	// ARN value. To retrieve all fleets, do not include either a BuildId and ScriptID
+	// parameter.
 	BuildId *string `type:"string"`
 
 	// The maximum number of results to return. Use this parameter with NextToken
@@ -17087,8 +20038,8 @@ type ListFleetsInput struct {
 	NextToken *string `min:"1" type:"string"`
 
 	// A unique identifier for a Realtime script to return fleets for. Use this
-	// parameter to return only fleets using the specified script. Use either the
-	// script ID or ARN value.To retrieve all fleets, leave this parameter empty.
+	// parameter to return only fleets using a specified script. Use either the
+	// script ID or ARN value. To retrieve all fleets, leave this parameter empty.
 	ScriptId *string `type:"string"`
 }
 
@@ -17175,6 +20126,205 @@ func (s *ListFleetsOutput) SetFleetIds(v []*string) *ListFleetsOutput {
 
 // SetNextToken sets the NextToken field's value.
 func (s *ListFleetsOutput) SetNextToken(v string) *ListFleetsOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListGameServerGroupsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to return. Use this parameter with NextToken
+	// to get results as a set of sequential pages.
+	Limit *int64 `min:"1" type:"integer"`
+
+	// A token that indicates the start of the next sequential page of results.
+	// Use the token that is returned with a previous call to this action. To start
+	// at the beginning of the result set, do not specify a value.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListGameServerGroupsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGameServerGroupsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListGameServerGroupsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListGameServerGroupsInput"}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListGameServerGroupsInput) SetLimit(v int64) *ListGameServerGroupsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGameServerGroupsInput) SetNextToken(v string) *ListGameServerGroupsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListGameServerGroupsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A collection of game server group objects that match the request.
+	GameServerGroups []*GameServerGroup `type:"list"`
+
+	// A token that indicates where to resume retrieving results on the next call
+	// to this action. If no token is returned, these results represent the end
+	// of the list.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListGameServerGroupsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGameServerGroupsOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroups sets the GameServerGroups field's value.
+func (s *ListGameServerGroupsOutput) SetGameServerGroups(v []*GameServerGroup) *ListGameServerGroupsOutput {
+	s.GameServerGroups = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGameServerGroupsOutput) SetNextToken(v string) *ListGameServerGroupsOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListGameServersInput struct {
+	_ struct{} `type:"structure"`
+
+	// An identifier for the game server group for the game server you want to list.
+	// Use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The maximum number of results to return. Use this parameter with NextToken
+	// to get results as a set of sequential pages.
+	Limit *int64 `min:"1" type:"integer"`
+
+	// A token that indicates the start of the next sequential page of results.
+	// Use the token that is returned with a previous call to this action. To start
+	// at the beginning of the result set, do not specify a value.
+	NextToken *string `min:"1" type:"string"`
+
+	// Indicates how to sort the returned data based on the game servers' custom
+	// key sort value. If this parameter is left empty, the list of game servers
+	// is returned in no particular order.
+	SortOrder *string `type:"string" enum:"SortOrder"`
+}
+
+// String returns the string representation
+func (s ListGameServersInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGameServersInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListGameServersInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListGameServersInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *ListGameServersInput) SetGameServerGroupName(v string) *ListGameServersInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListGameServersInput) SetLimit(v int64) *ListGameServersInput {
+	s.Limit = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGameServersInput) SetNextToken(v string) *ListGameServersInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListGameServersInput) SetSortOrder(v string) *ListGameServersInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListGameServersOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A collection of game server objects that match the request.
+	GameServers []*GameServer `type:"list"`
+
+	// A token that indicates where to resume retrieving results on the next call
+	// to this action. If no token is returned, these results represent the end
+	// of the list.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListGameServersOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGameServersOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServers sets the GameServers field's value.
+func (s *ListGameServersOutput) SetGameServers(v []*GameServer) *ListGameServersOutput {
+	s.GameServers = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGameServersOutput) SetNextToken(v string) *ListGameServersOutput {
 	s.NextToken = &v
 	return s
 }
@@ -17817,8 +20967,8 @@ func (s *MatchmakingTicket) SetTicketId(v string) *MatchmakingTicket {
 // A service resource associated with the request could not be found. Clients
 // should not retry such requests.
 type NotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -17835,17 +20985,17 @@ func (s NotFoundException) GoString() string {
 
 func newErrorNotFoundException(v protocol.ResponseMetadata) error {
 	return &NotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotFoundException) Code() string {
+func (s *NotFoundException) Code() string {
 	return "NotFoundException"
 }
 
 // Message returns the exception's message.
-func (s NotFoundException) Message() string {
+func (s *NotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -17853,22 +21003,80 @@ func (s NotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotFoundException) OrigErr() error {
+func (s *NotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s NotFoundException) Error() string {
+func (s *NotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The specified game server group has no available game servers to fulfill
+// a ClaimGameServer request. Clients can retry such requests immediately or
+// after a waiting period.
+type OutOfCapacityException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s OutOfCapacityException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OutOfCapacityException) GoString() string {
+	return s.String()
+}
+
+func newErrorOutOfCapacityException(v protocol.ResponseMetadata) error {
+	return &OutOfCapacityException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *OutOfCapacityException) Code() string {
+	return "OutOfCapacityException"
+}
+
+// Message returns the exception's message.
+func (s *OutOfCapacityException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *OutOfCapacityException) OrigErr() error {
+	return nil
+}
+
+func (s *OutOfCapacityException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *OutOfCapacityException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *OutOfCapacityException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about a player session that was created as part of a StartGameSessionPlacement
@@ -18161,7 +21369,7 @@ type PlayerSession struct {
 	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html))
 	// associated with the GameLift fleet that the player's game session is running
 	// on.
-	FleetArn *string `min:"1" type:"string"`
+	FleetArn *string `type:"string"`
 
 	// A unique identifier for a fleet that the player's game session is running
 	// on.
@@ -18514,6 +21722,175 @@ func (s *PutScalingPolicyOutput) SetName(v string) *PutScalingPolicyOutput {
 	return s
 }
 
+type RegisterGameServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// Information needed to make inbound client connections to the game server.
+	// This might include IP address and port, DNS name, etc.
+	ConnectionInfo *string `min:"1" type:"string"`
+
+	// A game server tag that can be used to request sorted lists of game servers
+	// using ListGameServers. Custom sort keys are developer-defined based on how
+	// you want to organize the retrieved game server information.
+	CustomSortKey *string `min:"1" type:"string"`
+
+	// A set of custom game server properties, formatted as a single string value.
+	// This data is passed to a game client or service when it requests information
+	// on a game servers using ListGameServers or ClaimGameServer.
+	GameServerData *string `min:"1" type:"string"`
+
+	// An identifier for the game server group where the game server is running.
+	// You can use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// A custom string that uniquely identifies the new game server. Game server
+	// IDs are developer-defined and must be unique across all game server groups
+	// in your AWS account.
+	//
+	// GameServerId is a required field
+	GameServerId *string `min:"3" type:"string" required:"true"`
+
+	// The unique identifier for the instance where the game server is running.
+	// This ID is available in the instance metadata.
+	//
+	// InstanceId is a required field
+	InstanceId *string `min:"19" type:"string" required:"true"`
+
+	// A list of labels to assign to the new game server resource. Tags are developer-defined
+	// key-value pairs. Tagging AWS resources are useful for resource management,
+	// access management, and cost allocation. For more information, see Tagging
+	// AWS Resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+	// in the AWS General Reference. Once the resource is created, you can use TagResource,
+	// UntagResource, and ListTagsForResource to add, remove, and view tags. The
+	// maximum tag limit may be lower than stated. See the AWS General Reference
+	// for actual tagging limits.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s RegisterGameServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterGameServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RegisterGameServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RegisterGameServerInput"}
+	if s.ConnectionInfo != nil && len(*s.ConnectionInfo) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ConnectionInfo", 1))
+	}
+	if s.CustomSortKey != nil && len(*s.CustomSortKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CustomSortKey", 1))
+	}
+	if s.GameServerData != nil && len(*s.GameServerData) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerData", 1))
+	}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.GameServerId == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerId"))
+	}
+	if s.GameServerId != nil && len(*s.GameServerId) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerId", 3))
+	}
+	if s.InstanceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("InstanceId"))
+	}
+	if s.InstanceId != nil && len(*s.InstanceId) < 19 {
+		invalidParams.Add(request.NewErrParamMinLen("InstanceId", 19))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetConnectionInfo sets the ConnectionInfo field's value.
+func (s *RegisterGameServerInput) SetConnectionInfo(v string) *RegisterGameServerInput {
+	s.ConnectionInfo = &v
+	return s
+}
+
+// SetCustomSortKey sets the CustomSortKey field's value.
+func (s *RegisterGameServerInput) SetCustomSortKey(v string) *RegisterGameServerInput {
+	s.CustomSortKey = &v
+	return s
+}
+
+// SetGameServerData sets the GameServerData field's value.
+func (s *RegisterGameServerInput) SetGameServerData(v string) *RegisterGameServerInput {
+	s.GameServerData = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *RegisterGameServerInput) SetGameServerGroupName(v string) *RegisterGameServerInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *RegisterGameServerInput) SetGameServerId(v string) *RegisterGameServerInput {
+	s.GameServerId = &v
+	return s
+}
+
+// SetInstanceId sets the InstanceId field's value.
+func (s *RegisterGameServerInput) SetInstanceId(v string) *RegisterGameServerInput {
+	s.InstanceId = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *RegisterGameServerInput) SetTags(v []*Tag) *RegisterGameServerInput {
+	s.Tags = v
+	return s
+}
+
+type RegisterGameServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Object that describes the newly created game server resource.
+	GameServer *GameServer `type:"structure"`
+}
+
+// String returns the string representation
+func (s RegisterGameServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterGameServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServer sets the GameServer field's value.
+func (s *RegisterGameServerOutput) SetGameServer(v *GameServer) *RegisterGameServerOutput {
+	s.GameServer = v
+	return s
+}
+
 // Represents the input for a request action.
 type RequestUploadCredentialsInput struct {
 	_ struct{} `type:"structure"`
@@ -18635,7 +22012,7 @@ type ResolveAliasOutput struct {
 
 	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html))
 	// associated with the GameLift fleet resource that this alias points to.
-	FleetArn *string `min:"1" type:"string"`
+	FleetArn *string `type:"string"`
 
 	// The fleet identifier that the alias is pointing to.
 	FleetId *string `type:"string"`
@@ -18704,6 +22081,89 @@ func (s *ResourceCreationLimitPolicy) SetNewGameSessionsPerCreator(v int64) *Res
 // SetPolicyPeriodInMinutes sets the PolicyPeriodInMinutes field's value.
 func (s *ResourceCreationLimitPolicy) SetPolicyPeriodInMinutes(v int64) *ResourceCreationLimitPolicy {
 	s.PolicyPeriodInMinutes = &v
+	return s
+}
+
+type ResumeGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the game server group to resume activity on. Use
+	// either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The action to resume for this game server group.
+	//
+	// ResumeActions is a required field
+	ResumeActions []*string `min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ResumeGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResumeGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResumeGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.ResumeActions == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResumeActions"))
+	}
+	if s.ResumeActions != nil && len(s.ResumeActions) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResumeActions", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *ResumeGameServerGroupInput) SetGameServerGroupName(v string) *ResumeGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetResumeActions sets the ResumeActions field's value.
+func (s *ResumeGameServerGroupInput) SetResumeActions(v []*string) *ResumeGameServerGroupInput {
+	s.ResumeActions = v
+	return s
+}
+
+type ResumeGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the game server group resource, with the SuspendedActions
+	// property updated to reflect the resumed activity.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResumeGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *ResumeGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *ResumeGameServerGroupOutput {
+	s.GameServerGroup = v
 	return s
 }
 
@@ -18796,7 +22256,7 @@ func (s *RoutingStrategy) SetType(v string) *RoutingStrategy {
 //
 //    * UpdateFleetAttributes
 //
-//    * Manage fleet actions: StartFleetActions StopFleetActions
+//    * StartFleetActions or StopFleetActions
 type RuntimeConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -18872,13 +22332,13 @@ func (s *RuntimeConfiguration) SetServerProcesses(v []*ServerProcess) *RuntimeCo
 	return s
 }
 
-// The location in Amazon S3 where build or script files are stored for access
-// by Amazon GameLift. This location is specified in CreateBuild, CreateScript,
-// and UpdateScript requests.
+// The location in S3 where build or script files are stored for access by Amazon
+// GameLift. This location is specified in CreateBuild, CreateScript, and UpdateScript
+// requests.
 type S3Location struct {
 	_ struct{} `type:"structure"`
 
-	// An Amazon S3 bucket identifier. This is the name of the S3 bucket.
+	// An S3 bucket identifier. This is the name of the S3 bucket.
 	Bucket *string `min:"1" type:"string"`
 
 	// The name of the zip file that contains the build files or script files.
@@ -19185,9 +22645,9 @@ type Script struct {
 	// are uploaded from an S3 location, this value remains at "0".
 	SizeOnDisk *int64 `min:"1" type:"long"`
 
-	// The location in Amazon S3 where build or script files are stored for access
-	// by Amazon GameLift. This location is specified in CreateBuild, CreateScript,
-	// and UpdateScript requests.
+	// The location in S3 where build or script files are stored for access by Amazon
+	// GameLift. This location is specified in CreateBuild, CreateScript, and UpdateScript
+	// requests.
 	StorageLocation *S3Location `type:"structure"`
 
 	// The version that is associated with a build or script. Version strings do
@@ -19609,7 +23069,7 @@ type StartGameSessionPlacementInput struct {
 	GameSessionName *string `min:"1" type:"string"`
 
 	// Name of the queue to use to place the new game session. You can use either
-	// the qieue name or ARN value.
+	// the queue name or ARN value.
 	//
 	// GameSessionQueueName is a required field
 	GameSessionQueueName *string `min:"1" type:"string" required:"true"`
@@ -20212,6 +23672,89 @@ func (s StopMatchmakingOutput) GoString() string {
 	return s.String()
 }
 
+type SuspendGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier of the game server group to stop activity on. Use either
+	// the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The action to suspend for this game server group.
+	//
+	// SuspendActions is a required field
+	SuspendActions []*string `min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s SuspendGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SuspendGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *SuspendGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "SuspendGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.SuspendActions == nil {
+		invalidParams.Add(request.NewErrParamRequired("SuspendActions"))
+	}
+	if s.SuspendActions != nil && len(s.SuspendActions) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SuspendActions", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *SuspendGameServerGroupInput) SetGameServerGroupName(v string) *SuspendGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetSuspendActions sets the SuspendActions field's value.
+func (s *SuspendGameServerGroupInput) SetSuspendActions(v []*string) *SuspendGameServerGroupInput {
+	s.SuspendActions = v
+	return s
+}
+
+type SuspendGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the game server group resource, with the SuspendedActions
+	// property updated to reflect the suspended activity.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s SuspendGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SuspendGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *SuspendGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *SuspendGameServerGroupOutput {
+	s.GameServerGroup = v
+	return s
+}
+
 // A label that can be assigned to a GameLift resource.
 //
 // Learn more
@@ -20373,8 +23916,8 @@ func (s TagResourceOutput) GoString() string {
 // tag format or the maximum tag limit may have been exceeded. Resolve the issue
 // before retrying.
 type TaggingFailedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -20391,17 +23934,17 @@ func (s TaggingFailedException) GoString() string {
 
 func newErrorTaggingFailedException(v protocol.ResponseMetadata) error {
 	return &TaggingFailedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TaggingFailedException) Code() string {
+func (s *TaggingFailedException) Code() string {
 	return "TaggingFailedException"
 }
 
 // Message returns the exception's message.
-func (s TaggingFailedException) Message() string {
+func (s *TaggingFailedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20409,22 +23952,22 @@ func (s TaggingFailedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TaggingFailedException) OrigErr() error {
+func (s *TaggingFailedException) OrigErr() error {
 	return nil
 }
 
-func (s TaggingFailedException) Error() string {
+func (s *TaggingFailedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TaggingFailedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TaggingFailedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TaggingFailedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TaggingFailedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Settings for a target-based scaling policy (see ScalingPolicy. A target-based
@@ -20486,14 +24029,60 @@ func (s *TargetConfiguration) SetTargetValue(v float64) *TargetConfiguration {
 	return s
 }
 
+// This data type is part of Amazon GameLift FleetIQ with game server groups,
+// which is in preview release and is subject to change.
+//
+// Settings for a target-based scaling policy applied to Auto Scaling group.
+// These settings are used to create a target-based policy that tracks the GameLift
+// FleetIQ metric "PercentUtilizedGameServers" and specifies a target value
+// for the metric. As player usage changes, the policy triggers to adjust the
+// game server group capacity so that the metric returns to the target value.
+type TargetTrackingConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Desired value to use with a game server group target-based scaling policy.
+	//
+	// TargetValue is a required field
+	TargetValue *float64 `type:"double" required:"true"`
+}
+
+// String returns the string representation
+func (s TargetTrackingConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TargetTrackingConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TargetTrackingConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TargetTrackingConfiguration"}
+	if s.TargetValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetValue"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTargetValue sets the TargetValue field's value.
+func (s *TargetTrackingConfiguration) SetTargetValue(v float64) *TargetTrackingConfiguration {
+	s.TargetValue = &v
+	return s
+}
+
 // The service is unable to resolve the routing for a particular alias because
 // it has a terminal RoutingStrategy associated with it. The message returned
 // in this exception is the message defined in the routing strategy itself.
 // Such requests should only be retried if the routing strategy for the specified
 // alias is modified.
 type TerminalRoutingStrategyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -20510,17 +24099,17 @@ func (s TerminalRoutingStrategyException) GoString() string {
 
 func newErrorTerminalRoutingStrategyException(v protocol.ResponseMetadata) error {
 	return &TerminalRoutingStrategyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TerminalRoutingStrategyException) Code() string {
+func (s *TerminalRoutingStrategyException) Code() string {
 	return "TerminalRoutingStrategyException"
 }
 
 // Message returns the exception's message.
-func (s TerminalRoutingStrategyException) Message() string {
+func (s *TerminalRoutingStrategyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20528,28 +24117,28 @@ func (s TerminalRoutingStrategyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TerminalRoutingStrategyException) OrigErr() error {
+func (s *TerminalRoutingStrategyException) OrigErr() error {
 	return nil
 }
 
-func (s TerminalRoutingStrategyException) Error() string {
+func (s *TerminalRoutingStrategyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TerminalRoutingStrategyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TerminalRoutingStrategyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TerminalRoutingStrategyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TerminalRoutingStrategyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The client failed authentication. Clients should not retry such requests.
 type UnauthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -20566,17 +24155,17 @@ func (s UnauthorizedException) GoString() string {
 
 func newErrorUnauthorizedException(v protocol.ResponseMetadata) error {
 	return &UnauthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnauthorizedException) Code() string {
+func (s *UnauthorizedException) Code() string {
 	return "UnauthorizedException"
 }
 
 // Message returns the exception's message.
-func (s UnauthorizedException) Message() string {
+func (s *UnauthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20584,28 +24173,28 @@ func (s UnauthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnauthorizedException) OrigErr() error {
+func (s *UnauthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s UnauthorizedException) Error() string {
+func (s *UnauthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnauthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnauthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnauthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnauthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The requested operation is not supported in the Region specified.
 type UnsupportedRegionException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"Message" min:"1" type:"string"`
 }
@@ -20622,17 +24211,17 @@ func (s UnsupportedRegionException) GoString() string {
 
 func newErrorUnsupportedRegionException(v protocol.ResponseMetadata) error {
 	return &UnsupportedRegionException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnsupportedRegionException) Code() string {
+func (s *UnsupportedRegionException) Code() string {
 	return "UnsupportedRegionException"
 }
 
 // Message returns the exception's message.
-func (s UnsupportedRegionException) Message() string {
+func (s *UnsupportedRegionException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -20640,22 +24229,22 @@ func (s UnsupportedRegionException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnsupportedRegionException) OrigErr() error {
+func (s *UnsupportedRegionException) OrigErr() error {
 	return nil
 }
 
-func (s UnsupportedRegionException) Error() string {
+func (s *UnsupportedRegionException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnsupportedRegionException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnsupportedRegionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnsupportedRegionException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnsupportedRegionException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -20670,8 +24259,9 @@ type UntagResourceInput struct {
 	// ResourceARN is a required field
 	ResourceARN *string `min:"1" type:"string" required:"true"`
 
-	// A list of one or more tags to remove from the specified GameLift resource.
-	// Tags are developer-defined and structured as key-value pairs.
+	// A list of one or more tag keys to remove from the specified GameLift resource.
+	// An AWS resource can have only one tag with a specific tag key, so specifying
+	// the tag key identifies which tag to remove.
 	//
 	// TagKeys is a required field
 	TagKeys []*string `type:"list" required:"true"`
@@ -20901,7 +24491,7 @@ func (s *UpdateBuildInput) SetVersion(v string) *UpdateBuildInput {
 type UpdateBuildOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The updated build record.
+	// The updated build resource.
 	Build *Build `type:"structure"`
 }
 
@@ -21154,10 +24744,10 @@ type UpdateFleetPortSettingsInput struct {
 	// FleetId is a required field
 	FleetId *string `type:"string" required:"true"`
 
-	// A collection of port settings to be added to the fleet record.
+	// A collection of port settings to be added to the fleet resource.
 	InboundPermissionAuthorizations []*IpPermission `type:"list"`
 
-	// A collection of port settings to be removed from the fleet record.
+	// A collection of port settings to be removed from the fleet resource.
 	InboundPermissionRevocations []*IpPermission `type:"list"`
 }
 
@@ -21243,6 +24833,280 @@ func (s UpdateFleetPortSettingsOutput) GoString() string {
 // SetFleetId sets the FleetId field's value.
 func (s *UpdateFleetPortSettingsOutput) SetFleetId(v string) *UpdateFleetPortSettingsOutput {
 	s.FleetId = &v
+	return s
+}
+
+type UpdateGameServerGroupInput struct {
+	_ struct{} `type:"structure"`
+
+	// The fallback balancing method to use for the game server group when Spot
+	// instances in a Region become unavailable or are not viable for game hosting.
+	// Once triggered, this method remains active until Spot instances can once
+	// again be used. Method options include:
+	//
+	//    * SPOT_ONLY -- If Spot instances are unavailable, the game server group
+	//    provides no hosting capacity. No new instances are started, and the existing
+	//    nonviable Spot instances are terminated (once current gameplay ends) and
+	//    not replaced.
+	//
+	//    * SPOT_PREFERRED -- If Spot instances are unavailable, the game server
+	//    group continues to provide hosting capacity by using On-Demand instances.
+	//    Existing nonviable Spot instances are terminated (once current gameplay
+	//    ends) and replaced with new On-Demand instances.
+	BalancingStrategy *string `type:"string" enum:"BalancingStrategy"`
+
+	// The unique identifier of the game server group to update. Use either the
+	// GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// A flag that indicates whether instances in the game server group are protected
+	// from early termination. Unprotected instances that have active game servers
+	// running may by terminated during a scale-down event, causing players to be
+	// dropped from the game. Protected instances cannot be terminated while there
+	// are active game servers running. An exception to this is Spot Instances,
+	// which may be terminated by AWS regardless of protection status. This property
+	// is set to NO_PROTECTION by default.
+	GameServerProtectionPolicy *string `type:"string" enum:"GameServerProtectionPolicy"`
+
+	// An updated list of EC2 instance types to use when creating instances in the
+	// group. The instance definition must specify instance types that are supported
+	// by GameLift FleetIQ, and must include at least two instance types. This updated
+	// list replaces the entire current list of instance definitions for the game
+	// server group. For more information on instance types, see EC2 Instance Types
+	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html)
+	// in the Amazon EC2 User Guide..
+	InstanceDefinitions []*InstanceDefinition `min:"2" type:"list"`
+
+	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-arn-format.html))
+	// for an IAM role that allows Amazon GameLift to access your EC2 Auto Scaling
+	// groups. The submitted role is validated to ensure that it contains the necessary
+	// permissions for game server groups.
+	RoleArn *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateGameServerGroupInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGameServerGroupInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateGameServerGroupInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateGameServerGroupInput"}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.InstanceDefinitions != nil && len(s.InstanceDefinitions) < 2 {
+		invalidParams.Add(request.NewErrParamMinLen("InstanceDefinitions", 2))
+	}
+	if s.RoleArn != nil && len(*s.RoleArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 1))
+	}
+	if s.InstanceDefinitions != nil {
+		for i, v := range s.InstanceDefinitions {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "InstanceDefinitions", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBalancingStrategy sets the BalancingStrategy field's value.
+func (s *UpdateGameServerGroupInput) SetBalancingStrategy(v string) *UpdateGameServerGroupInput {
+	s.BalancingStrategy = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *UpdateGameServerGroupInput) SetGameServerGroupName(v string) *UpdateGameServerGroupInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerProtectionPolicy sets the GameServerProtectionPolicy field's value.
+func (s *UpdateGameServerGroupInput) SetGameServerProtectionPolicy(v string) *UpdateGameServerGroupInput {
+	s.GameServerProtectionPolicy = &v
+	return s
+}
+
+// SetInstanceDefinitions sets the InstanceDefinitions field's value.
+func (s *UpdateGameServerGroupInput) SetInstanceDefinitions(v []*InstanceDefinition) *UpdateGameServerGroupInput {
+	s.InstanceDefinitions = v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *UpdateGameServerGroupInput) SetRoleArn(v string) *UpdateGameServerGroupInput {
+	s.RoleArn = &v
+	return s
+}
+
+type UpdateGameServerGroupOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the game server group resource with updated properties.
+	GameServerGroup *GameServerGroup `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateGameServerGroupOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGameServerGroupOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServerGroup sets the GameServerGroup field's value.
+func (s *UpdateGameServerGroupOutput) SetGameServerGroup(v *GameServerGroup) *UpdateGameServerGroupOutput {
+	s.GameServerGroup = v
+	return s
+}
+
+type UpdateGameServerInput struct {
+	_ struct{} `type:"structure"`
+
+	// A game server tag that can be used to request sorted lists of game servers
+	// using ListGameServers. Custom sort keys are developer-defined based on how
+	// you want to organize the retrieved game server information.
+	CustomSortKey *string `min:"1" type:"string"`
+
+	// A set of custom game server properties, formatted as a single string value.
+	// This data is passed to a game client or service when it requests information
+	// on a game servers using DescribeGameServer or ClaimGameServer.
+	GameServerData *string `min:"1" type:"string"`
+
+	// An identifier for the game server group where the game server is running.
+	// Use either the GameServerGroup name or ARN value.
+	//
+	// GameServerGroupName is a required field
+	GameServerGroupName *string `min:"1" type:"string" required:"true"`
+
+	// The identifier for the game server to be updated.
+	//
+	// GameServerId is a required field
+	GameServerId *string `min:"3" type:"string" required:"true"`
+
+	// Indicates health status of the game server. An update that explicitly includes
+	// this parameter updates the game server's LastHealthCheckTime time stamp.
+	HealthCheck *string `type:"string" enum:"GameServerHealthCheck"`
+
+	// Indicates whether the game server is available or is currently hosting gameplay.
+	UtilizationStatus *string `type:"string" enum:"GameServerUtilizationStatus"`
+}
+
+// String returns the string representation
+func (s UpdateGameServerInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGameServerInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateGameServerInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateGameServerInput"}
+	if s.CustomSortKey != nil && len(*s.CustomSortKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CustomSortKey", 1))
+	}
+	if s.GameServerData != nil && len(*s.GameServerData) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerData", 1))
+	}
+	if s.GameServerGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerGroupName"))
+	}
+	if s.GameServerGroupName != nil && len(*s.GameServerGroupName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerGroupName", 1))
+	}
+	if s.GameServerId == nil {
+		invalidParams.Add(request.NewErrParamRequired("GameServerId"))
+	}
+	if s.GameServerId != nil && len(*s.GameServerId) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("GameServerId", 3))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCustomSortKey sets the CustomSortKey field's value.
+func (s *UpdateGameServerInput) SetCustomSortKey(v string) *UpdateGameServerInput {
+	s.CustomSortKey = &v
+	return s
+}
+
+// SetGameServerData sets the GameServerData field's value.
+func (s *UpdateGameServerInput) SetGameServerData(v string) *UpdateGameServerInput {
+	s.GameServerData = &v
+	return s
+}
+
+// SetGameServerGroupName sets the GameServerGroupName field's value.
+func (s *UpdateGameServerInput) SetGameServerGroupName(v string) *UpdateGameServerInput {
+	s.GameServerGroupName = &v
+	return s
+}
+
+// SetGameServerId sets the GameServerId field's value.
+func (s *UpdateGameServerInput) SetGameServerId(v string) *UpdateGameServerInput {
+	s.GameServerId = &v
+	return s
+}
+
+// SetHealthCheck sets the HealthCheck field's value.
+func (s *UpdateGameServerInput) SetHealthCheck(v string) *UpdateGameServerInput {
+	s.HealthCheck = &v
+	return s
+}
+
+// SetUtilizationStatus sets the UtilizationStatus field's value.
+func (s *UpdateGameServerInput) SetUtilizationStatus(v string) *UpdateGameServerInput {
+	s.UtilizationStatus = &v
+	return s
+}
+
+type UpdateGameServerOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Object that describes the newly updated game server resource.
+	GameServer *GameServer `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateGameServerOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGameServerOutput) GoString() string {
+	return s.String()
+}
+
+// SetGameServer sets the GameServer field's value.
+func (s *UpdateGameServerOutput) SetGameServer(v *GameServer) *UpdateGameServerOutput {
+	s.GameServer = v
 	return s
 }
 
@@ -22095,7 +25959,7 @@ type VpcPeeringConnection struct {
 
 	// The Amazon Resource Name (ARN (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html))
 	// associated with the GameLift fleet resource for this connection.
-	FleetArn *string `min:"1" type:"string"`
+	FleetArn *string `type:"string"`
 
 	// A unique identifier for a fleet. This ID determines the ID of the Amazon
 	// GameLift VPC for your fleet.
@@ -22230,6 +26094,14 @@ const (
 
 	// BackfillModeManual is a BackfillMode enum value
 	BackfillModeManual = "MANUAL"
+)
+
+const (
+	// BalancingStrategySpotOnly is a BalancingStrategy enum value
+	BalancingStrategySpotOnly = "SPOT_ONLY"
+
+	// BalancingStrategySpotPreferred is a BalancingStrategy enum value
+	BalancingStrategySpotPreferred = "SPOT_PREFERRED"
 )
 
 const (
@@ -22585,6 +26457,193 @@ const (
 )
 
 const (
+	// GameServerClaimStatusClaimed is a GameServerClaimStatus enum value
+	GameServerClaimStatusClaimed = "CLAIMED"
+)
+
+const (
+	// GameServerGroupActionReplaceInstanceTypes is a GameServerGroupAction enum value
+	GameServerGroupActionReplaceInstanceTypes = "REPLACE_INSTANCE_TYPES"
+)
+
+const (
+	// GameServerGroupDeleteOptionSafeDelete is a GameServerGroupDeleteOption enum value
+	GameServerGroupDeleteOptionSafeDelete = "SAFE_DELETE"
+
+	// GameServerGroupDeleteOptionForceDelete is a GameServerGroupDeleteOption enum value
+	GameServerGroupDeleteOptionForceDelete = "FORCE_DELETE"
+
+	// GameServerGroupDeleteOptionRetain is a GameServerGroupDeleteOption enum value
+	GameServerGroupDeleteOptionRetain = "RETAIN"
+)
+
+const (
+	// GameServerGroupInstanceTypeC4Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC4Large = "c4.large"
+
+	// GameServerGroupInstanceTypeC4Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC4Xlarge = "c4.xlarge"
+
+	// GameServerGroupInstanceTypeC42xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC42xlarge = "c4.2xlarge"
+
+	// GameServerGroupInstanceTypeC44xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC44xlarge = "c4.4xlarge"
+
+	// GameServerGroupInstanceTypeC48xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC48xlarge = "c4.8xlarge"
+
+	// GameServerGroupInstanceTypeC5Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC5Large = "c5.large"
+
+	// GameServerGroupInstanceTypeC5Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC5Xlarge = "c5.xlarge"
+
+	// GameServerGroupInstanceTypeC52xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC52xlarge = "c5.2xlarge"
+
+	// GameServerGroupInstanceTypeC54xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC54xlarge = "c5.4xlarge"
+
+	// GameServerGroupInstanceTypeC59xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC59xlarge = "c5.9xlarge"
+
+	// GameServerGroupInstanceTypeC512xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC512xlarge = "c5.12xlarge"
+
+	// GameServerGroupInstanceTypeC518xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC518xlarge = "c5.18xlarge"
+
+	// GameServerGroupInstanceTypeC524xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeC524xlarge = "c5.24xlarge"
+
+	// GameServerGroupInstanceTypeR4Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR4Large = "r4.large"
+
+	// GameServerGroupInstanceTypeR4Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR4Xlarge = "r4.xlarge"
+
+	// GameServerGroupInstanceTypeR42xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR42xlarge = "r4.2xlarge"
+
+	// GameServerGroupInstanceTypeR44xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR44xlarge = "r4.4xlarge"
+
+	// GameServerGroupInstanceTypeR48xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR48xlarge = "r4.8xlarge"
+
+	// GameServerGroupInstanceTypeR416xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR416xlarge = "r4.16xlarge"
+
+	// GameServerGroupInstanceTypeR5Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR5Large = "r5.large"
+
+	// GameServerGroupInstanceTypeR5Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR5Xlarge = "r5.xlarge"
+
+	// GameServerGroupInstanceTypeR52xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR52xlarge = "r5.2xlarge"
+
+	// GameServerGroupInstanceTypeR54xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR54xlarge = "r5.4xlarge"
+
+	// GameServerGroupInstanceTypeR58xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR58xlarge = "r5.8xlarge"
+
+	// GameServerGroupInstanceTypeR512xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR512xlarge = "r5.12xlarge"
+
+	// GameServerGroupInstanceTypeR516xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR516xlarge = "r5.16xlarge"
+
+	// GameServerGroupInstanceTypeR524xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeR524xlarge = "r5.24xlarge"
+
+	// GameServerGroupInstanceTypeM4Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM4Large = "m4.large"
+
+	// GameServerGroupInstanceTypeM4Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM4Xlarge = "m4.xlarge"
+
+	// GameServerGroupInstanceTypeM42xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM42xlarge = "m4.2xlarge"
+
+	// GameServerGroupInstanceTypeM44xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM44xlarge = "m4.4xlarge"
+
+	// GameServerGroupInstanceTypeM410xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM410xlarge = "m4.10xlarge"
+
+	// GameServerGroupInstanceTypeM5Large is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM5Large = "m5.large"
+
+	// GameServerGroupInstanceTypeM5Xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM5Xlarge = "m5.xlarge"
+
+	// GameServerGroupInstanceTypeM52xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM52xlarge = "m5.2xlarge"
+
+	// GameServerGroupInstanceTypeM54xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM54xlarge = "m5.4xlarge"
+
+	// GameServerGroupInstanceTypeM58xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM58xlarge = "m5.8xlarge"
+
+	// GameServerGroupInstanceTypeM512xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM512xlarge = "m5.12xlarge"
+
+	// GameServerGroupInstanceTypeM516xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM516xlarge = "m5.16xlarge"
+
+	// GameServerGroupInstanceTypeM524xlarge is a GameServerGroupInstanceType enum value
+	GameServerGroupInstanceTypeM524xlarge = "m5.24xlarge"
+)
+
+const (
+	// GameServerGroupStatusNew is a GameServerGroupStatus enum value
+	GameServerGroupStatusNew = "NEW"
+
+	// GameServerGroupStatusActivating is a GameServerGroupStatus enum value
+	GameServerGroupStatusActivating = "ACTIVATING"
+
+	// GameServerGroupStatusActive is a GameServerGroupStatus enum value
+	GameServerGroupStatusActive = "ACTIVE"
+
+	// GameServerGroupStatusDeleteScheduled is a GameServerGroupStatus enum value
+	GameServerGroupStatusDeleteScheduled = "DELETE_SCHEDULED"
+
+	// GameServerGroupStatusDeleting is a GameServerGroupStatus enum value
+	GameServerGroupStatusDeleting = "DELETING"
+
+	// GameServerGroupStatusDeleted is a GameServerGroupStatus enum value
+	GameServerGroupStatusDeleted = "DELETED"
+
+	// GameServerGroupStatusError is a GameServerGroupStatus enum value
+	GameServerGroupStatusError = "ERROR"
+)
+
+const (
+	// GameServerHealthCheckHealthy is a GameServerHealthCheck enum value
+	GameServerHealthCheckHealthy = "HEALTHY"
+)
+
+const (
+	// GameServerProtectionPolicyNoProtection is a GameServerProtectionPolicy enum value
+	GameServerProtectionPolicyNoProtection = "NO_PROTECTION"
+
+	// GameServerProtectionPolicyFullProtection is a GameServerProtectionPolicy enum value
+	GameServerProtectionPolicyFullProtection = "FULL_PROTECTION"
+)
+
+const (
+	// GameServerUtilizationStatusAvailable is a GameServerUtilizationStatus enum value
+	GameServerUtilizationStatusAvailable = "AVAILABLE"
+
+	// GameServerUtilizationStatusUtilized is a GameServerUtilizationStatus enum value
+	GameServerUtilizationStatusUtilized = "UTILIZED"
+)
+
+const (
 	// GameSessionPlacementStatePending is a GameSessionPlacementState enum value
 	GameSessionPlacementStatePending = "PENDING"
 
@@ -22792,4 +26851,12 @@ const (
 
 	// ScalingStatusTypeError is a ScalingStatusType enum value
 	ScalingStatusTypeError = "ERROR"
+)
+
+const (
+	// SortOrderAscending is a SortOrder enum value
+	SortOrderAscending = "ASCENDING"
+
+	// SortOrderDescending is a SortOrder enum value
+	SortOrderDescending = "DESCENDING"
 )

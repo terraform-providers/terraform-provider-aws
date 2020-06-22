@@ -74,7 +74,6 @@ func dataSourceAwsLb() *schema.Resource {
 			"access_logs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bucket": {
@@ -103,6 +102,11 @@ func dataSourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
+			"drop_invalid_header_fields": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -114,6 +118,11 @@ func dataSourceAwsLb() *schema.Resource {
 			},
 
 			"dns_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"ip_address_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},

@@ -10,8 +10,8 @@ import (
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name: "acctestfunc",
-	Doc:  "find function names starting with TestAcc for later passes",
+	Name: "testaccfuncdecl",
+	Doc:  "find *ast.FuncDecl with TestAcc prefixed names for later passes",
 	Requires: []*analysis.Analyzer{
 		testfuncdecl.Analyzer,
 	},

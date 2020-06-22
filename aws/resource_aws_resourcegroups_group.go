@@ -98,6 +98,7 @@ func resourceAwsResourceGroupsGroupCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsResourceGroupsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).resourcegroupsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	g, err := conn.GetGroup(&resourcegroups.GetGroupInput{
 		GroupName: aws.String(d.Id()),
@@ -137,7 +138,7 @@ func resourceAwsResourceGroupsGroupRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
 	}
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

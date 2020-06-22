@@ -3,11 +3,15 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
+locals {
+  availability_zones = "${split(",", var.availability_zones)}"
+}
+
 resource "aws_elb" "web-elb" {
   name = "terraform-example-elb"
 
   # The same availability zone as our instances
-  availability_zones = ["${split(",", var.availability_zones)}"]
+  availability_zones = "${local.availability_zones}"
 
   listener {
     instance_port     = 80
@@ -26,7 +30,7 @@ resource "aws_elb" "web-elb" {
 }
 
 resource "aws_autoscaling_group" "web-asg" {
-  availability_zones   = ["${split(",", var.availability_zones)}"]
+  availability_zones   = "${local.availability_zones}"
   name                 = "terraform-example-asg"
   max_size             = "${var.asg_max}"
   min_size             = "${var.asg_min}"

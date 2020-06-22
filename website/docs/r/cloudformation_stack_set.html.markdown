@@ -3,12 +3,12 @@ subcategory: "CloudFormation"
 layout: "aws"
 page_title: "AWS: aws_cloudformation_stack_set"
 description: |-
-  Manages a CloudFormation Stack Set.
+  Manages a CloudFormation StackSet.
 ---
 
 # Resource: aws_cloudformation_stack_set
 
-Manages a CloudFormation Stack Set. Stack Sets allow CloudFormation templates to be easily deployed across multiple accounts and regions via Stack Set Instances ([`aws_cloudformation_stack_set_instance` resource](/docs/providers/aws/r/cloudformation_stack_set_instance.html)). Additional information about Stack Sets can be found in the [AWS CloudFormation User Guide](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html).
+Manages a CloudFormation StackSet. StackSets allow CloudFormation templates to be easily deployed across multiple accounts and regions via StackSet Instances ([`aws_cloudformation_stack_set_instance` resource](/docs/providers/aws/r/cloudformation_stack_set_instance.html)). Additional information about StackSets can be found in the [AWS CloudFormation User Guide](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html).
 
 ~> **NOTE:** All template parameters, including those with a `Default`, must be configured or ignored with the `lifecycle` configuration block `ignore_changes` argument.
 
@@ -86,12 +86,12 @@ resource "aws_iam_role_policy" "AWSCloudFormationStackSetAdministrationRole_Exec
 The following arguments are supported:
 
 * `administration_role_arn` - (Required) Amazon Resource Number (ARN) of the IAM Role in the administrator account.
-* `name` - (Required) Name of the Stack Set. The name must be unique in the region where you create your Stack Set. The name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and cannot be longer than 128 characters.
+* `name` - (Required) Name of the StackSet. The name must be unique in the region where you create your StackSet. The name can contain only alphanumeric characters (case-sensitive) and hyphens. It must start with an alphabetic character and cannot be longer than 128 characters.
 * `capabilities` - (Optional) A list of capabilities. Valid values: `CAPABILITY_IAM`, `CAPABILITY_NAMED_IAM`, `CAPABILITY_AUTO_EXPAND`.
-* `description` - (Optional) Description of the Stack Set.
-* `execution_role_name` - (Optional) Name of the IAM Role in all target accounts for Stack Set operations. Defaults to `AWSCloudFormationStackSetExecutionRole`.
-* `parameters` - (Optional) Key-value map of input parameters for the Stack Set template. All template parameters, including those with a `Default`, must be configured or ignored with `lifecycle` configuration block `ignore_changes` argument. All `NoEcho` template parameters must be ignored with the `lifecycle` configuration block `ignore_changes` argument.
-* `tags` - (Optional) Key-value map of tags to associate with this Stack Set and the Stacks created from it. AWS CloudFormation also propagates these tags to supported resources that are created in the Stacks. A maximum number of 50 tags can be specified.
+* `description` - (Optional) Description of the StackSet.
+* `execution_role_name` - (Optional) Name of the IAM Role in all target accounts for StackSet operations. Defaults to `AWSCloudFormationStackSetExecutionRole`.
+* `parameters` - (Optional) Key-value map of input parameters for the StackSet template. All template parameters, including those with a `Default`, must be configured or ignored with `lifecycle` configuration block `ignore_changes` argument. All `NoEcho` template parameters must be ignored with the `lifecycle` configuration block `ignore_changes` argument.
+* `tags` - (Optional) Key-value map of tags to associate with this StackSet and the Stacks created from it. AWS CloudFormation also propagates these tags to supported resources that are created in the Stacks. A maximum number of 50 tags can be specified.
 * `template_body` - (Optional) String containing the CloudFormation template body. Maximum size: 51,200 bytes. Conflicts with `template_url`.
 * `template_url` - (Optional) String containing the location of a file containing the CloudFormation template body. The URL must point to a template that is located in an Amazon S3 bucket. Maximum location file size: 460,800 bytes. Conflicts with `template_body`.
 
@@ -99,19 +99,19 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `arn` - Amazon Resource Name (ARN) of the Stack Set.
-* `id` - Name of the Stack Set.
-* `stack_set_id` - Unique identifier of the Stack Set.
+* `arn` - Amazon Resource Name (ARN) of the StackSet.
+* `id` - Name of the StackSet.
+* `stack_set_id` - Unique identifier of the StackSet.
 
 ## Timeouts
 
 `aws_cloudformation_stack_set` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
 
-* `update` - (Default `30m`) How long to wait for a Stack Set to be updated.
+* `update` - (Default `30m`) How long to wait for a StackSet to be updated.
 
 ## Import
 
-CloudFormation Stack Sets can be imported using the `name`, e.g.
+CloudFormation StackSets can be imported using the `name`, e.g.
 
 ```
 $ terraform import aws_cloudformation_stack.example example

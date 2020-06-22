@@ -14,6 +14,9 @@ func resourceAwsVpcDhcpOptionsAssociation() *schema.Resource {
 		Read:   resourceAwsVpcDhcpOptionsAssociationRead,
 		Update: resourceAwsVpcDhcpOptionsAssociationUpdate,
 		Delete: resourceAwsVpcDhcpOptionsAssociationDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsVpcDhcpOptionsAssociationImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"vpc_id": {
@@ -27,6 +30,27 @@ func resourceAwsVpcDhcpOptionsAssociation() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceAwsVpcDhcpOptionsAssociationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*AWSClient).ec2conn
+	// Provide the vpc_id as the id to import
+	vpcRaw, _, err := VPCStateRefreshFunc(conn, d.Id())()
+	if err != nil {
+		return nil, err
+	}
+	if vpcRaw == nil {
+		return nil, nil
+	}
+	vpc := vpcRaw.(*ec2.Vpc)
+	if err = d.Set("vpc_id", vpc.VpcId); err != nil {
+		return nil, err
+	}
+	if err = d.Set("dhcp_options_id", vpc.DhcpOptionsId); err != nil {
+		return nil, err
+	}
+	d.SetId(*vpc.DhcpOptionsId + "-" + *vpc.VpcId)
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceAwsVpcDhcpOptionsAssociationCreate(d *schema.ResourceData, meta interface{}) error {

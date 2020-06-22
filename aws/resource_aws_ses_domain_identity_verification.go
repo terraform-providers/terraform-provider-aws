@@ -55,7 +55,7 @@ func getAwsSesIdentityVerificationAttributes(conn *ses.SES, domainName string) (
 }
 
 func resourceAwsSesDomainIdentityVerificationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 	domainName := strings.TrimSuffix(d.Get("domain").(string), ".")
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		att, err := getAwsSesIdentityVerificationAttributes(conn, domainName)
@@ -91,7 +91,7 @@ func resourceAwsSesDomainIdentityVerificationCreate(d *schema.ResourceData, meta
 }
 
 func resourceAwsSesDomainIdentityVerificationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	domainName := d.Id()
 	d.Set("domain", domainName)

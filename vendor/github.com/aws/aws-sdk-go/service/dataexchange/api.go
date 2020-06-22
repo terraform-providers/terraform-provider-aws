@@ -2211,8 +2211,8 @@ func (c *DataExchange) UpdateRevisionWithContext(ctx aws.Context, input *UpdateR
 
 // Access to the resource is denied.
 type AccessDeniedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// Access to the resource is denied.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -2230,17 +2230,17 @@ func (s AccessDeniedException) GoString() string {
 
 func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
 	return &AccessDeniedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s AccessDeniedException) Code() string {
+func (s *AccessDeniedException) Code() string {
 	return "AccessDeniedException"
 }
 
 // Message returns the exception's message.
-func (s AccessDeniedException) Message() string {
+func (s *AccessDeniedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2248,22 +2248,22 @@ func (s AccessDeniedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s AccessDeniedException) OrigErr() error {
+func (s *AccessDeniedException) OrigErr() error {
 	return nil
 }
 
-func (s AccessDeniedException) Error() string {
+func (s *AccessDeniedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s AccessDeniedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s AccessDeniedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The destination for the asset.
@@ -2591,8 +2591,8 @@ func (s CancelJobOutput) GoString() string {
 // The request couldn't be completed because it conflicted with the current
 // state of the resource.
 type ConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The request couldn't be completed because it conflicted with the current
 	// state of the resource.
@@ -2617,17 +2617,17 @@ func (s ConflictException) GoString() string {
 
 func newErrorConflictException(v protocol.ResponseMetadata) error {
 	return &ConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConflictException) Code() string {
+func (s *ConflictException) Code() string {
 	return "ConflictException"
 }
 
 // Message returns the exception's message.
-func (s ConflictException) Message() string {
+func (s *ConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -2635,22 +2635,22 @@ func (s ConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConflictException) OrigErr() error {
+func (s *ConflictException) OrigErr() error {
 	return nil
 }
 
-func (s ConflictException) Error() string {
+func (s *ConflictException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A request to create a data set that contains one or more revisions.
@@ -3658,6 +3658,9 @@ type ExportAssetsToS3RequestDetails struct {
 	// DataSetId is a required field
 	DataSetId *string `type:"string" required:"true"`
 
+	// Encryption configuration for the export job.
+	Encryption *ExportServerSideEncryption `type:"structure"`
+
 	// The unique identifier for the revision associated with this export request.
 	//
 	// RevisionId is a required field
@@ -3696,6 +3699,11 @@ func (s *ExportAssetsToS3RequestDetails) Validate() error {
 			}
 		}
 	}
+	if s.Encryption != nil {
+		if err := s.Encryption.Validate(); err != nil {
+			invalidParams.AddNested("Encryption", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3712,6 +3720,12 @@ func (s *ExportAssetsToS3RequestDetails) SetAssetDestinations(v []*AssetDestinat
 // SetDataSetId sets the DataSetId field's value.
 func (s *ExportAssetsToS3RequestDetails) SetDataSetId(v string) *ExportAssetsToS3RequestDetails {
 	s.DataSetId = &v
+	return s
+}
+
+// SetEncryption sets the Encryption field's value.
+func (s *ExportAssetsToS3RequestDetails) SetEncryption(v *ExportServerSideEncryption) *ExportAssetsToS3RequestDetails {
+	s.Encryption = v
 	return s
 }
 
@@ -3734,6 +3748,9 @@ type ExportAssetsToS3ResponseDetails struct {
 	//
 	// DataSetId is a required field
 	DataSetId *string `type:"string" required:"true"`
+
+	// Encryption configuration of the export job.
+	Encryption *ExportServerSideEncryption `type:"structure"`
 
 	// The unique identifier for the revision associated with this export response.
 	//
@@ -3763,9 +3780,68 @@ func (s *ExportAssetsToS3ResponseDetails) SetDataSetId(v string) *ExportAssetsTo
 	return s
 }
 
+// SetEncryption sets the Encryption field's value.
+func (s *ExportAssetsToS3ResponseDetails) SetEncryption(v *ExportServerSideEncryption) *ExportAssetsToS3ResponseDetails {
+	s.Encryption = v
+	return s
+}
+
 // SetRevisionId sets the RevisionId field's value.
 func (s *ExportAssetsToS3ResponseDetails) SetRevisionId(v string) *ExportAssetsToS3ResponseDetails {
 	s.RevisionId = &v
+	return s
+}
+
+// Encryption configuration of the export job. Includes the encryption type
+// as well as the AWS KMS key. The KMS key is only necessary if you chose the
+// KMS encryption type.
+type ExportServerSideEncryption struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the the AWS KMS key you want to use to
+	// encrypt the Amazon S3 objects. This parameter is required if you choose aws:kms
+	// as an encryption type.
+	KmsKeyArn *string `type:"string"`
+
+	// The type of server side encryption used for encrypting the objects in Amazon
+	// S3.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"ServerSideEncryptionTypes"`
+}
+
+// String returns the string representation
+func (s ExportServerSideEncryption) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExportServerSideEncryption) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ExportServerSideEncryption) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ExportServerSideEncryption"}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKmsKeyArn sets the KmsKeyArn field's value.
+func (s *ExportServerSideEncryption) SetKmsKeyArn(v string) *ExportServerSideEncryption {
+	s.KmsKeyArn = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ExportServerSideEncryption) SetType(v string) *ExportServerSideEncryption {
+	s.Type = &v
 	return s
 }
 
@@ -4683,8 +4759,8 @@ func (s *ImportAssetsFromS3ResponseDetails) SetRevisionId(v string) *ImportAsset
 
 // An exception occurred with the service.
 type InternalServerException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message identifying the service exception that occurred.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -4702,17 +4778,17 @@ func (s InternalServerException) GoString() string {
 
 func newErrorInternalServerException(v protocol.ResponseMetadata) error {
 	return &InternalServerException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalServerException) Code() string {
+func (s *InternalServerException) Code() string {
 	return "InternalServerException"
 }
 
 // Message returns the exception's message.
-func (s InternalServerException) Message() string {
+func (s *InternalServerException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4720,22 +4796,22 @@ func (s InternalServerException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalServerException) OrigErr() error {
+func (s *InternalServerException) OrigErr() error {
 	return nil
 }
 
-func (s InternalServerException) Error() string {
+func (s *InternalServerException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalServerException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalServerException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalServerException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalServerException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // AWS Data Exchange Jobs are asynchronous import or export operations used
@@ -4865,7 +4941,7 @@ type JobError struct {
 	// Message is a required field
 	Message *string `type:"string" required:"true"`
 
-	// The unqiue identifier for the resource related to the error.
+	// The unique identifier for the resource related to the error.
 	ResourceId *string `type:"string"`
 
 	// The type of resource related to the error.
@@ -5460,8 +5536,8 @@ func (s *RequestDetails) SetImportAssetsFromS3(v *ImportAssetsFromS3RequestDetai
 
 // The resource couldn't be found.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The resource couldn't be found.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -5485,17 +5561,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5503,22 +5579,22 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Details for the response.
@@ -5707,8 +5783,8 @@ func (s *S3SnapshotAsset) SetSize(v float64) *S3SnapshotAsset {
 
 // The request has exceeded the quotas imposed by the service.
 type ServiceLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	LimitName *string `type:"string" enum:"LimitName"`
 
@@ -5729,17 +5805,17 @@ func (s ServiceLimitExceededException) GoString() string {
 
 func newErrorServiceLimitExceededException(v protocol.ResponseMetadata) error {
 	return &ServiceLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceLimitExceededException) Code() string {
+func (s *ServiceLimitExceededException) Code() string {
 	return "ServiceLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s ServiceLimitExceededException) Message() string {
+func (s *ServiceLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5747,22 +5823,22 @@ func (s ServiceLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceLimitExceededException) OrigErr() error {
+func (s *ServiceLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceLimitExceededException) Error() string {
+func (s *ServiceLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type StartJobInput struct {
@@ -5885,8 +5961,8 @@ func (s TagResourceOutput) GoString() string {
 
 // The limit on the number of requests per second was exceeded.
 type ThrottlingException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The limit on the number of requests per second was exceeded.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -5904,17 +5980,17 @@ func (s ThrottlingException) GoString() string {
 
 func newErrorThrottlingException(v protocol.ResponseMetadata) error {
 	return &ThrottlingException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ThrottlingException) Code() string {
+func (s *ThrottlingException) Code() string {
 	return "ThrottlingException"
 }
 
 // Message returns the exception's message.
-func (s ThrottlingException) Message() string {
+func (s *ThrottlingException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5922,22 +5998,22 @@ func (s ThrottlingException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ThrottlingException) OrigErr() error {
+func (s *ThrottlingException) OrigErr() error {
 	return nil
 }
 
-func (s ThrottlingException) Error() string {
+func (s *ThrottlingException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ThrottlingException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ThrottlingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ThrottlingException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ThrottlingException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -6523,8 +6599,8 @@ func (s *UpdateRevisionOutput) SetUpdatedAt(v time.Time) *UpdateRevisionOutput {
 
 // The request was invalid.
 type ValidationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message that informs you about what was invalid about the request.
 	Message_ *string `locationName:"Message" type:"string"`
@@ -6542,17 +6618,17 @@ func (s ValidationException) GoString() string {
 
 func newErrorValidationException(v protocol.ResponseMetadata) error {
 	return &ValidationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ValidationException) Code() string {
+func (s *ValidationException) Code() string {
 	return "ValidationException"
 }
 
 // Message returns the exception's message.
-func (s ValidationException) Message() string {
+func (s *ValidationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -6560,22 +6636,22 @@ func (s ValidationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ValidationException) OrigErr() error {
+func (s *ValidationException) OrigErr() error {
 	return nil
 }
 
-func (s ValidationException) Error() string {
+func (s *ValidationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ValidationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ValidationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The type of file your data is stored in. Currently, the supported asset type
@@ -6688,6 +6764,15 @@ const (
 
 	// ResourceTypeJob is a ResourceType enum value
 	ResourceTypeJob = "JOB"
+)
+
+// The types of encryption supported in export jobs to Amazon S3.
+const (
+	// ServerSideEncryptionTypesAwsKms is a ServerSideEncryptionTypes enum value
+	ServerSideEncryptionTypesAwsKms = "aws:kms"
+
+	// ServerSideEncryptionTypesAes256 is a ServerSideEncryptionTypes enum value
+	ServerSideEncryptionTypesAes256 = "AES256"
 )
 
 const (

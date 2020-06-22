@@ -116,6 +116,7 @@ func resourceAwsWafRegionalRateBasedRuleCreate(d *schema.ResourceData, meta inte
 
 func resourceAwsWafRegionalRateBasedRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafregionalconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &waf.GetRateBasedRuleInput{
 		RuleId: aws.String(d.Id()),
@@ -154,7 +155,7 @@ func resourceAwsWafRegionalRateBasedRuleRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Failed to get WAF Regional Rated Based Rule parameter tags for %s: %s", d.Get("name"), err)
 	}
-	if err := d.Set("tags", tagList.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tagList.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -171,7 +172,7 @@ func resourceAwsWafRegionalRateBasedRuleUpdate(d *schema.ResourceData, meta inte
 	conn := meta.(*AWSClient).wafregionalconn
 	region := meta.(*AWSClient).region
 
-	if d.HasChange("predicate") || d.HasChange("rate_limit") {
+	if d.HasChanges("predicate", "rate_limit") {
 		o, n := d.GetChange("predicate")
 		oldP, newP := o.(*schema.Set).List(), n.(*schema.Set).List()
 		rateLimit := d.Get("rate_limit")

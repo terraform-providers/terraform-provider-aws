@@ -26,7 +26,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 * `type` - (Optional) Type of Analyzer. Valid value is currently only `ACCOUNT`. Defaults to `ACCOUNT`.
 
 ## Attributes Reference

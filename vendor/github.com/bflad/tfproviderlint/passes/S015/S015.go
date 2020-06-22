@@ -5,7 +5,6 @@ package S015
 
 import (
 	"go/ast"
-	"regexp"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -37,8 +36,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ignorer := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	schemamapcompositelits := pass.ResultOf[schemamapcompositelit.Analyzer].([]*ast.CompositeLit)
 
-	attributeNameRegex := regexp.MustCompile(`^[a-z0-9_]+$`)
-
 	for _, smap := range schemamapcompositelits {
 		if ignorer.ShouldIgnore(analyzerName, smap) {
 			continue
@@ -51,7 +48,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			case *ast.BasicLit:
 				value := strings.Trim(t.Value, `"`)
 
-				if !attributeNameRegex.MatchString(value) {
+				if !schema.AttributeNameRegexp.MatchString(value) {
 					pass.Reportf(t.Pos(), "%s: schema attribute names should only be lowercase alphanumeric characters or underscores", analyzerName)
 				}
 			}

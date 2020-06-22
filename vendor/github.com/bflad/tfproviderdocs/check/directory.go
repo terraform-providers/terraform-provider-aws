@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DocumentationGlobPattern = `{docs,website/docs}/**/*`
+	DocumentationGlobPattern = `{docs/index.md,docs/{data-sources,guides,resources},website/docs}/**/*`
 
 	LegacyIndexDirectory       = `website/docs`
 	LegacyDataSourcesDirectory = `website/docs/d`
@@ -58,7 +58,8 @@ func MixedDirectoriesCheck(directories map[string][]string) error {
 	err := fmt.Errorf("mixed Terraform Provider documentation directory layouts found, must use only legacy or registry layout")
 
 	for directory := range directories {
-		if IsValidRegistryDirectory(directory) {
+		// Allow docs/ with other files
+		if IsValidRegistryDirectory(directory) && directory != RegistryIndexDirectory {
 			registryDirectoryFound = true
 
 			if legacyDirectoryFound {
@@ -126,6 +127,14 @@ func GetDirectories(basepath string) (map[string][]string, error) {
 		}
 
 		directory := filepath.Dir(file)
+
+		// Skip handling of docs/ files except index.md
+		// if directory == RegistryIndexDirectory && filepath.Base(file) != "index.md" {
+		// 	continue
+		// }
+
+		// Skip handling of docs/** outside valid Registry Directories
+
 		directories[directory] = append(directories[directory], file)
 	}
 

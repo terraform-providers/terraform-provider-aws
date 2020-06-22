@@ -72,7 +72,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the configuration aggregator.
 * `account_aggregation_source` - (Optional) The account(s) to aggregate config data from as documented below.
 * `organization_aggregation_source` - (Optional) The organization to aggregate config data from as documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 Either `account_aggregation_source` or `organization_aggregation_source` must be specified.
 

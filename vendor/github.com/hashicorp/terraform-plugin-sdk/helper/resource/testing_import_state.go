@@ -81,7 +81,7 @@ func testStepImportState(
 		Config: cfg,
 
 		Targets: []*terraform.ImportTarget{
-			&terraform.ImportTarget{
+			{
 				Addr: importAddr,
 				ID:   importId,
 			},

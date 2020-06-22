@@ -215,6 +215,7 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 						"input_paths": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"input_template": {
 							Type:         schema.TypeString,

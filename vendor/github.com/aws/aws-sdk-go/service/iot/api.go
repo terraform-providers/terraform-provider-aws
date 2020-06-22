@@ -1725,6 +1725,97 @@ func (c *IoT) CreateCertificateFromCsrWithContext(ctx aws.Context, input *Create
 	return out, req.Send()
 }
 
+const opCreateDimension = "CreateDimension"
+
+// CreateDimensionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateDimension operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateDimension for more information on using the CreateDimension
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateDimensionRequest method.
+//    req, resp := client.CreateDimensionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) CreateDimensionRequest(input *CreateDimensionInput) (req *request.Request, output *CreateDimensionOutput) {
+	op := &request.Operation{
+		Name:       opCreateDimension,
+		HTTPMethod: "POST",
+		HTTPPath:   "/dimensions/{name}",
+	}
+
+	if input == nil {
+		input = &CreateDimensionInput{}
+	}
+
+	output = &CreateDimensionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateDimension API operation for AWS IoT.
+//
+// Create a dimension that you can use to limit the scope of a metric used in
+// a security profile for AWS IoT Device Defender. For example, using a TOPIC_FILTER
+// dimension, you can narrow down the scope of the metric only to MQTT topics
+// whose name match the pattern specified in the dimension.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation CreateDimension for usage and error information.
+//
+// Returned Error Types:
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * LimitExceededException
+//   A limit has been exceeded.
+//
+//   * ResourceAlreadyExistsException
+//   The resource already exists.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+func (c *IoT) CreateDimension(input *CreateDimensionInput) (*CreateDimensionOutput, error) {
+	req, out := c.CreateDimensionRequest(input)
+	return out, req.Send()
+}
+
+// CreateDimensionWithContext is the same as CreateDimension with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateDimension for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) CreateDimensionWithContext(ctx aws.Context, input *CreateDimensionInput, opts ...request.Option) (*CreateDimensionOutput, error) {
+	req, out := c.CreateDimensionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateDomainConfiguration = "CreateDomainConfiguration"
 
 // CreateDomainConfigurationRequest generates a "aws/request.Request" representing the
@@ -3180,7 +3271,7 @@ func (c *IoT) CreateThingRequest(input *CreateThingInput) (req *request.Request,
 // call is made with the same thing name but different configuration a ResourceAlreadyExistsException
 // is thrown.
 //
-// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/authorization.html)
+// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/iot-authorization.html)
 // for information about authorizing control plane actions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3277,7 +3368,7 @@ func (c *IoT) CreateThingGroupRequest(input *CreateThingGroupInput) (req *reques
 //
 // Create a thing group.
 //
-// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/authorization.html)
+// This is a control plane operation. See Authorization (https://docs.aws.amazon.com/iot/latest/developerguide/iot-authorization.html)
 // for information about authorizing control plane actions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -4060,6 +4151,89 @@ func (c *IoT) DeleteCertificate(input *DeleteCertificateInput) (*DeleteCertifica
 // for more information on using Contexts.
 func (c *IoT) DeleteCertificateWithContext(ctx aws.Context, input *DeleteCertificateInput, opts ...request.Option) (*DeleteCertificateOutput, error) {
 	req, out := c.DeleteCertificateRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteDimension = "DeleteDimension"
+
+// DeleteDimensionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteDimension operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteDimension for more information on using the DeleteDimension
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteDimensionRequest method.
+//    req, resp := client.DeleteDimensionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) DeleteDimensionRequest(input *DeleteDimensionInput) (req *request.Request, output *DeleteDimensionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteDimension,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/dimensions/{name}",
+	}
+
+	if input == nil {
+		input = &DeleteDimensionInput{}
+	}
+
+	output = &DeleteDimensionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteDimension API operation for AWS IoT.
+//
+// Removes the specified dimension from your AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation DeleteDimension for usage and error information.
+//
+// Returned Error Types:
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+func (c *IoT) DeleteDimension(input *DeleteDimensionInput) (*DeleteDimensionOutput, error) {
+	req, out := c.DeleteDimensionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteDimensionWithContext is the same as DeleteDimension with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteDimension for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) DeleteDimensionWithContext(ctx aws.Context, input *DeleteDimensionInput, opts ...request.Option) (*DeleteDimensionOutput, error) {
+	req, out := c.DeleteDimensionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6884,6 +7058,91 @@ func (c *IoT) DescribeDefaultAuthorizerWithContext(ctx aws.Context, input *Descr
 	return out, req.Send()
 }
 
+const opDescribeDimension = "DescribeDimension"
+
+// DescribeDimensionRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeDimension operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeDimension for more information on using the DescribeDimension
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeDimensionRequest method.
+//    req, resp := client.DescribeDimensionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) DescribeDimensionRequest(input *DescribeDimensionInput) (req *request.Request, output *DescribeDimensionOutput) {
+	op := &request.Operation{
+		Name:       opDescribeDimension,
+		HTTPMethod: "GET",
+		HTTPPath:   "/dimensions/{name}",
+	}
+
+	if input == nil {
+		input = &DescribeDimensionInput{}
+	}
+
+	output = &DescribeDimensionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeDimension API operation for AWS IoT.
+//
+// Provides details about a dimension that is defined in your AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation DescribeDimension for usage and error information.
+//
+// Returned Error Types:
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource does not exist.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+func (c *IoT) DescribeDimension(input *DescribeDimensionInput) (*DescribeDimensionOutput, error) {
+	req, out := c.DescribeDimensionRequest(input)
+	return out, req.Send()
+}
+
+// DescribeDimensionWithContext is the same as DescribeDimension with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeDimension for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) DescribeDimensionWithContext(ctx aws.Context, input *DescribeDimensionInput, opts ...request.Option) (*DescribeDimensionOutput, error) {
+	req, out := c.DescribeDimensionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeDomainConfiguration = "DescribeDomainConfiguration"
 
 // DescribeDomainConfigurationRequest generates a "aws/request.Request" representing the
@@ -6943,6 +7202,9 @@ func (c *IoT) DescribeDomainConfigurationRequest(input *DescribeDomainConfigurat
 //
 //   * ThrottlingException
 //   The rate exceeds the limit.
+//
+//   * InvalidRequestException
+//   The request is not valid.
 //
 //   * UnauthorizedException
 //   You are not authorized to perform this operation.
@@ -11156,6 +11418,88 @@ func (c *IoT) ListCertificatesByCAWithContext(ctx aws.Context, input *ListCertif
 	return out, req.Send()
 }
 
+const opListDimensions = "ListDimensions"
+
+// ListDimensionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListDimensions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListDimensions for more information on using the ListDimensions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListDimensionsRequest method.
+//    req, resp := client.ListDimensionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) ListDimensionsRequest(input *ListDimensionsInput) (req *request.Request, output *ListDimensionsOutput) {
+	op := &request.Operation{
+		Name:       opListDimensions,
+		HTTPMethod: "GET",
+		HTTPPath:   "/dimensions",
+	}
+
+	if input == nil {
+		input = &ListDimensionsInput{}
+	}
+
+	output = &ListDimensionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListDimensions API operation for AWS IoT.
+//
+// List the set of dimensions that are defined for your AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation ListDimensions for usage and error information.
+//
+// Returned Error Types:
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+func (c *IoT) ListDimensions(input *ListDimensionsInput) (*ListDimensionsOutput, error) {
+	req, out := c.ListDimensionsRequest(input)
+	return out, req.Send()
+}
+
+// ListDimensionsWithContext is the same as ListDimensions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListDimensions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListDimensionsWithContext(ctx aws.Context, input *ListDimensionsInput, opts ...request.Option) (*ListDimensionsOutput, error) {
+	req, out := c.ListDimensionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListDomainConfigurations = "ListDomainConfigurations"
 
 // ListDomainConfigurationsRequest generates a "aws/request.Request" representing the
@@ -12730,6 +13074,9 @@ func (c *IoT) ListSecurityProfilesRequest(input *ListSecurityProfilesInput) (req
 //
 //   * InternalFailureException
 //   An unexpected error has occurred.
+//
+//   * ResourceNotFoundException
+//   The specified resource does not exist.
 //
 func (c *IoT) ListSecurityProfiles(input *ListSecurityProfilesInput) (*ListSecurityProfilesOutput, error) {
 	req, out := c.ListSecurityProfilesRequest(input)
@@ -14509,6 +14856,103 @@ func (c *IoT) RegisterCertificateWithContext(ctx aws.Context, input *RegisterCer
 	return out, req.Send()
 }
 
+const opRegisterCertificateWithoutCA = "RegisterCertificateWithoutCA"
+
+// RegisterCertificateWithoutCARequest generates a "aws/request.Request" representing the
+// client's request for the RegisterCertificateWithoutCA operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RegisterCertificateWithoutCA for more information on using the RegisterCertificateWithoutCA
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RegisterCertificateWithoutCARequest method.
+//    req, resp := client.RegisterCertificateWithoutCARequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) RegisterCertificateWithoutCARequest(input *RegisterCertificateWithoutCAInput) (req *request.Request, output *RegisterCertificateWithoutCAOutput) {
+	op := &request.Operation{
+		Name:       opRegisterCertificateWithoutCA,
+		HTTPMethod: "POST",
+		HTTPPath:   "/certificate/register-no-ca",
+	}
+
+	if input == nil {
+		input = &RegisterCertificateWithoutCAInput{}
+	}
+
+	output = &RegisterCertificateWithoutCAOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RegisterCertificateWithoutCA API operation for AWS IoT.
+//
+// Register a certificate that does not have a certificate authority (CA).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation RegisterCertificateWithoutCA for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceAlreadyExistsException
+//   The resource already exists.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * CertificateStateException
+//   The certificate operation is not allowed.
+//
+//   * CertificateValidationException
+//   The certificate is invalid.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * UnauthorizedException
+//   You are not authorized to perform this operation.
+//
+//   * ServiceUnavailableException
+//   The service is temporarily unavailable.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+func (c *IoT) RegisterCertificateWithoutCA(input *RegisterCertificateWithoutCAInput) (*RegisterCertificateWithoutCAOutput, error) {
+	req, out := c.RegisterCertificateWithoutCARequest(input)
+	return out, req.Send()
+}
+
+// RegisterCertificateWithoutCAWithContext is the same as RegisterCertificateWithoutCA with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RegisterCertificateWithoutCA for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) RegisterCertificateWithoutCAWithContext(ctx aws.Context, input *RegisterCertificateWithoutCAInput, opts ...request.Option) (*RegisterCertificateWithoutCAOutput, error) {
+	req, out := c.RegisterCertificateWithoutCARequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRegisterThing = "RegisterThing"
 
 // RegisterThingRequest generates a "aws/request.Request" representing the
@@ -14842,6 +15286,10 @@ func (c *IoT) RemoveThingFromThingGroupRequest(input *RemoveThingFromThingGroupI
 // RemoveThingFromThingGroup API operation for AWS IoT.
 //
 // Remove the specified thing from the specified group.
+//
+// You must specify either a thingGroupArn or a thingGroupName to identify the
+// thing group and either a thingArn or a thingName to identify the thing to
+// remove from the thing group.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -16806,6 +17254,92 @@ func (c *IoT) UpdateCertificateWithContext(ctx aws.Context, input *UpdateCertifi
 	return out, req.Send()
 }
 
+const opUpdateDimension = "UpdateDimension"
+
+// UpdateDimensionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateDimension operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateDimension for more information on using the UpdateDimension
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateDimensionRequest method.
+//    req, resp := client.UpdateDimensionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) UpdateDimensionRequest(input *UpdateDimensionInput) (req *request.Request, output *UpdateDimensionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateDimension,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/dimensions/{name}",
+	}
+
+	if input == nil {
+		input = &UpdateDimensionInput{}
+	}
+
+	output = &UpdateDimensionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateDimension API operation for AWS IoT.
+//
+// Updates the definition for a dimension. You cannot change the type of a dimension
+// after it is created (you can delete it and re-create it).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation UpdateDimension for usage and error information.
+//
+// Returned Error Types:
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource does not exist.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+func (c *IoT) UpdateDimension(input *UpdateDimensionInput) (*UpdateDimensionOutput, error) {
+	req, out := c.UpdateDimensionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateDimensionWithContext is the same as UpdateDimension with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateDimension for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) UpdateDimensionWithContext(ctx aws.Context, input *UpdateDimensionInput, opts ...request.Option) (*UpdateDimensionOutput, error) {
+	req, out := c.UpdateDimensionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateDomainConfiguration = "UpdateDomainConfiguration"
 
 // UpdateDomainConfigurationRequest generates a "aws/request.Request" representing the
@@ -18229,11 +18763,11 @@ func (c *IoT) ValidateSecurityProfileBehaviorsWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
-// Details of abort criteria to abort the job.
+// The criteria that determine when and how a job abort takes place.
 type AbortConfig struct {
 	_ struct{} `type:"structure"`
 
-	// The list of abort criteria to define rules to abort the job.
+	// The list of criteria that determine when and how to abort the job.
 	//
 	// CriteriaList is a required field
 	CriteriaList []*AbortCriteria `locationName:"criteriaList" min:"1" type:"list" required:"true"`
@@ -18281,27 +18815,28 @@ func (s *AbortConfig) SetCriteriaList(v []*AbortCriteria) *AbortConfig {
 	return s
 }
 
-// Details of abort criteria to define rules to abort the job.
+// The criteria that determine when and how a job abort takes place.
 type AbortCriteria struct {
 	_ struct{} `type:"structure"`
 
-	// The type of abort action to initiate a job abort.
+	// The type of job action to take to initiate the job abort.
 	//
 	// Action is a required field
 	Action *string `locationName:"action" type:"string" required:"true" enum:"AbortAction"`
 
-	// The type of job execution failure to define a rule to initiate a job abort.
+	// The type of job execution failures that can initiate a job abort.
 	//
 	// FailureType is a required field
 	FailureType *string `locationName:"failureType" type:"string" required:"true" enum:"JobExecutionFailureType"`
 
-	// Minimum number of executed things before evaluating an abort rule.
+	// The minimum number of things which must receive job execution notifications
+	// before the job can be aborted.
 	//
 	// MinNumberOfExecutedThings is a required field
 	MinNumberOfExecutedThings *int64 `locationName:"minNumberOfExecutedThings" min:"1" type:"integer" required:"true"`
 
-	// The threshold as a percentage of the total number of executed things that
-	// will initiate a job abort.
+	// The minimum percentage of job execution failures that must occur to initiate
+	// the job abort.
 	//
 	// AWS IoT supports up to two digits after the decimal (for example, 10.9 and
 	// 10.99, but not 10.999).
@@ -18442,6 +18977,9 @@ type Action struct {
 	// Change the state of a CloudWatch alarm.
 	CloudwatchAlarm *CloudwatchAlarmAction `locationName:"cloudwatchAlarm" type:"structure"`
 
+	// Send data to CloudWatch Logs.
+	CloudwatchLogs *CloudwatchLogsAction `locationName:"cloudwatchLogs" type:"structure"`
+
 	// Capture a CloudWatch metric.
 	CloudwatchMetric *CloudwatchMetricAction `locationName:"cloudwatchMetric" type:"structure"`
 
@@ -18513,6 +19051,11 @@ func (s *Action) Validate() error {
 	if s.CloudwatchAlarm != nil {
 		if err := s.CloudwatchAlarm.Validate(); err != nil {
 			invalidParams.AddNested("CloudwatchAlarm", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CloudwatchLogs != nil {
+		if err := s.CloudwatchLogs.Validate(); err != nil {
+			invalidParams.AddNested("CloudwatchLogs", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.CloudwatchMetric != nil {
@@ -18605,6 +19148,12 @@ func (s *Action) Validate() error {
 // SetCloudwatchAlarm sets the CloudwatchAlarm field's value.
 func (s *Action) SetCloudwatchAlarm(v *CloudwatchAlarmAction) *Action {
 	s.CloudwatchAlarm = v
+	return s
+}
+
+// SetCloudwatchLogs sets the CloudwatchLogs field's value.
+func (s *Action) SetCloudwatchLogs(v *CloudwatchLogsAction) *Action {
+	s.CloudwatchLogs = v
 	return s
 }
 
@@ -19403,7 +19952,7 @@ type AttachPolicyInput struct {
 	// PolicyName is a required field
 	PolicyName *string `location:"uri" locationName:"policyName" min:"1" type:"string" required:"true"`
 
-	// The identity (https://docs.aws.amazon.com/iot/latest/developerguide/iot-security-identity.html)
+	// The identity (https://docs.aws.amazon.com/iot/latest/developerguide/security-iam.html)
 	// to which the policy is attached.
 	//
 	// Target is a required field
@@ -20231,7 +20780,9 @@ type AuthInfo struct {
 
 	// The resources for which the principal is being authorized to perform the
 	// specified action.
-	Resources []*string `locationName:"resources" type:"list"`
+	//
+	// Resources is a required field
+	Resources []*string `locationName:"resources" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -20242,6 +20793,19 @@ func (s AuthInfo) String() string {
 // GoString returns the string representation
 func (s AuthInfo) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AuthInfo) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AuthInfo"}
+	if s.Resources == nil {
+		invalidParams.Add(request.NewErrParamRequired("Resources"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetActionType sets the ActionType field's value.
@@ -20496,9 +21060,154 @@ func (s *AuthorizerSummary) SetAuthorizerName(v string) *AuthorizerSummary {
 	return s
 }
 
+// The criteria that determine when and how a job abort takes place.
+type AwsJobAbortConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The list of criteria that determine when and how to abort the job.
+	//
+	// AbortCriteriaList is a required field
+	AbortCriteriaList []*AwsJobAbortCriteria `locationName:"abortCriteriaList" min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s AwsJobAbortConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsJobAbortConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AwsJobAbortConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AwsJobAbortConfig"}
+	if s.AbortCriteriaList == nil {
+		invalidParams.Add(request.NewErrParamRequired("AbortCriteriaList"))
+	}
+	if s.AbortCriteriaList != nil && len(s.AbortCriteriaList) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AbortCriteriaList", 1))
+	}
+	if s.AbortCriteriaList != nil {
+		for i, v := range s.AbortCriteriaList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AbortCriteriaList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAbortCriteriaList sets the AbortCriteriaList field's value.
+func (s *AwsJobAbortConfig) SetAbortCriteriaList(v []*AwsJobAbortCriteria) *AwsJobAbortConfig {
+	s.AbortCriteriaList = v
+	return s
+}
+
+// The criteria that determine when and how a job abort takes place.
+type AwsJobAbortCriteria struct {
+	_ struct{} `type:"structure"`
+
+	// The type of job action to take to initiate the job abort.
+	//
+	// Action is a required field
+	Action *string `locationName:"action" type:"string" required:"true" enum:"AwsJobAbortCriteriaAbortAction"`
+
+	// The type of job execution failures that can initiate a job abort.
+	//
+	// FailureType is a required field
+	FailureType *string `locationName:"failureType" type:"string" required:"true" enum:"AwsJobAbortCriteriaFailureType"`
+
+	// The minimum number of things which must receive job execution notifications
+	// before the job can be aborted.
+	//
+	// MinNumberOfExecutedThings is a required field
+	MinNumberOfExecutedThings *int64 `locationName:"minNumberOfExecutedThings" min:"1" type:"integer" required:"true"`
+
+	// The minimum percentage of job execution failures that must occur to initiate
+	// the job abort.
+	//
+	// AWS IoT supports up to two digits after the decimal (for example, 10.9 and
+	// 10.99, but not 10.999).
+	//
+	// ThresholdPercentage is a required field
+	ThresholdPercentage *float64 `locationName:"thresholdPercentage" type:"double" required:"true"`
+}
+
+// String returns the string representation
+func (s AwsJobAbortCriteria) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsJobAbortCriteria) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AwsJobAbortCriteria) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AwsJobAbortCriteria"}
+	if s.Action == nil {
+		invalidParams.Add(request.NewErrParamRequired("Action"))
+	}
+	if s.FailureType == nil {
+		invalidParams.Add(request.NewErrParamRequired("FailureType"))
+	}
+	if s.MinNumberOfExecutedThings == nil {
+		invalidParams.Add(request.NewErrParamRequired("MinNumberOfExecutedThings"))
+	}
+	if s.MinNumberOfExecutedThings != nil && *s.MinNumberOfExecutedThings < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MinNumberOfExecutedThings", 1))
+	}
+	if s.ThresholdPercentage == nil {
+		invalidParams.Add(request.NewErrParamRequired("ThresholdPercentage"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAction sets the Action field's value.
+func (s *AwsJobAbortCriteria) SetAction(v string) *AwsJobAbortCriteria {
+	s.Action = &v
+	return s
+}
+
+// SetFailureType sets the FailureType field's value.
+func (s *AwsJobAbortCriteria) SetFailureType(v string) *AwsJobAbortCriteria {
+	s.FailureType = &v
+	return s
+}
+
+// SetMinNumberOfExecutedThings sets the MinNumberOfExecutedThings field's value.
+func (s *AwsJobAbortCriteria) SetMinNumberOfExecutedThings(v int64) *AwsJobAbortCriteria {
+	s.MinNumberOfExecutedThings = &v
+	return s
+}
+
+// SetThresholdPercentage sets the ThresholdPercentage field's value.
+func (s *AwsJobAbortCriteria) SetThresholdPercentage(v float64) *AwsJobAbortCriteria {
+	s.ThresholdPercentage = &v
+	return s
+}
+
 // Configuration for the rollout of OTA updates.
 type AwsJobExecutionsRolloutConfig struct {
 	_ struct{} `type:"structure"`
+
+	// The rate of increase for a job rollout. This parameter allows you to define
+	// an exponential rate increase for a job rollout.
+	ExponentialRate *AwsJobExponentialRolloutRate `locationName:"exponentialRate" type:"structure"`
 
 	// The maximum number of OTA update job executions started per minute.
 	MaximumPerMinute *int64 `locationName:"maximumPerMinute" min:"1" type:"integer"`
@@ -20520,6 +21229,11 @@ func (s *AwsJobExecutionsRolloutConfig) Validate() error {
 	if s.MaximumPerMinute != nil && *s.MaximumPerMinute < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaximumPerMinute", 1))
 	}
+	if s.ExponentialRate != nil {
+		if err := s.ExponentialRate.Validate(); err != nil {
+			invalidParams.AddNested("ExponentialRate", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -20527,9 +21241,97 @@ func (s *AwsJobExecutionsRolloutConfig) Validate() error {
 	return nil
 }
 
+// SetExponentialRate sets the ExponentialRate field's value.
+func (s *AwsJobExecutionsRolloutConfig) SetExponentialRate(v *AwsJobExponentialRolloutRate) *AwsJobExecutionsRolloutConfig {
+	s.ExponentialRate = v
+	return s
+}
+
 // SetMaximumPerMinute sets the MaximumPerMinute field's value.
 func (s *AwsJobExecutionsRolloutConfig) SetMaximumPerMinute(v int64) *AwsJobExecutionsRolloutConfig {
 	s.MaximumPerMinute = &v
+	return s
+}
+
+// The rate of increase for a job rollout. This parameter allows you to define
+// an exponential rate increase for a job rollout.
+type AwsJobExponentialRolloutRate struct {
+	_ struct{} `type:"structure"`
+
+	// The minimum number of things that will be notified of a pending job, per
+	// minute, at the start of the job rollout. This is the initial rate of the
+	// rollout.
+	//
+	// BaseRatePerMinute is a required field
+	BaseRatePerMinute *int64 `locationName:"baseRatePerMinute" min:"1" type:"integer" required:"true"`
+
+	// The rate of increase for a job rollout. The number of things notified is
+	// multiplied by this factor.
+	//
+	// IncrementFactor is a required field
+	IncrementFactor *float64 `locationName:"incrementFactor" type:"double" required:"true"`
+
+	// The criteria to initiate the increase in rate of rollout for a job.
+	//
+	// AWS IoT supports up to one digit after the decimal (for example, 1.5, but
+	// not 1.55).
+	//
+	// RateIncreaseCriteria is a required field
+	RateIncreaseCriteria *AwsJobRateIncreaseCriteria `locationName:"rateIncreaseCriteria" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s AwsJobExponentialRolloutRate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsJobExponentialRolloutRate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AwsJobExponentialRolloutRate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AwsJobExponentialRolloutRate"}
+	if s.BaseRatePerMinute == nil {
+		invalidParams.Add(request.NewErrParamRequired("BaseRatePerMinute"))
+	}
+	if s.BaseRatePerMinute != nil && *s.BaseRatePerMinute < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("BaseRatePerMinute", 1))
+	}
+	if s.IncrementFactor == nil {
+		invalidParams.Add(request.NewErrParamRequired("IncrementFactor"))
+	}
+	if s.RateIncreaseCriteria == nil {
+		invalidParams.Add(request.NewErrParamRequired("RateIncreaseCriteria"))
+	}
+	if s.RateIncreaseCriteria != nil {
+		if err := s.RateIncreaseCriteria.Validate(); err != nil {
+			invalidParams.AddNested("RateIncreaseCriteria", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBaseRatePerMinute sets the BaseRatePerMinute field's value.
+func (s *AwsJobExponentialRolloutRate) SetBaseRatePerMinute(v int64) *AwsJobExponentialRolloutRate {
+	s.BaseRatePerMinute = &v
+	return s
+}
+
+// SetIncrementFactor sets the IncrementFactor field's value.
+func (s *AwsJobExponentialRolloutRate) SetIncrementFactor(v float64) *AwsJobExponentialRolloutRate {
+	s.IncrementFactor = &v
+	return s
+}
+
+// SetRateIncreaseCriteria sets the RateIncreaseCriteria field's value.
+func (s *AwsJobExponentialRolloutRate) SetRateIncreaseCriteria(v *AwsJobRateIncreaseCriteria) *AwsJobExponentialRolloutRate {
+	s.RateIncreaseCriteria = v
 	return s
 }
 
@@ -20560,6 +21362,89 @@ func (s *AwsJobPresignedUrlConfig) SetExpiresInSec(v int64) *AwsJobPresignedUrlC
 	return s
 }
 
+// The criteria to initiate the increase in rate of rollout for a job.
+type AwsJobRateIncreaseCriteria struct {
+	_ struct{} `type:"structure"`
+
+	// When this number of things have been notified, it will initiate an increase
+	// in the rollout rate.
+	NumberOfNotifiedThings *int64 `locationName:"numberOfNotifiedThings" min:"1" type:"integer"`
+
+	// When this number of things have succeeded in their job execution, it will
+	// initiate an increase in the rollout rate.
+	NumberOfSucceededThings *int64 `locationName:"numberOfSucceededThings" min:"1" type:"integer"`
+}
+
+// String returns the string representation
+func (s AwsJobRateIncreaseCriteria) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsJobRateIncreaseCriteria) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AwsJobRateIncreaseCriteria) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AwsJobRateIncreaseCriteria"}
+	if s.NumberOfNotifiedThings != nil && *s.NumberOfNotifiedThings < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("NumberOfNotifiedThings", 1))
+	}
+	if s.NumberOfSucceededThings != nil && *s.NumberOfSucceededThings < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("NumberOfSucceededThings", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetNumberOfNotifiedThings sets the NumberOfNotifiedThings field's value.
+func (s *AwsJobRateIncreaseCriteria) SetNumberOfNotifiedThings(v int64) *AwsJobRateIncreaseCriteria {
+	s.NumberOfNotifiedThings = &v
+	return s
+}
+
+// SetNumberOfSucceededThings sets the NumberOfSucceededThings field's value.
+func (s *AwsJobRateIncreaseCriteria) SetNumberOfSucceededThings(v int64) *AwsJobRateIncreaseCriteria {
+	s.NumberOfSucceededThings = &v
+	return s
+}
+
+// Specifies the amount of time each device has to finish its execution of the
+// job. A timer is started when the job execution status is set to IN_PROGRESS.
+// If the job execution status is not set to another terminal state before the
+// timer expires, it will be automatically set to TIMED_OUT.
+type AwsJobTimeoutConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the amount of time, in minutes, this device has to finish execution
+	// of this job. The timeout interval can be anywhere between 1 minute and 7
+	// days (1 to 10080 minutes). The in progress timer can't be updated and will
+	// apply to all job executions for the job. Whenever a job execution remains
+	// in the IN_PROGRESS status for longer than this interval, the job execution
+	// will fail and switch to the terminal TIMED_OUT status.
+	InProgressTimeoutInMinutes *int64 `locationName:"inProgressTimeoutInMinutes" type:"long"`
+}
+
+// String returns the string representation
+func (s AwsJobTimeoutConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsJobTimeoutConfig) GoString() string {
+	return s.String()
+}
+
+// SetInProgressTimeoutInMinutes sets the InProgressTimeoutInMinutes field's value.
+func (s *AwsJobTimeoutConfig) SetInProgressTimeoutInMinutes(v int64) *AwsJobTimeoutConfig {
+	s.InProgressTimeoutInMinutes = &v
+	return s
+}
+
 // A Device Defender security profile behavior.
 type Behavior struct {
 	_ struct{} `type:"structure"`
@@ -20570,6 +21455,11 @@ type Behavior struct {
 
 	// What is measured by the behavior.
 	Metric *string `locationName:"metric" type:"string"`
+
+	// The dimension for a metric in your behavior. For example, using a TOPIC_FILTER
+	// dimension, you can narrow down the scope of the metric only to MQTT topics
+	// whose name match the pattern specified in the dimension.
+	MetricDimension *MetricDimension `locationName:"metricDimension" type:"structure"`
 
 	// The name you have given to the behavior.
 	//
@@ -20601,6 +21491,11 @@ func (s *Behavior) Validate() error {
 			invalidParams.AddNested("Criteria", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.MetricDimension != nil {
+		if err := s.MetricDimension.Validate(); err != nil {
+			invalidParams.AddNested("MetricDimension", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -20617,6 +21512,12 @@ func (s *Behavior) SetCriteria(v *BehaviorCriteria) *Behavior {
 // SetMetric sets the Metric field's value.
 func (s *Behavior) SetMetric(v string) *Behavior {
 	s.Metric = &v
+	return s
+}
+
+// SetMetricDimension sets the MetricDimension field's value.
+func (s *Behavior) SetMetricDimension(v *MetricDimension) *Behavior {
+	s.MetricDimension = v
 	return s
 }
 
@@ -21347,6 +22248,9 @@ type Certificate struct {
 	// the certificate ID.)
 	CertificateId *string `locationName:"certificateId" min:"64" type:"string"`
 
+	// The mode of the certificate.
+	CertificateMode *string `locationName:"certificateMode" type:"string" enum:"CertificateMode"`
+
 	// The date and time the certificate was created.
 	CreationDate *time.Time `locationName:"creationDate" type:"timestamp"`
 
@@ -21378,6 +22282,12 @@ func (s *Certificate) SetCertificateId(v string) *Certificate {
 	return s
 }
 
+// SetCertificateMode sets the CertificateMode field's value.
+func (s *Certificate) SetCertificateMode(v string) *Certificate {
+	s.CertificateMode = &v
+	return s
+}
+
 // SetCreationDate sets the CreationDate field's value.
 func (s *Certificate) SetCreationDate(v time.Time) *Certificate {
 	s.CreationDate = &v
@@ -21394,8 +22304,8 @@ func (s *Certificate) SetStatus(v string) *Certificate {
 // are attempting to register. This is happens when you have registered more
 // than one CA certificate that has the same subject field and public key.
 type CertificateConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -21413,17 +22323,17 @@ func (s CertificateConflictException) GoString() string {
 
 func newErrorCertificateConflictException(v protocol.ResponseMetadata) error {
 	return &CertificateConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateConflictException) Code() string {
+func (s *CertificateConflictException) Code() string {
 	return "CertificateConflictException"
 }
 
 // Message returns the exception's message.
-func (s CertificateConflictException) Message() string {
+func (s *CertificateConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21431,22 +22341,22 @@ func (s CertificateConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateConflictException) OrigErr() error {
+func (s *CertificateConflictException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateConflictException) Error() string {
+func (s *CertificateConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a certificate.
@@ -21461,6 +22371,9 @@ type CertificateDescription struct {
 
 	// The ID of the certificate.
 	CertificateId *string `locationName:"certificateId" min:"64" type:"string"`
+
+	// The mode of the certificate.
+	CertificateMode *string `locationName:"certificateMode" type:"string" enum:"CertificateMode"`
 
 	// The certificate data, in PEM format.
 	CertificatePem *string `locationName:"certificatePem" min:"1" type:"string"`
@@ -21518,6 +22431,12 @@ func (s *CertificateDescription) SetCertificateArn(v string) *CertificateDescrip
 // SetCertificateId sets the CertificateId field's value.
 func (s *CertificateDescription) SetCertificateId(v string) *CertificateDescription {
 	s.CertificateId = &v
+	return s
+}
+
+// SetCertificateMode sets the CertificateMode field's value.
+func (s *CertificateDescription) SetCertificateMode(v string) *CertificateDescription {
+	s.CertificateMode = &v
 	return s
 }
 
@@ -21583,8 +22502,8 @@ func (s *CertificateDescription) SetValidity(v *CertificateValidity) *Certificat
 
 // The certificate operation is not allowed.
 type CertificateStateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -21602,17 +22521,17 @@ func (s CertificateStateException) GoString() string {
 
 func newErrorCertificateStateException(v protocol.ResponseMetadata) error {
 	return &CertificateStateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateStateException) Code() string {
+func (s *CertificateStateException) Code() string {
 	return "CertificateStateException"
 }
 
 // Message returns the exception's message.
-func (s CertificateStateException) Message() string {
+func (s *CertificateStateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21620,28 +22539,28 @@ func (s CertificateStateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateStateException) OrigErr() error {
+func (s *CertificateStateException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateStateException) Error() string {
+func (s *CertificateStateException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateStateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateStateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateStateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateStateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The certificate is invalid.
 type CertificateValidationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// Additional information about the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -21659,17 +22578,17 @@ func (s CertificateValidationException) GoString() string {
 
 func newErrorCertificateValidationException(v protocol.ResponseMetadata) error {
 	return &CertificateValidationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CertificateValidationException) Code() string {
+func (s *CertificateValidationException) Code() string {
 	return "CertificateValidationException"
 }
 
 // Message returns the exception's message.
-func (s CertificateValidationException) Message() string {
+func (s *CertificateValidationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -21677,22 +22596,22 @@ func (s CertificateValidationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CertificateValidationException) OrigErr() error {
+func (s *CertificateValidationException) OrigErr() error {
 	return nil
 }
 
-func (s CertificateValidationException) Error() string {
+func (s *CertificateValidationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CertificateValidationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CertificateValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CertificateValidationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CertificateValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // When the certificate is valid.
@@ -21834,6 +22753,59 @@ func (s *CloudwatchAlarmAction) SetStateReason(v string) *CloudwatchAlarmAction 
 // SetStateValue sets the StateValue field's value.
 func (s *CloudwatchAlarmAction) SetStateValue(v string) *CloudwatchAlarmAction {
 	s.StateValue = &v
+	return s
+}
+
+// Describes an action that sends data to CloudWatch Logs.
+type CloudwatchLogsAction struct {
+	_ struct{} `type:"structure"`
+
+	// The CloudWatch log group to which the action sends data.
+	//
+	// LogGroupName is a required field
+	LogGroupName *string `locationName:"logGroupName" type:"string" required:"true"`
+
+	// The IAM role that allows access to the CloudWatch log.
+	//
+	// RoleArn is a required field
+	RoleArn *string `locationName:"roleArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CloudwatchLogsAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudwatchLogsAction) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CloudwatchLogsAction) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CloudwatchLogsAction"}
+	if s.LogGroupName == nil {
+		invalidParams.Add(request.NewErrParamRequired("LogGroupName"))
+	}
+	if s.RoleArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("RoleArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLogGroupName sets the LogGroupName field's value.
+func (s *CloudwatchLogsAction) SetLogGroupName(v string) *CloudwatchLogsAction {
+	s.LogGroupName = &v
+	return s
+}
+
+// SetRoleArn sets the RoleArn field's value.
+func (s *CloudwatchLogsAction) SetRoleArn(v string) *CloudwatchLogsAction {
+	s.RoleArn = &v
 	return s
 }
 
@@ -22141,8 +23113,8 @@ func (s ConfirmTopicRuleDestinationOutput) GoString() string {
 // A conflicting resource update exception. This exception is thrown when two
 // pending updates cause a conflict.
 type ConflictingResourceUpdateException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -22160,17 +23132,17 @@ func (s ConflictingResourceUpdateException) GoString() string {
 
 func newErrorConflictingResourceUpdateException(v protocol.ResponseMetadata) error {
 	return &ConflictingResourceUpdateException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ConflictingResourceUpdateException) Code() string {
+func (s *ConflictingResourceUpdateException) Code() string {
 	return "ConflictingResourceUpdateException"
 }
 
 // Message returns the exception's message.
-func (s ConflictingResourceUpdateException) Message() string {
+func (s *ConflictingResourceUpdateException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -22178,22 +23150,22 @@ func (s ConflictingResourceUpdateException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ConflictingResourceUpdateException) OrigErr() error {
+func (s *ConflictingResourceUpdateException) OrigErr() error {
 	return nil
 }
 
-func (s ConflictingResourceUpdateException) Error() string {
+func (s *ConflictingResourceUpdateException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ConflictingResourceUpdateException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ConflictingResourceUpdateException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ConflictingResourceUpdateException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ConflictingResourceUpdateException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CreateAuthorizerInput struct {
@@ -22215,6 +23187,15 @@ type CreateAuthorizerInput struct {
 
 	// The status of the create authorizer request.
 	Status *string `locationName:"status" type:"string" enum:"AuthorizerStatus"`
+
+	// Metadata which can be used to manage the custom authorizer.
+	//
+	// For URI Request parameters use format: ...key1=value1&key2=value2...
+	//
+	// For the CLI command-line parameter use format: &&tags "key1=value1&key2=value2..."
+	//
+	// For the cli-input-json file use format: "tags": "key1=value1&key2=value2..."
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// The name of the token key used to extract the token from the HTTP headers.
 	TokenKeyName *string `locationName:"tokenKeyName" min:"1" type:"string"`
@@ -22249,6 +23230,16 @@ func (s *CreateAuthorizerInput) Validate() error {
 	if s.TokenKeyName != nil && len(*s.TokenKeyName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TokenKeyName", 1))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -22277,6 +23268,12 @@ func (s *CreateAuthorizerInput) SetSigningDisabled(v bool) *CreateAuthorizerInpu
 // SetStatus sets the Status field's value.
 func (s *CreateAuthorizerInput) SetStatus(v string) *CreateAuthorizerInput {
 	s.Status = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateAuthorizerInput) SetTags(v []*Tag) *CreateAuthorizerInput {
+	s.Tags = v
 	return s
 }
 
@@ -22357,6 +23354,16 @@ func (s *CreateBillingGroupInput) Validate() error {
 	}
 	if s.BillingGroupName != nil && len(*s.BillingGroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("BillingGroupName", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -22519,6 +23526,147 @@ func (s *CreateCertificateFromCsrOutput) SetCertificatePem(v string) *CreateCert
 	return s
 }
 
+type CreateDimensionInput struct {
+	_ struct{} `type:"structure"`
+
+	// Each dimension must have a unique client request token. If you try to create
+	// a new dimension with the same token as a dimension that already exists, an
+	// exception occurs. If you omit this value, AWS SDKs will automatically generate
+	// a unique client request.
+	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" idempotencyToken:"true"`
+
+	// A unique identifier for the dimension. Choose something that describes the
+	// type and value to make it easy to remember what it does.
+	//
+	// Name is a required field
+	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// Specifies the value or list of values for the dimension. For TOPIC_FILTER
+	// dimensions, this is a pattern used to match the MQTT topic (for example,
+	// "admin/#").
+	//
+	// StringValues is a required field
+	StringValues []*string `locationName:"stringValues" min:"1" type:"list" required:"true"`
+
+	// Metadata that can be used to manage the dimension.
+	Tags []*Tag `locationName:"tags" type:"list"`
+
+	// Specifies the type of dimension. Supported types: TOPIC_FILTER.
+	//
+	// Type is a required field
+	Type *string `locationName:"type" type:"string" required:"true" enum:"DimensionType"`
+}
+
+// String returns the string representation
+func (s CreateDimensionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDimensionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateDimensionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateDimensionInput"}
+	if s.ClientRequestToken != nil && len(*s.ClientRequestToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ClientRequestToken", 1))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.StringValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("StringValues"))
+	}
+	if s.StringValues != nil && len(s.StringValues) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("StringValues", 1))
+	}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientRequestToken sets the ClientRequestToken field's value.
+func (s *CreateDimensionInput) SetClientRequestToken(v string) *CreateDimensionInput {
+	s.ClientRequestToken = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateDimensionInput) SetName(v string) *CreateDimensionInput {
+	s.Name = &v
+	return s
+}
+
+// SetStringValues sets the StringValues field's value.
+func (s *CreateDimensionInput) SetStringValues(v []*string) *CreateDimensionInput {
+	s.StringValues = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDimensionInput) SetTags(v []*Tag) *CreateDimensionInput {
+	s.Tags = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *CreateDimensionInput) SetType(v string) *CreateDimensionInput {
+	s.Type = &v
+	return s
+}
+
+type CreateDimensionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN (Amazon resource name) of the created dimension.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// A unique identifier for the dimension.
+	Name *string `locationName:"name" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateDimensionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDimensionOutput) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *CreateDimensionOutput) SetArn(v string) *CreateDimensionOutput {
+	s.Arn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateDimensionOutput) SetName(v string) *CreateDimensionOutput {
+	s.Name = &v
+	return s
+}
+
 type CreateDomainConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -22539,7 +23687,18 @@ type CreateDomainConfigurationInput struct {
 	ServerCertificateArns []*string `locationName:"serverCertificateArns" type:"list"`
 
 	// The type of service delivered by the endpoint.
+	//
+	// AWS IoT Core currently supports only the DATA service type.
 	ServiceType *string `locationName:"serviceType" type:"string" enum:"ServiceType"`
+
+	// Metadata which can be used to manage the domain configuration.
+	//
+	// For URI Request parameters use format: ...key1=value1&key2=value2...
+	//
+	// For the CLI command-line parameter use format: &&tags "key1=value1&key2=value2..."
+	//
+	// For the cli-input-json file use format: "tags": "key1=value1&key2=value2..."
+	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// The certificate used to validate the server certificate and prove domain
 	// name ownership. This certificate must be signed by a public certificate authority.
@@ -22577,6 +23736,16 @@ func (s *CreateDomainConfigurationInput) Validate() error {
 			invalidParams.AddNested("AuthorizerConfig", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -22611,6 +23780,12 @@ func (s *CreateDomainConfigurationInput) SetServerCertificateArns(v []*string) *
 // SetServiceType sets the ServiceType field's value.
 func (s *CreateDomainConfigurationInput) SetServiceType(v string) *CreateDomainConfigurationInput {
 	s.ServiceType = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDomainConfigurationInput) SetTags(v []*Tag) *CreateDomainConfigurationInput {
+	s.Tags = v
 	return s
 }
 
@@ -22713,6 +23888,16 @@ func (s *CreateDynamicThingGroupInput) Validate() error {
 	}
 	if s.ThingGroupName != nil && len(*s.ThingGroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ThingGroupName", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -22926,6 +24111,16 @@ func (s *CreateJobInput) Validate() error {
 	if s.PresignedUrlConfig != nil {
 		if err := s.PresignedUrlConfig.Validate(); err != nil {
 			invalidParams.AddNested("PresignedUrlConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
 		}
 	}
 
@@ -23174,6 +24369,16 @@ func (s *CreateMitigationActionInput) Validate() error {
 			invalidParams.AddNested("ActionParams", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -23243,11 +24448,20 @@ type CreateOTAUpdateInput struct {
 	// A list of additional OTA update parameters which are name-value pairs.
 	AdditionalParameters map[string]*string `locationName:"additionalParameters" type:"map"`
 
+	// The criteria that determine when and how a job abort takes place.
+	AwsJobAbortConfig *AwsJobAbortConfig `locationName:"awsJobAbortConfig" type:"structure"`
+
 	// Configuration for the rollout of OTA updates.
 	AwsJobExecutionsRolloutConfig *AwsJobExecutionsRolloutConfig `locationName:"awsJobExecutionsRolloutConfig" type:"structure"`
 
 	// Configuration information for pre-signed URLs.
 	AwsJobPresignedUrlConfig *AwsJobPresignedUrlConfig `locationName:"awsJobPresignedUrlConfig" type:"structure"`
+
+	// Specifies the amount of time each device has to finish its execution of the
+	// job. A timer is started when the job execution status is set to IN_PROGRESS.
+	// If the job execution status is not set to another terminal state before the
+	// timer expires, it will be automatically set to TIMED_OUT.
+	AwsJobTimeoutConfig *AwsJobTimeoutConfig `locationName:"awsJobTimeoutConfig" type:"structure"`
 
 	// The description of the OTA update.
 	Description *string `locationName:"description" type:"string"`
@@ -23267,7 +24481,8 @@ type CreateOTAUpdateInput struct {
 	// can choose the protocol.
 	Protocols []*string `locationName:"protocols" min:"1" type:"list"`
 
-	// The IAM role that allows access to the AWS IoT Jobs service.
+	// The IAM role that grants AWS IoT access to the Amazon S3, AWS IoT jobs and
+	// AWS Code Signing resources to create an OTA update job.
 	//
 	// RoleArn is a required field
 	RoleArn *string `locationName:"roleArn" min:"20" type:"string" required:"true"`
@@ -23283,7 +24498,7 @@ type CreateOTAUpdateInput struct {
 	// by all things originally in the group. Valid values: CONTINUOUS | SNAPSHOT.
 	TargetSelection *string `locationName:"targetSelection" type:"string" enum:"TargetSelection"`
 
-	// The targeted devices to receive OTA updates.
+	// The devices targeted to receive OTA updates.
 	//
 	// Targets is a required field
 	Targets []*string `locationName:"targets" min:"1" type:"list" required:"true"`
@@ -23329,6 +24544,11 @@ func (s *CreateOTAUpdateInput) Validate() error {
 	if s.Targets != nil && len(s.Targets) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Targets", 1))
 	}
+	if s.AwsJobAbortConfig != nil {
+		if err := s.AwsJobAbortConfig.Validate(); err != nil {
+			invalidParams.AddNested("AwsJobAbortConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.AwsJobExecutionsRolloutConfig != nil {
 		if err := s.AwsJobExecutionsRolloutConfig.Validate(); err != nil {
 			invalidParams.AddNested("AwsJobExecutionsRolloutConfig", err.(request.ErrInvalidParams))
@@ -23341,6 +24561,16 @@ func (s *CreateOTAUpdateInput) Validate() error {
 			}
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Files", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
 		}
 	}
@@ -23357,6 +24587,12 @@ func (s *CreateOTAUpdateInput) SetAdditionalParameters(v map[string]*string) *Cr
 	return s
 }
 
+// SetAwsJobAbortConfig sets the AwsJobAbortConfig field's value.
+func (s *CreateOTAUpdateInput) SetAwsJobAbortConfig(v *AwsJobAbortConfig) *CreateOTAUpdateInput {
+	s.AwsJobAbortConfig = v
+	return s
+}
+
 // SetAwsJobExecutionsRolloutConfig sets the AwsJobExecutionsRolloutConfig field's value.
 func (s *CreateOTAUpdateInput) SetAwsJobExecutionsRolloutConfig(v *AwsJobExecutionsRolloutConfig) *CreateOTAUpdateInput {
 	s.AwsJobExecutionsRolloutConfig = v
@@ -23366,6 +24602,12 @@ func (s *CreateOTAUpdateInput) SetAwsJobExecutionsRolloutConfig(v *AwsJobExecuti
 // SetAwsJobPresignedUrlConfig sets the AwsJobPresignedUrlConfig field's value.
 func (s *CreateOTAUpdateInput) SetAwsJobPresignedUrlConfig(v *AwsJobPresignedUrlConfig) *CreateOTAUpdateInput {
 	s.AwsJobPresignedUrlConfig = v
+	return s
+}
+
+// SetAwsJobTimeoutConfig sets the AwsJobTimeoutConfig field's value.
+func (s *CreateOTAUpdateInput) SetAwsJobTimeoutConfig(v *AwsJobTimeoutConfig) *CreateOTAUpdateInput {
+	s.AwsJobTimeoutConfig = v
 	return s
 }
 
@@ -23490,6 +24732,15 @@ type CreatePolicyInput struct {
 	//
 	// PolicyName is a required field
 	PolicyName *string `location:"uri" locationName:"policyName" min:"1" type:"string" required:"true"`
+
+	// Metadata which can be used to manage the policy.
+	//
+	// For URI Request parameters use format: ...key1=value1&key2=value2...
+	//
+	// For the CLI command-line parameter use format: &&tags "key1=value1&key2=value2..."
+	//
+	// For the cli-input-json file use format: "tags": "key1=value1&key2=value2..."
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -23514,6 +24765,16 @@ func (s *CreatePolicyInput) Validate() error {
 	if s.PolicyName != nil && len(*s.PolicyName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("PolicyName", 1))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -23530,6 +24791,12 @@ func (s *CreatePolicyInput) SetPolicyDocument(v string) *CreatePolicyInput {
 // SetPolicyName sets the PolicyName field's value.
 func (s *CreatePolicyInput) SetPolicyName(v string) *CreatePolicyInput {
 	s.PolicyName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreatePolicyInput) SetTags(v []*Tag) *CreatePolicyInput {
+	s.Tags = v
 	return s
 }
 
@@ -23803,6 +25070,9 @@ type CreateProvisioningTemplateInput struct {
 	// True to enable the fleet provisioning template, otherwise false.
 	Enabled *bool `locationName:"enabled" type:"boolean"`
 
+	// Creates a pre-provisioning hook template.
+	PreProvisioningHook *ProvisioningHook `locationName:"preProvisioningHook" type:"structure"`
+
 	// The role ARN for the role associated with the fleet provisioning template.
 	// This IoT role grants permission to provision a device.
 	//
@@ -23857,6 +25127,21 @@ func (s *CreateProvisioningTemplateInput) Validate() error {
 	if s.TemplateName != nil && len(*s.TemplateName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TemplateName", 1))
 	}
+	if s.PreProvisioningHook != nil {
+		if err := s.PreProvisioningHook.Validate(); err != nil {
+			invalidParams.AddNested("PreProvisioningHook", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -23873,6 +25158,12 @@ func (s *CreateProvisioningTemplateInput) SetDescription(v string) *CreateProvis
 // SetEnabled sets the Enabled field's value.
 func (s *CreateProvisioningTemplateInput) SetEnabled(v bool) *CreateProvisioningTemplateInput {
 	s.Enabled = &v
+	return s
+}
+
+// SetPreProvisioningHook sets the PreProvisioningHook field's value.
+func (s *CreateProvisioningTemplateInput) SetPreProvisioningHook(v *ProvisioningHook) *CreateProvisioningTemplateInput {
+	s.PreProvisioningHook = v
 	return s
 }
 
@@ -24072,6 +25363,15 @@ type CreateRoleAliasInput struct {
 	//
 	// RoleArn is a required field
 	RoleArn *string `locationName:"roleArn" min:"20" type:"string" required:"true"`
+
+	// Metadata which can be used to manage the role alias.
+	//
+	// For URI Request parameters use format: ...key1=value1&key2=value2...
+	//
+	// For the CLI command-line parameter use format: &&tags "key1=value1&key2=value2..."
+	//
+	// For the cli-input-json file use format: "tags": "key1=value1&key2=value2..."
+	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
 // String returns the string representation
@@ -24102,6 +25402,16 @@ func (s *CreateRoleAliasInput) Validate() error {
 	if s.RoleArn != nil && len(*s.RoleArn) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("RoleArn", 20))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24124,6 +25434,12 @@ func (s *CreateRoleAliasInput) SetRoleAlias(v string) *CreateRoleAliasInput {
 // SetRoleArn sets the RoleArn field's value.
 func (s *CreateRoleAliasInput) SetRoleArn(v string) *CreateRoleAliasInput {
 	s.RoleArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateRoleAliasInput) SetTags(v []*Tag) *CreateRoleAliasInput {
+	s.Tags = v
 	return s
 }
 
@@ -24222,6 +25538,16 @@ func (s *CreateScheduledAuditInput) Validate() error {
 	if s.TargetCheckNames == nil {
 		invalidParams.Add(request.NewErrParamRequired("TargetCheckNames"))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24294,7 +25620,17 @@ type CreateSecurityProfileInput struct {
 	// A list of metrics whose data is retained (stored). By default, data is retained
 	// for any metric used in the profile's behaviors, but it is also retained for
 	// any metric specified here.
-	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" type:"list"`
+	//
+	// Note: This API field is deprecated. Please use CreateSecurityProfileRequest$additionalMetricsToRetainV2
+	// instead.
+	//
+	// Deprecated: Use additionalMetricsToRetainV2.
+	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" deprecated:"true" type:"list"`
+
+	// A list of metrics whose data is retained (stored). By default, data is retained
+	// for any metric used in the profile's behaviors, but it is also retained for
+	// any metric specified here.
+	AdditionalMetricsToRetainV2 []*MetricToRetain `locationName:"additionalMetricsToRetainV2" type:"list"`
 
 	// Specifies the destinations to which alerts are sent. (Alerts are always sent
 	// to the console.) Alerts are generated when a device (thing) violates a behavior.
@@ -24335,6 +25671,16 @@ func (s *CreateSecurityProfileInput) Validate() error {
 	if s.SecurityProfileName != nil && len(*s.SecurityProfileName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SecurityProfileName", 1))
 	}
+	if s.AdditionalMetricsToRetainV2 != nil {
+		for i, v := range s.AdditionalMetricsToRetainV2 {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalMetricsToRetainV2", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.AlertTargets != nil {
 		for i, v := range s.AlertTargets {
 			if v == nil {
@@ -24355,6 +25701,16 @@ func (s *CreateSecurityProfileInput) Validate() error {
 			}
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24365,6 +25721,12 @@ func (s *CreateSecurityProfileInput) Validate() error {
 // SetAdditionalMetricsToRetain sets the AdditionalMetricsToRetain field's value.
 func (s *CreateSecurityProfileInput) SetAdditionalMetricsToRetain(v []*string) *CreateSecurityProfileInput {
 	s.AdditionalMetricsToRetain = v
+	return s
+}
+
+// SetAdditionalMetricsToRetainV2 sets the AdditionalMetricsToRetainV2 field's value.
+func (s *CreateSecurityProfileInput) SetAdditionalMetricsToRetainV2(v []*MetricToRetain) *CreateSecurityProfileInput {
+	s.AdditionalMetricsToRetainV2 = v
 	return s
 }
 
@@ -24497,6 +25859,16 @@ func (s *CreateStreamInput) Validate() error {
 			}
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24624,6 +25996,16 @@ func (s *CreateThingGroupInput) Validate() error {
 	if s.ThingGroupName != nil && len(*s.ThingGroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ThingGroupName", 1))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -24710,6 +26092,10 @@ type CreateThingInput struct {
 	BillingGroupName *string `locationName:"billingGroupName" min:"1" type:"string"`
 
 	// The name of the thing to create.
+	//
+	// You can't change a thing's name after you create it. To change a thing's
+	// name, you must create a new thing, give it the new name, and then delete
+	// the old thing.
 	//
 	// ThingName is a required field
 	ThingName *string `location:"uri" locationName:"thingName" min:"1" type:"string" required:"true"`
@@ -24852,6 +26238,16 @@ func (s *CreateThingTypeInput) Validate() error {
 	}
 	if s.ThingTypeName != nil && len(*s.ThingTypeName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ThingTypeName", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -25412,8 +26808,8 @@ func (s DeleteCertificateOutput) GoString() string {
 
 // You can't delete the resource because it is attached to one or more resources.
 type DeleteConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -25431,17 +26827,17 @@ func (s DeleteConflictException) GoString() string {
 
 func newErrorDeleteConflictException(v protocol.ResponseMetadata) error {
 	return &DeleteConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s DeleteConflictException) Code() string {
+func (s *DeleteConflictException) Code() string {
 	return "DeleteConflictException"
 }
 
 // Message returns the exception's message.
-func (s DeleteConflictException) Message() string {
+func (s *DeleteConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -25449,22 +26845,77 @@ func (s DeleteConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s DeleteConflictException) OrigErr() error {
+func (s *DeleteConflictException) OrigErr() error {
 	return nil
 }
 
-func (s DeleteConflictException) Error() string {
+func (s *DeleteConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s DeleteConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *DeleteConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s DeleteConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *DeleteConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+type DeleteDimensionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier for the dimension that you want to delete.
+	//
+	// Name is a required field
+	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteDimensionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDimensionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteDimensionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteDimensionInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *DeleteDimensionInput) SetName(v string) *DeleteDimensionInput {
+	s.Name = &v
+	return s
+}
+
+type DeleteDimensionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteDimensionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDimensionOutput) GoString() string {
+	return s.String()
 }
 
 type DeleteDomainConfigurationInput struct {
@@ -25830,10 +27281,10 @@ type DeleteOTAUpdateInput struct {
 	DeleteStream *bool `location:"querystring" locationName:"deleteStream" type:"boolean"`
 
 	// Specifies if the AWS Job associated with the OTA update should be deleted
-	// with the OTA update is deleted.
+	// when the OTA update is deleted.
 	ForceDeleteAWSJob *bool `location:"querystring" locationName:"forceDeleteAWSJob" type:"boolean"`
 
-	// The OTA update ID to delete.
+	// The ID of the OTA update to delete.
 	//
 	// OtaUpdateId is a required field
 	OtaUpdateId *string `location:"uri" locationName:"otaUpdateId" min:"1" type:"string" required:"true"`
@@ -27588,6 +29039,116 @@ func (s *DescribeDefaultAuthorizerOutput) SetAuthorizerDescription(v *Authorizer
 	return s
 }
 
+type DescribeDimensionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique identifier for the dimension.
+	//
+	// Name is a required field
+	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeDimensionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDimensionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeDimensionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeDimensionInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *DescribeDimensionInput) SetName(v string) *DescribeDimensionInput {
+	s.Name = &v
+	return s
+}
+
+type DescribeDimensionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN (Amazon resource name) for the dimension.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date the dimension was created.
+	CreationDate *time.Time `locationName:"creationDate" type:"timestamp"`
+
+	// The date the dimension was last modified.
+	LastModifiedDate *time.Time `locationName:"lastModifiedDate" type:"timestamp"`
+
+	// The unique identifier for the dimension.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The value or list of values used to scope the dimension. For example, for
+	// topic filters, this is the pattern used to match the MQTT topic name.
+	StringValues []*string `locationName:"stringValues" min:"1" type:"list"`
+
+	// The type of the dimension.
+	Type *string `locationName:"type" type:"string" enum:"DimensionType"`
+}
+
+// String returns the string representation
+func (s DescribeDimensionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeDimensionOutput) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *DescribeDimensionOutput) SetArn(v string) *DescribeDimensionOutput {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *DescribeDimensionOutput) SetCreationDate(v time.Time) *DescribeDimensionOutput {
+	s.CreationDate = &v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *DescribeDimensionOutput) SetLastModifiedDate(v time.Time) *DescribeDimensionOutput {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *DescribeDimensionOutput) SetName(v string) *DescribeDimensionOutput {
+	s.Name = &v
+	return s
+}
+
+// SetStringValues sets the StringValues field's value.
+func (s *DescribeDimensionOutput) SetStringValues(v []*string) *DescribeDimensionOutput {
+	s.StringValues = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *DescribeDimensionOutput) SetType(v string) *DescribeDimensionOutput {
+	s.Type = &v
+	return s
+}
+
 type DescribeDomainConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27730,6 +29291,10 @@ type DescribeEndpointInput struct {
 	//    endpoint.
 	//
 	//    * iot:Jobs - Returns an AWS IoT device management Jobs API endpoint.
+	//
+	// We strongly recommend that customers use the newer iot:Data-ATS endpoint
+	// type to avoid issues related to the widespread distrust of Symantec certificate
+	// authorities.
 	EndpointType *string `location:"querystring" locationName:"endpointType" type:"string"`
 }
 
@@ -28273,6 +29838,9 @@ type DescribeProvisioningTemplateOutput struct {
 	// The date when the fleet provisioning template was last modified.
 	LastModifiedDate *time.Time `locationName:"lastModifiedDate" type:"timestamp"`
 
+	// Gets information about a pre-provisioned hook.
+	PreProvisioningHook *ProvisioningHook `locationName:"preProvisioningHook" type:"structure"`
+
 	// The ARN of the role associated with the provisioning template. This IoT role
 	// grants permission to provision a device.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" min:"20" type:"string"`
@@ -28324,6 +29892,12 @@ func (s *DescribeProvisioningTemplateOutput) SetEnabled(v bool) *DescribeProvisi
 // SetLastModifiedDate sets the LastModifiedDate field's value.
 func (s *DescribeProvisioningTemplateOutput) SetLastModifiedDate(v time.Time) *DescribeProvisioningTemplateOutput {
 	s.LastModifiedDate = &v
+	return s
+}
+
+// SetPreProvisioningHook sets the PreProvisioningHook field's value.
+func (s *DescribeProvisioningTemplateOutput) SetPreProvisioningHook(v *ProvisioningHook) *DescribeProvisioningTemplateOutput {
+	s.PreProvisioningHook = v
 	return s
 }
 
@@ -28683,7 +30257,17 @@ type DescribeSecurityProfileOutput struct {
 	// A list of metrics whose data is retained (stored). By default, data is retained
 	// for any metric used in the profile's behaviors, but it is also retained for
 	// any metric specified here.
-	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" type:"list"`
+	//
+	// Note: This API field is deprecated. Please use DescribeSecurityProfileResponse$additionalMetricsToRetainV2
+	// instead.
+	//
+	// Deprecated: Use additionalMetricsToRetainV2.
+	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" deprecated:"true" type:"list"`
+
+	// A list of metrics whose data is retained (stored). By default, data is retained
+	// for any metric used in the profile's behaviors, but it is also retained for
+	// any metric specified here.
+	AdditionalMetricsToRetainV2 []*MetricToRetain `locationName:"additionalMetricsToRetainV2" type:"list"`
 
 	// Where the alerts are sent. (Alerts are always sent to the console.)
 	AlertTargets map[string]*AlertTarget `locationName:"alertTargets" type:"map"`
@@ -28726,6 +30310,12 @@ func (s DescribeSecurityProfileOutput) GoString() string {
 // SetAdditionalMetricsToRetain sets the AdditionalMetricsToRetain field's value.
 func (s *DescribeSecurityProfileOutput) SetAdditionalMetricsToRetain(v []*string) *DescribeSecurityProfileOutput {
 	s.AdditionalMetricsToRetain = v
+	return s
+}
+
+// SetAdditionalMetricsToRetainV2 sets the AdditionalMetricsToRetainV2 field's value.
+func (s *DescribeSecurityProfileOutput) SetAdditionalMetricsToRetainV2(v []*MetricToRetain) *DescribeSecurityProfileOutput {
+	s.AdditionalMetricsToRetainV2 = v
 	return s
 }
 
@@ -29038,7 +30628,14 @@ type DescribeThingOutput struct {
 	// The name of the billing group the thing belongs to.
 	BillingGroupName *string `locationName:"billingGroupName" min:"1" type:"string"`
 
-	// The default client ID.
+	// The default MQTT client ID. For a typical device, the thing name is also
+	// used as the default MQTT client ID. Although we don’t require a mapping
+	// between a thing's registry name and its use of MQTT client IDs, certificates,
+	// or shadow state, we recommend that you choose a thing name and use it as
+	// the MQTT client ID for the registry and the Device Shadow service.
+	//
+	// This lets you better organize your AWS IoT fleet without removing the flexibility
+	// of the underlying device certificate model or shadows.
 	DefaultClientId *string `locationName:"defaultClientId" type:"string"`
 
 	// The ARN of the thing to describe.
@@ -31723,7 +33320,7 @@ type HttpAction struct {
 	// URL must be a prefix of the endpoint URL. If you do not specify a confirmation
 	// URL AWS IoT uses the endpoint URL as the confirmation URL. If you use substitution
 	// templates in the confirmationUrl, you must create and enable topic rule destinations
-	// that match each possible value of the substituion template before traffic
+	// that match each possible value of the substitution template before traffic
 	// is allowed to your endpoint URL.
 	ConfirmationUrl *string `locationName:"confirmationUrl" type:"string"`
 
@@ -32059,8 +33656,8 @@ func (s *ImplicitDeny) SetPolicies(v []*Policy) *ImplicitDeny {
 
 // The index is not ready.
 type IndexNotReadyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32078,17 +33675,17 @@ func (s IndexNotReadyException) GoString() string {
 
 func newErrorIndexNotReadyException(v protocol.ResponseMetadata) error {
 	return &IndexNotReadyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IndexNotReadyException) Code() string {
+func (s *IndexNotReadyException) Code() string {
 	return "IndexNotReadyException"
 }
 
 // Message returns the exception's message.
-func (s IndexNotReadyException) Message() string {
+func (s *IndexNotReadyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32096,28 +33693,28 @@ func (s IndexNotReadyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IndexNotReadyException) OrigErr() error {
+func (s *IndexNotReadyException) OrigErr() error {
 	return nil
 }
 
-func (s IndexNotReadyException) Error() string {
+func (s *IndexNotReadyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IndexNotReadyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IndexNotReadyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IndexNotReadyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IndexNotReadyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An unexpected error has occurred.
 type InternalException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32135,17 +33732,17 @@ func (s InternalException) GoString() string {
 
 func newErrorInternalException(v protocol.ResponseMetadata) error {
 	return &InternalException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalException) Code() string {
+func (s *InternalException) Code() string {
 	return "InternalException"
 }
 
 // Message returns the exception's message.
-func (s InternalException) Message() string {
+func (s *InternalException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32153,28 +33750,28 @@ func (s InternalException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalException) OrigErr() error {
+func (s *InternalException) OrigErr() error {
 	return nil
 }
 
-func (s InternalException) Error() string {
+func (s *InternalException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An unexpected error has occurred.
 type InternalFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32192,17 +33789,17 @@ func (s InternalFailureException) GoString() string {
 
 func newErrorInternalFailureException(v protocol.ResponseMetadata) error {
 	return &InternalFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InternalFailureException) Code() string {
+func (s *InternalFailureException) Code() string {
 	return "InternalFailureException"
 }
 
 // Message returns the exception's message.
-func (s InternalFailureException) Message() string {
+func (s *InternalFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32210,28 +33807,28 @@ func (s InternalFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InternalFailureException) OrigErr() error {
+func (s *InternalFailureException) OrigErr() error {
 	return nil
 }
 
-func (s InternalFailureException) Error() string {
+func (s *InternalFailureException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InternalFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InternalFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InternalFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InternalFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The aggregation is invalid.
 type InvalidAggregationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -32248,17 +33845,17 @@ func (s InvalidAggregationException) GoString() string {
 
 func newErrorInvalidAggregationException(v protocol.ResponseMetadata) error {
 	return &InvalidAggregationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidAggregationException) Code() string {
+func (s *InvalidAggregationException) Code() string {
 	return "InvalidAggregationException"
 }
 
 // Message returns the exception's message.
-func (s InvalidAggregationException) Message() string {
+func (s *InvalidAggregationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32266,28 +33863,28 @@ func (s InvalidAggregationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidAggregationException) OrigErr() error {
+func (s *InvalidAggregationException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidAggregationException) Error() string {
+func (s *InvalidAggregationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidAggregationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidAggregationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidAggregationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidAggregationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The query is invalid.
 type InvalidQueryException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32305,17 +33902,17 @@ func (s InvalidQueryException) GoString() string {
 
 func newErrorInvalidQueryException(v protocol.ResponseMetadata) error {
 	return &InvalidQueryException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidQueryException) Code() string {
+func (s *InvalidQueryException) Code() string {
 	return "InvalidQueryException"
 }
 
 // Message returns the exception's message.
-func (s InvalidQueryException) Message() string {
+func (s *InvalidQueryException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32323,28 +33920,28 @@ func (s InvalidQueryException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidQueryException) OrigErr() error {
+func (s *InvalidQueryException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidQueryException) Error() string {
+func (s *InvalidQueryException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidQueryException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidQueryException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidQueryException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidQueryException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The request is not valid.
 type InvalidRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32362,17 +33959,17 @@ func (s InvalidRequestException) GoString() string {
 
 func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidRequestException) Code() string {
+func (s *InvalidRequestException) Code() string {
 	return "InvalidRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidRequestException) Message() string {
+func (s *InvalidRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32380,28 +33977,28 @@ func (s InvalidRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidRequestException) OrigErr() error {
+func (s *InvalidRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidRequestException) Error() string {
+func (s *InvalidRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The response is invalid.
 type InvalidResponseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32419,17 +34016,17 @@ func (s InvalidResponseException) GoString() string {
 
 func newErrorInvalidResponseException(v protocol.ResponseMetadata) error {
 	return &InvalidResponseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidResponseException) Code() string {
+func (s *InvalidResponseException) Code() string {
 	return "InvalidResponseException"
 }
 
 // Message returns the exception's message.
-func (s InvalidResponseException) Message() string {
+func (s *InvalidResponseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32437,30 +34034,30 @@ func (s InvalidResponseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidResponseException) OrigErr() error {
+func (s *InvalidResponseException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidResponseException) Error() string {
+func (s *InvalidResponseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidResponseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidResponseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidResponseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidResponseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An attempt was made to change to an invalid state, for example by deleting
 // a job or a job execution which is "IN_PROGRESS" without setting the force
 // parameter.
 type InvalidStateTransitionException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -32478,17 +34075,17 @@ func (s InvalidStateTransitionException) GoString() string {
 
 func newErrorInvalidStateTransitionException(v protocol.ResponseMetadata) error {
 	return &InvalidStateTransitionException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidStateTransitionException) Code() string {
+func (s *InvalidStateTransitionException) Code() string {
 	return "InvalidStateTransitionException"
 }
 
 // Message returns the exception's message.
-func (s InvalidStateTransitionException) Message() string {
+func (s *InvalidStateTransitionException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -32496,22 +34093,22 @@ func (s InvalidStateTransitionException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidStateTransitionException) OrigErr() error {
+func (s *InvalidStateTransitionException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidStateTransitionException) Error() string {
+func (s *InvalidStateTransitionException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidStateTransitionException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidStateTransitionException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidStateTransitionException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidStateTransitionException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Sends message data to an AWS IoT Analytics channel.
@@ -33529,8 +35126,8 @@ func (s *LambdaAction) SetFunctionArn(v string) *LambdaAction {
 
 // A limit has been exceeded.
 type LimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -33548,17 +35145,17 @@ func (s LimitExceededException) GoString() string {
 
 func newErrorLimitExceededException(v protocol.ResponseMetadata) error {
 	return &LimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s LimitExceededException) Code() string {
+func (s *LimitExceededException) Code() string {
 	return "LimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s LimitExceededException) Message() string {
+func (s *LimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -33566,22 +35163,22 @@ func (s LimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s LimitExceededException) OrigErr() error {
+func (s *LimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s LimitExceededException) Error() string {
+func (s *LimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s LimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *LimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s LimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *LimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type ListActiveViolationsInput struct {
@@ -34786,6 +36383,85 @@ func (s *ListCertificatesOutput) SetCertificates(v []*Certificate) *ListCertific
 // SetNextMarker sets the NextMarker field's value.
 func (s *ListCertificatesOutput) SetNextMarker(v string) *ListCertificatesOutput {
 	s.NextMarker = &v
+	return s
+}
+
+type ListDimensionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum number of results to retrieve at one time.
+	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
+
+	// The token for the next set of results.
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListDimensionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDimensionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListDimensionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListDimensionsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListDimensionsInput) SetMaxResults(v int64) *ListDimensionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListDimensionsInput) SetNextToken(v string) *ListDimensionsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListDimensionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the names of the defined dimensions. Use DescribeDimension to get
+	// details for a dimension.
+	DimensionNames []*string `locationName:"dimensionNames" type:"list"`
+
+	// A token that can be used to retrieve the next set of results, or null if
+	// there are no additional results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListDimensionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListDimensionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetDimensionNames sets the DimensionNames field's value.
+func (s *ListDimensionsOutput) SetDimensionNames(v []*string) *ListDimensionsOutput {
+	s.DimensionNames = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListDimensionsOutput) SetNextToken(v string) *ListDimensionsOutput {
+	s.NextToken = &v
 	return s
 }
 
@@ -36453,6 +38129,9 @@ func (s *ListSecurityProfilesForTargetOutput) SetSecurityProfileTargetMappings(v
 type ListSecurityProfilesInput struct {
 	_ struct{} `type:"structure"`
 
+	// A filter to limit results to the security profiles that use the defined dimension.
+	DimensionName *string `location:"querystring" locationName:"dimensionName" min:"1" type:"string"`
+
 	// The maximum number of results to return at one time.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
@@ -36473,6 +38152,9 @@ func (s ListSecurityProfilesInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *ListSecurityProfilesInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListSecurityProfilesInput"}
+	if s.DimensionName != nil && len(*s.DimensionName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DimensionName", 1))
+	}
 	if s.MaxResults != nil && *s.MaxResults < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
 	}
@@ -36481,6 +38163,12 @@ func (s *ListSecurityProfilesInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDimensionName sets the DimensionName field's value.
+func (s *ListSecurityProfilesInput) SetDimensionName(v string) *ListSecurityProfilesInput {
+	s.DimensionName = &v
+	return s
 }
 
 // SetMaxResults sets the MaxResults field's value.
@@ -38287,8 +39975,8 @@ func (s *LoggingOptionsPayload) SetRoleArn(v string) *LoggingOptionsPayload {
 
 // The policy documentation is not valid.
 type MalformedPolicyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -38306,17 +39994,17 @@ func (s MalformedPolicyException) GoString() string {
 
 func newErrorMalformedPolicyException(v protocol.ResponseMetadata) error {
 	return &MalformedPolicyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s MalformedPolicyException) Code() string {
+func (s *MalformedPolicyException) Code() string {
 	return "MalformedPolicyException"
 }
 
 // Message returns the exception's message.
-func (s MalformedPolicyException) Message() string {
+func (s *MalformedPolicyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -38324,22 +40012,131 @@ func (s MalformedPolicyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s MalformedPolicyException) OrigErr() error {
+func (s *MalformedPolicyException) OrigErr() error {
 	return nil
 }
 
-func (s MalformedPolicyException) Error() string {
+func (s *MalformedPolicyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s MalformedPolicyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *MalformedPolicyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s MalformedPolicyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *MalformedPolicyException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The dimension of a metric.
+type MetricDimension struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for the dimension.
+	//
+	// DimensionName is a required field
+	DimensionName *string `locationName:"dimensionName" min:"1" type:"string" required:"true"`
+
+	// Defines how the dimensionValues of a dimension are interpreted. For example,
+	// for dimension type TOPIC_FILTER, the IN operator, a message will be counted
+	// only if its topic matches one of the topic filters. With NOT_IN operator,
+	// a message will be counted only if it doesn't match any of the topic filters.
+	// The operator is optional: if it's not provided (is null), it will be interpreted
+	// as IN.
+	Operator *string `locationName:"operator" type:"string" enum:"DimensionValueOperator"`
+}
+
+// String returns the string representation
+func (s MetricDimension) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MetricDimension) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MetricDimension) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MetricDimension"}
+	if s.DimensionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DimensionName"))
+	}
+	if s.DimensionName != nil && len(*s.DimensionName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DimensionName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDimensionName sets the DimensionName field's value.
+func (s *MetricDimension) SetDimensionName(v string) *MetricDimension {
+	s.DimensionName = &v
+	return s
+}
+
+// SetOperator sets the Operator field's value.
+func (s *MetricDimension) SetOperator(v string) *MetricDimension {
+	s.Operator = &v
+	return s
+}
+
+// The metric you want to retain. Dimensions are optional.
+type MetricToRetain struct {
+	_ struct{} `type:"structure"`
+
+	// What is measured by the behavior.
+	//
+	// Metric is a required field
+	Metric *string `locationName:"metric" type:"string" required:"true"`
+
+	// The dimension of a metric.
+	MetricDimension *MetricDimension `locationName:"metricDimension" type:"structure"`
+}
+
+// String returns the string representation
+func (s MetricToRetain) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s MetricToRetain) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *MetricToRetain) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "MetricToRetain"}
+	if s.Metric == nil {
+		invalidParams.Add(request.NewErrParamRequired("Metric"))
+	}
+	if s.MetricDimension != nil {
+		if err := s.MetricDimension.Validate(); err != nil {
+			invalidParams.AddNested("MetricDimension", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMetric sets the Metric field's value.
+func (s *MetricToRetain) SetMetric(v string) *MetricToRetain {
+	s.Metric = &v
+	return s
+}
+
+// SetMetricDimension sets the MetricDimension field's value.
+func (s *MetricToRetain) SetMetricDimension(v *MetricDimension) *MetricToRetain {
+	s.MetricDimension = v
+	return s
 }
 
 // The value to be compared with the metric.
@@ -38707,8 +40504,8 @@ func (s *NonCompliantResource) SetResourceType(v string) *NonCompliantResource {
 
 // The resource is not configured.
 type NotConfiguredException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -38726,17 +40523,17 @@ func (s NotConfiguredException) GoString() string {
 
 func newErrorNotConfiguredException(v protocol.ResponseMetadata) error {
 	return &NotConfiguredException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s NotConfiguredException) Code() string {
+func (s *NotConfiguredException) Code() string {
 	return "NotConfiguredException"
 }
 
 // Message returns the exception's message.
-func (s NotConfiguredException) Message() string {
+func (s *NotConfiguredException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -38744,22 +40541,22 @@ func (s NotConfiguredException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s NotConfiguredException) OrigErr() error {
+func (s *NotConfiguredException) OrigErr() error {
 	return nil
 }
 
-func (s NotConfiguredException) Error() string {
+func (s *NotConfiguredException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s NotConfiguredException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *NotConfiguredException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s NotConfiguredException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *NotConfiguredException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes a file to be associated with an OTA update.
@@ -39327,6 +41124,61 @@ func (s *PresignedUrlConfig) SetRoleArn(v string) *PresignedUrlConfig {
 	return s
 }
 
+// Structure that contains payloadVersion and targetArn.
+type ProvisioningHook struct {
+	_ struct{} `type:"structure"`
+
+	// The payload that was sent to the target function.
+	//
+	// Note: Only Lambda functions are currently supported.
+	PayloadVersion *string `locationName:"payloadVersion" min:"10" type:"string"`
+
+	// The ARN of the target function.
+	//
+	// Note: Only Lambda functions are currently supported.
+	//
+	// TargetArn is a required field
+	TargetArn *string `locationName:"targetArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ProvisioningHook) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProvisioningHook) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProvisioningHook) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProvisioningHook"}
+	if s.PayloadVersion != nil && len(*s.PayloadVersion) < 10 {
+		invalidParams.Add(request.NewErrParamMinLen("PayloadVersion", 10))
+	}
+	if s.TargetArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("TargetArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPayloadVersion sets the PayloadVersion field's value.
+func (s *ProvisioningHook) SetPayloadVersion(v string) *ProvisioningHook {
+	s.PayloadVersion = &v
+	return s
+}
+
+// SetTargetArn sets the TargetArn field's value.
+func (s *ProvisioningHook) SetTargetArn(v string) *ProvisioningHook {
+	s.TargetArn = &v
+	return s
+}
+
 // A summary of information about a fleet provisioning template.
 type ProvisioningTemplateSummary struct {
 	_ struct{} `type:"structure"`
@@ -39688,6 +41540,15 @@ type RegisterCACertificateInput struct {
 	// A boolean value that specifies if the CA certificate is set to active.
 	SetAsActive *bool `location:"querystring" locationName:"setAsActive" type:"boolean"`
 
+	// Metadata which can be used to manage the CA certificate.
+	//
+	// For URI Request parameters use format: ...key1=value1&key2=value2...
+	//
+	// For the CLI command-line parameter use format: &&tags "key1=value1&key2=value2..."
+	//
+	// For the cli-input-json file use format: "tags": "key1=value1&key2=value2..."
+	Tags []*Tag `locationName:"tags" type:"list"`
+
 	// The private key verification certificate.
 	//
 	// VerificationCertificate is a required field
@@ -39724,6 +41585,16 @@ func (s *RegisterCACertificateInput) Validate() error {
 			invalidParams.AddNested("RegistrationConfig", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -39752,6 +41623,12 @@ func (s *RegisterCACertificateInput) SetRegistrationConfig(v *RegistrationConfig
 // SetSetAsActive sets the SetAsActive field's value.
 func (s *RegisterCACertificateInput) SetSetAsActive(v bool) *RegisterCACertificateInput {
 	s.SetAsActive = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *RegisterCACertificateInput) SetTags(v []*Tag) *RegisterCACertificateInput {
+	s.Tags = v
 	return s
 }
 
@@ -39901,14 +41778,98 @@ func (s *RegisterCertificateOutput) SetCertificateId(v string) *RegisterCertific
 	return s
 }
 
+type RegisterCertificateWithoutCAInput struct {
+	_ struct{} `type:"structure"`
+
+	// The certificate data, in PEM format.
+	//
+	// CertificatePem is a required field
+	CertificatePem *string `locationName:"certificatePem" min:"1" type:"string" required:"true"`
+
+	// The status of the register certificate request.
+	Status *string `locationName:"status" type:"string" enum:"CertificateStatus"`
+}
+
+// String returns the string representation
+func (s RegisterCertificateWithoutCAInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterCertificateWithoutCAInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RegisterCertificateWithoutCAInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RegisterCertificateWithoutCAInput"}
+	if s.CertificatePem == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificatePem"))
+	}
+	if s.CertificatePem != nil && len(*s.CertificatePem) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CertificatePem", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificatePem sets the CertificatePem field's value.
+func (s *RegisterCertificateWithoutCAInput) SetCertificatePem(v string) *RegisterCertificateWithoutCAInput {
+	s.CertificatePem = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *RegisterCertificateWithoutCAInput) SetStatus(v string) *RegisterCertificateWithoutCAInput {
+	s.Status = &v
+	return s
+}
+
+type RegisterCertificateWithoutCAOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the registered certificate.
+	CertificateArn *string `locationName:"certificateArn" type:"string"`
+
+	// The ID of the registered certificate. (The last part of the certificate ARN
+	// contains the certificate ID.
+	CertificateId *string `locationName:"certificateId" min:"64" type:"string"`
+}
+
+// String returns the string representation
+func (s RegisterCertificateWithoutCAOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RegisterCertificateWithoutCAOutput) GoString() string {
+	return s.String()
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *RegisterCertificateWithoutCAOutput) SetCertificateArn(v string) *RegisterCertificateWithoutCAOutput {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetCertificateId sets the CertificateId field's value.
+func (s *RegisterCertificateWithoutCAOutput) SetCertificateId(v string) *RegisterCertificateWithoutCAOutput {
+	s.CertificateId = &v
+	return s
+}
+
 type RegisterThingInput struct {
 	_ struct{} `type:"structure"`
 
-	// The parameters for provisioning a thing. See Programmatic Provisioning (https://docs.aws.amazon.com/iot/latest/developerguide/programmatic-provisioning.html)
+	// The parameters for provisioning a thing. See Provisioning Templates (https://docs.aws.amazon.com/iot/latest/developerguide/provision-template.html)
 	// for more information.
 	Parameters map[string]*string `locationName:"parameters" type:"map"`
 
-	// The provisioning template. See Programmatic Provisioning (https://docs.aws.amazon.com/iot/latest/developerguide/programmatic-provisioning.html)
+	// The provisioning template. See Provisioning Devices That Have Device Certificates
+	// (https://docs.aws.amazon.com/iot/latest/developerguide/provision-w-cert.html)
 	// for more information.
 	//
 	// TemplateBody is a required field
@@ -39953,7 +41914,7 @@ func (s *RegisterThingInput) SetTemplateBody(v string) *RegisterThingInput {
 type RegisterThingOutput struct {
 	_ struct{} `type:"structure"`
 
-	// .
+	// The certificate data, in PEM format.
 	CertificatePem *string `locationName:"certificatePem" min:"1" type:"string"`
 
 	// ARNs for the generated resources.
@@ -39984,8 +41945,8 @@ func (s *RegisterThingOutput) SetResourceArns(v map[string]*string) *RegisterThi
 
 // The registration code is invalid.
 type RegistrationCodeValidationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// Additional information about the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -40003,17 +41964,17 @@ func (s RegistrationCodeValidationException) GoString() string {
 
 func newErrorRegistrationCodeValidationException(v protocol.ResponseMetadata) error {
 	return &RegistrationCodeValidationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s RegistrationCodeValidationException) Code() string {
+func (s *RegistrationCodeValidationException) Code() string {
 	return "RegistrationCodeValidationException"
 }
 
 // Message returns the exception's message.
-func (s RegistrationCodeValidationException) Message() string {
+func (s *RegistrationCodeValidationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -40021,22 +41982,22 @@ func (s RegistrationCodeValidationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s RegistrationCodeValidationException) OrigErr() error {
+func (s *RegistrationCodeValidationException) OrigErr() error {
 	return nil
 }
 
-func (s RegistrationCodeValidationException) Error() string {
+func (s *RegistrationCodeValidationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s RegistrationCodeValidationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *RegistrationCodeValidationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s RegistrationCodeValidationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *RegistrationCodeValidationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The registration configuration.
@@ -40533,8 +42494,8 @@ func (s *RepublishAction) SetTopic(v string) *RepublishAction {
 
 // The resource already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -40558,17 +42519,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -40576,22 +42537,22 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information that identifies the noncompliant resource.
@@ -40713,8 +42674,8 @@ func (s *ResourceIdentifier) SetRoleAliasArn(v string) *ResourceIdentifier {
 
 // The specified resource does not exist.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -40732,17 +42693,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -40750,28 +42711,28 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The resource registration failed.
 type ResourceRegistrationFailureException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -40789,17 +42750,17 @@ func (s ResourceRegistrationFailureException) GoString() string {
 
 func newErrorResourceRegistrationFailureException(v protocol.ResponseMetadata) error {
 	return &ResourceRegistrationFailureException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceRegistrationFailureException) Code() string {
+func (s *ResourceRegistrationFailureException) Code() string {
 	return "ResourceRegistrationFailureException"
 }
 
 // Message returns the exception's message.
-func (s ResourceRegistrationFailureException) Message() string {
+func (s *ResourceRegistrationFailureException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -40807,22 +42768,22 @@ func (s ResourceRegistrationFailureException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceRegistrationFailureException) OrigErr() error {
+func (s *ResourceRegistrationFailureException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceRegistrationFailureException) Error() string {
+func (s *ResourceRegistrationFailureException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceRegistrationFailureException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceRegistrationFailureException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceRegistrationFailureException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceRegistrationFailureException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Role alias description.
@@ -41472,8 +43433,8 @@ func (s *ServerCertificateSummary) SetServerCertificateStatusDetail(v string) *S
 
 // The service is temporarily unavailable.
 type ServiceUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -41491,17 +43452,17 @@ func (s ServiceUnavailableException) GoString() string {
 
 func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableException) Code() string {
+func (s *ServiceUnavailableException) Code() string {
 	return "ServiceUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableException) Message() string {
+func (s *ServiceUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -41509,22 +43470,22 @@ func (s ServiceUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableException) OrigErr() error {
+func (s *ServiceUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableException) Error() string {
+func (s *ServiceUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type SetDefaultAuthorizerInput struct {
@@ -42035,8 +43996,8 @@ func (s *SnsAction) SetTargetArn(v string) *SnsAction {
 
 // The Rule-SQL expression can't be parsed correctly.
 type SqlParseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -42054,17 +44015,17 @@ func (s SqlParseException) GoString() string {
 
 func newErrorSqlParseException(v protocol.ResponseMetadata) error {
 	return &SqlParseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s SqlParseException) Code() string {
+func (s *SqlParseException) Code() string {
 	return "SqlParseException"
 }
 
 // Message returns the exception's message.
-func (s SqlParseException) Message() string {
+func (s *SqlParseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -42072,22 +44033,22 @@ func (s SqlParseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s SqlParseException) OrigErr() error {
+func (s *SqlParseException) OrigErr() error {
 	return nil
 }
 
-func (s SqlParseException) Error() string {
+func (s *SqlParseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s SqlParseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *SqlParseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s SqlParseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *SqlParseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Describes an action to publish data to an Amazon SQS queue.
@@ -42981,10 +44942,12 @@ type Tag struct {
 	_ struct{} `type:"structure"`
 
 	// The tag's key.
-	Key *string `type:"string"`
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
 
 	// The tag's value.
-	Value *string `type:"string"`
+	Value *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -42995,6 +44958,25 @@ func (s Tag) String() string {
 // GoString returns the string representation
 func (s Tag) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value != nil && len(*s.Value) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Value", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetKey sets the Key field's value.
@@ -43042,6 +45024,16 @@ func (s *TagResourceInput) Validate() error {
 	if s.Tags == nil {
 		invalidParams.Add(request.NewErrParamRequired("Tags"))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -43078,8 +45070,8 @@ func (s TagResourceOutput) GoString() string {
 // This exception occurs if you attempt to start a task with the same task-id
 // as an existing task but with a different clientRequestToken.
 type TaskAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -43096,17 +45088,17 @@ func (s TaskAlreadyExistsException) GoString() string {
 
 func newErrorTaskAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &TaskAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TaskAlreadyExistsException) Code() string {
+func (s *TaskAlreadyExistsException) Code() string {
 	return "TaskAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s TaskAlreadyExistsException) Message() string {
+func (s *TaskAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -43114,22 +45106,22 @@ func (s TaskAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TaskAlreadyExistsException) OrigErr() error {
+func (s *TaskAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s TaskAlreadyExistsException) Error() string {
+func (s *TaskAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TaskAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TaskAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TaskAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TaskAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Statistics for the checks performed during the audit.
@@ -43320,6 +45312,16 @@ func (s *TestAuthorizationInput) Validate() error {
 	if s.AuthInfos != nil && len(s.AuthInfos) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("AuthInfos", 1))
 	}
+	if s.AuthInfos != nil {
+		for i, v := range s.AuthInfos {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AuthInfos", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -43407,7 +45409,7 @@ type TestInvokeAuthorizerInput struct {
 	Token *string `locationName:"token" min:"1" type:"string"`
 
 	// The signature made with the token and your custom authentication service's
-	// private key.
+	// private key. This value must be Base-64-encoded.
 	TokenSignature *string `locationName:"tokenSignature" min:"1" type:"string"`
 }
 
@@ -44138,8 +46140,8 @@ func (s *ThingTypeProperties) SetThingTypeDescription(v string) *ThingTypeProper
 
 // The rate exceeds the limit.
 type ThrottlingException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -44157,17 +46159,17 @@ func (s ThrottlingException) GoString() string {
 
 func newErrorThrottlingException(v protocol.ResponseMetadata) error {
 	return &ThrottlingException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ThrottlingException) Code() string {
+func (s *ThrottlingException) Code() string {
 	return "ThrottlingException"
 }
 
 // Message returns the exception's message.
-func (s ThrottlingException) Message() string {
+func (s *ThrottlingException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -44175,22 +46177,22 @@ func (s ThrottlingException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ThrottlingException) OrigErr() error {
+func (s *ThrottlingException) OrigErr() error {
 	return nil
 }
 
-func (s ThrottlingException) Error() string {
+func (s *ThrottlingException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ThrottlingException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ThrottlingException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ThrottlingException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ThrottlingException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Specifies the amount of time each device has to finish its execution of the
@@ -44711,8 +46713,8 @@ func (s *TopicRulePayload) SetSql(v string) *TopicRulePayload {
 // You can't revert the certificate transfer because the transfer is already
 // complete.
 type TransferAlreadyCompletedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -44730,17 +46732,17 @@ func (s TransferAlreadyCompletedException) GoString() string {
 
 func newErrorTransferAlreadyCompletedException(v protocol.ResponseMetadata) error {
 	return &TransferAlreadyCompletedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TransferAlreadyCompletedException) Code() string {
+func (s *TransferAlreadyCompletedException) Code() string {
 	return "TransferAlreadyCompletedException"
 }
 
 // Message returns the exception's message.
-func (s TransferAlreadyCompletedException) Message() string {
+func (s *TransferAlreadyCompletedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -44748,22 +46750,22 @@ func (s TransferAlreadyCompletedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TransferAlreadyCompletedException) OrigErr() error {
+func (s *TransferAlreadyCompletedException) OrigErr() error {
 	return nil
 }
 
-func (s TransferAlreadyCompletedException) Error() string {
+func (s *TransferAlreadyCompletedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TransferAlreadyCompletedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TransferAlreadyCompletedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TransferAlreadyCompletedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TransferAlreadyCompletedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The input for the TransferCertificate operation.
@@ -44862,8 +46864,8 @@ func (s *TransferCertificateOutput) SetTransferredCertificateArn(v string) *Tran
 // You can't transfer the certificate because authorization policies are still
 // attached.
 type TransferConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -44881,17 +46883,17 @@ func (s TransferConflictException) GoString() string {
 
 func newErrorTransferConflictException(v protocol.ResponseMetadata) error {
 	return &TransferConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s TransferConflictException) Code() string {
+func (s *TransferConflictException) Code() string {
 	return "TransferConflictException"
 }
 
 // Message returns the exception's message.
-func (s TransferConflictException) Message() string {
+func (s *TransferConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -44899,22 +46901,22 @@ func (s TransferConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s TransferConflictException) OrigErr() error {
+func (s *TransferConflictException) OrigErr() error {
 	return nil
 }
 
-func (s TransferConflictException) Error() string {
+func (s *TransferConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s TransferConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *TransferConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s TransferConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *TransferConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Data used to transfer a certificate to an AWS account.
@@ -44979,8 +46981,8 @@ func (s *TransferData) SetTransferMessage(v string) *TransferData {
 
 // You are not authorized to perform this operation.
 type UnauthorizedException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -44998,17 +47000,17 @@ func (s UnauthorizedException) GoString() string {
 
 func newErrorUnauthorizedException(v protocol.ResponseMetadata) error {
 	return &UnauthorizedException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s UnauthorizedException) Code() string {
+func (s *UnauthorizedException) Code() string {
 	return "UnauthorizedException"
 }
 
 // Message returns the exception's message.
-func (s UnauthorizedException) Message() string {
+func (s *UnauthorizedException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -45016,22 +47018,22 @@ func (s UnauthorizedException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s UnauthorizedException) OrigErr() error {
+func (s *UnauthorizedException) OrigErr() error {
 	return nil
 }
 
-func (s UnauthorizedException) Error() string {
+func (s *UnauthorizedException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s UnauthorizedException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *UnauthorizedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s UnauthorizedException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *UnauthorizedException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type UntagResourceInput struct {
@@ -45548,9 +47550,10 @@ type UpdateCertificateInput struct {
 
 	// The new status.
 	//
-	// Note: Setting the status to PENDING_TRANSFER will result in an exception
-	// being thrown. PENDING_TRANSFER is a status used internally by AWS IoT. It
-	// is not intended for developer use.
+	// Note: Setting the status to PENDING_TRANSFER or PENDING_ACTIVATION will result
+	// in an exception being thrown. PENDING_TRANSFER and PENDING_ACTIVATION are
+	// statuses used internally by AWS IoT. They are not intended for developer
+	// use.
 	//
 	// Note: The status value REGISTER_INACTIVE is deprecated and should not be
 	// used.
@@ -45652,6 +47655,138 @@ func (s *UpdateDeviceCertificateParams) Validate() error {
 // SetAction sets the Action field's value.
 func (s *UpdateDeviceCertificateParams) SetAction(v string) *UpdateDeviceCertificateParams {
 	s.Action = &v
+	return s
+}
+
+type UpdateDimensionInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique identifier for the dimension. Choose something that describes the
+	// type and value to make it easy to remember what it does.
+	//
+	// Name is a required field
+	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
+
+	// Specifies the value or list of values for the dimension. For TOPIC_FILTER
+	// dimensions, this is a pattern used to match the MQTT topic (for example,
+	// "admin/#").
+	//
+	// StringValues is a required field
+	StringValues []*string `locationName:"stringValues" min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateDimensionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDimensionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateDimensionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateDimensionInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.StringValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("StringValues"))
+	}
+	if s.StringValues != nil && len(s.StringValues) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("StringValues", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateDimensionInput) SetName(v string) *UpdateDimensionInput {
+	s.Name = &v
+	return s
+}
+
+// SetStringValues sets the StringValues field's value.
+func (s *UpdateDimensionInput) SetStringValues(v []*string) *UpdateDimensionInput {
+	s.StringValues = v
+	return s
+}
+
+type UpdateDimensionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN (Amazon resource name) of the created dimension.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The date and time, in milliseconds since epoch, when the dimension was initially
+	// created.
+	CreationDate *time.Time `locationName:"creationDate" type:"timestamp"`
+
+	// The date and time, in milliseconds since epoch, when the dimension was most
+	// recently updated.
+	LastModifiedDate *time.Time `locationName:"lastModifiedDate" type:"timestamp"`
+
+	// A unique identifier for the dimension.
+	Name *string `locationName:"name" min:"1" type:"string"`
+
+	// The value or list of values used to scope the dimension. For example, for
+	// topic filters, this is the pattern used to match the MQTT topic name.
+	StringValues []*string `locationName:"stringValues" min:"1" type:"list"`
+
+	// The type of the dimension.
+	Type *string `locationName:"type" type:"string" enum:"DimensionType"`
+}
+
+// String returns the string representation
+func (s UpdateDimensionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDimensionOutput) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *UpdateDimensionOutput) SetArn(v string) *UpdateDimensionOutput {
+	s.Arn = &v
+	return s
+}
+
+// SetCreationDate sets the CreationDate field's value.
+func (s *UpdateDimensionOutput) SetCreationDate(v time.Time) *UpdateDimensionOutput {
+	s.CreationDate = &v
+	return s
+}
+
+// SetLastModifiedDate sets the LastModifiedDate field's value.
+func (s *UpdateDimensionOutput) SetLastModifiedDate(v time.Time) *UpdateDimensionOutput {
+	s.LastModifiedDate = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateDimensionOutput) SetName(v string) *UpdateDimensionOutput {
+	s.Name = &v
+	return s
+}
+
+// SetStringValues sets the StringValues field's value.
+func (s *UpdateDimensionOutput) SetStringValues(v []*string) *UpdateDimensionOutput {
+	s.StringValues = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *UpdateDimensionOutput) SetType(v string) *UpdateDimensionOutput {
+	s.Type = &v
 	return s
 }
 
@@ -46219,9 +48354,15 @@ type UpdateProvisioningTemplateInput struct {
 	// True to enable the fleet provisioning template, otherwise false.
 	Enabled *bool `locationName:"enabled" type:"boolean"`
 
+	// Updates the pre-provisioning hook template.
+	PreProvisioningHook *ProvisioningHook `locationName:"preProvisioningHook" type:"structure"`
+
 	// The ARN of the role associated with the provisioning template. This IoT role
 	// grants permission to provision a device.
 	ProvisioningRoleArn *string `locationName:"provisioningRoleArn" min:"20" type:"string"`
+
+	// Removes pre-provisioning hook template.
+	RemovePreProvisioningHook *bool `locationName:"removePreProvisioningHook" type:"boolean"`
 
 	// The name of the fleet provisioning template.
 	//
@@ -46251,6 +48392,11 @@ func (s *UpdateProvisioningTemplateInput) Validate() error {
 	if s.TemplateName != nil && len(*s.TemplateName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TemplateName", 1))
 	}
+	if s.PreProvisioningHook != nil {
+		if err := s.PreProvisioningHook.Validate(); err != nil {
+			invalidParams.AddNested("PreProvisioningHook", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -46276,9 +48422,21 @@ func (s *UpdateProvisioningTemplateInput) SetEnabled(v bool) *UpdateProvisioning
 	return s
 }
 
+// SetPreProvisioningHook sets the PreProvisioningHook field's value.
+func (s *UpdateProvisioningTemplateInput) SetPreProvisioningHook(v *ProvisioningHook) *UpdateProvisioningTemplateInput {
+	s.PreProvisioningHook = v
+	return s
+}
+
 // SetProvisioningRoleArn sets the ProvisioningRoleArn field's value.
 func (s *UpdateProvisioningTemplateInput) SetProvisioningRoleArn(v string) *UpdateProvisioningTemplateInput {
 	s.ProvisioningRoleArn = &v
+	return s
+}
+
+// SetRemovePreProvisioningHook sets the RemovePreProvisioningHook field's value.
+func (s *UpdateProvisioningTemplateInput) SetRemovePreProvisioningHook(v bool) *UpdateProvisioningTemplateInput {
+	s.RemovePreProvisioningHook = &v
 	return s
 }
 
@@ -46515,7 +48673,17 @@ type UpdateSecurityProfileInput struct {
 	// A list of metrics whose data is retained (stored). By default, data is retained
 	// for any metric used in the profile's behaviors, but it is also retained for
 	// any metric specified here.
-	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" type:"list"`
+	//
+	// Note: This API field is deprecated. Please use UpdateSecurityProfileRequest$additionalMetricsToRetainV2
+	// instead.
+	//
+	// Deprecated: Use additionalMetricsToRetainV2.
+	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" deprecated:"true" type:"list"`
+
+	// A list of metrics whose data is retained (stored). By default, data is retained
+	// for any metric used in the profile's behaviors, but it is also retained for
+	// any metric specified here.
+	AdditionalMetricsToRetainV2 []*MetricToRetain `locationName:"additionalMetricsToRetainV2" type:"list"`
 
 	// Where the alerts are sent. (Alerts are always sent to the console.)
 	AlertTargets map[string]*AlertTarget `locationName:"alertTargets" type:"map"`
@@ -46570,6 +48738,16 @@ func (s *UpdateSecurityProfileInput) Validate() error {
 	if s.SecurityProfileName != nil && len(*s.SecurityProfileName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SecurityProfileName", 1))
 	}
+	if s.AdditionalMetricsToRetainV2 != nil {
+		for i, v := range s.AdditionalMetricsToRetainV2 {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AdditionalMetricsToRetainV2", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.AlertTargets != nil {
 		for i, v := range s.AlertTargets {
 			if v == nil {
@@ -46600,6 +48778,12 @@ func (s *UpdateSecurityProfileInput) Validate() error {
 // SetAdditionalMetricsToRetain sets the AdditionalMetricsToRetain field's value.
 func (s *UpdateSecurityProfileInput) SetAdditionalMetricsToRetain(v []*string) *UpdateSecurityProfileInput {
 	s.AdditionalMetricsToRetain = v
+	return s
+}
+
+// SetAdditionalMetricsToRetainV2 sets the AdditionalMetricsToRetainV2 field's value.
+func (s *UpdateSecurityProfileInput) SetAdditionalMetricsToRetainV2(v []*MetricToRetain) *UpdateSecurityProfileInput {
+	s.AdditionalMetricsToRetainV2 = v
 	return s
 }
 
@@ -46657,7 +48841,17 @@ type UpdateSecurityProfileOutput struct {
 	// A list of metrics whose data is retained (stored). By default, data is retained
 	// for any metric used in the security profile's behaviors, but it is also retained
 	// for any metric specified here.
-	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" type:"list"`
+	//
+	// Note: This API field is deprecated. Please use UpdateSecurityProfileResponse$additionalMetricsToRetainV2
+	// instead.
+	//
+	// Deprecated: Use additionalMetricsToRetainV2.
+	AdditionalMetricsToRetain []*string `locationName:"additionalMetricsToRetain" deprecated:"true" type:"list"`
+
+	// A list of metrics whose data is retained (stored). By default, data is retained
+	// for any metric used in the profile's behaviors, but it is also retained for
+	// any metric specified here.
+	AdditionalMetricsToRetainV2 []*MetricToRetain `locationName:"additionalMetricsToRetainV2" type:"list"`
 
 	// Where the alerts are sent. (Alerts are always sent to the console.)
 	AlertTargets map[string]*AlertTarget `locationName:"alertTargets" type:"map"`
@@ -46698,6 +48892,12 @@ func (s UpdateSecurityProfileOutput) GoString() string {
 // SetAdditionalMetricsToRetain sets the AdditionalMetricsToRetain field's value.
 func (s *UpdateSecurityProfileOutput) SetAdditionalMetricsToRetain(v []*string) *UpdateSecurityProfileOutput {
 	s.AdditionalMetricsToRetain = v
+	return s
+}
+
+// SetAdditionalMetricsToRetainV2 sets the AdditionalMetricsToRetainV2 field's value.
+func (s *UpdateSecurityProfileOutput) SetAdditionalMetricsToRetainV2(v []*MetricToRetain) *UpdateSecurityProfileOutput {
+	s.AdditionalMetricsToRetainV2 = v
 	return s
 }
 
@@ -47074,6 +49274,9 @@ type UpdateThingInput struct {
 
 	// The name of the thing to update.
 	//
+	// You can't change a thing's name. To change a thing's name, you must create
+	// a new thing, give it the new name, and then delete the old thing.
+	//
 	// ThingName is a required field
 	ThingName *string `location:"uri" locationName:"thingName" min:"1" type:"string" required:"true"`
 
@@ -47354,8 +49557,8 @@ func (s *ValidationError) SetErrorMessage(v string) *ValidationError {
 // An exception thrown when the version of an entity specified with the expectedVersion
 // parameter does not match the latest version in the system.
 type VersionConflictException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -47373,17 +49576,17 @@ func (s VersionConflictException) GoString() string {
 
 func newErrorVersionConflictException(v protocol.ResponseMetadata) error {
 	return &VersionConflictException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s VersionConflictException) Code() string {
+func (s *VersionConflictException) Code() string {
 	return "VersionConflictException"
 }
 
 // Message returns the exception's message.
-func (s VersionConflictException) Message() string {
+func (s *VersionConflictException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -47391,28 +49594,28 @@ func (s VersionConflictException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s VersionConflictException) OrigErr() error {
+func (s *VersionConflictException) OrigErr() error {
 	return nil
 }
 
-func (s VersionConflictException) Error() string {
+func (s *VersionConflictException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s VersionConflictException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *VersionConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s VersionConflictException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *VersionConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The number of policy versions exceeds the limit.
 type VersionsLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	// The message for the exception.
 	Message_ *string `locationName:"message" type:"string"`
@@ -47430,17 +49633,17 @@ func (s VersionsLimitExceededException) GoString() string {
 
 func newErrorVersionsLimitExceededException(v protocol.ResponseMetadata) error {
 	return &VersionsLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s VersionsLimitExceededException) Code() string {
+func (s *VersionsLimitExceededException) Code() string {
 	return "VersionsLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s VersionsLimitExceededException) Message() string {
+func (s *VersionsLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -47448,22 +49651,22 @@ func (s VersionsLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s VersionsLimitExceededException) OrigErr() error {
+func (s *VersionsLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s VersionsLimitExceededException) Error() string {
+func (s *VersionsLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s VersionsLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *VersionsLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s VersionsLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *VersionsLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Information about a Device Defender security profile behavior violation.
@@ -47706,6 +49909,25 @@ const (
 )
 
 const (
+	// AwsJobAbortCriteriaAbortActionCancel is a AwsJobAbortCriteriaAbortAction enum value
+	AwsJobAbortCriteriaAbortActionCancel = "CANCEL"
+)
+
+const (
+	// AwsJobAbortCriteriaFailureTypeFailed is a AwsJobAbortCriteriaFailureType enum value
+	AwsJobAbortCriteriaFailureTypeFailed = "FAILED"
+
+	// AwsJobAbortCriteriaFailureTypeRejected is a AwsJobAbortCriteriaFailureType enum value
+	AwsJobAbortCriteriaFailureTypeRejected = "REJECTED"
+
+	// AwsJobAbortCriteriaFailureTypeTimedOut is a AwsJobAbortCriteriaFailureType enum value
+	AwsJobAbortCriteriaFailureTypeTimedOut = "TIMED_OUT"
+
+	// AwsJobAbortCriteriaFailureTypeAll is a AwsJobAbortCriteriaFailureType enum value
+	AwsJobAbortCriteriaFailureTypeAll = "ALL"
+)
+
+const (
 	// CACertificateStatusActive is a CACertificateStatus enum value
 	CACertificateStatusActive = "ACTIVE"
 
@@ -47742,6 +49964,14 @@ const (
 
 	// CannedAccessControlListLogDeliveryWrite is a CannedAccessControlList enum value
 	CannedAccessControlListLogDeliveryWrite = "log-delivery-write"
+)
+
+const (
+	// CertificateModeDefault is a CertificateMode enum value
+	CertificateModeDefault = "DEFAULT"
+
+	// CertificateModeSniOnly is a CertificateMode enum value
+	CertificateModeSniOnly = "SNI_ONLY"
 )
 
 const (
@@ -47816,6 +50046,19 @@ const (
 const (
 	// DeviceCertificateUpdateActionDeactivate is a DeviceCertificateUpdateAction enum value
 	DeviceCertificateUpdateActionDeactivate = "DEACTIVATE"
+)
+
+const (
+	// DimensionTypeTopicFilter is a DimensionType enum value
+	DimensionTypeTopicFilter = "TOPIC_FILTER"
+)
+
+const (
+	// DimensionValueOperatorIn is a DimensionValueOperator enum value
+	DimensionValueOperatorIn = "IN"
+
+	// DimensionValueOperatorNotIn is a DimensionValueOperator enum value
+	DimensionValueOperatorNotIn = "NOT_IN"
 )
 
 const (

@@ -23,7 +23,6 @@ func dataSourceAwsIAMServerCertificate() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"name_prefix"},
 				ValidateFunc:  validation.StringLenBetween(0, 128),
 			},
@@ -31,7 +30,6 @@ func dataSourceAwsIAMServerCertificate() *schema.Resource {
 			"name_prefix": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				ConflictsWith: []string{"name"},
 				ValidateFunc:  validation.StringLenBetween(0, 128-resource.UniqueIDSuffixLength),
 			},
@@ -39,13 +37,11 @@ func dataSourceAwsIAMServerCertificate() *schema.Resource {
 			"path_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"latest": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  false,
 			},
 
@@ -139,9 +135,9 @@ func dataSourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interfac
 
 	metadata := metadatas[0]
 	d.SetId(*metadata.ServerCertificateId)
-	d.Set("arn", *metadata.Arn)
-	d.Set("path", *metadata.Path)
-	d.Set("name", *metadata.ServerCertificateName)
+	d.Set("arn", metadata.Arn)
+	d.Set("path", metadata.Path)
+	d.Set("name", metadata.ServerCertificateName)
 	if metadata.Expiration != nil {
 		d.Set("expiration_date", metadata.Expiration.Format(time.RFC3339))
 	}

@@ -52,7 +52,7 @@ output "example" {
 
 ## Argument Reference
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired network interfaces.
 
 * `filter` - (Optional) Custom filter block as described below.

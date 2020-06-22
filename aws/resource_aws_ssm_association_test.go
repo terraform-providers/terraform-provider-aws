@@ -20,7 +20,7 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 		ec2conn := testAccProvider.Meta().(*AWSClient).ec2conn
 		ssmconn := testAccProvider.Meta().(*AWSClient).ssmconn
 
-		ins, err := ec2conn.DescribeInstances(&ec2.DescribeInstancesInput{
+		ins, err := resourceAwsInstanceFind(ec2conn, &ec2.DescribeInstancesInput{
 			Filters: []*ec2.Filter{
 				{
 					Name:   aws.String("tag:Name"),
@@ -31,17 +31,17 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error getting instance with tag:Name %s: %s", name, err)
 		}
-		if len(ins.Reservations) == 0 || len(ins.Reservations[0].Instances) == 0 {
+		if len(ins) == 0 {
 			t.Fatalf("No instance exists with tag:Name %s", name)
 		}
-		instanceId := ins.Reservations[0].Instances[0].InstanceId
+		instanceID := ins[0].InstanceId
 
 		_, err = ssmconn.DeleteAssociation(&ssm.DeleteAssociationInput{
 			Name:       aws.String(name),
-			InstanceId: instanceId,
+			InstanceId: instanceID,
 		})
 		if err != nil {
-			t.Fatalf("Error deleting ssm association %s/%s: %s", name, aws.StringValue(instanceId), err)
+			t.Fatalf("Error deleting ssm association %s/%s: %s", name, aws.StringValue(instanceID), err)
 		}
 	}
 
@@ -779,7 +779,14 @@ variable "name" {
   default = "%s"
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 data "aws_ami" "amzn" {
   most_recent = true

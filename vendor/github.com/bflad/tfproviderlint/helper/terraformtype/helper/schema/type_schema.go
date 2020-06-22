@@ -119,6 +119,10 @@ func NewSchemaInfo(cl *ast.CompositeLit, info *types.Info) *SchemaInfo {
 		result.Schema.Optional = *astutils.ExprBoolValue(kvExpr.Value)
 	}
 
+	if kvExpr := result.Fields[SchemaFieldPromoteSingle]; kvExpr != nil && astutils.ExprBoolValue(kvExpr.Value) != nil {
+		result.Schema.PromoteSingle = *astutils.ExprBoolValue(kvExpr.Value)
+	}
+
 	if kvExpr := result.Fields[SchemaFieldRequired]; kvExpr != nil && astutils.ExprBoolValue(kvExpr.Value) != nil {
 		result.Schema.Required = *astutils.ExprBoolValue(kvExpr.Value)
 	}

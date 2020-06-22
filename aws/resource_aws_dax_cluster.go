@@ -48,8 +48,8 @@ func resourceAwsDaxCluster() *schema.Resource {
 					validation.StringLenBetween(1, 20),
 					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
-					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
-					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
 				),
 			},
 			"iam_role_arn": {
@@ -271,6 +271,8 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	req := &dax.DescribeClustersInput{
 		ClusterNames: []*string{aws.String(d.Id())},
 	}
@@ -335,7 +337,7 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for DAX Cluster (%s): %s", aws.StringValue(c.ClusterArn), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

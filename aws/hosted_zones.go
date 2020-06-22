@@ -9,6 +9,7 @@ import "fmt"
 // See https://docs.aws.amazon.com/pt_br/govcloud-us/latest/ug-east/using-govcloud-endpoints.html
 // See https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/using-govcloud-endpoints.html
 var hostedZoneIDsMap = map[string]string{
+	"af-south-1":     "Z11KHD8FBVPUYU",
 	"ap-east-1":      "ZNB98KWMFR0R6",
 	"ap-northeast-1": "Z2M4EHUR26P7ZW",
 	"ap-northeast-2": "Z3W03O7B5YMIYP",
@@ -19,6 +20,7 @@ var hostedZoneIDsMap = map[string]string{
 	"ca-central-1":   "Z1QDHH18159H29",
 	"eu-central-1":   "Z21DNDUVLTQW6Q",
 	"eu-north-1":     "Z3BAZG2TWCNX0D",
+	"eu-south-1":     "Z3IXVV8C73GIO3",
 	"eu-west-1":      "Z1BKCTXD74EZPE",
 	"eu-west-2":      "Z3GKZC51ZF0DB4",
 	"eu-west-3":      "Z3R1K369G5AVDG",

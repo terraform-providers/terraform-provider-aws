@@ -8,12 +8,21 @@ import (
 	"github.com/bflad/tfproviderlint/passes/AT005"
 	"github.com/bflad/tfproviderlint/passes/AT006"
 	"github.com/bflad/tfproviderlint/passes/AT007"
+	"github.com/bflad/tfproviderlint/passes/AT008"
 	"github.com/bflad/tfproviderlint/passes/R001"
 	"github.com/bflad/tfproviderlint/passes/R002"
 	"github.com/bflad/tfproviderlint/passes/R003"
 	"github.com/bflad/tfproviderlint/passes/R004"
 	"github.com/bflad/tfproviderlint/passes/R005"
 	"github.com/bflad/tfproviderlint/passes/R006"
+	"github.com/bflad/tfproviderlint/passes/R007"
+	"github.com/bflad/tfproviderlint/passes/R008"
+	"github.com/bflad/tfproviderlint/passes/R009"
+	"github.com/bflad/tfproviderlint/passes/R010"
+	"github.com/bflad/tfproviderlint/passes/R011"
+	"github.com/bflad/tfproviderlint/passes/R012"
+	"github.com/bflad/tfproviderlint/passes/R013"
+	"github.com/bflad/tfproviderlint/passes/R014"
 	"github.com/bflad/tfproviderlint/passes/S001"
 	"github.com/bflad/tfproviderlint/passes/S002"
 	"github.com/bflad/tfproviderlint/passes/S003"
@@ -47,6 +56,10 @@ import (
 	"github.com/bflad/tfproviderlint/passes/S031"
 	"github.com/bflad/tfproviderlint/passes/S032"
 	"github.com/bflad/tfproviderlint/passes/S033"
+	"github.com/bflad/tfproviderlint/passes/S034"
+	"github.com/bflad/tfproviderlint/passes/S035"
+	"github.com/bflad/tfproviderlint/passes/S036"
+	"github.com/bflad/tfproviderlint/passes/S037"
 	"github.com/bflad/tfproviderlint/passes/V001"
 	"github.com/bflad/tfproviderlint/passes/V002"
 	"github.com/bflad/tfproviderlint/passes/V003"
@@ -69,12 +82,21 @@ var AllChecks = []*analysis.Analyzer{
 	AT005.Analyzer,
 	AT006.Analyzer,
 	AT007.Analyzer,
+	AT008.Analyzer,
 	R001.Analyzer,
 	R002.Analyzer,
 	R003.Analyzer,
 	R004.Analyzer,
 	R005.Analyzer,
 	R006.Analyzer,
+	R007.Analyzer,
+	R008.Analyzer,
+	R009.Analyzer,
+	R010.Analyzer,
+	R011.Analyzer,
+	R012.Analyzer,
+	R013.Analyzer,
+	R014.Analyzer,
 	S001.Analyzer,
 	S002.Analyzer,
 	S003.Analyzer,
@@ -108,6 +130,10 @@ var AllChecks = []*analysis.Analyzer{
 	S031.Analyzer,
 	S032.Analyzer,
 	S033.Analyzer,
+	S034.Analyzer,
+	S035.Analyzer,
+	S036.Analyzer,
+	S037.Analyzer,
 	V001.Analyzer,
 	V002.Analyzer,
 	V003.Analyzer,

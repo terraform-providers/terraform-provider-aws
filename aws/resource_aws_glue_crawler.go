@@ -22,7 +22,6 @@ func resourceAwsGlueCrawler() *schema.Resource {
 		Read:   resourceAwsGlueCrawlerRead,
 		Update: resourceAwsGlueCrawlerUpdate,
 		Delete: resourceAwsGlueCrawlerDelete,
-		Exists: resourceAwsGlueCrawlerExists,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -186,7 +185,7 @@ func resourceAwsGlueCrawler() *schema.Resource {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
 				},
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 			},
 			"security_configuration": {
 				Type:     schema.TypeString,
@@ -458,18 +457,9 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 	glueConn := meta.(*AWSClient).glueconn
 	name := d.Get("name").(string)
 
-	if d.HasChange("catalog_target") ||
-		d.HasChange("classifiers") ||
-		d.HasChange("configuration") ||
-		d.HasChange("description") ||
-		d.HasChange("dynamodb_target") ||
-		d.HasChange("jdbc_target") ||
-		d.HasChange("role") ||
-		d.HasChange("s3_target") ||
-		d.HasChange("schedule") ||
-		d.HasChange("schema_change_policy") ||
-		d.HasChange("security_configuration") ||
-		d.HasChange("table_prefix") {
+	if d.HasChanges(
+		"catalog_target", "classifiers", "configuration", "description", "dynamodb_target", "jdbc_target", "role",
+		"s3_target", "schedule", "schema_change_policy", "security_configuration", "table_prefix") {
 		updateCrawlerInput, err := updateCrawlerInput(name, d)
 		if err != nil {
 			return err
@@ -508,6 +498,7 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error {
 	glueConn := meta.(*AWSClient).glueconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetCrawlerInput{
 		Name: aws.String(d.Id()),
@@ -588,7 +579,7 @@ func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for Glue Crawler (%s): %s", crawlerARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -661,21 +652,4 @@ func resourceAwsGlueCrawlerDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error deleting Glue crawler: %s", err.Error())
 	}
 	return nil
-}
-
-func resourceAwsGlueCrawlerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	glueConn := meta.(*AWSClient).glueconn
-
-	input := &glue.GetCrawlerInput{
-		Name: aws.String(d.Id()),
-	}
-
-	_, err := glueConn.GetCrawler(input)
-	if err != nil {
-		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
 }

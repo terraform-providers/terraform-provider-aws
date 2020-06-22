@@ -56,7 +56,7 @@ func (c *Imagebuilder) CancelImageCreationRequest(input *CancelImageCreationInpu
 
 // CancelImageCreation API operation for EC2 Image Builder.
 //
-// CancelImageCreation cancels the creation of Image. This operation may only
+// CancelImageCreation cancels the creation of Image. This operation can only
 // be used on images in a non-terminal state.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -82,7 +82,7 @@ func (c *Imagebuilder) CancelImageCreationRequest(input *CancelImageCreationInpu
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -93,7 +93,7 @@ func (c *Imagebuilder) CancelImageCreationRequest(input *CancelImageCreationInpu
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CancelImageCreation
 func (c *Imagebuilder) CancelImageCreation(input *CancelImageCreationInput) (*CancelImageCreationOutput, error) {
@@ -161,7 +161,7 @@ func (c *Imagebuilder) CreateComponentRequest(input *CreateComponentInput) (req 
 
 // CreateComponent API operation for EC2 Image Builder.
 //
-// Creates a new component that can be used to build, validate, test and assess
+// Creates a new component that can be used to build, validate, test, and assess
 // your image.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -187,7 +187,7 @@ func (c *Imagebuilder) CreateComponentRequest(input *CreateComponentInput) (req 
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -201,11 +201,15 @@ func (c *Imagebuilder) CreateComponentRequest(input *CreateComponentInput) (req 
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * InvalidParameterCombinationException
 //   You have specified two or more mutually exclusive parameters. Review the
 //   error message for details.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateComponent
 func (c *Imagebuilder) CreateComponent(input *CreateComponentInput) (*CreateComponentOutput, error) {
@@ -299,7 +303,7 @@ func (c *Imagebuilder) CreateDistributionConfigurationRequest(input *CreateDistr
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -310,7 +314,7 @@ func (c *Imagebuilder) CreateDistributionConfigurationRequest(input *CreateDistr
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * ResourceAlreadyExistsException
 //   The resource that you are trying to create already exists.
@@ -318,6 +322,10 @@ func (c *Imagebuilder) CreateDistributionConfigurationRequest(input *CreateDistr
 //   * InvalidParameterCombinationException
 //   You have specified two or more mutually exclusive parameters. Review the
 //   error message for details.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateDistributionConfiguration
 func (c *Imagebuilder) CreateDistributionConfiguration(input *CreateDistributionConfigurationInput) (*CreateDistributionConfigurationOutput, error) {
@@ -411,7 +419,7 @@ func (c *Imagebuilder) CreateImageRequest(input *CreateImageInput) (req *request
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -422,7 +430,11 @@ func (c *Imagebuilder) CreateImageRequest(input *CreateImageInput) (req *request
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateImage
 func (c *Imagebuilder) CreateImage(input *CreateImageInput) (*CreateImageOutput, error) {
@@ -516,7 +528,7 @@ func (c *Imagebuilder) CreateImagePipelineRequest(input *CreateImagePipelineInpu
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -527,10 +539,14 @@ func (c *Imagebuilder) CreateImagePipelineRequest(input *CreateImagePipelineInpu
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * ResourceAlreadyExistsException
 //   The resource that you are trying to create already exists.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateImagePipeline
 func (c *Imagebuilder) CreateImagePipeline(input *CreateImagePipelineInput) (*CreateImagePipelineOutput, error) {
@@ -598,8 +614,8 @@ func (c *Imagebuilder) CreateImageRecipeRequest(input *CreateImageRecipeInput) (
 
 // CreateImageRecipe API operation for EC2 Image Builder.
 //
-// Creates a new image recipe. Image Recipes defines how images are configured,
-// tested and assessed.
+// Creates a new image recipe. Image recipes define how images are configured,
+// tested, and assessed.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -624,7 +640,7 @@ func (c *Imagebuilder) CreateImageRecipeRequest(input *CreateImageRecipeInput) (
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -638,10 +654,14 @@ func (c *Imagebuilder) CreateImageRecipeRequest(input *CreateImageRecipeInput) (
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * ResourceAlreadyExistsException
 //   The resource that you are trying to create already exists.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateImageRecipe
 func (c *Imagebuilder) CreateImageRecipe(input *CreateImageRecipeInput) (*CreateImageRecipeOutput, error) {
@@ -735,7 +755,7 @@ func (c *Imagebuilder) CreateInfrastructureConfigurationRequest(input *CreateInf
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -746,10 +766,14 @@ func (c *Imagebuilder) CreateInfrastructureConfigurationRequest(input *CreateInf
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * ResourceAlreadyExistsException
 //   The resource that you are trying to create already exists.
+//
+//   * ServiceQuotaExceededException
+//   You have exceeded the number of permitted resources or operations for this
+//   service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/CreateInfrastructureConfiguration
 func (c *Imagebuilder) CreateInfrastructureConfiguration(input *CreateInfrastructureConfigurationInput) (*CreateInfrastructureConfigurationOutput, error) {
@@ -849,7 +873,7 @@ func (c *Imagebuilder) DeleteComponentRequest(input *DeleteComponentInput) (req 
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteComponent
 func (c *Imagebuilder) DeleteComponent(input *DeleteComponentInput) (*DeleteComponentOutput, error) {
@@ -949,7 +973,7 @@ func (c *Imagebuilder) DeleteDistributionConfigurationRequest(input *DeleteDistr
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteDistributionConfiguration
 func (c *Imagebuilder) DeleteDistributionConfiguration(input *DeleteDistributionConfigurationInput) (*DeleteDistributionConfigurationOutput, error) {
@@ -1049,7 +1073,7 @@ func (c *Imagebuilder) DeleteImageRequest(input *DeleteImageInput) (req *request
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteImage
 func (c *Imagebuilder) DeleteImage(input *DeleteImageInput) (*DeleteImageOutput, error) {
@@ -1149,7 +1173,7 @@ func (c *Imagebuilder) DeleteImagePipelineRequest(input *DeleteImagePipelineInpu
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteImagePipeline
 func (c *Imagebuilder) DeleteImagePipeline(input *DeleteImagePipelineInput) (*DeleteImagePipelineOutput, error) {
@@ -1249,7 +1273,7 @@ func (c *Imagebuilder) DeleteImageRecipeRequest(input *DeleteImageRecipeInput) (
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteImageRecipe
 func (c *Imagebuilder) DeleteImageRecipe(input *DeleteImageRecipeInput) (*DeleteImageRecipeOutput, error) {
@@ -1349,7 +1373,7 @@ func (c *Imagebuilder) DeleteInfrastructureConfigurationRequest(input *DeleteInf
 //
 //   * ResourceDependencyException
 //   You have attempted to mutate or delete a resource with a dependency that
-//   is prohibitting this action. See the error message for more details.
+//   prohibits this action. See the error message for more details.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/DeleteInfrastructureConfiguration
 func (c *Imagebuilder) DeleteInfrastructureConfiguration(input *DeleteInfrastructureConfigurationInput) (*DeleteInfrastructureConfigurationOutput, error) {
@@ -2179,7 +2203,7 @@ func (c *Imagebuilder) GetInfrastructureConfigurationRequest(input *GetInfrastru
 
 // GetInfrastructureConfiguration API operation for EC2 Image Builder.
 //
-// Gets a infrastructure configuration.
+// Gets an infrastructure configuration.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2300,7 +2324,7 @@ func (c *Imagebuilder) ImportComponentRequest(input *ImportComponentInput) (req 
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -2314,7 +2338,7 @@ func (c *Imagebuilder) ImportComponentRequest(input *ImportComponentInput) (req 
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * InvalidParameterCombinationException
 //   You have specified two or more mutually exclusive parameters. Review the
@@ -2863,7 +2887,7 @@ func (c *Imagebuilder) ListImageBuildVersionsRequest(input *ListImageBuildVersio
 
 // ListImageBuildVersions API operation for EC2 Image Builder.
 //
-// Returns a list of distribution configurations.
+// Returns a list of image build versions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3494,7 +3518,7 @@ func (c *Imagebuilder) ListImagesRequest(input *ListImagesInput) (req *request.R
 
 // ListImages API operation for EC2 Image Builder.
 //
-// Returns the list of image build versions for the specified semantic version.
+// Returns the list of images that you have access to.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3888,7 +3912,12 @@ func (c *Imagebuilder) PutComponentPolicyRequest(input *PutComponentPolicyInput)
 
 // PutComponentPolicy API operation for EC2 Image Builder.
 //
-// Applies a policy to a component.
+// Applies a policy to a component. We recommend that you call the RAM API CreateResourceShare
+// (https://docs.aws.amazon.com/ram/latest/APIReference/API_CreateResourceShare.html)
+// to share resources. If you call the Image Builder API PutComponentPolicy,
+// you must also call the RAM API PromoteResourceShareCreatedFromPolicy (https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html)
+// in order for the resource to be visible to all principals with whom the resource
+// is shared.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3990,7 +4019,12 @@ func (c *Imagebuilder) PutImagePolicyRequest(input *PutImagePolicyInput) (req *r
 
 // PutImagePolicy API operation for EC2 Image Builder.
 //
-// Applies a policy to an image.
+// Applies a policy to an image. We recommend that you call the RAM API CreateResourceShare
+// (https://docs.aws.amazon.com/ram/latest/APIReference/API_CreateResourceShare.html)
+// to share resources. If you call the Image Builder API PutImagePolicy, you
+// must also call the RAM API PromoteResourceShareCreatedFromPolicy (https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html)
+// in order for the resource to be visible to all principals with whom the resource
+// is shared.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4092,7 +4126,12 @@ func (c *Imagebuilder) PutImageRecipePolicyRequest(input *PutImageRecipePolicyIn
 
 // PutImageRecipePolicy API operation for EC2 Image Builder.
 //
-// Applies a policy to an image recipe.
+// Applies a policy to an image recipe. We recommend that you call the RAM API
+// CreateResourceShare (https://docs.aws.amazon.com/ram/latest/APIReference/API_CreateResourceShare.html)
+// to share resources. If you call the Image Builder API PutImageRecipePolicy,
+// you must also call the RAM API PromoteResourceShareCreatedFromPolicy (https://docs.aws.amazon.com/ram/latest/APIReference/API_PromoteResourceShareCreatedFromPolicy.html)
+// in order for the resource to be visible to all principals with whom the resource
+// is shared.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -4222,7 +4261,7 @@ func (c *Imagebuilder) StartImagePipelineExecutionRequest(input *StartImagePipel
 //   At least one of the resources referenced by your request does not exist.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -4233,7 +4272,7 @@ func (c *Imagebuilder) StartImagePipelineExecutionRequest(input *StartImagePipel
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/StartImagePipelineExecution
 func (c *Imagebuilder) StartImagePipelineExecution(input *StartImagePipelineExecutionInput) (*StartImagePipelineExecutionOutput, error) {
@@ -4501,7 +4540,7 @@ func (c *Imagebuilder) UpdateDistributionConfigurationRequest(input *UpdateDistr
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -4512,7 +4551,7 @@ func (c *Imagebuilder) UpdateDistributionConfigurationRequest(input *UpdateDistr
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 //   * InvalidParameterCombinationException
 //   You have specified two or more mutually exclusive parameters. Review the
@@ -4610,7 +4649,7 @@ func (c *Imagebuilder) UpdateImagePipelineRequest(input *UpdateImagePipelineInpu
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -4621,7 +4660,7 @@ func (c *Imagebuilder) UpdateImagePipelineRequest(input *UpdateImagePipelineInpu
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/UpdateImagePipeline
 func (c *Imagebuilder) UpdateImagePipeline(input *UpdateImagePipelineInput) (*UpdateImagePipelineOutput, error) {
@@ -4715,7 +4754,7 @@ func (c *Imagebuilder) UpdateInfrastructureConfigurationRequest(input *UpdateInf
 //   You have made a request for an action that is not supported by the service.
 //
 //   * IdempotentParameterMismatchException
-//   You have specified an client token for an operation using parameter values
+//   You have specified a client token for an operation using parameter values
 //   that differ from a previous request that used the same client token.
 //
 //   * ForbiddenException
@@ -4726,7 +4765,7 @@ func (c *Imagebuilder) UpdateInfrastructureConfigurationRequest(input *UpdateInf
 //
 //   * ResourceInUseException
 //   The resource that you are trying to operate on is currently in use. Review
-//   the message details, and retry later.
+//   the message details and retry later.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/imagebuilder-2019-12-02/UpdateInfrastructureConfiguration
 func (c *Imagebuilder) UpdateInfrastructureConfiguration(input *UpdateInfrastructureConfigurationInput) (*UpdateInfrastructureConfigurationOutput, error) {
@@ -4763,10 +4802,10 @@ type Ami struct {
 	// The name of the EC2 AMI.
 	Name *string `locationName:"name" min:"1" type:"string"`
 
-	// The region of the EC2 AMI.
+	// The AWS Region of the EC2 AMI.
 	Region *string `locationName:"region" min:"1" type:"string"`
 
-	// Image state shows the images status and the reason for that status.
+	// Image state shows the image status and the reason for that status.
 	State *ImageState `locationName:"state" type:"structure"`
 }
 
@@ -4810,11 +4849,11 @@ func (s *Ami) SetState(v *ImageState) *Ami {
 	return s
 }
 
-// Define and configure the outputs AMIs of the pipeline.
+// Define and configure the output AMIs of the pipeline.
 type AmiDistributionConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// The tags to apply to AMIs distributed to this region.
+	// The tags to apply to AMIs distributed to this Region.
 	AmiTags map[string]*string `locationName:"amiTags" min:"1" type:"map"`
 
 	// The description of the distribution configuration.
@@ -4883,8 +4922,8 @@ func (s *AmiDistributionConfiguration) SetName(v string) *AmiDistributionConfigu
 
 // You have exceeded the permitted request rate for the specific operation.
 type CallRateLimitExceededException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -4901,17 +4940,17 @@ func (s CallRateLimitExceededException) GoString() string {
 
 func newErrorCallRateLimitExceededException(v protocol.ResponseMetadata) error {
 	return &CallRateLimitExceededException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s CallRateLimitExceededException) Code() string {
+func (s *CallRateLimitExceededException) Code() string {
 	return "CallRateLimitExceededException"
 }
 
 // Message returns the exception's message.
-func (s CallRateLimitExceededException) Message() string {
+func (s *CallRateLimitExceededException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -4919,33 +4958,31 @@ func (s CallRateLimitExceededException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s CallRateLimitExceededException) OrigErr() error {
+func (s *CallRateLimitExceededException) OrigErr() error {
 	return nil
 }
 
-func (s CallRateLimitExceededException) Error() string {
+func (s *CallRateLimitExceededException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s CallRateLimitExceededException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *CallRateLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s CallRateLimitExceededException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *CallRateLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type CancelImageCreationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The idempotency token used to make this request idempotent.
-	//
-	// ClientToken is a required field
-	ClientToken *string `locationName:"clientToken" min:"1" type:"string" required:"true"`
+	ClientToken *string `locationName:"clientToken" min:"1" type:"string" idempotencyToken:"true"`
 
-	// The Amazon Resource Name (ARN) of the image whose creation you wish to cancel.
+	// The Amazon Resource Name (ARN) of the image whose creation you want to cancel.
 	//
 	// ImageBuildVersionArn is a required field
 	ImageBuildVersionArn *string `locationName:"imageBuildVersionArn" type:"string" required:"true"`
@@ -4964,9 +5001,6 @@ func (s CancelImageCreationInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CancelImageCreationInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CancelImageCreationInput"}
-	if s.ClientToken == nil {
-		invalidParams.Add(request.NewErrParamRequired("ClientToken"))
-	}
 	if s.ClientToken != nil && len(*s.ClientToken) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("ClientToken", 1))
 	}
@@ -5037,8 +5071,8 @@ func (s *CancelImageCreationOutput) SetRequestId(v string) *CancelImageCreationO
 // or resource on behalf of a user that doesn't have permissions to use the
 // action or resource, or specifying an invalid resource identifier.
 type ClientException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -5055,17 +5089,17 @@ func (s ClientException) GoString() string {
 
 func newErrorClientException(v protocol.ResponseMetadata) error {
 	return &ClientException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ClientException) Code() string {
+func (s *ClientException) Code() string {
 	return "ClientException"
 }
 
 // Message returns the exception's message.
-func (s ClientException) Message() string {
+func (s *ClientException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -5073,22 +5107,22 @@ func (s ClientException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ClientException) OrigErr() error {
+func (s *ClientException) OrigErr() error {
 	return nil
 }
 
-func (s ClientException) Error() string {
+func (s *ClientException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ClientException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ClientException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ClientException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ClientException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A detailed view of a component.
@@ -5124,6 +5158,11 @@ type Component struct {
 
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
+
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
 
 	// The tags associated with the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
@@ -5206,6 +5245,12 @@ func (s *Component) SetPlatform(v string) *Component {
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *Component) SetSupportedOsVersions(v []*string) *Component {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *Component) SetTags(v map[string]*string) *Component {
 	s.Tags = v
@@ -5263,7 +5308,7 @@ func (s *ComponentConfiguration) SetComponentArn(v string) *ComponentConfigurati
 	return s
 }
 
-// A high level summary of a component.
+// A high-level summary of a component.
 type ComponentSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -5287,6 +5332,11 @@ type ComponentSummary struct {
 
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
+
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
 
 	// The tags associated with the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
@@ -5351,6 +5401,12 @@ func (s *ComponentSummary) SetPlatform(v string) *ComponentSummary {
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *ComponentSummary) SetSupportedOsVersions(v []*string) *ComponentSummary {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *ComponentSummary) SetTags(v map[string]*string) *ComponentSummary {
 	s.Tags = v
@@ -5369,7 +5425,7 @@ func (s *ComponentSummary) SetVersion(v string) *ComponentSummary {
 	return s
 }
 
-// A high level overview of a component semantic version.
+// A high-level overview of a component semantic version.
 type ComponentVersion struct {
 	_ struct{} `type:"structure"`
 
@@ -5390,6 +5446,11 @@ type ComponentVersion struct {
 
 	// The platform of the component.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
+
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
 
 	// The type of the component denotes whether the component is used to build
 	// the image or only to test it.
@@ -5445,6 +5506,12 @@ func (s *ComponentVersion) SetPlatform(v string) *ComponentVersion {
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *ComponentVersion) SetSupportedOsVersions(v []*string) *ComponentVersion {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetType sets the Type field's value.
 func (s *ComponentVersion) SetType(v string) *ComponentVersion {
 	s.Type = &v
@@ -5460,18 +5527,19 @@ func (s *ComponentVersion) SetVersion(v string) *ComponentVersion {
 type CreateComponentInput struct {
 	_ struct{} `type:"structure"`
 
-	// CThe change description of the component. Describes what change has been
-	// made in this version. In other words what makes this version different from
-	// other versions of this component.
+	// The change description of the component. Describes what change has been made
+	// in this version, or what makes this version different from other versions
+	// of this component.
 	ChangeDescription *string `locationName:"changeDescription" min:"1" type:"string"`
 
-	// CThe idempotency token of the component.
+	// The idempotency token of the component.
 	ClientToken *string `locationName:"clientToken" min:"1" type:"string" idempotencyToken:"true"`
 
-	// CThe data of the component.
+	// The data of the component. Used to specify the data inline. Either data or
+	// uri can be used to specify the data within the component.
 	Data *string `locationName:"data" min:"1" type:"string"`
 
-	// CThe description of the component. Describes the contents of the component.
+	// The description of the component. Describes the contents of the component.
 	Description *string `locationName:"description" min:"1" type:"string"`
 
 	// The ID of the KMS key that should be used to encrypt this component.
@@ -5482,22 +5550,30 @@ type CreateComponentInput struct {
 	// Name is a required field
 	Name *string `locationName:"name" type:"string" required:"true"`
 
-	// CThe platform of the component.
+	// The platform of the component.
 	//
 	// Platform is a required field
 	Platform *string `locationName:"platform" type:"string" required:"true" enum:"Platform"`
 
-	// The semantic version of the component. This version to follow the semantic
-	// version syntax. i.e. major.minor.patch. This could be versioned like software
-	// 2.0.1 or date like 2019.12.01.
+	// The semantic version of the component. This version follows the semantic
+	// version syntax. For example, major.minor.patch. This could be versioned like
+	// software (2.0.1) or like a date (2019.12.01).
 	//
 	// SemanticVersion is a required field
 	SemanticVersion *string `locationName:"semanticVersion" type:"string" required:"true"`
 
-	// CThe tags of the component.
+	// The operating system (OS) version supported by the component. If the OS information
+	// is available, a prefix match is performed against the parent image OS version
+	// during image recipe creation.
+	SupportedOsVersions []*string `locationName:"supportedOsVersions" min:"1" type:"list"`
+
+	// The tags of the component.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// CThe uri of the component.
+	// The uri of the component. Must be an S3 URL and the requester must have permission
+	// to access the S3 bucket. If you use S3, you can specify component content
+	// up to your service quota. Either data or uri can be used to specify the data
+	// within the component.
 	Uri *string `locationName:"uri" type:"string"`
 }
 
@@ -5537,6 +5613,9 @@ func (s *CreateComponentInput) Validate() error {
 	}
 	if s.SemanticVersion == nil {
 		invalidParams.Add(request.NewErrParamRequired("SemanticVersion"))
+	}
+	if s.SupportedOsVersions != nil && len(s.SupportedOsVersions) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SupportedOsVersions", 1))
 	}
 	if s.Tags != nil && len(s.Tags) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
@@ -5596,6 +5675,12 @@ func (s *CreateComponentInput) SetSemanticVersion(v string) *CreateComponentInpu
 	return s
 }
 
+// SetSupportedOsVersions sets the SupportedOsVersions field's value.
+func (s *CreateComponentInput) SetSupportedOsVersions(v []*string) *CreateComponentInput {
+	s.SupportedOsVersions = v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *CreateComponentInput) SetTags(v map[string]*string) *CreateComponentInput {
 	s.Tags = v
@@ -5611,14 +5696,14 @@ func (s *CreateComponentInput) SetUri(v string) *CreateComponentInput {
 type CreateComponentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// CThe idempotency token used to make this request idempotent.
+	// The idempotency token used to make this request idempotent.
 	ClientToken *string `locationName:"clientToken" min:"1" type:"string"`
 
-	// CThe Amazon Resource Name (ARN) of the component that was created by this
+	// The Amazon Resource Name (ARN) of the component that was created by this
 	// request.
 	ComponentBuildVersionArn *string `locationName:"componentBuildVersionArn" type:"string"`
 
-	// CThe request ID that uniquely identifies this request.
+	// The request ID that uniquely identifies this request.
 	RequestId *string `locationName:"requestId" min:"1" type:"string"`
 }
 
@@ -5800,8 +5885,14 @@ type CreateImageInput struct {
 	// and configures the outputs of your pipeline.
 	DistributionConfigurationArn *string `locationName:"distributionConfigurationArn" type:"string"`
 
+	// Collects additional information about the image being created, including
+	// the operating system (OS) version and package list. This information is used
+	// to enhance the overall experience of using EC2 Image Builder. Enabled by
+	// default.
+	EnhancedImageMetadataEnabled *bool `locationName:"enhancedImageMetadataEnabled" type:"boolean"`
+
 	// The Amazon Resource Name (ARN) of the image recipe that defines how images
-	// are configured, tested and assessed.
+	// are configured, tested, and assessed.
 	//
 	// ImageRecipeArn is a required field
 	ImageRecipeArn *string `locationName:"imageRecipeArn" type:"string" required:"true"`
@@ -5865,6 +5956,12 @@ func (s *CreateImageInput) SetClientToken(v string) *CreateImageInput {
 // SetDistributionConfigurationArn sets the DistributionConfigurationArn field's value.
 func (s *CreateImageInput) SetDistributionConfigurationArn(v string) *CreateImageInput {
 	s.DistributionConfigurationArn = &v
+	return s
+}
+
+// SetEnhancedImageMetadataEnabled sets the EnhancedImageMetadataEnabled field's value.
+func (s *CreateImageInput) SetEnhancedImageMetadataEnabled(v bool) *CreateImageInput {
+	s.EnhancedImageMetadataEnabled = &v
 	return s
 }
 
@@ -5945,6 +6042,12 @@ type CreateImagePipelineInput struct {
 	// The Amazon Resource Name (ARN) of the distribution configuration that will
 	// be used to configure and distribute images created by this image pipeline.
 	DistributionConfigurationArn *string `locationName:"distributionConfigurationArn" type:"string"`
+
+	// Collects additional information about the image being created, including
+	// the operating system (OS) version and package list. This information is used
+	// to enhance the overall experience of using EC2 Image Builder. Enabled by
+	// default.
+	EnhancedImageMetadataEnabled *bool `locationName:"enhancedImageMetadataEnabled" type:"boolean"`
 
 	// The Amazon Resource Name (ARN) of the image recipe that will be used to configure
 	// images created by this image pipeline.
@@ -6039,6 +6142,12 @@ func (s *CreateImagePipelineInput) SetDescription(v string) *CreateImagePipeline
 // SetDistributionConfigurationArn sets the DistributionConfigurationArn field's value.
 func (s *CreateImagePipelineInput) SetDistributionConfigurationArn(v string) *CreateImagePipelineInput {
 	s.DistributionConfigurationArn = &v
+	return s
+}
+
+// SetEnhancedImageMetadataEnabled sets the EnhancedImageMetadataEnabled field's value.
+func (s *CreateImagePipelineInput) SetEnhancedImageMetadataEnabled(v bool) *CreateImagePipelineInput {
+	s.EnhancedImageMetadataEnabled = &v
 	return s
 }
 
@@ -6148,7 +6257,15 @@ type CreateImageRecipeInput struct {
 	// Name is a required field
 	Name *string `locationName:"name" type:"string" required:"true"`
 
-	// The parent image of the image recipe.
+	// The parent image of the image recipe. The value of the string can be the
+	// ARN of the parent image or an AMI ID. The format for the ARN follows this
+	// example: arn:aws:imagebuilder:us-west-2:aws:image/windows-server-2016-english-full-base-x86/2019.x.x.
+	// The ARN ends with /20xx.x.x, which communicates to EC2 Image Builder that
+	// you want to use the latest AMI created in 20xx (year). You can provide the
+	// specific version that you want to use, or you can use a wildcard in all of
+	// the fields. If you enter an AMI ID for the string value, you must have access
+	// to the AMI, and the AMI must be in the same Region in which you are using
+	// Image Builder.
 	//
 	// ParentImage is a required field
 	ParentImage *string `locationName:"parentImage" min:"1" type:"string" required:"true"`
@@ -6160,6 +6277,9 @@ type CreateImageRecipeInput struct {
 
 	// The tags of the image recipe.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
+
+	// The working directory to be used during build and test workflows.
+	WorkingDirectory *string `locationName:"workingDirectory" min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -6201,6 +6321,9 @@ func (s *CreateImageRecipeInput) Validate() error {
 	}
 	if s.Tags != nil && len(s.Tags) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
+	}
+	if s.WorkingDirectory != nil && len(*s.WorkingDirectory) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("WorkingDirectory", 1))
 	}
 	if s.BlockDeviceMappings != nil {
 		for i, v := range s.BlockDeviceMappings {
@@ -6277,6 +6400,12 @@ func (s *CreateImageRecipeInput) SetTags(v map[string]*string) *CreateImageRecip
 	return s
 }
 
+// SetWorkingDirectory sets the WorkingDirectory field's value.
+func (s *CreateImageRecipeInput) SetWorkingDirectory(v string) *CreateImageRecipeInput {
+	s.WorkingDirectory = &v
+	return s
+}
+
 type CreateImageRecipeOutput struct {
 	_ struct{} `type:"structure"`
 
@@ -6334,13 +6463,13 @@ type CreateInfrastructureConfigurationInput struct {
 	// InstanceProfileName is a required field
 	InstanceProfileName *string `locationName:"instanceProfileName" min:"1" type:"string" required:"true"`
 
-	// The instance types of the infrastructure configuration. You may specify one
-	// or more instance types to use for this build, the service will pick one of
+	// The instance types of the infrastructure configuration. You can specify one
+	// or more instance types to use for this build. The service will pick one of
 	// these instance types based on availability.
 	InstanceTypes []*string `locationName:"instanceTypes" type:"list"`
 
 	// The key pair of the infrastructure configuration. This can be used to log
-	// onto and debug the instance used to create your image.
+	// on to and debug the instance used to create your image.
 	KeyPair *string `locationName:"keyPair" min:"1" type:"string"`
 
 	// The logging configuration of the infrastructure configuration.
@@ -6351,23 +6480,25 @@ type CreateInfrastructureConfigurationInput struct {
 	// Name is a required field
 	Name *string `locationName:"name" type:"string" required:"true"`
 
+	// The tags attached to the resource created by Image Builder.
+	ResourceTags map[string]*string `locationName:"resourceTags" min:"1" type:"map"`
+
 	// The security group IDs to associate with the instance used to customize your
 	// EC2 AMI.
 	SecurityGroupIds []*string `locationName:"securityGroupIds" type:"list"`
 
 	// The SNS topic on which to send image build events.
-	SnsTopicArn *string `locationName:"snsTopicArn" min:"1" type:"string"`
+	SnsTopicArn *string `locationName:"snsTopicArn" type:"string"`
 
-	// The subnet ID to place the instance used to customize your EC2 AMI in.
+	// The subnet ID in which to place the instance used to customize your EC2 AMI.
 	SubnetId *string `locationName:"subnetId" min:"1" type:"string"`
 
 	// The tags of the infrastructure configuration.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
 	// The terminate instance on failure setting of the infrastructure configuration.
-	// Set to false if you wish for Image Builder to retain the instance used to
-	// configure your AMI in the event that the build or test phase of your workflow
-	// failed.
+	// Set to false if you want Image Builder to retain the instance used to configure
+	// your AMI if the build or test phase of your workflow fails.
 	TerminateInstanceOnFailure *bool `locationName:"terminateInstanceOnFailure" type:"boolean"`
 }
 
@@ -6402,8 +6533,8 @@ func (s *CreateInfrastructureConfigurationInput) Validate() error {
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
 	}
-	if s.SnsTopicArn != nil && len(*s.SnsTopicArn) < 1 {
-		invalidParams.Add(request.NewErrParamMinLen("SnsTopicArn", 1))
+	if s.ResourceTags != nil && len(s.ResourceTags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceTags", 1))
 	}
 	if s.SubnetId != nil && len(*s.SubnetId) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SubnetId", 1))
@@ -6462,6 +6593,12 @@ func (s *CreateInfrastructureConfigurationInput) SetLogging(v *Logging) *CreateI
 // SetName sets the Name field's value.
 func (s *CreateInfrastructureConfigurationInput) SetName(v string) *CreateInfrastructureConfigurationInput {
 	s.Name = &v
+	return s
+}
+
+// SetResourceTags sets the ResourceTags field's value.
+func (s *CreateInfrastructureConfigurationInput) SetResourceTags(v map[string]*string) *CreateInfrastructureConfigurationInput {
+	s.ResourceTags = v
 	return s
 }
 
@@ -6959,14 +7096,19 @@ func (s *DeleteInfrastructureConfigurationOutput) SetRequestId(v string) *Delete
 	return s
 }
 
+// Defines the settings for a specific Region.
 type Distribution struct {
 	_ struct{} `type:"structure"`
 
-	// Define and configure the outputs AMIs of the pipeline.
+	// The specific AMI settings (for example, launch permissions, AMI tags).
 	AmiDistributionConfiguration *AmiDistributionConfiguration `locationName:"amiDistributionConfiguration" type:"structure"`
 
+	// The License Manager Configuration to associate with the AMI in the specified
+	// Region.
 	LicenseConfigurationArns []*string `locationName:"licenseConfigurationArns" type:"list"`
 
+	// The target Region.
+	//
 	// Region is a required field
 	Region *string `locationName:"region" min:"1" type:"string" required:"true"`
 }
@@ -7109,7 +7251,7 @@ func (s *DistributionConfiguration) SetTimeoutMinutes(v int64) *DistributionConf
 	return s
 }
 
-// A high level overview a distribution configuration.
+// A high-level overview of a distribution configuration.
 type DistributionConfigurationSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -7178,7 +7320,7 @@ func (s *DistributionConfigurationSummary) SetTags(v map[string]*string) *Distri
 	return s
 }
 
-// EBS specific block device mapping specifications.
+// Amazon EBS-specific block device mapping specifications.
 type EbsInstanceBlockDeviceSpecification struct {
 	_ struct{} `type:"structure"`
 
@@ -7278,11 +7420,16 @@ func (s *EbsInstanceBlockDeviceSpecification) SetVolumeType(v string) *EbsInstan
 	return s
 }
 
+// A filter name and value pair that is used to return a more specific list
+// of results from a list operation. Filters can be used to match a set of resources
+// by specific criteria, such as tags, attributes, or IDs.
 type Filter struct {
 	_ struct{} `type:"structure"`
 
+	// The name of the filter. Filter names are case-sensitive.
 	Name *string `locationName:"name" type:"string"`
 
+	// The filter values. Filter values are case-sensitive.
 	Values []*string `locationName:"values" min:"1" type:"list"`
 }
 
@@ -7323,8 +7470,8 @@ func (s *Filter) SetValues(v []*string) *Filter {
 
 // You are not authorized to perform the requested operation.
 type ForbiddenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -7341,17 +7488,17 @@ func (s ForbiddenException) GoString() string {
 
 func newErrorForbiddenException(v protocol.ResponseMetadata) error {
 	return &ForbiddenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ForbiddenException) Code() string {
+func (s *ForbiddenException) Code() string {
 	return "ForbiddenException"
 }
 
 // Message returns the exception's message.
-func (s ForbiddenException) Message() string {
+func (s *ForbiddenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -7359,28 +7506,29 @@ func (s ForbiddenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ForbiddenException) OrigErr() error {
+func (s *ForbiddenException) OrigErr() error {
 	return nil
 }
 
-func (s ForbiddenException) Error() string {
+func (s *ForbiddenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ForbiddenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ForbiddenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ForbiddenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ForbiddenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type GetComponentInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the component that you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the component that you want to retrieve.
+	// Regex requires "/\d+$" suffix.
 	//
 	// ComponentBuildVersionArn is a required field
 	ComponentBuildVersionArn *string `location:"querystring" locationName:"componentBuildVersionArn" type:"string" required:"true"`
@@ -7450,7 +7598,7 @@ func (s *GetComponentOutput) SetRequestId(v string) *GetComponentOutput {
 type GetComponentPolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the component whose policy you wish to
+	// The Amazon Resource Name (ARN) of the component whose policy you want to
 	// retrieve.
 	//
 	// ComponentArn is a required field
@@ -7522,7 +7670,7 @@ type GetDistributionConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the distribution configuration that you
-	// wish to retrieve.
+	// want to retrieve.
 	//
 	// DistributionConfigurationArn is a required field
 	DistributionConfigurationArn *string `location:"querystring" locationName:"distributionConfigurationArn" type:"string" required:"true"`
@@ -7592,7 +7740,7 @@ func (s *GetDistributionConfigurationOutput) SetRequestId(v string) *GetDistribu
 type GetImageInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image that you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the image that you want to retrieve.
 	//
 	// ImageBuildVersionArn is a required field
 	ImageBuildVersionArn *string `location:"querystring" locationName:"imageBuildVersionArn" type:"string" required:"true"`
@@ -7662,7 +7810,7 @@ func (s *GetImageOutput) SetRequestId(v string) *GetImageOutput {
 type GetImagePipelineInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image pipeline that you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the image pipeline that you want to retrieve.
 	//
 	// ImagePipelineArn is a required field
 	ImagePipelineArn *string `location:"querystring" locationName:"imagePipelineArn" type:"string" required:"true"`
@@ -7732,7 +7880,7 @@ func (s *GetImagePipelineOutput) SetRequestId(v string) *GetImagePipelineOutput 
 type GetImagePolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image whose policy you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the image whose policy you want to retrieve.
 	//
 	// ImageArn is a required field
 	ImageArn *string `location:"querystring" locationName:"imageArn" type:"string" required:"true"`
@@ -7802,7 +7950,7 @@ func (s *GetImagePolicyOutput) SetRequestId(v string) *GetImagePolicyOutput {
 type GetImageRecipeInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image recipe that you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the image recipe that you want to retrieve.
 	//
 	// ImageRecipeArn is a required field
 	ImageRecipeArn *string `location:"querystring" locationName:"imageRecipeArn" type:"string" required:"true"`
@@ -7872,7 +8020,7 @@ func (s *GetImageRecipeOutput) SetRequestId(v string) *GetImageRecipeOutput {
 type GetImageRecipePolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image recipe whose policy you wish
+	// The Amazon Resource Name (ARN) of the image recipe whose policy you want
 	// to retrieve.
 	//
 	// ImageRecipeArn is a required field
@@ -7945,7 +8093,7 @@ type GetInfrastructureConfigurationInput struct {
 	_ struct{} `type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the infrastructure configuration that you
-	// wish to retrieve.
+	// want to retrieve.
 	//
 	// InfrastructureConfigurationArn is a required field
 	InfrastructureConfigurationArn *string `location:"querystring" locationName:"infrastructureConfigurationArn" type:"string" required:"true"`
@@ -8013,11 +8161,11 @@ func (s *GetInfrastructureConfigurationOutput) SetRequestId(v string) *GetInfras
 	return s
 }
 
-// You have specified an client token for an operation using parameter values
+// You have specified a client token for an operation using parameter values
 // that differ from a previous request that used the same client token.
 type IdempotentParameterMismatchException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -8034,17 +8182,17 @@ func (s IdempotentParameterMismatchException) GoString() string {
 
 func newErrorIdempotentParameterMismatchException(v protocol.ResponseMetadata) error {
 	return &IdempotentParameterMismatchException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s IdempotentParameterMismatchException) Code() string {
+func (s *IdempotentParameterMismatchException) Code() string {
 	return "IdempotentParameterMismatchException"
 }
 
 // Message returns the exception's message.
-func (s IdempotentParameterMismatchException) Message() string {
+func (s *IdempotentParameterMismatchException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -8052,22 +8200,22 @@ func (s IdempotentParameterMismatchException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s IdempotentParameterMismatchException) OrigErr() error {
+func (s *IdempotentParameterMismatchException) OrigErr() error {
 	return nil
 }
 
-func (s IdempotentParameterMismatchException) Error() string {
+func (s *IdempotentParameterMismatchException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s IdempotentParameterMismatchException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *IdempotentParameterMismatchException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s IdempotentParameterMismatchException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *IdempotentParameterMismatchException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // An image build version.
@@ -8083,6 +8231,12 @@ type Image struct {
 	// The distribution configuration used when creating this image.
 	DistributionConfiguration *DistributionConfiguration `locationName:"distributionConfiguration" type:"structure"`
 
+	// Collects additional information about the image being created, including
+	// the operating system (OS) version and package list. This information is used
+	// to enhance the overall experience of using EC2 Image Builder. Enabled by
+	// default.
+	EnhancedImageMetadataEnabled *bool `locationName:"enhancedImageMetadataEnabled" type:"boolean"`
+
 	// The image recipe used when creating the image.
 	ImageRecipe *ImageRecipe `locationName:"imageRecipe" type:"structure"`
 
@@ -8094,6 +8248,10 @@ type Image struct {
 
 	// The name of the image.
 	Name *string `locationName:"name" type:"string"`
+
+	// The operating system version of the instance. For example, Amazon Linux 2,
+	// Ubuntu 18, or Microsoft Windows Server 2019.
+	OsVersion *string `locationName:"osVersion" min:"1" type:"string"`
 
 	// The output resources produced when creating this image.
 	OutputResources *OutputResources `locationName:"outputResources" type:"structure"`
@@ -8145,6 +8303,12 @@ func (s *Image) SetDistributionConfiguration(v *DistributionConfiguration) *Imag
 	return s
 }
 
+// SetEnhancedImageMetadataEnabled sets the EnhancedImageMetadataEnabled field's value.
+func (s *Image) SetEnhancedImageMetadataEnabled(v bool) *Image {
+	s.EnhancedImageMetadataEnabled = &v
+	return s
+}
+
 // SetImageRecipe sets the ImageRecipe field's value.
 func (s *Image) SetImageRecipe(v *ImageRecipe) *Image {
 	s.ImageRecipe = v
@@ -8166,6 +8330,12 @@ func (s *Image) SetInfrastructureConfiguration(v *InfrastructureConfiguration) *
 // SetName sets the Name field's value.
 func (s *Image) SetName(v string) *Image {
 	s.Name = &v
+	return s
+}
+
+// SetOsVersion sets the OsVersion field's value.
+func (s *Image) SetOsVersion(v string) *Image {
+	s.OsVersion = &v
 	return s
 }
 
@@ -8237,6 +8407,12 @@ type ImagePipeline struct {
 	// with this image pipeline.
 	DistributionConfigurationArn *string `locationName:"distributionConfigurationArn" type:"string"`
 
+	// Collects additional information about the image being created, including
+	// the operating system (OS) version and package list. This information is used
+	// to enhance the overall experience of using EC2 Image Builder. Enabled by
+	// default.
+	EnhancedImageMetadataEnabled *bool `locationName:"enhancedImageMetadataEnabled" type:"boolean"`
+
 	// The Amazon Resource Name (ARN) of the image recipe associated with this image
 	// pipeline.
 	ImageRecipeArn *string `locationName:"imageRecipeArn" type:"string"`
@@ -8244,7 +8420,7 @@ type ImagePipeline struct {
 	// The image tests configuration of the image pipeline.
 	ImageTestsConfiguration *ImageTestsConfiguration `locationName:"imageTestsConfiguration" type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the infrastruction configuration associated
+	// The Amazon Resource Name (ARN) of the infrastructure configuration associated
 	// with this image pipeline.
 	InfrastructureConfigurationArn *string `locationName:"infrastructureConfigurationArn" type:"string"`
 
@@ -8313,6 +8489,12 @@ func (s *ImagePipeline) SetDescription(v string) *ImagePipeline {
 // SetDistributionConfigurationArn sets the DistributionConfigurationArn field's value.
 func (s *ImagePipeline) SetDistributionConfigurationArn(v string) *ImagePipeline {
 	s.DistributionConfigurationArn = &v
+	return s
+}
+
+// SetEnhancedImageMetadataEnabled sets the EnhancedImageMetadataEnabled field's value.
+func (s *ImagePipeline) SetEnhancedImageMetadataEnabled(v bool) *ImagePipeline {
+	s.EnhancedImageMetadataEnabled = &v
 	return s
 }
 
@@ -8400,6 +8582,9 @@ type ImageRecipe struct {
 
 	// The version of the image recipe.
 	Version *string `locationName:"version" type:"string"`
+
+	// The working directory to be used during build and test workflows.
+	WorkingDirectory *string `locationName:"workingDirectory" min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -8475,6 +8660,12 @@ func (s *ImageRecipe) SetTags(v map[string]*string) *ImageRecipe {
 // SetVersion sets the Version field's value.
 func (s *ImageRecipe) SetVersion(v string) *ImageRecipe {
 	s.Version = &v
+	return s
+}
+
+// SetWorkingDirectory sets the WorkingDirectory field's value.
+func (s *ImageRecipe) SetWorkingDirectory(v string) *ImageRecipe {
+	s.WorkingDirectory = &v
 	return s
 }
 
@@ -8556,7 +8747,7 @@ func (s *ImageRecipeSummary) SetTags(v map[string]*string) *ImageRecipeSummary {
 	return s
 }
 
-// Image state shows the images status and the reason for that status.
+// Image state shows the image status and the reason for that status.
 type ImageState struct {
 	_ struct{} `type:"structure"`
 
@@ -8601,6 +8792,10 @@ type ImageSummary struct {
 
 	// The name of the image.
 	Name *string `locationName:"name" type:"string"`
+
+	// The operating system version of the instance. For example, Amazon Linux 2,
+	// Ubuntu 18, or Microsoft Windows Server 2019.
+	OsVersion *string `locationName:"osVersion" min:"1" type:"string"`
 
 	// The output resources produced when creating this image.
 	OutputResources *OutputResources `locationName:"outputResources" type:"structure"`
@@ -8649,6 +8844,12 @@ func (s *ImageSummary) SetName(v string) *ImageSummary {
 	return s
 }
 
+// SetOsVersion sets the OsVersion field's value.
+func (s *ImageSummary) SetOsVersion(v string) *ImageSummary {
+	s.OsVersion = &v
+	return s
+}
+
 // SetOutputResources sets the OutputResources field's value.
 func (s *ImageSummary) SetOutputResources(v *OutputResources) *ImageSummary {
 	s.OutputResources = v
@@ -8692,7 +8893,7 @@ type ImageTestsConfiguration struct {
 	// Defines if tests should be executed when building this image.
 	ImageTestsEnabled *bool `locationName:"imageTestsEnabled" type:"boolean"`
 
-	// The maximum time in minutes that tests are permitted to run for.
+	// The maximum time in minutes that tests are permitted to run.
 	TimeoutMinutes *int64 `locationName:"timeoutMinutes" min:"60" type:"integer"`
 }
 
@@ -8735,7 +8936,7 @@ func (s *ImageTestsConfiguration) SetTimeoutMinutes(v int64) *ImageTestsConfigur
 type ImageVersion struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the image semantic verion.
+	// The Amazon Resource Name (ARN) of the image semantic version.
 	Arn *string `locationName:"arn" type:"string"`
 
 	// The date at which this image semantic version was created.
@@ -8743,6 +8944,10 @@ type ImageVersion struct {
 
 	// The name of the image semantic version.
 	Name *string `locationName:"name" type:"string"`
+
+	// The operating system version of the instance. For example, Amazon Linux 2,
+	// Ubuntu 18, or Microsoft Windows Server 2019.
+	OsVersion *string `locationName:"osVersion" min:"1" type:"string"`
 
 	// The owner of the image semantic version.
 	Owner *string `locationName:"owner" min:"1" type:"string"`
@@ -8782,6 +8987,12 @@ func (s *ImageVersion) SetName(v string) *ImageVersion {
 	return s
 }
 
+// SetOsVersion sets the OsVersion field's value.
+func (s *ImageVersion) SetOsVersion(v string) *ImageVersion {
+	s.OsVersion = &v
+	return s
+}
+
 // SetOwner sets the Owner field's value.
 func (s *ImageVersion) SetOwner(v string) *ImageVersion {
 	s.Owner = &v
@@ -8804,20 +9015,21 @@ type ImportComponentInput struct {
 	_ struct{} `type:"structure"`
 
 	// The change description of the component. Describes what change has been made
-	// in this version. In other words what makes this version different from other
-	// versions of this component.
+	// in this version, or what makes this version different from other versions
+	// of this component.
 	ChangeDescription *string `locationName:"changeDescription" min:"1" type:"string"`
 
 	// The idempotency token of the component.
 	ClientToken *string `locationName:"clientToken" min:"1" type:"string" idempotencyToken:"true"`
 
-	// The data of the component.
+	// The data of the component. Used to specify the data inline. Either data or
+	// uri can be used to specify the data within the component.
 	Data *string `locationName:"data" min:"1" type:"string"`
 
 	// The description of the component. Describes the contents of the component.
 	Description *string `locationName:"description" min:"1" type:"string"`
 
-	// The format of the resource that you wish to import as a component.
+	// The format of the resource that you want to import as a component.
 	//
 	// Format is a required field
 	Format *string `locationName:"format" type:"string" required:"true" enum:"ComponentFormat"`
@@ -8835,9 +9047,9 @@ type ImportComponentInput struct {
 	// Platform is a required field
 	Platform *string `locationName:"platform" type:"string" required:"true" enum:"Platform"`
 
-	// The semantic version of the component. This version to follow the semantic
-	// version syntax. i.e. major.minor.patch. This could be versioned like software
-	// 2.0.1 or date like 2019.12.01.
+	// The semantic version of the component. This version follows the semantic
+	// version syntax. For example, major.minor.patch. This could be versioned like
+	// software (2.0.1) or like a date (2019.12.01).
 	//
 	// SemanticVersion is a required field
 	SemanticVersion *string `locationName:"semanticVersion" type:"string" required:"true"`
@@ -8851,7 +9063,10 @@ type ImportComponentInput struct {
 	// Type is a required field
 	Type *string `locationName:"type" type:"string" required:"true" enum:"ComponentType"`
 
-	// The uri of the component.
+	// The uri of the component. Must be an S3 URL and the requester must have permission
+	// to access the S3 bucket. If you use S3, you can specify component content
+	// up to your service quota. Either data or uri can be used to specify the data
+	// within the component.
 	Uri *string `locationName:"uri" type:"string"`
 }
 
@@ -9025,7 +9240,7 @@ func (s *ImportComponentOutput) SetRequestId(v string) *ImportComponentOutput {
 type InfrastructureConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the infrastruction configuration.
+	// The Amazon Resource Name (ARN) of the infrastructure configuration.
 	Arn *string `locationName:"arn" type:"string"`
 
 	// The date on which the infrastructure configuration was created.
@@ -9034,37 +9249,40 @@ type InfrastructureConfiguration struct {
 	// The date on which the infrastructure configuration was last updated.
 	DateUpdated *string `locationName:"dateUpdated" type:"string"`
 
-	// The description of the infrastruction configuration.
+	// The description of the infrastructure configuration.
 	Description *string `locationName:"description" min:"1" type:"string"`
 
-	// The instance profile of the infrastruction configuration.
+	// The instance profile of the infrastructure configuration.
 	InstanceProfileName *string `locationName:"instanceProfileName" min:"1" type:"string"`
 
-	// The instance types of the infrastruction configuration.
+	// The instance types of the infrastructure configuration.
 	InstanceTypes []*string `locationName:"instanceTypes" type:"list"`
 
-	// The EC2 key pair of the infrastruction configuration.
+	// The EC2 key pair of the infrastructure configuration.
 	KeyPair *string `locationName:"keyPair" min:"1" type:"string"`
 
-	// The logging configuration of the infrastruction configuration.
+	// The logging configuration of the infrastructure configuration.
 	Logging *Logging `locationName:"logging" type:"structure"`
 
-	// The name of the infrastruction configuration.
+	// The name of the infrastructure configuration.
 	Name *string `locationName:"name" type:"string"`
 
-	// The security group IDs of the infrastruction configuration.
+	// The tags attached to the resource created by Image Builder.
+	ResourceTags map[string]*string `locationName:"resourceTags" min:"1" type:"map"`
+
+	// The security group IDs of the infrastructure configuration.
 	SecurityGroupIds []*string `locationName:"securityGroupIds" type:"list"`
 
-	// The SNS Topic Amazon Resource Name (ARN) of the infrastruction configuration.
+	// The SNS topic Amazon Resource Name (ARN) of the infrastructure configuration.
 	SnsTopicArn *string `locationName:"snsTopicArn" min:"1" type:"string"`
 
-	// The subnet ID of the infrastruction configuration.
+	// The subnet ID of the infrastructure configuration.
 	SubnetId *string `locationName:"subnetId" min:"1" type:"string"`
 
-	// The tags of the infrastruction configuration.
+	// The tags of the infrastructure configuration.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// The terminate instance on failure configuration of the infrastruction configuration.
+	// The terminate instance on failure configuration of the infrastructure configuration.
 	TerminateInstanceOnFailure *bool `locationName:"terminateInstanceOnFailure" type:"boolean"`
 }
 
@@ -9132,6 +9350,12 @@ func (s *InfrastructureConfiguration) SetName(v string) *InfrastructureConfigura
 	return s
 }
 
+// SetResourceTags sets the ResourceTags field's value.
+func (s *InfrastructureConfiguration) SetResourceTags(v map[string]*string) *InfrastructureConfiguration {
+	s.ResourceTags = v
+	return s
+}
+
 // SetSecurityGroupIds sets the SecurityGroupIds field's value.
 func (s *InfrastructureConfiguration) SetSecurityGroupIds(v []*string) *InfrastructureConfiguration {
 	s.SecurityGroupIds = v
@@ -9181,6 +9405,9 @@ type InfrastructureConfigurationSummary struct {
 	// The name of the infrastructure configuration.
 	Name *string `locationName:"name" type:"string"`
 
+	// The tags attached to the image created by Image Builder.
+	ResourceTags map[string]*string `locationName:"resourceTags" min:"1" type:"map"`
+
 	// The tags of the infrastructure configuration.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
@@ -9225,6 +9452,12 @@ func (s *InfrastructureConfigurationSummary) SetName(v string) *InfrastructureCo
 	return s
 }
 
+// SetResourceTags sets the ResourceTags field's value.
+func (s *InfrastructureConfigurationSummary) SetResourceTags(v map[string]*string) *InfrastructureConfigurationSummary {
+	s.ResourceTags = v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *InfrastructureConfigurationSummary) SetTags(v map[string]*string) *InfrastructureConfigurationSummary {
 	s.Tags = v
@@ -9238,11 +9471,11 @@ type InstanceBlockDeviceMapping struct {
 	// The device to which these mappings apply.
 	DeviceName *string `locationName:"deviceName" min:"1" type:"string"`
 
-	// Use to manage EBS specific configuration for this mapping.
+	// Use to manage Amazon EBS-specific configuration for this mapping.
 	Ebs *EbsInstanceBlockDeviceSpecification `locationName:"ebs" type:"structure"`
 
 	// Use to remove a mapping from the parent image.
-	NoDevice *string `locationName:"noDevice" min:"1" type:"string"`
+	NoDevice *string `locationName:"noDevice" type:"string"`
 
 	// Use to manage instance ephemeral devices.
 	VirtualName *string `locationName:"virtualName" min:"1" type:"string"`
@@ -9263,9 +9496,6 @@ func (s *InstanceBlockDeviceMapping) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "InstanceBlockDeviceMapping"}
 	if s.DeviceName != nil && len(*s.DeviceName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("DeviceName", 1))
-	}
-	if s.NoDevice != nil && len(*s.NoDevice) < 1 {
-		invalidParams.Add(request.NewErrParamMinLen("NoDevice", 1))
 	}
 	if s.VirtualName != nil && len(*s.VirtualName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("VirtualName", 1))
@@ -9308,8 +9538,8 @@ func (s *InstanceBlockDeviceMapping) SetVirtualName(v string) *InstanceBlockDevi
 
 // You have provided an invalid pagination token in your request.
 type InvalidPaginationTokenException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9326,17 +9556,17 @@ func (s InvalidPaginationTokenException) GoString() string {
 
 func newErrorInvalidPaginationTokenException(v protocol.ResponseMetadata) error {
 	return &InvalidPaginationTokenException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidPaginationTokenException) Code() string {
+func (s *InvalidPaginationTokenException) Code() string {
 	return "InvalidPaginationTokenException"
 }
 
 // Message returns the exception's message.
-func (s InvalidPaginationTokenException) Message() string {
+func (s *InvalidPaginationTokenException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9344,29 +9574,29 @@ func (s InvalidPaginationTokenException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidPaginationTokenException) OrigErr() error {
+func (s *InvalidPaginationTokenException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidPaginationTokenException) Error() string {
+func (s *InvalidPaginationTokenException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidPaginationTokenException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidPaginationTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidPaginationTokenException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidPaginationTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // You have specified two or more mutually exclusive parameters. Review the
 // error message for details.
 type InvalidParameterCombinationException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9383,17 +9613,17 @@ func (s InvalidParameterCombinationException) GoString() string {
 
 func newErrorInvalidParameterCombinationException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterCombinationException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterCombinationException) Code() string {
+func (s *InvalidParameterCombinationException) Code() string {
 	return "InvalidParameterCombinationException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterCombinationException) Message() string {
+func (s *InvalidParameterCombinationException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9401,29 +9631,29 @@ func (s InvalidParameterCombinationException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterCombinationException) OrigErr() error {
+func (s *InvalidParameterCombinationException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterCombinationException) Error() string {
+func (s *InvalidParameterCombinationException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterCombinationException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterCombinationException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterCombinationException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterCombinationException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified parameter is invalid. Review the available parameters for the
 // API request.
 type InvalidParameterException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9440,17 +9670,17 @@ func (s InvalidParameterException) GoString() string {
 
 func newErrorInvalidParameterException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterException) Code() string {
+func (s *InvalidParameterException) Code() string {
 	return "InvalidParameterException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterException) Message() string {
+func (s *InvalidParameterException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9458,28 +9688,28 @@ func (s InvalidParameterException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterException) OrigErr() error {
+func (s *InvalidParameterException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterException) Error() string {
+func (s *InvalidParameterException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The value that you provided for the specified parameter is invalid.
 type InvalidParameterValueException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9496,17 +9726,17 @@ func (s InvalidParameterValueException) GoString() string {
 
 func newErrorInvalidParameterValueException(v protocol.ResponseMetadata) error {
 	return &InvalidParameterValueException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidParameterValueException) Code() string {
+func (s *InvalidParameterValueException) Code() string {
 	return "InvalidParameterValueException"
 }
 
 // Message returns the exception's message.
-func (s InvalidParameterValueException) Message() string {
+func (s *InvalidParameterValueException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9514,28 +9744,28 @@ func (s InvalidParameterValueException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidParameterValueException) OrigErr() error {
+func (s *InvalidParameterValueException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidParameterValueException) Error() string {
+func (s *InvalidParameterValueException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidParameterValueException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidParameterValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidParameterValueException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidParameterValueException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // You have made a request for an action that is not supported by the service.
 type InvalidRequestException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9552,17 +9782,17 @@ func (s InvalidRequestException) GoString() string {
 
 func newErrorInvalidRequestException(v protocol.ResponseMetadata) error {
 	return &InvalidRequestException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidRequestException) Code() string {
+func (s *InvalidRequestException) Code() string {
 	return "InvalidRequestException"
 }
 
 // Message returns the exception's message.
-func (s InvalidRequestException) Message() string {
+func (s *InvalidRequestException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9570,28 +9800,28 @@ func (s InvalidRequestException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidRequestException) OrigErr() error {
+func (s *InvalidRequestException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidRequestException) Error() string {
+func (s *InvalidRequestException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidRequestException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidRequestException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidRequestException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidRequestException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // Your version number is out of bounds or does not follow the required syntax.
 type InvalidVersionNumberException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -9608,17 +9838,17 @@ func (s InvalidVersionNumberException) GoString() string {
 
 func newErrorInvalidVersionNumberException(v protocol.ResponseMetadata) error {
 	return &InvalidVersionNumberException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s InvalidVersionNumberException) Code() string {
+func (s *InvalidVersionNumberException) Code() string {
 	return "InvalidVersionNumberException"
 }
 
 // Message returns the exception's message.
-func (s InvalidVersionNumberException) Message() string {
+func (s *InvalidVersionNumberException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -9626,29 +9856,35 @@ func (s InvalidVersionNumberException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s InvalidVersionNumberException) OrigErr() error {
+func (s *InvalidVersionNumberException) OrigErr() error {
 	return nil
 }
 
-func (s InvalidVersionNumberException) Error() string {
+func (s *InvalidVersionNumberException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s InvalidVersionNumberException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *InvalidVersionNumberException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s InvalidVersionNumberException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *InvalidVersionNumberException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
+// Describes the configuration for a launch permission. The launch permission
+// modification request is sent to the EC2 ModifyImageAttribute (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyImageAttribute.html)
+// API on behalf of the user for each Region they have selected to distribute
+// the AMI.
 type LaunchPermissionConfiguration struct {
 	_ struct{} `type:"structure"`
 
+	// The name of the group.
 	UserGroups []*string `locationName:"userGroups" type:"list"`
 
+	// The AWS account ID.
 	UserIds []*string `locationName:"userIds" type:"list"`
 }
 
@@ -9677,7 +9913,8 @@ func (s *LaunchPermissionConfiguration) SetUserIds(v []*string) *LaunchPermissio
 type ListComponentBuildVersionsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The component version arn whose versions you wish to list.
+	// The component version Amazon Resource Name (ARN) whose versions you want
+	// to list.
 	//
 	// ComponentVersionArn is a required field
 	ComponentVersionArn *string `locationName:"componentVersionArn" type:"string" required:"true"`
@@ -9743,9 +9980,9 @@ type ListComponentBuildVersionsOutput struct {
 	// The list of component summaries for the specified semantic version.
 	ComponentSummaryList []*ComponentSummary `locationName:"componentSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -9783,6 +10020,7 @@ func (s *ListComponentBuildVersionsOutput) SetRequestId(v string) *ListComponent
 type ListComponentsInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -9792,9 +10030,9 @@ type ListComponentsInput struct {
 	// a previously truncated response.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
-	// The owner defines whose components you wish to list. By default this request
-	// will only show components owned by your account. You may use this field to
-	// specify if you wish to view components owned by yourself, Amazon, or those
+	// The owner defines which components you want to list. By default, this request
+	// will only show components owned by your account. You can use this field to
+	// specify if you want to view components owned by yourself, by Amazon, or those
 	// components that have been shared with you by other customers.
 	Owner *string `locationName:"owner" type:"string" enum:"Ownership"`
 }
@@ -9868,9 +10106,9 @@ type ListComponentsOutput struct {
 	// The list of component semantic versions.
 	ComponentVersionList []*ComponentVersion `locationName:"componentVersionList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -9908,6 +10146,7 @@ func (s *ListComponentsOutput) SetRequestId(v string) *ListComponentsOutput {
 type ListDistributionConfigurationsInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -9981,9 +10220,9 @@ type ListDistributionConfigurationsOutput struct {
 	// The list of distributions.
 	DistributionConfigurationSummaryList []*DistributionConfigurationSummary `locationName:"distributionConfigurationSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10021,9 +10260,10 @@ func (s *ListDistributionConfigurationsOutput) SetRequestId(v string) *ListDistr
 type ListImageBuildVersionsInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
-	// The Amazon Resource Name (ARN) of the image whose build versions you wish
+	// The Amazon Resource Name (ARN) of the image whose build versions you want
 	// to retrieve.
 	//
 	// ImageVersionArn is a required field
@@ -10109,9 +10349,9 @@ type ListImageBuildVersionsOutput struct {
 	// The list of image build versions.
 	ImageSummaryList []*ImageSummary `locationName:"imageSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10149,11 +10389,14 @@ func (s *ListImageBuildVersionsOutput) SetRequestId(v string) *ListImageBuildVer
 type ListImagePipelineImagesInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
-	// The Amazon Resource Name (ARN) of the image pipeline whose images you wish
+	// The Amazon Resource Name (ARN) of the image pipeline whose images you want
 	// to view.
-	ImagePipelineArn *string `locationName:"imagePipelineArn" type:"string"`
+	//
+	// ImagePipelineArn is a required field
+	ImagePipelineArn *string `locationName:"imagePipelineArn" type:"string" required:"true"`
 
 	// The maximum items to return in a request.
 	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
@@ -10178,6 +10421,9 @@ func (s *ListImagePipelineImagesInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "ListImagePipelineImagesInput"}
 	if s.Filters != nil && len(s.Filters) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Filters", 1))
+	}
+	if s.ImagePipelineArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ImagePipelineArn"))
 	}
 	if s.MaxResults != nil && *s.MaxResults < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
@@ -10232,9 +10478,9 @@ type ListImagePipelineImagesOutput struct {
 	// The list of images built by this pipeline.
 	ImageSummaryList []*ImageSummary `locationName:"imageSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10272,6 +10518,7 @@ func (s *ListImagePipelineImagesOutput) SetRequestId(v string) *ListImagePipelin
 type ListImagePipelinesInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -10345,9 +10592,9 @@ type ListImagePipelinesOutput struct {
 	// The list of image pipelines.
 	ImagePipelineList []*ImagePipeline `locationName:"imagePipelineList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10385,6 +10632,7 @@ func (s *ListImagePipelinesOutput) SetRequestId(v string) *ListImagePipelinesOut
 type ListImageRecipesInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -10394,10 +10642,10 @@ type ListImageRecipesInput struct {
 	// a previously truncated response.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
-	// The owner defines whose image recipes you wish to list. By default this request
-	// will only show image recipes owned by your account. You may use this field
-	// to specify if you wish to view image recipes owned by yourself, Amazon, or
-	// those image recipes that have been shared with you by other customers.
+	// The owner defines which image recipes you want to list. By default, this
+	// request will only show image recipes owned by your account. You can use this
+	// field to specify if you want to view image recipes owned by yourself, by
+	// Amazon, or those image recipes that have been shared with you by other customers.
 	Owner *string `locationName:"owner" type:"string" enum:"Ownership"`
 }
 
@@ -10470,9 +10718,9 @@ type ListImageRecipesOutput struct {
 	// The list of image pipelines.
 	ImageRecipeSummaryList []*ImageRecipeSummary `locationName:"imageRecipeSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10510,6 +10758,7 @@ func (s *ListImageRecipesOutput) SetRequestId(v string) *ListImageRecipesOutput 
 type ListImagesInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -10519,10 +10768,10 @@ type ListImagesInput struct {
 	// a previously truncated response.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
-	// The owner defines whose images you wish to list. By default this request
-	// will only show images owned by your account. You may use this field to specify
-	// if you wish to view images owned by yourself, Amazon, or those images that
-	// have been shared with you by other customers.
+	// The owner defines which images you want to list. By default, this request
+	// will only show images owned by your account. You can use this field to specify
+	// if you want to view images owned by yourself, by Amazon, or those images
+	// that have been shared with you by other customers.
 	Owner *string `locationName:"owner" type:"string" enum:"Ownership"`
 }
 
@@ -10595,9 +10844,9 @@ type ListImagesOutput struct {
 	// The list of image semantic versions.
 	ImageVersionList []*ImageVersion `locationName:"imageVersionList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10635,6 +10884,7 @@ func (s *ListImagesOutput) SetRequestId(v string) *ListImagesOutput {
 type ListInfrastructureConfigurationsInput struct {
 	_ struct{} `type:"structure"`
 
+	// The filters.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -10708,9 +10958,9 @@ type ListInfrastructureConfigurationsOutput struct {
 	// The list of infrastructure configurations.
 	InfrastructureConfigurationSummaryList []*InfrastructureConfigurationSummary `locationName:"infrastructureConfigurationSummaryList" type:"list"`
 
-	// The next token used for paginated responses. When this is not empty then
-	// there are additional elements that the service that not include in this request.
-	// Use this token with the next request to retrieve additional object.
+	// The next token used for paginated responses. When this is not empty, there
+	// are additional elements that the service has not included in this request.
+	// Use this token with the next request to retrieve additional objects.
 	NextToken *string `locationName:"nextToken" min:"1" type:"string"`
 
 	// The request ID that uniquely identifies this request.
@@ -10748,7 +10998,7 @@ func (s *ListInfrastructureConfigurationsOutput) SetRequestId(v string) *ListInf
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource whose tags you wish to retrieve.
+	// The Amazon Resource Name (ARN) of the resource whose tags you want to retrieve.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -10809,11 +11059,11 @@ func (s *ListTagsForResourceOutput) SetTags(v map[string]*string) *ListTagsForRe
 	return s
 }
 
-// Logging configuration defines where Image Builder uploads your logs to.
+// Logging configuration defines where Image Builder uploads your logs.
 type Logging struct {
 	_ struct{} `type:"structure"`
 
-	// The S3 logging configuration.
+	// The Amazon S3 logging configuration.
 	S3Logs *S3Logs `locationName:"s3Logs" type:"structure"`
 }
 
@@ -11141,8 +11391,8 @@ func (s *PutImageRecipePolicyOutput) SetRequestId(v string) *PutImageRecipePolic
 
 // The resource that you are trying to create already exists.
 type ResourceAlreadyExistsException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11159,17 +11409,17 @@ func (s ResourceAlreadyExistsException) GoString() string {
 
 func newErrorResourceAlreadyExistsException(v protocol.ResponseMetadata) error {
 	return &ResourceAlreadyExistsException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceAlreadyExistsException) Code() string {
+func (s *ResourceAlreadyExistsException) Code() string {
 	return "ResourceAlreadyExistsException"
 }
 
 // Message returns the exception's message.
-func (s ResourceAlreadyExistsException) Message() string {
+func (s *ResourceAlreadyExistsException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11177,29 +11427,29 @@ func (s ResourceAlreadyExistsException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceAlreadyExistsException) OrigErr() error {
+func (s *ResourceAlreadyExistsException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceAlreadyExistsException) Error() string {
+func (s *ResourceAlreadyExistsException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceAlreadyExistsException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceAlreadyExistsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceAlreadyExistsException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceAlreadyExistsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // You have attempted to mutate or delete a resource with a dependency that
-// is prohibitting this action. See the error message for more details.
+// prohibits this action. See the error message for more details.
 type ResourceDependencyException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11216,17 +11466,17 @@ func (s ResourceDependencyException) GoString() string {
 
 func newErrorResourceDependencyException(v protocol.ResponseMetadata) error {
 	return &ResourceDependencyException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceDependencyException) Code() string {
+func (s *ResourceDependencyException) Code() string {
 	return "ResourceDependencyException"
 }
 
 // Message returns the exception's message.
-func (s ResourceDependencyException) Message() string {
+func (s *ResourceDependencyException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11234,29 +11484,29 @@ func (s ResourceDependencyException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceDependencyException) OrigErr() error {
+func (s *ResourceDependencyException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceDependencyException) Error() string {
+func (s *ResourceDependencyException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceDependencyException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceDependencyException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceDependencyException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceDependencyException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The resource that you are trying to operate on is currently in use. Review
-// the message details, and retry later.
+// the message details and retry later.
 type ResourceInUseException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11273,17 +11523,17 @@ func (s ResourceInUseException) GoString() string {
 
 func newErrorResourceInUseException(v protocol.ResponseMetadata) error {
 	return &ResourceInUseException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceInUseException) Code() string {
+func (s *ResourceInUseException) Code() string {
 	return "ResourceInUseException"
 }
 
 // Message returns the exception's message.
-func (s ResourceInUseException) Message() string {
+func (s *ResourceInUseException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11291,28 +11541,28 @@ func (s ResourceInUseException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceInUseException) OrigErr() error {
+func (s *ResourceInUseException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceInUseException) Error() string {
+func (s *ResourceInUseException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceInUseException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceInUseException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceInUseException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceInUseException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // At least one of the resources referenced by your request does not exist.
 type ResourceNotFoundException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11329,17 +11579,17 @@ func (s ResourceNotFoundException) GoString() string {
 
 func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
 	return &ResourceNotFoundException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ResourceNotFoundException) Code() string {
+func (s *ResourceNotFoundException) Code() string {
 	return "ResourceNotFoundException"
 }
 
 // Message returns the exception's message.
-func (s ResourceNotFoundException) Message() string {
+func (s *ResourceNotFoundException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11347,32 +11597,32 @@ func (s ResourceNotFoundException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ResourceNotFoundException) OrigErr() error {
+func (s *ResourceNotFoundException) OrigErr() error {
 	return nil
 }
 
-func (s ResourceNotFoundException) Error() string {
+func (s *ResourceNotFoundException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ResourceNotFoundException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ResourceNotFoundException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
-// S3 Logging configuration.
+// Amazon S3 logging configuration.
 type S3Logs struct {
 	_ struct{} `type:"structure"`
 
-	// The S3 bucket in which to store the logs.
+	// The Amazon S3 bucket in which to store the logs.
 	S3BucketName *string `locationName:"s3BucketName" min:"1" type:"string"`
 
-	// The S3 path in which to store the logs.
+	// The Amazon S3 path in which to store the logs.
 	S3KeyPrefix *string `locationName:"s3KeyPrefix" min:"1" type:"string"`
 }
 
@@ -11420,10 +11670,13 @@ type Schedule struct {
 	_ struct{} `type:"structure"`
 
 	// The condition configures when the pipeline should trigger a new image build.
+	// When the pipelineExecutionStartCondition is set to EXPRESSION_MATCH_AND_DEPENDENCY_UPDATES_AVAILABLE,
+	// EC2 Image Builder will build a new image only when there are known changes
+	// pending. When it is set to EXPRESSION_MATCH_ONLY, it will build a new image
+	// every time the CRON expression matches the current time.
 	PipelineExecutionStartCondition *string `locationName:"pipelineExecutionStartCondition" type:"string" enum:"PipelineExecutionStartCondition"`
 
-	// The expression determines how often a pipeline starts the creation of new
-	// images.
+	// The expression determines how often EC2 Image Builder evaluates your pipelineExecutionStartCondition.
 	ScheduleExpression *string `locationName:"scheduleExpression" min:"1" type:"string"`
 }
 
@@ -11464,8 +11717,8 @@ func (s *Schedule) SetScheduleExpression(v string) *Schedule {
 
 // This exception is thrown when the service encounters an unrecoverable exception.
 type ServiceException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11482,17 +11735,17 @@ func (s ServiceException) GoString() string {
 
 func newErrorServiceException(v protocol.ResponseMetadata) error {
 	return &ServiceException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceException) Code() string {
+func (s *ServiceException) Code() string {
 	return "ServiceException"
 }
 
 // Message returns the exception's message.
-func (s ServiceException) Message() string {
+func (s *ServiceException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11500,28 +11753,85 @@ func (s ServiceException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceException) OrigErr() error {
+func (s *ServiceException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceException) Error() string {
+func (s *ServiceException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// You have exceeded the number of permitted resources or operations for this
+// service. For service quotas, see EC2 Image Builder endpoints and quotas (https://docs.aws.amazon.com/general/latest/gr/imagebuilder.html#limits_imagebuilder).
+type ServiceQuotaExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ServiceQuotaExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ServiceQuotaExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorServiceQuotaExceededException(v protocol.ResponseMetadata) error {
+	return &ServiceQuotaExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ServiceQuotaExceededException) Code() string {
+	return "ServiceQuotaExceededException"
+}
+
+// Message returns the exception's message.
+func (s *ServiceQuotaExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ServiceQuotaExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *ServiceQuotaExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ServiceQuotaExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ServiceQuotaExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The service is unable to process your request at this time.
 type ServiceUnavailableException struct {
-	_            struct{} `type:"structure"`
-	respMetadata protocol.ResponseMetadata
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
 
 	Message_ *string `locationName:"message" type:"string"`
 }
@@ -11538,17 +11848,17 @@ func (s ServiceUnavailableException) GoString() string {
 
 func newErrorServiceUnavailableException(v protocol.ResponseMetadata) error {
 	return &ServiceUnavailableException{
-		respMetadata: v,
+		RespMetadata: v,
 	}
 }
 
 // Code returns the exception type name.
-func (s ServiceUnavailableException) Code() string {
+func (s *ServiceUnavailableException) Code() string {
 	return "ServiceUnavailableException"
 }
 
 // Message returns the exception's message.
-func (s ServiceUnavailableException) Message() string {
+func (s *ServiceUnavailableException) Message() string {
 	if s.Message_ != nil {
 		return *s.Message_
 	}
@@ -11556,22 +11866,22 @@ func (s ServiceUnavailableException) Message() string {
 }
 
 // OrigErr always returns nil, satisfies awserr.Error interface.
-func (s ServiceUnavailableException) OrigErr() error {
+func (s *ServiceUnavailableException) OrigErr() error {
 	return nil
 }
 
-func (s ServiceUnavailableException) Error() string {
+func (s *ServiceUnavailableException) Error() string {
 	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
 }
 
 // Status code returns the HTTP status code for the request's response error.
-func (s ServiceUnavailableException) StatusCode() int {
-	return s.respMetadata.StatusCode
+func (s *ServiceUnavailableException) StatusCode() int {
+	return s.RespMetadata.StatusCode
 }
 
 // RequestID returns the service's response RequestID for request.
-func (s ServiceUnavailableException) RequestID() string {
-	return s.respMetadata.RequestID
+func (s *ServiceUnavailableException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 type StartImagePipelineExecutionInput struct {
@@ -11580,7 +11890,7 @@ type StartImagePipelineExecutionInput struct {
 	// The idempotency token used to make this request idempotent.
 	ClientToken *string `locationName:"clientToken" min:"1" type:"string" idempotencyToken:"true"`
 
-	// The Amazon Resource Name (ARN) of the image pipeline that you wish to manually
+	// The Amazon Resource Name (ARN) of the image pipeline that you want to manually
 	// invoke.
 	//
 	// ImagePipelineArn is a required field
@@ -11669,7 +11979,7 @@ func (s *StartImagePipelineExecutionOutput) SetRequestId(v string) *StartImagePi
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource that you wish to tag.
+	// The Amazon Resource Name (ARN) of the resource that you want to tag.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -11741,7 +12051,7 @@ func (s TagResourceOutput) GoString() string {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource that you wish to untag.
+	// The Amazon Resource Name (ARN) of the resource that you want to untag.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -11820,13 +12130,15 @@ type UpdateDistributionConfigurationInput struct {
 	Description *string `locationName:"description" min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the distribution configuration that you
-	// wish to update.
+	// want to update.
 	//
 	// DistributionConfigurationArn is a required field
 	DistributionConfigurationArn *string `locationName:"distributionConfigurationArn" type:"string" required:"true"`
 
 	// The distributions of the distribution configuration.
-	Distributions []*Distribution `locationName:"distributions" type:"list"`
+	//
+	// Distributions is a required field
+	Distributions []*Distribution `locationName:"distributions" type:"list" required:"true"`
 }
 
 // String returns the string representation
@@ -11850,6 +12162,9 @@ func (s *UpdateDistributionConfigurationInput) Validate() error {
 	}
 	if s.DistributionConfigurationArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("DistributionConfigurationArn"))
+	}
+	if s.Distributions == nil {
+		invalidParams.Add(request.NewErrParamRequired("Distributions"))
 	}
 	if s.Distributions != nil {
 		for i, v := range s.Distributions {
@@ -11947,21 +12262,31 @@ type UpdateImagePipelineInput struct {
 	// be used to configure and distribute images updated by this image pipeline.
 	DistributionConfigurationArn *string `locationName:"distributionConfigurationArn" type:"string"`
 
-	// The Amazon Resource Name (ARN) of the image pipeline that you wish to update.
+	// Collects additional information about the image being created, including
+	// the operating system (OS) version and package list. This information is used
+	// to enhance the overall experience of using EC2 Image Builder. Enabled by
+	// default.
+	EnhancedImageMetadataEnabled *bool `locationName:"enhancedImageMetadataEnabled" type:"boolean"`
+
+	// The Amazon Resource Name (ARN) of the image pipeline that you want to update.
 	//
 	// ImagePipelineArn is a required field
 	ImagePipelineArn *string `locationName:"imagePipelineArn" type:"string" required:"true"`
 
 	// The Amazon Resource Name (ARN) of the image recipe that will be used to configure
 	// images updated by this image pipeline.
-	ImageRecipeArn *string `locationName:"imageRecipeArn" type:"string"`
+	//
+	// ImageRecipeArn is a required field
+	ImageRecipeArn *string `locationName:"imageRecipeArn" type:"string" required:"true"`
 
 	// The image test configuration of the image pipeline.
 	ImageTestsConfiguration *ImageTestsConfiguration `locationName:"imageTestsConfiguration" type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the infrastructure configuration that will
 	// be used to build images updated by this image pipeline.
-	InfrastructureConfigurationArn *string `locationName:"infrastructureConfigurationArn" type:"string"`
+	//
+	// InfrastructureConfigurationArn is a required field
+	InfrastructureConfigurationArn *string `locationName:"infrastructureConfigurationArn" type:"string" required:"true"`
 
 	// The schedule of the image pipeline.
 	Schedule *Schedule `locationName:"schedule" type:"structure"`
@@ -11991,6 +12316,12 @@ func (s *UpdateImagePipelineInput) Validate() error {
 	}
 	if s.ImagePipelineArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("ImagePipelineArn"))
+	}
+	if s.ImageRecipeArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ImageRecipeArn"))
+	}
+	if s.InfrastructureConfigurationArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("InfrastructureConfigurationArn"))
 	}
 	if s.ImageTestsConfiguration != nil {
 		if err := s.ImageTestsConfiguration.Validate(); err != nil {
@@ -12024,6 +12355,12 @@ func (s *UpdateImagePipelineInput) SetDescription(v string) *UpdateImagePipeline
 // SetDistributionConfigurationArn sets the DistributionConfigurationArn field's value.
 func (s *UpdateImagePipelineInput) SetDistributionConfigurationArn(v string) *UpdateImagePipelineInput {
 	s.DistributionConfigurationArn = &v
+	return s
+}
+
+// SetEnhancedImageMetadataEnabled sets the EnhancedImageMetadataEnabled field's value.
+func (s *UpdateImagePipelineInput) SetEnhancedImageMetadataEnabled(v bool) *UpdateImagePipelineInput {
+	s.EnhancedImageMetadataEnabled = &v
 	return s
 }
 
@@ -12115,41 +12452,45 @@ type UpdateInfrastructureConfigurationInput struct {
 	Description *string `locationName:"description" min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the infrastructure configuration that you
-	// wish to update.
+	// want to update.
 	//
 	// InfrastructureConfigurationArn is a required field
 	InfrastructureConfigurationArn *string `locationName:"infrastructureConfigurationArn" type:"string" required:"true"`
 
 	// The instance profile to associate with the instance used to customize your
 	// EC2 AMI.
-	InstanceProfileName *string `locationName:"instanceProfileName" min:"1" type:"string"`
+	//
+	// InstanceProfileName is a required field
+	InstanceProfileName *string `locationName:"instanceProfileName" min:"1" type:"string" required:"true"`
 
-	// The instance types of the infrastructure configuration. You may specify one
-	// or more instance types to use for this build, the service will pick one of
+	// The instance types of the infrastructure configuration. You can specify one
+	// or more instance types to use for this build. The service will pick one of
 	// these instance types based on availability.
 	InstanceTypes []*string `locationName:"instanceTypes" type:"list"`
 
 	// The key pair of the infrastructure configuration. This can be used to log
-	// onto and debug the instance used to create your image.
+	// on to and debug the instance used to create your image.
 	KeyPair *string `locationName:"keyPair" min:"1" type:"string"`
 
 	// The logging configuration of the infrastructure configuration.
 	Logging *Logging `locationName:"logging" type:"structure"`
+
+	// The tags attached to the resource created by Image Builder.
+	ResourceTags map[string]*string `locationName:"resourceTags" min:"1" type:"map"`
 
 	// The security group IDs to associate with the instance used to customize your
 	// EC2 AMI.
 	SecurityGroupIds []*string `locationName:"securityGroupIds" type:"list"`
 
 	// The SNS topic on which to send image build events.
-	SnsTopicArn *string `locationName:"snsTopicArn" min:"1" type:"string"`
+	SnsTopicArn *string `locationName:"snsTopicArn" type:"string"`
 
 	// The subnet ID to place the instance used to customize your EC2 AMI in.
 	SubnetId *string `locationName:"subnetId" min:"1" type:"string"`
 
 	// The terminate instance on failure setting of the infrastructure configuration.
-	// Set to false if you wish for Image Builder to retain the instance used to
-	// configure your AMI in the event that the build or test phase of your workflow
-	// failed.
+	// Set to false if you want Image Builder to retain the instance used to configure
+	// your AMI if the build or test phase of your workflow fails.
 	TerminateInstanceOnFailure *bool `locationName:"terminateInstanceOnFailure" type:"boolean"`
 }
 
@@ -12175,14 +12516,17 @@ func (s *UpdateInfrastructureConfigurationInput) Validate() error {
 	if s.InfrastructureConfigurationArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("InfrastructureConfigurationArn"))
 	}
+	if s.InstanceProfileName == nil {
+		invalidParams.Add(request.NewErrParamRequired("InstanceProfileName"))
+	}
 	if s.InstanceProfileName != nil && len(*s.InstanceProfileName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("InstanceProfileName", 1))
 	}
 	if s.KeyPair != nil && len(*s.KeyPair) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("KeyPair", 1))
 	}
-	if s.SnsTopicArn != nil && len(*s.SnsTopicArn) < 1 {
-		invalidParams.Add(request.NewErrParamMinLen("SnsTopicArn", 1))
+	if s.ResourceTags != nil && len(s.ResourceTags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceTags", 1))
 	}
 	if s.SubnetId != nil && len(*s.SubnetId) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("SubnetId", 1))
@@ -12238,6 +12582,12 @@ func (s *UpdateInfrastructureConfigurationInput) SetKeyPair(v string) *UpdateInf
 // SetLogging sets the Logging field's value.
 func (s *UpdateInfrastructureConfigurationInput) SetLogging(v *Logging) *UpdateInfrastructureConfigurationInput {
 	s.Logging = v
+	return s
+}
+
+// SetResourceTags sets the ResourceTags field's value.
+func (s *UpdateInfrastructureConfigurationInput) SetResourceTags(v map[string]*string) *UpdateInfrastructureConfigurationInput {
+	s.ResourceTags = v
 	return s
 }
 

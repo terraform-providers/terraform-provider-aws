@@ -1,5 +1,5 @@
 ---
-subcategory: "API Gateway"
+subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_usage_plan"
 description: |-
@@ -69,7 +69,7 @@ The API Gateway Usage Plan argument layout is a structure composed of several su
 * `quota_settings` - (Optional) The [quota settings](#quota-settings-arguments) of the usage plan.
 * `throttle_settings` - (Optional) The [throttling limits](#throttling-settings-arguments) of the usage plan.
 * `product_code` - (Optional) The AWS Markeplace product identifier to associate with the usage plan as a SaaS product on AWS Marketplace.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 #### Api Stages arguments
 

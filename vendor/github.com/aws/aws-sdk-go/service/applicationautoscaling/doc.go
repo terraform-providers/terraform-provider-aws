@@ -26,6 +26,8 @@
 //
 //    * AWS Lambda function provisioned concurrency
 //
+//    * Amazon Keyspaces (for Apache Cassandra) tables
+//
 // API Summary
 //
 // The Application Auto Scaling service API includes three key sets of actions:
@@ -41,10 +43,11 @@
 //    activity history.
 //
 //    * Suspend and resume scaling - Temporarily suspend and later resume automatic
-//    scaling by calling the RegisterScalableTarget action for any Application
-//    Auto Scaling scalable target. You can suspend and resume, individually
-//    or in combination, scale-out activities triggered by a scaling policy,
-//    scale-in activities triggered by a scaling policy, and scheduled scaling.
+//    scaling by calling the RegisterScalableTarget (https://docs.aws.amazon.com/autoscaling/application/APIReference/API_RegisterScalableTarget.html)
+//    API action for any Application Auto Scaling scalable target. You can suspend
+//    and resume (individually or in combination) scale-out activities that
+//    are triggered by a scaling policy, scale-in activities that are triggered
+//    by a scaling policy, and scheduled scaling.
 //
 // To learn more about Application Auto Scaling, including information about
 // granting IAM users required permissions for Application Auto Scaling actions,

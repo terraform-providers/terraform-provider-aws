@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,14 +12,9 @@ import (
 )
 
 func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
-	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -30,7 +24,6 @@ func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
@@ -48,14 +41,9 @@ func TestAccAWSCodePipelineWebhook_basic(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
-	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -65,7 +53,6 @@ func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_ipAuth(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
@@ -83,14 +70,9 @@ func TestAccAWSCodePipelineWebhook_ipAuth(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
 	var v codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
-	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -100,7 +82,6 @@ func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_unauthenticated(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
@@ -116,14 +97,9 @@ func TestAccAWSCodePipelineWebhook_unauthenticated(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
 	var v1, v2, v3 codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
-	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -133,7 +109,6 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfigWithTags(rName, "tag1value", "tag2value"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v1),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
@@ -144,7 +119,6 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfigWithTags(rName, "tag1valueUpdate", "tag2valueUpdate"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", rName),
@@ -166,7 +140,6 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					func(s *terraform.State) error {
@@ -182,14 +155,9 @@ func TestAccAWSCodePipelineWebhook_tags(t *testing.T) {
 }
 
 func TestAccAWSCodePipelineWebhook_UpdateAuthenticationConfiguration_SecretToken(t *testing.T) {
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		t.Skip("Environment variable GITHUB_TOKEN is not set")
-	}
-
 	var v1, v2 codepipeline.ListWebhookItem
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_codepipeline_webhook.test"
-	pipelineResourceName := "aws_codepipeline.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodePipeline(t) },
@@ -199,7 +167,6 @@ func TestAccAWSCodePipelineWebhook_UpdateAuthenticationConfiguration_SecretToken
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v1),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),
@@ -210,7 +177,6 @@ func TestAccAWSCodePipelineWebhook_UpdateAuthenticationConfiguration_SecretToken
 			{
 				Config: testAccAWSCodePipelineWebhookConfig_secretTokenUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCodePipelineExists(pipelineResourceName),
 					testAccCheckAWSCodePipelineWebhookExists(resourceName, &v2),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "url"),

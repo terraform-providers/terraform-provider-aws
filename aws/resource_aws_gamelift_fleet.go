@@ -298,6 +298,7 @@ func resourceAwsGameliftFleetCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsGameliftFleetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Describing Gamelift Fleet: %s", d.Id())
 	out, err := conn.DescribeFleetAttributes(&gamelift.DescribeFleetAttributesInput{
@@ -340,7 +341,7 @@ func resourceAwsGameliftFleetRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for Game Lift Fleet (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -352,8 +353,7 @@ func resourceAwsGameliftFleetUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Updating Gamelift Fleet: %s", d.Id())
 
-	if d.HasChange("description") || d.HasChange("metric_groups") || d.HasChange("name") ||
-		d.HasChange("new_game_session_protection_policy") || d.HasChange("resource_creation_limit_policy") {
+	if d.HasChanges("description", "metric_groups", "name", "new_game_session_protection_policy", "resource_creation_limit_policy") {
 		_, err := conn.UpdateFleetAttributes(&gamelift.UpdateFleetAttributesInput{
 			Description:                    aws.String(d.Get("description").(string)),
 			FleetId:                        aws.String(d.Id()),

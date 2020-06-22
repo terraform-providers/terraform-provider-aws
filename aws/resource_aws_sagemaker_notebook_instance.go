@@ -151,6 +151,7 @@ func resourceAwsSagemakerNotebookInstanceCreate(d *schema.ResourceData, meta int
 
 func resourceAwsSagemakerNotebookInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	describeNotebookInput := &sagemaker.DescribeNotebookInstanceInput{
 		NotebookInstanceName: aws.String(d.Id()),
@@ -204,7 +205,7 @@ func resourceAwsSagemakerNotebookInstanceRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error listing tags for Sagemaker Notebook Instance (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -214,8 +215,6 @@ func resourceAwsSagemakerNotebookInstanceRead(d *schema.ResourceData, meta inter
 func resourceAwsSagemakerNotebookInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
-	d.Partial(true)
-
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
@@ -223,7 +222,6 @@ func resourceAwsSagemakerNotebookInstanceUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("error updating Sagemaker Notebook Instance (%s) tags: %s", d.Id(), err)
 		}
 	}
-	d.SetPartial("tags")
 
 	hasChanged := false
 	// Update
@@ -324,8 +322,6 @@ func resourceAwsSagemakerNotebookInstanceUpdate(d *schema.ResourceData, meta int
 			}
 		}
 	}
-
-	d.Partial(false)
 
 	return resourceAwsSagemakerNotebookInstanceRead(d, meta)
 }

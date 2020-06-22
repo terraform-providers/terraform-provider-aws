@@ -23,7 +23,19 @@ func resourceAwsKmsGrant() *schema.Resource {
 		Create: resourceAwsKmsGrantCreate,
 		Read:   resourceAwsKmsGrantRead,
 		Delete: resourceAwsKmsGrantDelete,
-		Exists: resourceAwsKmsGrantExists,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				keyId, grantId, err := decodeKmsGrantId(d.Id())
+				if err != nil {
+					return nil, err
+				}
+				d.Set("key_id", keyId)
+				d.Set("grant_id", grantId)
+				d.SetId(fmt.Sprintf("%s:%s", keyId, grantId))
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -196,6 +208,11 @@ func resourceAwsKmsGrantRead(d *schema.ResourceData, meta interface{}) error {
 	grant, err := findKmsGrantByIdWithRetry(conn, keyId, grantId)
 
 	if err != nil {
+		if isResourceNotFoundError(err) {
+			log.Printf("[WARN] %s KMS grant id not found for key id %s, removing from state file", grantId, keyId)
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 
@@ -279,27 +296,6 @@ func resourceAwsKmsGrantDelete(d *schema.ResourceData, meta interface{}) error {
 	err = waitForKmsGrantToBeRevoked(conn, keyId, grantId)
 
 	return err
-}
-
-func resourceAwsKmsGrantExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*AWSClient).kmsconn
-
-	keyId, grantId, err := decodeKmsGrantId(d.Id())
-	if err != nil {
-		return false, err
-	}
-
-	log.Printf("[DEBUG] Looking for Grant: %s", grantId)
-	grant, err := findKmsGrantByIdWithRetry(conn, keyId, grantId)
-
-	if err != nil {
-		return true, err
-	}
-	if grant != nil {
-		return true, err
-	}
-
-	return false, nil
 }
 
 func getKmsGrantById(grants []*kms.GrantListEntry, grantIdentifier string) *kms.GrantListEntry {
@@ -533,16 +529,16 @@ func flattenKmsGrantConstraints(constraint *kms.GrantConstraints) *schema.Set {
 
 func decodeKmsGrantId(id string) (string, string, error) {
 	if strings.HasPrefix(id, "arn:aws") {
-		arn_parts := strings.Split(id, "/")
-		if len(arn_parts) != 2 {
+		arnParts := strings.Split(id, "/")
+		if len(arnParts) != 2 {
 			return "", "", fmt.Errorf("unexpected format of ARN (%q), expected KeyID:GrantID", id)
 		}
-		arn_prefix := arn_parts[0]
-		parts := strings.Split(arn_parts[1], ":")
+		arnPrefix := arnParts[0]
+		parts := strings.Split(arnParts[1], ":")
 		if len(parts) != 2 {
 			return "", "", fmt.Errorf("unexpected format of ID (%q), expected KeyID:GrantID", id)
 		}
-		return fmt.Sprintf("%s/%s", arn_prefix, parts[0]), parts[1], nil
+		return fmt.Sprintf("%s/%s", arnPrefix, parts[0]), parts[1], nil
 	} else {
 		parts := strings.Split(id, ":")
 		if len(parts) != 2 {

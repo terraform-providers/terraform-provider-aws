@@ -45,7 +45,7 @@ resource "aws_eip" "test" {
 
 ## Argument Reference
 
-* `instance_tags` - (Optional) A mapping of tags, each pair of which must
+* `instance_tags` - (Optional) A map of tags, each pair of which must
 exactly match a pair on desired instances.
 
 * `instance_state_names` - (Optional) A list of instance states that should be applicable to the desired instances. The permitted values are: `pending, running, shutting-down, stopped, stopping, terminated`. The default value is `running`.

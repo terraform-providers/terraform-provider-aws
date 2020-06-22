@@ -186,6 +186,11 @@ func testAccSslNegotiationPolicyConfig(rName, key, certificate string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 resource "aws_iam_server_certificate" "test" {

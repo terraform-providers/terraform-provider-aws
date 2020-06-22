@@ -235,6 +235,11 @@ func testAccCheckEbsSnapshotCopyExists(n string, v *ec2.Snapshot) resource.TestC
 const testAccAwsEbsSnapshotCopyConfig = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "current" {}
@@ -266,6 +271,11 @@ func testAccAwsEbsSnapshotCopyConfigTags1(tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "current" {}
@@ -299,6 +309,11 @@ func testAccAwsEbsSnapshotCopyConfigTags2(tagKey1, tagValue1, tagKey2, tagValue2
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "current" {}
@@ -332,6 +347,11 @@ resource "aws_ebs_snapshot_copy" "test" {
 const testAccAwsEbsSnapshotCopyConfigWithDescription = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "current" {}
@@ -369,6 +389,11 @@ var testAccAwsEbsSnapshotCopyConfigWithRegions = testAccAlternateRegionProviderC
 data "aws_availability_zones" "alternate_available" {
   provider = "aws.alternate"
   state    = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "alternate" {
@@ -407,6 +432,11 @@ resource "aws_ebs_snapshot_copy" "test" {
 const testAccAwsEbsSnapshotCopyConfigWithKms = `
 data "aws_availability_zones" "available" {
   state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
 }
 
 data "aws_region" "current" {}

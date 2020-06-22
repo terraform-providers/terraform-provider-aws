@@ -9,8 +9,8 @@ import (
 var Analyzer = analysisutils.DeprecatedWithReplacementSelectorExprAnalyzer(
 	"V002",
 	cidrnetworkselectorexpr.Analyzer,
-	validation.PackageName,
+	validation.PackagePath,
 	validation.FuncNameCIDRNetwork,
-	validation.PackageName,
+	validation.PackagePath,
 	validation.FuncNameIsCIDRNetwork,
 )

@@ -3,8 +3,10 @@ package aws
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/naming"
 )
 
 // Security group import fans out to multiple resources due to the
@@ -25,6 +27,11 @@ func resourceAwsSecurityGroupImportState(
 	}
 	sg := sgRaw.(*ec2.SecurityGroup)
 
+	// Perform nil check to avoid ImportStateVerify difference when unconfigured
+	if namePrefix := naming.NamePrefixFromName(aws.StringValue(sg.GroupName)); namePrefix != nil {
+		d.Set("name_prefix", namePrefix)
+	}
+
 	// Start building our results
 	results := make([]*schema.ResourceData, 1,
 		1+len(sg.IpPermissions)+len(sg.IpPermissionsEgress))
@@ -37,10 +44,7 @@ func resourceAwsSecurityGroupImportState(
 	}
 	for ruleType, perms := range permMap {
 		for _, perm := range perms {
-			ds, err := resourceAwsSecurityGroupImportStatePerm(sg, ruleType, perm)
-			if err != nil {
-				return nil, err
-			}
+			ds := resourceAwsSecurityGroupImportStatePerm(sg, ruleType, perm)
 			results = append(results, ds...)
 		}
 	}
@@ -48,7 +52,7 @@ func resourceAwsSecurityGroupImportState(
 	return results, nil
 }
 
-func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType string, perm *ec2.IpPermission) ([]*schema.ResourceData, error) {
+func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType string, perm *ec2.IpPermission) []*schema.ResourceData {
 	/*
 	   Create a separate Security Group Rule for:
 	   * The collection of IpRanges (cidr_blocks)
@@ -77,10 +81,7 @@ func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType str
 			IpRanges:      perm.IpRanges,
 		}
 
-		r, err := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
-		if err != nil {
-			return nil, err
-		}
+		r := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
 		result = append(result, r)
 	}
 
@@ -93,10 +94,7 @@ func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType str
 			Ipv6Ranges:    perm.Ipv6Ranges,
 		}
 
-		r, err := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
-		if err != nil {
-			return nil, err
-		}
+		r := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
 		result = append(result, r)
 	}
 
@@ -110,10 +108,7 @@ func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType str
 				UserIdGroupPairs: []*ec2.UserIdGroupPair{pair},
 			}
 
-			r, err := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
-			if err != nil {
-				return nil, err
-			}
+			r := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
 			result = append(result, r)
 		}
 	}
@@ -126,17 +121,14 @@ func resourceAwsSecurityGroupImportStatePerm(sg *ec2.SecurityGroup, ruleType str
 			ToPort:        perm.ToPort,
 		}
 
-		r, err := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
-		if err != nil {
-			return nil, err
-		}
+		r := resourceAwsSecurityGroupImportStatePermPair(sg, ruleType, p)
 		result = append(result, r)
 	}
 
-	return result, nil
+	return result
 }
 
-func resourceAwsSecurityGroupImportStatePermPair(sg *ec2.SecurityGroup, ruleType string, perm *ec2.IpPermission) (*schema.ResourceData, error) {
+func resourceAwsSecurityGroupImportStatePermPair(sg *ec2.SecurityGroup, ruleType string, perm *ec2.IpPermission) *schema.ResourceData {
 	// Construct the rule. We do this by populating the absolute
 	// minimum necessary for Refresh on the rule to work. This
 	// happens to be a lot of fields since they're almost all needed
@@ -177,9 +169,7 @@ func resourceAwsSecurityGroupImportStatePermPair(sg *ec2.SecurityGroup, ruleType
 		}
 	}
 
-	if err := setFromIPPerm(d, sg, perm); err != nil {
-		return nil, fmt.Errorf("Error importing AWS Security Group: %s", err)
-	}
+	setFromIPPerm(d, sg, perm)
 
-	return d, nil
+	return d
 }

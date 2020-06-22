@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsSubnetIDs() *schema.Resource {
@@ -46,7 +47,7 @@ func dataSourceAwsSubnetIDsRead(d *schema.ResourceData, meta interface{}) error 
 
 	if tags, tagsOk := d.GetOk("tags"); tagsOk {
 		req.Filters = append(req.Filters, buildEC2TagFilterList(
-			tagsFromMap(tags.(map[string]interface{})),
+			keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
 		)...)
 	}
 
