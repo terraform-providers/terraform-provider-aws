@@ -157,13 +157,14 @@ import (
 )
 
 type Config struct {
-	AccessKey     string
-	SecretKey     string
-	CredsFilename string
-	Profile       string
-	Token         string
-	Region        string
-	MaxRetries    int
+	AccessKey          string
+	SecretKey          string
+	CredsFilename      string
+	Profile            string
+	Token              string
+	Region             string
+	MaxRetries         int
+	StopOnExpiredCreds bool
 
 	AssumeRoleARN         string
 	AssumeRoleExternalID  string
@@ -391,6 +392,7 @@ func (c *Config) Client() (interface{}, error) {
 			{Name: "Terraform", Version: c.terraformVersion,
 				Extra: []string{"+https://www.terraform.io"}},
 		},
+		StopOnExpiredCreds: c.StopOnExpiredCreds,
 	}
 
 	sess, accountID, partition, err := awsbase.GetSessionWithAccountIDAndPartition(awsbaseConfig)

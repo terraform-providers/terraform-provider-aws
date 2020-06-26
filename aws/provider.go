@@ -74,6 +74,13 @@ func Provider() terraform.ResourceProvider {
 				Description: descriptions["max_retries"],
 			},
 
+			"stop_on_expired_creds": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: descriptions["stop_on_expired_creds"],
+			},
+
 			"allowed_account_ids": {
 				Type:          schema.TypeSet,
 				Elem:          &schema.Schema{Type: schema.TypeString},
@@ -992,6 +999,8 @@ func init() {
 		"max_retries": "The maximum number of times an AWS API request is\n" +
 			"being executed. If the API request still fails, an error is\n" +
 			"thrown.",
+
+		"stop_on_expired_creds": "Stop execution if expired credentials error happen.",
 
 		"endpoint": "Use this to override the default service endpoint URL",
 

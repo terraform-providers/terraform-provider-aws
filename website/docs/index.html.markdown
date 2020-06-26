@@ -190,6 +190,8 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
   experiencing transient failures. The delay between the subsequent API
   calls increases exponentially.
 
+* `stop_on_expired_creds` - (Optional) Do not retry if expired credentials error happen. Default value: `false`.
+
 * `allowed_account_ids` - (Optional) List of allowed, white listed, AWS
   account IDs to prevent you from mistakenly using an incorrect one (and
   potentially end up destroying a live environment). Conflicts with
