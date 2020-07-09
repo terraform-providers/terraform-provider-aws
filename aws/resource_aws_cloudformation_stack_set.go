@@ -250,17 +250,12 @@ func resourceAwsCloudFormationStackSetUpdate(d *schema.ResourceData, meta interf
 func resourceAwsCloudFormationStackSetDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
 
-	input := &cloudformation.DeleteStackSetInput{
-		StackSetName: aws.String(d.Id()),
-	}
-
 	log.Printf("[DEBUG] Deleting CloudFormation StackSet: %s", d.Id())
-	_, err := conn.DeleteStackSet(input)
-
-	if isAWSErr(err, cloudformation.ErrCodeStackSetNotFoundException, "") {
-		return nil
+	input, err := deleteCloudformationStackSetInputFromResourceData(d)
+	if err != nil {
+		return err
 	}
-
+	err = deleteCloudformationStackSet(conn, input)
 	if err != nil {
 		return fmt.Errorf("error deleting CloudFormation StackSet (%s): %s", d.Id(), err)
 	}
@@ -268,27 +263,22 @@ func resourceAwsCloudFormationStackSetDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func listCloudFormationStackSets(conn *cloudformation.CloudFormation) ([]*cloudformation.StackSetSummary, error) {
-	input := &cloudformation.ListStackSetsInput{
-		Status: aws.String(cloudformation.StackSetStatusActive),
+func deleteCloudformationStackSetInputFromResourceData(d *schema.ResourceData) (*cloudformation.DeleteStackSetInput, error) {
+	return &cloudformation.DeleteStackSetInput{
+		StackSetName: aws.String(d.Id()),
+	}, nil
+}
+
+func deleteCloudformationStackSetInputFromAPIResource(r *cloudformation.StackSetSummary) *cloudformation.DeleteStackSetInput {
+	return &cloudformation.DeleteStackSetInput{
+		StackSetName: r.StackSetName,
 	}
-	result := make([]*cloudformation.StackSetSummary, 0)
+}
 
-	for {
-		output, err := conn.ListStackSets(input)
-
-		if err != nil {
-			return result, err
-		}
-
-		result = append(result, output.Summaries...)
-
-		if aws.StringValue(output.NextToken) == "" {
-			break
-		}
-
-		input.NextToken = output.NextToken
+func deleteCloudformationStackSet(conn *cloudformation.CloudFormation, input *cloudformation.DeleteStackSetInput) error {
+	_, err := conn.DeleteStackSet(input)
+	if isAWSErr(err, cloudformation.ErrCodeStackSetNotFoundException, "") {
+		return nil
 	}
-
-	return result, nil
+	return err
 }

@@ -1,14 +1,14 @@
+//go:generate go run internal/service/cloudformation/generators/sweepers/main.go
+
 package aws
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -24,49 +24,18 @@ func init() {
 	})
 }
 
-func testSweepCloudformationStackSets(region string) error {
+// generate
+func sharedCloudformationClientForRegion(region string) (*cloudformation.CloudFormation, error) {
 	client, err := sharedClientForRegion(region)
-
 	if err != nil {
-		return fmt.Errorf("error getting client: %w", err)
+		return nil, fmt.Errorf("error getting client: %s", err)
 	}
+	return serviceConnectionCloudFormation(client), nil
+}
 
-	conn := client.(*AWSClient).cfconn
-	stackSets, err := listCloudFormationStackSets(conn)
-
-	if testSweepSkipSweepError(err) || isAWSErr(err, "ValidationError", "AWS CloudFormation StackSets is not supported") {
-		log.Printf("[WARN] Skipping CloudFormation StackSet sweep for %s: %s", region, err)
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("error listing CloudFormation StackSets: %w", err)
-	}
-
-	var sweeperErrs *multierror.Error
-
-	for _, stackSet := range stackSets {
-		input := &cloudformation.DeleteStackSetInput{
-			StackSetName: stackSet.StackSetName,
-		}
-		name := aws.StringValue(stackSet.StackSetName)
-
-		log.Printf("[INFO] Deleting CloudFormation StackSet: %s", name)
-		_, err := conn.DeleteStackSet(input)
-
-		if isAWSErr(err, cloudformation.ErrCodeStackSetNotFoundException, "") {
-			continue
-		}
-
-		if err != nil {
-			sweeperErr := fmt.Errorf("error deleting CloudFormation StackSet (%s): %w", name, err)
-			log.Printf("[ERROR] %s", sweeperErr)
-			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
-			continue
-		}
-	}
-
-	return sweeperErrs.ErrorOrNil()
+// generate
+func serviceConnectionCloudFormation(client interface{}) *cloudformation.CloudFormation {
+	return client.(*AWSClient).cfconn
 }
 
 func TestAccAWSCloudFormationStackSet_basic(t *testing.T) {
@@ -123,7 +92,7 @@ func TestAccAWSCloudFormationStackSet_disappears(t *testing.T) {
 				Config: testAccAWSCloudFormationStackSetConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudFormationStackSetExists(resourceName, &stackSet1),
-					testAccCheckCloudFormationStackSetDisappears(&stackSet1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudFormationStackSet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -636,20 +605,6 @@ func testAccCheckAWSCloudFormationStackSetDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckCloudFormationStackSetDisappears(stackSet *cloudformation.StackSet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cfconn
-
-		input := &cloudformation.DeleteStackSetInput{
-			StackSetName: stackSet.StackSetName,
-		}
-
-		_, err := conn.DeleteStackSet(input)
-
-		return err
-	}
 }
 
 func testAccCheckCloudFormationStackSetNotRecreated(i, j *cloudformation.StackSet) resource.TestCheckFunc {

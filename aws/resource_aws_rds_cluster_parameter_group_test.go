@@ -12,9 +12,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/rds/lister"
 )
 
 func init() {
@@ -34,53 +36,42 @@ func testSweepRdsClusterParameterGroups(region string) error {
 	}
 	conn := client.(*AWSClient).rdsconn
 
-	input := &rds.DescribeDBClusterParameterGroupsInput{}
+	var sweeperErrs *multierror.Error
 
-	for {
-		output, err := conn.DescribeDBClusterParameterGroups(input)
-
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping RDS DB Cluster Parameter Group sweep for %s: %s", region, err)
-			return nil
+	err = lister.ListAllClusterParameterGroupsPages(conn, func(page *rds.DescribeDBClusterParameterGroupsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		if err != nil {
-			return fmt.Errorf("error retrieving DB Cluster Parameter Groups: %s", err)
-		}
-
-		for _, dbcpg := range output.DBClusterParameterGroups {
-			if dbcpg == nil {
-				continue
-			}
-
-			input := &rds.DeleteDBClusterParameterGroupInput{
-				DBClusterParameterGroupName: dbcpg.DBClusterParameterGroupName,
-			}
+		for _, dbcpg := range page.DBClusterParameterGroups {
 			name := aws.StringValue(dbcpg.DBClusterParameterGroupName)
-
 			if strings.HasPrefix(name, "default.") {
-				log.Printf("[INFO] Skipping DB Cluster Parameter Group: %s", name)
+				log.Printf("[INFO] Skipping DB Cluster Parameter Group %s", name)
 				continue
 			}
 
 			log.Printf("[INFO] Deleting DB Cluster Parameter Group: %s", name)
-
-			_, err := conn.DeleteDBClusterParameterGroup(input)
-
+			err := deleteRDSClusterParameterGroup(conn, deleteRDSClusterParameterGroupInputFromAPIResource(dbcpg))
 			if err != nil {
 				log.Printf("[ERROR] Failed to delete DB Cluster Parameter Group %s: %s", name, err)
+				sweeperErrs = multierror.Append(sweeperErrs, err)
 				continue
 			}
 		}
 
-		if aws.StringValue(output.Marker) == "" {
-			break
-		}
+		return !lastPage
+	})
 
-		input.Marker = output.Marker
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping DB Cluster Parameter Group sweep for %q: %s", region, err)
+		return nil
 	}
 
-	return nil
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving DB Cluster Parameter Groups: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
 }
 
 func TestAccAWSDBClusterParameterGroup_basic(t *testing.T) {
@@ -366,13 +357,7 @@ func testAccCheckAWSDBClusterParameterGroupDestroy(s *terraform.State) error {
 				return errors.New("DB Cluster Parameter Group still exists")
 			}
 		}
-
-		// Verify the error
-		newerr, ok := err.(awserr.Error)
-		if !ok {
-			return err
-		}
-		if newerr.Code() != "DBParameterGroupNotFound" {
+		if !isAWSErr(err, rds.ErrCodeDBParameterGroupNotFoundFault, "") {
 			return err
 		}
 	}

@@ -269,39 +269,31 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceAwsRDSClusterParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"destroyed"},
-		Refresh:    resourceAwsRDSClusterParameterGroupDeleteRefreshFunc(d, meta),
-		Timeout:    3 * time.Minute,
-		MinTimeout: 1 * time.Second,
-	}
-	_, err := stateConf.WaitForState()
-	return err
-}
-
-func resourceAwsRDSClusterParameterGroupDeleteRefreshFunc(
-	d *schema.ResourceData,
-	meta interface{}) resource.StateRefreshFunc {
 	rdsconn := meta.(*AWSClient).rdsconn
 
-	return func() (interface{}, string, error) {
-
-		deleteOpts := rds.DeleteDBClusterParameterGroupInput{
-			DBClusterParameterGroupName: aws.String(d.Id()),
-		}
-
-		if _, err := rdsconn.DeleteDBClusterParameterGroup(&deleteOpts); err != nil {
-			rdserr, ok := err.(awserr.Error)
-			if !ok {
-				return d, "error", err
-			}
-
-			if rdserr.Code() != "DBParameterGroupNotFound" {
-				return d, "error", err
-			}
-		}
-
-		return d, "destroyed", nil
+	input, err := deleteRDSClusterParameterGroupInputFromResourceData(d)
+	if err != nil {
+		return err
 	}
+	return deleteRDSClusterParameterGroup(rdsconn, input)
+}
+
+func deleteRDSClusterParameterGroupInputFromResourceData(d *schema.ResourceData) (*rds.DeleteDBClusterParameterGroupInput, error) {
+	return &rds.DeleteDBClusterParameterGroupInput{
+		DBClusterParameterGroupName: aws.String(d.Id()),
+	}, nil
+}
+
+func deleteRDSClusterParameterGroupInputFromAPIResource(r *rds.DBClusterParameterGroup) *rds.DeleteDBClusterParameterGroupInput {
+	return &rds.DeleteDBClusterParameterGroupInput{
+		DBClusterParameterGroupName: r.DBClusterParameterGroupName,
+	}
+}
+
+func deleteRDSClusterParameterGroup(conn *rds.RDS, input *rds.DeleteDBClusterParameterGroupInput) error {
+	_, err := conn.DeleteDBClusterParameterGroup(input)
+	if isAWSErr(err, rds.ErrCodeDBParameterGroupNotFoundFault, "") {
+		return nil
+	}
+	return err
 }

@@ -1,3 +1,5 @@
+//go:generate go run internal/service/kafka/generators/sweepers/main.go
+
 package aws
 
 import (
@@ -18,42 +20,22 @@ import (
 func init() {
 	resource.AddTestSweepers("aws_msk_cluster", &resource.Sweeper{
 		Name: "aws_msk_cluster",
-		F:    testSweepMskClusters,
+		F:    testSweepKafkaClusters,
 	})
 }
 
-func testSweepMskClusters(region string) error {
+// generate
+func sharedKafkaClientForRegion(region string) (*kafka.Kafka, error) {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return nil, fmt.Errorf("error getting client: %s", err)
 	}
+	return serviceConnectionKafka(client), nil
+}
 
-	conn := client.(*AWSClient).kafkaconn
-
-	out, err := conn.ListClusters(&kafka.ListClustersInput{})
-	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] skipping msk cluster domain sweep for %s: %s", region, err)
-			return nil
-		}
-		return fmt.Errorf("Error retrieving MSK clusters: %s", err)
-	}
-
-	for _, cluster := range out.ClusterInfoList {
-		log.Printf("[INFO] Deleting Msk cluster: %s", *cluster.ClusterName)
-		_, err := conn.DeleteCluster(&kafka.DeleteClusterInput{
-			ClusterArn: cluster.ClusterArn,
-		})
-		if err != nil {
-			log.Printf("[ERROR] Failed to delete MSK cluster %s: %s", *cluster.ClusterName, err)
-			continue
-		}
-		err = resourceAwsMskClusterDeleteWaiter(conn, *cluster.ClusterArn)
-		if err != nil {
-			log.Printf("[ERROR] failed to wait for deletion of MSK cluster %s: %s", *cluster.ClusterName, err)
-		}
-	}
-	return nil
+// generate
+func serviceConnectionKafka(client interface{}) *kafka.Kafka {
+	return client.(*AWSClient).kafkaconn
 }
 
 func TestAccAWSMskCluster_basic(t *testing.T) {
