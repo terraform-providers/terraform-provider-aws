@@ -168,7 +168,7 @@ The following arguments are supported:
 * `max_size` - (Required) The maximum size of the auto scale group.
 * `min_size` - (Required) The minimum size of the auto scale group.
     (See also [Waiting for Capacity](#waiting-for-capacity) below.)
-* `availability_zones` - (Required only for EC2-Classic) A list of one or more availability zones for the group. This parameter should not be specified when using `vpc_zone_identifier`.
+* `availability_zones` - (Required only for EC2-Classic or attaching a network interface via id from a launch template) A list of one or more availability zones for the group. This parameter should not be specified when using `vpc_zone_identifier`.
 * `default_cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes before another scaling activity can start.
 * `launch_configuration` - (Optional) The name of the launch configuration to use.
 * `launch_template` - (Optional) Nested argument with Launch template specification to use to launch instances. Defined below.
