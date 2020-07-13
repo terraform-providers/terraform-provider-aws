@@ -806,6 +806,27 @@ func testSweepSkipSweepError(err error) bool {
 	return false
 }
 
+// Get attribute from certain resource state by resource name and key of attribute
+// It is needed when you test resources with fields that taken from another resources(arn for example).
+func getAttrFromResourceState(resourceName, key string, s *terraform.State) (string, error) {
+	// Get resource state
+	rs, ok := s.RootModule().Resources[resourceName]
+	// Check if resource state exists, otherwise return error
+	if !ok {
+		return "", fmt.Errorf("Not found: %s", resourceName)
+	}
+
+	// Get attribute from current resource state
+	attr, ok := rs.Primary.Attributes[key]
+	// Check if attribute exists, otherwise return error
+	if !ok {
+		return "", fmt.Errorf("State of resource %s has no attribute with key %s", resourceName, key)
+	}
+
+	// Return attribute value, without error
+	return attr, nil
+}
+
 func TestAccAWSProvider_Endpoints(t *testing.T) {
 	var providers []*schema.Provider
 	var endpoints strings.Builder

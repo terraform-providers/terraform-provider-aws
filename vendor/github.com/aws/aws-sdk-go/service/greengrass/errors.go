@@ -2,10 +2,6 @@
 
 package greengrass
 
-import (
-	"github.com/aws/aws-sdk-go/private/protocol"
-)
-
 const (
 
 	// ErrCodeBadRequestException for service response error code
@@ -20,8 +16,3 @@ const (
 	// General error information.
 	ErrCodeInternalServerErrorException = "InternalServerErrorException"
 )
-
-var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
-	"BadRequestException":          newErrorBadRequestException,
-	"InternalServerErrorException": newErrorInternalServerErrorException,
-}
