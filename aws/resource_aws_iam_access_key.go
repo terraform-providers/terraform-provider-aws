@@ -2,10 +2,14 @@ package aws
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha512"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -62,6 +66,11 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"rsa_key": {
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Optional: true,
+			},
 			"encrypted_secret": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -104,6 +113,13 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		d.Set("key_fingerprint", fingerprint)
+		d.Set("encrypted_secret", encrypted)
+	} else if v, ok := d.GetOk("rsa_key"); ok {
+		pemKey := v.(string)
+		encrypted, err := rsaOAEPEncryptValue(pemKey, *createResp.AccessKey.SecretAccessKey, "IAM Access Key Secret")
+		if err != nil {
+			return err
+		}
 		d.Set("encrypted_secret", encrypted)
 	} else {
 		if err := d.Set("secret", createResp.AccessKey.SecretAccessKey); err != nil {
@@ -269,4 +285,38 @@ func sesSmtpPasswordFromSecretKeySigV2(key *string) (string, error) {
 	versionedSig = append(versionedSig, version)
 	versionedSig = append(versionedSig, rawSig...)
 	return base64.StdEncoding.EncodeToString(versionedSig), nil
+}
+
+func rsaPublicKey(encoded string) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode([]byte(encoded))
+	if block == nil {
+		return nil, fmt.Errorf("error decoding %s", encoded)
+	}
+	if block.Type != "PUBLIC KEY" {
+		return nil, fmt.Errorf("error parsing pem encoded public key: %s", block.Type)
+	}
+
+	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	rsaPubKey, ok := pubKey.(*rsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("public key is not a rsa public key: %T", pubKey)
+	}
+	return rsaPubKey, nil
+}
+
+func rsaOAEPEncryptValue(key string, value string, description string) (string, error) {
+	rsaPubKey, err := rsaPublicKey(key)
+	if err != nil {
+		return "", fmt.Errorf("Error parsing Public Key for %s: %s", description, err)
+	}
+
+	encrypted, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, rsaPubKey, []byte(value), nil)
+	if err != nil {
+		return "", fmt.Errorf("Error encrypting with rsa oaep using sha512 hash for %s: %s", description, err)
+	}
+
+	return base64.StdEncoding.EncodeToString(encrypted), nil
 }
