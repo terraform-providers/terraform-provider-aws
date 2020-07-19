@@ -427,7 +427,14 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// IAM changes can take 1 minute to propagate in AWS
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	//
+	// From the AWS docs there's no timeout error for a lambda creation
+	// https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html
+	// Increasing the retry timeout to 5 minutes, from testing it can take
+	// a few minutes for a large function, as a retry might result in
+	// a race, as the initial CreateFunction request isn't canceled,
+	// and can already result in a created function.
+	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 		_, err := conn.CreateFunction(params)
 		if err != nil {
 			log.Printf("[DEBUG] Error creating Lambda Function: %s", err)
