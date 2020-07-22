@@ -589,6 +589,12 @@ func (c *Config) Client() (interface{}, error) {
 	s3Config.DisableRestProtocolURICleaning = aws.Bool(true)
 	client.s3connUriCleaningDisabled = s3.New(sess.Copy(s3Config))
 
+	client.s3conn.Handlers.Retry.PushBack(func(r *request.Request) {
+		if isAWSErr(r.Error, "OperationAborted", "A conflicting conditional operation is currently in progress against this resource. Please try again.") {
+			r.Retryable = aws.Bool(true)
+		}
+	})
+
 	// Handle deprecated endpoint configurations
 	if c.Endpoints["kinesis_analytics"] != "" {
 		client.kinesisanalyticsconn = kinesisanalytics.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["kinesis_analytics"])}))
