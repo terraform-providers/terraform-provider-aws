@@ -50,6 +50,10 @@ func dataSourceAwsAutoscalingGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"launch_template": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"load_balancers": {
 				Type:     schema.TypeSet,
 				Computed: true,
@@ -159,6 +163,9 @@ func groupDescriptionAttributes(d *schema.ResourceData, group *autoscaling.Group
 	d.Set("health_check_grace_period", group.HealthCheckGracePeriod)
 	d.Set("health_check_type", group.HealthCheckType)
 	d.Set("launch_configuration", group.LaunchConfigurationName)
+	if group.LaunchTemplate != nil {
+		d.Set("launch_template", group.LaunchTemplate.LaunchTemplateName)
+	}
 	if err := d.Set("load_balancers", aws.StringValueSlice(group.LoadBalancerNames)); err != nil {
 		return err
 	}

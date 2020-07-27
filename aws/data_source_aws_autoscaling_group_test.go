@@ -33,6 +33,8 @@ func TestAccAwsAutoScalingGroupDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(datasourceName, "min_size", resourceName, "min_size"),
 					resource.TestCheckResourceAttrPair(datasourceName, "target_group_arns.#", resourceName, "target_group_arns.#"),
 					resource.TestCheckResourceAttr(datasourceName, "vpc_zone_identifier", ""),
+					resource.TestCheckResourceAttrPair("data.aws_autoscaling_group.good_match_with_launch_template", "launch_template",
+						"aws_launch_template.data_source_aws_autoscaling_group_test", "name"),
 				),
 			},
 		},
@@ -73,6 +75,12 @@ resource "aws_launch_configuration" "data_source_aws_autoscaling_group_test" {
   instance_type = "t2.micro"
 }
 
+resource "aws_launch_template" "data_source_aws_autoscaling_group_test" {
+  name          = "%[1]s"
+  image_id      = "${data.aws_ami.ubuntu.id}"
+  instance_type = "t2.micro"
+}
+
 resource "aws_autoscaling_group" "foo" {
   name                      = "%[1]s_foo"
   max_size                  = 0
@@ -93,12 +101,19 @@ resource "aws_autoscaling_group" "bar" {
   health_check_type         = "ELB"
   desired_capacity          = 0
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.data_source_aws_autoscaling_group_test.name}"
+  launch_template {
+    name    = "${aws_launch_template.data_source_aws_autoscaling_group_test.name}"
+    version = "$Latest"
+  }
   availability_zones        = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}"]
 }
 
 data "aws_autoscaling_group" "good_match" {
   name = "${aws_autoscaling_group.foo.name}"
+}
+
+data "aws_autoscaling_group" "good_match_with_launch_template" {
+  name = "${aws_autoscaling_group.bar.name}"
 }
 `, rName)
 }
