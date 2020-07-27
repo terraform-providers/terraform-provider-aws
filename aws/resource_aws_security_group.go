@@ -451,9 +451,11 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 	conn := meta.(*AWSClient).ec2conn
 
 	log.Printf("[DEBUG] Security Group destroy: %v", d.Id())
-
-	if err := deleteLingeringLambdaENIs(conn, "group-id", d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+	lingeringLambdaExists := false
+	if lambdaExists, err := deleteLingeringLambdaENIs(conn, "group-id", d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return fmt.Errorf("error deleting Lambda ENIs using Security Group (%s): %s", d.Id(), err)
+	} else {
+		lingeringLambdaExists = lambdaExists
 	}
 
 	// conditionally revoke rules first before attempting to delete the group
@@ -471,7 +473,7 @@ func resourceAwsSecurityGroupDelete(d *schema.ResourceData, meta interface{}) er
 			if isAWSErr(err, "InvalidGroup.NotFound", "") {
 				return nil
 			}
-			if isAWSErr(err, "DependencyViolation", "") {
+			if lingeringLambdaExists && isAWSErr(err, "DependencyViolation", "") {
 				// If it is a dependency violation, we want to retry
 				return resource.RetryableError(err)
 			}
@@ -1406,11 +1408,13 @@ func sgProtocolIntegers() map[string]int {
 
 // The AWS Lambda service creates ENIs behind the scenes and keeps these around for a while
 // which would prevent SGs attached to such ENIs from being destroyed
-func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, timeout time.Duration) error {
+func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, timeout time.Duration) (bool, error) {
 	// AWS Lambda service team confirms P99 deletion time of ~35 minutes. Buffer for safety.
 	if minimumTimeout := 45 * time.Minute; timeout < minimumTimeout {
 		timeout = minimumTimeout
 	}
+
+	lambdaExists := false
 
 	resp, err := conn.DescribeNetworkInterfaces(&ec2.DescribeNetworkInterfacesInput{
 		Filters: buildEC2AttributeFilterList(map[string]string{
@@ -1420,7 +1424,11 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 	})
 
 	if err != nil {
-		return fmt.Errorf("error describing ENIs: %s", err)
+		return lambdaExists, fmt.Errorf("error describing ENIs: %s", err)
+	}
+
+	if len(resp.NetworkInterfaces) > 0 {
+		lambdaExists = true
 	}
 
 	for _, eni := range resp.NetworkInterfaces {
@@ -1452,7 +1460,7 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 			}
 
 			if err != nil {
-				return fmt.Errorf("error waiting for Lambda V2N ENI (%s) to become available for detachment: %s", eniId, err)
+				return lambdaExists, fmt.Errorf("error waiting for Lambda V2N ENI (%s) to become available for detachment: %s", eniId, err)
 			}
 
 			eni = eniRaw.(*ec2.NetworkInterface)
@@ -1461,17 +1469,17 @@ func deleteLingeringLambdaENIs(conn *ec2.EC2, filterName, resourceId string, tim
 		err = detachNetworkInterface(conn, eni, timeout)
 
 		if err != nil {
-			return fmt.Errorf("error detaching Lambda ENI (%s): %s", eniId, err)
+			return lambdaExists, fmt.Errorf("error detaching Lambda ENI (%s): %s", eniId, err)
 		}
 
 		err = deleteNetworkInterface(conn, eniId)
 
 		if err != nil {
-			return fmt.Errorf("error deleting Lambda ENI (%s): %s", eniId, err)
+			return lambdaExists, fmt.Errorf("error deleting Lambda ENI (%s): %s", eniId, err)
 		}
 	}
 
-	return nil
+	return lambdaExists, nil
 }
 
 func initSecurityGroupRule(ruleMap map[string]map[string]interface{}, perm *ec2.IpPermission, desc string) map[string]interface{} {

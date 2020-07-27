@@ -363,8 +363,12 @@ func resourceAwsSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Deleting subnet: %s", d.Id())
 
-	if err := deleteLingeringLambdaENIs(conn, "subnet-id", d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+	lingeringLambdaExists := false
+
+	if lambdaExists, err := deleteLingeringLambdaENIs(conn, "subnet-id", d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return fmt.Errorf("error deleting Lambda ENIs using subnet (%s): %s", d.Id(), err)
+	} else {
+		lingeringLambdaExists = lambdaExists
 	}
 
 	req := &ec2.DeleteSubnetInput{
@@ -380,7 +384,7 @@ func resourceAwsSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			_, err := conn.DeleteSubnet(req)
 			if err != nil {
 				if apiErr, ok := err.(awserr.Error); ok {
-					if apiErr.Code() == "DependencyViolation" {
+					if lingeringLambdaExists && apiErr.Code() == "DependencyViolation" {
 						// There is some pending operation, so just retry
 						// in a bit.
 						return 42, "pending", nil
