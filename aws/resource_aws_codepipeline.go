@@ -353,12 +353,11 @@ func expandAwsCodePipelineActions(s []interface{}) []*codepipeline.ActionDeclara
 		data := config.(map[string]interface{})
 
 		conf := expandAwsCodePipelineStageActionConfiguration(data["configuration"].(map[string]interface{}))
-		if data["provider"].(string) == "GitHub" {
+		if data["provider"].(string) == "GitHub" && conf["OAuthToken"] == "" {
 			githubToken := os.Getenv("GITHUB_TOKEN")
 			if githubToken != "" {
 				conf["OAuthToken"] = aws.String(githubToken)
 			}
-
 		}
 
 		action := codepipeline.ActionDeclaration{
