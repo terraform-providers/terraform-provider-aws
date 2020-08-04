@@ -527,30 +527,48 @@ func TestAccAWSDBInstance_MaxAllocatedStorage(t *testing.T) {
 		CheckDestroy: testAccCheckAWSDBInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 10),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
-					resource.TestCheckResourceAttr(resourceName, "max_allocated_storage", "10"),
-				),
-			},
-			{
-				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 5),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
-					resource.TestCheckResourceAttr(resourceName, "max_allocated_storage", "0"),
-				),
-			},
-			{
-				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 15),
+				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 10, 15),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
 					resource.TestCheckResourceAttr(resourceName, "max_allocated_storage", "15"),
 				),
 			},
 			{
-				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 0),
+				PreConfig: func() {
+					client := testAccProvider.Meta().(*AWSClient).rdsconn
+					_, err := client.ModifyDBInstance(&rds.ModifyDBInstanceInput{
+						DBInstanceIdentifier: aws.String(rName),
+						ApplyImmediately:     aws.Bool(true),
+						AllocatedStorage:     aws.Int64(11),
+					})
+					if err != nil {
+						t.Fatalf("error resizing database: %s", err)
+					}
+					for {
+						result, err := client.DescribeDBInstances(
+							&rds.DescribeDBInstancesInput{DBInstanceIdentifier: aws.String(rName)},
+						)
+						if err != nil {
+							t.Fatalf("error checking whether db modifications are finished: %s", err)
+						}
+						if result.DBInstances[0].PendingModifiedValues.AllocatedStorage == nil {
+							break
+						}
+						time.Sleep(10 * time.Second)
+					}
+				},
+				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 10, 15),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "allocated_storage", "11"),
+					resource.TestCheckResourceAttr(resourceName, "max_allocated_storage", "15"),
+				),
+			},
+			{
+				Config: testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName, 11, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBInstanceExists(resourceName, &dbInstance),
+					resource.TestCheckResourceAttr(resourceName, "allocated_storage", "11"),
 					resource.TestCheckResourceAttr(resourceName, "max_allocated_storage", "0"),
 				),
 			},
@@ -4862,19 +4880,23 @@ resource "aws_db_instance" "test" {
 `, rName)
 }
 
-func testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName string, maxAllocatedStorage int) string {
+func testAccAWSDBInstanceConfig_MaxAllocatedStorage(rName string, allocatedStorage, maxAllocatedStorage int) string {
+	maxAllocatedStorageConfig := ""
+	if maxAllocatedStorage != 0 {
+		maxAllocatedStorageConfig = fmt.Sprintf("  max_allocated_storage   = %d\n", maxAllocatedStorage)
+	}
+
 	return fmt.Sprintf(`
 resource "aws_db_instance" "test" {
-  allocated_storage       = 5
+  allocated_storage       = %[2]d
   engine                  = "mysql"
   identifier              = %[1]q
-  instance_class          = "db.t2.micro"
-  max_allocated_storage = %[2]d
+%[3]s  instance_class          = "db.t2.micro"
   password                = "avoid-plaintext-passwords"
   username                = "tfacctest"
   skip_final_snapshot     = true
 }
-`, rName, maxAllocatedStorage)
+`, rName, allocatedStorage, maxAllocatedStorageConfig)
 }
 
 func testAccAWSDBInstanceConfig_Password(rName, password string) string {

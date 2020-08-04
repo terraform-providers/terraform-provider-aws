@@ -116,21 +116,13 @@ func resourceAwsDbInstance() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					mas := d.Get("max_allocated_storage").(int)
 
-					newInt, err := strconv.Atoi(new)
-
-					if err != nil {
-						return false
-					}
-
-					oldInt, err := strconv.Atoi(old)
-
-					if err != nil {
+					if _, err := strconv.Atoi(old); err != nil {
 						return false
 					}
 
 					// Allocated is higher than the configuration
 					// and autoscaling is enabled
-					if oldInt > newInt && mas > newInt {
+					if newInt, err := strconv.Atoi(new); err == nil && mas >= newInt {
 						return true
 					}
 
