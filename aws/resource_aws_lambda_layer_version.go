@@ -92,10 +92,11 @@ func resourceAwsLambdaLayerVersion() *schema.Resource {
 				Computed: true,
 			},
 			"source_code_hash": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validateLooksLikeSha256,
 			},
 			"source_code_size": {
 				Type:     schema.TypeInt,

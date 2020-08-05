@@ -3145,3 +3145,37 @@ func TestValidateRoute53ResolverName(t *testing.T) {
 		}
 	}
 }
+
+func TestValidatevalidateLooksLikeSha256(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "certainlly not a SHA",
+			ErrCount: 1,
+		},
+		{
+			Value:    "6a5am9Ru14/HorRxiGcjf5ep4SJg9/weG9mJm6sO4+I=",
+			ErrCount: 0,
+		},
+		{
+			Value:    randomString(43) + "?",
+			ErrCount: 1,
+		},
+		{
+			Value:    randomString(42) + "=",
+			ErrCount: 1,
+		},
+		{
+			Value:    randomString(44) + "=",
+			ErrCount: 1,
+		},
+	}
+	for _, tc := range cases {
+		_, errors := validateLooksLikeSha256(tc.Value, "source_code_hash")
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the SHA256-hashed value to not trigger a validation error for %q", tc.Value)
+		}
+	}
+}

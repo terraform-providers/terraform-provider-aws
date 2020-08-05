@@ -2478,3 +2478,14 @@ func validateRoute53ResolverName(v interface{}, k string) (ws []string, errors [
 
 	return
 }
+
+func validateLooksLikeSha256(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^.{43}=$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q does not appear to be a SHA256-hashed value", k))
+	}
+
+	return
+}
