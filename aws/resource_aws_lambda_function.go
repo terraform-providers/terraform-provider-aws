@@ -294,7 +294,7 @@ func resourceAwsLambdaFunction() *schema.Resource {
 }
 
 func updateComputedAttributesOnPublish(d *schema.ResourceDiff, meta interface{}) error {
-	if needsFunctionCodeUpdate(d) {
+	if needsFunctionCodeUpdate(d) || d.HasChange("runtime") {
 		d.SetNewComputed("last_modified")
 		publish := d.Get("publish").(bool)
 		if publish {
