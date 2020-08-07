@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -15,6 +17,9 @@ func resourceAwsIamGroupMembership() *schema.Resource {
 		Read:   resourceAwsIamGroupMembershipRead,
 		Update: resourceAwsIamGroupMembershipUpdate,
 		Delete: resourceAwsIamGroupMembershipDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsIamGroupMembershipImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -163,4 +168,16 @@ func addUsersToGroup(conn *iam.IAM, users []*string, group string) error {
 		}
 	}
 	return nil
+}
+
+func resourceAwsIamGroupMembershipImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	groupName := d.Id()
+	if len(groupName) == 0 {
+		return nil, fmt.Errorf("unexpected format of ID (%q), expected <group-name>", d.Id())
+	}
+
+	d.Set("group", groupName)
+	d.SetId(resource.UniqueId())
+
+	return []*schema.ResourceData{d}, nil
 }

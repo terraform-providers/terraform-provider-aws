@@ -62,3 +62,11 @@ The following arguments are supported:
 [1]: /docs/providers/aws/r/iam_group.html
 [2]: /docs/providers/aws/r/iam_user.html
 [3]: /docs/providers/aws/r/iam_user_group_membership.html
+
+## Import
+
+IAM group membership can be imported using the group name.
+
+```
+$ terraform import aws_iam_group_membership.example1 group1
+```

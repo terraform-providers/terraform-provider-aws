@@ -35,7 +35,21 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 					testAccCheckAWSGroupMembershipAttributes(&group, groupName, []string{userName}),
 				),
 			},
+			{
+				ResourceName:      "aws_iam_group_membership.team",
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSGroupMembershipImportStateIdFunc("aws_iam_group_membership.team"),
+				// We do not have a way to align IDs since the Create function uses resource.UniqueId()
+				// Failed state verification, resource with ID GROUP not found
+				//ImportStateVerify: true,
+				ImportStateCheck: func(s []*terraform.InstanceState) error {
+					if len(s) != 1 {
+						return fmt.Errorf("expected 1 state: %#v", s)
+					}
 
+					return nil
+				},
+			},
 			{
 				Config: testAccAWSGroupMemberConfigUpdate(groupName, userName, userName2, userName3, membershipName),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,6 +67,18 @@ func TestAccAWSGroupMembership_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccAWSGroupMembershipImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		stateId := rs.Primary.Attributes["group"]
+		return stateId, nil
+	}
 }
 
 func TestAccAWSGroupMembership_paginatedUserList(t *testing.T) {
