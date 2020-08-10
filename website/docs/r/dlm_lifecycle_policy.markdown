@@ -63,6 +63,28 @@ resource "aws_iam_role_policy" "dlm_lifecycle" {
 EOF
 }
 
+resource "aws_kms_key" "dlm_cross_region_copy_cmk" {
+  description = "Terraform %[1]s"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "dlm-cross-region-copy-cmk",
+  "Statement": [
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
 resource "aws_dlm_lifecycle_policy" "example" {
   description        = "example DLM lifecycle policy"
   execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
@@ -89,6 +111,17 @@ resource "aws_dlm_lifecycle_policy" "example" {
       }
 
       copy_tags = false
+
+      cross_region_copy_rule {
+        target_region = "us-west-2"
+        encrypted     = true
+        cmk_arn       = "${aws_kms_key.dlm_cross_region_copy_cmk.arn}"
+        copy_tags     = true
+        retain_rule {
+          interval      = 30
+          interval_unit = "DAYS"
+        }
+      }
     }
 
     target_tags = {
@@ -120,9 +153,11 @@ The following arguments are supported:
 
 * `copy_tags` - (Optional) Copy all user-defined tags on a source volume to snapshots of the volume created by this policy.
 * `create_rule` - (Required) See the [`create_rule`](#create-rule-arguments) block. Max of 1 per schedule.
+* `cross_region_copy_rule` (Optional) - See the [`cross_region_copy_rule`](#cross-region-copy-rule-arguments) block.
 * `name` - (Required) A name for the schedule.
 * `retain_rule` - (Required) See the [`retain_rule`](#retain-rule-arguments) block. Max of 1 per schedule.
 * `tags_to_add` - (Optional) A map of tag keys and their values. DLM lifecycle policies will already tag the snapshot with the tags on the volume. This configuration adds extra tags on top of these.
+
 
 #### Create Rule arguments
 
@@ -133,6 +168,20 @@ The following arguments are supported:
 #### Retain Rule arguments
 
 * `count` - (Required) How many snapshots to keep. Must be an integer between 1 and 1000.
+
+#### Cross Region Copy Rule arguments
+
+* `target_region` - (Required) The target AWS region.
+* `encrypted` - (Required) To encrypt a copy of an unencrypted snapshot if encryption by default is not enabled, enable encryption using this parameter. Copies of encrypted snapshots are encrypted, even if this parameter is false or if encryption by default is not enabled.
+* `cmk_arn` - (Optional) The Amazon Resource Name (ARN) of the AWS KMS customer master key (CMK) to use for EBS encryption.
+* `copy_tags` - (Optional) Copy all user-defined tags from the source snapshot to the copied snapshot.
+* `retain_rule` - (Required) See the [`cross_region_copy_retain_rule`](#cross-region-copy-retain-rule-arguments) block. Max of 1 per schedule.
+
+#### Cross Region Copy Retain Rule arguments
+
+* `interval` - (Required) The amount of time to retain each snapshot. The maximum is 100 years.
+* `interval_unit` - (Required) The unit of time for time-based retention. `DAYS`, `WEEKS`, `MONTHS`, `YEARS` are currently the only allowed values.
+
 
 ## Attributes Reference
 

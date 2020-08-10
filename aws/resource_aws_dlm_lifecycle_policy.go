@@ -93,6 +93,55 @@ func resourceAwsDlmLifecyclePolicy() *schema.Resource {
 											},
 										},
 									},
+									"cross_region_copy_rule": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cmk_arn": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													Default:      "",
+													ValidateFunc: validateArn,
+												},
+												"copy_tags": {
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+												"encrypted": {
+													Type:     schema.TypeBool,
+													Required: true,
+												},
+												"retain_rule": {
+													Type:     schema.TypeList,
+													Required: true,
+													MaxItems: 2,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"interval": {
+																Type:     schema.TypeInt,
+																Required: true,
+															},
+															"interval_unit": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	dlm.RetentionIntervalUnitValuesDays,
+																	dlm.RetentionIntervalUnitValuesWeeks,
+																	dlm.RetentionIntervalUnitValuesMonths,
+																	dlm.RetentionIntervalUnitValuesYears,
+																}, false),
+															},
+														},
+													},
+												},
+												"target_region": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
@@ -298,6 +347,9 @@ func expandDlmSchedules(cfg []interface{}) []*dlm.Schedule {
 		if v, ok := m["create_rule"]; ok {
 			schedule.CreateRule = expandDlmCreateRule(v.([]interface{}))
 		}
+		if v, ok := m["cross_region_copy_rule"]; ok {
+			schedule.CrossRegionCopyRules = expandDlmCrossRegionCopyRules(v.([]interface{}))
+		}
 		if v, ok := m["name"]; ok {
 			schedule.Name = aws.String(v.(string))
 		}
@@ -319,6 +371,7 @@ func flattenDlmSchedules(schedules []*dlm.Schedule) []map[string]interface{} {
 		m := make(map[string]interface{})
 		m["copy_tags"] = aws.BoolValue(s.CopyTags)
 		m["create_rule"] = flattenDlmCreateRule(s.CreateRule)
+		m["cross_region_copy_rule"] = flattenDlmCrossRegionCopyRules(s.CrossRegionCopyRules)
 		m["name"] = aws.StringValue(s.Name)
 		m["retain_rule"] = flattenDlmRetainRule(s.RetainRule)
 		m["tags_to_add"] = flattenDlmTags(s.TagsToAdd)
@@ -326,6 +379,70 @@ func flattenDlmSchedules(schedules []*dlm.Schedule) []map[string]interface{} {
 	}
 
 	return result
+}
+
+func expandDlmCrossRegionCopyRules(cfg []interface{}) []*dlm.CrossRegionCopyRule {
+	cross_region_copy_rules := make([]*dlm.CrossRegionCopyRule, len(cfg))
+	for i, c := range cfg {
+		cross_region_copy_rule := &dlm.CrossRegionCopyRule{}
+		m := c.(map[string]interface{})
+		if v, ok := m["cmk_arn"]; ok {
+			if m["cmk_arn"] != "" {
+				cross_region_copy_rule.CmkArn = aws.String(v.(string))
+			}
+		}
+		if v, ok := m["copy_tags"]; ok {
+			cross_region_copy_rule.CopyTags = aws.Bool(v.(bool))
+		}
+		if v, ok := m["encrypted"]; ok {
+			cross_region_copy_rule.Encrypted = aws.Bool(v.(bool))
+		}
+		if v, ok := m["retain_rule"]; ok {
+			cross_region_copy_rule.RetainRule = expandDlmCrossRegionCopyRetainRule(v.([]interface{}))
+		}
+		if v, ok := m["target_region"]; ok {
+			cross_region_copy_rule.TargetRegion = aws.String(v.(string))
+		}
+		cross_region_copy_rules[i] = cross_region_copy_rule
+	}
+
+	return cross_region_copy_rules
+}
+
+func flattenDlmCrossRegionCopyRules(crossregioncopyrules []*dlm.CrossRegionCopyRule) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(crossregioncopyrules))
+	for i, s := range crossregioncopyrules {
+		m := make(map[string]interface{})
+		if m["cmk_arn"] != "" {
+			m["cmk_arn"] = aws.StringValue(s.CmkArn)
+		}
+		m["copy_tags"] = aws.BoolValue(s.CopyTags)
+		m["encrypted"] = aws.BoolValue(s.Encrypted)
+		m["retain_rule"] = flattenDlmCrossRegionCopyRetainRule(s.RetainRule)
+		m["target_region"] = aws.StringValue(s.TargetRegion)
+		result[i] = m
+	}
+
+	return result
+}
+
+func expandDlmCrossRegionCopyRetainRule(cfg []interface{}) *dlm.CrossRegionCopyRetainRule {
+	if len(cfg) == 0 || cfg[0] == nil {
+		return nil
+	}
+	m := cfg[0].(map[string]interface{})
+	return &dlm.CrossRegionCopyRetainRule{
+		Interval:     aws.Int64(int64(m["interval"].(int))),
+		IntervalUnit: aws.String(m["interval_unit"].(string)),
+	}
+}
+
+func flattenDlmCrossRegionCopyRetainRule(crossRegionCopyRetainRule *dlm.CrossRegionCopyRetainRule) []map[string]interface{} {
+	result := make(map[string]interface{})
+	result["interval"] = aws.Int64Value(crossRegionCopyRetainRule.Interval)
+	result["interval_unit"] = aws.StringValue(crossRegionCopyRetainRule.IntervalUnit)
+
+	return []map[string]interface{}{result}
 }
 
 func expandDlmCreateRule(cfg []interface{}) *dlm.CreateRule {
