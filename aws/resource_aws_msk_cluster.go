@@ -52,7 +52,7 @@ func resourceAwsMskCluster() *schema.Resource {
 							}, false),
 						},
 						"client_subnets": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
@@ -65,7 +65,7 @@ func resourceAwsMskCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"security_groups": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
