@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsCloud9EnvironmentMembership() *schema.Resource {
@@ -39,12 +39,9 @@ func resourceAwsCloud9EnvironmentMembership() *schema.Resource {
 				ForceNew: true,
 			},
 			"permissions": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					cloud9.MemberPermissionsReadOnly,
-					cloud9.MemberPermissionsReadWrite,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(cloud9.Permissions_Values(), false),
 			},
 			"user_arn": {
 				Type:         schema.TypeString,
@@ -72,10 +69,12 @@ func resourceAwsCloud9EnvironmentMembershipCreate(d *schema.ResourceData, meta i
 	resp, err := conn.CreateEnvironmentMembership(params)
 
 	if err != nil {
-		return fmt.Errorf("Error creating Cloud9 Environment Membership: %s", err)
+		return fmt.Errorf("error creating Cloud9 Environment Membership: %w", err)
 	}
 
-	d.SetId(fmt.Sprintf("%s#%s", *resp.Membership.EnvironmentId, *resp.Membership.UserArn))
+	d.SetId(fmt.Sprintf("%s#%s",
+		aws.StringValue(resp.Membership.EnvironmentId),
+		aws.StringValue(resp.Membership.UserArn)))
 
 	return resourceAwsCloud9EnvironmentMembershipRead(d, meta)
 }
@@ -109,8 +108,6 @@ func resourceAwsCloud9EnvironmentMembershipRead(d *schema.ResourceData, meta int
 	d.Set("permissions", env.Permissions)
 	d.Set("user_id", env.UserId)
 
-	log.Printf("[DEBUG] Received Cloud9 Environment Membership: %s", env)
-
 	return nil
 }
 
@@ -123,14 +120,12 @@ func resourceAwsCloud9EnvironmentMembershipUpdate(d *schema.ResourceData, meta i
 		UserArn:       aws.String(d.Get("user_arn").(string)),
 	}
 
-	log.Printf("[INFO] Updating Cloud9 Environment Membership: %s", input)
+	log.Printf("[INFO] Updating Cloud9 Environment Membership: %#v", input)
 
-	out, err := conn.UpdateEnvironmentMembership(&input)
+	_, err := conn.UpdateEnvironmentMembership(&input)
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating Cloud9 Environment Membership (%s): %w", d.Id(), err)
 	}
-
-	log.Printf("[DEBUG] Cloud9 Environment Membership updated: %s", out)
 
 	return resourceAwsCloud9EnvironmentMembershipRead(d, meta)
 }
@@ -142,8 +137,13 @@ func resourceAwsCloud9EnvironmentMembershipDelete(d *schema.ResourceData, meta i
 		EnvironmentId: aws.String(d.Get("environment_id").(string)),
 		UserArn:       aws.String(d.Get("user_arn").(string)),
 	})
+
 	if err != nil {
-		return fmt.Errorf("error deleting Cloud9 Environment Membership (%s): %s", d.Id(), err)
+		if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
+			return nil
+		}
+		return fmt.Errorf("error deleting Cloud9 Environment Membership (%s): %w", d.Id(), err)
 	}
+
 	return nil
 }

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloud9EnvironmentMembership_basic(t *testing.T) {
@@ -66,7 +66,7 @@ func TestAccAWSCloud9EnvironmentMembership_disappears(t *testing.T) {
 				Config: testAccAWSCloud9EnvironmentMembershipConfig(rName, "read-only"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloud9EnvironmentMembershipExists(resourceName, &conf),
-					testAccCheckAWSCloud9EnvironmentMembershipDisappears(&conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloud9EnvironmentMembership(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -91,6 +91,7 @@ func testAccCheckAWSCloud9EnvironmentMembershipExists(n string, res *cloud9.Envi
 			EnvironmentId: aws.String(rs.Primary.Attributes["environment_id"]),
 			UserArn:       aws.String(rs.Primary.Attributes["user_arn"]),
 		})
+
 		if err != nil {
 			if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
 				return fmt.Errorf("Cloud9 Environment Membership (%q) not found", rs.Primary.ID)
@@ -108,19 +109,6 @@ func testAccCheckAWSCloud9EnvironmentMembershipExists(n string, res *cloud9.Envi
 	}
 }
 
-func testAccCheckAWSCloud9EnvironmentMembershipDisappears(res *cloud9.EnvironmentMember) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cloud9conn
-
-		_, err := conn.DeleteEnvironmentMembership(&cloud9.DeleteEnvironmentMembershipInput{
-			EnvironmentId: res.EnvironmentId,
-			UserArn:       res.UserArn,
-		})
-
-		return err
-	}
-}
-
 func testAccCheckAWSCloud9EnvironmentMembershipDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).cloud9conn
 
@@ -133,13 +121,13 @@ func testAccCheckAWSCloud9EnvironmentMembershipDestroy(s *terraform.State) error
 			EnvironmentId: aws.String(rs.Primary.Attributes["environment_id"]),
 			UserArn:       aws.String(rs.Primary.Attributes["user_arn"]),
 		})
+
 		if err != nil {
-			if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") {
+			if isAWSErr(err, cloud9.ErrCodeNotFoundException, "") ||
+				isAWSErr(err, "AccessDeniedException", "is not authorized to access this resource") {
 				return nil
 			}
-			if isAWSErr(err, "AccessDeniedException", "is not authorized to access this resource") {
-				return nil
-			}
+
 			return err
 		}
 
@@ -155,9 +143,9 @@ resource "aws_iam_user" "test" {
 }
 
 resource "aws_cloud9_environment_membership" "test" {
-  environment_id = "${aws_cloud9_environment_ec2.test.id}"
+  environment_id = aws_cloud9_environment_ec2.test.id
   permissions    = %[2]q
-  user_arn       = "${aws_iam_user.test.arn}"
+  user_arn       = aws_iam_user.test.arn
 }
 `, name, permission)
 }

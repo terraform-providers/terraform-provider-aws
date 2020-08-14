@@ -23,9 +23,9 @@ resource "aws_iam_user" "test" {
 }
 
 resource "aws_cloud9_environment_membership" "test" {
-  environment_id = "${aws_cloud9_environment_ec2.test.id}"
+  environment_id = aws_cloud9_environment_ec2.test.id
   permissions    = "read-only"
-  user_arn       = "${aws_iam_user.test.arn}"
+  user_arn       = aws_iam_user.test.arn
 }
 ```
 
