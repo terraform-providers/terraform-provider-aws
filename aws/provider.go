@@ -672,6 +672,7 @@ func Provider() *schema.Provider {
 			"aws_inspector_resource_group":                            resourceAWSInspectorResourceGroup(),
 			"aws_instance":                                            resourceAwsInstance(),
 			"aws_internet_gateway":                                    resourceAwsInternetGateway(),
+			"aws_iot_authorizer":                                      resourceAwsIoTAuthorizer(),
 			"aws_iot_certificate":                                     resourceAwsIotCertificate(),
 			"aws_iot_policy":                                          resourceAwsIotPolicy(),
 			"aws_iot_policy_attachment":                               resourceAwsIotPolicyAttachment(),
