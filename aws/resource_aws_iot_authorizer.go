@@ -34,19 +34,13 @@ func resourceAwsIoTAuthorizer() *schema.Resource {
 				),
 			},
 			"authorizer_function_arn": {
-				Type:     schema.TypeString,
-				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validateArn,
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateArn,
 			},
 			"signing_disabled": {
 				Type:     schema.TypeBool,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeBool,
-				},
 			},
 			"status": {
 				Type:     schema.TypeString,
