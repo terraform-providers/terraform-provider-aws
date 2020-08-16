@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSIoTAuthorizer(t *testing.T) {
+func TestAccAWSIoTAuthorizer_basic(t *testing.T) {
 	var conf iot.DescribeAuthorizerOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_iot_authorizer.test"
