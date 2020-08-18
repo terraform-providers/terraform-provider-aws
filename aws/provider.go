@@ -538,6 +538,7 @@ func Provider() *schema.Provider {
 			"aws_dx_transit_virtual_interface":                        resourceAwsDxTransitVirtualInterface(),
 			"aws_dynamodb_table":                                      resourceAwsDynamoDbTable(),
 			"aws_dynamodb_table_item":                                 resourceAwsDynamoDbTableItem(),
+			"aws_dynamodb_table_item_attribute":                       resourceAwsDynamoDbTableItemAttribute(),
 			"aws_dynamodb_global_table":                               resourceAwsDynamoDbGlobalTable(),
 			"aws_ebs_default_kms_key":                                 resourceAwsEbsDefaultKmsKey(),
 			"aws_ebs_encryption_by_default":                           resourceAwsEbsEncryptionByDefault(),
