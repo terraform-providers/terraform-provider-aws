@@ -2452,7 +2452,6 @@ func validateWorklinkFleetName(v interface{}, k string) (ws []string, errors []e
 	} else if len(value) > 48 {
 		errors = append(errors, fmt.Errorf("%q cannot be longer than 48 characters", k))
 	}
-
 	return
 }
 

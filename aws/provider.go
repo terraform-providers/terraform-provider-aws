@@ -703,6 +703,7 @@ func Provider() *schema.Provider {
 			"aws_main_route_table_association":                        resourceAwsMainRouteTableAssociation(),
 			"aws_mq_broker":                                           resourceAwsMqBroker(),
 			"aws_mq_configuration":                                    resourceAwsMqConfiguration(),
+			"aws_media_connect_flow":                                  resourceAWSMediaConnectFlow(),
 			"aws_media_convert_queue":                                 resourceAwsMediaConvertQueue(),
 			"aws_media_package_channel":                               resourceAwsMediaPackageChannel(),
 			"aws_media_store_container":                               resourceAwsMediaStoreContainer(),
