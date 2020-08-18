@@ -631,6 +631,7 @@ func Provider() *schema.Provider {
 			"aws_guardduty_organization_admin_account":                resourceAwsGuardDutyOrganizationAdminAccount(),
 			"aws_guardduty_organization_configuration":                resourceAwsGuardDutyOrganizationConfiguration(),
 			"aws_guardduty_threatintelset":                            resourceAwsGuardDutyThreatintelset(),
+			"aws_greengrass_group":                                    resourceAwsGreengrassGroup(),
 			"aws_iam_access_key":                                      resourceAwsIamAccessKey(),
 			"aws_iam_account_alias":                                   resourceAwsIamAccountAlias(),
 			"aws_iam_account_password_policy":                         resourceAwsIamAccountPasswordPolicy(),
