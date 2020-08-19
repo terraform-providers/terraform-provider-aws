@@ -1,0 +1,54 @@
+{        
+    "rules": [
+         {
+            "definition": {
+                "path": [ 
+                    {"prefix": "Football/"}, 
+                    {"prefix": "Baseball/"}
+                ],
+                "days_since_create": [
+                    {"numeric": [">" , 28]}
+                ]
+            },
+            "action": "EXPIRE"
+        },
+        {
+            "definition": {
+                "path": [ { "prefix": "AwardsShow/" }  ],
+                "days_since_create": [
+                    {"numeric": [">=" , 15]}
+                ]
+            },
+            "action": "EXPIRE"
+        },
+        {
+            "definition": {
+                "path": [ { "prefix": "" }  ],
+                "days_since_create": [
+                    {"numeric": [">" , 40]}
+                ]
+            },
+            "action": "EXPIRE"
+        },
+        {
+            "definition": {
+                "path": [ { "wildcard": "Football/*.ts" }  ],
+                "days_since_create": [
+                    {"numeric": [">" , 20]}
+                ]
+            },
+            "action": "EXPIRE"
+        },
+        {
+            "definition": {
+                "path": [ 
+                    {"wildcard": "Football/index*.m3u8"}
+                ],
+                "seconds_since_create": [
+                    {"numeric": [">" , 15]}
+                ]
+            },
+            "action": "EXPIRE"
+        }
+    ]
+}
