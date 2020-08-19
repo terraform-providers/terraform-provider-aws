@@ -706,6 +706,7 @@ func Provider() *schema.Provider {
 			"aws_media_convert_queue":                                 resourceAwsMediaConvertQueue(),
 			"aws_media_package_channel":                               resourceAwsMediaPackageChannel(),
 			"aws_media_store_container":                               resourceAwsMediaStoreContainer(),
+			"aws_media_store_container_metric_policy":                 resourceAwsMediaStoreContainerMetricPolicy(),
 			"aws_media_store_container_policy":                        resourceAwsMediaStoreContainerPolicy(),
 			"aws_msk_cluster":                                         resourceAwsMskCluster(),
 			"aws_msk_configuration":                                   resourceAwsMskConfiguration(),
