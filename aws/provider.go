@@ -747,6 +747,7 @@ func Provider() *schema.Provider {
 			"aws_proxy_protocol_policy":                               resourceAwsProxyProtocolPolicy(),
 			"aws_qldb_ledger":                                         resourceAwsQLDBLedger(),
 			"aws_quicksight_group":                                    resourceAwsQuickSightGroup(),
+			"aws_quicksight_group_membership":                         resourceAwsQuickSightGroupMembership(),
 			"aws_quicksight_user":                                     resourceAwsQuickSightUser(),
 			"aws_ram_principal_association":                           resourceAwsRamPrincipalAssociation(),
 			"aws_ram_resource_association":                            resourceAwsRamResourceAssociation(),
