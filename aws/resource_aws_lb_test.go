@@ -123,6 +123,7 @@ func TestAccAWSLB_ALB_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "TestAccAWSALB_basic"),
 					resource.TestCheckResourceAttrSet(resourceName, "vpc_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "defensive"),
 				),
 			},
 		},
@@ -983,6 +984,47 @@ func TestAccAWSLB_networkLoadbalancer_subnet_change(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Name", "testAccAWSLBConfig_networkLoadbalancer_subnets"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_type", "network"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSLB_applicationLoadBalancer_updateDesyncMitigationMode(t *testing.T) {
+	var pre, mid, post elbv2.LoadBalancer
+	lbName := fmt.Sprintf("testaccawsalb-http2-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	resourceName := "aws_lb.lb_test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSLBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBConfig_desyncMitigationMode(lbName, "strictest"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists(resourceName, &pre),
+					testAccCheckAWSLBAttribute(resourceName, "routing.http.desync_mitigation_mode", "strictest"),
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "strictest"),
+				),
+			},
+			{
+				Config: testAccAWSLBConfig_desyncMitigationMode(lbName, "monitor"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists(resourceName, &mid),
+					testAccCheckAWSLBAttribute(resourceName, "routing.http.desync_mitigation_mode", "monitor"),
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "monitor"),
+					testAccCheckAWSlbARNs(&pre, &mid),
+				),
+			},
+			{
+				Config: testAccAWSLBConfig_desyncMitigationMode(lbName, "defensive"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBExists(resourceName, &post),
+					testAccCheckAWSLBAttribute(resourceName, "routing.http.desync_mitigation_mode", "defensive"),
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "defensive"),
+					testAccCheckAWSlbARNs(&mid, &post),
 				),
 			},
 		},
@@ -2643,4 +2685,82 @@ resource "aws_security_group" "alb_test" {
   }
 }
 `, lbName)
+}
+
+func testAccAWSLBConfig_desyncMitigationMode(lbName string, mode string) string {
+	return fmt.Sprintf(`
+resource "aws_lb" "lb_test" {
+  name            = "%s"
+  internal        = true
+  security_groups = ["${aws_security_group.alb_test.id}"]
+  subnets         = "${aws_subnet.alb_test.*.id}"
+
+  idle_timeout               = 30
+  enable_deletion_protection = false
+
+  desync_mitigation_mode = %q
+
+  tags = {
+    Name = "TestAccAWSALB_basic"
+  }
+}
+
+variable "subnets" {
+  default = ["10.0.1.0/24", "10.0.2.0/24"]
+  type    = "list"
+}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "alb_test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-lb-basic"
+  }
+}
+
+resource "aws_subnet" "alb_test" {
+  count                   = 2
+  vpc_id                  = "${aws_vpc.alb_test.id}"
+  cidr_block              = "${element(var.subnets, count.index)}"
+  map_public_ip_on_launch = true
+  availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
+
+  tags = {
+    Name = "tf-acc-lb-basic-${count.index}"
+  }
+}
+
+resource "aws_security_group" "alb_test" {
+  name        = "allow_all_alb_test"
+  description = "Used for ALB Testing"
+  vpc_id      = "${aws_vpc.alb_test.id}"
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "TestAccAWSALB_basic"
+  }
+}
+`, lbName, mode)
 }

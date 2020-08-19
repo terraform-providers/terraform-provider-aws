@@ -202,6 +202,18 @@ func resourceAwsLb() *schema.Resource {
 				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
 			},
 
+			"desync_mitigation_mode": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "defensive",
+				DiffSuppressFunc: suppressIfLBType(elbv2.LoadBalancerTypeEnumNetwork),
+				ValidateFunc: validation.StringInSlice([]string{
+					"monitor",
+					"defensive",
+					"strictest",
+				}, false),
+			},
+
 			"ip_address_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -434,6 +446,13 @@ func resourceAwsLbUpdate(d *schema.ResourceData, meta interface{}) error {
 			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
 				Key:   aws.String("routing.http.drop_invalid_header_fields.enabled"),
 				Value: aws.String(strconv.FormatBool(d.Get("drop_invalid_header_fields").(bool))),
+			})
+		}
+
+		if d.HasChange("desync_mitigation_mode") || d.IsNewResource() {
+			attributes = append(attributes, &elbv2.LoadBalancerAttribute{
+				Key:   aws.String("routing.http.desync_mitigation_mode"),
+				Value: aws.String(d.Get("desync_mitigation_mode").(string)),
 			})
 		}
 
@@ -803,6 +822,10 @@ func flattenAwsLbResource(d *schema.ResourceData, meta interface{}, lb *elbv2.Lo
 			crossZoneLbEnabled := aws.StringValue(attr.Value) == "true"
 			log.Printf("[DEBUG] Setting NLB Cross Zone Load Balancing Enabled: %t", crossZoneLbEnabled)
 			d.Set("enable_cross_zone_load_balancing", crossZoneLbEnabled)
+		case "routing.http.desync_mitigation_mode":
+			value := aws.StringValue(attr.Value)
+			log.Printf("[DEBUG] Setting ALB Desync Mitigation Mode: %s", value)
+			d.Set("desync_mitigation_mode", value)
 		}
 	}
 
