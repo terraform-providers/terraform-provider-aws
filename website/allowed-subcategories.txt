@@ -16,6 +16,7 @@ Cloud9
 CloudFormation
 CloudFront
 CloudHSM v2
+CloudSearch
 CloudTrail
 CloudWatch
 CodeArtifact

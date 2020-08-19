@@ -441,6 +441,7 @@ func Provider() *schema.Provider {
 			"aws_cloudfront_distribution":                             resourceAwsCloudFrontDistribution(),
 			"aws_cloudfront_origin_access_identity":                   resourceAwsCloudFrontOriginAccessIdentity(),
 			"aws_cloudfront_public_key":                               resourceAwsCloudFrontPublicKey(),
+			"aws_cloudsearch_domain":                                  resourceAwsCloudSearchDomain(),
 			"aws_cloudtrail":                                          resourceAwsCloudTrail(),
 			"aws_cloudwatch_event_permission":                         resourceAwsCloudWatchEventPermission(),
 			"aws_cloudwatch_event_rule":                               resourceAwsCloudWatchEventRule(),
