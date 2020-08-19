@@ -806,6 +806,7 @@ func Provider() *schema.Provider {
 			"aws_s3_account_public_access_block":                      resourceAwsS3AccountPublicAccessBlock(),
 			"aws_s3_bucket":                                           resourceAwsS3Bucket(),
 			"aws_s3_bucket_analytics_configuration":                   resourceAwsS3BucketAnalyticsConfiguration(),
+			"aws_s3_bucket_cors_configuration":                        resourceAwsS3BucketCorsConfiguration(),
 			"aws_s3_bucket_policy":                                    resourceAwsS3BucketPolicy(),
 			"aws_s3_bucket_public_access_block":                       resourceAwsS3BucketPublicAccessBlock(),
 			"aws_s3_bucket_object":                                    resourceAwsS3BucketObject(),
