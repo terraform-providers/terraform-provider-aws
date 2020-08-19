@@ -1426,6 +1426,229 @@ func TestCognitoUserPoolSchemaAttributeMatchesStandardAttribute(t *testing.T) {
 	}
 }
 
+func TestDiffQuickSightNoPermissionsMeansNoChanges(t *testing.T) {
+	empty := make([]interface{}, 0)
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(empty, empty)
+
+	if len(toGrant) > 0 {
+		t.Fatal("Expected no granted permissions, got", len(toGrant))
+	}
+
+	if len(toRevoke) > 0 {
+		t.Fatal("Expected no revoked permissions, got", len(toRevoke))
+	}
+}
+
+func TestDiffQuickSightNoOldMeansOnlyGrant(t *testing.T) {
+	empty := make([]interface{}, 0)
+	newPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+				"action2",
+			}),
+		},
+	}
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(empty, newPerms)
+
+	if len(toGrant) != 1 {
+		t.Fatal("Expected 1 granted permission, got", len(toGrant))
+	}
+
+	if len(toRevoke) > 0 {
+		t.Fatal("Expected no revoked permissions, got", len(toRevoke))
+	}
+}
+
+func TestDiffQuickSightNoNewMeansOnlyRevoke(t *testing.T) {
+	empty := make([]interface{}, 0)
+	oldPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+				"action2",
+			}),
+		},
+	}
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(oldPerms, empty)
+
+	if len(toGrant) > 0 {
+		t.Fatal("Expected no granted permissions, got", len(toGrant))
+	}
+
+	if len(toRevoke) != 1 {
+		t.Fatal("Expected 1 revoked permission, got", len(toRevoke))
+	}
+}
+
+func TestDiffQuickSightIntersectingPermissionsMeansNoChange(t *testing.T) {
+	perms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+				"action2",
+			}),
+		},
+	}
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(perms, perms)
+
+	if len(toGrant) > 0 {
+		t.Fatal("Expected no granted permissions, got", len(toGrant))
+	}
+
+	if len(toRevoke) > 0 {
+		t.Fatal("Expected no revoked permissions, got", len(toRevoke))
+	}
+}
+
+func TestDiffQuickSightAdditionalNewPermissionsBecomeGrants(t *testing.T) {
+	oldPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"oldAction",
+			}),
+		},
+	}
+	newPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"oldAction",
+				"newAction",
+			}),
+		},
+	}
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(oldPerms, newPerms)
+
+	if len(toGrant) != 1 {
+		t.Fatal("Expected 1 granted permission, got", len(toGrant))
+	}
+
+	if len(toGrant[0].Actions) != 1 || *toGrant[0].Actions[0] != "newAction" {
+		t.Fatal("Expected 1 new granted action, got", len(toGrant))
+	}
+
+	if len(toRevoke) > 0 {
+		t.Fatal("Expected no revoked permissions, got", len(toRevoke))
+	}
+}
+
+func TestDiffQuickSightAdditionalOldPermissionsBecomeRevokes(t *testing.T) {
+	oldPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"oldAction",
+				"onlyOldAction",
+			}),
+		},
+	}
+	newPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"oldAction",
+			}),
+		},
+	}
+
+	toGrant, toRevoke := diffQuickSightPermissionsToGrantAndRevoke(oldPerms, newPerms)
+
+	if len(toRevoke) != 1 {
+		t.Fatal("Expected 1 revoked permission, got", len(toRevoke))
+	}
+
+	if len(toRevoke[0].Actions) != 1 || *toRevoke[0].Actions[0] != "onlyOldAction" {
+		t.Fatal("Expected 1 revoked action, got", len(toRevoke))
+	}
+
+	if len(toGrant) > 0 {
+		t.Fatal("Expected no granted permissions, got", len(toGrant))
+	}
+}
+
+func TestDiffQuickSightFatTest(t *testing.T) {
+	oldPerms := []interface{}{
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+			}),
+		},
+		map[string]interface{}{
+			"principal": "principal2",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+				"action3",
+				"action4",
+			}),
+		},
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action2",
+			}),
+		},
+		map[string]interface{}{
+			"principal": "principal3",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action5",
+			}),
+		},
+	}
+	newPerms := []interface{}{
+		// Leave action3 untouched, grant action5 and revoke action1
+		// and action4
+		map[string]interface{}{
+			"principal": "principal2",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action3",
+				"action5",
+			}),
+		},
+		// Should span principals, leaving all actions untouched for
+		// principal1
+		map[string]interface{}{
+			"principal": "principal1",
+			"actions": schema.NewSet(schema.HashString, []interface{}{
+				"action1",
+				"action2",
+			}),
+		},
+		// Don't mention principal3 which means revoke
+	}
+
+	expected := map[string]map[string]bool{
+		"principal2": {
+			"action1": false,
+			"action4": false,
+			"action5": true,
+		},
+		"principal3": {
+			"action5": false,
+		},
+		"principal1": make(map[string]bool),
+	}
+
+	lookup := diffQuickSightPermissionsLookup(oldPerms, newPerms)
+
+	if !reflect.DeepEqual(lookup, expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			lookup,
+			expected)
+	}
+}
+
 func TestCanonicalXML(t *testing.T) {
 	cases := []struct {
 		Name        string
