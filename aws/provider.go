@@ -748,6 +748,7 @@ func Provider() *schema.Provider {
 			"aws_qldb_ledger":                                         resourceAwsQLDBLedger(),
 			"aws_quicksight_group":                                    resourceAwsQuickSightGroup(),
 			"aws_quicksight_user":                                     resourceAwsQuickSightUser(),
+			"aws_quicksight_iam_policy_assignment":                    resourceAwsQuickSightIAMPolicyAssignment(),
 			"aws_ram_principal_association":                           resourceAwsRamPrincipalAssociation(),
 			"aws_ram_resource_association":                            resourceAwsRamResourceAssociation(),
 			"aws_ram_resource_share":                                  resourceAwsRamResourceShare(),
