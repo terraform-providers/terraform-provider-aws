@@ -71,6 +71,7 @@ MQ
 Macie Classic
 Managed Streaming for Kafka (MSK)
 MediaConvert
+MediaLive
 MediaPackage
 MediaStore
 Neptune
