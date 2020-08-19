@@ -663,6 +663,7 @@ func Provider() *schema.Provider {
 			"aws_iot_policy":                                          resourceAwsIotPolicy(),
 			"aws_iot_policy_attachment":                               resourceAwsIotPolicyAttachment(),
 			"aws_iot_thing":                                           resourceAwsIotThing(),
+			"aws_iot_thing_group":                                     resourceAwsIotThingGroup(),
 			"aws_iot_thing_principal_attachment":                      resourceAwsIotThingPrincipalAttachment(),
 			"aws_iot_thing_type":                                      resourceAwsIotThingType(),
 			"aws_iot_topic_rule":                                      resourceAwsIotTopicRule(),
