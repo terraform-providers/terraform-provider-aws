@@ -88,6 +88,7 @@ The following arguments are supported:
 * `idle_timeout` - (Optional) The time in seconds that the connection is allowed to be idle. Default: `60`
 * `connection_draining` - (Optional) Boolean to enable connection draining. Default: `false`
 * `connection_draining_timeout` - (Optional) The time in seconds to allow for connections to drain. Default: `300`
+* `desync_mitigation_mode` - (Optional) Determines how the load balancer handles requests that might pose a security risk to an application. Valid values are `monitor`, `defensive` (default), `strictest`.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
 Exactly one of `availability_zones` or `subnets` must be specified: this

@@ -90,6 +90,7 @@ func TestAccAWSELB_basic(t *testing.T) {
 						"lb_protocol":       "http",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "cross_zone_load_balancing", "true"),
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "defensive"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -747,6 +748,56 @@ func TestAccAWSELBUpdate_ConnectionDraining(t *testing.T) {
 				Config: testAccAWSELBConfigConnectionDraining_update_disable,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "connection_draining", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELB_DesyncMitigationMode(t *testing.T) {
+	resourceName := "aws_elb.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSELBConfigDesyncMitigationMode,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "strictest"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSELBUpdate_DesyncMitigationMode(t *testing.T) {
+	resourceName := "aws_elb.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSELBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSELBConfigDesyncMitigationMode_update_default,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "defensive"),
+				),
+			},
+			{
+				Config: testAccAWSELBConfigDesyncMitigationMode_update_monitor,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "monitor"),
+				),
+			},
+			{
+				Config: testAccAWSELBConfigDesyncMitigationMode_update_default,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "desync_mitigation_mode", "defensive"),
 				),
 			},
 		},
@@ -1714,6 +1765,76 @@ resource "aws_elb" "test" {
   }
 
   connection_draining = false
+}
+`
+
+const testAccAWSELBConfigDesyncMitigationMode = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_elb" "test" {
+  availability_zones = [data.aws_availability_zones.available.names[0]]
+
+  listener {
+    instance_port     = 8000
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  desync_mitigation_mode = "strictest"
+}
+`
+
+const testAccAWSELBConfigDesyncMitigationMode_update_default = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_elb" "test" {
+  availability_zones = [data.aws_availability_zones.available.names[0]]
+
+  listener {
+    instance_port     = 8000
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+}
+`
+
+const testAccAWSELBConfigDesyncMitigationMode_update_monitor = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_elb" "test" {
+  availability_zones = [data.aws_availability_zones.available.names[0]]
+
+  listener {
+    instance_port     = 8000
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  desync_mitigation_mode = "monitor"
 }
 `
 
