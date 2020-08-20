@@ -49,6 +49,7 @@ func TestAccDataSourceAWSLB_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName2, "arn", resourceName, "arn"),
 					resource.TestCheckResourceAttrPair(dataSourceName2, "ip_address_type", resourceName, "ip_address_type"),
 					resource.TestCheckResourceAttrPair(dataSourceName2, "subnet_mapping.#", resourceName, "subnet_mapping.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName2, "desync_mitigation_mode", resourceName, "desync_mitigation_mode"),
 				),
 			},
 		},
@@ -102,6 +103,7 @@ func TestAccDataSourceAWSLB_BackwardsCompatibility(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName1, "drop_invalid_header_fields", resourceName, "drop_invalid_header_fields"),
 					resource.TestCheckResourceAttrPair(dataSourceName1, "enable_http2", resourceName, "enable_http2"),
 					resource.TestCheckResourceAttrPair(dataSourceName1, "access_logs.#", resourceName, "access_logs.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName2, "desync_mitigation_mode", resourceName, "desync_mitigation_mode"),
 				),
 			},
 		},
@@ -118,6 +120,7 @@ resource "aws_lb" "alb_test" {
 
   idle_timeout               = 30
   enable_deletion_protection = false
+  desync_mitigation_mode     = "strictest"
 
   tags = {
     TestName = "TestAccAWSALB_basic"
@@ -183,11 +186,13 @@ resource "aws_security_group" "alb_test" {
 }
 
 data "aws_lb" "alb_test_with_arn" {
-  arn = aws_lb.alb_test.arn
+  arn        = aws_lb.alb_test.arn
+  depends_on = [aws_lb.alb_test]
 }
 
 data "aws_lb" "alb_test_with_name" {
-  name = aws_lb.alb_test.name
+  name       = aws_lb.alb_test.name
+  depends_on = [aws_lb.alb_test]
 }
 `, lbName)
 }
@@ -267,11 +272,13 @@ resource "aws_security_group" "alb_test" {
 }
 
 data "aws_alb" "alb_test_with_arn" {
-  arn = aws_alb.alb_test.arn
+  arn        = aws_alb.alb_test.arn
+  depends_on = [aws_alb.alb_test]
 }
 
 data "aws_alb" "alb_test_with_name" {
-  name = aws_alb.alb_test.name
+  name       = aws_alb.alb_test.name
+  depends_on = [aws_alb.alb_test]
 }
 `, albName)
 }

@@ -115,6 +115,11 @@ func dataSourceAwsLb() *schema.Resource {
 				Computed: true,
 			},
 
+			"desync_mitigation_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
