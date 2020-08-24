@@ -47,6 +47,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"bit_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"channels": {
@@ -93,12 +94,14 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bit_depth": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"8",
@@ -110,6 +113,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"bit_order": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"LittleEndian",
@@ -118,6 +122,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"profile": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"auto",
@@ -129,6 +134,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"signed": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Signed",
@@ -282,6 +288,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"bit_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 						"codec": {
@@ -585,14 +592,19 @@ func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParamet
 	}
 	audio := l[0].(map[string]interface{})
 
-	return &elastictranscoder.AudioParameters{
+	ap := &elastictranscoder.AudioParameters{
 		AudioPackingMode: aws.String(audio["audio_packing_mode"].(string)),
-		BitRate:          aws.String(audio["bit_rate"].(string)),
 		Channels:         aws.String(audio["channels"].(string)),
 		Codec:            aws.String(audio["codec"].(string)),
 		CodecOptions:     expandETAudioCodecOptions(d),
 		SampleRate:       aws.String(audio["sample_rate"].(string)),
 	}
+
+	if v, ok := audio["bit_rate"]; ok && v.(string) != "" {
+		ap.BitRate = aws.String(v.(string))
+	}
+
+	return ap
 }
 
 func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioCodecOptions {
@@ -804,10 +816,13 @@ func flattenETAudioParameters(audio *elastictranscoder.AudioParameters) []map[st
 
 	result := map[string]interface{}{
 		"audio_packing_mode": aws.StringValue(audio.AudioPackingMode),
-		"bit_rate":           aws.StringValue(audio.BitRate),
 		"channels":           aws.StringValue(audio.Channels),
 		"codec":              aws.StringValue(audio.Codec),
 		"sample_rate":        aws.StringValue(audio.SampleRate),
+	}
+
+	if audio.BitRate != nil {
+		result["bit_rate"] = aws.StringValue(audio.BitRate)
 	}
 
 	return []map[string]interface{}{result}

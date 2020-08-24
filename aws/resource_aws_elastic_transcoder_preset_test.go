@@ -62,7 +62,34 @@ func TestAccAWSElasticTranscoderPreset_disappears(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/14087
+//https://github.com/terraform-providers/terraform-provider-aws/issues/14090
+func TestAccAWSElasticTranscoderPreset_audio_noBitRate(t *testing.T) {
+	var preset elastictranscoder.Preset
+	resourceName := "aws_elastictranscoder_preset.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckElasticTranscoderPresetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsElasticTranscoderPresetNoBitRateConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "elastictranscoder", regexp.MustCompile(`preset/.+`)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/14087
 func TestAccAWSElasticTranscoderPreset_AudioCodecOptions_empty(t *testing.T) {
 	var preset elastictranscoder.Preset
 	resourceName := "aws_elastictranscoder_preset.test"
@@ -258,6 +285,22 @@ resource "aws_elastictranscoder_preset" "test" {
     bit_rate           = 320
     channels           = 2
     codec              = "mp3"
+    sample_rate        = 44100
+  }
+}
+`, rName)
+}
+
+func testAccAwsElasticTranscoderPresetNoBitRateConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elastictranscoder_preset" "test" {
+  container = "wav"
+  name      = %[1]q
+
+  audio {
+    audio_packing_mode = "SingleTrack"
+    channels           = 2
+    codec              = "pcm"
     sample_rate        = 44100
   }
 }
