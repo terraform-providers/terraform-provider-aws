@@ -57,6 +57,11 @@ func resourceAwsAutoscalingPolicy() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 			"estimated_instance_warmup": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -217,6 +222,7 @@ func resourceAwsAutoscalingPolicyRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("adjustment_type", p.AdjustmentType)
 	d.Set("autoscaling_group_name", p.AutoScalingGroupName)
 	d.Set("cooldown", p.Cooldown)
+	d.Set("enabled", p.Enabled)
 	d.Set("estimated_instance_warmup", p.EstimatedInstanceWarmup)
 	d.Set("metric_aggregation_type", p.MetricAggregationType)
 	d.Set("policy_type", p.PolicyType)
@@ -298,6 +304,7 @@ func getAwsAutoscalingPutScalingPolicyInput(d *schema.ResourceData) (autoscaling
 	var params = autoscaling.PutScalingPolicyInput{
 		AutoScalingGroupName: aws.String(d.Get("autoscaling_group_name").(string)),
 		PolicyName:           aws.String(d.Get("name").(string)),
+		Enabled:              aws.Bool(d.Get("enabled").(bool)),
 	}
 
 	// get policy_type first as parameter support depends on policy type

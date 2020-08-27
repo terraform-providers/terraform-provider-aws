@@ -34,6 +34,7 @@ func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "name", name+"-foobar_simple"),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "scaling_adjustment", "2"),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "autoscaling_group_name", name),
+					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "enabled", "true"),
 					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_step", &policy),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "adjustment_type", "ChangeInCapacity"),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "policy_type", "StepScaling"),
@@ -79,6 +80,7 @@ func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
 					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &policy),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "policy_type", "SimpleScaling"),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "cooldown", "30"),
+					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "enabled", "false"),
 					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_step", &policy),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "policy_type", "StepScaling"),
 					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "estimated_instance_warmup", "20"),
@@ -425,6 +427,7 @@ resource "aws_autoscaling_policy" "foobar_simple" {
   policy_type            = "SimpleScaling"
   scaling_adjustment     = 2
   autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  enabled                = false
 }
 
 resource "aws_autoscaling_policy" "foobar_step" {
