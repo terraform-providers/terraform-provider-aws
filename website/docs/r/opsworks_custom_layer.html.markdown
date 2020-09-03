@@ -64,10 +64,10 @@ An `ebs_volume` block supports the following arguments:
 
 A `cloudwatch_configuration` block supports the following arguments:
 
-* `enabled` - (Optional) 
-* `log_streams` - (Optional) A block the specifies how an opsworks logs look like: 
+* `enabled` - (Optional)
+* `log_streams` - (Optional) A block the specifies how an opsworks logs look like:
     * `file` - (Required) Specifies log files that you want to push to CloudWatch Logs. File can point to a specific file or multiple files (by using wild card characters such as /var/log/system.log*).
-    * `log_group_name` - (Required) Specifies the destination log group. A log group is created automatically if it doesn't already exist. 
+    * `log_group_name` - (Required) Specifies the destination log group. A log group is created automatically if it doesn't already exist.
     * `batch_count` - (Optional) Specifies the max number of log events in a batch, up to `10000`. The default value is `1000`.
     * `batch_size` - (Optional) Specifies the maximum size of log events in a batch, in bytes, up to `1048576` bytes. The default value is `32768` bytes.
     * `buffer_duration` - (Optional) Specifies the time duration for the batching of log events. The minimum value is `5000` and default value is `5000`.
