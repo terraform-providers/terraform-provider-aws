@@ -383,14 +383,14 @@ func testAccAwsOpsworksCustomLayerConfigNoVpcCreate(name string) string {
 		testAccAwsOpsworksCustomLayerSecurityGroups(name) +
 		fmt.Sprintf(`
 resource "aws_opsworks_custom_layer" "test" {
-  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id               = aws_opsworks_stack.tf-acc.id
   name                   = %[1]q
   short_name             = "tf-ops-acc-custom-layer"
 
   auto_assign_public_ips = true
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id",
   ]
 
   drain_elb_on_shutdown     = true
@@ -438,7 +438,7 @@ resource "aws_opsworks_custom_layer" "test" {
   cloudwatch_configuration {
     enabled = %[2]t
     log_streams {
-      log_group_name = "${aws_cloudwatch_log_group.test.name}"
+      log_group_name = aws_cloudwatch_log_group.test.name
       file           = "/var/log/system.log*"
     }
   }
@@ -455,14 +455,14 @@ resource "aws_cloudwatch_log_group" "test" {
 }
 
 resource "aws_opsworks_custom_layer" "test" {
-  stack_id               = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id               = aws_opsworks_stack.tf-acc.id
   name                   = %[1]q
   short_name             = "tf-ops-acc-custom-layer"
   auto_assign_public_ips = true
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   drain_elb_on_shutdown     = true
@@ -471,7 +471,7 @@ resource "aws_opsworks_custom_layer" "test" {
   cloudwatch_configuration {
     enabled = true
     log_streams {
-      log_group_name          = "${aws_cloudwatch_log_group.test.name}"
+      log_group_name          = aws_cloudwatch_log_group.test.name
       file                    = "/var/log/system.lo*"
       batch_count             = 2000
       batch_size              = 50000
