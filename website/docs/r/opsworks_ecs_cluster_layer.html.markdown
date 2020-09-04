@@ -14,7 +14,7 @@ Provides an OpsWorks ECS Cluster layer resource.
 
 ```hcl
 resource "aws_opsworks_ecs_cluster_layer" "lb" {
-  stack_id       = "${aws_opsworks_stack.main.id}"
+  stack_id       = aws_opsworks_stack.main.id
   stats_password = "foobarbaz"
 }
 ```

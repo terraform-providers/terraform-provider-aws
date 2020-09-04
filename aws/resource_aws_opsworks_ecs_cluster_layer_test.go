@@ -81,13 +81,13 @@ resource "aws_ecs_cluster" "test" {
 }
 
 resource "aws_opsworks_ecs_cluster_layer" "test" {
-  stack_id        = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id        = aws_opsworks_stack.tf-acc.id
   name            = %[1]q
-  ecs_cluster_arn = "${aws_ecs_cluster.test.arn}"
+  ecs_cluster_arn = aws_ecs_cluster.test.arn
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 }
 `, name)
@@ -102,13 +102,13 @@ resource "aws_ecs_cluster" "test" {
 }
 
 resource "aws_opsworks_ecs_cluster_layer" "test" {
-  stack_id        = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id        = aws_opsworks_stack.tf-acc.id
   name            = %[1]q
-  ecs_cluster_arn = "${aws_ecs_cluster.test.arn}"
+  ecs_cluster_arn = aws_ecs_cluster.test.arn
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   tags = {
@@ -127,13 +127,13 @@ resource "aws_ecs_cluster" "test" {
 }
 
 resource "aws_opsworks_ecs_cluster_layer" "test" {
-  stack_id        = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id        = aws_opsworks_stack.tf-acc.id
   name            = %[1]q
-  ecs_cluster_arn = "${aws_ecs_cluster.test.arn}"
+  ecs_cluster_arn = aws_ecs_cluster.test.arn
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-layer1.id}",
-    "${aws_security_group.tf-ops-acc-layer2.id}",
+    aws_security_group.tf-ops-acc-layer1.id,
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   tags = {
