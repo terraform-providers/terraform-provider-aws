@@ -231,6 +231,28 @@ func TestAccAWSOpsworksCustomLayer_cloudwatch(t *testing.T) {
 	})
 }
 
+func TestAccAWSOpsworksCustomLayer_disappears(t *testing.T) {
+	name := acctest.RandString(10)
+	var opslayer opsworks.Layer
+	resourceName := "aws_opsworks_custom_layer.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksCustomLayerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOpsworksCustomLayerConfigVpcCreate(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSOpsworksLayerExists(resourceName, &opslayer),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsOpsworksCustomLayer(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSOpsworksLayerExists(n string, opslayer *opsworks.Layer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -390,7 +412,7 @@ resource "aws_opsworks_custom_layer" "test" {
   auto_assign_public_ips = true
   custom_security_group_ids = [
     aws_security_group.tf-ops-acc-layer1.id,
-    aws_security_group.tf-ops-acc-layer2.id",
+    aws_security_group.tf-ops-acc-layer2.id,
   ]
 
   drain_elb_on_shutdown     = true
