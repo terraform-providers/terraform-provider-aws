@@ -15,7 +15,7 @@ The following example below creates a CloudFront Field Level Encryption Profile.
 ```hcl
 resource "aws_cloudfront_public_key" "example" {
   comment     = "test public key"
-  encoded_key = "${file("public_key.pem")}"
+  encoded_key = file("public_key.pem")
   name        = "test_key"
 }
 
@@ -24,7 +24,7 @@ resource "aws_cloudfront_field_level_encryption_profile" "test" {
   name    = "test profile"
 
   encryption_entities {
-    public_key_id  = "${aws_cloudfront_public_key.example.id}"
+    public_key_id  = aws_cloudfront_public_key.example.id
     provider_id    = "test profile"
     field_patterns = ["DateOfBirth"]
   }

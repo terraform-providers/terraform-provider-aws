@@ -124,7 +124,7 @@ func testAccAWSCloudfrontFieldLevelEncryptionProfileConfig(rName string) string 
 	return fmt.Sprintf(`
 resource "aws_cloudfront_public_key" "test" {
   comment     = "test key"
-  encoded_key = "${file("test-fixtures/cloudfront-public-key.pem")}"
+  encoded_key = file("test-fixtures/cloudfront-public-key.pem")
   name        = %[1]q
 }
 
@@ -133,7 +133,7 @@ resource "aws_cloudfront_field_level_encryption_profile" "test" {
   name    = %[1]q
 
   encryption_entities {
-    public_key_id  = "${aws_cloudfront_public_key.test.id}"
+    public_key_id  = aws_cloudfront_public_key.test.id
     provider_id    = %[1]q
     field_patterns = ["DateOfBirth"]
   }
@@ -145,7 +145,7 @@ func testAccAWSCloudfrontFieldLevelEncryptionProfileExtendedConfig(rName string)
 	return fmt.Sprintf(`
 resource "aws_cloudfront_public_key" "test" {
   comment     = "test key"
-  encoded_key = "${file("test-fixtures/cloudfront-public-key.pem")}"
+  encoded_key = file("test-fixtures/cloudfront-public-key.pem")
   name        = %[1]q
 }
 
@@ -154,7 +154,7 @@ resource "aws_cloudfront_field_level_encryption_profile" "test" {
   name    = %[1]q
 
   encryption_entities {
-    public_key_id  = "${aws_cloudfront_public_key.test.id}"
+    public_key_id  = aws_cloudfront_public_key.test.id
     provider_id    = %[1]q
     field_patterns = ["FirstName", "DateOfBirth"]
   }
