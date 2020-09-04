@@ -14,6 +14,7 @@ import (
 func TestAccAWSCloudfrontFieldLevelEncryptionProfile_basic(t *testing.T) {
 	var profile cloudfront.GetFieldLevelEncryptionProfileOutput
 	resourceName := "aws_cloudfront_field_level_encryption_profile.test"
+	keyResourceName := "aws_cloudfront_public_key.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,6 +29,9 @@ func TestAccAWSCloudfrontFieldLevelEncryptionProfile_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "comment", "some comment"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "encryption_entities.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_entities.0.provider_id", rName),
+					resource.TestCheckResourceAttrPair(resourceName, "encryption_entities.0.public_key_id", keyResourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_entities.0.field_patterns.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "etag"),
 				),
 			},
@@ -43,6 +47,9 @@ func TestAccAWSCloudfrontFieldLevelEncryptionProfile_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "comment", "some other comment"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "encryption_entities.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_entities.0.provider_id", rName),
+					resource.TestCheckResourceAttrPair(resourceName, "encryption_entities.0.public_key_id", keyResourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_entities.0.field_patterns.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "etag"),
 				),
 			},

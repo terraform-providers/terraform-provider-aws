@@ -26,7 +26,7 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfile() *schema.Resource {
 				Required: true,
 			},
 			"encryption_entities": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -69,7 +69,7 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfileCreate(d *schema.ResourceDa
 	fl := &cloudfront.FieldLevelEncryptionProfileConfig{
 		CallerReference:    aws.String(resource.UniqueId()),
 		Name:               aws.String(d.Get("name").(string)),
-		EncryptionEntities: expandAwsCloudfrontFieldLevelEncryptionProfileConfig(d.Get("encryption_entities").(*schema.Set)),
+		EncryptionEntities: expandAwsCloudfrontFieldLevelEncryptionProfileConfig(d.Get("encryption_entities").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
@@ -126,7 +126,7 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfileUpdate(d *schema.ResourceDa
 	fl := &cloudfront.FieldLevelEncryptionProfileConfig{
 		CallerReference:    aws.String(d.Get("caller_reference").(string)),
 		Name:               aws.String(d.Get("name").(string)),
-		EncryptionEntities: expandAwsCloudfrontFieldLevelEncryptionProfileConfig(d.Get("encryption_entities").(*schema.Set)),
+		EncryptionEntities: expandAwsCloudfrontFieldLevelEncryptionProfileConfig(d.Get("encryption_entities").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("comment"); ok {
@@ -162,10 +162,10 @@ func resourceAwsCloudfrontFieldLevelEncryptionProfileDelete(d *schema.ResourceDa
 
 	return nil
 }
-func expandAwsCloudfrontFieldLevelEncryptionProfileConfig(config *schema.Set) *cloudfront.EncryptionEntities {
+func expandAwsCloudfrontFieldLevelEncryptionProfileConfig(config []interface{}) *cloudfront.EncryptionEntities {
 	entities := make([]*cloudfront.EncryptionEntity, 0)
 
-	for _, raw := range config.List() {
+	for _, raw := range config {
 		m := raw.(map[string]interface{})
 
 		entity := &cloudfront.EncryptionEntity{
@@ -178,7 +178,7 @@ func expandAwsCloudfrontFieldLevelEncryptionProfileConfig(config *schema.Set) *c
 	}
 
 	contentTypeProfiles := &cloudfront.EncryptionEntities{
-		Quantity: aws.Int64(int64(config.Len())),
+		Quantity: aws.Int64(int64(len(config))),
 		Items:    entities,
 	}
 
