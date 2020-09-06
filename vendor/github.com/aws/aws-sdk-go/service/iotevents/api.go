@@ -6010,6 +6010,19 @@ const (
 	DetectorModelVersionStatusFailed = "FAILED"
 )
 
+// DetectorModelVersionStatus_Values returns all elements of the DetectorModelVersionStatus enum
+func DetectorModelVersionStatus_Values() []string {
+	return []string{
+		DetectorModelVersionStatusActive,
+		DetectorModelVersionStatusActivating,
+		DetectorModelVersionStatusInactive,
+		DetectorModelVersionStatusDeprecated,
+		DetectorModelVersionStatusDraft,
+		DetectorModelVersionStatusPaused,
+		DetectorModelVersionStatusFailed,
+	}
+}
+
 const (
 	// EvaluationMethodBatch is a EvaluationMethod enum value
 	EvaluationMethodBatch = "BATCH"
@@ -6017,6 +6030,14 @@ const (
 	// EvaluationMethodSerial is a EvaluationMethod enum value
 	EvaluationMethodSerial = "SERIAL"
 )
+
+// EvaluationMethod_Values returns all elements of the EvaluationMethod enum
+func EvaluationMethod_Values() []string {
+	return []string{
+		EvaluationMethodBatch,
+		EvaluationMethodSerial,
+	}
+}
 
 const (
 	// InputStatusCreating is a InputStatus enum value
@@ -6032,6 +6053,16 @@ const (
 	InputStatusDeleting = "DELETING"
 )
 
+// InputStatus_Values returns all elements of the InputStatus enum
+func InputStatus_Values() []string {
+	return []string{
+		InputStatusCreating,
+		InputStatusUpdating,
+		InputStatusActive,
+		InputStatusDeleting,
+	}
+}
+
 const (
 	// LoggingLevelError is a LoggingLevel enum value
 	LoggingLevelError = "ERROR"
@@ -6043,6 +6074,15 @@ const (
 	LoggingLevelDebug = "DEBUG"
 )
 
+// LoggingLevel_Values returns all elements of the LoggingLevel enum
+func LoggingLevel_Values() []string {
+	return []string{
+		LoggingLevelError,
+		LoggingLevelInfo,
+		LoggingLevelDebug,
+	}
+}
+
 const (
 	// PayloadTypeString is a PayloadType enum value
 	PayloadTypeString = "STRING"
@@ -6050,3 +6090,11 @@ const (
 	// PayloadTypeJson is a PayloadType enum value
 	PayloadTypeJson = "JSON"
 )
+
+// PayloadType_Values returns all elements of the PayloadType enum
+func PayloadType_Values() []string {
+	return []string{
+		PayloadTypeString,
+		PayloadTypeJson,
+	}
+}

@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -176,10 +177,9 @@ func testAccAwsAppmeshVirtualNode_listenerHealthChecks(t *testing.T) {
 	vnName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAppmeshVirtualNodeDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAppmeshVirtualNodeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAppmeshVirtualNodeConfig_listenerHealthChecks(meshName, vnName),
@@ -189,8 +189,10 @@ func testAccAwsAppmeshVirtualNode_listenerHealthChecks(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2622272660.virtual_service.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2622272660.virtual_service.0.virtual_service_name", "servicea.simpleapp.local"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.backend.*", map[string]string{
+						"virtual_service.#":                      "1",
+						"virtual_service.0.virtual_service_name": "servicea.simpleapp.local",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.health_check.0.healthy_threshold", "3"),
@@ -220,10 +222,14 @@ func testAccAwsAppmeshVirtualNode_listenerHealthChecks(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "mesh_name", meshName),
 					resource.TestCheckResourceAttr(resourceName, "spec.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2576932631.virtual_service.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2576932631.virtual_service.0.virtual_service_name", "servicec.simpleapp.local"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2025248115.virtual_service.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "spec.0.backend.2025248115.virtual_service.0.virtual_service_name", "serviced.simpleapp.local"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.backend.*", map[string]string{
+						"virtual_service.#":                      "1",
+						"virtual_service.0.virtual_service_name": "servicec.simpleapp.local",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.backend.*", map[string]string{
+						"virtual_service.#":                      "1",
+						"virtual_service.0.virtual_service_name": "serviced.simpleapp.local",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.health_check.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.listener.0.health_check.0.healthy_threshold", "4"),
@@ -408,7 +414,7 @@ func testAccAppmeshVirtualNodeConfig_basic(meshName, vnName string) string {
 	return testAccAppmeshVirtualNodeConfig_mesh(meshName) + fmt.Sprintf(`
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 }
@@ -423,7 +429,7 @@ resource "aws_service_discovery_http_namespace" "test" {
 
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     backend {
@@ -446,7 +452,7 @@ resource "aws_appmesh_virtual_node" "test" {
         }
 
         service_name   = %[2]q
-        namespace_name = "${aws_service_discovery_http_namespace.test.name}"
+        namespace_name = aws_service_discovery_http_namespace.test.name
       }
     }
   }
@@ -458,7 +464,7 @@ func testAccAppmeshVirtualNodeConfig_listenerHealthChecks(meshName, vnName strin
 	return testAccAppmeshVirtualNodeConfig_mesh(meshName) + fmt.Sprintf(`
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     backend {
@@ -497,7 +503,7 @@ func testAccAppmeshVirtualNodeConfig_listenerHealthChecksUpdated(meshName, vnNam
 	return testAccAppmeshVirtualNodeConfig_mesh(meshName) + fmt.Sprintf(`
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     backend {
@@ -542,7 +548,7 @@ func testAccAppmeshVirtualNodeConfig_logging(meshName, vnName, path string) stri
 	return testAccAppmeshVirtualNodeConfig_mesh(meshName) + fmt.Sprintf(`
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {
     backend {
@@ -580,7 +586,7 @@ func testAccAppmeshVirtualNodeConfig_tags(meshName, vnName, tagKey1, tagValue1, 
 	return testAccAppmeshVirtualNodeConfig_mesh(meshName) + fmt.Sprintf(`
 resource "aws_appmesh_virtual_node" "test" {
   name      = %[1]q
-  mesh_name = "${aws_appmesh_mesh.test.id}"
+  mesh_name = aws_appmesh_mesh.test.id
 
   spec {}
 

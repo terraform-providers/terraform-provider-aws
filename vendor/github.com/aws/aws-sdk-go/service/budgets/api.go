@@ -4210,6 +4210,18 @@ const (
 	BudgetTypeSavingsPlansCoverage = "SAVINGS_PLANS_COVERAGE"
 )
 
+// BudgetType_Values returns all elements of the BudgetType enum
+func BudgetType_Values() []string {
+	return []string{
+		BudgetTypeUsage,
+		BudgetTypeCost,
+		BudgetTypeRiUtilization,
+		BudgetTypeRiCoverage,
+		BudgetTypeSavingsPlansUtilization,
+		BudgetTypeSavingsPlansCoverage,
+	}
+}
+
 // The comparison operator of a notification. Currently the service supports
 // the following operators:
 //
@@ -4225,6 +4237,15 @@ const (
 	ComparisonOperatorEqualTo = "EQUAL_TO"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorGreaterThan,
+		ComparisonOperatorLessThan,
+		ComparisonOperatorEqualTo,
+	}
+}
+
 const (
 	// NotificationStateOk is a NotificationState enum value
 	NotificationStateOk = "OK"
@@ -4232,6 +4253,14 @@ const (
 	// NotificationStateAlarm is a NotificationState enum value
 	NotificationStateAlarm = "ALARM"
 )
+
+// NotificationState_Values returns all elements of the NotificationState enum
+func NotificationState_Values() []string {
+	return []string{
+		NotificationStateOk,
+		NotificationStateAlarm,
+	}
+}
 
 // The type of a notification. It must be ACTUAL or FORECASTED.
 const (
@@ -4242,6 +4271,14 @@ const (
 	NotificationTypeForecasted = "FORECASTED"
 )
 
+// NotificationType_Values returns all elements of the NotificationType enum
+func NotificationType_Values() []string {
+	return []string{
+		NotificationTypeActual,
+		NotificationTypeForecasted,
+	}
+}
+
 // The subscription type of the subscriber. It can be SMS or EMAIL.
 const (
 	// SubscriptionTypeSns is a SubscriptionType enum value
@@ -4251,6 +4288,14 @@ const (
 	SubscriptionTypeEmail = "EMAIL"
 )
 
+// SubscriptionType_Values returns all elements of the SubscriptionType enum
+func SubscriptionType_Values() []string {
+	return []string{
+		SubscriptionTypeSns,
+		SubscriptionTypeEmail,
+	}
+}
+
 // The type of threshold for a notification. It can be PERCENTAGE or ABSOLUTE_VALUE.
 const (
 	// ThresholdTypePercentage is a ThresholdType enum value
@@ -4259,6 +4304,14 @@ const (
 	// ThresholdTypeAbsoluteValue is a ThresholdType enum value
 	ThresholdTypeAbsoluteValue = "ABSOLUTE_VALUE"
 )
+
+// ThresholdType_Values returns all elements of the ThresholdType enum
+func ThresholdType_Values() []string {
+	return []string{
+		ThresholdTypePercentage,
+		ThresholdTypeAbsoluteValue,
+	}
+}
 
 // The time unit of the budget, such as MONTHLY or QUARTERLY.
 const (
@@ -4274,3 +4327,13 @@ const (
 	// TimeUnitAnnually is a TimeUnit enum value
 	TimeUnitAnnually = "ANNUALLY"
 )
+
+// TimeUnit_Values returns all elements of the TimeUnit enum
+func TimeUnit_Values() []string {
+	return []string{
+		TimeUnitDaily,
+		TimeUnitMonthly,
+		TimeUnitQuarterly,
+		TimeUnitAnnually,
+	}
+}

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lightsail"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLightsailDomain_basic(t *testing.T) {
@@ -37,7 +37,6 @@ func TestAccAWSLightsailDomain_disappears(t *testing.T) {
 	lightsailDomainName := fmt.Sprintf("tf-test-lightsail-%s.com", acctest.RandString(5))
 
 	domainDestroy := func(*terraform.State) error {
-
 		conn := testAccProvider.Meta().(*AWSClient).lightsailconn
 		_, err := conn.DeleteDomain(&lightsail.DeleteDomainInput{
 			DomainName: aws.String(lightsailDomainName),
@@ -97,7 +96,6 @@ func testAccCheckAWSLightsailDomainExists(n string, domain *lightsail.Domain) re
 }
 
 func testAccCheckAWSLightsailDomainDestroy(s *terraform.State) error {
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lightsail_domain" {
 			continue

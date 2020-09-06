@@ -1,0 +1,47 @@
+archives:
+  - files:
+      - none*
+    format: zip
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+before:
+  hooks:
+    - go mod download
+builds:
+  - binary: '{{ .ProjectName }}_{{ .Version }}'
+    flags:
+      - -trimpath
+    goarch:
+      - '386'
+      - amd64
+      - arm
+      - arm64
+    goos:
+      - darwin
+      - freebsd
+      - linux
+      - windows
+    ignore:
+      - goarch: '386'
+        goos: darwin
+    ldflags:
+      - -s -w -X aws/version.ProviderVersion={{.Version}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+changelog:
+  skip: true
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+env:
+  - CGO_ENABLED=0
+release:
+  disable: true
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"

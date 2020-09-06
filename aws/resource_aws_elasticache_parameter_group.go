@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsElasticacheParameterGroup() *schema.Resource {
@@ -100,7 +100,7 @@ func resourceAwsElasticacheParameterGroupRead(d *schema.ResourceData, meta inter
 	}
 
 	if len(describeResp.CacheParameterGroups) != 1 ||
-		*describeResp.CacheParameterGroups[0].CacheParameterGroupName != d.Id() {
+		aws.StringValue(describeResp.CacheParameterGroups[0].CacheParameterGroupName) != d.Id() {
 		return fmt.Errorf("Unable to find Parameter Group: %#v", describeResp.CacheParameterGroups)
 	}
 
@@ -139,17 +139,11 @@ func resourceAwsElasticacheParameterGroupUpdate(d *schema.ResourceData, meta int
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		toRemove, err := expandElastiCacheParameters(os.Difference(ns).List())
-		if err != nil {
-			return err
-		}
+		toRemove := expandElastiCacheParameters(os.Difference(ns).List())
 
 		log.Printf("[DEBUG] Parameters to remove: %#v", toRemove)
 
-		toAdd, err := expandElastiCacheParameters(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
+		toAdd := expandElastiCacheParameters(ns.Difference(os).List())
 
 		log.Printf("[DEBUG] Parameters to add: %#v", toAdd)
 
@@ -171,7 +165,7 @@ func resourceAwsElasticacheParameterGroupUpdate(d *schema.ResourceData, meta int
 
 			log.Printf("[DEBUG] Reset Cache Parameter Group: %s", resetOpts)
 			err := resource.Retry(30*time.Second, func() *resource.RetryError {
-				_, err = conn.ResetCacheParameterGroup(&resetOpts)
+				_, err := conn.ResetCacheParameterGroup(&resetOpts)
 				if err != nil {
 					if isAWSErr(err, "InvalidCacheParameterGroupState", " has pending changes") {
 						return resource.RetryableError(err)
@@ -206,7 +200,7 @@ func resourceAwsElasticacheParameterGroupUpdate(d *schema.ResourceData, meta int
 
 					tryReservedMemoryPercentageWorkaround := true
 
-					allConfiguredParameters, err := expandElastiCacheParameters(d.Get("parameter").(*schema.Set).List())
+					allConfiguredParameters := expandElastiCacheParameters(d.Get("parameter").(*schema.Set).List())
 					if err != nil {
 						return fmt.Errorf("error expanding parameter configuration: %s", err)
 					}
@@ -293,7 +287,7 @@ func resourceAwsElasticacheParameterGroupUpdate(d *schema.ResourceData, meta int
 			}
 
 			log.Printf("[DEBUG] Modify Cache Parameter Group: %s", modifyOpts)
-			_, err = conn.ModifyCacheParameterGroup(&modifyOpts)
+			_, err := conn.ModifyCacheParameterGroup(&modifyOpts)
 			if err != nil {
 				return fmt.Errorf("Error modifying Cache Parameter Group: %s", err)
 			}

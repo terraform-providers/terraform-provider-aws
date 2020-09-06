@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpcEndpointServiceAllowedPrincipal_basic(t *testing.T) {
@@ -95,7 +95,7 @@ func testAccCheckVpcEndpointServiceAllowedPrincipalExists(n string) resource.Tes
 }
 
 func testAccVpcEndpointServiceAllowedPrincipalBasicConfig(lbName string) string {
-	return fmt.Sprintf(
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(
 		`
 resource "aws_vpc" "nlb_test" {
   cidr_block = "10.0.0.0/16"
@@ -126,7 +126,7 @@ resource "aws_lb" "nlb_test_1" {
 resource "aws_subnet" "nlb_test_1" {
   vpc_id            = "${aws_vpc.nlb_test.id}"
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-service-allowed-principal-1"
@@ -136,7 +136,7 @@ resource "aws_subnet" "nlb_test_1" {
 resource "aws_subnet" "nlb_test_2" {
   vpc_id            = "${aws_vpc.nlb_test.id}"
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-service-allowed-principal-2"
@@ -158,5 +158,5 @@ resource "aws_vpc_endpoint_service_allowed_principal" "foo" {
 
   principal_arn = "${data.aws_caller_identity.current.arn}"
 }
-`, lbName)
+`, lbName))
 }

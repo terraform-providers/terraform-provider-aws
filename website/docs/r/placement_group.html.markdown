@@ -33,6 +33,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of the placement group.
 * `id` - The name of the placement group.
 * `placement_group_id` - The ID of the placement group.
 

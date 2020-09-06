@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSNetworkInterfaceAttachment_basic(t *testing.T) {
@@ -40,7 +40,7 @@ func TestAccAWSNetworkInterfaceAttachment_basic(t *testing.T) {
 }
 
 func testAccAWSNetworkInterfaceAttachmentConfig_basic(rInt int) string {
-	return fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
 resource "aws_vpc" "foo" {
   cidr_block = "172.16.0.0/16"
 
@@ -49,10 +49,19 @@ resource "aws_vpc" "foo" {
   }
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
 resource "aws_subnet" "foo" {
-  vpc_id            = "${aws_vpc.foo.id}"
+  vpc_id            = aws_vpc.foo.id
   cidr_block        = "172.16.10.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-network-iface-attachment-basic"
@@ -60,7 +69,7 @@ resource "aws_subnet" "foo" {
 }
 
 resource "aws_security_group" "foo" {
-  vpc_id      = "${aws_vpc.foo.id}"
+  vpc_id      = aws_vpc.foo.id
   description = "foo"
   name        = "foo-%d"
 
@@ -73,9 +82,9 @@ resource "aws_security_group" "foo" {
 }
 
 resource "aws_network_interface" "bar" {
-  subnet_id       = "${aws_subnet.foo.id}"
+  subnet_id       = aws_subnet.foo.id
   private_ips     = ["172.16.10.100"]
-  security_groups = ["${aws_security_group.foo.id}"]
+  security_groups = [aws_security_group.foo.id]
   description     = "Managed by Terraform"
 
   tags = {
@@ -84,9 +93,9 @@ resource "aws_network_interface" "bar" {
 }
 
 resource "aws_instance" "foo" {
-  ami           = "ami-c5eabbf5"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.foo.id}"
+  subnet_id     = aws_subnet.foo.id
 
   tags = {
     Name = "foo-%d"
@@ -95,8 +104,8 @@ resource "aws_instance" "foo" {
 
 resource "aws_network_interface_attachment" "test" {
   device_index         = 1
-  instance_id          = "${aws_instance.foo.id}"
-  network_interface_id = "${aws_network_interface.bar.id}"
+  instance_id          = aws_instance.foo.id
+  network_interface_id = aws_network_interface.bar.id
 }
 `, rInt, rInt)
 }

@@ -14,12 +14,12 @@ Provides information about an Elastic File System (EFS) File System.
 
 ```hcl
 variable "file_system_id" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 data "aws_efs_file_system" "by_id" {
-  file_system_id = "${var.file_system_id}"
+  file_system_id = var.file_system_id
 }
 ```
 

@@ -14,9 +14,9 @@ Manages a Direct Connect Gateway Association Proposal, typically for enabling cr
 
 ```hcl
 resource "aws_dx_gateway_association_proposal" "example" {
-  dx_gateway_id               = "${aws_dx_gateway.example.id}"
-  dx_gateway_owner_account_id = "${aws_dx_gateway.example.owner_account_id}"
-  associated_gateway_id       = "${aws_vpn_gateway.example.id}"
+  dx_gateway_id               = aws_dx_gateway.example.id
+  dx_gateway_owner_account_id = aws_dx_gateway.example.owner_account_id
+  associated_gateway_id       = aws_vpn_gateway.example.id
 }
 ```
 
@@ -24,14 +24,11 @@ A full example of how to create a VPN Gateway in one AWS account, create a Direc
 
 ## Argument Reference
 
-~> **NOTE:** One of `associated_gateway_id`, or `vpn_gateway_id` must be specified.
-
 The following arguments are supported:
 
+* `associated_gateway_id` - (Required) The ID of the VGW or transit gateway with which to associate the Direct Connect gateway.
 * `dx_gateway_id` - (Required) Direct Connect Gateway identifier.
 * `dx_gateway_owner_account_id` - (Required) AWS Account identifier of the Direct Connect Gateway's owner.
-* `associated_gateway_id` - (Optional) The ID of the VGW or transit gateway with which to associate the Direct Connect gateway.
-* `vpn_gateway_id` - (Optional) *Deprecated:* Use `associated_gateway_id` instead. Virtual Gateway identifier to associate with the Direct Connect Gateway.
 * `allowed_prefixes` - (Optional) VPC prefixes (CIDRs) to advertise to the Direct Connect gateway. Defaults to the CIDR block of the VPC associated with the Virtual Gateway. To enable drift detection, must be configured.
 
 ## Attributes Reference

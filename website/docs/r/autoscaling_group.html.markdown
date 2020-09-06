@@ -28,9 +28,9 @@ resource "aws_autoscaling_group" "bar" {
   health_check_type         = "ELB"
   desired_capacity          = 4
   force_delete              = true
-  placement_group           = "${aws_placement_group.test.id}"
-  launch_configuration      = "${aws_launch_configuration.foobar.name}"
-  vpc_zone_identifier       = ["${aws_subnet.example1.id}", "${aws_subnet.example2.id}"]
+  placement_group           = aws_placement_group.test.id
+  launch_configuration      = aws_launch_configuration.foobar.name
+  vpc_zone_identifier       = [aws_subnet.example1.id, aws_subnet.example2.id]
 
   initial_lifecycle_hook {
     name                 = "foobar"
@@ -82,7 +82,7 @@ resource "aws_autoscaling_group" "bar" {
   min_size           = 1
 
   launch_template {
-    id      = "${aws_launch_template.foobar.id}"
+    id      = aws_launch_template.foobar.id
     version = "$Latest"
   }
 }
@@ -93,7 +93,7 @@ resource "aws_autoscaling_group" "bar" {
 ```hcl
 resource "aws_launch_template" "example" {
   name_prefix   = "example"
-  image_id      = "${data.aws_ami.example.id}"
+  image_id      = data.aws_ami.example.id
   instance_type = "c5.large"
 }
 
@@ -106,7 +106,7 @@ resource "aws_autoscaling_group" "example" {
   mixed_instances_policy {
     launch_template {
       launch_template_specification {
-        launch_template_id = "${aws_launch_template.example.id}"
+        launch_template_id = aws_launch_template.example.id
       }
 
       override {
@@ -145,16 +145,24 @@ resource "aws_autoscaling_group" "bar" {
   name                 = "foobar3-terraform-test"
   max_size             = 5
   min_size             = 2
-  launch_configuration = "${aws_launch_configuration.foobar.name}"
-  vpc_zone_identifier  = ["${aws_subnet.example1.id}", "${aws_subnet.example2.id}"]
+  launch_configuration = aws_launch_configuration.foobar.name
+  vpc_zone_identifier  = [aws_subnet.example1.id, aws_subnet.example2.id]
 
-  tags = ["${concat(
-    list(
-      map("key", "interpolation1", "value", "value3", "propagate_at_launch", true),
-      map("key", "interpolation2", "value", "value4", "propagate_at_launch", true)
-    ),
-    var.extra_tags)
-  }"]
+  tags = concat(
+    [
+      {
+        "key"                 = "interpolation1"
+        "value"               = "value3"
+        "propagate_at_launch" = true
+      },
+      {
+        "key"                 = "interpolation2"
+        "value"               = "value4"
+        "propagate_at_launch" = true
+      },
+    ],
+    var.extra_tags,
+  )
 }
 ```
 
@@ -168,7 +176,7 @@ The following arguments are supported:
 * `max_size` - (Required) The maximum size of the auto scale group.
 * `min_size` - (Required) The minimum size of the auto scale group.
     (See also [Waiting for Capacity](#waiting-for-capacity) below.)
-* `availability_zones` - (Required only for EC2-Classic) A list of one or more availability zones for the group. This parameter should not be specified when using `vpc_zone_identifier`.
+* `availability_zones` - (Optional) A list of one or more availability zones for the group. Used for EC2-Classic and default subnets when not specified with `vpc_zone_identifier` argument. Conflicts with `vpc_zone_identifier`.
 * `default_cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes before another scaling activity can start.
 * `launch_configuration` - (Optional) The name of the launch configuration to use.
 * `launch_template` - (Optional) Nested argument with Launch template specification to use to launch instances. Defined below.
@@ -192,8 +200,8 @@ The following arguments are supported:
    behavior and potentially leaves resources dangling.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the autoscaling
    group names. Only valid for classic load balancers. For ALBs, use `target_group_arns` instead.
-* `vpc_zone_identifier` (Optional) A list of subnet IDs to launch resources in.
-* `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancing.
+* `vpc_zone_identifier` (Optional) A list of subnet IDs to launch resources in. Subnets automatically determine which availability zones the group will reside. Conflicts with `availability_zones`.
+* `target_group_arns` (Optional) A set of `aws_alb_target_group` ARNs, for use with Application or Network Load Balancing.
 * `termination_policies` (Optional) A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are `OldestInstance`, `NewestInstance`, `OldestLaunchConfiguration`, `ClosestToNextInstanceHour`, `OldestLaunchTemplate`, `AllocationStrategy`, `Default`.
 * `suspended_processes` - (Optional) A list of processes to suspend for the AutoScaling Group. The allowed values are `Launch`, `Terminate`, `HealthCheck`, `ReplaceUnhealthy`, `AZRebalance`, `AlarmNotification`, `ScheduledActions`, `AddToLoadBalancer`.
 Note that if you suspend either the `Launch` or `Terminate` process types, it can prevent your autoscaling group from functioning properly.
@@ -217,7 +225,7 @@ Note that if you suspend either the `Launch` or `Terminate` process types, it ca
   precedence over `min_elb_capacity` behavior.)
   (See also [Waiting for Capacity](#waiting-for-capacity) below.)
 * `protect_from_scale_in` (Optional) Allows setting instance protection. The
-   autoscaling group will not select instances with this setting for terminination
+   autoscaling group will not select instances with this setting for termination
    during scale in events.
 * `service_linked_role_arn` (Optional) The ARN of the service-linked role that the ASG will use to call other AWS services
 * `max_instance_lifetime` (Optional) The maximum amount of time, in seconds, that an instance can be in service, values must be either equal to 0 or between 604800 and 31536000 seconds.
@@ -286,7 +294,7 @@ Alternatively the `tags` attributes can be used, which accepts a list of maps co
 This allows the construction of dynamic lists of tags which is not possible using the single `tag` attribute.
 `tag` and `tags` are mutually exclusive, only one of them can be specified.
 
-~> **NOTE:** Other AWS APIs may automatically add special tags to their associated Auto Scaling Group for management purposes, such as ECS Capacity Providers adding the `AmazonECSManaged` tag. To ignore the removal of these automatic tags, see the [`ignore_tags` provider configuration](https://www.terraform.io/docs/providers/aws/index.html#ignore_tags) or the [`ignore_changes` lifecycle argument for Terraform resources](https://www.terraform.io/docs/configuration/resources.html#ignore_changes).
+~> **NOTE:** Other AWS APIs may automatically add special tags to their associated Auto Scaling Group for management purposes, such as ECS Capacity Providers adding the `AmazonECSManaged` tag. These generally should be included in the configuration so Terraform does not attempt to remove them and so if the `min_size` was greater than zero on creation, that these tag(s) are applied to any initial EC2 Instances in the Auto Scaling Group. If these tag(s) were missing in the Auto Scaling Group configuration on creation, affected EC2 Instances missing the tags may require manual intervention of adding the tags to ensure they work properly with the other AWS service.
 
 ## Attributes Reference
 
@@ -304,10 +312,6 @@ In addition to all arguments above, the following attributes are exported:
 * `desired_capacity` -The number of Amazon EC2 instances that should be running in the group.
 * `launch_configuration` - The launch configuration of the autoscale group
 * `vpc_zone_identifier` (Optional) - The VPC zone identifier
-* `load_balancers` (Optional) The load balancer names associated with the
-   autoscaling group.
-* `target_group_arns` (Optional) list of Target Group ARNs that apply to this
-AutoScaling Group
 
 ~> **NOTE:** When using `ELB` as the `health_check_type`, `health_check_grace_period` is required.
 

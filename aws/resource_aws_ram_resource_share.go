@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ram"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -132,7 +132,7 @@ func resourceAwsRamResourceShareRead(d *schema.ResourceData, meta interface{}) e
 func resourceAwsRamResourceShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ramconn
 
-	if d.HasChange("name") || d.HasChange("allow_external_principals") {
+	if d.HasChanges("name", "allow_external_principals") {
 		request := &ram.UpdateResourceShareInput{
 			ResourceShareArn:        aws.String(d.Id()),
 			Name:                    aws.String(d.Get("name").(string)),

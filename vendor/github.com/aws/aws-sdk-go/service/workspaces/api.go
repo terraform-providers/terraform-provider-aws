@@ -793,8 +793,8 @@ func (c *WorkSpaces) DeleteWorkspaceImageRequest(input *DeleteWorkspaceImageInpu
 // DeleteWorkspaceImage API operation for Amazon WorkSpaces.
 //
 // Deletes the specified image from your account. To delete an image, you must
-// first delete any bundles that are associated with the image and un-share
-// the image if it is shared with other accounts.
+// first delete any bundles that are associated with the image and unshare the
+// image if it is shared with other accounts.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1609,6 +1609,92 @@ func (c *WorkSpaces) DescribeWorkspaceDirectoriesPagesWithContext(ctx aws.Contex
 	}
 
 	return p.Err()
+}
+
+const opDescribeWorkspaceImagePermissions = "DescribeWorkspaceImagePermissions"
+
+// DescribeWorkspaceImagePermissionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeWorkspaceImagePermissions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeWorkspaceImagePermissions for more information on using the DescribeWorkspaceImagePermissions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeWorkspaceImagePermissionsRequest method.
+//    req, resp := client.DescribeWorkspaceImagePermissionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspaceImagePermissions
+func (c *WorkSpaces) DescribeWorkspaceImagePermissionsRequest(input *DescribeWorkspaceImagePermissionsInput) (req *request.Request, output *DescribeWorkspaceImagePermissionsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeWorkspaceImagePermissions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeWorkspaceImagePermissionsInput{}
+	}
+
+	output = &DescribeWorkspaceImagePermissionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeWorkspaceImagePermissions API operation for Amazon WorkSpaces.
+//
+// Describes the permissions that the owner of an image has granted to other
+// AWS accounts for an image.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon WorkSpaces's
+// API operation DescribeWorkspaceImagePermissions for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource could not be found.
+//
+//   * AccessDeniedException
+//   The user is not authorized to access a resource.
+//
+//   * InvalidParameterValuesException
+//   One or more parameter values are not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/DescribeWorkspaceImagePermissions
+func (c *WorkSpaces) DescribeWorkspaceImagePermissions(input *DescribeWorkspaceImagePermissionsInput) (*DescribeWorkspaceImagePermissionsOutput, error) {
+	req, out := c.DescribeWorkspaceImagePermissionsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeWorkspaceImagePermissionsWithContext is the same as DescribeWorkspaceImagePermissions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeWorkspaceImagePermissions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *WorkSpaces) DescribeWorkspaceImagePermissionsWithContext(ctx aws.Context, input *DescribeWorkspaceImagePermissionsInput, opts ...request.Option) (*DescribeWorkspaceImagePermissionsOutput, error) {
+	req, out := c.DescribeWorkspaceImagePermissionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opDescribeWorkspaceImages = "DescribeWorkspaceImages"
@@ -2793,6 +2879,9 @@ func (c *WorkSpaces) ModifyWorkspaceCreationPropertiesRequest(input *ModifyWorks
 //   * ResourceNotFoundException
 //   The resource could not be found.
 //
+//   * OperationNotSupportedException
+//   This operation is not supported.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/ModifyWorkspaceCreationProperties
 func (c *WorkSpaces) ModifyWorkspaceCreationProperties(input *ModifyWorkspaceCreationPropertiesInput) (*ModifyWorkspaceCreationPropertiesOutput, error) {
 	req, out := c.ModifyWorkspaceCreationPropertiesRequest(input)
@@ -2860,7 +2949,9 @@ func (c *WorkSpaces) ModifyWorkspacePropertiesRequest(input *ModifyWorkspaceProp
 
 // ModifyWorkspaceProperties API operation for Amazon WorkSpaces.
 //
-// Modifies the specified WorkSpace properties.
+// Modifies the specified WorkSpace properties. For important information about
+// how to modify the size of the root and user volumes, see Modify a WorkSpace
+// (https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3133,7 +3224,7 @@ func (c *WorkSpaces) RebuildWorkspacesRequest(input *RebuildWorkspacesInput) (re
 // Rebuilds the specified WorkSpace.
 //
 // You cannot rebuild a WorkSpace unless its state is AVAILABLE, ERROR, UNHEALTHY,
-// or STOPPED.
+// STOPPED, or REBOOTING.
 //
 // Rebuilding a WorkSpace is a potentially destructive action that can result
 // in the loss of data. For more information, see Rebuild a WorkSpace (https://docs.aws.amazon.com/workspaces/latest/adminguide/reset-workspace.html).
@@ -3789,6 +3880,109 @@ func (c *WorkSpaces) UpdateRulesOfIpGroup(input *UpdateRulesOfIpGroupInput) (*Up
 // for more information on using Contexts.
 func (c *WorkSpaces) UpdateRulesOfIpGroupWithContext(ctx aws.Context, input *UpdateRulesOfIpGroupInput, opts ...request.Option) (*UpdateRulesOfIpGroupOutput, error) {
 	req, out := c.UpdateRulesOfIpGroupRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateWorkspaceImagePermission = "UpdateWorkspaceImagePermission"
+
+// UpdateWorkspaceImagePermissionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateWorkspaceImagePermission operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateWorkspaceImagePermission for more information on using the UpdateWorkspaceImagePermission
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateWorkspaceImagePermissionRequest method.
+//    req, resp := client.UpdateWorkspaceImagePermissionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/UpdateWorkspaceImagePermission
+func (c *WorkSpaces) UpdateWorkspaceImagePermissionRequest(input *UpdateWorkspaceImagePermissionInput) (req *request.Request, output *UpdateWorkspaceImagePermissionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateWorkspaceImagePermission,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateWorkspaceImagePermissionInput{}
+	}
+
+	output = &UpdateWorkspaceImagePermissionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateWorkspaceImagePermission API operation for Amazon WorkSpaces.
+//
+// Shares or unshares an image with one account by specifying whether that account
+// has permission to copy the image. If the copy image permission is granted,
+// the image is shared with that account. If the copy image permission is revoked,
+// the image is unshared with the account.
+//
+//    * To delete an image that has been shared, you must unshare the image
+//    before you delete it.
+//
+//    * Sharing Bring Your Own License (BYOL) images across AWS accounts isn't
+//    supported at this time in the AWS GovCloud (US-West) Region. To share
+//    BYOL images across accounts in the AWS GovCloud (US-West) Region, contact
+//    AWS Support.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon WorkSpaces's
+// API operation UpdateWorkspaceImagePermission for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The resource could not be found.
+//
+//   * ResourceUnavailableException
+//   The specified resource is not available.
+//
+//   * AccessDeniedException
+//   The user is not authorized to access a resource.
+//
+//   * InvalidParameterValuesException
+//   One or more parameter values are not valid.
+//
+//   * OperationNotSupportedException
+//   This operation is not supported.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/workspaces-2015-04-08/UpdateWorkspaceImagePermission
+func (c *WorkSpaces) UpdateWorkspaceImagePermission(input *UpdateWorkspaceImagePermissionInput) (*UpdateWorkspaceImagePermissionOutput, error) {
+	req, out := c.UpdateWorkspaceImagePermissionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateWorkspaceImagePermissionWithContext is the same as UpdateWorkspaceImagePermission with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateWorkspaceImagePermission for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *WorkSpaces) UpdateWorkspaceImagePermissionWithContext(ctx aws.Context, input *UpdateWorkspaceImagePermissionInput, opts ...request.Option) (*UpdateWorkspaceImagePermissionOutput, error) {
+	req, out := c.UpdateWorkspaceImagePermissionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4539,8 +4733,9 @@ func (s *CreateWorkspacesOutput) SetPendingRequests(v []*Workspace) *CreateWorks
 type DefaultWorkspaceCreationProperties struct {
 	_ struct{} `type:"structure"`
 
-	// The identifier of any security groups to apply to WorkSpaces when they are
-	// created.
+	// The identifier of the default security group to apply to WorkSpaces when
+	// they are created. For more information, see Security Groups for Your WorkSpaces
+	// (https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-security-groups.html).
 	CustomSecurityGroupId *string `min:"11" type:"string"`
 
 	// The organizational unit (OU) in the directory for the WorkSpace machine accounts.
@@ -5382,11 +5577,119 @@ func (s *DescribeWorkspaceDirectoriesOutput) SetNextToken(v string) *DescribeWor
 	return s
 }
 
+type DescribeWorkspaceImagePermissionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the image.
+	//
+	// ImageId is a required field
+	ImageId *string `type:"string" required:"true"`
+
+	// The maximum number of items to return.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// If you received a NextToken from a previous call that was paginated, provide
+	// this token to receive the next set of results.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeWorkspaceImagePermissionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeWorkspaceImagePermissionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeWorkspaceImagePermissionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeWorkspaceImagePermissionsInput"}
+	if s.ImageId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ImageId"))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetImageId sets the ImageId field's value.
+func (s *DescribeWorkspaceImagePermissionsInput) SetImageId(v string) *DescribeWorkspaceImagePermissionsInput {
+	s.ImageId = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeWorkspaceImagePermissionsInput) SetMaxResults(v int64) *DescribeWorkspaceImagePermissionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeWorkspaceImagePermissionsInput) SetNextToken(v string) *DescribeWorkspaceImagePermissionsInput {
+	s.NextToken = &v
+	return s
+}
+
+type DescribeWorkspaceImagePermissionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the image.
+	ImageId *string `type:"string"`
+
+	// The identifiers of the AWS accounts that the image has been shared with.
+	ImagePermissions []*ImagePermission `type:"list"`
+
+	// The token to use to retrieve the next set of results, or null if no more
+	// results are available.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeWorkspaceImagePermissionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeWorkspaceImagePermissionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetImageId sets the ImageId field's value.
+func (s *DescribeWorkspaceImagePermissionsOutput) SetImageId(v string) *DescribeWorkspaceImagePermissionsOutput {
+	s.ImageId = &v
+	return s
+}
+
+// SetImagePermissions sets the ImagePermissions field's value.
+func (s *DescribeWorkspaceImagePermissionsOutput) SetImagePermissions(v []*ImagePermission) *DescribeWorkspaceImagePermissionsOutput {
+	s.ImagePermissions = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeWorkspaceImagePermissionsOutput) SetNextToken(v string) *DescribeWorkspaceImagePermissionsOutput {
+	s.NextToken = &v
+	return s
+}
+
 type DescribeWorkspaceImagesInput struct {
 	_ struct{} `type:"structure"`
 
 	// The identifier of the image.
 	ImageIds []*string `min:"1" type:"list"`
+
+	// The type (owned or shared) of the image.
+	ImageType *string `type:"string" enum:"ImageType"`
 
 	// The maximum number of items to return.
 	MaxResults *int64 `min:"1" type:"integer"`
@@ -5428,6 +5731,12 @@ func (s *DescribeWorkspaceImagesInput) Validate() error {
 // SetImageIds sets the ImageIds field's value.
 func (s *DescribeWorkspaceImagesInput) SetImageIds(v []*string) *DescribeWorkspaceImagesInput {
 	s.ImageIds = v
+	return s
+}
+
+// SetImageType sets the ImageType field's value.
+func (s *DescribeWorkspaceImagesInput) SetImageType(v string) *DescribeWorkspaceImagesInput {
+	s.ImageType = &v
 	return s
 }
 
@@ -5922,6 +6231,31 @@ func (s *FailedWorkspaceChangeRequest) SetErrorMessage(v string) *FailedWorkspac
 // SetWorkspaceId sets the WorkspaceId field's value.
 func (s *FailedWorkspaceChangeRequest) SetWorkspaceId(v string) *FailedWorkspaceChangeRequest {
 	s.WorkspaceId = &v
+	return s
+}
+
+// Describes the AWS accounts that have been granted permission to use a shared
+// image.
+type ImagePermission struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the AWS account that an image has been shared with.
+	SharedAccountId *string `type:"string"`
+}
+
+// String returns the string representation
+func (s ImagePermission) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ImagePermission) GoString() string {
+	return s.String()
+}
+
+// SetSharedAccountId sets the SharedAccountId field's value.
+func (s *ImagePermission) SetSharedAccountId(v string) *ImagePermission {
+	s.SharedAccountId = &v
 	return s
 }
 
@@ -8523,6 +8857,87 @@ func (s UpdateRulesOfIpGroupOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateWorkspaceImagePermissionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The permission to copy the image. This permission can be revoked only after
+	// an image has been shared.
+	//
+	// AllowCopyImage is a required field
+	AllowCopyImage *bool `type:"boolean" required:"true"`
+
+	// The identifier of the image.
+	//
+	// ImageId is a required field
+	ImageId *string `type:"string" required:"true"`
+
+	// The identifier of the AWS account to share or unshare the image with.
+	//
+	// SharedAccountId is a required field
+	SharedAccountId *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateWorkspaceImagePermissionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateWorkspaceImagePermissionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateWorkspaceImagePermissionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateWorkspaceImagePermissionInput"}
+	if s.AllowCopyImage == nil {
+		invalidParams.Add(request.NewErrParamRequired("AllowCopyImage"))
+	}
+	if s.ImageId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ImageId"))
+	}
+	if s.SharedAccountId == nil {
+		invalidParams.Add(request.NewErrParamRequired("SharedAccountId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAllowCopyImage sets the AllowCopyImage field's value.
+func (s *UpdateWorkspaceImagePermissionInput) SetAllowCopyImage(v bool) *UpdateWorkspaceImagePermissionInput {
+	s.AllowCopyImage = &v
+	return s
+}
+
+// SetImageId sets the ImageId field's value.
+func (s *UpdateWorkspaceImagePermissionInput) SetImageId(v string) *UpdateWorkspaceImagePermissionInput {
+	s.ImageId = &v
+	return s
+}
+
+// SetSharedAccountId sets the SharedAccountId field's value.
+func (s *UpdateWorkspaceImagePermissionInput) SetSharedAccountId(v string) *UpdateWorkspaceImagePermissionInput {
+	s.SharedAccountId = &v
+	return s
+}
+
+type UpdateWorkspaceImagePermissionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateWorkspaceImagePermissionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateWorkspaceImagePermissionOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the user storage for a WorkSpace bundle.
 type UserStorage struct {
 	_ struct{} `type:"structure"`
@@ -8554,7 +8969,8 @@ type Workspace struct {
 	// The identifier of the bundle used to create the WorkSpace.
 	BundleId *string `type:"string"`
 
-	// The name of the WorkSpace, as seen by the operating system.
+	// The name of the WorkSpace, as seen by the operating system. The format of
+	// this name varies. For more information, see Launch a WorkSpace (https://docs.aws.amazon.com/workspaces/latest/adminguide/launch-workspaces-tutorials.html).
 	ComputerName *string `type:"string"`
 
 	// The identifier of the AWS Directory Service directory for the WorkSpace.
@@ -8951,6 +9367,22 @@ type WorkspaceCreationProperties struct {
 	// information, see WorkSpace Maintenance (https://docs.aws.amazon.com/workspaces/latest/adminguide/workspace-maintenance.html).
 	EnableMaintenanceMode *bool `type:"boolean"`
 
+	// Indicates whether Amazon WorkDocs is enabled for your WorkSpaces.
+	//
+	// If WorkDocs is already enabled for a WorkSpaces directory and you disable
+	// it, new WorkSpaces launched in the directory will not have WorkDocs enabled.
+	// However, WorkDocs remains enabled for any existing WorkSpaces, unless you
+	// either disable users' access to WorkDocs or you delete the WorkDocs site.
+	// To disable users' access to WorkDocs, see Disabling Users (https://docs.aws.amazon.com/workdocs/latest/adminguide/inactive-user.html)
+	// in the Amazon WorkDocs Administration Guide. To delete a WorkDocs site, see
+	// Deleting a Site (https://docs.aws.amazon.com/workdocs/latest/adminguide/manage-sites.html)
+	// in the Amazon WorkDocs Administration Guide.
+	//
+	// If you enable WorkDocs on a directory that already has existing WorkSpaces,
+	// the existing WorkSpaces and any new WorkSpaces that are launched in the directory
+	// will have WorkDocs enabled.
+	EnableWorkDocs *bool `type:"boolean"`
+
 	// Indicates whether users are local administrators of their WorkSpaces.
 	UserEnabledAsLocalAdministrator *bool `type:"boolean"`
 }
@@ -8999,6 +9431,12 @@ func (s *WorkspaceCreationProperties) SetEnableInternetAccess(v bool) *Workspace
 // SetEnableMaintenanceMode sets the EnableMaintenanceMode field's value.
 func (s *WorkspaceCreationProperties) SetEnableMaintenanceMode(v bool) *WorkspaceCreationProperties {
 	s.EnableMaintenanceMode = &v
+	return s
+}
+
+// SetEnableWorkDocs sets the EnableWorkDocs field's value.
+func (s *WorkspaceCreationProperties) SetEnableWorkDocs(v bool) *WorkspaceCreationProperties {
+	s.EnableWorkDocs = &v
 	return s
 }
 
@@ -9175,6 +9613,11 @@ func (s *WorkspaceDirectory) SetWorkspaceSecurityGroupId(v string) *WorkspaceDir
 type WorkspaceImage struct {
 	_ struct{} `type:"structure"`
 
+	// The date when the image was created. If the image has been shared, the AWS
+	// account that the image has been shared with sees the original creation date
+	// of the image.
+	Created *time.Time `type:"timestamp"`
+
 	// The description of the image.
 	Description *string `min:"1" type:"string"`
 
@@ -9193,6 +9636,9 @@ type WorkspaceImage struct {
 	// The operating system that the image is running.
 	OperatingSystem *OperatingSystem `type:"structure"`
 
+	// The identifier of the AWS account that owns the image.
+	OwnerAccountId *string `type:"string"`
+
 	// Specifies whether the image is running on dedicated hardware. When Bring
 	// Your Own License (BYOL) is enabled, this value is set to DEDICATED. For more
 	// information, see Bring Your Own Windows Desktop Images (https://docs.aws.amazon.com/workspaces/latest/adminguide/byol-windows-images.html).
@@ -9210,6 +9656,12 @@ func (s WorkspaceImage) String() string {
 // GoString returns the string representation
 func (s WorkspaceImage) GoString() string {
 	return s.String()
+}
+
+// SetCreated sets the Created field's value.
+func (s *WorkspaceImage) SetCreated(v time.Time) *WorkspaceImage {
+	s.Created = &v
+	return s
 }
 
 // SetDescription sets the Description field's value.
@@ -9248,6 +9700,12 @@ func (s *WorkspaceImage) SetOperatingSystem(v *OperatingSystem) *WorkspaceImage 
 	return s
 }
 
+// SetOwnerAccountId sets the OwnerAccountId field's value.
+func (s *WorkspaceImage) SetOwnerAccountId(v string) *WorkspaceImage {
+	s.OwnerAccountId = &v
+	return s
+}
+
 // SetRequiredTenancy sets the RequiredTenancy field's value.
 func (s *WorkspaceImage) SetRequiredTenancy(v string) *WorkspaceImage {
 	s.RequiredTenancy = &v
@@ -9267,7 +9725,8 @@ type WorkspaceProperties struct {
 	// The compute type. For more information, see Amazon WorkSpaces Bundles (http://aws.amazon.com/workspaces/details/#Amazon_WorkSpaces_Bundles).
 	ComputeTypeName *string `type:"string" enum:"Compute"`
 
-	// The size of the root volume.
+	// The size of the root volume. For important information about how to modify
+	// the size of the root and user volumes, see Modify a WorkSpace (https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html).
 	RootVolumeSizeGib *int64 `type:"integer"`
 
 	// The running mode. For more information, see Manage the WorkSpace Running
@@ -9278,7 +9737,8 @@ type WorkspaceProperties struct {
 	// Configured in 60-minute intervals.
 	RunningModeAutoStopTimeoutInMinutes *int64 `type:"integer"`
 
-	// The size of the user storage.
+	// The size of the user storage. For important information about how to modify
+	// the size of the root and user volumes, see Modify a WorkSpace (https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html).
 	UserVolumeSizeGib *int64 `type:"integer"`
 }
 
@@ -9521,6 +9981,14 @@ const (
 	AccessPropertyValueDeny = "DENY"
 )
 
+// AccessPropertyValue_Values returns all elements of the AccessPropertyValue enum
+func AccessPropertyValue_Values() []string {
+	return []string{
+		AccessPropertyValueAllow,
+		AccessPropertyValueDeny,
+	}
+}
+
 const (
 	// ComputeValue is a Compute enum value
 	ComputeValue = "VALUE"
@@ -9544,6 +10012,19 @@ const (
 	ComputeGraphicspro = "GRAPHICSPRO"
 )
 
+// Compute_Values returns all elements of the Compute enum
+func Compute_Values() []string {
+	return []string{
+		ComputeValue,
+		ComputeStandard,
+		ComputePerformance,
+		ComputePower,
+		ComputeGraphics,
+		ComputePowerpro,
+		ComputeGraphicspro,
+	}
+}
+
 const (
 	// ConnectionStateConnected is a ConnectionState enum value
 	ConnectionStateConnected = "CONNECTED"
@@ -9554,6 +10035,15 @@ const (
 	// ConnectionStateUnknown is a ConnectionState enum value
 	ConnectionStateUnknown = "UNKNOWN"
 )
+
+// ConnectionState_Values returns all elements of the ConnectionState enum
+func ConnectionState_Values() []string {
+	return []string{
+		ConnectionStateConnected,
+		ConnectionStateDisconnected,
+		ConnectionStateUnknown,
+	}
+}
 
 const (
 	// DedicatedTenancyModificationStateEnumPending is a DedicatedTenancyModificationStateEnum enum value
@@ -9566,10 +10056,26 @@ const (
 	DedicatedTenancyModificationStateEnumFailed = "FAILED"
 )
 
+// DedicatedTenancyModificationStateEnum_Values returns all elements of the DedicatedTenancyModificationStateEnum enum
+func DedicatedTenancyModificationStateEnum_Values() []string {
+	return []string{
+		DedicatedTenancyModificationStateEnumPending,
+		DedicatedTenancyModificationStateEnumCompleted,
+		DedicatedTenancyModificationStateEnumFailed,
+	}
+}
+
 const (
 	// DedicatedTenancySupportEnumEnabled is a DedicatedTenancySupportEnum enum value
 	DedicatedTenancySupportEnumEnabled = "ENABLED"
 )
+
+// DedicatedTenancySupportEnum_Values returns all elements of the DedicatedTenancySupportEnum enum
+func DedicatedTenancySupportEnum_Values() []string {
+	return []string{
+		DedicatedTenancySupportEnumEnabled,
+	}
+}
 
 const (
 	// DedicatedTenancySupportResultEnumEnabled is a DedicatedTenancySupportResultEnum enum value
@@ -9578,6 +10084,30 @@ const (
 	// DedicatedTenancySupportResultEnumDisabled is a DedicatedTenancySupportResultEnum enum value
 	DedicatedTenancySupportResultEnumDisabled = "DISABLED"
 )
+
+// DedicatedTenancySupportResultEnum_Values returns all elements of the DedicatedTenancySupportResultEnum enum
+func DedicatedTenancySupportResultEnum_Values() []string {
+	return []string{
+		DedicatedTenancySupportResultEnumEnabled,
+		DedicatedTenancySupportResultEnumDisabled,
+	}
+}
+
+const (
+	// ImageTypeOwned is a ImageType enum value
+	ImageTypeOwned = "OWNED"
+
+	// ImageTypeShared is a ImageType enum value
+	ImageTypeShared = "SHARED"
+)
+
+// ImageType_Values returns all elements of the ImageType enum
+func ImageType_Values() []string {
+	return []string{
+		ImageTypeOwned,
+		ImageTypeShared,
+	}
+}
 
 const (
 	// ModificationResourceEnumRootVolume is a ModificationResourceEnum enum value
@@ -9590,6 +10120,15 @@ const (
 	ModificationResourceEnumComputeType = "COMPUTE_TYPE"
 )
 
+// ModificationResourceEnum_Values returns all elements of the ModificationResourceEnum enum
+func ModificationResourceEnum_Values() []string {
+	return []string{
+		ModificationResourceEnumRootVolume,
+		ModificationResourceEnumUserVolume,
+		ModificationResourceEnumComputeType,
+	}
+}
+
 const (
 	// ModificationStateEnumUpdateInitiated is a ModificationStateEnum enum value
 	ModificationStateEnumUpdateInitiated = "UPDATE_INITIATED"
@@ -9597,6 +10136,14 @@ const (
 	// ModificationStateEnumUpdateInProgress is a ModificationStateEnum enum value
 	ModificationStateEnumUpdateInProgress = "UPDATE_IN_PROGRESS"
 )
+
+// ModificationStateEnum_Values returns all elements of the ModificationStateEnum enum
+func ModificationStateEnum_Values() []string {
+	return []string{
+		ModificationStateEnumUpdateInitiated,
+		ModificationStateEnumUpdateInProgress,
+	}
+}
 
 const (
 	// OperatingSystemTypeWindows is a OperatingSystemType enum value
@@ -9606,6 +10153,14 @@ const (
 	OperatingSystemTypeLinux = "LINUX"
 )
 
+// OperatingSystemType_Values returns all elements of the OperatingSystemType enum
+func OperatingSystemType_Values() []string {
+	return []string{
+		OperatingSystemTypeWindows,
+		OperatingSystemTypeLinux,
+	}
+}
+
 const (
 	// ReconnectEnumEnabled is a ReconnectEnum enum value
 	ReconnectEnumEnabled = "ENABLED"
@@ -9613,6 +10168,14 @@ const (
 	// ReconnectEnumDisabled is a ReconnectEnum enum value
 	ReconnectEnumDisabled = "DISABLED"
 )
+
+// ReconnectEnum_Values returns all elements of the ReconnectEnum enum
+func ReconnectEnum_Values() []string {
+	return []string{
+		ReconnectEnumEnabled,
+		ReconnectEnumDisabled,
+	}
+}
 
 const (
 	// RunningModeAutoStop is a RunningMode enum value
@@ -9622,6 +10185,14 @@ const (
 	RunningModeAlwaysOn = "ALWAYS_ON"
 )
 
+// RunningMode_Values returns all elements of the RunningMode enum
+func RunningMode_Values() []string {
+	return []string{
+		RunningModeAutoStop,
+		RunningModeAlwaysOn,
+	}
+}
+
 const (
 	// TargetWorkspaceStateAvailable is a TargetWorkspaceState enum value
 	TargetWorkspaceStateAvailable = "AVAILABLE"
@@ -9630,6 +10201,14 @@ const (
 	TargetWorkspaceStateAdminMaintenance = "ADMIN_MAINTENANCE"
 )
 
+// TargetWorkspaceState_Values returns all elements of the TargetWorkspaceState enum
+func TargetWorkspaceState_Values() []string {
+	return []string{
+		TargetWorkspaceStateAvailable,
+		TargetWorkspaceStateAdminMaintenance,
+	}
+}
+
 const (
 	// TenancyDedicated is a Tenancy enum value
 	TenancyDedicated = "DEDICATED"
@@ -9637,6 +10216,14 @@ const (
 	// TenancyShared is a Tenancy enum value
 	TenancyShared = "SHARED"
 )
+
+// Tenancy_Values returns all elements of the Tenancy enum
+func Tenancy_Values() []string {
+	return []string{
+		TenancyDedicated,
+		TenancyShared,
+	}
+}
 
 const (
 	// WorkspaceDirectoryStateRegistering is a WorkspaceDirectoryState enum value
@@ -9655,6 +10242,17 @@ const (
 	WorkspaceDirectoryStateError = "ERROR"
 )
 
+// WorkspaceDirectoryState_Values returns all elements of the WorkspaceDirectoryState enum
+func WorkspaceDirectoryState_Values() []string {
+	return []string{
+		WorkspaceDirectoryStateRegistering,
+		WorkspaceDirectoryStateRegistered,
+		WorkspaceDirectoryStateDeregistering,
+		WorkspaceDirectoryStateDeregistered,
+		WorkspaceDirectoryStateError,
+	}
+}
+
 const (
 	// WorkspaceDirectoryTypeSimpleAd is a WorkspaceDirectoryType enum value
 	WorkspaceDirectoryTypeSimpleAd = "SIMPLE_AD"
@@ -9662,6 +10260,14 @@ const (
 	// WorkspaceDirectoryTypeAdConnector is a WorkspaceDirectoryType enum value
 	WorkspaceDirectoryTypeAdConnector = "AD_CONNECTOR"
 )
+
+// WorkspaceDirectoryType_Values returns all elements of the WorkspaceDirectoryType enum
+func WorkspaceDirectoryType_Values() []string {
+	return []string{
+		WorkspaceDirectoryTypeSimpleAd,
+		WorkspaceDirectoryTypeAdConnector,
+	}
+}
 
 const (
 	// WorkspaceImageIngestionProcessByolRegular is a WorkspaceImageIngestionProcess enum value
@@ -9674,6 +10280,15 @@ const (
 	WorkspaceImageIngestionProcessByolGraphicspro = "BYOL_GRAPHICSPRO"
 )
 
+// WorkspaceImageIngestionProcess_Values returns all elements of the WorkspaceImageIngestionProcess enum
+func WorkspaceImageIngestionProcess_Values() []string {
+	return []string{
+		WorkspaceImageIngestionProcessByolRegular,
+		WorkspaceImageIngestionProcessByolGraphics,
+		WorkspaceImageIngestionProcessByolGraphicspro,
+	}
+}
+
 const (
 	// WorkspaceImageRequiredTenancyDefault is a WorkspaceImageRequiredTenancy enum value
 	WorkspaceImageRequiredTenancyDefault = "DEFAULT"
@@ -9681,6 +10296,14 @@ const (
 	// WorkspaceImageRequiredTenancyDedicated is a WorkspaceImageRequiredTenancy enum value
 	WorkspaceImageRequiredTenancyDedicated = "DEDICATED"
 )
+
+// WorkspaceImageRequiredTenancy_Values returns all elements of the WorkspaceImageRequiredTenancy enum
+func WorkspaceImageRequiredTenancy_Values() []string {
+	return []string{
+		WorkspaceImageRequiredTenancyDefault,
+		WorkspaceImageRequiredTenancyDedicated,
+	}
+}
 
 const (
 	// WorkspaceImageStateAvailable is a WorkspaceImageState enum value
@@ -9692,6 +10315,15 @@ const (
 	// WorkspaceImageStateError is a WorkspaceImageState enum value
 	WorkspaceImageStateError = "ERROR"
 )
+
+// WorkspaceImageState_Values returns all elements of the WorkspaceImageState enum
+func WorkspaceImageState_Values() []string {
+	return []string{
+		WorkspaceImageStateAvailable,
+		WorkspaceImageStatePending,
+		WorkspaceImageStateError,
+	}
+}
 
 const (
 	// WorkspaceStatePending is a WorkspaceState enum value
@@ -9745,3 +10377,26 @@ const (
 	// WorkspaceStateError is a WorkspaceState enum value
 	WorkspaceStateError = "ERROR"
 )
+
+// WorkspaceState_Values returns all elements of the WorkspaceState enum
+func WorkspaceState_Values() []string {
+	return []string{
+		WorkspaceStatePending,
+		WorkspaceStateAvailable,
+		WorkspaceStateImpaired,
+		WorkspaceStateUnhealthy,
+		WorkspaceStateRebooting,
+		WorkspaceStateStarting,
+		WorkspaceStateRebuilding,
+		WorkspaceStateRestoring,
+		WorkspaceStateMaintenance,
+		WorkspaceStateAdminMaintenance,
+		WorkspaceStateTerminating,
+		WorkspaceStateTerminated,
+		WorkspaceStateSuspended,
+		WorkspaceStateUpdating,
+		WorkspaceStateStopping,
+		WorkspaceStateStopped,
+		WorkspaceStateError,
+	}
+}

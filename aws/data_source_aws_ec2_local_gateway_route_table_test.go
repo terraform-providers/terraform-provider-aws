@@ -1,28 +1,17 @@
 package aws
 
 import (
-	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsEc2LocalGatewayRouteTable_basic(t *testing.T) {
-	// Hide Outposts testing behind consistent environment variable
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
 	dataSourceName := "data.aws_ec2_local_gateway_route_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -30,7 +19,7 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_id", regexp.MustCompile(`^lgw-`)),
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_route_table_id", regexp.MustCompile(`^lgw-rtb-`)),
-					resource.TestCheckResourceAttr(dataSourceName, "outpost_arn", outpostArn),
+					testAccMatchResourceAttrRegionalARN(dataSourceName, "outpost_arn", "outposts", regexp.MustCompile(`outpost/op-.+`)),
 					resource.TestCheckResourceAttr(dataSourceName, "state", "available"),
 				),
 			},
@@ -39,27 +28,18 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsEc2LocalGatewayRouteTable_Filter(t *testing.T) {
-	// Hide Outposts testing behind consistent environment variable
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
 	dataSourceName := "data.aws_ec2_local_gateway_route_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEc2LocalGatewayRouteTableConfigFilter(outpostArn),
+				Config: testAccDataSourceAwsEc2LocalGatewayRouteTableConfigFilter(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_id", regexp.MustCompile(`^lgw-`)),
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_route_table_id", regexp.MustCompile(`^lgw-rtb-`)),
-					resource.TestCheckResourceAttr(dataSourceName, "outpost_arn", outpostArn),
+					testAccMatchResourceAttrRegionalARN(dataSourceName, "outpost_arn", "outposts", regexp.MustCompile(`outpost/op-.+`)),
 					resource.TestCheckResourceAttr(dataSourceName, "state", "available"),
 				),
 			},
@@ -68,19 +48,10 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_Filter(t *testing.T) {
 }
 
 func TestAccDataSourceAwsEc2LocalGatewayRouteTable_LocalGatewayId(t *testing.T) {
-	// Hide Outposts testing behind consistent environment variable
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
 	dataSourceName := "data.aws_ec2_local_gateway_route_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -88,7 +59,7 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_LocalGatewayId(t *testing.T) 
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_id", regexp.MustCompile(`^lgw-`)),
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_route_table_id", regexp.MustCompile(`^lgw-rtb-`)),
-					resource.TestCheckResourceAttr(dataSourceName, "outpost_arn", outpostArn),
+					testAccMatchResourceAttrRegionalARN(dataSourceName, "outpost_arn", "outposts", regexp.MustCompile(`outpost/op-.+`)),
 					resource.TestCheckResourceAttr(dataSourceName, "state", "available"),
 				),
 			},
@@ -97,27 +68,18 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_LocalGatewayId(t *testing.T) 
 }
 
 func TestAccDataSourceAwsEc2LocalGatewayRouteTable_OutpostArn(t *testing.T) {
-	// Hide Outposts testing behind consistent environment variable
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
 	dataSourceName := "data.aws_ec2_local_gateway_route_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEc2LocalGatewayRouteTableConfigOutpostArn(outpostArn),
+				Config: testAccDataSourceAwsEc2LocalGatewayRouteTableConfigOutpostArn(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_id", regexp.MustCompile(`^lgw-`)),
 					resource.TestMatchResourceAttr(dataSourceName, "local_gateway_route_table_id", regexp.MustCompile(`^lgw-rtb-`)),
-					resource.TestCheckResourceAttr(dataSourceName, "outpost_arn", outpostArn),
+					testAccMatchResourceAttrRegionalARN(dataSourceName, "outpost_arn", "outposts", regexp.MustCompile(`outpost/op-.+`)),
 					resource.TestCheckResourceAttr(dataSourceName, "state", "available"),
 				),
 			},
@@ -125,15 +87,17 @@ func TestAccDataSourceAwsEc2LocalGatewayRouteTable_OutpostArn(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAwsEc2LocalGatewayRouteTableConfigFilter(outpostArn string) string {
-	return fmt.Sprintf(`
+func testAccDataSourceAwsEc2LocalGatewayRouteTableConfigFilter() string {
+	return `
+data "aws_outposts_outposts" "test" {}
+
 data "aws_ec2_local_gateway_route_table" "test" {
   filter {
     name   = "outpost-arn"
-    values = [%[1]q]
+    values = [tolist(data.aws_outposts_outposts.test.arns)[0]]
   }
 }
-`, outpostArn)
+`
 }
 
 func testAccDataSourceAwsEc2LocalGatewayRouteTableConfigLocalGatewayId() string {
@@ -156,10 +120,12 @@ data "aws_ec2_local_gateway_route_table" "test" {
 `
 }
 
-func testAccDataSourceAwsEc2LocalGatewayRouteTableConfigOutpostArn(outpostArn string) string {
-	return fmt.Sprintf(`
+func testAccDataSourceAwsEc2LocalGatewayRouteTableConfigOutpostArn() string {
+	return `
+data "aws_outposts_outposts" "test" {}
+
 data "aws_ec2_local_gateway_route_table" "test" {
-  outpost_arn = %[1]q
+  outpost_arn = tolist(data.aws_outposts_outposts.test.arns)[0]
 }
-`, outpostArn)
+`
 }

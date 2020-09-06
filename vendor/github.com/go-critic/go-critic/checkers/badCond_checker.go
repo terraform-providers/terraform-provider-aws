@@ -5,9 +5,9 @@ import (
 	"go/constant"
 	"go/token"
 
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
 	"github.com/go-critic/go-critic/checkers/internal/lintutil"
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/astequal"
@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "badCond"
 	info.Tags = []string{"diagnostic", "experimental"}
 	info.Summary = "Detects suspicious condition expressions"
@@ -29,14 +29,14 @@ for i := 0; i < n; i++ {
 	xs[i] = 0
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForFuncDecl(&badCondChecker{ctx: ctx})
 	})
 }
 
 type badCondChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *badCondChecker) VisitFuncDecl(decl *ast.FuncDecl) {

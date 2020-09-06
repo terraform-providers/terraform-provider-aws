@@ -5,7 +5,6 @@ import (
 	"go/types"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
-	tfresource "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 const (
@@ -32,11 +31,18 @@ const (
 	TypeNameTestStep = `TestStep`
 )
 
+// testStepType is an internal representation of the SDK helper/resource.TestStep type
+//
+// This is used to prevent importing the real type since the project supports
+// multiple versions of the Terraform Plugin SDK, while allowing passes to
+// access the data in a familiar manner.
+type testStepType struct{}
+
 // TestStepInfo represents all gathered TestStep data for easier access
 type TestStepInfo struct {
 	AstCompositeLit *ast.CompositeLit
 	Fields          map[string]*ast.KeyValueExpr
-	TestStep        *tfresource.TestStep
+	TestStep        *testStepType
 	TypesInfo       *types.Info
 }
 
@@ -45,7 +51,7 @@ func NewTestStepInfo(cl *ast.CompositeLit, info *types.Info) *TestStepInfo {
 	result := &TestStepInfo{
 		AstCompositeLit: cl,
 		Fields:          astutils.CompositeLitFields(cl),
-		TestStep:        &tfresource.TestStep{},
+		TestStep:        &testStepType{},
 		TypesInfo:       info,
 	}
 

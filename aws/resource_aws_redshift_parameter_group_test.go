@@ -7,9 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSRedshiftParameterGroup_basic(t *testing.T) {
@@ -43,10 +44,9 @@ func TestAccAWSRedshiftParameterGroup_withParameters(t *testing.T) {
 	resourceName := "aws_redshift_parameter_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSRedshiftParameterGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRedshiftParameterGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSRedshiftParameterGroupConfig(rInt),
@@ -58,18 +58,18 @@ func TestAccAWSRedshiftParameterGroup_withParameters(t *testing.T) {
 						resourceName, "family", "redshift-1.0"),
 					resource.TestCheckResourceAttr(
 						resourceName, "description", "Managed by Terraform"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.490804664.name", "require_ssl"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.490804664.value", "true"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.2036118857.name", "query_group"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.2036118857.value", "example"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.484080973.name", "enable_user_activity_logging"),
-					resource.TestCheckResourceAttr(
-						resourceName, "parameter.484080973.value", "true"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "require_ssl",
+						"value": "true",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_group",
+						"value": "example",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "enable_user_activity_logging",
+						"value": "true",
+					}),
 				),
 			},
 			{
@@ -270,9 +270,9 @@ resource "aws_redshift_parameter_group" "test" {
   description = "Test parameter group for terraform"
 
   tags = {
-		environment = "Production"
-		name     		= "test-terraform-%[1]d"
-		description = "Test parameter group for terraform %[2]s"
+    environment = "Production"
+    name        = "test-terraform-%[1]d"
+    description = "Test parameter group for terraform %[2]s"
   }
 }
 `, rInt, rString)
@@ -286,7 +286,7 @@ resource "aws_redshift_parameter_group" "test" {
   description = "Test parameter group for terraform"
 
   tags = {
-		name     	= "test-terraform-%[1]d"
+    name = "test-terraform-%[1]d"
   }
 }
 `, rInt)

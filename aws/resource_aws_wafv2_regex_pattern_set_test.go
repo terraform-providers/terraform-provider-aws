@@ -7,12 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
-func TestAccAwsWafv2RegexPatternSet_Basic(t *testing.T) {
+func TestAccAwsWafv2RegexPatternSet_basic(t *testing.T) {
 	var v wafv2.RegexPatternSet
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_wafv2_regex_pattern_set.test"
@@ -31,8 +32,12 @@ func TestAccAwsWafv2RegexPatternSet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", rName),
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "regular_expression.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "regular_expression.1641128102.regex_string", "one"),
-					resource.TestCheckResourceAttr(resourceName, "regular_expression.265355341.regex_string", "two"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+						"regex_string": "one",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+						"regex_string": "two",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -45,9 +50,15 @@ func TestAccAwsWafv2RegexPatternSet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Updated"),
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "regular_expression.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "regular_expression.1641128102.regex_string", "one"),
-					resource.TestCheckResourceAttr(resourceName, "regular_expression.265355341.regex_string", "two"),
-					resource.TestCheckResourceAttr(resourceName, "regular_expression.2339296779.regex_string", "three"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+						"regex_string": "one",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+						"regex_string": "two",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+						"regex_string": "three",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -267,7 +278,7 @@ resource "aws_wafv2_regex_pattern_set" "test" {
   description = "%s"
   scope       = "REGIONAL"
 
-	regular_expression {
+  regular_expression {
     regex_string = "one"
   }
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsSecurityGroups_tag(t *testing.T) {
@@ -54,7 +54,7 @@ resource "aws_vpc" "test_tag" {
 
 resource "aws_security_group" "test" {
   count  = 3
-  vpc_id = "${aws_vpc.test_tag.id}"
+  vpc_id = aws_vpc.test_tag.id
   name   = "tf-%[1]d-${count.index}"
 
   tags = {
@@ -64,7 +64,7 @@ resource "aws_security_group" "test" {
 
 data "aws_security_groups" "by_tag" {
   tags = {
-    Seed = "${aws_security_group.test.0.tags["Seed"]}"
+    Seed = aws_security_group.test[0].tags["Seed"]
   }
 }
 `, rInt)
@@ -82,7 +82,7 @@ resource "aws_vpc" "test_filter" {
 
 resource "aws_security_group" "test" {
   count  = 3
-  vpc_id = "${aws_vpc.test_filter.id}"
+  vpc_id = aws_vpc.test_filter.id
   name   = "tf-%[1]d-${count.index}"
 
   tags = {
@@ -93,12 +93,12 @@ resource "aws_security_group" "test" {
 data "aws_security_groups" "by_filter" {
   filter {
     name   = "vpc-id"
-    values = ["${aws_vpc.test_filter.id}"]
+    values = [aws_vpc.test_filter.id]
   }
 
   filter {
     name   = "group-name"
-    values = ["tf-${aws_security_group.test.0.tags["Seed"]}-*"]
+    values = ["tf-${aws_security_group.test[0].tags["Seed"]}-*"]
   }
 }
 `, rInt)

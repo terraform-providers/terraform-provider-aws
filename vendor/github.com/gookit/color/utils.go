@@ -1,10 +1,26 @@
 package color
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
 )
+
+// Support color:
+// 	"TERM=xterm"
+// 	"TERM=xterm-vt220"
+// 	"TERM=xterm-256color"
+// 	"TERM=screen-256color"
+// 	"TERM=tmux-256color"
+// 	"TERM=rxvt-unicode-256color"
+// Don't support color:
+// 	"TERM=cygwin"
+var specialColorTerms = map[string]bool{
+	"screen-256color":       true,
+	"tmux-256color":         true,
+	"rxvt-unicode-256color": true,
+}
 
 // IsConsole 判断 w 是否为 stderr、stdout、stdin 三者之一
 func IsConsole(out io.Writer) bool {
@@ -33,11 +49,13 @@ func IsMSys() bool {
 // Not support:
 // 	windows cmd.exe, powerShell.exe
 func IsSupportColor() bool {
-	// "TERM=xterm"  support color
-	// "TERM=xterm-vt220" support color
-	// "TERM=xterm-256color" support color
-	// "TERM=cygwin" don't support color
-	if strings.Contains(os.Getenv("TERM"), "xterm") {
+	envTerm := os.Getenv("TERM")
+	if strings.Contains(envTerm, "xterm") {
+		return true
+	}
+
+	// it's special color term
+	if _, ok := specialColorTerms[envTerm]; ok {
 		return true
 	}
 
@@ -57,13 +75,60 @@ func IsSupportColor() bool {
 // IsSupport256Color render
 func IsSupport256Color() bool {
 	// "TERM=xterm-256color"
+	// "TERM=screen-256color"
+	// "TERM=tmux-256color"
+	// "TERM=rxvt-unicode-256color"
 	return strings.Contains(os.Getenv("TERM"), "256color")
+}
+
+// IsSupportTrueColor render. IsSupportRGBColor
+func IsSupportTrueColor() bool {
+	// "COLORTERM=truecolor"
+	return strings.Contains(os.Getenv("COLORTERM"), "truecolor")
 }
 
 // its Win system. linux windows darwin
 // func isWindows() bool {
 // 	return runtime.GOOS == "windows"
 // }
+
+func doPrint(code string, colors []Color, str string) {
+	if isLikeInCmd {
+		winPrint(str, colors...)
+	} else {
+		_, _ = fmt.Fprint(output, RenderString(code, str))
+	}
+}
+
+func doPrintln(code string, colors []Color, args []interface{}) {
+	str := formatArgsForPrintln(args)
+	if isLikeInCmd {
+		winPrintln(str, colors...)
+	} else {
+		_, _ = fmt.Fprintln(output, RenderString(code, str))
+	}
+}
+
+func doPrintV2(code, str string) {
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			_, _ = fmt.Fprint(output, RenderString(code, str))
+		})
+	} else {
+		_, _ = fmt.Fprint(output, RenderString(code, str))
+	}
+}
+
+func doPrintlnV2(code string, args []interface{}) {
+	str := formatArgsForPrintln(args)
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			_, _ = fmt.Fprintln(output, RenderString(code, str))
+		})
+	} else {
+		_, _ = fmt.Fprintln(output, RenderString(code, str))
+	}
+}
 
 func stringToArr(str, sep string) (arr []string) {
 	str = strings.TrimSpace(str)
@@ -78,5 +143,19 @@ func stringToArr(str, sep string) (arr []string) {
 		}
 	}
 
+	return
+}
+
+// if use Println, will add spaces for each arg
+func formatArgsForPrintln(args []interface{}) (message string) {
+	if ln := len(args); ln == 0 {
+		message = ""
+	} else if ln == 1 {
+		message = fmt.Sprint(args[0])
+	} else {
+		message = fmt.Sprintln(args...)
+		// clear last "\n"
+		message = message[:len(message)-1]
+	}
 	return
 }

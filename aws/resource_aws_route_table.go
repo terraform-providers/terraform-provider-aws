@@ -8,10 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -50,15 +50,21 @@ func resourceAwsRouteTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cidr_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validateIpv4CIDRNetworkAddress,
+							),
 						},
 
 						"ipv6_cidr_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validateIpv6CIDRNetworkAddress,
+							),
 						},
 
 						"egress_only_gateway_id": {
@@ -77,6 +83,11 @@ func resourceAwsRouteTable() *schema.Resource {
 						},
 
 						"nat_gateway_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"local_gateway_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -113,7 +124,8 @@ func resourceAwsRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 
 	// Create the routing table
 	createOpts := &ec2.CreateRouteTableInput{
-		VpcId: aws.String(d.Get("vpc_id").(string)),
+		VpcId:             aws.String(d.Get("vpc_id").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeRouteTable),
 	}
 	log.Printf("[DEBUG] RouteTable create config: %#v", createOpts)
 
@@ -142,12 +154,6 @@ func resourceAwsRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf(
 			"Error waiting for route table (%s) to become available: %s",
 			d.Id(), err)
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
-		}
 	}
 
 	return resourceAwsRouteTableUpdate(d, meta)
@@ -211,6 +217,9 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 		if r.NatGatewayId != nil {
 			m["nat_gateway_id"] = *r.NatGatewayId
 		}
+		if r.LocalGatewayId != nil {
+			m["local_gateway_id"] = *r.LocalGatewayId
+		}
 		if r.InstanceId != nil {
 			m["instance_id"] = *r.InstanceId
 		}
@@ -228,6 +237,7 @@ func resourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("route", route)
 
+	// Tags
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(rt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
@@ -314,7 +324,7 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 				RouteTableId: aws.String(d.Id()),
 			}
 
-			if s := m["ipv6_cidr_block"].(string); s != "" {
+			if s, ok := m["ipv6_cidr_block"].(string); ok && s != "" {
 				deleteOpts.DestinationIpv6CidrBlock = aws.String(s)
 
 				log.Printf(
@@ -322,7 +332,7 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 					d.Id(), m["ipv6_cidr_block"].(string))
 			}
 
-			if s := m["cidr_block"].(string); s != "" {
+			if s, ok := m["cidr_block"].(string); ok && s != "" {
 				deleteOpts.DestinationCidrBlock = aws.String(s)
 
 				log.Printf(
@@ -348,40 +358,44 @@ func resourceAwsRouteTableUpdate(d *schema.ResourceData, meta interface{}) error
 				RouteTableId: aws.String(d.Id()),
 			}
 
-			if s := m["transit_gateway_id"].(string); s != "" {
+			if s, ok := m["transit_gateway_id"].(string); ok && s != "" {
 				opts.TransitGatewayId = aws.String(s)
 			}
 
-			if s := m["vpc_peering_connection_id"].(string); s != "" {
+			if s, ok := m["vpc_peering_connection_id"].(string); ok && s != "" {
 				opts.VpcPeeringConnectionId = aws.String(s)
 			}
 
-			if s := m["network_interface_id"].(string); s != "" {
+			if s, ok := m["network_interface_id"].(string); ok && s != "" {
 				opts.NetworkInterfaceId = aws.String(s)
 			}
 
-			if s := m["instance_id"].(string); s != "" {
+			if s, ok := m["instance_id"].(string); ok && s != "" {
 				opts.InstanceId = aws.String(s)
 			}
 
-			if s := m["ipv6_cidr_block"].(string); s != "" {
+			if s, ok := m["ipv6_cidr_block"].(string); ok && s != "" {
 				opts.DestinationIpv6CidrBlock = aws.String(s)
 			}
 
-			if s := m["cidr_block"].(string); s != "" {
+			if s, ok := m["cidr_block"].(string); ok && s != "" {
 				opts.DestinationCidrBlock = aws.String(s)
 			}
 
-			if s := m["gateway_id"].(string); s != "" {
+			if s, ok := m["gateway_id"].(string); ok && s != "" {
 				opts.GatewayId = aws.String(s)
 			}
 
-			if s := m["egress_only_gateway_id"].(string); s != "" {
+			if s, ok := m["egress_only_gateway_id"].(string); ok && s != "" {
 				opts.EgressOnlyInternetGatewayId = aws.String(s)
 			}
 
-			if s := m["nat_gateway_id"].(string); s != "" {
+			if s, ok := m["nat_gateway_id"].(string); ok && s != "" {
 				opts.NatGatewayId = aws.String(s)
+			}
+
+			if s, ok := m["local_gateway_id"].(string); ok && s != "" {
+				opts.LocalGatewayId = aws.String(s)
 			}
 
 			log.Printf("[INFO] Creating route for %s: %#v", d.Id(), opts)
@@ -526,6 +540,10 @@ func resourceAwsRouteTableHash(v interface{}) int {
 	}
 
 	if v, ok := m["transit_gateway_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["local_gateway_id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
 

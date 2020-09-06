@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -588,17 +588,10 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			hasChanges = true
 		}
 	case "mongodb":
-		if d.HasChange("username") ||
-			d.HasChange("password") ||
-			d.HasChange("server_name") ||
-			d.HasChange("port") ||
-			d.HasChange("database_name") ||
-			d.HasChange("mongodb_settings.0.auth_type") ||
-			d.HasChange("mongodb_settings.0.auth_mechanism") ||
-			d.HasChange("mongodb_settings.0.nesting_level") ||
-			d.HasChange("mongodb_settings.0.extract_doc_id") ||
-			d.HasChange("mongodb_settings.0.docs_to_investigate") ||
-			d.HasChange("mongodb_settings.0.auth_source") {
+		if d.HasChanges(
+			"username", "password", "server_name", "port", "database_name", "mongodb_settings.0.auth_type",
+			"mongodb_settings.0.auth_mechanism", "mongodb_settings.0.nesting_level", "mongodb_settings.0.extract_doc_id",
+			"mongodb_settings.0.docs_to_investigate", "mongodb_settings.0.auth_source") {
 			request.MongoDbSettings = &dms.MongoDbSettings{
 				Username:     aws.String(d.Get("username").(string)),
 				Password:     aws.String(d.Get("password").(string)),
@@ -626,13 +619,10 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			hasChanges = true
 		}
 	case "s3":
-		if d.HasChange("s3_settings.0.service_access_role_arn") ||
-			d.HasChange("s3_settings.0.external_table_definition") ||
-			d.HasChange("s3_settings.0.csv_row_delimiter") ||
-			d.HasChange("s3_settings.0.csv_delimiter") ||
-			d.HasChange("s3_settings.0.bucket_folder") ||
-			d.HasChange("s3_settings.0.bucket_name") ||
-			d.HasChange("s3_settings.0.compression_type") {
+		if d.HasChanges(
+			"s3_settings.0.service_access_role_arn", "s3_settings.0.external_table_definition",
+			"s3_settings.0.csv_row_delimiter", "s3_settings.0.csv_delimiter", "s3_settings.0.bucket_folder",
+			"s3_settings.0.bucket_name", "s3_settings.0.compression_type") {
 			request.S3Settings = &dms.S3Settings{
 				ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
 				ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),

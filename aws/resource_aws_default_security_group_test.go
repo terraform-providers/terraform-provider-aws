@@ -2,77 +2,173 @@ package aws
 
 import (
 	"fmt"
-	"reflect"
+	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
-func TestAccAWSDefaultSecurityGroup_basic(t *testing.T) {
+func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
 	var group ec2.SecurityGroup
+	resourceName := "aws_default_security_group.test"
+	vpcResourceName := "aws_vpc.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		IDRefreshName:       "aws_default_security_group.web",
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSDefaultSecurityGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDefaultSecurityGroupConfig,
+				Config: testAccAWSDefaultSecurityGroupConfig_Vpc,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDefaultSecurityGroupExists("aws_default_security_group.web", &group),
-					testAccCheckAWSDefaultSecurityGroupAttributes(&group),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "name", "default"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "description", "default VPC security group"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.protocol", "tcp"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.from_port", "80"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.to_port", "8000"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.cidr_blocks.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.cidr_blocks.0", "10.0.0.0/8"),
+					testAccCheckAWSDefaultSecurityGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "name", "default"),
+					resource.TestCheckResourceAttr(resourceName, "description", "default VPC security group"),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_id", vpcResourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "ingress.#", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+						"protocol":      "tcp",
+						"from_port":     "80",
+						"to_port":       "8000",
+						"cidr_blocks.#": "1",
+						"cidr_blocks.0": "10.0.0.0/8",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "egress.#", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "egress.*", map[string]string{
+						"protocol":      "tcp",
+						"from_port":     "80",
+						"to_port":       "8000",
+						"cidr_blocks.#": "1",
+						"cidr_blocks.0": "10.0.0.0/8",
+					}),
+					testAccCheckAWSDefaultSecurityGroupARN(resourceName, &group),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "tf-acc-test"),
 				),
+			},
+			{
+				Config:   testAccAWSDefaultSecurityGroupConfig_Vpc,
+				PlanOnly: true,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"revoke_rules_on_delete"},
 			},
 		},
 	})
 }
 
-func TestAccAWSDefaultSecurityGroup_classic(t *testing.T) {
+func TestAccAWSDefaultSecurityGroup_Vpc_empty(t *testing.T) {
 	var group ec2.SecurityGroup
+	resourceName := "aws_default_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		IDRefreshName:       "aws_default_security_group.web",
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSDefaultSecurityGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDefaultSecurityGroupConfig_classic,
+				Config: testAccAWSDefaultSecurityGroupConfig_Vpc_empty,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSDefaultSecurityGroupExists("aws_default_security_group.web", &group),
-					testAccCheckAWSDefaultSecurityGroupAttributes(&group),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "name", "default"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.protocol", "tcp"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.from_port", "80"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.to_port", "8000"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.cidr_blocks.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_default_security_group.web", "ingress.3629188364.cidr_blocks.0", "10.0.0.0/8"),
+					testAccCheckAWSDefaultSecurityGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "ingress.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "egress.#", "0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"revoke_rules_on_delete"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDefaultSecurityGroup_Classic_basic(t *testing.T) {
+	oldvar := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+
+	var group ec2.SecurityGroup
+	resourceName := "aws_default_security_group.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDefaultSecurityGroupConfig_Classic,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDefaultSecurityGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "name", "default"),
+					resource.TestCheckResourceAttr(resourceName, "description", "default group"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "ingress.#", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+						"protocol":      "tcp",
+						"from_port":     "80",
+						"to_port":       "8000",
+						"cidr_blocks.#": "1",
+						"cidr_blocks.0": "10.0.0.0/8",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "egress.#", "0"),
+					testAccCheckAWSDefaultSecurityGroupARN(resourceName, &group),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Name", "tf-acc-test"),
+				),
+			},
+			{
+				Config:   testAccAWSDefaultSecurityGroupConfig_Classic,
+				PlanOnly: true,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"revoke_rules_on_delete"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDefaultSecurityGroup_Classic_empty(t *testing.T) {
+
+	TestAccSkip(t, "This resource does not currently clear tags when adopting the resource")
+	// Additional references:
+	//  * https://github.com/terraform-providers/terraform-provider-aws/issues/14631
+
+	oldvar := os.Getenv("AWS_DEFAULT_REGION")
+	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
+	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
+
+	var group ec2.SecurityGroup
+	resourceName := "aws_default_security_group.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckAWSDefaultSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDefaultSecurityGroupConfig_Classic_empty,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDefaultSecurityGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "ingress.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "egress.#", "0"),
 				),
 			},
 		},
@@ -113,45 +209,23 @@ func testAccCheckAWSDefaultSecurityGroupExists(n string, group *ec2.SecurityGrou
 	}
 }
 
-func testAccCheckAWSDefaultSecurityGroupAttributes(group *ec2.SecurityGroup) resource.TestCheckFunc {
+func testAccCheckAWSDefaultSecurityGroupARN(resourceName string, group *ec2.SecurityGroup) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		p := &ec2.IpPermission{
-			FromPort:   aws.Int64(80),
-			ToPort:     aws.Int64(8000),
-			IpProtocol: aws.String("tcp"),
-			IpRanges:   []*ec2.IpRange{{CidrIp: aws.String("10.0.0.0/8")}},
-		}
-
-		if *group.GroupName != "default" {
-			return fmt.Errorf("Bad name: %s", *group.GroupName)
-		}
-
-		if len(group.IpPermissions) == 0 {
-			return fmt.Errorf("No IPPerms")
-		}
-
-		// Compare our ingress
-		if !reflect.DeepEqual(group.IpPermissions[0], p) {
-			return fmt.Errorf(
-				"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-				group.IpPermissions[0],
-				p)
-		}
-
-		return nil
+		return testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ec2", fmt.Sprintf("security-group/%s", aws.StringValue(group.GroupId)))(s)
 	}
 }
 
-const testAccAWSDefaultSecurityGroupConfig = `
-resource "aws_vpc" "foo" {
+const testAccAWSDefaultSecurityGroupConfig_Vpc = `
+resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-default-security-group"
-	}
+  
+  tags = {
+    Name = "terraform-testacc-default-security-group"
+  }
 }
 
-resource "aws_default_security_group" "web" {
-  vpc_id = "${aws_vpc.foo.id}"
+resource "aws_default_security_group" "test" {
+  vpc_id = aws_vpc.test.id
 
   ingress {
     protocol    = "6"
@@ -173,12 +247,22 @@ resource "aws_default_security_group" "web" {
 }
 `
 
-const testAccAWSDefaultSecurityGroupConfig_classic = `
-provider "aws" {
-  region = "us-east-1"
+const testAccAWSDefaultSecurityGroupConfig_Vpc_empty = `
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-default-security-group"
+  }
 }
 
-resource "aws_default_security_group" "web" {
+resource "aws_default_security_group" "test" {
+  vpc_id = aws_vpc.test.id
+}
+`
+
+const testAccAWSDefaultSecurityGroupConfig_Classic = `
+resource "aws_default_security_group" "test" {
   ingress {
     protocol    = "6"
     from_port   = 80
@@ -189,4 +273,75 @@ resource "aws_default_security_group" "web" {
   tags = {
     Name = "tf-acc-test"
   }
-}`
+}
+`
+
+const testAccAWSDefaultSecurityGroupConfig_Classic_empty = `
+resource "aws_default_security_group" "test" {
+  # No attributes set.
+}
+`
+
+func TestAWSDefaultSecurityGroupMigrateState(t *testing.T) {
+	cases := map[string]struct {
+		StateVersion int
+		Attributes   map[string]string
+		Expected     map[string]string
+		Meta         interface{}
+	}{
+		"v0": {
+			StateVersion: 0,
+			Attributes: map[string]string{
+				"name": "test",
+			},
+			Expected: map[string]string{
+				"name":                   "test",
+				"revoke_rules_on_delete": "false",
+			},
+		},
+	}
+
+	for tn, tc := range cases {
+		is := &terraform.InstanceState{
+			ID:         "i-abc123",
+			Attributes: tc.Attributes,
+		}
+		is, err := resourceAwsDefaultSecurityGroupMigrateState(
+			tc.StateVersion, is, tc.Meta)
+
+		if err != nil {
+			t.Fatalf("bad: %s, err: %#v", tn, err)
+		}
+
+		for k, v := range tc.Expected {
+			if is.Attributes[k] != v {
+				t.Fatalf(
+					"bad: %s\n\n expected: %#v -> %#v\n got: %#v -> %#v\n in: %#v",
+					tn, k, v, k, is.Attributes[k], is.Attributes)
+			}
+		}
+	}
+}
+
+func TestAWSDefaultSecurityGroupMigrateState_empty(t *testing.T) {
+	var is *terraform.InstanceState
+	var meta interface{}
+
+	// should handle nil
+	is, err := resourceAwsDefaultSecurityGroupMigrateState(0, is, meta)
+
+	if err != nil {
+		t.Fatalf("err: %#v", err)
+	}
+	if is != nil {
+		t.Fatalf("expected nil instancestate, got: %#v", is)
+	}
+
+	// should handle non-nil but empty
+	is = &terraform.InstanceState{}
+	_, err = resourceAwsDefaultSecurityGroupMigrateState(0, is, meta)
+
+	if err != nil {
+		t.Fatalf("err: %#v", err)
+	}
+}

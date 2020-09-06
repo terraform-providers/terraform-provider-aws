@@ -10521,6 +10521,15 @@ const (
 	ChannelStatusDeleting = "DELETING"
 )
 
+// ChannelStatus_Values returns all elements of the ChannelStatus enum
+func ChannelStatus_Values() []string {
+	return []string{
+		ChannelStatusCreating,
+		ChannelStatusActive,
+		ChannelStatusDeleting,
+	}
+}
+
 const (
 	// ComputeTypeAcu1 is a ComputeType enum value
 	ComputeTypeAcu1 = "ACU_1"
@@ -10529,6 +10538,14 @@ const (
 	ComputeTypeAcu2 = "ACU_2"
 )
 
+// ComputeType_Values returns all elements of the ComputeType enum
+func ComputeType_Values() []string {
+	return []string{
+		ComputeTypeAcu1,
+		ComputeTypeAcu2,
+	}
+}
+
 const (
 	// DatasetActionTypeQuery is a DatasetActionType enum value
 	DatasetActionTypeQuery = "QUERY"
@@ -10536,6 +10553,14 @@ const (
 	// DatasetActionTypeContainer is a DatasetActionType enum value
 	DatasetActionTypeContainer = "CONTAINER"
 )
+
+// DatasetActionType_Values returns all elements of the DatasetActionType enum
+func DatasetActionType_Values() []string {
+	return []string{
+		DatasetActionTypeQuery,
+		DatasetActionTypeContainer,
+	}
+}
 
 const (
 	// DatasetContentStateCreating is a DatasetContentState enum value
@@ -10548,6 +10573,15 @@ const (
 	DatasetContentStateFailed = "FAILED"
 )
 
+// DatasetContentState_Values returns all elements of the DatasetContentState enum
+func DatasetContentState_Values() []string {
+	return []string{
+		DatasetContentStateCreating,
+		DatasetContentStateSucceeded,
+		DatasetContentStateFailed,
+	}
+}
+
 const (
 	// DatasetStatusCreating is a DatasetStatus enum value
 	DatasetStatusCreating = "CREATING"
@@ -10558,6 +10592,15 @@ const (
 	// DatasetStatusDeleting is a DatasetStatus enum value
 	DatasetStatusDeleting = "DELETING"
 )
+
+// DatasetStatus_Values returns all elements of the DatasetStatus enum
+func DatasetStatus_Values() []string {
+	return []string{
+		DatasetStatusCreating,
+		DatasetStatusActive,
+		DatasetStatusDeleting,
+	}
+}
 
 const (
 	// DatastoreStatusCreating is a DatastoreStatus enum value
@@ -10570,10 +10613,26 @@ const (
 	DatastoreStatusDeleting = "DELETING"
 )
 
+// DatastoreStatus_Values returns all elements of the DatastoreStatus enum
+func DatastoreStatus_Values() []string {
+	return []string{
+		DatastoreStatusCreating,
+		DatastoreStatusActive,
+		DatastoreStatusDeleting,
+	}
+}
+
 const (
 	// LoggingLevelError is a LoggingLevel enum value
 	LoggingLevelError = "ERROR"
 )
+
+// LoggingLevel_Values returns all elements of the LoggingLevel enum
+func LoggingLevel_Values() []string {
+	return []string{
+		LoggingLevelError,
+	}
+}
 
 const (
 	// ReprocessingStatusRunning is a ReprocessingStatus enum value
@@ -10588,3 +10647,13 @@ const (
 	// ReprocessingStatusFailed is a ReprocessingStatus enum value
 	ReprocessingStatusFailed = "FAILED"
 )
+
+// ReprocessingStatus_Values returns all elements of the ReprocessingStatus enum
+func ReprocessingStatus_Values() []string {
+	return []string{
+		ReprocessingStatusRunning,
+		ReprocessingStatusSucceeded,
+		ReprocessingStatusCancelled,
+		ReprocessingStatusFailed,
+	}
+}

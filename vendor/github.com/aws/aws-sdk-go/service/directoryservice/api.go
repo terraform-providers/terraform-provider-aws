@@ -14162,6 +14162,18 @@ const (
 	CertificateStateDeregisterFailed = "DeregisterFailed"
 )
 
+// CertificateState_Values returns all elements of the CertificateState enum
+func CertificateState_Values() []string {
+	return []string{
+		CertificateStateRegistering,
+		CertificateStateRegistered,
+		CertificateStateRegisterFailed,
+		CertificateStateDeregistering,
+		CertificateStateDeregistered,
+		CertificateStateDeregisterFailed,
+	}
+}
+
 const (
 	// DirectoryEditionEnterprise is a DirectoryEdition enum value
 	DirectoryEditionEnterprise = "Enterprise"
@@ -14170,6 +14182,14 @@ const (
 	DirectoryEditionStandard = "Standard"
 )
 
+// DirectoryEdition_Values returns all elements of the DirectoryEdition enum
+func DirectoryEdition_Values() []string {
+	return []string{
+		DirectoryEditionEnterprise,
+		DirectoryEditionStandard,
+	}
+}
+
 const (
 	// DirectorySizeSmall is a DirectorySize enum value
 	DirectorySizeSmall = "Small"
@@ -14177,6 +14197,14 @@ const (
 	// DirectorySizeLarge is a DirectorySize enum value
 	DirectorySizeLarge = "Large"
 )
+
+// DirectorySize_Values returns all elements of the DirectorySize enum
+func DirectorySize_Values() []string {
+	return []string{
+		DirectorySizeSmall,
+		DirectorySizeLarge,
+	}
+}
 
 const (
 	// DirectoryStageRequested is a DirectoryStage enum value
@@ -14213,6 +14241,23 @@ const (
 	DirectoryStageFailed = "Failed"
 )
 
+// DirectoryStage_Values returns all elements of the DirectoryStage enum
+func DirectoryStage_Values() []string {
+	return []string{
+		DirectoryStageRequested,
+		DirectoryStageCreating,
+		DirectoryStageCreated,
+		DirectoryStageActive,
+		DirectoryStageInoperable,
+		DirectoryStageImpaired,
+		DirectoryStageRestoring,
+		DirectoryStageRestoreFailed,
+		DirectoryStageDeleting,
+		DirectoryStageDeleted,
+		DirectoryStageFailed,
+	}
+}
+
 const (
 	// DirectoryTypeSimpleAd is a DirectoryType enum value
 	DirectoryTypeSimpleAd = "SimpleAD"
@@ -14226,6 +14271,16 @@ const (
 	// DirectoryTypeSharedMicrosoftAd is a DirectoryType enum value
 	DirectoryTypeSharedMicrosoftAd = "SharedMicrosoftAD"
 )
+
+// DirectoryType_Values returns all elements of the DirectoryType enum
+func DirectoryType_Values() []string {
+	return []string{
+		DirectoryTypeSimpleAd,
+		DirectoryTypeAdconnector,
+		DirectoryTypeMicrosoftAd,
+		DirectoryTypeSharedMicrosoftAd,
+	}
+}
 
 const (
 	// DomainControllerStatusCreating is a DomainControllerStatus enum value
@@ -14250,6 +14305,19 @@ const (
 	DomainControllerStatusFailed = "Failed"
 )
 
+// DomainControllerStatus_Values returns all elements of the DomainControllerStatus enum
+func DomainControllerStatus_Values() []string {
+	return []string{
+		DomainControllerStatusCreating,
+		DomainControllerStatusActive,
+		DomainControllerStatusImpaired,
+		DomainControllerStatusRestoring,
+		DomainControllerStatusDeleting,
+		DomainControllerStatusDeleted,
+		DomainControllerStatusFailed,
+	}
+}
+
 const (
 	// IpRouteStatusMsgAdding is a IpRouteStatusMsg enum value
 	IpRouteStatusMsgAdding = "Adding"
@@ -14270,6 +14338,18 @@ const (
 	IpRouteStatusMsgRemoveFailed = "RemoveFailed"
 )
 
+// IpRouteStatusMsg_Values returns all elements of the IpRouteStatusMsg enum
+func IpRouteStatusMsg_Values() []string {
+	return []string{
+		IpRouteStatusMsgAdding,
+		IpRouteStatusMsgAdded,
+		IpRouteStatusMsgRemoving,
+		IpRouteStatusMsgRemoved,
+		IpRouteStatusMsgAddFailed,
+		IpRouteStatusMsgRemoveFailed,
+	}
+}
+
 const (
 	// LDAPSStatusEnabling is a LDAPSStatus enum value
 	LDAPSStatusEnabling = "Enabling"
@@ -14284,10 +14364,27 @@ const (
 	LDAPSStatusDisabled = "Disabled"
 )
 
+// LDAPSStatus_Values returns all elements of the LDAPSStatus enum
+func LDAPSStatus_Values() []string {
+	return []string{
+		LDAPSStatusEnabling,
+		LDAPSStatusEnabled,
+		LDAPSStatusEnableFailed,
+		LDAPSStatusDisabled,
+	}
+}
+
 const (
 	// LDAPSTypeClient is a LDAPSType enum value
 	LDAPSTypeClient = "Client"
 )
+
+// LDAPSType_Values returns all elements of the LDAPSType enum
+func LDAPSType_Values() []string {
+	return []string{
+		LDAPSTypeClient,
+	}
+}
 
 const (
 	// RadiusAuthenticationProtocolPap is a RadiusAuthenticationProtocol enum value
@@ -14303,6 +14400,16 @@ const (
 	RadiusAuthenticationProtocolMsChapv2 = "MS-CHAPv2"
 )
 
+// RadiusAuthenticationProtocol_Values returns all elements of the RadiusAuthenticationProtocol enum
+func RadiusAuthenticationProtocol_Values() []string {
+	return []string{
+		RadiusAuthenticationProtocolPap,
+		RadiusAuthenticationProtocolChap,
+		RadiusAuthenticationProtocolMsChapv1,
+		RadiusAuthenticationProtocolMsChapv2,
+	}
+}
+
 const (
 	// RadiusStatusCreating is a RadiusStatus enum value
 	RadiusStatusCreating = "Creating"
@@ -14314,10 +14421,26 @@ const (
 	RadiusStatusFailed = "Failed"
 )
 
+// RadiusStatus_Values returns all elements of the RadiusStatus enum
+func RadiusStatus_Values() []string {
+	return []string{
+		RadiusStatusCreating,
+		RadiusStatusCompleted,
+		RadiusStatusFailed,
+	}
+}
+
 const (
 	// ReplicationScopeDomain is a ReplicationScope enum value
 	ReplicationScopeDomain = "Domain"
 )
+
+// ReplicationScope_Values returns all elements of the ReplicationScope enum
+func ReplicationScope_Values() []string {
+	return []string{
+		ReplicationScopeDomain,
+	}
+}
 
 const (
 	// SchemaExtensionStatusInitializing is a SchemaExtensionStatus enum value
@@ -14348,6 +14471,21 @@ const (
 	SchemaExtensionStatusCompleted = "Completed"
 )
 
+// SchemaExtensionStatus_Values returns all elements of the SchemaExtensionStatus enum
+func SchemaExtensionStatus_Values() []string {
+	return []string{
+		SchemaExtensionStatusInitializing,
+		SchemaExtensionStatusCreatingSnapshot,
+		SchemaExtensionStatusUpdatingSchema,
+		SchemaExtensionStatusReplicating,
+		SchemaExtensionStatusCancelInProgress,
+		SchemaExtensionStatusRollbackInProgress,
+		SchemaExtensionStatusCancelled,
+		SchemaExtensionStatusFailed,
+		SchemaExtensionStatusCompleted,
+	}
+}
+
 const (
 	// SelectiveAuthEnabled is a SelectiveAuth enum value
 	SelectiveAuthEnabled = "Enabled"
@@ -14356,6 +14494,14 @@ const (
 	SelectiveAuthDisabled = "Disabled"
 )
 
+// SelectiveAuth_Values returns all elements of the SelectiveAuth enum
+func SelectiveAuth_Values() []string {
+	return []string{
+		SelectiveAuthEnabled,
+		SelectiveAuthDisabled,
+	}
+}
+
 const (
 	// ShareMethodOrganizations is a ShareMethod enum value
 	ShareMethodOrganizations = "ORGANIZATIONS"
@@ -14363,6 +14509,14 @@ const (
 	// ShareMethodHandshake is a ShareMethod enum value
 	ShareMethodHandshake = "HANDSHAKE"
 )
+
+// ShareMethod_Values returns all elements of the ShareMethod enum
+func ShareMethod_Values() []string {
+	return []string{
+		ShareMethodOrganizations,
+		ShareMethodHandshake,
+	}
+}
 
 const (
 	// ShareStatusShared is a ShareStatus enum value
@@ -14393,6 +14547,21 @@ const (
 	ShareStatusDeleting = "Deleting"
 )
 
+// ShareStatus_Values returns all elements of the ShareStatus enum
+func ShareStatus_Values() []string {
+	return []string{
+		ShareStatusShared,
+		ShareStatusPendingAcceptance,
+		ShareStatusRejected,
+		ShareStatusRejecting,
+		ShareStatusRejectFailed,
+		ShareStatusSharing,
+		ShareStatusShareFailed,
+		ShareStatusDeleted,
+		ShareStatusDeleting,
+	}
+}
+
 const (
 	// SnapshotStatusCreating is a SnapshotStatus enum value
 	SnapshotStatusCreating = "Creating"
@@ -14404,6 +14573,15 @@ const (
 	SnapshotStatusFailed = "Failed"
 )
 
+// SnapshotStatus_Values returns all elements of the SnapshotStatus enum
+func SnapshotStatus_Values() []string {
+	return []string{
+		SnapshotStatusCreating,
+		SnapshotStatusCompleted,
+		SnapshotStatusFailed,
+	}
+}
+
 const (
 	// SnapshotTypeAuto is a SnapshotType enum value
 	SnapshotTypeAuto = "Auto"
@@ -14412,10 +14590,25 @@ const (
 	SnapshotTypeManual = "Manual"
 )
 
+// SnapshotType_Values returns all elements of the SnapshotType enum
+func SnapshotType_Values() []string {
+	return []string{
+		SnapshotTypeAuto,
+		SnapshotTypeManual,
+	}
+}
+
 const (
 	// TargetTypeAccount is a TargetType enum value
 	TargetTypeAccount = "ACCOUNT"
 )
+
+// TargetType_Values returns all elements of the TargetType enum
+func TargetType_Values() []string {
+	return []string{
+		TargetTypeAccount,
+	}
+}
 
 const (
 	// TopicStatusRegistered is a TopicStatus enum value
@@ -14431,6 +14624,16 @@ const (
 	TopicStatusDeleted = "Deleted"
 )
 
+// TopicStatus_Values returns all elements of the TopicStatus enum
+func TopicStatus_Values() []string {
+	return []string{
+		TopicStatusRegistered,
+		TopicStatusTopicnotfound,
+		TopicStatusFailed,
+		TopicStatusDeleted,
+	}
+}
+
 const (
 	// TrustDirectionOneWayOutgoing is a TrustDirection enum value
 	TrustDirectionOneWayOutgoing = "One-Way: Outgoing"
@@ -14441,6 +14644,15 @@ const (
 	// TrustDirectionTwoWay is a TrustDirection enum value
 	TrustDirectionTwoWay = "Two-Way"
 )
+
+// TrustDirection_Values returns all elements of the TrustDirection enum
+func TrustDirection_Values() []string {
+	return []string{
+		TrustDirectionOneWayOutgoing,
+		TrustDirectionOneWayIncoming,
+		TrustDirectionTwoWay,
+	}
+}
 
 const (
 	// TrustStateCreating is a TrustState enum value
@@ -14477,6 +14689,23 @@ const (
 	TrustStateFailed = "Failed"
 )
 
+// TrustState_Values returns all elements of the TrustState enum
+func TrustState_Values() []string {
+	return []string{
+		TrustStateCreating,
+		TrustStateCreated,
+		TrustStateVerifying,
+		TrustStateVerifyFailed,
+		TrustStateVerified,
+		TrustStateUpdating,
+		TrustStateUpdateFailed,
+		TrustStateUpdated,
+		TrustStateDeleting,
+		TrustStateDeleted,
+		TrustStateFailed,
+	}
+}
+
 const (
 	// TrustTypeForest is a TrustType enum value
 	TrustTypeForest = "Forest"
@@ -14484,3 +14713,11 @@ const (
 	// TrustTypeExternal is a TrustType enum value
 	TrustTypeExternal = "External"
 )
+
+// TrustType_Values returns all elements of the TrustType enum
+func TrustType_Values() []string {
+	return []string{
+		TrustTypeForest,
+		TrustTypeExternal,
+	}
+}

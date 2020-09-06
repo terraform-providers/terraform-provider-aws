@@ -54,6 +54,15 @@ const (
 	// No operation exists with the specified ID.
 	ErrCodeOperationNotFound = "OperationNotFound"
 
+	// ErrCodeRequestLimitExceeded for service response error code
+	// "RequestLimitExceeded".
+	//
+	// The operation can't be completed because you've reached the quota for the
+	// number of requests. For more information, see AWS Cloud Map API request throttling
+	// quota (https://docs.aws.amazon.com/cloud-map/latest/dg/throttling.html) in
+	// the AWS Cloud Map Developer Guide.
+	ErrCodeRequestLimitExceeded = "RequestLimitExceeded"
+
 	// ErrCodeResourceInUse for service response error code
 	// "ResourceInUse".
 	//
@@ -64,9 +73,15 @@ const (
 	// ErrCodeResourceLimitExceeded for service response error code
 	// "ResourceLimitExceeded".
 	//
-	// The resource can't be created because you've reached the limit on the number
+	// The resource can't be created because you've reached the quota on the number
 	// of resources.
 	ErrCodeResourceLimitExceeded = "ResourceLimitExceeded"
+
+	// ErrCodeResourceNotFoundException for service response error code
+	// "ResourceNotFoundException".
+	//
+	// The operation can't be completed because the resource was not found.
+	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 
 	// ErrCodeServiceAlreadyExists for service response error code
 	// "ServiceAlreadyExists".
@@ -80,18 +95,28 @@ const (
 	//
 	// No service exists with the specified ID.
 	ErrCodeServiceNotFound = "ServiceNotFound"
+
+	// ErrCodeTooManyTagsException for service response error code
+	// "TooManyTagsException".
+	//
+	// The list of tags on the resource is over the quota. The maximum number of
+	// tags that can be applied to a resource is 50.
+	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
-	"CustomHealthNotFound":   newErrorCustomHealthNotFound,
-	"DuplicateRequest":       newErrorDuplicateRequest,
-	"InstanceNotFound":       newErrorInstanceNotFound,
-	"InvalidInput":           newErrorInvalidInput,
-	"NamespaceAlreadyExists": newErrorNamespaceAlreadyExists,
-	"NamespaceNotFound":      newErrorNamespaceNotFound,
-	"OperationNotFound":      newErrorOperationNotFound,
-	"ResourceInUse":          newErrorResourceInUse,
-	"ResourceLimitExceeded":  newErrorResourceLimitExceeded,
-	"ServiceAlreadyExists":   newErrorServiceAlreadyExists,
-	"ServiceNotFound":        newErrorServiceNotFound,
+	"CustomHealthNotFound":      newErrorCustomHealthNotFound,
+	"DuplicateRequest":          newErrorDuplicateRequest,
+	"InstanceNotFound":          newErrorInstanceNotFound,
+	"InvalidInput":              newErrorInvalidInput,
+	"NamespaceAlreadyExists":    newErrorNamespaceAlreadyExists,
+	"NamespaceNotFound":         newErrorNamespaceNotFound,
+	"OperationNotFound":         newErrorOperationNotFound,
+	"RequestLimitExceeded":      newErrorRequestLimitExceeded,
+	"ResourceInUse":             newErrorResourceInUse,
+	"ResourceLimitExceeded":     newErrorResourceLimitExceeded,
+	"ResourceNotFoundException": newErrorResourceNotFoundException,
+	"ServiceAlreadyExists":      newErrorServiceAlreadyExists,
+	"ServiceNotFound":           newErrorServiceNotFound,
+	"TooManyTagsException":      newErrorTooManyTagsException,
 }

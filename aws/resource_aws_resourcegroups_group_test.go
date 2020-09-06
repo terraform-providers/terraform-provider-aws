@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSResourceGroup_basic(t *testing.T) {
@@ -26,11 +26,12 @@ func TestAccAWSResourceGroup_basic(t *testing.T) {
   "TagFilters": [
     {
       "Key": "Hello",
-      "Values": ["World"]
+      "Values": [
+        "World"
+      ]
     }
   ]
-}
-`
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -156,7 +157,6 @@ func testAccCheckAWSResourceGroupDestroy(s *terraform.State) error {
 		}
 
 		if isAWSErr(err, resourcegroups.ErrCodeNotFoundException, "") {
-
 			return nil
 		}
 
@@ -173,11 +173,12 @@ const testAccAWSResourceGroupConfigQuery = `{
   "TagFilters": [
     {
       "Key": "Stage",
-      "Values": ["Test"]
+      "Values": [
+        "Test"
+      ]
     }
   ]
-}
-`
+}`
 
 func testAccAWSResourceGroupConfig_basic(rName, desc, query string) string {
 	return fmt.Sprintf(`
@@ -189,6 +190,7 @@ resource "aws_resourcegroups_group" "test" {
     query = <<JSON
 %s
 JSON
+
   }
 }
 `, rName, desc, query)
@@ -204,10 +206,11 @@ resource "aws_resourcegroups_group" "test" {
     query = <<JSON
 %s
 JSON
+
   }
 
   tags = {
-  	%q = %q
+    %q = %q
   }
 }
 `, rName, desc, query, tag1Key, tag1Value)
@@ -223,11 +226,12 @@ resource "aws_resourcegroups_group" "test" {
     query = <<JSON
 %s
 JSON
+
   }
 
   tags = {
-  	%q = %q
-  	%q = %q
+    %q = %q
+    %q = %q
   }
 }
 `, rName, desc, query, tag1Key, tag1Value, tag2Key, tag2Value)

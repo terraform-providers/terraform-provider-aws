@@ -12,7 +12,7 @@ brews:
   - go
   description: Terraform Provider Documentation Tool
   folder: Formula
-  github:
+  tap:
     owner: bflad
     name: homebrew-tap
   homepage: https://github.com/bflad/tfproviderdocs
@@ -46,6 +46,9 @@ dockers:
   - 'bflad/tfproviderdocs:{{ .Version }}'
   - 'bflad/tfproviderdocs:{{ .Major }}.{{ .Minor }}'
   - 'bflad/tfproviderdocs:latest'
+milestones:
+-
+  close: true
 signs:
 -
   artifacts: checksum

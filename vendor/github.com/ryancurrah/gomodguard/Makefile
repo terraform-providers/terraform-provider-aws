@@ -3,7 +3,7 @@ version = $(shell printf '%s' $$(cat VERSION))
 
 .PHONEY: lint
 lint:
-	golangci-lint run -v --enable-all --disable funlen,gochecknoglobals,lll ./...
+	golangci-lint run ./...
 
 .PHONEY: build
 build:
@@ -16,6 +16,14 @@ dockerbuild:
 .PHONEY: run
 run: build
 	./gomodguard
+
+.PHONEY: test
+test:
+	go test -v -coverprofile coverage.out 
+
+.PHONEY: cover
+cover:
+	gocover-cobertura < coverage.out > coverage.xml
 
 .PHONEY: dockerrun
 dockerrun: dockerbuild
@@ -30,8 +38,12 @@ release:
 .PHONEY: clean
 clean:
 	rm -rf dist/
-	rm -f gomodguard
+	rm -f gomodguard coverage.xml coverage.out
 
 .PHONEY: install-tools-mac
 install-tools-mac:
 	brew install goreleaser/tap/goreleaser
+
+.PHONEY: install-go-tools
+install-go-tools:
+	go get github.com/t-yuki/gocover-cobertura

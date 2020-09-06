@@ -830,23 +830,29 @@ func (s *CreateLifecyclePolicyOutput) SetPolicyId(v string) *CreateLifecyclePoli
 }
 
 // Specifies when to create snapshots of EBS volumes.
+//
+// You must specify either a Cron expression or an interval, interval unit,
+// and start time. You cannot specify both.
 type CreateRule struct {
 	_ struct{} `type:"structure"`
 
+	// The schedule, as a Cron expression. The schedule interval must be between
+	// 1 hour and 1 year. For more information, see Cron expressions (https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions)
+	// in the Amazon CloudWatch User Guide.
+	CronExpression *string `min:"17" type:"string"`
+
 	// The interval between snapshots. The supported values are 1, 2, 3, 4, 6, 8,
 	// 12, and 24.
-	//
-	// Interval is a required field
-	Interval *int64 `min:"1" type:"integer" required:"true"`
+	Interval *int64 `min:"1" type:"integer"`
 
 	// The interval unit.
-	//
-	// IntervalUnit is a required field
-	IntervalUnit *string `type:"string" required:"true" enum:"IntervalUnitValues"`
+	IntervalUnit *string `type:"string" enum:"IntervalUnitValues"`
 
 	// The time, in UTC, to start the operation. The supported format is hh:mm.
 	//
 	// The operation occurs within a one-hour window following the specified time.
+	// If you do not specify a time, Amazon DLM selects a time within the next 24
+	// hours.
 	Times []*string `type:"list"`
 }
 
@@ -863,20 +869,23 @@ func (s CreateRule) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CreateRule) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CreateRule"}
-	if s.Interval == nil {
-		invalidParams.Add(request.NewErrParamRequired("Interval"))
+	if s.CronExpression != nil && len(*s.CronExpression) < 17 {
+		invalidParams.Add(request.NewErrParamMinLen("CronExpression", 17))
 	}
 	if s.Interval != nil && *s.Interval < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("Interval", 1))
-	}
-	if s.IntervalUnit == nil {
-		invalidParams.Add(request.NewErrParamRequired("IntervalUnit"))
 	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCronExpression sets the CronExpression field's value.
+func (s *CreateRule) SetCronExpression(v string) *CreateRule {
+	s.CronExpression = &v
+	return s
 }
 
 // SetInterval sets the Interval field's value.
@@ -1777,7 +1786,8 @@ type PolicyDetails struct {
 	// is EBS_SNAPSHOT_MANAGEMENT.
 	PolicyType *string `type:"string" enum:"PolicyTypeValues"`
 
-	// The resource type.
+	// The resource type. Use VOLUME to create snapshots of individual volumes or
+	// use INSTANCE to create multi-volume snapshots from the volumes for an instance.
 	ResourceTypes []*string `min:"1" type:"list"`
 
 	// The schedule of policy-defined actions.
@@ -2443,15 +2453,38 @@ const (
 	GettablePolicyStateValuesError = "ERROR"
 )
 
+// GettablePolicyStateValues_Values returns all elements of the GettablePolicyStateValues enum
+func GettablePolicyStateValues_Values() []string {
+	return []string{
+		GettablePolicyStateValuesEnabled,
+		GettablePolicyStateValuesDisabled,
+		GettablePolicyStateValuesError,
+	}
+}
+
 const (
 	// IntervalUnitValuesHours is a IntervalUnitValues enum value
 	IntervalUnitValuesHours = "HOURS"
 )
 
+// IntervalUnitValues_Values returns all elements of the IntervalUnitValues enum
+func IntervalUnitValues_Values() []string {
+	return []string{
+		IntervalUnitValuesHours,
+	}
+}
+
 const (
 	// PolicyTypeValuesEbsSnapshotManagement is a PolicyTypeValues enum value
 	PolicyTypeValuesEbsSnapshotManagement = "EBS_SNAPSHOT_MANAGEMENT"
 )
+
+// PolicyTypeValues_Values returns all elements of the PolicyTypeValues enum
+func PolicyTypeValues_Values() []string {
+	return []string{
+		PolicyTypeValuesEbsSnapshotManagement,
+	}
+}
 
 const (
 	// ResourceTypeValuesVolume is a ResourceTypeValues enum value
@@ -2460,6 +2493,14 @@ const (
 	// ResourceTypeValuesInstance is a ResourceTypeValues enum value
 	ResourceTypeValuesInstance = "INSTANCE"
 )
+
+// ResourceTypeValues_Values returns all elements of the ResourceTypeValues enum
+func ResourceTypeValues_Values() []string {
+	return []string{
+		ResourceTypeValuesVolume,
+		ResourceTypeValuesInstance,
+	}
+}
 
 const (
 	// RetentionIntervalUnitValuesDays is a RetentionIntervalUnitValues enum value
@@ -2475,6 +2516,16 @@ const (
 	RetentionIntervalUnitValuesYears = "YEARS"
 )
 
+// RetentionIntervalUnitValues_Values returns all elements of the RetentionIntervalUnitValues enum
+func RetentionIntervalUnitValues_Values() []string {
+	return []string{
+		RetentionIntervalUnitValuesDays,
+		RetentionIntervalUnitValuesWeeks,
+		RetentionIntervalUnitValuesMonths,
+		RetentionIntervalUnitValuesYears,
+	}
+}
+
 const (
 	// SettablePolicyStateValuesEnabled is a SettablePolicyStateValues enum value
 	SettablePolicyStateValuesEnabled = "ENABLED"
@@ -2482,3 +2533,11 @@ const (
 	// SettablePolicyStateValuesDisabled is a SettablePolicyStateValues enum value
 	SettablePolicyStateValuesDisabled = "DISABLED"
 )
+
+// SettablePolicyStateValues_Values returns all elements of the SettablePolicyStateValues enum
+func SettablePolicyStateValues_Values() []string {
+	return []string{
+		SettablePolicyStateValuesEnabled,
+		SettablePolicyStateValuesDisabled,
+	}
+}

@@ -25,7 +25,7 @@ resource "aws_athena_workgroup" "example" {
 
       encryption_configuration {
         encryption_option = "SSE_KMS"
-        kms_key_arn       = "${aws_kms_key.example.arn}"
+        kms_key_arn       = aws_kms_key.example.arn
       }
     }
   }

@@ -4,20 +4,24 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_db_snapshot", &resource.Sweeper{
 		Name: "aws_db_snapshot",
 		F:    testSweepDbSnapshots,
+		Dependencies: []string{
+			"aws_db_instance",
+		},
 	})
 }
 
@@ -45,6 +49,11 @@ func testSweepDbSnapshots(region string) error {
 			id := aws.StringValue(dbSnapshot.DBSnapshotIdentifier)
 			input := &rds.DeleteDBSnapshotInput{
 				DBSnapshotIdentifier: dbSnapshot.DBSnapshotIdentifier,
+			}
+
+			if strings.HasPrefix(id, "rds:") {
+				log.Printf("[INFO] Skipping RDS Automated DB Snapshot: %s", id)
+				continue
 			}
 
 			log.Printf("[INFO] Deleting RDS DB Snapshot: %s", id)
@@ -263,7 +272,7 @@ resource "aws_db_instance" "test" {
 func testAccAwsDbSnapshotConfig(rName string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 }
 `, rName)
@@ -272,7 +281,7 @@ resource "aws_db_snapshot" "test" {
 func testAccAwsDbSnapshotConfigTags1(rName, tag1Key, tag1Value string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 
   tags = {
@@ -285,7 +294,7 @@ resource "aws_db_snapshot" "test" {
 func testAccAwsDbSnapshotConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return testAccAwsDbSnapshotConfigBase(rName) + fmt.Sprintf(`
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.test.id}"
+  db_instance_identifier = aws_db_instance.test.id
   db_snapshot_identifier = %[1]q
 
   tags = {

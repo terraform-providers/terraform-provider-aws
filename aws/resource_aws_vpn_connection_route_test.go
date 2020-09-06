@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpnConnectionRoute_basic(t *testing.T) {
@@ -23,23 +23,13 @@ func TestAccAWSVpnConnectionRoute_basic(t *testing.T) {
 			{
 				Config: testAccAwsVpnConnectionRouteConfig(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAwsVpnConnectionRoute(
-						"aws_vpn_gateway.vpn_gateway",
-						"aws_customer_gateway.customer_gateway",
-						"aws_vpn_connection.vpn_connection",
-						"aws_vpn_connection_route.foo",
-					),
+					testAccAwsVpnConnectionRoute("aws_vpn_connection_route.foo"),
 				),
 			},
 			{
 				Config: testAccAwsVpnConnectionRouteConfigUpdate(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAwsVpnConnectionRoute(
-						"aws_vpn_gateway.vpn_gateway",
-						"aws_customer_gateway.customer_gateway",
-						"aws_vpn_connection.vpn_connection",
-						"aws_vpn_connection_route.foo",
-					),
+					testAccAwsVpnConnectionRoute("aws_vpn_connection_route.foo"),
 				),
 			},
 		},
@@ -100,11 +90,7 @@ func testAccAwsVpnConnectionRouteDestroy(s *terraform.State) error {
 	return fmt.Errorf("Fall through error, Check Destroy criteria not met")
 }
 
-func testAccAwsVpnConnectionRoute(
-	vpnGatewayResource string,
-	customerGatewayResource string,
-	vpnConnectionResource string,
-	vpnConnectionRouteResource string) resource.TestCheckFunc {
+func testAccAwsVpnConnectionRoute(vpnConnectionRouteResource string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[vpnConnectionRouteResource]
 		if !ok {

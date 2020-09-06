@@ -11,45 +11,45 @@ const (
 	// ErrCodeBadRequestException for service response error code
 	// "BadRequestException".
 	//
-	// The request does not comply with validation rules that are defined for the
-	// request parameters.
+	// The request includes one or more parameters that violate validation rules.
 	ErrCodeBadRequestException = "BadRequestException"
 
 	// ErrCodeForbiddenException for service response error code
 	// "ForbiddenException".
 	//
-	// The caller is not authorized to make the request.
+	// The caller isn't authorized to make the request. Check permissions.
 	ErrCodeForbiddenException = "ForbiddenException"
 
 	// ErrCodeInternalServerErrorException for service response error code
 	// "InternalServerErrorException".
 	//
-	// An internal error occurred while processing the request.
+	// An internal error occurred while processing the request. Try again later.
 	ErrCodeInternalServerErrorException = "InternalServerErrorException"
 
 	// ErrCodeMethodNotAllowedException for service response error code
 	// "MethodNotAllowedException".
 	//
-	// The request uses an HTTP method which is not allowed for the specified resource.
+	// The request uses an HTTP method that isn't allowed for the specified resource.
 	ErrCodeMethodNotAllowedException = "MethodNotAllowedException"
 
 	// ErrCodeNotFoundException for service response error code
 	// "NotFoundException".
 	//
-	// One or more resources specified in the request do not exist.
+	// One or more of the specified resources don't exist.
 	ErrCodeNotFoundException = "NotFoundException"
 
 	// ErrCodeTooManyRequestsException for service response error code
 	// "TooManyRequestsException".
 	//
-	// The caller has exceeded throttling limits.
+	// You've exceeded throttling limits by making too many requests in a period
+	// of time.
 	ErrCodeTooManyRequestsException = "TooManyRequestsException"
 
 	// ErrCodeUnauthorizedException for service response error code
 	// "UnauthorizedException".
 	//
-	// The request has not been applied because it lacks valid authentication credentials
-	// for the target resource.
+	// The request was rejected because it doesn't have valid credentials for the
+	// target resource.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
 

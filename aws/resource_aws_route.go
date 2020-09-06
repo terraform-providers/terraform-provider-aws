@@ -9,15 +9,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 // How long to sleep if a limit-exceeded event happens
 var routeTargetValidationError = errors.New("Error: more than 1 target specified. Only 1 of gateway_id, " +
-	"egress_only_gateway_id, nat_gateway_id, instance_id, network_interface_id or " +
+	"egress_only_gateway_id, nat_gateway_id, instance_id, network_interface_id, local_gateway_id or " +
 	"vpc_peering_connection_id is allowed.")
 
 // AWS Route resource Schema declaration
@@ -53,19 +53,24 @@ func resourceAwsRoute() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"destination_cidr_block": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsCIDR,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					validation.StringIsEmpty,
+					validateIpv4CIDRNetworkAddress,
+				),
 			},
+
 			"destination_ipv6_cidr_block": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsCIDR,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return isIpv6CidrsEquals(old, new)
-				},
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					validation.StringIsEmpty,
+					validateIpv6CIDRNetworkAddress,
+				),
+				DiffSuppressFunc: suppressEqualCIDRBlockDiffs,
 			},
 
 			"destination_prefix_list_id": {
@@ -86,6 +91,12 @@ func resourceAwsRoute() *schema.Resource {
 			},
 
 			"nat_gateway_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"local_gateway_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -145,6 +156,7 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 		"egress_only_gateway_id",
 		"gateway_id",
 		"nat_gateway_id",
+		"local_gateway_id",
 		"instance_id",
 		"network_interface_id",
 		"transit_gateway_id",
@@ -191,6 +203,12 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 			RouteTableId:         aws.String(d.Get("route_table_id").(string)),
 			DestinationCidrBlock: aws.String(d.Get("destination_cidr_block").(string)),
 			NatGatewayId:         aws.String(d.Get("nat_gateway_id").(string)),
+		}
+	case "local_gateway_id":
+		createOpts = &ec2.CreateRouteInput{
+			RouteTableId:         aws.String(d.Get("route_table_id").(string)),
+			DestinationCidrBlock: aws.String(d.Get("destination_cidr_block").(string)),
+			LocalGatewayId:       aws.String(d.Get("local_gateway_id").(string)),
 		}
 	case "instance_id":
 		createOpts = &ec2.CreateRouteInput{
@@ -285,8 +303,12 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("destination_cidr_block"); ok {
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			route, err = resourceAwsRouteFindRoute(conn, d.Get("route_table_id").(string), v.(string), "")
-			if err == nil && route != nil {
-				return nil
+			if err == nil {
+				if route != nil {
+					return nil
+				} else {
+					err = errors.New("Route not found")
+				}
 			}
 
 			return resource.RetryableError(err)
@@ -305,8 +327,12 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("destination_ipv6_cidr_block"); ok {
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			route, err = resourceAwsRouteFindRoute(conn, d.Get("route_table_id").(string), "", v.(string))
-			if err == nil && route != nil {
-				return nil
+			if err == nil {
+				if route != nil {
+					return nil
+				} else {
+					err = errors.New("Route not found")
+				}
 			}
 
 			return resource.RetryableError(err)
@@ -323,15 +349,14 @@ func resourceAwsRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(resourceAwsRouteID(d, route))
-	resourceAwsRouteSetResourceData(d, route)
 
-	return nil
+	return resourceAwsRouteRead(d, meta)
 }
 
 func resourceAwsRouteRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	routeTableId := d.Get("route_table_id").(string)
 
+	routeTableId := d.Get("route_table_id").(string)
 	destinationCidrBlock := d.Get("destination_cidr_block").(string)
 	destinationIpv6CidrBlock := d.Get("destination_ipv6_cidr_block").(string)
 
@@ -351,16 +376,13 @@ func resourceAwsRouteRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	resourceAwsRouteSetResourceData(d, route)
-
-	return nil
-}
-
-func resourceAwsRouteSetResourceData(d *schema.ResourceData, route *ec2.Route) {
+	d.Set("destination_cidr_block", route.DestinationCidrBlock)
+	d.Set("destination_ipv6_cidr_block", route.DestinationIpv6CidrBlock)
 	d.Set("destination_prefix_list_id", route.DestinationPrefixListId)
 	d.Set("gateway_id", route.GatewayId)
 	d.Set("egress_only_gateway_id", route.EgressOnlyInternetGatewayId)
 	d.Set("nat_gateway_id", route.NatGatewayId)
+	d.Set("local_gateway_id", route.LocalGatewayId)
 	d.Set("instance_id", route.InstanceId)
 	d.Set("instance_owner_id", route.InstanceOwnerId)
 	d.Set("network_interface_id", route.NetworkInterfaceId)
@@ -368,6 +390,8 @@ func resourceAwsRouteSetResourceData(d *schema.ResourceData, route *ec2.Route) {
 	d.Set("state", route.State)
 	d.Set("transit_gateway_id", route.TransitGatewayId)
 	d.Set("vpc_peering_connection_id", route.VpcPeeringConnectionId)
+
+	return nil
 }
 
 func resourceAwsRouteUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -379,6 +403,7 @@ func resourceAwsRouteUpdate(d *schema.ResourceData, meta interface{}) error {
 		"egress_only_gateway_id",
 		"gateway_id",
 		"nat_gateway_id",
+		"local_gateway_id",
 		"network_interface_id",
 		"instance_id",
 		"transit_gateway_id",
@@ -426,6 +451,12 @@ func resourceAwsRouteUpdate(d *schema.ResourceData, meta interface{}) error {
 			RouteTableId:         aws.String(d.Get("route_table_id").(string)),
 			DestinationCidrBlock: aws.String(d.Get("destination_cidr_block").(string)),
 			NatGatewayId:         aws.String(d.Get("nat_gateway_id").(string)),
+		}
+	case "local_gateway_id":
+		replaceOpts = &ec2.ReplaceRouteInput{
+			RouteTableId:         aws.String(d.Get("route_table_id").(string)),
+			DestinationCidrBlock: aws.String(d.Get("destination_cidr_block").(string)),
+			LocalGatewayId:       aws.String(d.Get("local_gateway_id").(string)),
 		}
 	case "instance_id":
 		replaceOpts = &ec2.ReplaceRouteInput{
@@ -545,7 +576,7 @@ func resourceAwsRouteFindRoute(conn *ec2.EC2, rtbid string, cidr string, ipv6cid
 
 	if ipv6cidr != "" {
 		for _, route := range (*resp.RouteTables[0]).Routes {
-			if route.DestinationIpv6CidrBlock != nil && isIpv6CidrsEquals(aws.StringValue(route.DestinationIpv6CidrBlock), ipv6cidr) {
+			if cidrBlocksEqual(aws.StringValue(route.DestinationIpv6CidrBlock), ipv6cidr) {
 				return route, nil
 			}
 		}

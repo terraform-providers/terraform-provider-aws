@@ -7,14 +7,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSpotInstanceRequest_basic(t *testing.T) {
 	var sir ec2.SpotInstanceRequest
 	rInt := acctest.RandInt()
+	resourceName := "aws_spot_instance_request.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,16 +25,52 @@ func TestAccAWSSpotInstanceRequest_basic(t *testing.T) {
 			{
 				Config: testAccAWSSpotInstanceRequestConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSpotInstanceRequestExists(
-						"aws_spot_instance_request.foo", &sir),
+					testAccCheckAWSSpotInstanceRequestExists(resourceName, &sir),
 					testAccCheckAWSSpotInstanceRequestAttributes(&sir),
 					testCheckKeyPair(fmt.Sprintf("tmp-key-%d", rInt), &sir),
-					resource.TestCheckResourceAttr(
-						"aws_spot_instance_request.foo", "spot_bid_status", "fulfilled"),
-					resource.TestCheckResourceAttr(
-						"aws_spot_instance_request.foo", "spot_request_state", "active"),
-					resource.TestCheckResourceAttr(
-						"aws_spot_instance_request.foo", "instance_interruption_behaviour", "terminate"),
+					resource.TestCheckResourceAttr(resourceName, "spot_bid_status", "fulfilled"),
+					resource.TestCheckResourceAttr(resourceName, "spot_request_state", "active"),
+					resource.TestCheckResourceAttr(resourceName, "instance_interruption_behaviour", "terminate"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSSpotInstanceRequest_tags(t *testing.T) {
+	var sir ec2.SpotInstanceRequest
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_spot_instance_request.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSpotInstanceRequestDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSpotInstanceRequestTagsConfig1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSpotInstanceRequestExists(resourceName, &sir),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				Config: testAccAWSSpotInstanceRequestTagsConfig2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSpotInstanceRequestExists(resourceName, &sir),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAWSSpotInstanceRequestTagsConfig1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSpotInstanceRequestExists(resourceName, &sir),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
 			},
 		},
@@ -459,7 +496,7 @@ func testAccCheckAWSSpotInstanceRequestAttributesVPC(
 	}
 }
 
-func TestAccAWSSpotInstanceRequestInterruptStop(t *testing.T) {
+func TestAccAWSSpotInstanceRequest_InterruptStop(t *testing.T) {
 	var sir ec2.SpotInstanceRequest
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -484,7 +521,7 @@ func TestAccAWSSpotInstanceRequestInterruptStop(t *testing.T) {
 	})
 }
 
-func TestAccAWSSpotInstanceRequestInterruptHibernate(t *testing.T) {
+func TestAccAWSSpotInstanceRequest_InterruptHibernate(t *testing.T) {
 	var sir ec2.SpotInstanceRequest
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -510,151 +547,206 @@ func TestAccAWSSpotInstanceRequestInterruptHibernate(t *testing.T) {
 }
 
 func testAccAWSSpotInstanceRequestConfig(rInt int) string {
-	return fmt.Sprintf(`
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
-	}
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro") +
+		fmt.Sprintf(`
+resource "aws_key_pair" "test" {
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
-
-		// base price is $0.044 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.05"
-
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
-
-	tags = {
-			Name = "terraform-test"
-		}
-	}
+resource "aws_spot_instance_request" "test" {
+  ami                  = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type        = data.aws_ec2_instance_type_offering.available.instance_type
+  key_name             = aws_key_pair.test.key_name
+  spot_price           = "0.05"
+  wait_for_fulfillment = true
+}
 `, rInt)
+}
+
+func testAccAWSSpotInstanceRequestTagsConfig1(rName, tagKey1, tagValue1 string) string {
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro") +
+		fmt.Sprintf(`
+resource "aws_key_pair" "test" {
+  key_name = %[1]q
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_spot_instance_request" "test" {
+  ami                  = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type        = data.aws_ec2_instance_type_offering.available.instance_type
+  key_name             = aws_key_pair.test.key_name
+  spot_price           = "0.05"
+  wait_for_fulfillment = true
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccAWSSpotInstanceRequestTagsConfig2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
+		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro") +
+		fmt.Sprintf(`
+resource "aws_key_pair" "test" {
+  key_name = %[1]q
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_spot_instance_request" "test" {
+  ami                  = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type        = data.aws_ec2_instance_type_offering.available.instance_type
+  key_name             = aws_key_pair.test.key_name
+  spot_price           = "0.05"
+  wait_for_fulfillment = true
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 func testAccAWSSpotInstanceRequestConfigValidUntil(rInt int, validUntil string) string {
 	return fmt.Sprintf(`
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
-	}
+resource "aws_key_pair" "debugging" {
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
+%v
 
-		// base price is $0.044 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.05"
+resource "aws_spot_instance_request" "foo" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+  key_name      = aws_key_pair.debugging.key_name
 
-		// The end date and time of the request, the default end date is 7 days from the current date.
-		// so 12 hours from the current time will be valid time for valid_until.
-		valid_until = "%s"
+  # base price is $0.044 hourly, so bidding above that should theoretically
+  # always fulfill
+  spot_price = "0.05"
 
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
+  # The end date and time of the request, the default end date is 7 days from the current date.
+  # so 12 hours from the current time will be valid time for valid_until.
+  valid_until = "%s"
 
-	tags = {
-			Name = "terraform-test"
-		}
-	}
-`, rInt, validUntil)
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
+
+  tags = {
+    Name = "terraform-test"
+  }
+}
+`, rInt, testAccLatestAmazonLinuxHvmEbsAmiConfig(), validUntil)
 }
 
 func testAccAWSSpotInstanceRequestConfig_withoutSpotPrice(rInt int) string {
 	return fmt.Sprintf(`
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
-	}
+resource "aws_key_pair" "debugging" {
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
+%v
 
-		# no spot price so AWS *should* default max bid to current on-demand price
+resource "aws_spot_instance_request" "foo" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+  key_name      = aws_key_pair.debugging.key_name
 
-		# we wait for fulfillment because we want to inspect the launched instance
-		# and verify termination behavior
-		wait_for_fulfillment = true
+  # no spot price so AWS *should* default max bid to current on-demand price
 
-	tags = {
-			Name = "terraform-test"
-		}
-	}
-`, rInt)
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
+
+  tags = {
+    Name = "terraform-test"
+  }
+}
+`, rInt, testAccLatestAmazonLinuxHvmEbsAmiConfig())
 }
 
 func testAccAWSSpotInstanceRequestConfig_withLaunchGroup(rInt int) string {
 	return fmt.Sprintf(`
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
-	}
+resource "aws_key_pair" "debugging" {
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
+%v
 
-		// base price is $0.044 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.05"
+resource "aws_spot_instance_request" "foo" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+  key_name      = aws_key_pair.debugging.key_name
 
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
+  # base price is $0.044 hourly, so bidding above that should theoretically
+  # always fulfill
+  spot_price = "0.05"
 
-		launch_group = "terraform-test-group"
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
 
-	tags = {
-			Name = "terraform-test"
-		}
-	}
-`, rInt)
+  launch_group = "terraform-test-group"
+
+  tags = {
+    Name = "terraform-test"
+  }
+}
+`, rInt, testAccLatestAmazonLinuxHvmEbsAmiConfig())
 }
 
 func testAccAWSSpotInstanceRequestConfig_withBlockDuration(rInt int) string {
 	return fmt.Sprintf(`
-	resource "aws_key_pair" "debugging" {
-		key_name = "tmp-key-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
-	}
+resource "aws_key_pair" "debugging" {
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-4fccb37f"
-		instance_type = "m1.small"
-		key_name = "${aws_key_pair.debugging.key_name}"
+%v
 
-		// base price is $0.044 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.05"
+resource "aws_spot_instance_request" "foo" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+  key_name      = aws_key_pair.debugging.key_name
 
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
+  # base price is $0.044 hourly, so bidding above that should theoretically
+  # always fulfill
+  spot_price = "0.05"
 
-		block_duration_minutes = 60
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
 
-	tags = {
-			Name = "terraform-test"
-		}
-	}
-`, rInt)
+  block_duration_minutes = 60
+
+  tags = {
+    Name = "terraform-test"
+  }
+}
+`, rInt, testAccLatestAmazonLinuxHvmEbsAmiConfig())
 }
 
 func testAccAWSSpotInstanceRequestConfigVPC(rInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -663,146 +755,153 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_vpc" "foo_VPC" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-spot-instance-request-vpc"
-	}
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-spot-instance-request-vpc"
+  }
 }
 
 resource "aws_subnet" "foo_VPC" {
-	availability_zone = "${data.aws_availability_zones.available.names[0]}"
-	cidr_block = "10.1.1.0/24"
-	vpc_id = "${aws_vpc.foo_VPC.id}"
-	tags = {
-		Name = "tf-acc-spot-instance-request-vpc"
-	}
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.1.1.0/24"
+  vpc_id            = aws_vpc.foo_VPC.id
+
+  tags = {
+    Name = "tf-acc-spot-instance-request-vpc"
+  }
 }
 
 resource "aws_key_pair" "debugging" {
-	key_name = "tmp-key-%d"
-	public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+  key_name   = "tmp-key-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 }
+%v
 
 resource "aws_spot_instance_request" "foo_VPC" {
-	ami = "ami-4fccb37f"
-	instance_type = "m1.small"
-	key_name = "${aws_key_pair.debugging.key_name}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+  key_name      = aws_key_pair.debugging.key_name
 
-	// base price is $0.044 hourly, so bidding above that should theoretically
-	// always fulfill
-	spot_price = "0.05"
+  # base price is $0.044 hourly, so bidding above that should theoretically
+  # always fulfill
+  spot_price = "0.05"
 
-	// VPC settings
-	subnet_id = "${aws_subnet.foo_VPC.id}"
+  # VPC settings
+  subnet_id = aws_subnet.foo_VPC.id
 
-	// we wait for fulfillment because we want to inspect the launched instance
-	// and verify termination behavior
-	wait_for_fulfillment = true
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
 
-tags = {
-		Name = "terraform-test-VPC"
-	}
+  tags = {
+    Name = "terraform-test-VPC"
+  }
 }
-`, rInt)
+`, rInt, testAccLatestAmazonLinuxHvmEbsAmiConfig())
 }
 
 func testAccAWSSpotInstanceRequestConfig_SubnetAndSGAndPublicIpAddress(rInt int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
     values = ["opt-in-not-required"]
   }
 }
+%v
 
 resource "aws_spot_instance_request" "foo" {
-	ami                         = "ami-4fccb37f"
-	instance_type               = "m1.small"
-	spot_price                  = "0.05"
-	wait_for_fulfillment        = true
-	subnet_id                   = "${aws_subnet.tf_test_subnet.id}"
-	vpc_security_group_ids      = ["${aws_security_group.tf_test_sg_ssh.id}"]
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type               = "m1.small"
+  spot_price                  = "0.05"
+  wait_for_fulfillment        = true
+  subnet_id                   = aws_subnet.tf_test_subnet.id
+  vpc_security_group_ids      = [aws_security_group.tf_test_sg_ssh.id]
   associate_public_ip_address = true
 }
 
 resource "aws_vpc" "default" {
-	cidr_block           = "10.0.0.0/16"
-	enable_dns_hostnames = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
 
-tags = {
-		Name = "terraform-testacc-spot-instance-request-subnet-and-sg-public-ip"
-	}
+  tags = {
+    Name = "terraform-testacc-spot-instance-request-subnet-and-sg-public-ip"
+  }
 }
 
 resource "aws_subnet" "tf_test_subnet" {
-	availability_zone = "${data.aws_availability_zones.available.names[0]}"
-	vpc_id                  = "${aws_vpc.default.id}"
-	cidr_block              = "10.0.0.0/24"
-	map_public_ip_on_launch = true
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  vpc_id                  = aws_vpc.default.id
+  cidr_block              = "10.0.0.0/24"
+  map_public_ip_on_launch = true
 
-tags = {
-		Name = "tf-acc-spot-instance-request-subnet-and-sg-public-ip"
-	}
+  tags = {
+    Name = "tf-acc-spot-instance-request-subnet-and-sg-public-ip"
+  }
 }
 
 resource "aws_security_group" "tf_test_sg_ssh" {
-	name        = "tf_test_sg_ssh-%d"
-	description = "tf_test_sg_ssh"
-	vpc_id      = "${aws_vpc.default.id}"
+  name        = "tf_test_sg_ssh-%d"
+  description = "tf_test_sg_ssh"
+  vpc_id      = aws_vpc.default.id
 
-tags = {
-		Name = "tf_test_sg_ssh-%d"
-	}
+  tags = {
+    Name = "tf_test_sg_ssh-%d"
+  }
 }
-`, rInt, rInt)
+`, testAccLatestAmazonLinuxHvmEbsAmiConfig(), rInt, rInt)
 }
 
 func testAccAWSSpotInstanceRequestConfig_getPasswordData(rInt int) string {
 	return fmt.Sprintf(`
-	# Find latest Microsoft Windows Server 2016 Core image (Amazon deletes old ones)
-	data "aws_ami" "win2016core" {
-		most_recent = true
-		owners      = ["amazon"]
+# Find latest Microsoft Windows Server 2016 Core image (Amazon deletes old ones)
+data "aws_ami" "win2016core" {
+  most_recent = true
+  owners      = ["amazon"]
 
-		filter {
-			name = "name"
-			values = ["Windows_Server-2016-English-Core-Base-*"]
-		}
-	}
+  filter {
+    name   = "name"
+    values = ["Windows_Server-2016-English-Core-Base-*"]
+  }
+}
 
-	resource "aws_key_pair" "foo" {
-		key_name = "tf-acctest-%d"
-		public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAq6U3HQYC4g8WzU147gZZ7CKQH8TgYn3chZGRPxaGmHW1RUwsyEs0nmombmIhwxudhJ4ehjqXsDLoQpd6+c7BuLgTMvbv8LgE9LX53vnljFe1dsObsr/fYLvpU9LTlo8HgHAqO5ibNdrAUvV31ronzCZhms/Gyfdaue88Fd0/YnsZVGeOZPayRkdOHSpqme2CBrpa8myBeL1CWl0LkDG4+YCURjbaelfyZlIApLYKy3FcCan9XQFKaL32MJZwCgzfOvWIMtYcU8QtXMgnA3/I3gXk8YDUJv5P4lj0s/PJXuTM8DygVAUtebNwPuinS7wwonm5FXcWMuVGsVpG5K7FGQ== tf-acc-winpasswordtest"
-	}
+resource "aws_key_pair" "foo" {
+  key_name   = "tf-acctest-%d"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAq6U3HQYC4g8WzU147gZZ7CKQH8TgYn3chZGRPxaGmHW1RUwsyEs0nmombmIhwxudhJ4ehjqXsDLoQpd6+c7BuLgTMvbv8LgE9LX53vnljFe1dsObsr/fYLvpU9LTlo8HgHAqO5ibNdrAUvV31ronzCZhms/Gyfdaue88Fd0/YnsZVGeOZPayRkdOHSpqme2CBrpa8myBeL1CWl0LkDG4+YCURjbaelfyZlIApLYKy3FcCan9XQFKaL32MJZwCgzfOvWIMtYcU8QtXMgnA3/I3gXk8YDUJv5P4lj0s/PJXuTM8DygVAUtebNwPuinS7wwonm5FXcWMuVGsVpG5K7FGQ== tf-acc-winpasswordtest"
+}
 
-	resource "aws_spot_instance_request" "foo" {
-		ami                  = "${data.aws_ami.win2016core.id}"
-		instance_type        = "m1.small"
-		spot_price           = "0.05"
-		key_name             = "${aws_key_pair.foo.key_name}"
-		wait_for_fulfillment = true
-		get_password_data    = true
-	}
+resource "aws_spot_instance_request" "foo" {
+  ami                  = data.aws_ami.win2016core.id
+  instance_type        = "m1.small"
+  spot_price           = "0.05"
+  key_name             = aws_key_pair.foo.key_name
+  wait_for_fulfillment = true
+  get_password_data    = true
+}
 `, rInt)
 }
 
 func testAccAWSSpotInstanceRequestInterruptConfig(interruption_behavior string) string {
 	return fmt.Sprintf(`
-	resource "aws_spot_instance_request" "foo" {
-		ami = "ami-19e92861"
-		instance_type = "c5.large"
+%v
 
-		// base price is $0.067 hourly, so bidding above that should theoretically
-		// always fulfill
-		spot_price = "0.07"
+resource "aws_spot_instance_request" "foo" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "c5.large"
 
-		// we wait for fulfillment because we want to inspect the launched instance
-		// and verify termination behavior
-		wait_for_fulfillment = true
+  # base price is $0.067 hourly, so bidding above that should theoretically
+  # always fulfill
+  spot_price = "0.07"
 
-		instance_interruption_behaviour = "%s"
-	}`, interruption_behavior)
+  # we wait for fulfillment because we want to inspect the launched instance
+  # and verify termination behavior
+  wait_for_fulfillment = true
+
+  instance_interruption_behaviour = "%s"
+}
+`, testAccLatestAmazonLinuxHvmEbsAmiConfig(), interruption_behavior)
 }

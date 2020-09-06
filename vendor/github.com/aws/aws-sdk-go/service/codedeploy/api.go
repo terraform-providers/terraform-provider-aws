@@ -18594,6 +18594,15 @@ const (
 	ApplicationRevisionSortByLastUsedTime = "lastUsedTime"
 )
 
+// ApplicationRevisionSortBy_Values returns all elements of the ApplicationRevisionSortBy enum
+func ApplicationRevisionSortBy_Values() []string {
+	return []string{
+		ApplicationRevisionSortByRegisterTime,
+		ApplicationRevisionSortByFirstUsedTime,
+		ApplicationRevisionSortByLastUsedTime,
+	}
+}
+
 const (
 	// AutoRollbackEventDeploymentFailure is a AutoRollbackEvent enum value
 	AutoRollbackEventDeploymentFailure = "DEPLOYMENT_FAILURE"
@@ -18604,6 +18613,15 @@ const (
 	// AutoRollbackEventDeploymentStopOnRequest is a AutoRollbackEvent enum value
 	AutoRollbackEventDeploymentStopOnRequest = "DEPLOYMENT_STOP_ON_REQUEST"
 )
+
+// AutoRollbackEvent_Values returns all elements of the AutoRollbackEvent enum
+func AutoRollbackEvent_Values() []string {
+	return []string{
+		AutoRollbackEventDeploymentFailure,
+		AutoRollbackEventDeploymentStopOnAlarm,
+		AutoRollbackEventDeploymentStopOnRequest,
+	}
+}
 
 const (
 	// BundleTypeTar is a BundleType enum value
@@ -18622,6 +18640,17 @@ const (
 	BundleTypeJson = "JSON"
 )
 
+// BundleType_Values returns all elements of the BundleType enum
+func BundleType_Values() []string {
+	return []string{
+		BundleTypeTar,
+		BundleTypeTgz,
+		BundleTypeZip,
+		BundleTypeYaml,
+		BundleTypeJson,
+	}
+}
+
 const (
 	// ComputePlatformServer is a ComputePlatform enum value
 	ComputePlatformServer = "Server"
@@ -18632,6 +18661,15 @@ const (
 	// ComputePlatformEcs is a ComputePlatform enum value
 	ComputePlatformEcs = "ECS"
 )
+
+// ComputePlatform_Values returns all elements of the ComputePlatform enum
+func ComputePlatform_Values() []string {
+	return []string{
+		ComputePlatformServer,
+		ComputePlatformLambda,
+		ComputePlatformEcs,
+	}
+}
 
 const (
 	// DeploymentCreatorUser is a DeploymentCreator enum value
@@ -18653,6 +18691,18 @@ const (
 	DeploymentCreatorCloudFormationRollback = "CloudFormationRollback"
 )
 
+// DeploymentCreator_Values returns all elements of the DeploymentCreator enum
+func DeploymentCreator_Values() []string {
+	return []string{
+		DeploymentCreatorUser,
+		DeploymentCreatorAutoscaling,
+		DeploymentCreatorCodeDeployRollback,
+		DeploymentCreatorCodeDeploy,
+		DeploymentCreatorCloudFormation,
+		DeploymentCreatorCloudFormationRollback,
+	}
+}
+
 const (
 	// DeploymentOptionWithTrafficControl is a DeploymentOption enum value
 	DeploymentOptionWithTrafficControl = "WITH_TRAFFIC_CONTROL"
@@ -18661,6 +18711,14 @@ const (
 	DeploymentOptionWithoutTrafficControl = "WITHOUT_TRAFFIC_CONTROL"
 )
 
+// DeploymentOption_Values returns all elements of the DeploymentOption enum
+func DeploymentOption_Values() []string {
+	return []string{
+		DeploymentOptionWithTrafficControl,
+		DeploymentOptionWithoutTrafficControl,
+	}
+}
+
 const (
 	// DeploymentReadyActionContinueDeployment is a DeploymentReadyAction enum value
 	DeploymentReadyActionContinueDeployment = "CONTINUE_DEPLOYMENT"
@@ -18668,6 +18726,14 @@ const (
 	// DeploymentReadyActionStopDeployment is a DeploymentReadyAction enum value
 	DeploymentReadyActionStopDeployment = "STOP_DEPLOYMENT"
 )
+
+// DeploymentReadyAction_Values returns all elements of the DeploymentReadyAction enum
+func DeploymentReadyAction_Values() []string {
+	return []string{
+		DeploymentReadyActionContinueDeployment,
+		DeploymentReadyActionStopDeployment,
+	}
+}
 
 const (
 	// DeploymentStatusCreated is a DeploymentStatus enum value
@@ -18695,6 +18761,20 @@ const (
 	DeploymentStatusReady = "Ready"
 )
 
+// DeploymentStatus_Values returns all elements of the DeploymentStatus enum
+func DeploymentStatus_Values() []string {
+	return []string{
+		DeploymentStatusCreated,
+		DeploymentStatusQueued,
+		DeploymentStatusInProgress,
+		DeploymentStatusBaking,
+		DeploymentStatusSucceeded,
+		DeploymentStatusFailed,
+		DeploymentStatusStopped,
+		DeploymentStatusReady,
+	}
+}
+
 const (
 	// DeploymentTargetTypeInstanceTarget is a DeploymentTargetType enum value
 	DeploymentTargetTypeInstanceTarget = "InstanceTarget"
@@ -18709,6 +18789,16 @@ const (
 	DeploymentTargetTypeCloudFormationTarget = "CloudFormationTarget"
 )
 
+// DeploymentTargetType_Values returns all elements of the DeploymentTargetType enum
+func DeploymentTargetType_Values() []string {
+	return []string{
+		DeploymentTargetTypeInstanceTarget,
+		DeploymentTargetTypeLambdaTarget,
+		DeploymentTargetTypeEcstarget,
+		DeploymentTargetTypeCloudFormationTarget,
+	}
+}
+
 const (
 	// DeploymentTypeInPlace is a DeploymentType enum value
 	DeploymentTypeInPlace = "IN_PLACE"
@@ -18717,6 +18807,14 @@ const (
 	DeploymentTypeBlueGreen = "BLUE_GREEN"
 )
 
+// DeploymentType_Values returns all elements of the DeploymentType enum
+func DeploymentType_Values() []string {
+	return []string{
+		DeploymentTypeInPlace,
+		DeploymentTypeBlueGreen,
+	}
+}
+
 const (
 	// DeploymentWaitTypeReadyWait is a DeploymentWaitType enum value
 	DeploymentWaitTypeReadyWait = "READY_WAIT"
@@ -18724,6 +18822,14 @@ const (
 	// DeploymentWaitTypeTerminationWait is a DeploymentWaitType enum value
 	DeploymentWaitTypeTerminationWait = "TERMINATION_WAIT"
 )
+
+// DeploymentWaitType_Values returns all elements of the DeploymentWaitType enum
+func DeploymentWaitType_Values() []string {
+	return []string{
+		DeploymentWaitTypeReadyWait,
+		DeploymentWaitTypeTerminationWait,
+	}
+}
 
 const (
 	// EC2TagFilterTypeKeyOnly is a EC2TagFilterType enum value
@@ -18735,6 +18841,15 @@ const (
 	// EC2TagFilterTypeKeyAndValue is a EC2TagFilterType enum value
 	EC2TagFilterTypeKeyAndValue = "KEY_AND_VALUE"
 )
+
+// EC2TagFilterType_Values returns all elements of the EC2TagFilterType enum
+func EC2TagFilterType_Values() []string {
+	return []string{
+		EC2TagFilterTypeKeyOnly,
+		EC2TagFilterTypeValueOnly,
+		EC2TagFilterTypeKeyAndValue,
+	}
+}
 
 const (
 	// ErrorCodeAgentIssue is a ErrorCode enum value
@@ -18840,6 +18955,46 @@ const (
 	ErrorCodeCloudformationStackFailure = "CLOUDFORMATION_STACK_FAILURE"
 )
 
+// ErrorCode_Values returns all elements of the ErrorCode enum
+func ErrorCode_Values() []string {
+	return []string{
+		ErrorCodeAgentIssue,
+		ErrorCodeAlarmActive,
+		ErrorCodeApplicationMissing,
+		ErrorCodeAutoscalingValidationError,
+		ErrorCodeAutoScalingConfiguration,
+		ErrorCodeAutoScalingIamRolePermissions,
+		ErrorCodeCodedeployResourceCannotBeFound,
+		ErrorCodeCustomerApplicationUnhealthy,
+		ErrorCodeDeploymentGroupMissing,
+		ErrorCodeEcsUpdateError,
+		ErrorCodeElasticLoadBalancingInvalid,
+		ErrorCodeElbInvalidInstance,
+		ErrorCodeHealthConstraints,
+		ErrorCodeHealthConstraintsInvalid,
+		ErrorCodeHookExecutionFailure,
+		ErrorCodeIamRoleMissing,
+		ErrorCodeIamRolePermissions,
+		ErrorCodeInternalError,
+		ErrorCodeInvalidEcsService,
+		ErrorCodeInvalidLambdaConfiguration,
+		ErrorCodeInvalidLambdaFunction,
+		ErrorCodeInvalidRevision,
+		ErrorCodeManualStop,
+		ErrorCodeMissingBlueGreenDeploymentConfiguration,
+		ErrorCodeMissingElbInformation,
+		ErrorCodeMissingGithubToken,
+		ErrorCodeNoEc2Subscription,
+		ErrorCodeNoInstances,
+		ErrorCodeOverMaxInstances,
+		ErrorCodeResourceLimitExceeded,
+		ErrorCodeRevisionMissing,
+		ErrorCodeThrottled,
+		ErrorCodeTimeout,
+		ErrorCodeCloudformationStackFailure,
+	}
+}
+
 const (
 	// FileExistsBehaviorDisallow is a FileExistsBehavior enum value
 	FileExistsBehaviorDisallow = "DISALLOW"
@@ -18851,6 +19006,15 @@ const (
 	FileExistsBehaviorRetain = "RETAIN"
 )
 
+// FileExistsBehavior_Values returns all elements of the FileExistsBehavior enum
+func FileExistsBehavior_Values() []string {
+	return []string{
+		FileExistsBehaviorDisallow,
+		FileExistsBehaviorOverwrite,
+		FileExistsBehaviorRetain,
+	}
+}
+
 const (
 	// GreenFleetProvisioningActionDiscoverExisting is a GreenFleetProvisioningAction enum value
 	GreenFleetProvisioningActionDiscoverExisting = "DISCOVER_EXISTING"
@@ -18859,6 +19023,14 @@ const (
 	GreenFleetProvisioningActionCopyAutoScalingGroup = "COPY_AUTO_SCALING_GROUP"
 )
 
+// GreenFleetProvisioningAction_Values returns all elements of the GreenFleetProvisioningAction enum
+func GreenFleetProvisioningAction_Values() []string {
+	return []string{
+		GreenFleetProvisioningActionDiscoverExisting,
+		GreenFleetProvisioningActionCopyAutoScalingGroup,
+	}
+}
+
 const (
 	// InstanceActionTerminate is a InstanceAction enum value
 	InstanceActionTerminate = "TERMINATE"
@@ -18866,6 +19038,14 @@ const (
 	// InstanceActionKeepAlive is a InstanceAction enum value
 	InstanceActionKeepAlive = "KEEP_ALIVE"
 )
+
+// InstanceAction_Values returns all elements of the InstanceAction enum
+func InstanceAction_Values() []string {
+	return []string{
+		InstanceActionTerminate,
+		InstanceActionKeepAlive,
+	}
+}
 
 const (
 	// InstanceStatusPending is a InstanceStatus enum value
@@ -18890,6 +19070,19 @@ const (
 	InstanceStatusReady = "Ready"
 )
 
+// InstanceStatus_Values returns all elements of the InstanceStatus enum
+func InstanceStatus_Values() []string {
+	return []string{
+		InstanceStatusPending,
+		InstanceStatusInProgress,
+		InstanceStatusSucceeded,
+		InstanceStatusFailed,
+		InstanceStatusSkipped,
+		InstanceStatusUnknown,
+		InstanceStatusReady,
+	}
+}
+
 const (
 	// InstanceTypeBlue is a InstanceType enum value
 	InstanceTypeBlue = "Blue"
@@ -18897,6 +19090,14 @@ const (
 	// InstanceTypeGreen is a InstanceType enum value
 	InstanceTypeGreen = "Green"
 )
+
+// InstanceType_Values returns all elements of the InstanceType enum
+func InstanceType_Values() []string {
+	return []string{
+		InstanceTypeBlue,
+		InstanceTypeGreen,
+	}
+}
 
 const (
 	// LifecycleErrorCodeSuccess is a LifecycleErrorCode enum value
@@ -18918,6 +19119,18 @@ const (
 	LifecycleErrorCodeUnknownError = "UnknownError"
 )
 
+// LifecycleErrorCode_Values returns all elements of the LifecycleErrorCode enum
+func LifecycleErrorCode_Values() []string {
+	return []string{
+		LifecycleErrorCodeSuccess,
+		LifecycleErrorCodeScriptMissing,
+		LifecycleErrorCodeScriptNotExecutable,
+		LifecycleErrorCodeScriptTimedOut,
+		LifecycleErrorCodeScriptFailed,
+		LifecycleErrorCodeUnknownError,
+	}
+}
+
 const (
 	// LifecycleEventStatusPending is a LifecycleEventStatus enum value
 	LifecycleEventStatusPending = "Pending"
@@ -18938,6 +19151,18 @@ const (
 	LifecycleEventStatusUnknown = "Unknown"
 )
 
+// LifecycleEventStatus_Values returns all elements of the LifecycleEventStatus enum
+func LifecycleEventStatus_Values() []string {
+	return []string{
+		LifecycleEventStatusPending,
+		LifecycleEventStatusInProgress,
+		LifecycleEventStatusSucceeded,
+		LifecycleEventStatusFailed,
+		LifecycleEventStatusSkipped,
+		LifecycleEventStatusUnknown,
+	}
+}
+
 const (
 	// ListStateFilterActionInclude is a ListStateFilterAction enum value
 	ListStateFilterActionInclude = "include"
@@ -18949,6 +19174,15 @@ const (
 	ListStateFilterActionIgnore = "ignore"
 )
 
+// ListStateFilterAction_Values returns all elements of the ListStateFilterAction enum
+func ListStateFilterAction_Values() []string {
+	return []string{
+		ListStateFilterActionInclude,
+		ListStateFilterActionExclude,
+		ListStateFilterActionIgnore,
+	}
+}
+
 const (
 	// MinimumHealthyHostsTypeHostCount is a MinimumHealthyHostsType enum value
 	MinimumHealthyHostsTypeHostCount = "HOST_COUNT"
@@ -18957,6 +19191,14 @@ const (
 	MinimumHealthyHostsTypeFleetPercent = "FLEET_PERCENT"
 )
 
+// MinimumHealthyHostsType_Values returns all elements of the MinimumHealthyHostsType enum
+func MinimumHealthyHostsType_Values() []string {
+	return []string{
+		MinimumHealthyHostsTypeHostCount,
+		MinimumHealthyHostsTypeFleetPercent,
+	}
+}
+
 const (
 	// RegistrationStatusRegistered is a RegistrationStatus enum value
 	RegistrationStatusRegistered = "Registered"
@@ -18964,6 +19206,14 @@ const (
 	// RegistrationStatusDeregistered is a RegistrationStatus enum value
 	RegistrationStatusDeregistered = "Deregistered"
 )
+
+// RegistrationStatus_Values returns all elements of the RegistrationStatus enum
+func RegistrationStatus_Values() []string {
+	return []string{
+		RegistrationStatusRegistered,
+		RegistrationStatusDeregistered,
+	}
+}
 
 const (
 	// RevisionLocationTypeS3 is a RevisionLocationType enum value
@@ -18979,6 +19229,16 @@ const (
 	RevisionLocationTypeAppSpecContent = "AppSpecContent"
 )
 
+// RevisionLocationType_Values returns all elements of the RevisionLocationType enum
+func RevisionLocationType_Values() []string {
+	return []string{
+		RevisionLocationTypeS3,
+		RevisionLocationTypeGitHub,
+		RevisionLocationTypeString,
+		RevisionLocationTypeAppSpecContent,
+	}
+}
+
 const (
 	// SortOrderAscending is a SortOrder enum value
 	SortOrderAscending = "ascending"
@@ -18987,6 +19247,14 @@ const (
 	SortOrderDescending = "descending"
 )
 
+// SortOrder_Values returns all elements of the SortOrder enum
+func SortOrder_Values() []string {
+	return []string{
+		SortOrderAscending,
+		SortOrderDescending,
+	}
+}
+
 const (
 	// StopStatusPending is a StopStatus enum value
 	StopStatusPending = "Pending"
@@ -18994,6 +19262,14 @@ const (
 	// StopStatusSucceeded is a StopStatus enum value
 	StopStatusSucceeded = "Succeeded"
 )
+
+// StopStatus_Values returns all elements of the StopStatus enum
+func StopStatus_Values() []string {
+	return []string{
+		StopStatusPending,
+		StopStatusSucceeded,
+	}
+}
 
 const (
 	// TagFilterTypeKeyOnly is a TagFilterType enum value
@@ -19006,6 +19282,15 @@ const (
 	TagFilterTypeKeyAndValue = "KEY_AND_VALUE"
 )
 
+// TagFilterType_Values returns all elements of the TagFilterType enum
+func TagFilterType_Values() []string {
+	return []string{
+		TagFilterTypeKeyOnly,
+		TagFilterTypeValueOnly,
+		TagFilterTypeKeyAndValue,
+	}
+}
+
 const (
 	// TargetFilterNameTargetStatus is a TargetFilterName enum value
 	TargetFilterNameTargetStatus = "TargetStatus"
@@ -19014,6 +19299,14 @@ const (
 	TargetFilterNameServerInstanceLabel = "ServerInstanceLabel"
 )
 
+// TargetFilterName_Values returns all elements of the TargetFilterName enum
+func TargetFilterName_Values() []string {
+	return []string{
+		TargetFilterNameTargetStatus,
+		TargetFilterNameServerInstanceLabel,
+	}
+}
+
 const (
 	// TargetLabelBlue is a TargetLabel enum value
 	TargetLabelBlue = "Blue"
@@ -19021,6 +19314,14 @@ const (
 	// TargetLabelGreen is a TargetLabel enum value
 	TargetLabelGreen = "Green"
 )
+
+// TargetLabel_Values returns all elements of the TargetLabel enum
+func TargetLabel_Values() []string {
+	return []string{
+		TargetLabelBlue,
+		TargetLabelGreen,
+	}
+}
 
 const (
 	// TargetStatusPending is a TargetStatus enum value
@@ -19045,6 +19346,19 @@ const (
 	TargetStatusReady = "Ready"
 )
 
+// TargetStatus_Values returns all elements of the TargetStatus enum
+func TargetStatus_Values() []string {
+	return []string{
+		TargetStatusPending,
+		TargetStatusInProgress,
+		TargetStatusSucceeded,
+		TargetStatusFailed,
+		TargetStatusSkipped,
+		TargetStatusUnknown,
+		TargetStatusReady,
+	}
+}
+
 const (
 	// TrafficRoutingTypeTimeBasedCanary is a TrafficRoutingType enum value
 	TrafficRoutingTypeTimeBasedCanary = "TimeBasedCanary"
@@ -19055,6 +19369,15 @@ const (
 	// TrafficRoutingTypeAllAtOnce is a TrafficRoutingType enum value
 	TrafficRoutingTypeAllAtOnce = "AllAtOnce"
 )
+
+// TrafficRoutingType_Values returns all elements of the TrafficRoutingType enum
+func TrafficRoutingType_Values() []string {
+	return []string{
+		TrafficRoutingTypeTimeBasedCanary,
+		TrafficRoutingTypeTimeBasedLinear,
+		TrafficRoutingTypeAllAtOnce,
+	}
+}
 
 const (
 	// TriggerEventTypeDeploymentStart is a TriggerEventType enum value
@@ -19087,3 +19410,19 @@ const (
 	// TriggerEventTypeInstanceReady is a TriggerEventType enum value
 	TriggerEventTypeInstanceReady = "InstanceReady"
 )
+
+// TriggerEventType_Values returns all elements of the TriggerEventType enum
+func TriggerEventType_Values() []string {
+	return []string{
+		TriggerEventTypeDeploymentStart,
+		TriggerEventTypeDeploymentSuccess,
+		TriggerEventTypeDeploymentFailure,
+		TriggerEventTypeDeploymentStop,
+		TriggerEventTypeDeploymentRollback,
+		TriggerEventTypeDeploymentReady,
+		TriggerEventTypeInstanceStart,
+		TriggerEventTypeInstanceSuccess,
+		TriggerEventTypeInstanceFailure,
+		TriggerEventTypeInstanceReady,
+	}
+}

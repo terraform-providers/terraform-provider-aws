@@ -3,15 +3,15 @@ package checkers
 import (
 	"go/ast"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astfmt"
 	"github.com/go-toolsmith/astp"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "exitAfterDefer"
 	info.Tags = []string{"diagnostic", "experimental"}
 	info.Summary = "Detects calls to exit/fatal inside functions that use defer"
@@ -27,14 +27,14 @@ if bad {
 	return
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForFuncDecl(&exitAfterDeferChecker{ctx: ctx})
 	})
 }
 
 type exitAfterDeferChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *exitAfterDeferChecker) VisitFuncDecl(fn *ast.FuncDecl) {
@@ -66,13 +66,11 @@ func (c *exitAfterDeferChecker) VisitFuncDecl(fn *ast.FuncDecl) {
 }
 
 func (c *exitAfterDeferChecker) warn(cause *ast.CallExpr, deferStmt *ast.DeferStmt) {
-	var s string
+	s := astfmt.Sprint(deferStmt)
 	if fnlit, ok := deferStmt.Call.Fun.(*ast.FuncLit); ok {
 		// To avoid long and multi-line warning messages,
 		// collapse the function literals.
 		s = "defer " + astfmt.Sprint(fnlit.Type) + "{...}(...)"
-	} else {
-		s = astfmt.Sprint(deferStmt)
 	}
 	c.ctx.Warn(cause, "%s clutters `%s`", cause.Fun, s)
 }

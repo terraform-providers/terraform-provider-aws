@@ -15,9 +15,9 @@ Manages an AWS Storage Gateway NFS File Share.
 ```hcl
 resource "aws_storagegateway_nfs_file_share" "example" {
   client_list  = ["0.0.0.0/0"]
-  gateway_arn  = "${aws_storagegateway_gateway.example.arn}"
-  location_arn = "${aws_s3_bucket.example.arn}"
-  role_arn     = "${aws_iam_role.example.arn}"
+  gateway_arn  = aws_storagegateway_gateway.example.arn
+  location_arn = aws_s3_bucket.example.arn
+  role_arn     = aws_iam_role.example.arn
 }
 ```
 
@@ -33,7 +33,8 @@ The following arguments are supported:
 * `guess_mime_type_enabled` - (Optional) Boolean value that enables guessing of the MIME type for uploaded objects based on file extensions. Defaults to `true`.
 * `kms_encrypted` - (Optional) Boolean value if `true` to use Amazon S3 server side encryption with your own AWS KMS key, or `false` to use a key managed by Amazon S3. Defaults to `false`.
 * `kms_key_arn` - (Optional) Amazon Resource Name (ARN) for KMS key used for Amazon S3 server side encryption. This value can only be set when `kms_encrypted` is true.
-* `nfs_file_share_defaults` - (Optional) Nested argument with file share default values. More information below.
+* `nfs_file_share_defaults` - (Optional) Nested argument with file share default values. More information below. see [NFS File Share Defaults](#nfs_file_share_defaults) for more details.
+* `cache_attributes` - (Optional) Refresh cache information. see [Cache Attributes](#cache_attributes) for more details.
 * `object_acl` - (Optional) Access Control List permission for S3 bucket objects. Defaults to `private`.
 * `read_only` - (Optional) Boolean to indicate write status of file share. File share does not accept writes if `true`. Defaults to `false`.
 * `requester_pays` - (Optional) Boolean who pays the cost of the request and the data download from the Amazon S3 bucket. Set this value to `true` if you want the requester to pay instead of the bucket owner. Defaults to `false`.
@@ -48,6 +49,13 @@ Files and folders stored as Amazon S3 objects in S3 buckets don't, by default, h
 * `file_mode` - (Optional) The Unix file mode in the string form "nnnn". Defaults to `"0666"`.
 * `group_id` - (Optional) The default group ID for the file share (unless the files have another group ID specified). Defaults to `65534` (`nfsnobody`). Valid values: `0` through `4294967294`.
 * `owner_id` - (Optional) The default owner ID for the file share (unless the files have another owner ID specified). Defaults to `65534` (`nfsnobody`). Valid values: `0` through `4294967294`.
+
+### cache_attributes
+
+* `cache_stale_timeout_in_seconds` - (Optional) Refreshes a file share's cache by using Time To Live (TTL).
+ TTL is the length of time since the last refresh after which access to the directory would cause the file gateway
+  to first refresh that directory's contents from the Amazon S3 bucket. Valid Values: 300 to 2,592,000 seconds (5 minutes to 30 days)
+
 
 ## Attribute Reference
 

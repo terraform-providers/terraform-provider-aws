@@ -3374,6 +3374,14 @@ const (
 	DetailTypeFull = "FULL"
 )
 
+// DetailType_Values returns all elements of the DetailType enum
+func DetailType_Values() []string {
+	return []string{
+		DetailTypeBasic,
+		DetailTypeFull,
+	}
+}
+
 const (
 	// ListEventTypesFilterNameResourceType is a ListEventTypesFilterName enum value
 	ListEventTypesFilterNameResourceType = "RESOURCE_TYPE"
@@ -3381,6 +3389,14 @@ const (
 	// ListEventTypesFilterNameServiceName is a ListEventTypesFilterName enum value
 	ListEventTypesFilterNameServiceName = "SERVICE_NAME"
 )
+
+// ListEventTypesFilterName_Values returns all elements of the ListEventTypesFilterName enum
+func ListEventTypesFilterName_Values() []string {
+	return []string{
+		ListEventTypesFilterNameResourceType,
+		ListEventTypesFilterNameServiceName,
+	}
+}
 
 const (
 	// ListNotificationRulesFilterNameEventTypeId is a ListNotificationRulesFilterName enum value
@@ -3396,6 +3412,16 @@ const (
 	ListNotificationRulesFilterNameTargetAddress = "TARGET_ADDRESS"
 )
 
+// ListNotificationRulesFilterName_Values returns all elements of the ListNotificationRulesFilterName enum
+func ListNotificationRulesFilterName_Values() []string {
+	return []string{
+		ListNotificationRulesFilterNameEventTypeId,
+		ListNotificationRulesFilterNameCreatedBy,
+		ListNotificationRulesFilterNameResource,
+		ListNotificationRulesFilterNameTargetAddress,
+	}
+}
+
 const (
 	// ListTargetsFilterNameTargetType is a ListTargetsFilterName enum value
 	ListTargetsFilterNameTargetType = "TARGET_TYPE"
@@ -3407,6 +3433,15 @@ const (
 	ListTargetsFilterNameTargetStatus = "TARGET_STATUS"
 )
 
+// ListTargetsFilterName_Values returns all elements of the ListTargetsFilterName enum
+func ListTargetsFilterName_Values() []string {
+	return []string{
+		ListTargetsFilterNameTargetType,
+		ListTargetsFilterNameTargetAddress,
+		ListTargetsFilterNameTargetStatus,
+	}
+}
+
 const (
 	// NotificationRuleStatusEnabled is a NotificationRuleStatus enum value
 	NotificationRuleStatusEnabled = "ENABLED"
@@ -3414,6 +3449,14 @@ const (
 	// NotificationRuleStatusDisabled is a NotificationRuleStatus enum value
 	NotificationRuleStatusDisabled = "DISABLED"
 )
+
+// NotificationRuleStatus_Values returns all elements of the NotificationRuleStatus enum
+func NotificationRuleStatus_Values() []string {
+	return []string{
+		NotificationRuleStatusEnabled,
+		NotificationRuleStatusDisabled,
+	}
+}
 
 const (
 	// TargetStatusPending is a TargetStatus enum value
@@ -3431,3 +3474,14 @@ const (
 	// TargetStatusDeactivated is a TargetStatus enum value
 	TargetStatusDeactivated = "DEACTIVATED"
 )
+
+// TargetStatus_Values returns all elements of the TargetStatus enum
+func TargetStatus_Values() []string {
+	return []string{
+		TargetStatusPending,
+		TargetStatusActive,
+		TargetStatusUnreachable,
+		TargetStatusInactive,
+		TargetStatusDeactivated,
+	}
+}

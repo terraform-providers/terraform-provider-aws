@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -55,7 +55,7 @@ func testSweepGlueJobs(region string) error {
 	return nil
 }
 
-func TestAccAWSGlueJob_Basic(t *testing.T) {
+func TestAccAWSGlueJob_basic(t *testing.T) {
 	var job glue.Job
 
 	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
@@ -79,44 +79,6 @@ func TestAccAWSGlueJob_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "role_arn", roleResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "timeout", "2880"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAWSGlueJob_AllocatedCapacity(t *testing.T) {
-	var job glue.Job
-
-	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(5))
-	resourceName := "aws_glue_job.test"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSGlueJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAWSGlueJobConfig_AllocatedCapacity(rName, 1),
-				ExpectError: regexp.MustCompile(`expected allocated_capacity to be at least`),
-			},
-			{
-				Config: testAccAWSGlueJobConfig_AllocatedCapacity(rName, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSGlueJobExists(resourceName, &job),
-					resource.TestCheckResourceAttr(resourceName, "allocated_capacity", "2"),
-				),
-			},
-			{
-				Config: testAccAWSGlueJobConfig_AllocatedCapacity(rName, 3),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSGlueJobExists(resourceName, &job),
-					resource.TestCheckResourceAttr(resourceName, "allocated_capacity", "3"),
 				),
 			},
 			{
@@ -724,28 +686,10 @@ POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "test" {
-  policy_arn = "${data.aws_iam_policy.AWSGlueServiceRole.arn}"
-  role       = "${aws_iam_role.test.name}"
+  policy_arn = data.aws_iam_policy.AWSGlueServiceRole.arn
+  role       = aws_iam_role.test.name
 }
 `, rName)
-}
-
-func testAccAWSGlueJobConfig_AllocatedCapacity(rName string, allocatedCapacity int) string {
-	return fmt.Sprintf(`
-%s
-
-resource "aws_glue_job" "test" {
-  allocated_capacity = %d
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-
-  command {
-    script_location = "testscriptlocation"
-  }
-
-  depends_on = ["aws_iam_role_policy_attachment.test"]
-}
-`, testAccAWSGlueJobConfig_Base(rName), allocatedCapacity, rName)
 }
 
 func testAccAWSGlueJobConfig_Command(rName, scriptLocation string) string {
@@ -753,15 +697,15 @@ func testAccAWSGlueJobConfig_Command(rName, scriptLocation string) string {
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "%s"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, scriptLocation)
 }
@@ -771,9 +715,9 @@ func testAccAWSGlueJobConfig_DefaultArguments(rName, jobBookmarkOption, jobLangu
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
@@ -784,7 +728,7 @@ resource "aws_glue_job" "test" {
     "--job-language"        = "%s"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, jobBookmarkOption, jobLanguage)
 }
@@ -794,16 +738,16 @@ func testAccAWSGlueJobConfig_Description(rName, description string) string {
 %s
 
 resource "aws_glue_job" "test" {
-  description        = "%s"
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  description  = "%s"
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), description, rName)
 }
@@ -813,16 +757,16 @@ func testAccAWSGlueJobConfig_GlueVersion(rName, glueVersion string) string {
 %s
 
 resource "aws_glue_job" "test" {
-  glue_version       = "%s"
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  glue_version = "%s"
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), glueVersion, rName)
 }
@@ -832,9 +776,9 @@ func testAccAWSGlueJobConfig_ExecutionProperty(rName string, maxConcurrentRuns i
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
@@ -844,7 +788,7 @@ resource "aws_glue_job" "test" {
     max_concurrent_runs = %d
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, maxConcurrentRuns)
 }
@@ -854,16 +798,16 @@ func testAccAWSGlueJobConfig_MaxRetries(rName string, maxRetries int) string {
 %s
 
 resource "aws_glue_job" "test" {
-  max_retries        = %d
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  max_retries  = %d
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), maxRetries, rName)
 }
@@ -873,9 +817,9 @@ func testAccAWSGlueJobConfig_NotificationProperty(rName string, notifyDelayAfter
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
@@ -885,7 +829,7 @@ resource "aws_glue_job" "test" {
     notify_delay_after = %d
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, notifyDelayAfter)
 }
@@ -895,15 +839,15 @@ func testAccAWSGlueJobConfig_Required(rName string) string {
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName)
 }
@@ -913,7 +857,7 @@ func testAccAWSGlueJobConfigTags1(rName, tagKey1, tagValue1 string) string {
 resource "aws_glue_job" "test" {
   name              = %[1]q
   number_of_workers = 2
-  role_arn          = "${aws_iam_role.test.arn}"
+  role_arn          = aws_iam_role.test.arn
   worker_type       = "Standard"
 
   command {
@@ -924,7 +868,7 @@ resource "aws_glue_job" "test" {
     %[2]q = %[3]q
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, rName, tagKey1, tagValue1)
 }
@@ -934,7 +878,7 @@ func testAccAWSGlueJobConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 
 resource "aws_glue_job" "test" {
   name              = %[1]q
   number_of_workers = 2
-  role_arn          = "${aws_iam_role.test.arn}"
+  role_arn          = aws_iam_role.test.arn
   worker_type       = "Standard"
 
   command {
@@ -946,7 +890,7 @@ resource "aws_glue_job" "test" {
     %[4]q = %[5]q
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
@@ -956,16 +900,16 @@ func testAccAWSGlueJobConfig_Timeout(rName string, timeout int) string {
 %s
 
 resource "aws_glue_job" "test" {
-  name               = "%s"
-  role_arn           = "${aws_iam_role.test.arn}"
-  timeout            = %d
-  allocated_capacity = 10
+  max_capacity = 10
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
+  timeout      = %d
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, timeout)
 }
@@ -975,16 +919,16 @@ func testAccAWSGlueJobConfig_SecurityConfiguration(rName string, securityConfigu
 %s
 
 resource "aws_glue_job" "test" {
+  max_capacity           = 10
   name                   = "%s"
-  role_arn               = "${aws_iam_role.test.arn}"
+  role_arn               = aws_iam_role.test.arn
   security_configuration = "%s"
-  allocated_capacity     = 10
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, securityConfiguration)
 }
@@ -994,16 +938,16 @@ func testAccAWSGlueJobConfig_WorkerType(rName string, workerType string) string 
 %s
 
 resource "aws_glue_job" "test" {
-  name                   = "%s"
-  role_arn               = "${aws_iam_role.test.arn}"
-  worker_type 			 = "%s"
-  number_of_workers      = 10
+  name              = "%s"
+  role_arn          = aws_iam_role.test.arn
+  worker_type       = "%s"
+  number_of_workers = 10
 
   command {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, workerType)
 }
@@ -1014,7 +958,7 @@ func testAccAWSGlueJobConfig_PythonShell(rName string) string {
 
 resource "aws_glue_job" "test" {
   name         = "%s"
-  role_arn     = "${aws_iam_role.test.arn}"
+  role_arn     = aws_iam_role.test.arn
   max_capacity = 0.0625
 
   command {
@@ -1022,7 +966,7 @@ resource "aws_glue_job" "test" {
     script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName)
 }
@@ -1033,16 +977,16 @@ func testAccAWSGlueJobConfig_PythonShellWithVersion(rName string, pythonVersion 
 
 resource "aws_glue_job" "test" {
   name         = "%s"
-  role_arn     = "${aws_iam_role.test.arn}"
+  role_arn     = aws_iam_role.test.arn
   max_capacity = 0.0625
 
   command {
     name            = "pythonshell"
     script_location = "testscriptlocation"
-		python_version  = "%s"
+    python_version  = "%s"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, pythonVersion)
 }
@@ -1052,15 +996,15 @@ func testAccAWSGlueJobConfig_MaxCapacity(rName string, maxCapacity float64) stri
 %s
 
 resource "aws_glue_job" "test" {
-  name     = "%s"
-  role_arn = "${aws_iam_role.test.arn}"
+  name         = "%s"
+  role_arn     = aws_iam_role.test.arn
   max_capacity = %g
 
   command {
-	script_location = "testscriptlocation"
+    script_location = "testscriptlocation"
   }
 
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 }
 `, testAccAWSGlueJobConfig_Base(rName), rName, maxCapacity)
 }

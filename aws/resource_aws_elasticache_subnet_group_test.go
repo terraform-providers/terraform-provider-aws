@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSElasticacheSubnetGroup_basic(t *testing.T) {
@@ -156,85 +156,92 @@ func testAccCheckAWSElastiCacheSubnetGroupAttrs(csg *elasticache.CacheSubnetGrou
 
 var testAccAWSElasticacheSubnetGroupConfig = `
 resource "aws_vpc" "foo" {
-    cidr_block = "192.168.0.0/16"
+  cidr_block = "192.168.0.0/16"
+
   tags = {
-        Name = "terraform-testacc-elasticache-subnet-group"
-    }
+    Name = "terraform-testacc-elasticache-subnet-group"
+  }
 }
 
 resource "aws_subnet" "foo" {
-    vpc_id = "${aws_vpc.foo.id}"
-    cidr_block = "192.168.0.0/20"
-    availability_zone = "us-west-2a"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "192.168.0.0/20"
+  availability_zone = "us-west-2a"
+
   tags = {
-        Name = "tf-acc-elasticache-subnet-group"
-    }
+    Name = "tf-acc-elasticache-subnet-group"
+  }
 }
 
 resource "aws_elasticache_subnet_group" "test" {
-    // Including uppercase letters in this name to ensure
-    // that we correctly handle the fact that the API
-    // normalizes names to lowercase.
-    name = "tf-TEST-cache-subnet-%03d"
-    subnet_ids = ["${aws_subnet.foo.id}"]
+  # Including uppercase letters in this name to ensure
+  # that we correctly handle the fact that the API
+  # normalizes names to lowercase.
+  name       = "tf-TEST-cache-subnet-%03d"
+  subnet_ids = [aws_subnet.foo.id]
 }
 `
 var testAccAWSElasticacheSubnetGroupUpdateConfigPre = `
 resource "aws_vpc" "foo" {
-    cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16"
+
   tags = {
-        Name = "terraform-testacc-elasticache-subnet-group-update"
-    }
+    Name = "terraform-testacc-elasticache-subnet-group-update"
+  }
 }
 
 resource "aws_subnet" "foo" {
-    vpc_id = "${aws_vpc.foo.id}"
-    cidr_block = "10.0.1.0/24"
-    availability_zone = "us-west-2a"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-west-2a"
+
   tags = {
-        Name = "tf-acc-elasticache-subnet-group-update-foo"
-    }
+    Name = "tf-acc-elasticache-subnet-group-update-foo"
+  }
 }
 
 resource "aws_elasticache_subnet_group" "test" {
-    name = "tf-test-cache-subnet-%03d"
-    description = "tf-test-cache-subnet-group-descr"
-    subnet_ids = ["${aws_subnet.foo.id}"]
+  name        = "tf-test-cache-subnet-%03d"
+  description = "tf-test-cache-subnet-group-descr"
+  subnet_ids  = [aws_subnet.foo.id]
 }
 `
 
 var testAccAWSElasticacheSubnetGroupUpdateConfigPost = `
 resource "aws_vpc" "foo" {
-    cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16"
+
   tags = {
-        Name = "terraform-testacc-elasticache-subnet-group-update"
-    }
+     Name = "terraform-testacc-elasticache-subnet-group-update"
+  }
 }
 
 resource "aws_subnet" "foo" {
-    vpc_id = "${aws_vpc.foo.id}"
-    cidr_block = "10.0.1.0/24"
-    availability_zone = "us-west-2a"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-west-2a"
+
   tags = {
-        Name = "tf-acc-elasticache-subnet-group-update-foo"
-    }
+    Name = "tf-acc-elasticache-subnet-group-update-foo"
+  }
 }
 
 resource "aws_subnet" "test" {
-    vpc_id = "${aws_vpc.foo.id}"
-    cidr_block = "10.0.2.0/24"
-    availability_zone = "us-west-2a"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-west-2a"
+
   tags = {
-        Name = "tf-acc-elasticache-subnet-group-update-test"
-    }
+    Name = "tf-acc-elasticache-subnet-group-update-test"
+  }
 }
 
 resource "aws_elasticache_subnet_group" "test" {
-    name = "tf-test-cache-subnet-%03d"
-    description = "tf-test-cache-subnet-group-descr-edited"
-    subnet_ids = [
-			"${aws_subnet.foo.id}",
-			"${aws_subnet.test.id}",
-		]
+  name        = "tf-test-cache-subnet-%03d"
+  description = "tf-test-cache-subnet-group-descr-edited"
+  subnet_ids  = [
+    aws_subnet.foo.id,
+    aws_subnet.test.id,
+  ]
 }
 `

@@ -14,7 +14,7 @@ Provides a resource to create a VPC VPN Gateway.
 
 ```hcl
 resource "aws_vpn_gateway" "vpn_gw" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "main"
@@ -35,8 +35,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of the VPN Gateway.
 * `id` - The ID of the VPN Gateway.
-
 
 ## Import
 

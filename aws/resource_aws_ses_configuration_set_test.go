@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -147,7 +147,7 @@ func testAccCheckSESConfigurationSetDestroy(s *terraform.State) error {
 func testAccAWSSESConfigurationSetConfig(escRandomInteger int) string {
 	return fmt.Sprintf(`
 resource "aws_ses_configuration_set" "test" {
-    name = "some-configuration-set-%d"
+  name = "some-configuration-set-%d"
 }
 `, escRandomInteger)
 }

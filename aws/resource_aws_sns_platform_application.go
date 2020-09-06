@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"log"
@@ -10,26 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/sns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var snsPlatformRequiresPlatformPrincipal = map[string]bool{
 	"APNS":         true,
 	"APNS_SANDBOX": true,
-}
-
-// Mutable attributes
-// http://docs.aws.amazon.com/sns/latest/api/API_SetPlatformApplicationAttributes.html
-var snsPlatformApplicationAttributeMap = map[string]string{
-	"event_delivery_failure_topic_arn": "EventDeliveryFailure",
-	"event_endpoint_created_topic_arn": "EventEndpointCreated",
-	"event_endpoint_deleted_topic_arn": "EventEndpointDeleted",
-	"event_endpoint_updated_topic_arn": "EventEndpointUpdated",
-	"failure_feedback_role_arn":        "FailureFeedbackRoleArn",
-	"platform_principal":               "PlatformPrincipal",
-	"success_feedback_role_arn":        "SuccessFeedbackRoleArn",
-	"success_feedback_sample_rate":     "SuccessFeedbackSampleRate",
 }
 
 func resourceAwsSnsPlatformApplication() *schema.Resource {
@@ -42,7 +30,7 @@ func resourceAwsSnsPlatformApplication() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			return validateAwsSnsPlatformApplication(diff)
 		},
 
@@ -60,7 +48,7 @@ func resourceAwsSnsPlatformApplication() *schema.Resource {
 			"platform_credential": {
 				Type:      schema.TypeString,
 				Required:  true,
-				StateFunc: hashSum,
+				Sensitive: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -89,7 +77,7 @@ func resourceAwsSnsPlatformApplication() *schema.Resource {
 			"platform_principal": {
 				Type:      schema.TypeString,
 				Optional:  true,
-				StateFunc: hashSum,
+				Sensitive: true,
 			},
 			"success_feedback_role_arn": {
 				Type:     schema.TypeString,
@@ -138,17 +126,45 @@ func resourceAwsSnsPlatformApplicationUpdate(d *schema.ResourceData, meta interf
 
 	attributes := make(map[string]*string)
 
-	for k := range resourceAwsSnsPlatformApplication().Schema {
-		if attrKey, ok := snsPlatformApplicationAttributeMap[k]; ok {
-			if d.HasChange(k) {
-				log.Printf("[DEBUG] Updating %s", attrKey)
-				_, n := d.GetChange(k)
-				attributes[attrKey] = aws.String(n.(string))
-			}
-		}
+	if d.HasChange("event_delivery_failure_topic_arn") {
+		attributes["EventDeliveryFailure"] = aws.String(d.Get("event_delivery_failure_topic_arn").(string))
 	}
 
-	if d.HasChange("platform_credential") {
+	if d.HasChange("event_endpoint_created_topic_arn") {
+		attributes["EventEndpointCreated"] = aws.String(d.Get("event_endpoint_created_topic_arn").(string))
+	}
+
+	if d.HasChange("event_endpoint_deleted_topic_arn") {
+		attributes["EventEndpointDeleted"] = aws.String(d.Get("event_endpoint_deleted_topic_arn").(string))
+	}
+
+	if d.HasChange("event_endpoint_updated_topic_arn") {
+		attributes["EventEndpointUpdated"] = aws.String(d.Get("event_endpoint_updated_topic_arn").(string))
+	}
+
+	if d.HasChange("failure_feedback_role_arn") {
+		attributes["FailureFeedbackRoleArn"] = aws.String(d.Get("failure_feedback_role_arn").(string))
+	}
+
+	if d.HasChange("success_feedback_role_arn") {
+		attributes["SuccessFeedbackRoleArn"] = aws.String(d.Get("success_feedback_role_arn").(string))
+	}
+
+	if d.HasChange("success_feedback_sample_rate") {
+		attributes["SuccessFeedbackSampleRate"] = aws.String(d.Get("success_feedback_sample_rate").(string))
+	}
+
+	if d.HasChanges("platform_credential", "platform_principal") {
+		// Prior to version 3.0.0 of the Terraform AWS Provider, the platform_credential and platform_principal
+		// attributes were stored in state as SHA256 hashes. If the changes to these two attributes are the only
+		// changes and if both of their changes only match updating the state value, then skip the API call.
+		oPCRaw, nPCRaw := d.GetChange("platform_credential")
+		oPPRaw, nPPRaw := d.GetChange("platform_principal")
+
+		if len(attributes) == 0 && isChangeSha256Removal(oPCRaw, nPCRaw) && isChangeSha256Removal(oPPRaw, nPPRaw) {
+			return nil
+		}
+
 		attributes["PlatformCredential"] = aws.String(d.Get("platform_credential").(string))
 		// If the platform requires a principal it must also be specified, even if it didn't change
 		// since credential is stored as a hash, the only way to update principal is to update both
@@ -201,36 +217,56 @@ func resourceAwsSnsPlatformApplicationRead(d *schema.ResourceData, meta interfac
 	d.Set("name", name)
 	d.Set("platform", platform)
 
-	attributeOutput, err := snsconn.GetPlatformApplicationAttributes(&sns.GetPlatformApplicationAttributesInput{
+	input := &sns.GetPlatformApplicationAttributesInput{
 		PlatformApplicationArn: aws.String(arn),
-	})
-
-	if err != nil {
-		if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
-			log.Printf("[WARN] SNS Platform Application (%s) not found, removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return err
 	}
 
-	if attributeOutput.Attributes != nil && len(attributeOutput.Attributes) > 0 {
-		attrmap := attributeOutput.Attributes
-		resource := *resourceAwsSnsPlatformApplication()
-		// iKey = internal struct key, oKey = AWS Attribute Map key
-		for iKey, oKey := range snsPlatformApplicationAttributeMap {
-			log.Printf("[DEBUG] Updating %s => %s", iKey, oKey)
+	output, err := snsconn.GetPlatformApplicationAttributes(input)
 
-			if attrmap[oKey] != nil {
-				// Some of the fetched attributes are stateful properties such as
-				// the number of subscriptions, the owner, etc. skip those
-				if resource.Schema[iKey] != nil {
-					value := aws.StringValue(attrmap[oKey])
-					log.Printf("[DEBUG] Updating %s => %s -> %s", iKey, oKey, value)
-					d.Set(iKey, value)
-				}
-			}
-		}
+	if isAWSErr(err, sns.ErrCodeNotFoundException, "") {
+		log.Printf("[WARN] SNS Platform Application (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error getting SNS Platform Application (%s) attributes: %w", d.Id(), err)
+	}
+
+	if output == nil || output.Attributes == nil {
+		return fmt.Errorf("error getting SNS Platform Application (%s) attributes: empty response", d.Id())
+	}
+
+	if v, ok := output.Attributes["EventDeliveryFailure"]; ok {
+		d.Set("event_delivery_failure_topic_arn", v)
+	}
+
+	if v, ok := output.Attributes["EventEndpointCreated"]; ok {
+		d.Set("event_endpoint_created_topic_arn", v)
+	}
+
+	if v, ok := output.Attributes["EventEndpointDeleted"]; ok {
+		d.Set("event_endpoint_deleted_topic_arn", v)
+	}
+
+	if v, ok := output.Attributes["EventEndpointUpdated"]; ok {
+		d.Set("event_endpoint_updated_topic_arn", v)
+	}
+
+	if v, ok := output.Attributes["FailureFeedbackRoleArn"]; ok {
+		d.Set("failure_feedback_role_arn", v)
+	}
+
+	if v, ok := output.Attributes["PlatformPrincipal"]; ok {
+		d.Set("platform_principal", v)
+	}
+
+	if v, ok := output.Attributes["SuccessFeedbackRoleArn"]; ok {
+		d.Set("success_feedback_role_arn", v)
+	}
+
+	if v, ok := output.Attributes["SuccessFeedbackSampleRate"]; ok {
+		d.Set("success_feedback_sample_rate", v)
 	}
 
 	return nil
@@ -271,8 +307,20 @@ func decodeResourceAwsSnsPlatformApplicationID(input string) (arnS, name, platfo
 	return
 }
 
-func hashSum(contents interface{}) string {
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(contents.(string))))
+func isChangeSha256Removal(oldRaw, newRaw interface{}) bool {
+	old, ok := oldRaw.(string)
+
+	if !ok {
+		return false
+	}
+
+	new, ok := newRaw.(string)
+
+	if !ok {
+		return false
+	}
+
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(new))) == old
 }
 
 func validateAwsSnsPlatformApplication(d *schema.ResourceDiff) error {

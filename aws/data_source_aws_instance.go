@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -86,6 +86,11 @@ func dataSourceAwsInstance() *schema.Resource {
 			"private_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"secondary_private_ips": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"iam_instance_profile": {
 				Type:     schema.TypeString,
@@ -436,6 +441,16 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 				d.Set("subnet_id", ni.SubnetId)
 				d.Set("network_interface_id", ni.NetworkInterfaceId)
 				d.Set("associate_public_ip_address", ni.Association != nil)
+
+				secondaryIPs := make([]string, 0, len(ni.PrivateIpAddresses))
+				for _, ip := range ni.PrivateIpAddresses {
+					if !aws.BoolValue(ip.Primary) {
+						secondaryIPs = append(secondaryIPs, aws.StringValue(ip.PrivateIpAddress))
+					}
+				}
+				if err := d.Set("secondary_private_ips", secondaryIPs); err != nil {
+					return fmt.Errorf("error setting secondary_private_ips: %w", err)
+				}
 			}
 		}
 	} else {

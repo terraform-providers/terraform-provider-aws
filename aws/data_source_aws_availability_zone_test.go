@@ -1,15 +1,14 @@
 package aws
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsAvailabilityZone_AllAvailabilityZones(t *testing.T) {
-	availabilityZonesDataSourceName := "data.aws_availability_zones.test"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
 	dataSourceName := "data.aws_availability_zone.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,7 +32,7 @@ func TestAccDataSourceAwsAvailabilityZone_AllAvailabilityZones(t *testing.T) {
 }
 
 func TestAccDataSourceAwsAvailabilityZone_Filter(t *testing.T) {
-	availabilityZonesDataSourceName := "data.aws_availability_zones.test"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
 	dataSourceName := "data.aws_availability_zone.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +56,7 @@ func TestAccDataSourceAwsAvailabilityZone_Filter(t *testing.T) {
 }
 
 func TestAccDataSourceAwsAvailabilityZone_Name(t *testing.T) {
-	availabilityZonesDataSourceName := "data.aws_availability_zones.test"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
 	dataSourceName := "data.aws_availability_zone.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -81,7 +80,7 @@ func TestAccDataSourceAwsAvailabilityZone_Name(t *testing.T) {
 }
 
 func TestAccDataSourceAwsAvailabilityZone_ZoneId(t *testing.T) {
-	availabilityZonesDataSourceName := "data.aws_availability_zones.test"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
 	dataSourceName := "data.aws_availability_zone.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -105,73 +104,37 @@ func TestAccDataSourceAwsAvailabilityZone_ZoneId(t *testing.T) {
 }
 
 func testAccDataSourceAwsAvailabilityZoneConfigAllAvailabilityZones() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "test" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 data "aws_availability_zone" "test" {
   all_availability_zones = true
-  name                   = data.aws_availability_zones.test.names[0]
+  name                   = data.aws_availability_zones.available.names[0]
 }
-`)
+`
 }
 
 func testAccDataSourceAwsAvailabilityZoneConfigFilter() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "test" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 data "aws_availability_zone" "test" {
   filter {
     name   = "zone-name"
-    values = [data.aws_availability_zones.test.names[0]]
+    values = [data.aws_availability_zones.available.names[0]]
   }
 }
-`)
+`
 }
 
 func testAccDataSourceAwsAvailabilityZoneConfigName() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "test" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 data "aws_availability_zone" "test" {
-  name = data.aws_availability_zones.test.names[0]
+  name = data.aws_availability_zones.available.names[0]
 }
-`)
+`
 }
 
 func testAccDataSourceAwsAvailabilityZoneConfigZoneId() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "test" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 data "aws_availability_zone" "test" {
-  zone_id = data.aws_availability_zones.test.zone_ids[0]
+  zone_id = data.aws_availability_zones.available.zone_ids[0]
 }
-`)
+`
 }

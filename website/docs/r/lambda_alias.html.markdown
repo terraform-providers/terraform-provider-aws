@@ -16,13 +16,13 @@ For information about function aliases, see [CreateAlias][2] and [AliasRoutingCo
 ## Example Usage
 
 ```hcl
-resource "aws_lambda_alias" "test_alias" {
-  name             = "testalias"
+resource "aws_lambda_alias" "test_lambda_alias" {
+  name             = "my_alias"
   description      = "a sample description"
-  function_name    = "${aws_lambda_function.lambda_function_test.arn}"
+  function_name    = aws_lambda_function.lambda_function_test.arn
   function_version = "1"
 
-  routing_config = {
+  routing_config {
     additional_version_weights = {
       "2" = 0.5
     }
@@ -34,7 +34,7 @@ resource "aws_lambda_alias" "test_alias" {
 
 * `name` - (Required) Name for the alias you are creating. Pattern: `(?!^[0-9]+$)([a-zA-Z0-9-_]+)`
 * `description` - (Optional) Description of the alias.
-* `function_name` - (Required) The function ARN of the Lambda function for which you want to create an alias.
+* `function_name` - (Required) Lambda Function name or ARN.
 * `function_version` - (Required) Lambda function version for which you are creating the alias. Pattern: `(\$LATEST|[0-9]+)`.
 * `routing_config` - (Optional) The Lambda alias' route configuration settings. Fields documented below
 
@@ -56,5 +56,5 @@ For **routing_config** the following attributes are supported:
 Lambda Function Aliases can be imported using the `function_name/alias`, e.g.
 
 ```
-$ terraform import aws_lambda_function_alias.test_lambda_alias my_test_lambda_function/my_alias
+$ terraform import aws_lambda_alias.test_lambda_alias my_test_lambda_function/my_alias
 ```

@@ -398,6 +398,18 @@ func (p *Processor) parseBlockStatements(statements []ast.Stmt) {
 			if !cuddledWithLastStmt {
 				checkingErr := atLeastOneInListsMatch(rightAndLeftHandSide, p.config.ErrorVariableNames)
 				if checkingErr {
+					// We only want to enforce cuddling error checks if the
+					// error was assigned on the line above. See
+					// https://github.com/bombsimon/wsl/issues/78.
+					// This is needed since `assignedOnLineAbove` is not
+					// actually just assignments but everything from LHS in the
+					// previous statement. This means that if previous line was
+					// `if err ...`, `err` will now be in the list
+					// `assignedOnLineAbove`.
+					if _, ok := previousStatement.(*ast.AssignStmt); !ok {
+						continue
+					}
+
 					if checkingErrInitializedInline() {
 						continue
 					}

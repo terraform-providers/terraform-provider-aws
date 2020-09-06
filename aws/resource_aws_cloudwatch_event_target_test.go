@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -432,9 +432,9 @@ resource "aws_cloudwatch_event_rule" "test" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  rule      = "${aws_cloudwatch_event_rule.test.name}"
+  rule      = aws_cloudwatch_event_rule.test.name
   target_id = "%s"
-  arn       = "${aws_sns_topic.test.arn}"
+  arn       = aws_sns_topic.test.arn
 }
 
 resource "aws_sns_topic" "test" {
@@ -451,8 +451,8 @@ resource "aws_cloudwatch_event_rule" "test" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  rule = "${aws_cloudwatch_event_rule.test.name}"
-  arn  = "${aws_sns_topic.test.arn}"
+  rule = aws_cloudwatch_event_rule.test.name
+  arn  = aws_sns_topic.test.arn
 }
 
 resource "aws_sns_topic" "test" {
@@ -466,7 +466,7 @@ func testAccAWSCloudWatchEventTargetConfig_full(ruleName, targetName, rName stri
 resource "aws_cloudwatch_event_rule" "test" {
   name                = "%s"
   schedule_expression = "rate(1 hour)"
-  role_arn            = "${aws_iam_role.role.arn}"
+  role_arn            = aws_iam_role.role.arn
 }
 
 resource "aws_iam_role" "role" {
@@ -491,7 +491,7 @@ POLICY
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "%s_policy"
-  role = "${aws_iam_role.role.id}"
+  role = aws_iam_role.role.id
 
   policy = <<EOF
 {
@@ -513,14 +513,15 @@ EOF
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  rule      = "${aws_cloudwatch_event_rule.test.name}"
+  rule      = aws_cloudwatch_event_rule.test.name
   target_id = "%s"
 
   input = <<INPUT
 { "source": ["aws.cloudtrail"] }
 INPUT
 
-  arn = "${aws_kinesis_stream.test.arn}"
+
+  arn = aws_kinesis_stream.test.arn
 }
 
 resource "aws_kinesis_stream" "test" {
@@ -571,9 +572,9 @@ PATTERN
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_ssm_document.test.arn}"
-  rule     = "${aws_cloudwatch_event_rule.console.id}"
-  role_arn = "${aws_iam_role.test_role.arn}"
+  arn      = aws_ssm_document.test.arn
+  rule     = aws_cloudwatch_event_rule.console.id
+  role_arn = aws_iam_role.test_role.arn
 
   run_command_targets {
     key    = "tag:Name"
@@ -603,7 +604,7 @@ EOF
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "%s"
-  role = "${aws_iam_role.test_role.id}"
+  role = aws_iam_role.test_role.id
 
   policy = <<EOF
 {
@@ -637,22 +638,22 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "subnet" {
-  vpc_id     = "${aws_vpc.vpc.id}"
+  vpc_id     = aws_vpc.vpc.id
   cidr_block = "10.1.1.0/24"
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_ecs_cluster.test.id}"
-  rule     = "${aws_cloudwatch_event_rule.schedule.id}"
-  role_arn = "${aws_iam_role.test_role.arn}"
+  arn      = aws_ecs_cluster.test.id
+  rule     = aws_cloudwatch_event_rule.schedule.id
+  role_arn = aws_iam_role.test_role.arn
 
   ecs_target {
     task_count          = 1
-    task_definition_arn = "${aws_ecs_task_definition.task.arn}"
+    task_definition_arn = aws_ecs_task_definition.task.arn
     launch_type         = "FARGATE"
 
     network_configuration {
-      subnets = ["${aws_subnet.subnet.id}"]
+      subnets = [aws_subnet.subnet.id]
     }
   }
 }
@@ -679,7 +680,7 @@ EOF
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "%s"
-  role = "${aws_iam_role.test_role.id}"
+  role = aws_iam_role.test_role.id
 
   policy = <<EOF
 {
@@ -739,21 +740,21 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "subnet" {
-  vpc_id     = "${aws_vpc.vpc.id}"
+  vpc_id     = aws_vpc.vpc.id
   cidr_block = "10.1.1.0/24"
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_ecs_cluster.test.id}"
-  rule     = "${aws_cloudwatch_event_rule.schedule.id}"
-  role_arn = "${aws_iam_role.test_role.arn}"
+  arn      = aws_ecs_cluster.test.id
+  rule     = aws_cloudwatch_event_rule.schedule.id
+  role_arn = aws_iam_role.test_role.arn
 
   ecs_target {
-    task_definition_arn = "${aws_ecs_task_definition.task.arn}"
+    task_definition_arn = aws_ecs_task_definition.task.arn
     launch_type         = "FARGATE"
 
     network_configuration {
-      subnets = ["${aws_subnet.subnet.id}"]
+      subnets = [aws_subnet.subnet.id]
     }
   }
 }
@@ -780,7 +781,7 @@ EOF
 
 resource "aws_iam_role_policy" "test_policy" {
   name = "%[1]s"
-  role = "${aws_iam_role.test_role.id}"
+  role = aws_iam_role.test_role.id
 
   policy = <<EOF
 {
@@ -835,19 +836,19 @@ resource "aws_cloudwatch_event_rule" "cloudwatch_event_rule" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_batch_job_queue.batch_job_queue.arn}"
-  rule     = "${aws_cloudwatch_event_rule.cloudwatch_event_rule.id}"
-  role_arn = "${aws_iam_role.event_iam_role.arn}"
+  arn      = aws_batch_job_queue.batch_job_queue.arn
+  rule     = aws_cloudwatch_event_rule.cloudwatch_event_rule.id
+  role_arn = aws_iam_role.event_iam_role.arn
 
   batch_target {
-    job_definition = "${aws_batch_job_definition.batch_job_definition.arn}"
+    job_definition = aws_batch_job_definition.batch_job_definition.arn
     job_name       = "%[1]s"
   }
 
   depends_on = [
-    "aws_batch_job_queue.batch_job_queue",
-    "aws_batch_job_definition.batch_job_definition",
-    "aws_iam_role.event_iam_role",
+    aws_batch_job_queue.batch_job_queue,
+    aws_batch_job_definition.batch_job_definition,
+    aws_iam_role.event_iam_role,
   ]
 }
 
@@ -890,13 +891,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_policy_attachment" {
-  role       = "${aws_iam_role.ecs_iam_role.name}"
+  role       = aws_iam_role.ecs_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
 resource "aws_iam_instance_profile" "iam_instance_profile" {
   name = "ecs_%[1]s"
-  role = "${aws_iam_role.ecs_iam_role.name}"
+  role = aws_iam_role.ecs_iam_role.name
 }
 
 resource "aws_iam_role" "batch_iam_role" {
@@ -919,7 +920,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "batch_policy_attachment" {
-  role       = "${aws_iam_role.batch_iam_role.name}"
+  role       = aws_iam_role.batch_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
 
@@ -932,7 +933,7 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "subnet" {
-  vpc_id     = "${aws_vpc.vpc.id}"
+  vpc_id     = aws_vpc.vpc.id
   cidr_block = "10.1.1.0/24"
 }
 
@@ -940,7 +941,7 @@ resource "aws_batch_compute_environment" "batch_compute_environment" {
   compute_environment_name = "%[1]s"
 
   compute_resources {
-    instance_role = "${aws_iam_instance_profile.iam_instance_profile.arn}"
+    instance_role = aws_iam_instance_profile.iam_instance_profile.arn
 
     instance_type = [
       "c4.large",
@@ -950,26 +951,26 @@ resource "aws_batch_compute_environment" "batch_compute_environment" {
     min_vcpus = 0
 
     security_group_ids = [
-      "${aws_security_group.security_group.id}",
+      aws_security_group.security_group.id,
     ]
 
     subnets = [
-      "${aws_subnet.subnet.id}",
+      aws_subnet.subnet.id,
     ]
 
     type = "EC2"
   }
 
-  service_role = "${aws_iam_role.batch_iam_role.arn}"
+  service_role = aws_iam_role.batch_iam_role.arn
   type         = "MANAGED"
-  depends_on   = ["aws_iam_role_policy_attachment.batch_policy_attachment"]
+  depends_on   = [aws_iam_role_policy_attachment.batch_policy_attachment]
 }
 
 resource "aws_batch_job_queue" "batch_job_queue" {
   name                 = "%[1]s"
   state                = "ENABLED"
   priority             = 1
-  compute_environments = ["${aws_batch_compute_environment.batch_compute_environment.arn}"]
+  compute_environments = [aws_batch_compute_environment.batch_compute_environment.arn]
 }
 
 resource "aws_batch_job_definition" "batch_job_definition" {
@@ -988,6 +989,7 @@ resource "aws_batch_job_definition" "batch_job_definition" {
     "ulimits": [ ]
 }
 CONTAINER_PROPERTIES
+
 }
 `, rName)
 }
@@ -1001,9 +1003,9 @@ resource "aws_cloudwatch_event_rule" "cloudwatch_event_rule" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn      = "${aws_kinesis_stream.kinesis_stream.arn}"
-  rule     = "${aws_cloudwatch_event_rule.cloudwatch_event_rule.id}"
-  role_arn = "${aws_iam_role.iam_role.arn}"
+  arn      = aws_kinesis_stream.kinesis_stream.arn
+  rule     = aws_cloudwatch_event_rule.cloudwatch_event_rule.id
+  role_arn = aws_iam_role.iam_role.arn
 
   kinesis_target {
     partition_key_path = "$.detail"
@@ -1045,8 +1047,8 @@ resource "aws_cloudwatch_event_rule" "cloudwatch_event_rule" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn  = "${aws_sqs_queue.sqs_queue.arn}"
-  rule = "${aws_cloudwatch_event_rule.cloudwatch_event_rule.id}"
+  arn  = aws_sqs_queue.sqs_queue.arn
+  rule = aws_cloudwatch_event_rule.cloudwatch_event_rule.id
 
   sqs_target {
     message_group_id = "event_group"
@@ -1085,8 +1087,8 @@ EOF
 resource "aws_lambda_function" "lambda" {
   function_name    = "tf_acc_input_transformer"
   filename         = "test-fixtures/lambdatest.zip"
-  source_code_hash = "${filebase64sha256("test-fixtures/lambdatest.zip")}"
-  role             = "${aws_iam_role.iam_for_lambda.arn}"
+  source_code_hash = filebase64sha256("test-fixtures/lambdatest.zip")
+  role             = aws_iam_role.iam_for_lambda.arn
   handler          = "exports.example"
   runtime          = "nodejs12.x"
 }
@@ -1099,8 +1101,8 @@ resource "aws_cloudwatch_event_rule" "schedule" {
 }
 
 resource "aws_cloudwatch_event_target" "test" {
-  arn  = "${aws_lambda_function.lambda.arn}"
-  rule = "${aws_cloudwatch_event_rule.schedule.id}"
+  arn  = aws_lambda_function.lambda.arn
+  rule = aws_cloudwatch_event_rule.schedule.id
 
   input_transformer {
     input_paths = {
@@ -1116,6 +1118,7 @@ resource "aws_cloudwatch_event_target" "test" {
   "detail": {}
 }
 EOF
+
   }
 }
 `, rName)

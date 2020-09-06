@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -37,10 +38,6 @@ func resourceAwsFlowLog() *schema.Resource {
 				ForceNew:      true,
 				ConflictsWith: []string{"log_group_name"},
 				ValidateFunc:  validateArn,
-				StateFunc: func(arn interface{}) string {
-					// aws_cloudwatch_log_group arn attribute references contain a trailing `:*`, which breaks functionality
-					return strings.TrimSuffix(arn.(string), ":*")
-				},
 			},
 
 			"log_destination_type": {
@@ -111,6 +108,10 @@ func resourceAwsFlowLog() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -187,7 +188,7 @@ func resourceAwsLogFlowCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error: multiple Flow Logs created for (%s)", resourceId)
 	}
 
-	d.SetId(*resp.FlowLogIds[0])
+	d.SetId(aws.StringValue(resp.FlowLogIds[0]))
 
 	return resourceAwsLogFlowRead(d, meta)
 }
@@ -202,13 +203,13 @@ func resourceAwsLogFlowRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.DescribeFlowLogs(opts)
 	if err != nil {
-		log.Printf("[WARN] Error describing Flow Logs for id (%s)", d.Id())
+		log.Printf("[WARN] Flow Log (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if len(resp.FlowLogs) == 0 {
-		log.Printf("[WARN] No Flow Logs found for id (%s)", d.Id())
+		log.Printf("[WARN] Flow Log (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -236,6 +237,16 @@ func resourceAwsLogFlowRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(fl.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("vpc-flow-log/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

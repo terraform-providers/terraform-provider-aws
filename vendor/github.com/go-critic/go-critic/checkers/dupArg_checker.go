@@ -4,21 +4,21 @@ import (
 	"go/ast"
 	"go/types"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astequal"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "dupArg"
 	info.Tags = []string{"diagnostic"}
 	info.Summary = "Detects suspicious duplicated arguments"
 	info.Before = `copy(dst, dst)`
 	info.After = `copy(dst, src)`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		c := &dupArgChecker{ctx: ctx}
 		// newMatcherFunc returns a function that matches a call if
 		// args[xIndex] and args[yIndex] are equal.
@@ -101,7 +101,7 @@ func init() {
 
 type dupArgChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 
 	matchers map[string]func(*ast.CallExpr) bool
 }

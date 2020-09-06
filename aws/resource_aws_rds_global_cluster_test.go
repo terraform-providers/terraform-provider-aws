@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -296,6 +296,34 @@ func TestAccAWSRdsGlobalCluster_EngineVersion_AuroraPostgresql(t *testing.T) {
 	})
 }
 
+func TestAccAWSRdsGlobalCluster_SourceDbClusterIdentifier(t *testing.T) {
+	var globalCluster1 rds.GlobalCluster
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	clusterResourceName := "aws_rds_cluster.test"
+	resourceName := "aws_rds_global_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRdsGlobalCluster(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRdsGlobalClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRdsGlobalClusterConfigSourceDbClusterIdentifier(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRdsGlobalClusterExists(resourceName, &globalCluster1),
+					resource.TestCheckResourceAttrPair(resourceName, "source_db_cluster_identifier", clusterResourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"force_destroy", "source_db_cluster_identifier"},
+			},
+		},
+	})
+}
+
 func TestAccAWSRdsGlobalCluster_StorageEncrypted(t *testing.T) {
 	var globalCluster1, globalCluster2 rds.GlobalCluster
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -488,6 +516,31 @@ resource "aws_rds_global_cluster" "test" {
   global_cluster_identifier = %q
 }
 `, engine, engineVersion, rName)
+}
+
+func testAccAWSRdsGlobalClusterConfigSourceDbClusterIdentifier(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_rds_cluster" "test" {
+  cluster_identifier  = %[1]q
+  engine              = "aurora-postgresql"
+  engine_version      = "10.11" # Minimum supported version for Global Clusters
+  master_password     = "mustbeeightcharacters"
+  master_username     = "test"
+  skip_final_snapshot = true
+
+  # global_cluster_identifier cannot be Computed
+
+  lifecycle {
+    ignore_changes = [global_cluster_identifier]
+  }
+}
+
+resource "aws_rds_global_cluster" "test" {
+  force_destroy                = true
+  global_cluster_identifier    = %[1]q
+  source_db_cluster_identifier = aws_rds_cluster.test.arn
+}
+`, rName)
 }
 
 func testAccAWSRdsGlobalClusterConfigStorageEncrypted(rName string, storageEncrypted bool) string {

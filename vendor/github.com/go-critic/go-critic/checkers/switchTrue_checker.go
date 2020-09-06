@@ -3,12 +3,12 @@ package checkers
 import (
 	"go/ast"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "switchTrue"
 	info.Tags = []string{"style"}
 	info.Summary = "Detects switch-over-bool statements that use explicit `true` tag value"
@@ -21,14 +21,14 @@ switch {
 case x > y:
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForStmt(&switchTrueChecker{ctx: ctx})
 	})
 }
 
 type switchTrueChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *switchTrueChecker) VisitStmt(stmt ast.Stmt) {

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLBSSLNegotiationPolicy_basic(t *testing.T) {
@@ -96,8 +96,12 @@ func testAccCheckLBSSLNegotiationPolicyDestroy(s *terraform.State) error {
 			}
 		} else {
 			// Check that the SSL Negotiation Policy is destroyed
-			elbName, _, policyName := resourceAwsLBSSLNegotiationPolicyParseId(rs.Primary.ID)
-			_, err := elbconn.DescribeLoadBalancerPolicies(&elb.DescribeLoadBalancerPoliciesInput{
+			elbName, _, policyName, err := resourceAwsLBSSLNegotiationPolicyParseId(rs.Primary.ID)
+			if err != nil {
+				return err
+			}
+
+			_, err = elbconn.DescribeLoadBalancerPolicies(&elb.DescribeLoadBalancerPoliciesInput{
 				LoadBalancerName: aws.String(elbName),
 				PolicyNames:      []*string{aws.String(policyName)},
 			})
@@ -129,7 +133,11 @@ func testAccCheckLBSSLNegotiationPolicy(elbResource string, policyResource strin
 
 		elbconn := testAccProvider.Meta().(*AWSClient).elbconn
 
-		elbName, _, policyName := resourceAwsLBSSLNegotiationPolicyParseId(policy.Primary.ID)
+		elbName, _, policyName, err := resourceAwsLBSSLNegotiationPolicyParseId(policy.Primary.ID)
+		if err != nil {
+			return err
+		}
+
 		resp, err := elbconn.DescribeLoadBalancerPolicies(&elb.DescribeLoadBalancerPoliciesInput{
 			LoadBalancerName: aws.String(elbName),
 			PolicyNames:      []*string{aws.String(policyName)},
@@ -201,20 +209,20 @@ resource "aws_iam_server_certificate" "test" {
 
 resource "aws_elb" "test" {
   name               = "%[1]s"
-  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  availability_zones = [data.aws_availability_zones.available.names[0]]
 
   listener {
     instance_port      = 8000
     instance_protocol  = "https"
     lb_port            = 443
     lb_protocol        = "https"
-    ssl_certificate_id = "${aws_iam_server_certificate.test.arn}"
+    ssl_certificate_id = aws_iam_server_certificate.test.arn
   }
 }
 
 resource "aws_lb_ssl_negotiation_policy" "test" {
   name          = "foo-policy"
-  load_balancer = "${aws_elb.test.id}"
+  load_balancer = aws_elb.test.id
   lb_port       = 443
 
   attribute {

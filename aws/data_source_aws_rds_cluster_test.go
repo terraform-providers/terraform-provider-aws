@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSRDSCluster_basic(t *testing.T) {
@@ -42,7 +42,7 @@ resource "aws_rds_cluster" "test" {
   cluster_identifier              = "%s"
   database_name                   = "mydb"
   db_cluster_parameter_group_name = "default.aurora5.6"
-  db_subnet_group_name            = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name            = aws_db_subnet_group.test.name
   master_password                 = "mustbeeightcharacters"
   master_username                 = "foo"
   skip_final_snapshot             = true
@@ -61,7 +61,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -71,7 +71,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -82,11 +82,11 @@ resource "aws_subnet" "b" {
 
 resource "aws_db_subnet_group" "test" {
   name       = "%s"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 
 data "aws_rds_cluster" "test" {
-  cluster_identifier = "${aws_rds_cluster.test.cluster_identifier}"
+  cluster_identifier = aws_rds_cluster.test.cluster_identifier
 }
 `, clusterName, clusterName)
 }

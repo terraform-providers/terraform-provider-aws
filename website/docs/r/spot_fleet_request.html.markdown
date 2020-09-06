@@ -29,7 +29,7 @@ resource "aws_spot_fleet_request" "cheap_compute" {
     ami                      = "ami-1234"
     spot_price               = "2.793"
     placement_tenancy        = "dedicated"
-    iam_instance_profile_arn = "${aws_iam_instance_profile.example.arn}"
+    iam_instance_profile_arn = aws_iam_instance_profile.example.arn
   }
 
   launch_specification {
@@ -37,7 +37,7 @@ resource "aws_spot_fleet_request" "cheap_compute" {
     ami                      = "ami-5678"
     key_name                 = "my-key"
     spot_price               = "1.117"
-    iam_instance_profile_arn = "${aws_iam_instance_profile.example.arn}"
+    iam_instance_profile_arn = aws_iam_instance_profile.example.arn
     availability_zone        = "us-west-1a"
     subnet_id                = "subnet-1234"
     weighted_capacity        = 35
@@ -62,7 +62,6 @@ resource "aws_launch_template" "foo" {
   image_id      = "ami-516b9131"
   instance_type = "m1.small"
   key_name      = "some-key"
-  spot_price    = "0.05"
 }
 
 resource "aws_spot_fleet_request" "foo" {
@@ -73,12 +72,12 @@ resource "aws_spot_fleet_request" "foo" {
 
   launch_template_config {
     launch_template_specification {
-      id      = "${aws_launch_template.foo.id}"
-      version = "${aws_launch_template.foo.latest_version}"
+      id      = aws_launch_template.foo.id
+      version = aws_launch_template.foo.latest_version
     }
   }
 
-  depends_on = ["aws_iam_policy_attachment.test-attach"]
+  depends_on = [aws_iam_policy_attachment.test-attach]
 }
 ```
 
@@ -115,7 +114,7 @@ resource "aws_spot_fleet_request" "foo" {
 
 ```hcl
 data "aws_subnet_ids" "example" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 }
 
 resource "aws_launch_template" "foo" {
@@ -123,7 +122,6 @@ resource "aws_launch_template" "foo" {
   image_id      = "ami-516b9131"
   instance_type = "m1.small"
   key_name      = "some-key"
-  spot_price    = "0.05"
 }
 
 resource "aws_spot_fleet_request" "foo" {
@@ -134,21 +132,21 @@ resource "aws_spot_fleet_request" "foo" {
 
   launch_template_config {
     launch_template_specification {
-      id      = "${aws_launch_template.foo.id}"
-      version = "${aws_launch_template.foo.latest_version}"
+      id      = aws_launch_template.foo.id
+      version = aws_launch_template.foo.latest_version
     }
     overrides {
-      subnet_id = "${data.aws_subnets.example.ids[0]}"
+      subnet_id = data.aws_subnets.example.ids[0]
     }
     overrides {
-      subnet_id = "${data.aws_subnets.example.ids[1]}"
+      subnet_id = data.aws_subnets.example.ids[1]
     }
     overrides {
-      subnet_id = "${data.aws_subnets.example.ids[2]}"
+      subnet_id = data.aws_subnets.example.ids[2]
     }
   }
 
-  depends_on = ["aws_iam_policy_attachment.test-attach"]
+  depends_on = [aws_iam_policy_attachment.test-attach]
 }
 ```
 
@@ -184,9 +182,9 @@ across different markets and instance types. Conflicts with `launch_template_con
   the Spot pools specified by the Spot fleet request. The default is
   `lowestPrice`.
 * `instance_pools_to_use_count` - (Optional; Default: 1)
-  The number of Spot pools across which to allocate your target Spot capacity. 
-  Valid only when `allocation_strategy` is set to `lowestPrice`. Spot Fleet selects 
-  the cheapest Spot pools and evenly allocates your target Spot capacity across 
+  The number of Spot pools across which to allocate your target Spot capacity.
+  Valid only when `allocation_strategy` is set to `lowestPrice`. Spot Fleet selects
+  the cheapest Spot pools and evenly allocates your target Spot capacity across
   the number of Spot pools that you specify.
 * `excess_capacity_termination_policy` - Indicates whether running Spot
   instances should be terminated if the target capacity of the Spot fleet
@@ -198,7 +196,7 @@ across different markets and instance types. Conflicts with `launch_template_con
   `terminate`.
 * `fleet_type` - (Optional) The type of fleet request. Indicates whether the Spot Fleet only requests the target
   capacity or also attempts to maintain it. Default is `maintain`.
-* `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request. Defaults to 24 hours.
+* `valid_until` - (Optional) The end date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). At this point, no new Spot instance requests are placed or enabled to fulfill the request.
 * `valid_from` - (Optional) The start date and time of the request, in UTC [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.8) format(for example, YYYY-MM-DDTHH:MM:SSZ). The default is to start fulfilling the request immediately.
 * `load_balancers` (Optional) A list of elastic load balancer names to add to the Spot fleet.
 * `target_group_arns` (Optional) A list of `aws_alb_target_group` ARNs, for use with Application Load Balancing.
@@ -209,7 +207,7 @@ across different markets and instance types. Conflicts with `launch_template_con
 The `launch_template_config` block supports the following:
 
 * `launch_template_specification` - (Required) Launch template specification. See [Launch Template Specification](#launch-template-specification) below for more details.
-* `overrides` - (Optional) One or more override configurations. See [Overrides](#overrides) below for more details. 
+* `overrides` - (Optional) One or more override configurations. See [Overrides](#overrides) below for more details.
 
 ### Launch Template Specification
 
@@ -217,7 +215,7 @@ The `launch_template_config` block supports the following:
 * `name` - The name of the launch template. Conflicts with `id`.
 * `version` - (Optional) Template version. Unlike the autoscaling equivalent, does not support `$Latest` or `$Default`, so use the launch_template resource's attribute, e.g. `"${aws_launch_template.foo.latest_version}"`. It will use the default version if omitted.
 
-    **Note:** The specified launch template can specify only a subset of the 
+    **Note:** The specified launch template can specify only a subset of the
     inputs of [`aws_launch_template`](launch_template.html).  There are limitations on
     what you can specify as spot fleet does not support all the attributes that are supported by autoscaling groups. [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#launch-templates-spot-fleet) is currently sparse, but at least `instance_initiated_shutdown_behavior` is confirmed unsupported.
 
@@ -235,7 +233,7 @@ The `launch_template_config` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 10 mins) Used when requesting the spot instance (only valid if `wait_for_fulfillment = true`)
-* `delete` - (Defaults to 5 mins) Used when destroying the spot instance
+* `delete` - (Defaults to 15 mins) Used when destroying the spot instance
 
 ## Attributes Reference
 

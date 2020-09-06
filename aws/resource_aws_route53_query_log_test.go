@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -68,7 +68,7 @@ func testSweepRoute53QueryLogs(region string) error {
 	return sweeperErrs.ErrorOrNil()
 }
 
-func TestAccAWSRoute53QueryLog_Basic(t *testing.T) {
+func TestAccAWSRoute53QueryLog_basic(t *testing.T) {
 	// The underlying resources are sensitive to where they are located
 	// Use us-east-1 for testing
 	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
@@ -179,7 +179,7 @@ data "aws_iam_policy_document" "test" {
 
 resource "aws_cloudwatch_log_resource_policy" "test" {
   policy_name     = "%[1]s"
-  policy_document = "${data.aws_iam_policy_document.test.json}"
+  policy_document = data.aws_iam_policy_document.test.json
 }
 
 resource "aws_route53_zone" "test" {
@@ -187,10 +187,10 @@ resource "aws_route53_zone" "test" {
 }
 
 resource "aws_route53_query_log" "test" {
-  depends_on = ["aws_cloudwatch_log_resource_policy.test"]
+  depends_on = [aws_cloudwatch_log_resource_policy.test]
 
-  cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.test.arn}"
-  zone_id                  = "${aws_route53_zone.test.zone_id}"
+  cloudwatch_log_group_arn = aws_cloudwatch_log_group.test.arn
+  zone_id                  = aws_route53_zone.test.zone_id
 }
 `, rName)
 }

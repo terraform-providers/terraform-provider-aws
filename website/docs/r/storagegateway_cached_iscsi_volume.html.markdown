@@ -16,14 +16,14 @@ Manages an AWS Storage Gateway cached iSCSI volume.
 
 ## Example Usage
 
-~> **NOTE:** These examples are referencing the [`aws_storagegateway_cache`](/docs/providers/aws/r/storagegateway_cache.html) resource `gateway_arn` attribute to ensure Terraform properly adds cache before creating the volume. If you are not using this method, you may need to declare an expicit dependency (e.g. via `depends_on = ["aws_storagegateway_cache.example"]`) to ensure proper ordering.
+~> **NOTE:** These examples are referencing the [`aws_storagegateway_cache`](/docs/providers/aws/r/storagegateway_cache.html) resource `gateway_arn` attribute to ensure Terraform properly adds cache before creating the volume. If you are not using this method, you may need to declare an expicit dependency (e.g. via `depends_on = [aws_storagegateway_cache.example]`) to ensure proper ordering.
 
 ### Create Empty Cached iSCSI Volume
 
 ```hcl
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
-  gateway_arn          = "${aws_storagegateway_cache.example.gateway_arn}"
-  network_interface_id = "${aws_instance.example.private_ip}"
+  gateway_arn          = aws_storagegateway_cache.example.gateway_arn
+  network_interface_id = aws_instance.example.private_ip
   target_name          = "example"
   volume_size_in_bytes = 5368709120 # 5 GB
 }
@@ -33,11 +33,11 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ```hcl
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
-  gateway_arn          = "${aws_storagegateway_cache.example.gateway_arn}"
-  network_interface_id = "${aws_instance.example.private_ip}"
-  snapshot_id          = "${aws_ebs_snapshot.example.id}"
+  gateway_arn          = aws_storagegateway_cache.example.gateway_arn
+  network_interface_id = aws_instance.example.private_ip
+  snapshot_id          = aws_ebs_snapshot.example.id
   target_name          = "example"
-  volume_size_in_bytes = "${aws_ebs_snapshot.example.volume_size * 1024 * 1024 * 1024}"
+  volume_size_in_bytes = aws_ebs_snapshot.example.volume_size * 1024 * 1024 * 1024
 }
 ```
 
@@ -45,11 +45,11 @@ resource "aws_storagegateway_cached_iscsi_volume" "example" {
 
 ```hcl
 resource "aws_storagegateway_cached_iscsi_volume" "example" {
-  gateway_arn          = "${aws_storagegateway_cache.example.gateway_arn}"
-  network_interface_id = "${aws_instance.example.private_ip}"
-  source_volume_arn    = "${aws_storagegateway_cached_iscsi_volume.existing.arn}"
+  gateway_arn          = aws_storagegateway_cache.example.gateway_arn
+  network_interface_id = aws_instance.example.private_ip
+  source_volume_arn    = aws_storagegateway_cached_iscsi_volume.existing.arn
   target_name          = "example"
-  volume_size_in_bytes = "${aws_storagegateway_cached_iscsi_volume.existing.volume_size_in_bytes}"
+  volume_size_in_bytes = aws_storagegateway_cached_iscsi_volume.existing.volume_size_in_bytes
 }
 ```
 
@@ -63,6 +63,8 @@ The following arguments are supported:
 * `volume_size_in_bytes` - (Required) The size of the volume in bytes.
 * `snapshot_id` - (Optional) The snapshot ID of the snapshot to restore as the new cached volume. e.g. `snap-1122aabb`.
 * `source_volume_arn` - (Optional) The ARN for an existing volume. Specifying this ARN makes the new volume into an exact copy of the specified existing volume's latest recovery point. The `volume_size_in_bytes` value for this new volume must be equal to or larger than the size of the existing volume, in bytes.
+* `kms_encrypted` - (Optional) Set to `true` to use Amazon S3 server side encryption with your own AWS KMS key, or `false` to use a key managed by Amazon S3.
+* `kms_key` - (Optional) The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server side encryption. Is required when `kms_encrypted` is set.
 * `tags` - (Optional) Key-value map of resource tags
 
 ## Attribute Reference

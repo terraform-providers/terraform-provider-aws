@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceRedshiftCluster_basic(t *testing.T) {
@@ -92,7 +92,7 @@ resource "aws_redshift_cluster" "test" {
 }
 
 data "aws_redshift_cluster" "test" {
-  cluster_identifier = "${aws_redshift_cluster.test.cluster_identifier}"
+  cluster_identifier = aws_redshift_cluster.test.cluster_identifier
 }
 `, rInt)
 }
@@ -106,23 +106,23 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "foo" {
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 }
 
 resource "aws_subnet" "bar" {
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2b"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 }
 
 resource "aws_redshift_subnet_group" "test" {
   name       = "tf-redshift-subnet-group-%d"
-  subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+  subnet_ids = [aws_subnet.foo.id, aws_subnet.bar.id]
 }
 
 resource "aws_security_group" "test" {
   name   = "tf-redshift-sg-%d"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_redshift_cluster" "test" {
@@ -135,13 +135,13 @@ resource "aws_redshift_cluster" "test" {
   cluster_type              = "multi-node"
   number_of_nodes           = 2
   publicly_accessible       = false
-  cluster_subnet_group_name = "${aws_redshift_subnet_group.test.name}"
-  vpc_security_group_ids    = ["${aws_security_group.test.id}"]
+  cluster_subnet_group_name = aws_redshift_subnet_group.test.name
+  vpc_security_group_ids    = [aws_security_group.test.id]
   skip_final_snapshot       = true
 }
 
 data "aws_redshift_cluster" "test" {
-  cluster_identifier = "${aws_redshift_cluster.test.cluster_identifier}"
+  cluster_identifier = aws_redshift_cluster.test.cluster_identifier
 }
 `, rInt, rInt, rInt)
 }
@@ -161,29 +161,29 @@ data "aws_iam_policy_document" "test" {
     resources = ["${aws_s3_bucket.test.arn}/*"]
 
     principals {
-      identifiers = ["${data.aws_redshift_service_account.test.arn}"]
+      identifiers = [data.aws_redshift_service_account.test.arn]
       type        = "AWS"
     }
   }
 
   statement {
     actions   = ["s3:GetBucketAcl"]
-    resources = ["${aws_s3_bucket.test.arn}"]
+    resources = [aws_s3_bucket.test.arn]
 
     principals {
-      identifiers = ["${data.aws_redshift_service_account.test.arn}"]
+      identifiers = [data.aws_redshift_service_account.test.arn]
       type        = "AWS"
     }
   }
 }
 
 resource "aws_s3_bucket_policy" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
-  policy = "${data.aws_iam_policy_document.test.json}"
+  bucket = aws_s3_bucket.test.bucket
+  policy = data.aws_iam_policy_document.test.json
 }
 
 resource "aws_redshift_cluster" "test" {
-  depends_on = ["aws_s3_bucket_policy.test"]
+  depends_on = [aws_s3_bucket_policy.test]
 
   cluster_identifier  = "tf-redshift-cluster-%[1]d"
   cluster_type        = "single-node"
@@ -194,14 +194,14 @@ resource "aws_redshift_cluster" "test" {
   skip_final_snapshot = true
 
   logging {
-    bucket_name   = "${aws_s3_bucket.test.id}"
+    bucket_name   = aws_s3_bucket.test.id
     enable        = true
     s3_key_prefix = "cluster-logging/"
   }
 }
 
 data "aws_redshift_cluster" "test" {
-  cluster_identifier = "${aws_redshift_cluster.test.cluster_identifier}"
+  cluster_identifier = aws_redshift_cluster.test.cluster_identifier
 }
 `, rInt)
 }

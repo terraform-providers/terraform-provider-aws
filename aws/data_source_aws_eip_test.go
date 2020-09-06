@@ -2,11 +2,10 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsEip_Filter(t *testing.T) {
@@ -157,33 +156,15 @@ func TestAccDataSourceAwsEip_Instance(t *testing.T) {
 }
 
 func TestAccDataSourceAWSEIP_CustomerOwnedIpv4Pool(t *testing.T) {
-	// Hide Outposts testing behind consistent environment variable
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
-	// Local Gateway Route Table ID filtering in DescribeCoipPools is not currently working
-	poolId := os.Getenv("AWS_COIP_POOL_ID")
-	if poolId == "" {
-		t.Skip(
-			"Environment variable AWS_COIP_POOL_ID is not set. " +
-				"This environment variable must be set to the ID of " +
-				"a deployed Coip Pool to enable this test.")
-	}
-
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAWSEIPConfigCustomerOwnedIpv4Pool(poolId),
+				Config: testAccDataSourceAWSEIPConfigCustomerOwnedIpv4Pool(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "customer_owned_ipv4_pool", dataSourceName, "customer_owned_ipv4_pool"),
 					resource.TestCheckResourceAttrPair(resourceName, "customer_owned_ip", dataSourceName, "customer_owned_ip"),
@@ -193,17 +174,19 @@ func TestAccDataSourceAWSEIP_CustomerOwnedIpv4Pool(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAWSEIPConfigCustomerOwnedIpv4Pool(customerOwnedIpv4Pool string) string {
-	return fmt.Sprintf(`
+func testAccDataSourceAWSEIPConfigCustomerOwnedIpv4Pool() string {
+	return `
+data "aws_ec2_coip_pools" "test" {}
+
 resource "aws_eip" "test" {
-  customer_owned_ipv4_pool = %[1]q
+  customer_owned_ipv4_pool = tolist(data.aws_ec2_coip_pools.test.pool_ids)[0]
   vpc                      = true
 }
 
 data "aws_eip" "test" {
   id = aws_eip.test.id
 }
-`, customerOwnedIpv4Pool)
+`
 }
 
 func testAccDataSourceAwsEipConfigFilter(rName string) string {
@@ -219,7 +202,7 @@ resource "aws_eip" "test" {
 data "aws_eip" "test" {
   filter {
     name   = "tag:Name"
-    values = ["${aws_eip.test.tags.Name}"]
+    values = [aws_eip.test.tags.Name]
   }
 }
 `, rName)
@@ -231,7 +214,7 @@ resource "aws_eip" "test" {
 }
 
 data "aws_eip" "test" {
-  id = "${aws_eip.test.id}"
+  id = aws_eip.test.id
 }
 `
 
@@ -243,7 +226,7 @@ provider "aws" {
 resource "aws_eip" "test" {}
 
 data "aws_eip" "test" {
-  public_ip = "${aws_eip.test.public_ip}"
+  public_ip = aws_eip.test.public_ip
 }
 `
 
@@ -253,7 +236,7 @@ resource "aws_eip" "test" {
 }
 
 data "aws_eip" "test" {
-  public_ip = "${aws_eip.test.public_ip}"
+  public_ip = aws_eip.test.public_ip
 }
 `
 
@@ -269,7 +252,7 @@ resource "aws_eip" "test" {
 
 data "aws_eip" "test" {
   tags = {
-    Name = "${aws_eip.test.tags["Name"]}"
+    Name = aws_eip.test.tags["Name"]
   }
 }
 `, rName)
@@ -281,55 +264,44 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
   cidr_block = "10.1.0.0/24"
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id = "${aws_subnet.test.id}"
+  subnet_id = aws_subnet.test.id
 }
 
 resource "aws_eip" "test" {
-  vpc = true
-  network_interface = "${aws_network_interface.test.id}"
+  vpc               = true
+  network_interface = aws_network_interface.test.id
 }
 
 data "aws_eip" "test" {
   filter {
     name   = "network-interface-id"
-    values = ["${aws_eip.test.network_interface}"]
+    values = [aws_eip.test.network_interface]
   }
 }
 `
 
-const testAccDataSourceAwsEipConfigInstance = `
-data "aws_availability_zones" "available" {
-  # Error launching source instance: Unsupported: Your requested instance type (t2.micro) is not supported in your requested Availability Zone (us-west-2d).
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+var testAccDataSourceAwsEipConfigInstance = testAccAvailableAZsNoOptInDefaultExcludeConfig() + `
 resource "aws_vpc" "test" {
   cidr_block = "10.2.0.0/16"
 }
 
 resource "aws_subnet" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  vpc_id = "${aws_vpc.test.id}"
-  cidr_block = "10.2.0.0/24"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.2.0.0/24"
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 data "aws_ami" "test" {
@@ -342,20 +314,20 @@ data "aws_ami" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami = "${data.aws_ami.test.id}"
-  subnet_id = "${aws_subnet.test.id}"
+  ami           = data.aws_ami.test.id
+  subnet_id     = aws_subnet.test.id
   instance_type = "t2.micro"
 }
 
 resource "aws_eip" "test" {
-  vpc = true
-  instance = "${aws_instance.test.id}"
+  vpc      = true
+  instance = aws_instance.test.id
 }
 
 data "aws_eip" "test" {
   filter {
-    name = "instance-id"
-    values = ["${aws_eip.test.instance}"]
+    name   = "instance-id"
+    values = [aws_eip.test.instance]
   }
 }
 `

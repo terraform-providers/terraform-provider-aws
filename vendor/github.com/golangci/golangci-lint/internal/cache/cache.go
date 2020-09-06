@@ -14,7 +14,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -24,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/golangci/golangci-lint/internal/renameio"
+	"github.com/golangci/golangci-lint/internal/robustio"
 )
 
 // An ActionID is a cache action key, the hash of a complete description of a
@@ -81,7 +81,7 @@ func (c *Cache) fileName(id [HashSize]byte, key string) string {
 var errMissing = errors.New("cache entry not found")
 
 func IsErrMissing(err error) bool {
-	return err == errMissing
+	return errors.Cause(err) == errMissing
 }
 
 const (
@@ -199,26 +199,6 @@ func (c *Cache) get(id ActionID) (Entry, error) {
 	return Entry{buf, size, time.Unix(0, tm)}, nil
 }
 
-// GetFile looks up the action ID in the cache and returns
-// the name of the corresponding data file.
-func (c *Cache) GetFile(id ActionID) (file string, entry Entry, err error) {
-	entry, err = c.Get(id)
-	if err != nil {
-		return "", Entry{}, err
-	}
-
-	file, err = c.OutputFile(entry.OutputID)
-	if err != nil {
-		return "", Entry{}, err
-	}
-
-	info, err := os.Stat(file)
-	if err != nil || info.Size() != entry.Size {
-		return "", Entry{}, errMissing
-	}
-	return file, entry, nil
-}
-
 // GetBytes looks up the action ID in the cache and returns
 // the corresponding output bytes.
 // GetBytes should only be used for data that can be expected to fit in memory.
@@ -232,7 +212,7 @@ func (c *Cache) GetBytes(id ActionID) ([]byte, Entry, error) {
 		return nil, entry, err
 	}
 
-	data, err := ioutil.ReadFile(outputFile)
+	data, err := robustio.ReadFile(outputFile)
 	if err != nil {
 		return nil, entry, err
 	}
@@ -282,6 +262,9 @@ const (
 func (c *Cache) used(file string) error {
 	info, err := os.Stat(file)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return errMissing
+		}
 		return errors.Wrapf(err, "failed to stat file %s", file)
 	}
 

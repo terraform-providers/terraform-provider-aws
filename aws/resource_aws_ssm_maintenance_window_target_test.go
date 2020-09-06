@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSSMMaintenanceWindowTarget_basic(t *testing.T) {
@@ -312,7 +312,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name          = %[1]q
   description   = "This resource is for test purpose only"
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "INSTANCE"
 
   targets {
@@ -340,12 +340,12 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name          = %[1]q
   description   = "This resource is for test purpose only"
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "RESOURCE_GROUP"
 
   targets {
     key    = "resource-groups:ResourceTypeFilters"
-    values = ["AWS::EC2::INSTANCE","AWS::EC2::VPC"]
+    values = ["AWS::EC2::INSTANCE", "AWS::EC2::VPC"]
   }
 
   targets {
@@ -366,7 +366,7 @@ resource "aws_ssm_maintenance_window" "test" {
 }
 
 resource "aws_ssm_maintenance_window_target" "test" {
-  window_id     = "${aws_ssm_maintenance_window.test.id}"
+  window_id     = aws_ssm_maintenance_window.test.id
   resource_type = "INSTANCE"
 
   targets {
@@ -394,7 +394,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name              = %[1]q
   description       = "This resource is for test purpose only - updated"
-  window_id         = "${aws_ssm_maintenance_window.test.id}"
+  window_id         = aws_ssm_maintenance_window.test.id
   resource_type     = "INSTANCE"
   owner_information = "something"
 
@@ -423,7 +423,7 @@ resource "aws_ssm_maintenance_window" "test" {
 resource "aws_ssm_maintenance_window_target" "test" {
   name              = %[2]q
   description       = %[3]q
-  window_id         = "${aws_ssm_maintenance_window.test.id}"
+  window_id         = aws_ssm_maintenance_window.test.id
   resource_type     = "INSTANCE"
   owner_information = "something"
 

@@ -5,7 +5,6 @@ import (
 	"go/types"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
-	tfresource "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 const (
@@ -15,11 +14,21 @@ const (
 	TypeNameRetryError = `RetryError`
 )
 
+// retryErrorType is an internal representation of the SDK helper/resource.RetryError type
+//
+// This is used to prevent importing the real type since the project supports
+// multiple versions of the Terraform Plugin SDK, while allowing passes to
+// access the data in a familiar manner.
+type retryErrorType struct {
+	Err       error
+	Retryable bool
+}
+
 // RetryErrorInfo represents all gathered RetryError data for easier access
 type RetryErrorInfo struct {
 	AstCompositeLit *ast.CompositeLit
 	Fields          map[string]*ast.KeyValueExpr
-	RetryError      *tfresource.RetryError
+	RetryError      *retryErrorType
 	TypesInfo       *types.Info
 }
 
@@ -28,7 +37,7 @@ func NewRetryErrorInfo(cl *ast.CompositeLit, info *types.Info) *RetryErrorInfo {
 	result := &RetryErrorInfo{
 		AstCompositeLit: cl,
 		Fields:          astutils.CompositeLitFields(cl),
-		RetryError:      &tfresource.RetryError{},
+		RetryError:      &retryErrorType{},
 		TypesInfo:       info,
 	}
 

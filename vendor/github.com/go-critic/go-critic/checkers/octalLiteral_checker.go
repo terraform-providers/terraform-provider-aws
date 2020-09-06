@@ -5,20 +5,20 @@ import (
 	"go/token"
 	"go/types"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "octalLiteral"
 	info.Tags = []string{"diagnostic", "experimental"}
 	info.Summary = "Detects octal literals passed to functions"
 	info.Before = `foo(02)`
 	info.After = `foo(2)`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		c := &octalLiteralChecker{
 			ctx: ctx,
 			octFriendlyPkg: map[string]bool{
@@ -32,7 +32,7 @@ func init() {
 
 type octalLiteralChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 
 	octFriendlyPkg map[string]bool
 }

@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func testAccDataSourceAwsOrganizationsOrganizationalUnits_basic(t *testing.T) {
@@ -33,11 +33,11 @@ const testAccDataSourceAwsOrganizationsOrganizationalUnitsConfig = `
 resource "aws_organizations_organization" "test" {}
 
 resource "aws_organizations_organizational_unit" "test" {
-    name      = "test"
-    parent_id = aws_organizations_organization.test.roots[0].id
+  name      = "test"
+  parent_id = aws_organizations_organization.test.roots[0].id
 }
 
 data "aws_organizations_organizational_units" "test" {
-    parent_id = aws_organizations_organizational_unit.test.parent_id
+  parent_id = aws_organizations_organizational_unit.test.parent_id
 }
 `

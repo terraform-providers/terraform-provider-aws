@@ -9,10 +9,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSNeptuneCluster_basic(t *testing.T) {
@@ -360,10 +361,9 @@ func TestAccAWSNeptuneCluster_updateCloudwatchLogsExports(t *testing.T) {
 	resourceName := "aws_neptune_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSNeptuneClusterDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSNeptuneClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSNeptuneClusterConfig(rName),
@@ -377,7 +377,7 @@ func TestAccAWSNeptuneCluster_updateCloudwatchLogsExports(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNeptuneClusterExists(resourceName, &dbCluster),
 					resource.TestCheckResourceAttr(resourceName, "enable_cloudwatch_logs_exports.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "enable_cloudwatch_logs_exports.2451111801", "audit"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "enable_cloudwatch_logs_exports.*", "audit"),
 				),
 			},
 			{
@@ -581,7 +581,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-	availability_zone_names = slice(data.aws_availability_zones.available.names, 0, min(3, length(data.aws_availability_zones.available.names)))
+  availability_zone_names = slice(data.aws_availability_zones.available.names, 0, min(3, length(data.aws_availability_zones.available.names)))
 }
 `
 
@@ -690,7 +690,7 @@ EOF
 
 resource "aws_iam_role_policy" "test" {
   name = %[1]q
-  role = "${aws_iam_role.test.name}"
+  role = aws_iam_role.test.name
 
   policy = <<EOF
 {
@@ -727,7 +727,7 @@ EOF
 
 resource "aws_iam_role_policy" "test-2" {
   name = "%[1]s-2"
-  role = "${aws_iam_role.test-2.name}"
+  role = aws_iam_role.test-2.name
 
   policy = <<EOF
 {
@@ -747,7 +747,7 @@ resource "aws_neptune_cluster" "test" {
   neptune_cluster_parameter_group_name = "default.neptune1"
   skip_final_snapshot                  = true
 
-  depends_on = ["aws_iam_role.test", "aws_iam_role.test-2"]
+  depends_on = [aws_iam_role.test, aws_iam_role.test-2]
 }
 `, rName)
 }
@@ -777,7 +777,7 @@ EOF
 
 resource "aws_iam_role_policy" "test" {
   name = %[1]q
-  role = "${aws_iam_role.test.name}"
+  role = aws_iam_role.test.name
 
   policy = <<EOF
 {
@@ -814,7 +814,7 @@ EOF
 
 resource "aws_iam_role_policy" "test-2" {
   name = "%[1]s-2"
-  role = "${aws_iam_role.test-2.name}"
+  role = aws_iam_role.test-2.name
 
   policy = <<EOF
 {
@@ -832,9 +832,9 @@ resource "aws_neptune_cluster" "test" {
   cluster_identifier  = %[1]q
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
-  iam_roles           = ["${aws_iam_role.test.arn}", "${aws_iam_role.test-2.arn}"]
+  iam_roles           = [aws_iam_role.test.arn, aws_iam_role.test-2.arn]
 
-  depends_on = ["aws_iam_role.test", "aws_iam_role.test-2"]
+  depends_on = [aws_iam_role.test, aws_iam_role.test-2]
 }
 `, rName)
 }
@@ -864,7 +864,7 @@ EOF
 
 resource "aws_iam_role_policy" "test" {
   name = %[1]q
-  role = "${aws_iam_role.test.name}"
+  role = aws_iam_role.test.name
 
   policy = <<EOF
 {
@@ -882,9 +882,9 @@ resource "aws_neptune_cluster" "test" {
   cluster_identifier  = %[1]q
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
-  iam_roles           = ["${aws_iam_role.test.arn}"]
+  iam_roles           = [aws_iam_role.test.arn]
 
-  depends_on = ["aws_iam_role.test"]
+  depends_on = [aws_iam_role.test]
 }
 `, rName)
 }
@@ -892,43 +892,46 @@ resource "aws_neptune_cluster" "test" {
 func testAccAWSNeptuneClusterConfig_kmsKey(rName string) string {
 	return testAccAWSNeptuneClusterConfigBase + fmt.Sprintf(`
 
- resource "aws_kms_key" "test" {
-     description = "Terraform acc test"
-     policy = <<POLICY
- {
-   "Version": "2012-10-17",
-   "Id": "kms-tf-1",
-   "Statement": [
-     {
-       "Sid": "Enable IAM User Permissions",
-       "Effect": "Allow",
-       "Principal": {
-         "AWS": "*"
-       },
-       "Action": "kms:*",
-       "Resource": "*"
-     }
-   ]
- }
- POLICY
- }
+resource "aws_kms_key" "test" {
+  description = "Terraform acc test"
 
- resource "aws_neptune_cluster" "test" {
-   cluster_identifier                   = %q
-   availability_zones                   = local.availability_zone_names
-   neptune_cluster_parameter_group_name = "default.neptune1"
-   storage_encrypted                    = true
-   kms_key_arn                          = "${aws_kms_key.test.arn}"
-   skip_final_snapshot                  = true
- }`, rName)
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "kms-tf-1",
+  "Statement": [
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+  ]
+}
+ POLICY
+
+}
+
+resource "aws_neptune_cluster" "test" {
+  cluster_identifier                   = %q
+  availability_zones                   = local.availability_zone_names
+  neptune_cluster_parameter_group_name = "default.neptune1"
+  storage_encrypted                    = true
+  kms_key_arn                          = aws_kms_key.test.arn
+  skip_final_snapshot                  = true
+}
+`, rName)
 }
 
 func testAccAWSNeptuneClusterConfig_encrypted(rName string) string {
 	return testAccAWSNeptuneClusterConfigBase + fmt.Sprintf(`
 resource "aws_neptune_cluster" "test" {
-  cluster_identifier = %q
-  availability_zones = local.availability_zone_names
-  storage_encrypted = true
+  cluster_identifier  = %q
+  availability_zones  = local.availability_zone_names
+  storage_encrypted   = true
   skip_final_snapshot = true
 }
 `, rName)
@@ -975,10 +978,10 @@ resource "aws_neptune_cluster" "test" {
 func testAccAWSNeptuneClusterConfig_cloudwatchLogsExports(rName string) string {
 	return testAccAWSNeptuneClusterConfigBase + fmt.Sprintf(`
 resource "aws_neptune_cluster" "test" {
-  cluster_identifier                   = %q
-  availability_zones                  = local.availability_zone_names
-  skip_final_snapshot                  = true
-  enable_cloudwatch_logs_exports       = ["audit"]
+  cluster_identifier             = %q
+  availability_zones             = local.availability_zone_names
+  skip_final_snapshot            = true
+  enable_cloudwatch_logs_exports = ["audit"]
 }
 `, rName)
 }

@@ -10,7 +10,7 @@ description: |-
 
 Provides an SSM Patch Baseline resource
 
-~> **NOTE on Patch Baselines:** The `approved_patches` and `approval_rule` are 
+~> **NOTE on Patch Baselines:** The `approved_patches` and `approval_rule` are
 both marked as optional fields, but the Patch Baseline requires that at least one
 of them is specified.
 
@@ -110,7 +110,7 @@ resource "aws_ssm_patch_baseline" "windows_os_apps" {
       values = ["APPLICATION"]
     }
 
-    # Filter on Microsoft product if necessary 
+    # Filter on Microsoft product if necessary
     patch_filter {
       key    = "PRODUCT"
       values = ["Office 2013", "Office 2016"]
@@ -137,7 +137,7 @@ The `approval_rule` block supports:
 
 * `approve_after_days` - (Required) The number of days after the release date of each patch matched by the rule the patch is marked as approved in the patch baseline. Valid Range: 0 to 100.
 * `patch_filter` - (Required) The patch filter group that defines the criteria for the rule. Up to 5 patch filters can be specified per approval rule using Key/Value pairs. Valid Keys are `PATCH_SET | PRODUCT | CLASSIFICATION | MSRC_SEVERITY | PATCH_ID`.
-  * `PATCH_SET` defaults to `OS` if unspecified
+    * `PATCH_SET` defaults to `OS` if unspecified
 * `compliance_level` - (Optional) Defines the compliance level for patches approved by this rule. Valid compliance levels include the following: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFORMATIONAL`, `UNSPECIFIED`. The default value is `UNSPECIFIED`.
 * `enable_non_security` - (Optional) Boolean enabling the application of non-security updates. The default value is 'false'. Valid for Linux instances only.
 * `tags` - (Optional) A map of tags to assign to the resource.

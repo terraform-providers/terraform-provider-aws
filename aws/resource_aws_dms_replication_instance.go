@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -36,6 +36,10 @@ func resourceAwsDmsReplicationInstance() *schema.Resource {
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(5, 6144),
+			},
+			"allow_major_version_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"apply_immediately": {
 				Type:     schema.TypeBool,
@@ -284,6 +288,12 @@ func resourceAwsDmsReplicationInstanceUpdate(d *schema.ResourceData, meta interf
 			request.AllocatedStorage = aws.Int64(int64(v.(int)))
 			hasChanges = true
 		}
+	}
+
+	if v, ok := d.GetOk("allow_major_version_upgrade"); ok {
+		request.AllowMajorVersionUpgrade = aws.Bool(v.(bool))
+		// Having allowing_major_version_upgrade by itself should not trigger ModifyReplicationInstance
+		// as it results in InvalidParameterCombination: No modifications were requested
 	}
 
 	if d.HasChange("engine_version") {

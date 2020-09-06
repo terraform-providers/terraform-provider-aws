@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -622,9 +622,9 @@ func testAccDocDBClusterConfig_namePrefix() string {
 	return `
 resource "aws_docdb_cluster" "test" {
   cluster_identifier_prefix = "tf-test-"
-  master_username = "root"
-  master_password = "password"
-  skip_final_snapshot = true
+  master_username           = "root"
+  master_password           = "password"
+  skip_final_snapshot       = true
 }
 `
 }
@@ -632,8 +632,8 @@ resource "aws_docdb_cluster" "test" {
 func testAccDocDBClusterConfig_generatedName() string {
 	return `
 resource "aws_docdb_cluster" "test" {
-  master_username = "root"
-  master_password = "password"
+  master_username     = "root"
+  master_password     = "password"
   skip_final_snapshot = true
 }
 `
@@ -703,48 +703,48 @@ resource "aws_docdb_cluster" "default" {
 
 func testAccDocDBClusterConfig_kmsKey(n int) string {
 	return fmt.Sprintf(`
+resource "aws_kms_key" "foo" {
+  description = "Terraform acc test %d"
+  policy      = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "kms-tf-1",
+  "Statement": [
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
 
- resource "aws_kms_key" "foo" {
-     description = "Terraform acc test %d"
-     policy = <<POLICY
- {
-   "Version": "2012-10-17",
-   "Id": "kms-tf-1",
-   "Statement": [
-     {
-       "Sid": "Enable IAM User Permissions",
-       "Effect": "Allow",
-       "Principal": {
-         "AWS": "*"
-       },
-       "Action": "kms:*",
-       "Resource": "*"
-     }
-   ]
- }
- POLICY
- }
-
- resource "aws_docdb_cluster" "default" {
-   cluster_identifier = "tf-docdb-cluster-%d"
-   availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
-   master_username = "foo"
-   master_password = "mustbeeightcharaters"
-   db_cluster_parameter_group_name = "default.docdb3.6"
-   storage_encrypted = true
-   kms_key_id = "${aws_kms_key.foo.arn}"
-   skip_final_snapshot = true
- }`, n, n)
+resource "aws_docdb_cluster" "default" {
+  cluster_identifier              = "tf-docdb-cluster-%d"
+  availability_zones              = ["us-west-2a","us-west-2b","us-west-2c"]
+  master_username                 = "foo"
+  master_password                 = "mustbeeightcharaters"
+  db_cluster_parameter_group_name = "default.docdb3.6"
+  storage_encrypted               = true
+  kms_key_id                      = aws_kms_key.foo.arn
+  skip_final_snapshot             = true
+}
+`, n, n)
 }
 
 func testAccDocDBClusterConfig_encrypted(n int) string {
 	return fmt.Sprintf(`
 resource "aws_docdb_cluster" "default" {
-  cluster_identifier = "tf-docdb-cluster-%d"
-  availability_zones = ["us-west-2a","us-west-2b","us-west-2c"]
-  master_username = "foo"
-  master_password = "mustbeeightcharaters"
-  storage_encrypted = true
+  cluster_identifier  = "tf-docdb-cluster-%d"
+  availability_zones  = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  master_username     = "foo"
+  master_password     = "mustbeeightcharaters"
+  storage_encrypted   = true
   skip_final_snapshot = true
 }
 `, n)
@@ -793,7 +793,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_docdb_cluster" "test" {
-  availability_zones              = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}", "${data.aws_availability_zones.available.names[2]}"]
+  availability_zones              = [data.aws_availability_zones.available.names[0], data.aws_availability_zones.available.names[1], data.aws_availability_zones.available.names[2]]
   cluster_identifier              = "tf-acc-test-%d"
   db_cluster_parameter_group_name = "default.docdb3.6"
   engine                          = "docdb"

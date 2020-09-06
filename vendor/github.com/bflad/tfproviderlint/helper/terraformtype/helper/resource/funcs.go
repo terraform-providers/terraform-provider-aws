@@ -5,6 +5,7 @@ const (
 	FuncNameComposeTestCheckFunc          = `ComposeTestCheckFunc`
 	FuncNameNonRetryableError             = `NonRetryableError`
 	FuncNameParallelTest                  = `ParallelTest`
+	FuncNamePrefixedUniqueId              = `PrefixedUniqueId`
 	FuncNameRetryableError                = `RetryableError`
 	FuncNameTest                          = `Test`
 	FuncNameTestCheckNoResourceAttr       = `TestCheckNoResourceAttr`
@@ -14,4 +15,5 @@ const (
 	FuncNameTestCheckResourceAttrPtr      = `TestCheckResourceAttrPtr`
 	FuncNameTestCheckResourceAttrSet      = `TestCheckResourceAttrSet`
 	FuncNameTestMatchResourceAttr         = `TestMatchResourceAttr`
+	FuncNameUniqueId                      = `UniqueId`
 )

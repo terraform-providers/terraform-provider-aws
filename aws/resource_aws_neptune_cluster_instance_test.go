@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNeptuneClusterInstance_basic(t *testing.T) {
@@ -221,7 +221,6 @@ func testAccCheckAWSNeptuneClusterInstanceExists(n string, v *neptune.DBInstance
 
 func testAccCheckAWSNeptuneClusterInstanceAttributes(v *neptune.DBInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		if aws.StringValue(v.Engine) != "neptune" {
 			return fmt.Errorf("Incorrect engine, expected \"neptune\": %#v", aws.StringValue(v.Engine))
 		}
@@ -260,9 +259,9 @@ func testAccAWSNeptuneClusterInstanceConfig(instanceName string, n int) string {
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = %[1]q
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
+  cluster_identifier           = aws_neptune_cluster.default.id
   instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   promotion_tier               = "3"
 }
 
@@ -294,9 +293,9 @@ func testAccAWSNeptuneClusterInstanceConfigModified(instanceName string, n int) 
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = %[1]q
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
+  cluster_identifier           = aws_neptune_cluster.default.id
   instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   auto_minor_version_upgrade   = false
   promotion_tier               = "3"
 }
@@ -329,9 +328,9 @@ func testAccAWSNeptuneClusterInstanceConfig_az(n int) string {
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = "tf-cluster-instance-%[1]d"
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
+  cluster_identifier           = aws_neptune_cluster.default.id
   instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   promotion_tier               = "3"
   availability_zone            = data.aws_availability_zones.available.names[0]
 }
@@ -364,13 +363,13 @@ func testAccAWSNeptuneClusterInstanceConfig_withSubnetGroup(n int) string {
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "test" {
   identifier         = "tf-cluster-instance-%[1]d"
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
+  cluster_identifier = aws_neptune_cluster.test.id
   instance_class     = "db.r4.large"
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[1]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
 }
 
@@ -383,7 +382,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -393,7 +392,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -404,7 +403,7 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[1]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n))
 }
@@ -415,13 +414,13 @@ func testAccAWSNeptuneClusterInstanceConfig_namePrefix(namePrefix string, n int)
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "test" {
   identifier_prefix  = %[1]q
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
+  cluster_identifier = aws_neptune_cluster.test.id
   instance_class     = "db.r4.large"
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[2]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
 }
 
@@ -434,7 +433,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -444,7 +443,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -455,7 +454,7 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[2]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, namePrefix, n))
 }
@@ -465,13 +464,13 @@ func testAccAWSNeptuneClusterInstanceConfig_generatedName(n int) string {
 		testAccAWSNeptuneClusterConfigBase,
 		fmt.Sprintf(`
 resource "aws_neptune_cluster_instance" "test" {
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
+  cluster_identifier = aws_neptune_cluster.test.id
   instance_class     = "db.r4.large"
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[1]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
 }
 
@@ -484,7 +483,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -494,7 +493,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -505,7 +504,7 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[1]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n))
 }
@@ -541,14 +540,14 @@ resource "aws_neptune_cluster" "default" {
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
   storage_encrypted   = true
-  kms_key_arn         = "${aws_kms_key.test.arn}"
+  kms_key_arn         = aws_kms_key.test.arn
 }
 
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = "tf-cluster-instance-%[1]d"
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
+  cluster_identifier           = aws_neptune_cluster.default.id
   instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
 }
 
 resource "aws_neptune_parameter_group" "test" {

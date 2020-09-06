@@ -3,12 +3,16 @@
 # Lambda functions needed to demonstrate the Websocket protocol on API Gateway.
 #
 
+terraform {
+  required_version = ">= 0.12"
+}
+
 #
 # Providers.
 #
 
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 provider "archive" {}
@@ -83,35 +87,35 @@ resource "aws_apigatewayv2_api" "SimpleChatWebSocket" {
 }
 
 resource "aws_apigatewayv2_deployment" "Deployment" {
-  api_id = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id = aws_apigatewayv2_api.SimpleChatWebSocket.id
 
   depends_on = [
-    "aws_apigatewayv2_route.ConnectRoute",
-    "aws_apigatewayv2_route.DisconnectRoute",
-    "aws_apigatewayv2_route.SendRoute",
+    aws_apigatewayv2_route.ConnectRoute,
+    aws_apigatewayv2_route.DisconnectRoute,
+    aws_apigatewayv2_route.SendRoute,
   ]
 }
 
 resource "aws_apigatewayv2_stage" "Stage" {
-  api_id        = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id        = aws_apigatewayv2_api.SimpleChatWebSocket.id
   name          = "Prod"
   description   = "Prod Stage"
-  deployment_id = "${aws_apigatewayv2_deployment.Deployment.id}"
+  deployment_id = aws_apigatewayv2_deployment.Deployment.id
 }
 
 ###########
 # OnConnect
 ###########
 resource "aws_apigatewayv2_integration" "ConnectIntegrat" {
-  api_id             = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id             = aws_apigatewayv2_api.SimpleChatWebSocket.id
   integration_type   = "AWS_PROXY"
   description        = "Connect Integration"
-  integration_uri    = "${aws_lambda_function.OnConnectFunction.invoke_arn}"
+  integration_uri    = aws_lambda_function.OnConnectFunction.invoke_arn
   integration_method = "POST"
 }
 
 resource "aws_apigatewayv2_route" "ConnectRoute" {
-  api_id         = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id         = aws_apigatewayv2_api.SimpleChatWebSocket.id
   route_key      = "$connect"
   operation_name = "ConnectRoute"
   target         = "integrations/${aws_apigatewayv2_integration.ConnectIntegrat.id}"
@@ -121,15 +125,15 @@ resource "aws_apigatewayv2_route" "ConnectRoute" {
 # OnDisconnect
 ##############
 resource "aws_apigatewayv2_integration" "DisconnectInteg" {
-  api_id             = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id             = aws_apigatewayv2_api.SimpleChatWebSocket.id
   integration_type   = "AWS_PROXY"
   description        = "Disconnect Integration"
-  integration_uri    = "${aws_lambda_function.OnDisconnectFunction.invoke_arn}"
+  integration_uri    = aws_lambda_function.OnDisconnectFunction.invoke_arn
   integration_method = "POST"
 }
 
 resource "aws_apigatewayv2_route" "DisconnectRoute" {
-  api_id         = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id         = aws_apigatewayv2_api.SimpleChatWebSocket.id
   route_key      = "$disconnect"
   operation_name = "DisconnectRoute"
   target         = "integrations/${aws_apigatewayv2_integration.DisconnectInteg.id}"
@@ -139,15 +143,15 @@ resource "aws_apigatewayv2_route" "DisconnectRoute" {
 # SendMessage
 #############
 resource "aws_apigatewayv2_integration" "SendInteg" {
-  api_id             = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id             = aws_apigatewayv2_api.SimpleChatWebSocket.id
   integration_type   = "AWS_PROXY"
   description        = "Send Integration"
-  integration_uri    = "${aws_lambda_function.SendMessageFunction.invoke_arn}"
+  integration_uri    = aws_lambda_function.SendMessageFunction.invoke_arn
   integration_method = "POST"
 }
 
 resource "aws_apigatewayv2_route" "SendRoute" {
-  api_id         = "${aws_apigatewayv2_api.SimpleChatWebSocket.id}"
+  api_id         = aws_apigatewayv2_api.SimpleChatWebSocket.id
   route_key      = "sendmessage"
   operation_name = "SendRoute"
   target         = "integrations/${aws_apigatewayv2_integration.SendInteg.id}"
@@ -167,23 +171,23 @@ data "archive_file" "OnConnectZip" {
 }
 
 resource "aws_lambda_function" "OnConnectFunction" {
-  filename      = "${data.archive_file.OnConnectZip.output_path}"
+  filename      = data.archive_file.OnConnectZip.output_path
   function_name = "OnConnectFunction"
-  role          = "${aws_iam_role.OnConnectRole.arn}"
+  role          = aws_iam_role.OnConnectRole.arn
   handler       = "app.handler"
   runtime       = "nodejs12.x"
   memory_size   = 256
 
   environment {
     variables = {
-      TABLE_NAME = "${aws_dynamodb_table.ConnectionsTable.name}"
+      TABLE_NAME = aws_dynamodb_table.ConnectionsTable.name
     }
   }
 }
 
 resource "aws_lambda_permission" "OnConnectPermission" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.OnConnectFunction.function_name}"
+  function_name = aws_lambda_function.OnConnectFunction.function_name
   principal     = "apigateway.amazonaws.com"
 }
 
@@ -205,8 +209,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "OnConnectRoleDynamoDBCrudPolicyAttachment" {
-  role       = "${aws_iam_role.OnConnectRole.name}"
-  policy_arn = "${aws_iam_policy.DynamoDBCrudPolicy.arn}"
+  role       = aws_iam_role.OnConnectRole.name
+  policy_arn = aws_iam_policy.DynamoDBCrudPolicy.arn
 }
 
 resource "aws_iam_policy" "OnConnectCloudWatchLogsPolicy" {
@@ -237,8 +241,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "OnConnectRoleOnConnectCloudWatchLogsPolicyAttachment" {
-  role       = "${aws_iam_role.OnConnectRole.name}"
-  policy_arn = "${aws_iam_policy.OnConnectCloudWatchLogsPolicy.arn}"
+  role       = aws_iam_role.OnConnectRole.name
+  policy_arn = aws_iam_policy.OnConnectCloudWatchLogsPolicy.arn
 }
 
 ##############
@@ -251,23 +255,23 @@ data "archive_file" "OnDisconnectZip" {
 }
 
 resource "aws_lambda_function" "OnDisconnectFunction" {
-  filename      = "${data.archive_file.OnDisconnectZip.output_path}"
+  filename      = data.archive_file.OnDisconnectZip.output_path
   function_name = "OnDisconnectFunction"
-  role          = "${aws_iam_role.OnDisconnectRole.arn}"
+  role          = aws_iam_role.OnDisconnectRole.arn
   handler       = "app.handler"
   runtime       = "nodejs12.x"
   memory_size   = 256
 
   environment {
     variables = {
-      TABLE_NAME = "${aws_dynamodb_table.ConnectionsTable.name}"
+      TABLE_NAME = aws_dynamodb_table.ConnectionsTable.name
     }
   }
 }
 
 resource "aws_lambda_permission" "OnDisconnectPermission" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.OnDisconnectFunction.function_name}"
+  function_name = aws_lambda_function.OnDisconnectFunction.function_name
   principal     = "apigateway.amazonaws.com"
 }
 
@@ -289,8 +293,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "OnDisconnectRoleDynamoDBCrudPolicyAttachment" {
-  role       = "${aws_iam_role.OnDisconnectRole.name}"
-  policy_arn = "${aws_iam_policy.DynamoDBCrudPolicy.arn}"
+  role       = aws_iam_role.OnDisconnectRole.name
+  policy_arn = aws_iam_policy.DynamoDBCrudPolicy.arn
 }
 
 resource "aws_iam_policy" "OnDisconnectCloudWatchLogsPolicy" {
@@ -321,8 +325,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "OnDisconnectRoleOnDisconnectCloudWatchLogsPolicyAttachment" {
-  role       = "${aws_iam_role.OnDisconnectRole.name}"
-  policy_arn = "${aws_iam_policy.OnDisconnectCloudWatchLogsPolicy.arn}"
+  role       = aws_iam_role.OnDisconnectRole.name
+  policy_arn = aws_iam_policy.OnDisconnectCloudWatchLogsPolicy.arn
 }
 
 #############
@@ -335,23 +339,23 @@ data "archive_file" "SendMessageZip" {
 }
 
 resource "aws_lambda_function" "SendMessageFunction" {
-  filename      = "${data.archive_file.SendMessageZip.output_path}"
+  filename      = data.archive_file.SendMessageZip.output_path
   function_name = "SendMessageFunction"
-  role          = "${aws_iam_role.SendMessageRole.arn}"
+  role          = aws_iam_role.SendMessageRole.arn
   handler       = "app.handler"
   runtime       = "nodejs12.x"
   memory_size   = 256
 
   environment {
     variables = {
-      TABLE_NAME = "${aws_dynamodb_table.ConnectionsTable.name}"
+      TABLE_NAME = aws_dynamodb_table.ConnectionsTable.name
     }
   }
 }
 
 resource "aws_lambda_permission" "SendMessagePermission" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.SendMessageFunction.function_name}"
+  function_name = aws_lambda_function.SendMessageFunction.function_name
   principal     = "apigateway.amazonaws.com"
 }
 
@@ -373,8 +377,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "SendMessageRoleDynamoDBCrudPolicyAttachment" {
-  role       = "${aws_iam_role.SendMessageRole.name}"
-  policy_arn = "${aws_iam_policy.DynamoDBCrudPolicy.arn}"
+  role       = aws_iam_role.SendMessageRole.name
+  policy_arn = aws_iam_policy.DynamoDBCrudPolicy.arn
 }
 
 resource "aws_iam_policy" "SendMessageCloudWatchLogsPolicy" {
@@ -405,8 +409,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "SendMessageRoleSendMessageCloudWatchLogsPolicyAttachment" {
-  role       = "${aws_iam_role.SendMessageRole.name}"
-  policy_arn = "${aws_iam_policy.SendMessageCloudWatchLogsPolicy.arn}"
+  role       = aws_iam_role.SendMessageRole.name
+  policy_arn = aws_iam_policy.SendMessageCloudWatchLogsPolicy.arn
 }
 
 resource "aws_iam_policy" "SendMessageManageConnectionsPolicy" {
@@ -425,8 +429,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "SendMessageRoleSendMessageManageConnectionsPolicyAttachment" {
-  role       = "${aws_iam_role.SendMessageRole.name}"
-  policy_arn = "${aws_iam_policy.SendMessageManageConnectionsPolicy.arn}"
+  role       = aws_iam_role.SendMessageRole.name
+  policy_arn = aws_iam_policy.SendMessageManageConnectionsPolicy.arn
 }
 
 #
@@ -434,21 +438,21 @@ resource "aws_iam_role_policy_attachment" "SendMessageRoleSendMessageManageConne
 #
 
 output "ConnectionsTableArn" {
-  value = "${aws_dynamodb_table.ConnectionsTable.arn}"
+  value = aws_dynamodb_table.ConnectionsTable.arn
 }
 
 output "OnConnectFunctionArn" {
-  value = "${aws_lambda_function.OnConnectFunction.arn}"
+  value = aws_lambda_function.OnConnectFunction.arn
 }
 
 output "OnDisconnectFunctionArn" {
-  value = "${aws_lambda_function.OnDisconnectFunction.arn}"
+  value = aws_lambda_function.OnDisconnectFunction.arn
 }
 
 output "SendMessageFunctionArn" {
-  value = "${aws_lambda_function.SendMessageFunction.arn}"
+  value = aws_lambda_function.SendMessageFunction.arn
 }
 
 output "WebSocketURI" {
-  value = "${aws_apigatewayv2_stage.Stage.invoke_url}"
+  value = aws_apigatewayv2_stage.Stage.invoke_url
 }

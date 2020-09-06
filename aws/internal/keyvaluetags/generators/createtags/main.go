@@ -41,9 +41,10 @@ func main() {
 		"TagInputCustomValue":               keyvaluetags.ServiceTagInputCustomValue,
 		"TagInputIdentifierField":           keyvaluetags.ServiceTagInputIdentifierField,
 		"TagInputIdentifierRequiresSlice":   keyvaluetags.ServiceTagInputIdentifierRequiresSlice,
-		"TagInputResourceTypeField":         keyvaluetags.ServiceTagInputResourceTypeField,
 		"TagInputTagsField":                 keyvaluetags.ServiceTagInputTagsField,
 		"TagPackage":                        keyvaluetags.ServiceTagPackage,
+		"TagResourceTypeField":              keyvaluetags.ServiceTagResourceTypeField,
+		"TagTypeIdentifierField":            keyvaluetags.ServiceTagTypeIdentifierField,
 		"Title":                             strings.Title,
 	}
 
@@ -97,7 +98,7 @@ import (
 {{- range .ServiceNames }}
 	"github.com/aws/aws-sdk-go/service/{{ . }}"
 {{- end }}
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const EventualConsistencyTimeout = 5 * time.Minute
@@ -133,25 +134,27 @@ func isResourceTimeoutError(err error) bool {
 // {{ . | Title }}CreateTags creates {{ . }} service tags for new resources.
 // The identifier is typically the Amazon Resource Name (ARN), although
 // it may also be a different identifier depending on the service.
-func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if . | TagInputResourceTypeField }}, resourceType string{{ end }}, tagsMap interface{}) error {
+func {{ . | Title }}CreateTags(conn {{ . | ClientType }}, identifier string{{ if . | TagResourceTypeField }}, resourceType string{{ end }}, tagsMap interface{}) error {
 	tags := New(tagsMap)
 
 	{{- if . | TagFunctionBatchSize }}
 	for _, tags := range tags.Chunks({{ . | TagFunctionBatchSize }}) {
 	{{- end }}
 	input := &{{ . | TagPackage }}.{{ . | TagFunction }}Input{
+		{{- if not ( . | TagTypeIdentifierField ) }}
 		{{- if . | TagInputIdentifierRequiresSlice }}
-		{{ . | TagInputIdentifierField }}:   aws.StringSlice([]string{identifier}),
+		{{ . | TagInputIdentifierField }}: aws.StringSlice([]string{identifier}),
 		{{- else }}
-		{{ . | TagInputIdentifierField }}:   aws.String(identifier),
+		{{ . | TagInputIdentifierField }}: aws.String(identifier),
 		{{- end }}
-		{{- if . | TagInputResourceTypeField }}
-		{{ . | TagInputResourceTypeField }}: aws.String(resourceType),
+		{{- if . | TagResourceTypeField }}
+		{{ . | TagResourceTypeField }}:    aws.String(resourceType),
+		{{- end }}
 		{{- end }}
 		{{- if . | TagInputCustomValue }}
-		{{ . | TagInputTagsField }}:         {{ . | TagInputCustomValue }},
+		{{ . | TagInputTagsField }}:       {{ . | TagInputCustomValue }},
 		{{- else }}
-		{{ . | TagInputTagsField }}:         tags.IgnoreAws().{{ . | Title }}Tags(),
+		{{ . | TagInputTagsField }}:       tags.IgnoreAws().{{ . | Title }}Tags(),
 		{{- end }}
 	}
 

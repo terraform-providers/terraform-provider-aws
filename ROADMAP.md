@@ -1,93 +1,111 @@
-# Q2 2020 Roadmap
+# Roadmap: August - October 2020
 
-Each quarter the team will highlight areas of focus for our work and upcoming research.
- 
-We select items for inclusion in the roadmap from the Top 10 Community Issues, [core services](docs/CORE_SERVICES.md), and internal priorities. When community pull requests exist for a given item, we will prioritize working with the original authors to include their contributions. If the author can no longer take on the implementation, HashiCorp will complete any additional work needed. 
+Every few months, the team will highlight areas of focus for our work and upcoming research.
 
-Each weekly release will include necessary tasks that lead to the completion of the stated goals as well as community pull requests, enhancements, and features that are not highlighted in the roadmap. 
+We select items for inclusion in the roadmap from the Top 10 Community Issues, [core services](docs/CORE_SERVICES.md), and internal priorities. When community pull requests exist for a given item, we will prioritize working with the original authors to include their contributions. If the author can no longer take on the implementation, HashiCorp will complete any additional work needed.
 
-To make contribution easier, we’ll be using the [`Help Wanted`](https://github.com/terraform-providers/terraform-provider-aws/labels/help%20wanted) tag to point to issues we’d like to include in this quarter’s series of releases. 
+Each weekly release will include necessary tasks that lead to the completion of the stated goals as well as community pull requests, enhancements, and features that are not highlighted in the roadmap. To view all the items we've prioritized for this quarter, please see the [Roadmap milestone](https://github.com/terraform-providers/terraform-provider-aws/milestone/138).
 
-This quarter (May-July ‘20) we will be prioritizing the following areas of work: 
+Where community sourced contributions exist we will work with the authors to review and merge their work. Where this does not exist we will create the resources and implementation ourselves.
 
-## Currently In Progress
+From [May through July](docs/roadmaps/2020_May_to_July.md), we committed to adding support for WAFv2 and Lex. We are happy to report that WAFv2 support is now complete and we will be finishing support for Lex immediately following the release of v3.0.0. Additionally, we planned to refactor ACM and will include the redesigned resource as part of the 3.0.0 package. Lastly, we spent some time researching Default Tags and want to extend a thank you to all the folks that volunteered to assist. We’ve written a proposal for the feature that is being reviewed internally and we hope to include the functionality in the product in the future.
 
-### 3.0.0 
+From August-October ‘20, we will be prioritizing the following areas of work:
 
-Milestone: [v3.0.0](https://github.com/terraform-providers/terraform-provider-aws/milestone/70)
+## New Services
 
-Each year the TF AWS Provider team releases a major version. [Major releases](https://www.terraform.io/docs/extend/best-practices/versioning.html#example-major-number-increments) include code removals, deprecations, and breaking changes. A corresponding “upgrade guide” will be published alongside the release. 
+### EventBridge
 
-We'll be updating the linked milestone as we work to finalize and complete v3.0.0. 
+Issue: [#9330](https://github.com/terraform-providers/terraform-provider-aws/issues/9330)
 
-### WAFv2
+_[Amazon EventBridge](https://aws.amazon.com/eventbridge/) is a serverless event bus that makes it easy to connect applications together using data from your own applications, integrated Software-as-a-Service (SaaS) applications, and AWS services. EventBridge delivers a stream of real-time data from event sources, such as Zendesk, Datadog, or Pagerduty, and routes that data to targets like AWS Lambda. You can set up routing rules to determine where to send your data to build application architectures that react in real time to all of your data sources._
 
-Issue: [#11046](https://github.com/terraform-providers/terraform-provider-aws/issues/11046)
+As EventBridge exists as an addition to existing CloudWatch APIs we will perform a research phase to determine whether Terraform support should exist as separate resources, additions to existing ones, or a combination of the two.
 
-_AWS WAFv2 is a web application firewall that lets you monitor the HTTP and HTTPS requests that are forwarded to Amazon CloudFront, an Amazon API Gateway API, or an Application Load Balancer._
+### EC2 Image Builder
 
-Support for WAFv2 functionality will be wholly separate from WAF “Classic”. We’ll focus on enabling community contributions to WAFv2 first. If there is not a community contribution, HashiCorp will work to add the missing resource or data source.
+Issue: [#11084](https://github.com/terraform-providers/terraform-provider-aws/issues/11084)
 
-Support for WAFv2 will include:
+_[EC2 Image Builder](https://aws.amazon.com/image-builder/) simplifies the creation, maintenance, validation, sharing, and deployment of Linux or Windows Server images for use with Amazon EC2 and on-premises._
 
-#### Resources 
+Support for EC2 Image Builder will include:
 
-* aws_wafv2_ip_set
-* aws_wafv2_regex_pattern_set
-* aws_wafv2_rule_group
-* aws_wafv2_web_acl
-* aws_wafv2_web_acl_association
+New Resource(s):
+- aws_imagebuilder_component
+- aws_imagebuilder_distribution_configuration
+- aws_imagebuilder_image
+- aws_imagebuilder_image_pipeline
+- aws_imagebuilder_image_recipe
+- aws_imagebuilder_infrastructure_configuration
 
-#### Data Sources
+New Data Source(s):
+- aws_imagebuilder_image
 
-* aws_wafv2_ip_set 
-* aws_wafv2_regex_pattern_set
-* aws_wafv2_rule_group
-* aws_wafv2_web_acl 
+### AWS Lake Formation
 
-### Amazon Lex
+Issue: [#9700](https://github.com/terraform-providers/terraform-provider-aws/issues/9700)
 
-Issue: [#905](https://github.com/terraform-providers/terraform-provider-aws/issues/905)
+_[AWS Lake Formation](https://aws.amazon.com/lake-formation) is a service that makes it easy to set up a secure data lake in days. A data lake is a centralized, curated, and secured repository that stores all your data, both in its original form and prepared for analysis. A data lake enables you to break down data silos and combine different types of analytics to gain insights and guide better business decisions._
 
-_Amazon Lex is a service for building conversational interfaces into any application using voice and text. Amazon Lex provides the advanced deep learning functionalities of automatic speech recognition (ASR) for converting speech to text, and natural language understanding (NLU) to recognize the intent of the text, to enable you to build applications with highly engaging user experiences and lifelike conversational interactions._
+Support for AWS Lake Formation will include:
 
-We’ll focus on enabling community contributions to Lex first. If there is not a community contribution, HashiCorp will work to add the missing resource or data source. 
+New Resource(s):
 
-Support for Amazon Lex will include: 
+- aws_lakeformation_resource
+- aws_lakeformation_datalake_settings
+- aws_lakeformation_permissions
 
-#### Resources
+### AWS Serverless Application Repository
 
-* aws_lex_slot_type
-* aws_lex_intent
-* aws_lex_bot
-* aws_lex_bot_alias
+Issue: [#3981](https://github.com/terraform-providers/terraform-provider-aws/issues/3981)
 
-#### Data Sources
+_The [AWS Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo/) is a managed repository for serverless applications. It enables teams, organizations, and individual developers to store and share reusable applications, and easily assemble and deploy serverless architectures in powerful new ways. Using the Serverless Application Repository, you don't need to clone, build, package, or publish source code to AWS before deploying it. Instead, you can use pre-built applications from the Serverless Application Repository in your serverless architectures, helping you and your teams reduce duplicated work, ensure organizational best practices, and get to market faster. Integration with AWS Identity and Access Management (IAM) provides resource-level control of each application, enabling you to publicly share applications with everyone or privately share them with specific AWS accounts._
 
-* aws_lex_slot_type
-* aws_lex_intent
-* aws_lex_bot
-* aws_lex_bot_alias
+Support for AWS Serverless Application Repository will include:
 
-### AWS Certificate Manager
+New Resource(s):
+- aws_serverlessrepository_stack
 
-Issue: [#8531](https://github.com/terraform-providers/terraform-provider-aws/issues/8531)
+New Data Source(s):
+- aws_serverlessrepository_application
 
-_AWS Certificate Manager is a service that allows you to easily provision, manage, and deploy public and private Secure Sockets Layer/Transport Layer Security (SSL/TLS) certificates for use with AWS services and your internal connected resources._
+## Issues and Enhancements
 
-After evaluating the issue linked above, we concluded that the ACM resource was in need of a redesign. We’ll be prioritizing redesigning and updating the resource while we tackle the open bug reports and enhancements. Our research and redesign work will be tracked [here](https://github.com/terraform-providers/terraform-provider-aws/issues/13053).
+The issues below have gained substantial support via our community. As a result, we want to highlight our commitment to addressing them.
+
+- [#12690](https://github.com/terraform-providers/terraform-provider-aws/issues/12690) RDS Proxy Support
+- [#11281](https://github.com/terraform-providers/terraform-provider-aws/issues/11281) Home Directory Mappings Support for AWS Transfer User
+- [#384](https://github.com/terraform-providers/terraform-provider-aws/issues/384) Add support for CreateVPCAssociationAuthorization AWS API
+- [#6562](https://github.com/terraform-providers/terraform-provider-aws/issues/6562) Auto Scaling Plans (Dynamic/Predictive Auto Scaling Groups)
+- [#5549](https://github.com/terraform-providers/terraform-provider-aws/issues/5549) Terraform constantly updates resource policy on API Gateway
+- [#11569](https://github.com/terraform-providers/terraform-provider-aws/issues/11569) aws_transfer_server: support Elastic IPs
+- [#5286](https://github.com/terraform-providers/terraform-provider-aws/issues/5286) Point in time restore support for AWS RDS instances
+
+## United States Federal Focus
+
+We have added extra engineering and product capacity to enable us to provide the same compatibility and coverage assurances in the GovCloud, C2S, and SC2S regions as we currently do for Commercial AWS regions. Our attention on C2S/SC2S environments should result in better outcomes in other similar air gapped environments. Initially, we will be focusing on GovCloud and users should expect improved experiences within that region in the coming months.
+
+## Technical Debt Theme
+
+Each quarter we identify a technical debt theme for the team to focus on alongside new service additions, issue resolutions and enhancements. This quarter we are looking at spending time improving the reliability of our acceptance test framework. We have a number of flaky tests which add friction to the development cycle. Making these more consistent should improve the development experience for both contributors and maintainers.
 
 ## Research Topics
 
 Research topics include features, architectural changes, and ideas that we are pursuing in the longer term that may significantly impact the core user experience of the AWS provider. Research topics are discovery only and are not guaranteed to be included in a future release.
 
-### Global Default Tags
+We are interested in your thoughts and feedback about the proposals below and encourage you to comment on the linked issues or schedule time with @maryelizbeth via the link on her GitHub profile to discuss.
 
-Issue: [#7926](https://github.com/terraform-providers/terraform-provider-aws/issues/7926)
+### API Calls/IAM Actions Per Terraform Resource (Minimum IAM)
 
-We’ve been evaluating how users approach tagging their infrastructure in Terraform and the systems and practices that may interact with TF when it comes to tagging. The [initial discussions](https://github.com/hashicorp/terraform/issues/20866) led us to prioritize functionality that allows users to ignore specific tags globally in the AWS provider. As a complement to that feature, we are exploring the ability to supply global default tags to resources defined by the AWS Provider. 
+Issue: [#9154](https://github.com/terraform-providers/terraform-provider-aws/issues/9154)
 
-We are interested in your thoughts and feedback about this proposal and encourage you to comment on the issue linked above or schedule time with @maryelizbeth via the link on her [GitHub profile](https://github.com/maryelizbeth) to discuss. 
+To address security concerns and best practices we are considering how Terraform could surface minimally viable IAM policies for taking actions on resources or executing a TF plan. This is in the early stages of research and we are particularly interested in whether or not this would be useful and the resources or services areas for which it is most valuable.
+
+### Lifecycle: Retain [Add 'retain' attribute to the Terraform lifecycle meta-parameter]
+
+Issue: [#902](https://github.com/terraform-providers/terraform-provider-aws/issues/902)
+
+Some resources (e.g. log groups) are intended to be created but never destroyed. Terraform currently does not have a lifecycle attribute for retaining such resources. We are curious as to whether or not retaining resources is a workflow that meets the needs of our community and if so, how and where we might make use of that in the AWS Provider.
 
 ## Disclosures
 

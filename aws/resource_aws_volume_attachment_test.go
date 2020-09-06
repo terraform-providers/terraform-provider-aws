@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVolumeAttachment_basic(t *testing.T) {
@@ -269,7 +269,10 @@ func testAccCheckVolumeAttachmentDestroy(s *terraform.State) error {
 }
 
 func testAccVolumeAttachmentInstanceOnlyConfigBase(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("data.aws_availability_zones.available.names[0]", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -277,16 +280,6 @@ data "aws_availability_zones" "available" {
     name   = "opt-in-status"
     values = ["opt-in-not-required"]
   }
-}
-
-data "aws_ec2_instance_type_offering" "available" {
-  filter {
-    name   = "instance-type"
-    values = ["t3.micro", "t2.micro"]
-  }
-
-  location_type            = "availability-zone"
-  preferred_instance_types = ["t3.micro", "t2.micro"]
 }
 
 resource "aws_instance" "test" {
@@ -298,7 +291,7 @@ resource "aws_instance" "test" {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccVolumeAttachmentConfigBase(rName string) string {
@@ -315,13 +308,13 @@ resource "aws_ebs_volume" "test" {
 }
 
 func testAccVolumeAttachmentConfig(rName string) string {
-	return testAccVolumeAttachmentConfigBase(rName) + fmt.Sprintf(`
+	return testAccVolumeAttachmentConfigBase(rName) + `
 resource "aws_volume_attachment" "test" {
   device_name = "/dev/sdh"
   volume_id   = "${aws_ebs_volume.test.id}"
   instance_id = "${aws_instance.test.id}"
 }
-`)
+`
 }
 
 func testAccVolumeAttachmentConfigSkipDestroy(rName string) string {

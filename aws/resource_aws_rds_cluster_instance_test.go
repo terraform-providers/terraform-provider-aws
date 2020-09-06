@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -192,7 +192,7 @@ func TestAccAWSRDSClusterInstance_generatedName(t *testing.T) {
 
 func TestAccAWSRDSClusterInstance_kmsKey(t *testing.T) {
 	var v rds.DBInstance
-	keyRegex := regexp.MustCompile("^arn:aws:kms:")
+	kmsKeyResourceName := "aws_kms_key.foo"
 	resourceName := "aws_rds_cluster_instance.cluster_instances"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -204,7 +204,7 @@ func TestAccAWSRDSClusterInstance_kmsKey(t *testing.T) {
 				Config: testAccAWSClusterInstanceConfigKmsKey(acctest.RandInt()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSClusterInstanceExists(resourceName, &v),
-					resource.TestMatchResourceAttr(resourceName, "kms_key_id", keyRegex),
+					resource.TestCheckResourceAttrPair(resourceName, "kms_key_id", kmsKeyResourceName, "arn"),
 				),
 			},
 			{
@@ -886,9 +886,9 @@ resource "aws_rds_cluster" "default" {
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
   identifier              = "tf-cluster-instance-%d"
-  cluster_identifier      = "${aws_rds_cluster.default.id}"
+  cluster_identifier      = aws_rds_cluster.default.id
   instance_class          = "db.t2.small"
-  db_parameter_group_name = "${aws_db_parameter_group.bar.name}"
+  db_parameter_group_name = aws_db_parameter_group.bar.name
   promotion_tier          = "3"
 }
 
@@ -922,9 +922,9 @@ resource "aws_rds_cluster" "default" {
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
   identifier                 = "tf-cluster-instance-%d"
-  cluster_identifier         = "${aws_rds_cluster.default.id}"
+  cluster_identifier         = aws_rds_cluster.default.id
   instance_class             = "db.t2.small"
-  db_parameter_group_name    = "${aws_db_parameter_group.bar.name}"
+  db_parameter_group_name    = aws_db_parameter_group.bar.name
   auto_minor_version_upgrade = false
   promotion_tier             = "3"
 }
@@ -959,7 +959,7 @@ data "aws_availability_zones" "available" {
 
 resource "aws_rds_cluster" "default" {
   cluster_identifier  = "tf-aurora-cluster-test-%d"
-  availability_zones  = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}", "${data.aws_availability_zones.available.names[2]}"]
+  availability_zones  = [data.aws_availability_zones.available.names[0], data.aws_availability_zones.available.names[1], data.aws_availability_zones.available.names[2]]
   database_name       = "mydb"
   master_username     = "foo"
   master_password     = "mustbeeightcharacters"
@@ -968,11 +968,11 @@ resource "aws_rds_cluster" "default" {
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
   identifier              = "tf-cluster-instance-%d"
-  cluster_identifier      = "${aws_rds_cluster.default.id}"
+  cluster_identifier      = aws_rds_cluster.default.id
   instance_class          = "db.t2.small"
-  db_parameter_group_name = "${aws_db_parameter_group.bar.name}"
+  db_parameter_group_name = aws_db_parameter_group.bar.name
   promotion_tier          = "3"
-  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone       = data.aws_availability_zones.available.names[0]
 }
 
 resource "aws_db_parameter_group" "bar" {
@@ -996,7 +996,7 @@ func testAccAWSClusterInstanceConfig_namePrefix(n int) string {
 	return fmt.Sprintf(`
 resource "aws_rds_cluster_instance" "test" {
   identifier_prefix  = "tf-cluster-instance-"
-  cluster_identifier = "${aws_rds_cluster.test.id}"
+  cluster_identifier = aws_rds_cluster.test.id
   instance_class     = "db.t2.small"
 }
 
@@ -1004,7 +1004,7 @@ resource "aws_rds_cluster" "test" {
   cluster_identifier   = "tf-aurora-cluster-%d"
   master_username      = "root"
   master_password      = "password"
-  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name = aws_db_subnet_group.test.name
   skip_final_snapshot  = true
 }
 
@@ -1017,7 +1017,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -1027,7 +1027,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -1038,7 +1038,7 @@ resource "aws_subnet" "b" {
 
 resource "aws_db_subnet_group" "test" {
   name       = "tf-test-%d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n, n)
 }
@@ -1046,7 +1046,7 @@ resource "aws_db_subnet_group" "test" {
 func testAccAWSClusterInstanceConfig_generatedName(n int) string {
 	return fmt.Sprintf(`
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier = "${aws_rds_cluster.test.id}"
+  cluster_identifier = aws_rds_cluster.test.id
   instance_class     = "db.t2.small"
 }
 
@@ -1054,7 +1054,7 @@ resource "aws_rds_cluster" "test" {
   cluster_identifier   = "tf-aurora-cluster-%d"
   master_username      = "root"
   master_password      = "password"
-  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name = aws_db_subnet_group.test.name
   skip_final_snapshot  = true
 }
 
@@ -1067,7 +1067,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "us-west-2a"
 
@@ -1077,7 +1077,7 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-west-2b"
 
@@ -1088,7 +1088,7 @@ resource "aws_subnet" "b" {
 
 resource "aws_db_subnet_group" "test" {
   name       = "tf-test-%d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n, n)
 }
@@ -1124,15 +1124,15 @@ resource "aws_rds_cluster" "default" {
   master_username     = "foo"
   master_password     = "mustbeeightcharacters"
   storage_encrypted   = true
-  kms_key_id          = "${aws_kms_key.foo.arn}"
+  kms_key_id          = aws_kms_key.foo.arn
   skip_final_snapshot = true
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
   identifier              = "tf-cluster-instance-%d"
-  cluster_identifier      = "${aws_rds_cluster.default.id}"
+  cluster_identifier      = aws_rds_cluster.default.id
   instance_class          = "db.t2.small"
-  db_parameter_group_name = "${aws_db_parameter_group.bar.name}"
+  db_parameter_group_name = aws_db_parameter_group.bar.name
 }
 
 resource "aws_db_parameter_group" "bar" {
@@ -1178,7 +1178,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-  role       = "${aws_iam_role.test.name}"
+  role       = aws_iam_role.test.name
 }
 
 resource "aws_rds_cluster" "test" {
@@ -1190,13 +1190,13 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 
-  cluster_identifier  = "${aws_rds_cluster.test.id}"
+  cluster_identifier  = aws_rds_cluster.test.id
   identifier          = %[1]q
   instance_class      = "db.t2.small"
   monitoring_interval = %[2]d
-  monitoring_role_arn = "${aws_iam_role.test.arn}"
+  monitoring_role_arn = aws_iam_role.test.arn
 }
 `, rName, monitoringInterval)
 }
@@ -1212,7 +1212,7 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier = "${aws_rds_cluster.test.id}"
+  cluster_identifier = aws_rds_cluster.test.id
   identifier         = %[1]q
   instance_class     = "db.t2.small"
 }
@@ -1245,7 +1245,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-  role       = "${aws_iam_role.test.name}"
+  role       = aws_iam_role.test.name
 }
 
 resource "aws_rds_cluster" "test" {
@@ -1257,13 +1257,13 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  depends_on = ["aws_iam_role_policy_attachment.test"]
+  depends_on = [aws_iam_role_policy_attachment.test]
 
-  cluster_identifier  = "${aws_rds_cluster.test.id}"
+  cluster_identifier  = aws_rds_cluster.test.id
   identifier          = %[1]q
   instance_class      = "db.t2.small"
   monitoring_interval = 5
-  monitoring_role_arn = "${aws_iam_role.test.arn}"
+  monitoring_role_arn = aws_iam_role.test.arn
 }
 `, rName)
 }
@@ -1280,8 +1280,8 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier           = "${aws_rds_cluster.test.id}"
-  engine                       = "${aws_rds_cluster.test.engine}"
+  cluster_identifier           = aws_rds_cluster.test.id
+  engine                       = aws_rds_cluster.test.engine
   identifier                   = %[1]q
   instance_class               = "db.r4.large"
   performance_insights_enabled = true
@@ -1302,9 +1302,9 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier           = "${aws_rds_cluster.test.id}"
-  engine                       = "${aws_rds_cluster.test.engine}"
-  engine_version               = "${aws_rds_cluster.test.engine_version}"
+  cluster_identifier           = aws_rds_cluster.test.id
+  engine                       = aws_rds_cluster.test.engine
+  engine_version               = aws_rds_cluster.test.engine_version
   identifier                   = %[1]q
   instance_class               = "db.r4.large"
   performance_insights_enabled = true
@@ -1324,8 +1324,8 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier           = "${aws_rds_cluster.test.id}"
-  engine                       = "${aws_rds_cluster.test.engine}"
+  cluster_identifier           = aws_rds_cluster.test.id
+  engine                       = aws_rds_cluster.test.engine
   identifier                   = %[1]q
   instance_class               = "db.r4.large"
   performance_insights_enabled = true
@@ -1349,12 +1349,12 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier              = "${aws_rds_cluster.test.id}"
-  engine                          = "${aws_rds_cluster.test.engine}"
+  cluster_identifier              = aws_rds_cluster.test.id
+  engine                          = aws_rds_cluster.test.engine
   identifier                      = %[1]q
   instance_class                  = "db.r4.large"
   performance_insights_enabled    = true
-  performance_insights_kms_key_id = "${aws_kms_key.test.arn}"
+  performance_insights_kms_key_id = aws_kms_key.test.arn
 }
 `, rName)
 }
@@ -1376,13 +1376,13 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier              = "${aws_rds_cluster.test.id}"
-  engine                          = "${aws_rds_cluster.test.engine}"
-  engine_version                  = "${aws_rds_cluster.test.engine_version}"
+  cluster_identifier              = aws_rds_cluster.test.id
+  engine                          = aws_rds_cluster.test.engine
+  engine_version                  = aws_rds_cluster.test.engine_version
   identifier                      = %[1]q
   instance_class                  = "db.r4.large"
   performance_insights_enabled    = true
-  performance_insights_kms_key_id = "${aws_kms_key.test.arn}"
+  performance_insights_kms_key_id = aws_kms_key.test.arn
 }
 `, rName)
 }
@@ -1403,12 +1403,12 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  cluster_identifier              = "${aws_rds_cluster.test.id}"
-  engine                          = "${aws_rds_cluster.test.engine}"
+  cluster_identifier              = aws_rds_cluster.test.id
+  engine                          = aws_rds_cluster.test.engine
   identifier                      = %[1]q
   instance_class                  = "db.r4.large"
   performance_insights_enabled    = true
-  performance_insights_kms_key_id = "${aws_kms_key.test.arn}"
+  performance_insights_kms_key_id = aws_kms_key.test.arn
 }
 `, rName)
 }
@@ -1424,7 +1424,7 @@ resource "aws_rds_cluster" "test" {
 
 resource "aws_rds_cluster_instance" "test" {
   apply_immediately   = true
-  cluster_identifier  = "${aws_rds_cluster.test.id}"
+  cluster_identifier  = aws_rds_cluster.test.id
   identifier          = %q
   instance_class      = "db.t2.small"
   publicly_accessible = %t
@@ -1445,7 +1445,7 @@ resource "aws_rds_cluster" "default" {
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
   identifier            = "tf-cluster-instance-%d"
-  cluster_identifier    = "${aws_rds_cluster.default.id}"
+  cluster_identifier    = aws_rds_cluster.default.id
   instance_class        = "db.t2.small"
   promotion_tier        = "3"
   copy_tags_to_snapshot = %t
@@ -1463,11 +1463,11 @@ resource "aws_rds_cluster" "test" {
 }
 
 resource "aws_rds_cluster_instance" "test" {
-  apply_immediately   = true
-  cluster_identifier  = "${aws_rds_cluster.test.id}"
-  identifier          = %q
-  instance_class      = "db.t2.small"
-  ca_cert_identifier  = %q
+  apply_immediately  = true
+  cluster_identifier = aws_rds_cluster.test.id
+  identifier         = %q
+  instance_class     = "db.t2.small"
+  ca_cert_identifier = %q
 }
 `, rName, rName, caCertificateIdentifier)
 }

@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -434,30 +434,98 @@ func testAccCheckCloudFormationStackSetInstanceNotRecreated(i, j *cloudformation
 func testAccAWSCloudFormationStackSetInstanceConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "Administration" {
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"cloudformation.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}"
-  name               = "%[1]s-Administration"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "cloudformation.amazonaws.com"
+        ]
+      },
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    }
+  ]
+}
+EOF
+
+  name = "%[1]s-Administration"
 }
 
 resource "aws_iam_role_policy" "Administration" {
-  policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Resource\":[\"*\"],\"Action\":[\"sts:AssumeRole\"]}]}"
-  role   = "${aws_iam_role.Administration.name}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    }
+  ]
+}
+EOF
+
+  role = aws_iam_role.Administration.name
 }
 
 resource "aws_iam_role" "Execution" {
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"${aws_iam_role.Administration.arn}\"]},\"Action\":[\"sts:AssumeRole\"]}]}"
-  name               = "%[1]s-Execution"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "${aws_iam_role.Administration.arn}"
+        ]
+      },
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    }
+  ]
+}
+EOF
+
+  name = "%[1]s-Execution"
 }
 
 resource "aws_iam_role_policy" "Execution" {
-  policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Resource\":[\"*\"],\"Action\":[\"*\"]}]}"
-  role   = "${aws_iam_role.Execution.name}"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Action": [
+        "*"
+      ]
+    }
+  ]
+}
+EOF
+
+  role = aws_iam_role.Execution.name
 }
 
 resource "aws_cloudformation_stack_set" "test" {
-  depends_on = ["aws_iam_role_policy.Execution"]
+  depends_on = [aws_iam_role_policy.Execution]
 
-  administration_role_arn = "${aws_iam_role.Administration.arn}"
-  execution_role_name     = "${aws_iam_role.Execution.name}"
+  administration_role_arn = aws_iam_role.Administration.arn
+  execution_role_name     = aws_iam_role.Execution.name
   name                    = %[1]q
 
   parameters = {
@@ -477,8 +545,7 @@ Resources:
     Properties:
       CidrBlock: 10.0.0.0/16
       Tags:
-        -
-          Key: Name
+        - Key: Name
           Value: %[1]q
 Outputs:
   Parameter1Value:
@@ -495,24 +562,25 @@ TEMPLATE
 }
 
 func testAccAWSCloudFormationStackSetInstanceConfig(rName string) string {
-	return testAccAWSCloudFormationStackSetInstanceConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSCloudFormationStackSetInstanceConfigBase(rName) + `
 resource "aws_cloudformation_stack_set_instance" "test" {
-  depends_on = ["aws_iam_role_policy.Administration", "aws_iam_role_policy.Execution"]
+  depends_on = [aws_iam_role_policy.Administration, aws_iam_role_policy.Execution]
 
-  stack_set_name = "${aws_cloudformation_stack_set.test.name}"
+  stack_set_name = aws_cloudformation_stack_set.test.name
 }
-`)
+`
 }
 
 func testAccAWSCloudFormationStackSetInstanceConfigParameterOverrides1(rName, value1 string) string {
 	return testAccAWSCloudFormationStackSetInstanceConfigBase(rName) + fmt.Sprintf(`
 resource "aws_cloudformation_stack_set_instance" "test" {
-  depends_on = ["aws_iam_role_policy.Administration", "aws_iam_role_policy.Execution"]
+  depends_on = [aws_iam_role_policy.Administration, aws_iam_role_policy.Execution]
 
   parameter_overrides = {
     Parameter1 = %[1]q
   }
-  stack_set_name      = "${aws_cloudformation_stack_set.test.name}"
+
+  stack_set_name = aws_cloudformation_stack_set.test.name
 }
 `, value1)
 }
@@ -520,13 +588,14 @@ resource "aws_cloudformation_stack_set_instance" "test" {
 func testAccAWSCloudFormationStackSetInstanceConfigParameterOverrides2(rName, value1, value2 string) string {
 	return testAccAWSCloudFormationStackSetInstanceConfigBase(rName) + fmt.Sprintf(`
 resource "aws_cloudformation_stack_set_instance" "test" {
-  depends_on = ["aws_iam_role_policy.Administration", "aws_iam_role_policy.Execution"]
+  depends_on = [aws_iam_role_policy.Administration, aws_iam_role_policy.Execution]
 
   parameter_overrides = {
     Parameter1 = %[1]q
     Parameter2 = %[2]q
   }
-  stack_set_name      = "${aws_cloudformation_stack_set.test.name}"
+
+  stack_set_name = aws_cloudformation_stack_set.test.name
 }
 `, value1, value2)
 }
@@ -534,10 +603,10 @@ resource "aws_cloudformation_stack_set_instance" "test" {
 func testAccAWSCloudFormationStackSetInstanceConfigRetainStack(rName string, retainStack bool) string {
 	return testAccAWSCloudFormationStackSetInstanceConfigBase(rName) + fmt.Sprintf(`
 resource "aws_cloudformation_stack_set_instance" "test" {
-  depends_on = ["aws_iam_role_policy.Administration", "aws_iam_role_policy.Execution"]
+  depends_on = [aws_iam_role_policy.Administration, aws_iam_role_policy.Execution]
 
   retain_stack   = %[1]t
-  stack_set_name = "${aws_cloudformation_stack_set.test.name}"
+  stack_set_name = aws_cloudformation_stack_set.test.name
 }
 `, retainStack)
 }

@@ -22,14 +22,14 @@ resource "aws_vpc" "example" {
 resource "aws_service_discovery_private_dns_namespace" "example" {
   name        = "example.terraform.local"
   description = "example"
-  vpc         = "${aws_vpc.example.id}"
+  vpc         = aws_vpc.example.id
 }
 
 resource "aws_service_discovery_service" "example" {
   name = "example"
 
   dns_config {
-    namespace_id = "${aws_service_discovery_private_dns_namespace.example.id}"
+    namespace_id = aws_service_discovery_private_dns_namespace.example.id
 
     dns_records {
       ttl  = 10
@@ -55,7 +55,7 @@ resource "aws_service_discovery_service" "example" {
   name = "example"
 
   dns_config {
-    namespace_id = "${aws_service_discovery_public_dns_namespace.example.id}"
+    namespace_id = aws_service_discovery_public_dns_namespace.example.id
 
     dns_records {
       ttl  = 10
@@ -81,6 +81,7 @@ The following arguments are supported:
 * `health_check_config` - (Optional) A complex type that contains settings for an optional health check. Only for Public DNS namespaces.
 * `health_check_custom_config` - (Optional, ForceNew) A complex type that contains settings for ECS managed health checks.
 * `namespace_id` - (Optional) The ID of the namespace that you want to use to create the service.
+* `tags` - (Optional) A map of tags to assign to the service.
 
 ### dns_config
 

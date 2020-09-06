@@ -6,9 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
@@ -18,10 +19,9 @@ func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
 	secretResourceName := "aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_SecretString(rName),
@@ -30,7 +30,7 @@ func TestAccAwsSecretsManagerSecretVersion_BasicString(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
 					resource.TestCheckResourceAttrSet(resourceName, "version_id"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
 					resource.TestCheckResourceAttrPair(resourceName, "arn", secretResourceName, "arn"),
 				),
 			},
@@ -50,10 +50,9 @@ func TestAccAwsSecretsManagerSecretVersion_Base64Binary(t *testing.T) {
 	secretResourceName := "aws_secretsmanager_secret.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_SecretBinary(rName),
@@ -62,7 +61,7 @@ func TestAccAwsSecretsManagerSecretVersion_Base64Binary(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_binary", base64Encode([]byte("test-binary"))),
 					resource.TestCheckResourceAttrSet(resourceName, "version_id"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
 					resource.TestCheckResourceAttrPair(resourceName, "arn", secretResourceName, "arn"),
 				),
 			},
@@ -81,10 +80,9 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 	resourceName := "aws_secretsmanager_secret_version.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAwsSecretsManagerSecretVersionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsSecretsManagerSecretVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsSecretsManagerSecretVersionConfig_VersionStages_Single(rName),
@@ -92,8 +90,8 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
 					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.2848565413", "one"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
 				),
 			},
 			{
@@ -102,8 +100,8 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
 					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3351840846", "two"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "two"),
 				),
 			},
 			{
@@ -112,9 +110,9 @@ func TestAccAwsSecretsManagerSecretVersion_VersionStages(t *testing.T) {
 					testAccCheckAwsSecretsManagerSecretVersionExists(resourceName, &version),
 					resource.TestCheckResourceAttr(resourceName, "secret_string", "test-string"),
 					resource.TestCheckResourceAttr(resourceName, "version_stages.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3070137", "AWSCURRENT"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.2848565413", "one"),
-					resource.TestCheckResourceAttr(resourceName, "version_stages.3351840846", "two"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "AWSCURRENT"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "one"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "version_stages.*", "two"),
 				),
 			},
 			{
@@ -217,7 +215,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 }
 `, rName)
@@ -230,8 +228,8 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
-  secret_binary = "${base64encode("test-binary")}"
+  secret_id     = aws_secretsmanager_secret.test.id
+  secret_binary = base64encode("test-binary")
 }
 `, rName)
 }
@@ -243,7 +241,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 
   version_stages = ["one", "AWSCURRENT"]
@@ -258,7 +256,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 
   version_stages = ["two", "AWSCURRENT"]
@@ -273,7 +271,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_version" "test" {
-  secret_id     = "${aws_secretsmanager_secret.test.id}"
+  secret_id     = aws_secretsmanager_secret.test.id
   secret_string = "test-string"
 
   version_stages = ["one", "two", "AWSCURRENT"]

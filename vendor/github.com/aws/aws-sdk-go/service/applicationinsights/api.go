@@ -6393,6 +6393,15 @@ const (
 	CloudWatchEventSourceHealth = "HEALTH"
 )
 
+// CloudWatchEventSource_Values returns all elements of the CloudWatchEventSource enum
+func CloudWatchEventSource_Values() []string {
+	return []string{
+		CloudWatchEventSourceEc2,
+		CloudWatchEventSourceCodeDeploy,
+		CloudWatchEventSourceHealth,
+	}
+}
+
 const (
 	// ConfigurationEventResourceTypeCloudwatchAlarm is a ConfigurationEventResourceType enum value
 	ConfigurationEventResourceTypeCloudwatchAlarm = "CLOUDWATCH_ALARM"
@@ -6403,6 +6412,15 @@ const (
 	// ConfigurationEventResourceTypeSsmAssociation is a ConfigurationEventResourceType enum value
 	ConfigurationEventResourceTypeSsmAssociation = "SSM_ASSOCIATION"
 )
+
+// ConfigurationEventResourceType_Values returns all elements of the ConfigurationEventResourceType enum
+func ConfigurationEventResourceType_Values() []string {
+	return []string{
+		ConfigurationEventResourceTypeCloudwatchAlarm,
+		ConfigurationEventResourceTypeCloudformation,
+		ConfigurationEventResourceTypeSsmAssociation,
+	}
+}
 
 const (
 	// ConfigurationEventStatusInfo is a ConfigurationEventStatus enum value
@@ -6415,10 +6433,26 @@ const (
 	ConfigurationEventStatusError = "ERROR"
 )
 
+// ConfigurationEventStatus_Values returns all elements of the ConfigurationEventStatus enum
+func ConfigurationEventStatus_Values() []string {
+	return []string{
+		ConfigurationEventStatusInfo,
+		ConfigurationEventStatusWarn,
+		ConfigurationEventStatusError,
+	}
+}
+
 const (
 	// FeedbackKeyInsightsFeedback is a FeedbackKey enum value
 	FeedbackKeyInsightsFeedback = "INSIGHTS_FEEDBACK"
 )
+
+// FeedbackKey_Values returns all elements of the FeedbackKey enum
+func FeedbackKey_Values() []string {
+	return []string{
+		FeedbackKeyInsightsFeedback,
+	}
+}
 
 const (
 	// FeedbackValueNotSpecified is a FeedbackValue enum value
@@ -6431,6 +6465,15 @@ const (
 	FeedbackValueNotUseful = "NOT_USEFUL"
 )
 
+// FeedbackValue_Values returns all elements of the FeedbackValue enum
+func FeedbackValue_Values() []string {
+	return []string{
+		FeedbackValueNotSpecified,
+		FeedbackValueUseful,
+		FeedbackValueNotUseful,
+	}
+}
+
 const (
 	// LogFilterError is a LogFilter enum value
 	LogFilterError = "ERROR"
@@ -6441,6 +6484,15 @@ const (
 	// LogFilterInfo is a LogFilter enum value
 	LogFilterInfo = "INFO"
 )
+
+// LogFilter_Values returns all elements of the LogFilter enum
+func LogFilter_Values() []string {
+	return []string{
+		LogFilterError,
+		LogFilterWarn,
+		LogFilterInfo,
+	}
+}
 
 const (
 	// SeverityLevelLow is a SeverityLevel enum value
@@ -6453,6 +6505,15 @@ const (
 	SeverityLevelHigh = "High"
 )
 
+// SeverityLevel_Values returns all elements of the SeverityLevel enum
+func SeverityLevel_Values() []string {
+	return []string{
+		SeverityLevelLow,
+		SeverityLevelMedium,
+		SeverityLevelHigh,
+	}
+}
+
 const (
 	// StatusIgnore is a Status enum value
 	StatusIgnore = "IGNORE"
@@ -6463,6 +6524,15 @@ const (
 	// StatusPending is a Status enum value
 	StatusPending = "PENDING"
 )
+
+// Status_Values returns all elements of the Status enum
+func Status_Values() []string {
+	return []string{
+		StatusIgnore,
+		StatusResolved,
+		StatusPending,
+	}
+}
 
 const (
 	// TierDefault is a Tier enum value
@@ -6480,3 +6550,14 @@ const (
 	// TierSqlServer is a Tier enum value
 	TierSqlServer = "SQL_SERVER"
 )
+
+// Tier_Values returns all elements of the Tier enum
+func Tier_Values() []string {
+	return []string{
+		TierDefault,
+		TierDotNetCore,
+		TierDotNetWorker,
+		TierDotNetWeb,
+		TierSqlServer,
+	}
+}

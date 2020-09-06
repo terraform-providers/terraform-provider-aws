@@ -28,7 +28,7 @@ The Terraform state associated with existing resources will automatically be mig
 ```hcl
 resource "aws_appmesh_virtual_node" "serviceb1" {
   name      = "serviceBv1"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     backend {
@@ -62,7 +62,7 @@ resource "aws_service_discovery_http_namespace" "example" {
 
 resource "aws_appmesh_virtual_node" "serviceb1" {
   name      = "serviceBv1"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     backend {
@@ -85,7 +85,7 @@ resource "aws_appmesh_virtual_node" "serviceb1" {
         }
 
         service_name   = "serviceb1"
-        namespace_name = "${aws_service_discovery_http_namespace.example.name}"
+        namespace_name = aws_service_discovery_http_namespace.example.name
       }
     }
   }
@@ -97,7 +97,7 @@ resource "aws_appmesh_virtual_node" "serviceb1" {
 ```hcl
 resource "aws_appmesh_virtual_node" "serviceb1" {
   name      = "serviceBv1"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     backend {
@@ -136,7 +136,7 @@ resource "aws_appmesh_virtual_node" "serviceb1" {
 ```hcl
 resource "aws_appmesh_virtual_node" "serviceb1" {
   name      = "serviceBv1"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     backend {
@@ -187,7 +187,7 @@ The `spec` object supports the following:
 
 The `backend` object supports the following:
 
-* `virtual_service` - (Optional) Specifies a virtual service to use as a backend for a virtual node.
+* `virtual_service` - (Required) Specifies a virtual service to use as a backend for a virtual node.
 
 The `virtual_service` object supports the following:
 

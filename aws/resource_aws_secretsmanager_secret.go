@@ -7,11 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/secretsmanager/waiter"
 )
 
@@ -64,30 +65,28 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  30,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value == 0 {
-						return
-					}
-					if value >= 7 && value <= 30 {
-						return
-					}
-					errors = append(errors, fmt.Errorf("%q must be 0 or between 7 and 30", k))
-					return
-				},
+				ValidateFunc: validation.Any(
+					validation.IntBetween(7, 30),
+					validation.IntInSlice([]int{0}),
+				),
 			},
 			"rotation_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeBool,
+				Computed:   true,
 			},
 			"rotation_lambda_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
 			},
 			"rotation_rules": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Deprecated: "Use the aws_secretsmanager_secret_rotation resource instead",
+				Type:       schema.TypeList,
+				Computed:   true,
+				Optional:   true,
+				MaxItems:   1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"automatically_after_days": {
@@ -149,7 +148,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 		output, err = conn.CreateSecret(input)
 	}
 	if err != nil {
-		return fmt.Errorf("error creating Secrets Manager Secret: %s", err)
+		return fmt.Errorf("error creating Secrets Manager Secret: %w", err)
 	}
 
 	d.SetId(aws.StringValue(output.ARN))
@@ -160,10 +159,23 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 			SecretId:       aws.String(d.Id()),
 		}
 
-		log.Printf("[DEBUG] Setting Secrets Manager Secret resource policy; %s", input)
-		_, err := conn.PutResourcePolicy(input)
+		err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+			var err error
+			_, err = conn.PutResourcePolicy(input)
+			if isAWSErr(err, secretsmanager.ErrCodeMalformedPolicyDocumentException,
+				"This resource policy contains an unsupported principal") {
+				return resource.RetryableError(err)
+			}
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+		if isResourceTimeoutError(err) {
+			_, err = conn.PutResourcePolicy(input)
+		}
 		if err != nil {
-			return fmt.Errorf("error setting Secrets Manager Secret %q policy: %s", d.Id(), err)
+			return fmt.Errorf("error setting Secrets Manager Secret %q policy: %w", d.Id(), err)
 		}
 	}
 
@@ -190,7 +202,7 @@ func resourceAwsSecretsManagerSecretCreate(d *schema.ResourceData, meta interfac
 			_, err = conn.RotateSecret(input)
 		}
 		if err != nil {
-			return fmt.Errorf("error enabling Secrets Manager Secret %q rotation: %s", d.Id(), err)
+			return fmt.Errorf("error enabling Secrets Manager Secret %q rotation: %w", d.Id(), err)
 		}
 	}
 
@@ -213,7 +225,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error reading Secrets Manager Secret: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret: %w", err)
 	}
 
 	d.Set("arn", output.ARN)
@@ -227,13 +239,13 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Reading Secrets Manager Secret policy: %s", pIn)
 	pOut, err := conn.GetResourcePolicy(pIn)
 	if err != nil {
-		return fmt.Errorf("error reading Secrets Manager Secret policy: %s", err)
+		return fmt.Errorf("error reading Secrets Manager Secret policy: %w", err)
 	}
 
 	if pOut.ResourcePolicy != nil {
 		policy, err := structure.NormalizeJsonString(aws.StringValue(pOut.ResourcePolicy))
 		if err != nil {
-			return fmt.Errorf("policy contains an invalid JSON: %s", err)
+			return fmt.Errorf("policy contains an invalid JSON: %w", err)
 		}
 		d.Set("policy", policy)
 	}
@@ -243,7 +255,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 	if aws.BoolValue(output.RotationEnabled) {
 		d.Set("rotation_lambda_arn", output.RotationLambdaARN)
 		if err := d.Set("rotation_rules", flattenSecretsManagerRotationRules(output.RotationRules)); err != nil {
-			return fmt.Errorf("error setting rotation_rules: %s", err)
+			return fmt.Errorf("error setting rotation_rules: %w", err)
 		}
 	} else {
 		d.Set("rotation_lambda_arn", "")
@@ -251,7 +263,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err := d.Set("tags", keyvaluetags.SecretsmanagerKeyValueTags(output.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil
@@ -260,7 +272,7 @@ func resourceAwsSecretsManagerSecretRead(d *schema.ResourceData, meta interface{
 func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).secretsmanagerconn
 
-	if d.HasChange("description") || d.HasChange("kms_key_id") {
+	if d.HasChanges("description", "kms_key_id") {
 		input := &secretsmanager.UpdateSecretInput{
 			Description: aws.String(d.Get("description").(string)),
 			SecretId:    aws.String(d.Id()),
@@ -273,7 +285,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 		log.Printf("[DEBUG] Updating Secrets Manager Secret: %s", input)
 		_, err := conn.UpdateSecret(input)
 		if err != nil {
-			return fmt.Errorf("error updating Secrets Manager Secret: %s", err)
+			return fmt.Errorf("error updating Secrets Manager Secret: %w", err)
 		}
 	}
 
@@ -281,32 +293,46 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 		if v, ok := d.GetOk("policy"); ok && v.(string) != "" {
 			policy, err := structure.NormalizeJsonString(v.(string))
 			if err != nil {
-				return fmt.Errorf("policy contains an invalid JSON: %s", err)
+				return fmt.Errorf("policy contains an invalid JSON: %w", err)
 			}
 			input := &secretsmanager.PutResourcePolicyInput{
 				ResourcePolicy: aws.String(policy),
 				SecretId:       aws.String(d.Id()),
 			}
 
-			log.Printf("[DEBUG] Setting Secrets Manager Secret resource policy; %s", input)
-			_, err = conn.PutResourcePolicy(input)
+			log.Printf("[DEBUG] Setting Secrets Manager Secret resource policy; %#v", input)
+			err = resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+				var err error
+				_, err = conn.PutResourcePolicy(input)
+				if isAWSErr(err, secretsmanager.ErrCodeMalformedPolicyDocumentException,
+					"This resource policy contains an unsupported principal") {
+					return resource.RetryableError(err)
+				}
+				if err != nil {
+					return resource.NonRetryableError(err)
+				}
+				return nil
+			})
+			if isResourceTimeoutError(err) {
+				_, err = conn.PutResourcePolicy(input)
+			}
 			if err != nil {
-				return fmt.Errorf("error setting Secrets Manager Secret %q policy: %s", d.Id(), err)
+				return fmt.Errorf("error setting Secrets Manager Secret %q policy: %w", d.Id(), err)
 			}
 		} else {
 			input := &secretsmanager.DeleteResourcePolicyInput{
 				SecretId: aws.String(d.Id()),
 			}
 
-			log.Printf("[DEBUG] Removing Secrets Manager Secret policy: %s", input)
+			log.Printf("[DEBUG] Removing Secrets Manager Secret policy: %#v", input)
 			_, err := conn.DeleteResourcePolicy(input)
 			if err != nil {
-				return fmt.Errorf("error removing Secrets Manager Secret %q policy: %s", d.Id(), err)
+				return fmt.Errorf("error removing Secrets Manager Secret %q policy: %w", d.Id(), err)
 			}
 		}
 	}
 
-	if d.HasChange("rotation_lambda_arn") || d.HasChange("rotation_rules") {
+	if d.HasChanges("rotation_lambda_arn", "rotation_rules") {
 		if v, ok := d.GetOk("rotation_lambda_arn"); ok && v.(string) != "" {
 			input := &secretsmanager.RotateSecretInput{
 				RotationLambdaARN: aws.String(v.(string)),
@@ -330,7 +356,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 				_, err = conn.RotateSecret(input)
 			}
 			if err != nil {
-				return fmt.Errorf("error updating Secrets Manager Secret %q rotation: %s", d.Id(), err)
+				return fmt.Errorf("error updating Secrets Manager Secret %q rotation: %w", d.Id(), err)
 			}
 		} else {
 			input := &secretsmanager.CancelRotateSecretInput{
@@ -340,7 +366,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 			log.Printf("[DEBUG] Cancelling Secrets Manager Secret rotation: %s", input)
 			_, err := conn.CancelRotateSecret(input)
 			if err != nil {
-				return fmt.Errorf("error cancelling Secret Manager Secret %q rotation: %s", d.Id(), err)
+				return fmt.Errorf("error cancelling Secret Manager Secret %q rotation: %w", d.Id(), err)
 			}
 		}
 	}
@@ -348,7 +374,7 @@ func resourceAwsSecretsManagerSecretUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 		if err := keyvaluetags.SecretsmanagerUpdateTags(conn, d.Id(), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return fmt.Errorf("error updating tags: %w", err)
 		}
 	}
 
@@ -375,34 +401,8 @@ func resourceAwsSecretsManagerSecretDelete(d *schema.ResourceData, meta interfac
 		if isAWSErr(err, secretsmanager.ErrCodeResourceNotFoundException, "") {
 			return nil
 		}
-		return fmt.Errorf("error deleting Secrets Manager Secret: %s", err)
+		return fmt.Errorf("error deleting Secrets Manager Secret: %w", err)
 	}
 
 	return nil
-}
-
-func expandSecretsManagerRotationRules(l []interface{}) *secretsmanager.RotationRulesType {
-	if len(l) == 0 {
-		return nil
-	}
-
-	m := l[0].(map[string]interface{})
-
-	rules := &secretsmanager.RotationRulesType{
-		AutomaticallyAfterDays: aws.Int64(int64(m["automatically_after_days"].(int))),
-	}
-
-	return rules
-}
-
-func flattenSecretsManagerRotationRules(rules *secretsmanager.RotationRulesType) []interface{} {
-	if rules == nil {
-		return []interface{}{}
-	}
-
-	m := map[string]interface{}{
-		"automatically_after_days": int(aws.Int64Value(rules.AutomaticallyAfterDays)),
-	}
-
-	return []interface{}{m}
 }

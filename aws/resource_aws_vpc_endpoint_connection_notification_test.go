@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
@@ -106,8 +106,9 @@ func testAccCheckVpcEndpointConnectionNotificationExists(n string) resource.Test
 }
 
 func testAccVpcEndpointConnectionNotificationBasicConfig(lbName string) string {
-	return fmt.Sprintf(
-		`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+data "aws_partition" "current" {}
+
 resource "aws_vpc" "nlb_test" {
   cidr_block = "10.0.0.0/16"
 
@@ -137,7 +138,7 @@ resource "aws_lb" "nlb_test" {
 resource "aws_subnet" "nlb_test_1" {
   vpc_id            = "${aws_vpc.nlb_test.id}"
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-1"
@@ -147,7 +148,7 @@ resource "aws_subnet" "nlb_test_1" {
 resource "aws_subnet" "nlb_test_2" {
   vpc_id            = "${aws_vpc.nlb_test.id}"
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-2"
@@ -180,7 +181,7 @@ resource "aws_sns_topic" "topic" {
             "Service": "vpce.amazonaws.com"
         },
         "Action": "SNS:Publish",
-        "Resource": "arn:aws:sns:*:*:vpce-notification-topic"
+        "Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:vpce-notification-topic"
     }]
 }
 POLICY
@@ -191,12 +192,14 @@ resource "aws_vpc_endpoint_connection_notification" "test" {
   connection_notification_arn = "${aws_sns_topic.topic.arn}"
   connection_events = ["Accept", "Reject"]
 }
-`, lbName)
+`, lbName))
 }
 
 func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) string {
-	return fmt.Sprintf(
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(
 		`
+data "aws_partition" "current" {}
+
 		resource "aws_vpc" "nlb_test" {
 			cidr_block = "10.0.0.0/16"
 
@@ -226,7 +229,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 		resource "aws_subnet" "nlb_test_1" {
 			vpc_id            = "${aws_vpc.nlb_test.id}"
 			cidr_block        = "10.0.1.0/24"
-			availability_zone = "us-west-2a"
+			availability_zone = data.aws_availability_zones.available.names[0]
 
 	tags = {
 				Name = "tf-acc-vpc-endpoint-connection-notification-1"
@@ -236,7 +239,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 		resource "aws_subnet" "nlb_test_2" {
 			vpc_id            = "${aws_vpc.nlb_test.id}"
 			cidr_block        = "10.0.2.0/24"
-			availability_zone = "us-west-2b"
+			availability_zone = data.aws_availability_zones.available.names[1]
 
 	tags = {
 				Name = "tf-acc-vpc-endpoint-connection-notification-2"
@@ -269,7 +272,7 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 								"Service": "vpce.amazonaws.com"
 						},
 						"Action": "SNS:Publish",
-						"Resource": "arn:aws:sns:*:*:vpce-notification-topic"
+						"Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:vpce-notification-topic"
 				}]
 		}
 		POLICY
@@ -280,5 +283,5 @@ func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) strin
 			connection_notification_arn = "${aws_sns_topic.topic.arn}"
 			connection_events = ["Accept"]
 		}
-`, lbName)
+`, lbName))
 }

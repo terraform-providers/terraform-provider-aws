@@ -2,13 +2,13 @@ package aws
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
 // buildEC2AttributeFilterList takes a flat map of scalar attributes (most
@@ -33,29 +33,7 @@ import (
 // the EC2 API, to aid in the implementation of Terraform data sources that
 // retrieve data about EC2 objects.
 func buildEC2AttributeFilterList(attrs map[string]string) []*ec2.Filter {
-	var filters []*ec2.Filter
-
-	// sort the filters by name to make the output deterministic
-	var names []string
-	for filterName := range attrs {
-		names = append(names, filterName)
-	}
-
-	sort.Strings(names)
-
-	for _, filterName := range names {
-		value := attrs[filterName]
-		if value == "" {
-			continue
-		}
-
-		filters = append(filters, &ec2.Filter{
-			Name:   aws.String(filterName),
-			Values: []*string{aws.String(value)},
-		})
-	}
-
-	return filters
+	return tfec2.BuildAttributeFilterList(attrs)
 }
 
 // buildEC2TagFilterList takes a []*ec2.Tag and produces a []*ec2.Filter that

@@ -9,15 +9,20 @@ import (
  * 16 color Style
  *************************************************************/
 
-// Style a 16 color style
-// can add: fg color, bg color, color options
+// Style a 16 color style. can add: fg color, bg color, color options
+//
 // Example:
-// 	color.Style(color.FgGreen).Print("message")
+// 	color.Style{color.FgGreen}.Print("message")
 type Style []Color
 
 // New create a custom style
+//
+// Usage:
+//	color.New(color.FgGreen).Print("message")
+//	equals to:
+//	color.Style{color.FgGreen}.Print("message")
 func New(colors ...Color) Style {
-	return Style(colors)
+	return colors
 }
 
 // Save to styles map
@@ -33,42 +38,43 @@ func (s Style) Render(a ...interface{}) string {
 	return RenderCode(s.String(), a...)
 }
 
+// Renderln render text line.
+// like Println, will add spaces for each argument
+// Usage:
+//  color.New(color.FgGreen).Renderln("text", "more")
+//  color.New(color.FgGreen, color.BgBlack, color.OpBold).Render("text", "more")
+func (s Style) Renderln(a ...interface{}) string {
+	return RenderWithSpaces(s.String(), a...)
+}
+
 // Sprint is alias of the 'Render'
 func (s Style) Sprint(a ...interface{}) string {
 	return RenderCode(s.String(), a...)
 }
 
-// Sprintf is alias of the 'Render'
+// Sprintf format and render message.
 func (s Style) Sprintf(format string, a ...interface{}) string {
 	return RenderString(s.String(), fmt.Sprintf(format, a...))
 }
 
 // Print render and Print text
 func (s Style) Print(a ...interface{}) {
-	if isLikeInCmd {
-		winPrint(fmt.Sprint(a...), s...)
-	} else {
-		fmt.Print(RenderCode(s.String(), a...))
-	}
+	doPrint(s.String(), s, fmt.Sprint(a...))
 }
 
 // Printf render and print text
 func (s Style) Printf(format string, a ...interface{}) {
-	message := fmt.Sprintf(format, a...)
-	if isLikeInCmd {
-		winPrint(message, s...)
-	} else {
-		fmt.Print(RenderString(s.String(), message))
-	}
+	doPrint(s.Code(), s, fmt.Sprintf(format, a...))
 }
 
 // Println render and print text line
 func (s Style) Println(a ...interface{}) {
-	if isLikeInCmd {
-		winPrintln(fmt.Sprint(a...), s...)
-	} else {
-		fmt.Println(RenderCode(s.String(), a...))
-	}
+	doPrintln(s.String(), s, a)
+}
+
+// Code convert to code string. returns like "32;45;3"
+func (s Style) Code() string {
+	return s.String()
 }
 
 // String convert to code string. returns like "32;45;3"
@@ -105,19 +111,20 @@ func (t *Theme) Save() {
 
 // Tips use name as title, only apply style for name
 func (t *Theme) Tips(format string, a ...interface{}) {
-	t.Print(strings.ToUpper(t.Name) + ": ") // only apply style for name
+	// only apply style for name
+	t.Print(strings.ToUpper(t.Name) + ": ")
 	Printf(format+"\n", a...)
 }
 
 // Prompt use name as title, and apply style for message
 func (t *Theme) Prompt(format string, a ...interface{}) {
-	title := strings.ToUpper(t.Name) + ": "
+	title := strings.ToUpper(t.Name) + ":"
 	t.Println(title, fmt.Sprintf(format, a...))
 }
 
 // Block like Prompt, but will wrap a empty line
 func (t *Theme) Block(format string, a ...interface{}) {
-	title := strings.ToUpper(t.Name) + ":\n "
+	title := strings.ToUpper(t.Name) + ":\n"
 
 	t.Println(title, fmt.Sprintf(format, a...))
 }
@@ -145,6 +152,8 @@ var (
 	Error = &Theme{"error", Style{FgLightWhite, BgRed}}
 	// Danger color style
 	Danger = &Theme{"danger", Style{OpBold, FgRed}}
+	// Debug color style
+	Debug = &Theme{"debug", Style{OpReset, FgCyan}}
 	// Notice color style
 	Notice = &Theme{"notice", Style{OpBold, FgCyan}}
 	// Comment color style
@@ -168,6 +177,7 @@ var Themes = map[string]*Theme{
 	"light": Light,
 	"error": Error,
 
+	"debug":   Debug,
 	"danger":  Danger,
 	"notice":  Notice,
 	"success": Success,

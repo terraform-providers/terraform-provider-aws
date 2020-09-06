@@ -5,12 +5,12 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -57,7 +57,7 @@ func testSweepSagemakerEndpointConfigurations(region string) error {
 	return nil
 }
 
-func TestAccAWSSagemakerEndpointConfiguration_Basic(t *testing.T) {
+func TestAccAWSSagemakerEndpointConfiguration_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_sagemaker_endpoint_configuration.foo"
 
@@ -254,7 +254,7 @@ func testAccSagemakerEndpointConfigurationConfig_Base(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_sagemaker_model" "foo" {
   name               = %q
-  execution_role_arn = "${aws_iam_role.foo.arn}"
+  execution_role_arn = aws_iam_role.foo.arn
 
   primary_container {
     image = "174872318107.dkr.ecr.us-west-2.amazonaws.com/kmeans:1"
@@ -264,7 +264,7 @@ resource "aws_sagemaker_model" "foo" {
 resource "aws_iam_role" "foo" {
   name               = %q
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 data "aws_iam_policy_document" "assume_role" {
@@ -283,15 +283,15 @@ data "aws_iam_policy_document" "assume_role" {
 func testAccSagemakerEndpointConfigurationConfig_Basic(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
+  name = %q
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 2
-		instance_type = "ml.t2.medium"
-		initial_variant_weight = 1
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 2
+    instance_type          = "ml.t2.medium"
+    initial_variant_weight = 1
+  }
 }
 `, rName)
 }
@@ -299,22 +299,22 @@ resource "aws_sagemaker_endpoint_configuration" "foo" {
 func testAccSagemakerEndpointConfigurationConfig_ProductionVariants_InitialVariantWeight(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
+  name = %q
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 1
-		instance_type = "ml.t2.medium"
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 1
+    instance_type          = "ml.t2.medium"
+  }
 
-	production_variants {
-		variant_name = "variant-2"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 1
-		instance_type = "ml.t2.medium"
-		initial_variant_weight = 0.5
-	}
+  production_variants {
+    variant_name           = "variant-2"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 1
+    instance_type          = "ml.t2.medium"
+    initial_variant_weight = 0.5
+  }
 }
 `, rName)
 }
@@ -322,16 +322,16 @@ resource "aws_sagemaker_endpoint_configuration" "foo" {
 func testAccSagemakerEndpointConfigurationConfig_ProductionVariant_AcceleratorType(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
+  name = %q
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 2
-		instance_type = "ml.t2.medium"
-		accelerator_type = "ml.eia1.medium"
-		initial_variant_weight = 1
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 2
+    instance_type          = "ml.t2.medium"
+    accelerator_type       = "ml.eia1.medium"
+    initial_variant_weight = 1
+  }
 }
 `, rName)
 }
@@ -339,16 +339,16 @@ resource "aws_sagemaker_endpoint_configuration" "foo" {
 func testAccSagemakerEndpointConfiguration_Config_KmsKeyId(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
-	kms_key_arn = "${aws_kms_key.foo.arn}"
+  name        = %q
+  kms_key_arn = aws_kms_key.foo.arn
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 1
-		instance_type = "ml.t2.medium"
-		initial_variant_weight = 1
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 1
+    instance_type          = "ml.t2.medium"
+    initial_variant_weight = 1
+  }
 }
 
 resource "aws_kms_key" "foo" {
@@ -361,19 +361,19 @@ resource "aws_kms_key" "foo" {
 func testAccSagemakerEndpointConfigurationConfig_Tags(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
+  name = %q
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 1
-		instance_type = "ml.t2.medium"
-		initial_variant_weight = 1
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 1
+    instance_type          = "ml.t2.medium"
+    initial_variant_weight = 1
+  }
 
-	tags = {
-		foo = "bar"
-	}
+  tags = {
+    foo = "bar"
+  }
 }
 `, rName)
 }
@@ -381,19 +381,19 @@ resource "aws_sagemaker_endpoint_configuration" "foo" {
 func testAccSagemakerEndpointConfigurationConfig_Tags_Update(rName string) string {
 	return testAccSagemakerEndpointConfigurationConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint_configuration" "foo" {
-	name = %q
+  name = %q
 
-	production_variants {
-		variant_name = "variant-1"
-		model_name = "${aws_sagemaker_model.foo.name}"
-		initial_instance_count = 1
-		instance_type = "ml.t2.medium"
-		initial_variant_weight = 1
-	}
+  production_variants {
+    variant_name           = "variant-1"
+    model_name             = aws_sagemaker_model.foo.name
+    initial_instance_count = 1
+    instance_type          = "ml.t2.medium"
+    initial_variant_weight = 1
+  }
 
-	tags = {
-		bar = "baz"
-	}
+  tags = {
+    bar = "baz"
+  }
 }
 `, rName)
 }

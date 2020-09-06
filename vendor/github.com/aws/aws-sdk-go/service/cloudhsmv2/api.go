@@ -85,6 +85,8 @@ func (c *CloudHSMV2) CopyBackupToRegionRequest(input *CopyBackupToRegionInput) (
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/CopyBackupToRegion
 func (c *CloudHSMV2) CopyBackupToRegion(input *CopyBackupToRegionInput) (*CopyBackupToRegionOutput, error) {
@@ -180,6 +182,8 @@ func (c *CloudHSMV2) CreateClusterRequest(input *CreateClusterInput) (req *reque
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/CreateCluster
 func (c *CloudHSMV2) CreateCluster(input *CreateClusterInput) (*CreateClusterOutput, error) {
@@ -466,6 +470,8 @@ func (c *CloudHSMV2) DeleteClusterRequest(input *DeleteClusterInput) (req *reque
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/DeleteCluster
 func (c *CloudHSMV2) DeleteCluster(input *DeleteClusterInput) (*DeleteClusterOutput, error) {
@@ -670,6 +676,8 @@ func (c *CloudHSMV2) DescribeBackupsRequest(input *DescribeBackupsInput) (req *r
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/DescribeBackups
 func (c *CloudHSMV2) DescribeBackups(input *DescribeBackupsInput) (*DescribeBackupsOutput, error) {
@@ -827,6 +835,8 @@ func (c *CloudHSMV2) DescribeClustersRequest(input *DescribeClustersInput) (req 
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/DescribeClusters
 func (c *CloudHSMV2) DescribeClusters(input *DescribeClustersInput) (*DescribeClustersOutput, error) {
@@ -1082,6 +1092,8 @@ func (c *CloudHSMV2) ListTagsRequest(input *ListTagsInput) (req *request.Request
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/ListTags
 func (c *CloudHSMV2) ListTags(input *ListTagsInput) (*ListTagsOutput, error) {
@@ -1324,6 +1336,8 @@ func (c *CloudHSMV2) TagResourceRequest(input *TagResourceInput) (req *request.R
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/TagResource
 func (c *CloudHSMV2) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
@@ -1420,6 +1434,8 @@ func (c *CloudHSMV2) UntagResourceRequest(input *UntagResourceInput) (req *reque
 //   The request was rejected because an error occurred.
 //
 //   * CloudHsmTagException
+//   The request was rejected because of a tagging failure. Verify the tag conditions
+//   in all applicable policies, and then retry the request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/cloudhsmv2-2017-04-28/UntagResource
 func (c *CloudHSMV2) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
@@ -1476,13 +1492,14 @@ type Backup struct {
 	SourceBackup *string `type:"string"`
 
 	// The identifier (ID) of the cluster containing the source backup from which
-	// the new backup was copied. .
+	// the new backup was copied.
 	SourceCluster *string `type:"string"`
 
-	// The AWS region that contains the source backup from which the new backup
+	// The AWS Region that contains the source backup from which the new backup
 	// was copied.
 	SourceRegion *string `type:"string"`
 
+	// The list of tags for the backup.
 	TagList []*Tag `min:"1" type:"list"`
 }
 
@@ -1900,6 +1917,8 @@ func (s *CloudHsmServiceException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The request was rejected because of a tagging failure. Verify the tag conditions
+// in all applicable policies, and then retry the request.
 type CloudHsmTagException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -1997,6 +2016,7 @@ type Cluster struct {
 	// zone.
 	SubnetMapping map[string]*string `type:"map"`
 
+	// The list of tags for the cluster.
 	TagList []*Tag `min:"1" type:"list"`
 
 	// The identifier (ID) of the virtual private cloud (VPC) that contains the
@@ -2111,6 +2131,10 @@ type CopyBackupToRegionInput struct {
 	// DestinationRegion is a required field
 	DestinationRegion *string `type:"string" required:"true"`
 
+	// Tags to apply to the destination backup during creation. If you specify tags,
+	// only these tags will be applied to the destination backup. If you do not
+	// specify tags, the service copies tags from the source backup to the destination
+	// backup.
 	TagList []*Tag `min:"1" type:"list"`
 }
 
@@ -2226,6 +2250,7 @@ type CreateClusterInput struct {
 	// SubnetIds is a required field
 	SubnetIds []*string `min:"1" type:"list" required:"true"`
 
+	// Tags to apply to the CloudHSM cluster during creation.
 	TagList []*Tag `min:"1" type:"list"`
 }
 
@@ -3451,6 +3476,13 @@ const (
 	BackupPolicyDefault = "DEFAULT"
 )
 
+// BackupPolicy_Values returns all elements of the BackupPolicy enum
+func BackupPolicy_Values() []string {
+	return []string{
+		BackupPolicyDefault,
+	}
+}
+
 const (
 	// BackupStateCreateInProgress is a BackupState enum value
 	BackupStateCreateInProgress = "CREATE_IN_PROGRESS"
@@ -3464,6 +3496,16 @@ const (
 	// BackupStatePendingDeletion is a BackupState enum value
 	BackupStatePendingDeletion = "PENDING_DELETION"
 )
+
+// BackupState_Values returns all elements of the BackupState enum
+func BackupState_Values() []string {
+	return []string{
+		BackupStateCreateInProgress,
+		BackupStateReady,
+		BackupStateDeleted,
+		BackupStatePendingDeletion,
+	}
+}
 
 const (
 	// ClusterStateCreateInProgress is a ClusterState enum value
@@ -3494,6 +3536,21 @@ const (
 	ClusterStateDegraded = "DEGRADED"
 )
 
+// ClusterState_Values returns all elements of the ClusterState enum
+func ClusterState_Values() []string {
+	return []string{
+		ClusterStateCreateInProgress,
+		ClusterStateUninitialized,
+		ClusterStateInitializeInProgress,
+		ClusterStateInitialized,
+		ClusterStateActive,
+		ClusterStateUpdateInProgress,
+		ClusterStateDeleteInProgress,
+		ClusterStateDeleted,
+		ClusterStateDegraded,
+	}
+}
+
 const (
 	// HsmStateCreateInProgress is a HsmState enum value
 	HsmStateCreateInProgress = "CREATE_IN_PROGRESS"
@@ -3510,3 +3567,14 @@ const (
 	// HsmStateDeleted is a HsmState enum value
 	HsmStateDeleted = "DELETED"
 )
+
+// HsmState_Values returns all elements of the HsmState enum
+func HsmState_Values() []string {
+	return []string{
+		HsmStateCreateInProgress,
+		HsmStateActive,
+		HsmStateDegraded,
+		HsmStateDeleteInProgress,
+		HsmStateDeleted,
+	}
+}

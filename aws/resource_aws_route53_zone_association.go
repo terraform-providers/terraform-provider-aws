@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -41,52 +41,56 @@ func resourceAwsRoute53ZoneAssociation() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+
+			"owning_account": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceAwsRoute53ZoneAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	r53 := meta.(*AWSClient).r53conn
+	conn := meta.(*AWSClient).r53conn
 
-	req := &route53.AssociateVPCWithHostedZoneInput{
-		HostedZoneId: aws.String(d.Get("zone_id").(string)),
+	vpcRegion := meta.(*AWSClient).region
+	vpcID := d.Get("vpc_id").(string)
+	zoneID := d.Get("zone_id").(string)
+
+	if v, ok := d.GetOk("vpc_region"); ok {
+		vpcRegion = v.(string)
+	}
+
+	input := &route53.AssociateVPCWithHostedZoneInput{
+		HostedZoneId: aws.String(zoneID),
 		VPC: &route53.VPC{
-			VPCId:     aws.String(d.Get("vpc_id").(string)),
-			VPCRegion: aws.String(meta.(*AWSClient).region),
+			VPCId:     aws.String(vpcID),
+			VPCRegion: aws.String(vpcRegion),
 		},
 		Comment: aws.String("Managed by Terraform"),
 	}
-	if w := d.Get("vpc_region"); w != "" {
-		req.VPC.VPCRegion = aws.String(w.(string))
-	}
 
-	log.Printf("[DEBUG] Associating Route53 Private Zone %s with VPC %s with region %s", *req.HostedZoneId, *req.VPC.VPCId, *req.VPC.VPCRegion)
-	var err error
-	resp, err := r53.AssociateVPCWithHostedZone(req)
+	output, err := conn.AssociateVPCWithHostedZone(input)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error associating Route 53 Hosted Zone (%s) to EC2 VPC (%s): %w", zoneID, vpcID, err)
 	}
 
-	// Store association id
-	d.SetId(fmt.Sprintf("%s:%s", *req.HostedZoneId, *req.VPC.VPCId))
+	d.SetId(fmt.Sprintf("%s:%s:%s", zoneID, vpcID, vpcRegion))
 
-	// Wait until we are done initializing
-	wait := resource.StateChangeConf{
-		Delay:      30 * time.Second,
-		Pending:    []string{"PENDING"},
-		Target:     []string{"INSYNC"},
-		Timeout:    10 * time.Minute,
-		MinTimeout: 2 * time.Second,
-		Refresh: func() (result interface{}, state string, err error) {
-			changeRequest := &route53.GetChangeInput{
-				Id: aws.String(cleanChangeID(*resp.ChangeInfo.Id)),
-			}
-			return resourceAwsGoRoute53Wait(r53, changeRequest)
-		},
-	}
-	_, err = wait.WaitForState()
-	if err != nil {
-		return err
+	if output != nil && output.ChangeInfo != nil && output.ChangeInfo.Id != nil {
+		wait := resource.StateChangeConf{
+			Delay:      30 * time.Second,
+			Pending:    []string{route53.ChangeStatusPending},
+			Target:     []string{route53.ChangeStatusInsync},
+			Timeout:    10 * time.Minute,
+			MinTimeout: 2 * time.Second,
+			Refresh:    resourceAwsRoute53ZoneAssociationRefreshFunc(conn, cleanChangeID(aws.StringValue(output.ChangeInfo.Id)), d.Id()),
+		}
+
+		if _, err := wait.WaitForState(); err != nil {
+			return fmt.Errorf("error waiting for Route 53 Zone Association (%s) synchronization: %w", d.Id(), err)
+		}
 	}
 
 	return resourceAwsRoute53ZoneAssociationRead(d, meta)
@@ -95,33 +99,47 @@ func resourceAwsRoute53ZoneAssociationCreate(d *schema.ResourceData, meta interf
 func resourceAwsRoute53ZoneAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
 
-	zoneID, vpcID, err := resourceAwsRoute53ZoneAssociationParseId(d.Id())
+	zoneID, vpcID, vpcRegion, err := resourceAwsRoute53ZoneAssociationParseId(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	vpc, err := route53GetZoneAssociation(conn, zoneID, vpcID)
+	// Continue supporting older resources without VPC Region in ID
+	if vpcRegion == "" {
+		vpcRegion = d.Get("vpc_region").(string)
+	}
 
-	if isAWSErr(err, route53.ErrCodeNoSuchHostedZone, "") {
-		log.Printf("[WARN] Route 53 Hosted Zone (%s) not found, removing from state", zoneID)
+	if vpcRegion == "" {
+		vpcRegion = meta.(*AWSClient).region
+	}
+
+	hostedZoneSummary, err := route53GetZoneAssociation(conn, zoneID, vpcID, vpcRegion)
+
+	if isAWSErr(err, "AccessDenied", "is not owned by you") && !d.IsNewResource() {
+		log.Printf("[WARN] Route 53 Zone Association (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error getting Route 53 Hosted Zone (%s): %s", zoneID, err)
+		return fmt.Errorf("error getting Route 53 Zone Association (%s): %w", d.Id(), err)
 	}
 
-	if vpc == nil {
+	if hostedZoneSummary == nil {
+		if d.IsNewResource() {
+			return fmt.Errorf("error getting Route 53 Zone Association (%s): missing after creation", d.Id())
+		}
+
 		log.Printf("[WARN] Route 53 Hosted Zone (%s) Association (%s) not found, removing from state", zoneID, vpcID)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("vpc_id", vpc.VPCId)
-	d.Set("vpc_region", vpc.VPCRegion)
+	d.Set("vpc_id", vpcID)
+	d.Set("vpc_region", vpcRegion)
 	d.Set("zone_id", zoneID)
+	d.Set("owning_account", hostedZoneSummary.Owner.OwningAccount)
 
 	return nil
 }
@@ -129,58 +147,92 @@ func resourceAwsRoute53ZoneAssociationRead(d *schema.ResourceData, meta interfac
 func resourceAwsRoute53ZoneAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).r53conn
 
-	zoneID, vpcID, err := resourceAwsRoute53ZoneAssociationParseId(d.Id())
+	zoneID, vpcID, vpcRegion, err := resourceAwsRoute53ZoneAssociationParseId(d.Id())
 
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Disassociating Route 53 Hosted Zone (%s) Association: %s", zoneID, vpcID)
+	// Continue supporting older resources without VPC Region in ID
+	if vpcRegion == "" {
+		vpcRegion = d.Get("vpc_region").(string)
+	}
 
-	req := &route53.DisassociateVPCFromHostedZoneInput{
+	if vpcRegion == "" {
+		vpcRegion = meta.(*AWSClient).region
+	}
+
+	input := &route53.DisassociateVPCFromHostedZoneInput{
 		HostedZoneId: aws.String(zoneID),
 		VPC: &route53.VPC{
 			VPCId:     aws.String(vpcID),
-			VPCRegion: aws.String(d.Get("vpc_region").(string)),
+			VPCRegion: aws.String(vpcRegion),
 		},
 		Comment: aws.String("Managed by Terraform"),
 	}
 
-	_, err = conn.DisassociateVPCFromHostedZone(req)
+	_, err = conn.DisassociateVPCFromHostedZone(input)
 
 	if err != nil {
-		return fmt.Errorf("error disassociating Route 53 Hosted Zone (%s) Association (%s): %s", zoneID, vpcID, err)
+		return fmt.Errorf("error disassociating Route 53 Hosted Zone (%s) from EC2 VPC (%s): %w", zoneID, vpcID, err)
 	}
 
 	return nil
 }
 
-func resourceAwsRoute53ZoneAssociationParseId(id string) (string, string, error) {
+func resourceAwsRoute53ZoneAssociationParseId(id string) (string, string, string, error) {
 	parts := strings.Split(id, ":")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("Unexpected format of ID (%q), expected ZONEID:VPCID", id)
+
+	if len(parts) == 3 && parts[0] != "" && parts[1] != "" && parts[2] != "" {
+		return parts[0], parts[1], parts[2], nil
 	}
-	return parts[0], parts[1], nil
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", "", fmt.Errorf("Unexpected format of ID (%q), expected ZONEID:VPCID or ZONEID:VPCID:VPCREGION", id)
+	}
+
+	return parts[0], parts[1], "", nil
 }
 
-func route53GetZoneAssociation(conn *route53.Route53, zoneID, vpcID string) (*route53.VPC, error) {
-	input := &route53.GetHostedZoneInput{
-		Id: aws.String(zoneID),
+func resourceAwsRoute53ZoneAssociationRefreshFunc(conn *route53.Route53, changeId, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		changeRequest := &route53.GetChangeInput{
+			Id: aws.String(changeId),
+		}
+		result, state, err := resourceAwsGoRoute53Wait(conn, changeRequest)
+		if isAWSErr(err, "AccessDenied", "") {
+			log.Printf("[WARN] AccessDenied when trying to get Route 53 change progress for %s - ignoring due to likely cross account issue", id)
+			return true, route53.ChangeStatusInsync, nil
+		}
+		return result, state, err
+	}
+}
+
+func route53GetZoneAssociation(conn *route53.Route53, zoneID, vpcID, vpcRegion string) (*route53.HostedZoneSummary, error) {
+	input := &route53.ListHostedZonesByVPCInput{
+		VPCId:     aws.String(vpcID),
+		VPCRegion: aws.String(vpcRegion),
 	}
 
-	output, err := conn.GetHostedZone(input)
+	for {
+		output, err := conn.ListHostedZonesByVPC(input)
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 
-	var vpc *route53.VPC
-	for _, zoneVPC := range output.VPCs {
-		if vpcID == aws.StringValue(zoneVPC.VPCId) {
-			vpc = zoneVPC
+		var associatedHostedZoneSummary *route53.HostedZoneSummary
+		for _, hostedZoneSummary := range output.HostedZoneSummaries {
+			if zoneID == aws.StringValue(hostedZoneSummary.HostedZoneId) {
+				associatedHostedZoneSummary = hostedZoneSummary
+				return associatedHostedZoneSummary, nil
+			}
+		}
+		if output.NextToken == nil {
 			break
 		}
+		input.NextToken = output.NextToken
 	}
 
-	return vpc, nil
+	return nil, nil
 }

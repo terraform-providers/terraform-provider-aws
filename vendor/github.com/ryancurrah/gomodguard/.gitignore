@@ -19,3 +19,5 @@
 *.xml
 
 dist/
+
+coverage.*

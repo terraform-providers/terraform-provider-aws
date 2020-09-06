@@ -8,94 +8,18 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSAutoscalingPolicy_basic(t *testing.T) {
 	var policy autoscaling.ScalingPolicy
 
-	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAutoscalingPolicyDestroy,
-		DisableBinaryDriver: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSAutoscalingPolicyConfig_basic(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "adjustment_type", "ChangeInCapacity"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "policy_type", "SimpleScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "cooldown", "300"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "name", name+"-foobar_simple"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "scaling_adjustment", "2"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "autoscaling_group_name", name),
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_step", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "adjustment_type", "ChangeInCapacity"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "policy_type", "StepScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "name", name+"-foobar_step"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "metric_aggregation_type", "Minimum"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "estimated_instance_warmup", "200"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "autoscaling_group_name", name),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "step_adjustment.2042107634.scaling_adjustment", "1"),
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_target_tracking", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "policy_type", "TargetTrackingScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "name", name+"-foobar_target_tracking"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "autoscaling_group_name", name),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.#", "1"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.customized_metric_specification.#", "0"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.predefined_metric_specification.#", "1"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.predefined_metric_specification.0.predefined_metric_type", "ASGAverageCPUUtilization"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.target_value", "40"),
-				),
-			},
-			{
-				ResourceName:      "aws_autoscaling_policy.foobar_simple",
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_simple"),
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      "aws_autoscaling_policy.foobar_step",
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_step"),
-				ImportStateVerify: true,
-			},
-			{
-				ResourceName:      "aws_autoscaling_policy.foobar_target_tracking",
-				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_target_tracking"),
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAWSAutoscalingPolicyConfig_basicUpdate(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "policy_type", "SimpleScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "cooldown", "30"),
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_step", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "policy_type", "StepScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "estimated_instance_warmup", "20"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "step_adjustment.997979330.scaling_adjustment", "10"),
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_target_tracking", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "policy_type", "TargetTrackingScaling"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.#", "1"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.customized_metric_specification.#", "1"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.customized_metric_specification.0.statistic", "Average"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.predefined_metric_specification.#", "0"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_target_tracking", "target_tracking_configuration.0.target_value", "70"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAWSAutoscalingPolicy_disappears(t *testing.T) {
-	var policy autoscaling.ScalingPolicy
+	resourceSimpleName := "aws_autoscaling_policy.foobar_simple"
+	resourceStepName := "aws_autoscaling_policy.foobar_step"
+	resourceTargetTrackingName := "aws_autoscaling_policy.foobar_target_tracking"
 
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 
@@ -107,7 +31,94 @@ func TestAccAWSAutoscalingPolicy_disappears(t *testing.T) {
 			{
 				Config: testAccAWSAutoscalingPolicyConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &policy),
+					testAccCheckScalingPolicyExists(resourceSimpleName, &policy),
+					resource.TestCheckResourceAttr(resourceSimpleName, "adjustment_type", "ChangeInCapacity"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "policy_type", "SimpleScaling"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "cooldown", "300"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "name", name+"-foobar_simple"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "scaling_adjustment", "2"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "autoscaling_group_name", name),
+
+					testAccCheckScalingPolicyExists(resourceStepName, &policy),
+					resource.TestCheckResourceAttr(resourceStepName, "adjustment_type", "ChangeInCapacity"),
+					resource.TestCheckResourceAttr(resourceStepName, "policy_type", "StepScaling"),
+					resource.TestCheckResourceAttr(resourceStepName, "name", name+"-foobar_step"),
+					resource.TestCheckResourceAttr(resourceStepName, "metric_aggregation_type", "Minimum"),
+					resource.TestCheckResourceAttr(resourceStepName, "estimated_instance_warmup", "200"),
+					resource.TestCheckResourceAttr(resourceStepName, "autoscaling_group_name", name),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
+						"scaling_adjustment": "1",
+					}),
+					testAccCheckScalingPolicyExists(resourceTargetTrackingName, &policy),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "policy_type", "TargetTrackingScaling"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "name", name+"-foobar_target_tracking"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "autoscaling_group_name", name),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.customized_metric_specification.#", "0"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.predefined_metric_specification.#", "1"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.predefined_metric_specification.0.predefined_metric_type", "ASGAverageCPUUtilization"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.target_value", "40"),
+				),
+			},
+			{
+				ResourceName:      resourceSimpleName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceSimpleName),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceStepName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceStepName),
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceTargetTrackingName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceTargetTrackingName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAutoscalingPolicyConfig_basicUpdate(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckScalingPolicyExists(resourceSimpleName, &policy),
+					resource.TestCheckResourceAttr(resourceSimpleName, "policy_type", "SimpleScaling"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "cooldown", "30"),
+					testAccCheckScalingPolicyExists(resourceStepName, &policy),
+					resource.TestCheckResourceAttr(resourceStepName, "policy_type", "StepScaling"),
+					resource.TestCheckResourceAttr(resourceStepName, "estimated_instance_warmup", "20"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceStepName, "step_adjustment.*", map[string]string{
+						"scaling_adjustment": "10",
+					}),
+					testAccCheckScalingPolicyExists(resourceTargetTrackingName, &policy),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "policy_type", "TargetTrackingScaling"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.customized_metric_specification.#", "1"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.customized_metric_specification.0.statistic", "Average"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.predefined_metric_specification.#", "0"),
+					resource.TestCheckResourceAttr(resourceTargetTrackingName, "target_tracking_configuration.0.target_value", "70"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAutoscalingPolicy_disappears(t *testing.T) {
+	var policy autoscaling.ScalingPolicy
+
+	resourceName := "aws_autoscaling_policy.foobar_simple"
+
+	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAutoscalingPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAutoscalingPolicyConfig_basic(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckScalingPolicyExists(resourceName, &policy),
 					testAccCheckScalingPolicyDisappears(&policy),
 				),
 				ExpectNonEmptyPlan: true,
@@ -156,6 +167,8 @@ func testAccCheckScalingPolicyDisappears(conf *autoscaling.ScalingPolicy) resour
 func TestAccAWSAutoscalingPolicy_SimpleScalingStepAdjustment(t *testing.T) {
 	var policy autoscaling.ScalingPolicy
 
+	resourceName := "aws_autoscaling_policy.foobar_simple"
+
 	name := fmt.Sprintf("terraform-testacc-asp-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -166,15 +179,15 @@ func TestAccAWSAutoscalingPolicy_SimpleScalingStepAdjustment(t *testing.T) {
 			{
 				Config: testAccAWSAutoscalingPolicyConfig_SimpleScalingStepAdjustment(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &policy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "adjustment_type", "ExactCapacity"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "scaling_adjustment", "0"),
+					testAccCheckScalingPolicyExists(resourceName, &policy),
+					resource.TestCheckResourceAttr(resourceName, "adjustment_type", "ExactCapacity"),
+					resource.TestCheckResourceAttr(resourceName, "scaling_adjustment", "0"),
 				),
 			},
 			{
-				ResourceName:      "aws_autoscaling_policy.foobar_simple",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_simple"),
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
 			},
 		},
@@ -237,6 +250,9 @@ func TestAccAWSAutoscalingPolicy_zerovalue(t *testing.T) {
 	var simplepolicy autoscaling.ScalingPolicy
 	var steppolicy autoscaling.ScalingPolicy
 
+	resourceSimpleName := "aws_autoscaling_policy.foobar_simple"
+	resourceStepName := "aws_autoscaling_policy.foobar_step"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -245,24 +261,24 @@ func TestAccAWSAutoscalingPolicy_zerovalue(t *testing.T) {
 			{
 				Config: testAccAWSAutoscalingPolicyConfig_zerovalue(acctest.RandString(5)),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_simple", &simplepolicy),
-					testAccCheckScalingPolicyExists("aws_autoscaling_policy.foobar_step", &steppolicy),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "cooldown", "0"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_simple", "scaling_adjustment", "0"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "min_adjustment_magnitude", "1"),
-					resource.TestCheckResourceAttr("aws_autoscaling_policy.foobar_step", "estimated_instance_warmup", "0"),
+					testAccCheckScalingPolicyExists(resourceSimpleName, &simplepolicy),
+					testAccCheckScalingPolicyExists(resourceStepName, &steppolicy),
+					resource.TestCheckResourceAttr(resourceSimpleName, "cooldown", "0"),
+					resource.TestCheckResourceAttr(resourceSimpleName, "scaling_adjustment", "0"),
+					resource.TestCheckResourceAttr(resourceStepName, "min_adjustment_magnitude", "1"),
+					resource.TestCheckResourceAttr(resourceStepName, "estimated_instance_warmup", "0"),
 				),
 			},
 			{
-				ResourceName:      "aws_autoscaling_policy.foobar_simple",
+				ResourceName:      resourceSimpleName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_simple"),
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceSimpleName),
 				ImportStateVerify: true,
 			},
 			{
-				ResourceName:      "aws_autoscaling_policy.foobar_step",
+				ResourceName:      resourceStepName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc("aws_autoscaling_policy.foobar_step"),
+				ImportStateIdFunc: testAccAWSAutoscalingPolicyImportStateIdFunc(resourceStepName),
 				ImportStateVerify: true,
 			},
 		},
@@ -355,17 +371,17 @@ data "aws_availability_zones" "available" {
 
 resource "aws_launch_configuration" "test" {
   name          = "%s"
-  image_id      = "${data.aws_ami.amzn.id}"
+  image_id      = data.aws_ami.amzn.id
   instance_type = "t2.micro"
 }
 
 resource "aws_autoscaling_group" "test" {
-  availability_zones   = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}"]
+  availability_zones   = slice(data.aws_availability_zones.available.names, 0, 2)
   name                 = "%s"
   max_size             = 0
   min_size             = 0
   force_delete         = true
-  launch_configuration = "${aws_launch_configuration.test.name}"
+  launch_configuration = aws_launch_configuration.test.name
 }
 `, name, name)
 }
@@ -378,7 +394,7 @@ resource "aws_autoscaling_policy" "foobar_simple" {
   cooldown               = 300
   policy_type            = "SimpleScaling"
   scaling_adjustment     = 2
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 
 resource "aws_autoscaling_policy" "foobar_step" {
@@ -393,13 +409,13 @@ resource "aws_autoscaling_policy" "foobar_step" {
     metric_interval_lower_bound = 2.0
   }
 
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 
 resource "aws_autoscaling_policy" "foobar_target_tracking" {
   name                   = "%s-foobar_target_tracking"
   policy_type            = "TargetTrackingScaling"
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 
   target_tracking_configuration {
     predefined_metric_specification {
@@ -420,7 +436,7 @@ resource "aws_autoscaling_policy" "foobar_simple" {
   cooldown               = 30
   policy_type            = "SimpleScaling"
   scaling_adjustment     = 2
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 
 resource "aws_autoscaling_policy" "foobar_step" {
@@ -435,13 +451,13 @@ resource "aws_autoscaling_policy" "foobar_step" {
     metric_interval_lower_bound = 2.0
   }
 
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 
 resource "aws_autoscaling_policy" "foobar_target_tracking" {
   name                   = "%s-foobar_target_tracking"
   policy_type            = "TargetTrackingScaling"
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 
   target_tracking_configuration {
     customized_metric_specification {
@@ -469,7 +485,7 @@ resource "aws_autoscaling_policy" "foobar_simple" {
   cooldown               = 300
   policy_type            = "SimpleScaling"
   scaling_adjustment     = 0
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 `, name)
 }
@@ -479,7 +495,7 @@ func testAccAwsAutoscalingPolicyConfig_TargetTracking_Predefined(name string) st
 resource "aws_autoscaling_policy" "test" {
   name                   = "%s-test"
   policy_type            = "TargetTrackingScaling"
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 
   target_tracking_configuration {
     predefined_metric_specification {
@@ -497,7 +513,7 @@ func testAccAwsAutoscalingPolicyConfig_TargetTracking_Custom(name string) string
 resource "aws_autoscaling_policy" "test" {
   name                   = "%s-test"
   policy_type            = "TargetTrackingScaling"
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 
   target_tracking_configuration {
     customized_metric_specification {
@@ -525,7 +541,7 @@ resource "aws_autoscaling_policy" "foobar_simple" {
   cooldown               = 0
   policy_type            = "SimpleScaling"
   scaling_adjustment     = 0
-  autoscaling_group_name = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name = aws_autoscaling_group.test.name
 }
 
 resource "aws_autoscaling_policy" "foobar_step" {
@@ -541,7 +557,7 @@ resource "aws_autoscaling_policy" "foobar_step" {
   }
 
   min_adjustment_magnitude = 1
-  autoscaling_group_name   = "${aws_autoscaling_group.test.name}"
+  autoscaling_group_name   = aws_autoscaling_group.test.name
 }
 `, name, name)
 }

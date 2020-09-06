@@ -79,7 +79,7 @@ func (c *ForecastService) CreateDatasetRequest(input *CreateDatasetInput) (req *
 // To get a list of all your datasets, use the ListDatasets operation.
 //
 // For example Forecast datasets, see the Amazon Forecast Sample GitHub repository
-// (https://github.com/aws-samples/amazon-forecast-samples/tree/master/data).
+// (https://github.com/aws-samples/amazon-forecast-samples).
 //
 // The Status of a dataset must be ACTIVE before you can import training data.
 // Use the DescribeDataset operation to get the status.
@@ -278,14 +278,21 @@ func (c *ForecastService) CreateDatasetImportJobRequest(input *CreateDatasetImpo
 // to import the data to.
 //
 // You must specify a DataSource object that includes an AWS Identity and Access
-// Management (IAM) role that Amazon Forecast can assume to access the data.
-// For more information, see aws-forecast-iam-roles.
+// Management (IAM) role that Amazon Forecast can assume to access the data,
+// as Amazon Forecast makes a copy of your data and processes it in an internal
+// AWS system. For more information, see aws-forecast-iam-roles.
 //
 // The training data must be in CSV format. The delimiter must be a comma (,).
 //
 // You can specify the path to a specific CSV file, the S3 bucket, or to a folder
 // in the S3 bucket. For the latter two cases, Amazon Forecast imports all files
 // up to the limit of 10,000 files.
+//
+// Because dataset imports are not aggregated, your most recent dataset import
+// is the one that is used when training a predictor or generating a forecast.
+// Make sure that your most recent dataset import contains all of the data you
+// want to model off of, and not just the new data collected since the previous
+// import.
 //
 // To get a list of all your dataset import jobs, filtered by specified criteria,
 // use the ListDatasetImportJobs operation.
@@ -388,9 +395,8 @@ func (c *ForecastService) CreateForecastRequest(input *CreateForecastInput) (req
 // use the CreateForecastExportJob operation.
 //
 // The range of the forecast is determined by the ForecastHorizon value, which
-// you specify in the CreatePredictor request, multiplied by the DataFrequency
-// value, which you specify in the CreateDataset request. When you query a forecast,
-// you can request a specific date range within the forecast.
+// you specify in the CreatePredictor request. When you query a forecast, you
+// can request a specific date range within the forecast.
 //
 // To get a list of all your forecasts, use the ListForecasts operation.
 //
@@ -497,7 +503,7 @@ func (c *ForecastService) CreateForecastExportJobRequest(input *CreateForecastEx
 // Simple Storage Service (Amazon S3) bucket. The forecast file name will match
 // the following conventions:
 //
-// <ForecastExportJobName>_<ExportTimestamp>_<PageNumber>
+// <ForecastExportJobName>_<ExportTimestamp>_<PartNumber>
 //
 // where the <ExportTimestamp> component is in Java SimpleDateFormat (yyyy-MM-ddTHH-mm-ssZ).
 //
@@ -747,6 +753,10 @@ func (c *ForecastService) DeleteDatasetRequest(input *DeleteDatasetInput) (req *
 // Deletes an Amazon Forecast dataset that was created using the CreateDataset
 // operation. You can only delete datasets that have a status of ACTIVE or CREATE_FAILED.
 // To get the status use the DescribeDataset operation.
+//
+// Forecast does not automatically update any dataset groups that contain the
+// deleted dataset. In order to update the dataset group, use the operation,
+// omitting the deleted dataset's ARN.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2791,6 +2801,266 @@ func (c *ForecastService) ListPredictorsPagesWithContext(ctx aws.Context, input 
 	return p.Err()
 }
 
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/ListTagsForResource
+func (c *ForecastService) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for Amazon Forecast Service.
+//
+// Lists the tags for an Amazon Forecast resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Forecast Service's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   We can't find a resource with that Amazon Resource Name (ARN). Check the
+//   ARN and try again.
+//
+//   * InvalidInputException
+//   We can't process the request because it includes an invalid value or a value
+//   that exceeds the valid range.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/ListTagsForResource
+func (c *ForecastService) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ForecastService) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/TagResource
+func (c *ForecastService) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for Amazon Forecast Service.
+//
+// Associates the specified tags to a resource with the specified resourceArn.
+// If existing tags on a resource are not specified in the request parameters,
+// they are not changed. When a resource is deleted, the tags associated with
+// that resource are also deleted.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Forecast Service's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   We can't find a resource with that Amazon Resource Name (ARN). Check the
+//   ARN and try again.
+//
+//   * LimitExceededException
+//   The limit on the number of resources per account has been exceeded.
+//
+//   * InvalidInputException
+//   We can't process the request because it includes an invalid value or a value
+//   that exceeds the valid range.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/TagResource
+func (c *ForecastService) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ForecastService) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/UntagResource
+func (c *ForecastService) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for Amazon Forecast Service.
+//
+// Deletes the specified tags from a resource.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Forecast Service's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   We can't find a resource with that Amazon Resource Name (ARN). Check the
+//   ARN and try again.
+//
+//   * InvalidInputException
+//   We can't process the request because it includes an invalid value or a value
+//   that exceeds the valid range.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/forecast-2018-06-26/UntagResource
+func (c *ForecastService) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ForecastService) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateDatasetGroup = "UpdateDatasetGroup"
 
 // UpdateDatasetGroupRequest generates a "aws/request.Request" representing the
@@ -3076,6 +3346,37 @@ type CreateDatasetGroupInput struct {
 	//
 	// Domain is a required field
 	Domain *string `type:"string" required:"true" enum:"Domain"`
+
+	// The optional metadata that you apply to the dataset group to help you categorize
+	// and organize them. Each tag consists of a key and an optional value, both
+	// of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -3100,6 +3401,16 @@ func (s *CreateDatasetGroupInput) Validate() error {
 	if s.Domain == nil {
 		invalidParams.Add(request.NewErrParamRequired("Domain"))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3122,6 +3433,12 @@ func (s *CreateDatasetGroupInput) SetDatasetGroupName(v string) *CreateDatasetGr
 // SetDomain sets the Domain field's value.
 func (s *CreateDatasetGroupInput) SetDomain(v string) *CreateDatasetGroupInput {
 	s.Domain = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDatasetGroupInput) SetTags(v []*Tag) *CreateDatasetGroupInput {
+	s.Tags = v
 	return s
 }
 
@@ -3176,6 +3493,37 @@ type CreateDatasetImportJobInput struct {
 	// DatasetImportJobName is a required field
 	DatasetImportJobName *string `min:"1" type:"string" required:"true"`
 
+	// The optional metadata that you apply to the dataset import job to help you
+	// categorize and organize them. Each tag consists of a key and an optional
+	// value, both of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
+
 	// The format of timestamps in the dataset. The format that you specify depends
 	// on the DataFrequency specified when the dataset was created. The following
 	// formats are supported
@@ -3220,6 +3568,16 @@ func (s *CreateDatasetImportJobInput) Validate() error {
 			invalidParams.AddNested("DataSource", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3242,6 +3600,12 @@ func (s *CreateDatasetImportJobInput) SetDatasetArn(v string) *CreateDatasetImpo
 // SetDatasetImportJobName sets the DatasetImportJobName field's value.
 func (s *CreateDatasetImportJobInput) SetDatasetImportJobName(v string) *CreateDatasetImportJobInput {
 	s.DatasetImportJobName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDatasetImportJobInput) SetTags(v []*Tag) *CreateDatasetImportJobInput {
+	s.Tags = v
 	return s
 }
 
@@ -3320,6 +3684,37 @@ type CreateDatasetInput struct {
 	//
 	// Schema is a required field
 	Schema *Schema `type:"structure" required:"true"`
+
+	// The optional metadata that you apply to the dataset to help you categorize
+	// and organize them. Each tag consists of a key and an optional value, both
+	// of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -3358,6 +3753,16 @@ func (s *CreateDatasetInput) Validate() error {
 	if s.Schema != nil {
 		if err := s.Schema.Validate(); err != nil {
 			invalidParams.AddNested("Schema", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
 		}
 	}
 
@@ -3400,6 +3805,12 @@ func (s *CreateDatasetInput) SetEncryptionConfig(v *EncryptionConfig) *CreateDat
 // SetSchema sets the Schema field's value.
 func (s *CreateDatasetInput) SetSchema(v *Schema) *CreateDatasetInput {
 	s.Schema = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDatasetInput) SetTags(v []*Tag) *CreateDatasetInput {
+	s.Tags = v
 	return s
 }
 
@@ -3449,6 +3860,37 @@ type CreateForecastExportJobInput struct {
 	//
 	// ForecastExportJobName is a required field
 	ForecastExportJobName *string `min:"1" type:"string" required:"true"`
+
+	// The optional metadata that you apply to the forecast export job to help you
+	// categorize and organize them. Each tag consists of a key and an optional
+	// value, both of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -3481,6 +3923,16 @@ func (s *CreateForecastExportJobInput) Validate() error {
 			invalidParams.AddNested("Destination", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3503,6 +3955,12 @@ func (s *CreateForecastExportJobInput) SetForecastArn(v string) *CreateForecastE
 // SetForecastExportJobName sets the ForecastExportJobName field's value.
 func (s *CreateForecastExportJobInput) SetForecastExportJobName(v string) *CreateForecastExportJobInput {
 	s.ForecastExportJobName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateForecastExportJobInput) SetTags(v []*Tag) *CreateForecastExportJobInput {
+	s.Tags = v
 	return s
 }
 
@@ -3537,17 +3995,48 @@ type CreateForecastInput struct {
 	// ForecastName is a required field
 	ForecastName *string `min:"1" type:"string" required:"true"`
 
-	// The quantiles at which probabilistic forecasts are generated. You can specify
-	// up to 5 quantiles per forecast. Accepted values include 0.01 to 0.99 (increments
-	// of .01 only) and mean. The mean forecast is different from the median (0.50)
-	// when the distribution is not symmetric (e.g. Beta, Negative Binomial). The
-	// default value is ["0.1", "0.5", "0.9"].
+	// The quantiles at which probabilistic forecasts are generated. You can currently
+	// specify up to 5 quantiles per forecast. Accepted values include 0.01 to 0.99
+	// (increments of .01 only) and mean. The mean forecast is different from the
+	// median (0.50) when the distribution is not symmetric (for example, Beta and
+	// Negative Binomial). The default value is ["0.1", "0.5", "0.9"].
 	ForecastTypes []*string `min:"1" type:"list"`
 
 	// The Amazon Resource Name (ARN) of the predictor to use to generate the forecast.
 	//
 	// PredictorArn is a required field
 	PredictorArn *string `type:"string" required:"true"`
+
+	// The optional metadata that you apply to the forecast to help you categorize
+	// and organize them. Each tag consists of a key and an optional value, both
+	// of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -3575,6 +4064,16 @@ func (s *CreateForecastInput) Validate() error {
 	if s.PredictorArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("PredictorArn"))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -3597,6 +4096,12 @@ func (s *CreateForecastInput) SetForecastTypes(v []*string) *CreateForecastInput
 // SetPredictorArn sets the PredictorArn field's value.
 func (s *CreateForecastInput) SetPredictorArn(v string) *CreateForecastInput {
 	s.PredictorArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateForecastInput) SetTags(v []*Tag) *CreateForecastInput {
+	s.Tags = v
 	return s
 }
 
@@ -3719,6 +4224,37 @@ type CreatePredictorInput struct {
 	// PredictorName is a required field
 	PredictorName *string `min:"1" type:"string" required:"true"`
 
+	// The optional metadata that you apply to the predictor to help you categorize
+	// and organize them. Each tag consists of a key and an optional value, both
+	// of which you define.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	Tags []*Tag `type:"list"`
+
 	// The hyperparameters to override for model training. The hyperparameters that
 	// you can override are listed in the individual algorithms. For the list of
 	// supported algorithms, see aws-forecast-choosing-recipes.
@@ -3771,6 +4307,16 @@ func (s *CreatePredictorInput) Validate() error {
 	if s.InputDataConfig != nil {
 		if err := s.InputDataConfig.Validate(); err != nil {
 			invalidParams.AddNested("InputDataConfig", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
 		}
 	}
 
@@ -3837,6 +4383,12 @@ func (s *CreatePredictorInput) SetPerformHPO(v bool) *CreatePredictorInput {
 // SetPredictorName sets the PredictorName field's value.
 func (s *CreatePredictorInput) SetPredictorName(v string) *CreatePredictorInput {
 	s.PredictorName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreatePredictorInput) SetTags(v []*Tag) *CreatePredictorInput {
+	s.Tags = v
 	return s
 }
 
@@ -5170,7 +5722,7 @@ type DescribeForecastOutput struct {
 	// The name of the forecast.
 	ForecastName *string `min:"1" type:"string"`
 
-	// The quantiles at which proababilistic forecasts were generated.
+	// The quantiles at which probabilistic forecasts were generated.
 	ForecastTypes []*string `min:"1" type:"list"`
 
 	// Initially, the same as CreationTime (status is CREATE_PENDING). Updated when
@@ -5673,9 +6225,10 @@ type Featurization struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the schema attribute that specifies the data field to be featurized.
-	// Only the target field of the TARGET_TIME_SERIES dataset type is supported.
-	// For example, for the RETAIL domain, the target is demand, and for the CUSTOM
-	// domain, the target is target_value.
+	// Amazon Forecast supports the target field of the TARGET_TIME_SERIES and the
+	// RELATED_TIME_SERIES datasets. For example, for the RETAIL domain, the target
+	// is demand, and for the CUSTOM domain, the target is target_value. For more
+	// information, see howitworks-missing-values.
 	//
 	// AttributeName is a required field
 	AttributeName *string `min:"1" type:"string" required:"true"`
@@ -5744,8 +6297,8 @@ func (s *Featurization) SetFeaturizationPipeline(v []*FeaturizationMethod) *Feat
 // You define featurization using the FeaturizationConfig object. You specify
 // an array of transformations, one for each field that you want to featurize.
 // You then include the FeaturizationConfig object in your CreatePredictor request.
-// Amazon Forecast applies the featurization to the TARGET_TIME_SERIES dataset
-// before model training.
+// Amazon Forecast applies the featurization to the TARGET_TIME_SERIES and RELATED_TIME_SERIES
+// datasets before model training.
 //
 // You can create multiple featurization configurations. For example, you might
 // call the CreatePredictor operation twice by specifying different featurization
@@ -5754,7 +6307,7 @@ type FeaturizationConfig struct {
 	_ struct{} `type:"structure"`
 
 	// An array of featurization (transformation) information for the fields of
-	// a dataset. Only a single featurization is supported.
+	// a dataset.
 	Featurizations []*Featurization `min:"1" type:"list"`
 
 	// An array of dimension (field) names that specify how to group the generated
@@ -5847,8 +6400,7 @@ func (s *FeaturizationConfig) SetForecastFrequency(v string) *FeaturizationConfi
 
 // Provides information about the method that featurizes (transforms) a dataset
 // field. The method is part of the FeaturizationPipeline of the Featurization
-// object. If you don't specify FeaturizationMethodParameters, Amazon Forecast
-// uses default parameters.
+// object.
 //
 // The following is an example of how you specify a FeaturizationMethod object.
 //
@@ -5856,7 +6408,8 @@ func (s *FeaturizationConfig) SetForecastFrequency(v string) *FeaturizationConfi
 //
 // "FeaturizationMethodName": "filling",
 //
-// "FeaturizationMethodParameters": {"aggregation": "avg", "backfill": "nan"}
+// "FeaturizationMethodParameters": {"aggregation": "sum", "middlefill": "zero",
+// "backfill": "zero"}
 //
 // }
 type FeaturizationMethod struct {
@@ -5867,17 +6420,30 @@ type FeaturizationMethod struct {
 	// FeaturizationMethodName is a required field
 	FeaturizationMethodName *string `type:"string" required:"true" enum:"FeaturizationMethodName"`
 
-	// The method parameters (key-value pairs). Specify these parameters to override
-	// the default values. The following list shows the parameters and their valid
-	// values. Bold signifies the default value.
+	// The method parameters (key-value pairs), which are a map of override parameters.
+	// Specify these parameters to override the default values. Related Time Series
+	// attributes do not accept aggregation parameters.
+	//
+	// The following list shows the parameters and their valid values for the "filling"
+	// featurization method for a Target Time Series dataset. Bold signifies the
+	// default value.
 	//
 	//    * aggregation: sum, avg, first, min, max
 	//
 	//    * frontfill: none
 	//
-	//    * middlefill: zero, nan (not a number)
+	//    * middlefill: zero, nan (not a number), value, median, mean, min, max
 	//
-	//    * backfill: zero, nan
+	//    * backfill: zero, nan, value, median, mean, min, max
+	//
+	// The following list shows the parameters and their valid values for a Related
+	// Time Series featurization method (there are no defaults):
+	//
+	//    * middlefill: zero, value, median, mean, min, max
+	//
+	//    * backfill: zero, value, median, mean, min, max
+	//
+	//    * futurefill: zero, value, median, mean, min, max
 	FeaturizationMethodParameters map[string]*string `min:"1" type:"map"`
 }
 
@@ -7286,6 +7852,70 @@ func (s *ListPredictorsOutput) SetPredictors(v []*PredictorSummary) *ListPredict
 	return s
 }
 
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) that identifies the resource for which to
+	// list the tags. Currently, the supported resources are Forecast dataset groups,
+	// datasets, dataset import jobs, predictors, forecasts, and forecast export
+	// jobs.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The tags for the resource.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
+}
+
 // Provides metrics that are used to evaluate the performance of a predictor.
 // This object is part of the WindowSummary object.
 type Metrics struct {
@@ -7821,7 +8451,7 @@ type Schema struct {
 	_ struct{} `type:"structure"`
 
 	// An array of attributes specifying the name and type of each field in a dataset.
-	Attributes []*SchemaAttribute `type:"list"`
+	Attributes []*SchemaAttribute `min:"1" type:"list"`
 }
 
 // String returns the string representation
@@ -7837,6 +8467,9 @@ func (s Schema) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *Schema) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "Schema"}
+	if s.Attributes != nil && len(s.Attributes) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Attributes", 1))
+	}
 	if s.Attributes != nil {
 		for i, v := range s.Attributes {
 			if v == nil {
@@ -8003,6 +8636,35 @@ func (s *Statistics) SetStddev(v float64) *Statistics {
 // all data in the datasets should belong to the same country as the calendar.
 // For the holiday calendar data, see the Jollyday (http://jollyday.sourceforge.net/data.html)
 // web site.
+//
+// India and Korea's holidays are not included in the Jollyday library, but
+// both are supported by Amazon Forecast. Their holidays are:
+//
+// "IN" - INDIA
+//
+//    * JANUARY 26 - REPUBLIC DAY
+//
+//    * AUGUST 15 - INDEPENDENCE DAY
+//
+//    * OCTOBER 2 GANDHI'S BIRTHDAY
+//
+// "KR" - KOREA
+//
+//    * JANUARY 1 - NEW YEAR
+//
+//    * MARCH 1 - INDEPENDENCE MOVEMENT DAY
+//
+//    * MAY 5 - CHILDREN'S DAY
+//
+//    * JUNE 6 - MEMORIAL DAY
+//
+//    * AUGUST 15 - LIBERATION DAY
+//
+//    * OCTOBER 3 - NATIONAL FOUNDATION DAY
+//
+//    * OCTOBER 9 - HANGEUL DAY
+//
+//    * DECEMBER 25 - CHRISTMAS DAY
 type SupplementaryFeature struct {
 	_ struct{} `type:"structure"`
 
@@ -8013,15 +8675,69 @@ type SupplementaryFeature struct {
 
 	// One of the following 2 letter country codes:
 	//
+	//    * "AR" - ARGENTINA
+	//
+	//    * "AT" - AUSTRIA
+	//
 	//    * "AU" - AUSTRALIA
+	//
+	//    * "BE" - BELGIUM
+	//
+	//    * "BR" - BRAZIL
+	//
+	//    * "CA" - CANADA
+	//
+	//    * "CN" - CHINA
+	//
+	//    * "CZ" - CZECH REPUBLIC
+	//
+	//    * "DK" - DENMARK
+	//
+	//    * "EC" - ECUADOR
+	//
+	//    * "FI" - FINLAND
+	//
+	//    * "FR" - FRANCE
 	//
 	//    * "DE" - GERMANY
 	//
+	//    * "HU" - HUNGARY
+	//
+	//    * "IE" - IRELAND
+	//
+	//    * "IN" - INDIA
+	//
+	//    * "IT" - ITALY
+	//
 	//    * "JP" - JAPAN
 	//
-	//    * "US" - UNITED_STATES
+	//    * "KR" - KOREA
 	//
-	//    * "UK" - UNITED_KINGDOM
+	//    * "LU" - LUXEMBOURG
+	//
+	//    * "MX" - MEXICO
+	//
+	//    * "NL" - NETHERLANDS
+	//
+	//    * "NO" - NORWAY
+	//
+	//    * "PL" - POLAND
+	//
+	//    * "PT" - PORTUGAL
+	//
+	//    * "RU" - RUSSIA
+	//
+	//    * "ZA" - SOUTH AFRICA
+	//
+	//    * "ES" - SPAIN
+	//
+	//    * "SE" - SWEDEN
+	//
+	//    * "CH" - SWITZERLAND
+	//
+	//    * "US" - UNITED STATES
+	//
+	//    * "UK" - UNITED KINGDOM
 	//
 	// Value is a required field
 	Value *string `type:"string" required:"true"`
@@ -8066,6 +8782,197 @@ func (s *SupplementaryFeature) SetName(v string) *SupplementaryFeature {
 func (s *SupplementaryFeature) SetValue(v string) *SupplementaryFeature {
 	s.Value = &v
 	return s
+}
+
+// The optional metadata that you apply to a resource to help you categorize
+// and organize them. Each tag consists of a key and an optional value, both
+// of which you define.
+//
+// The following basic restrictions apply to tags:
+//
+//    * Maximum number of tags per resource - 50.
+//
+//    * For each resource, each tag key must be unique, and each tag key can
+//    have only one value.
+//
+//    * Maximum key length - 128 Unicode characters in UTF-8.
+//
+//    * Maximum value length - 256 Unicode characters in UTF-8.
+//
+//    * If your tagging schema is used across multiple services and resources,
+//    remember that other services may have restrictions on allowed characters.
+//    Generally allowed characters are: letters, numbers, and spaces representable
+//    in UTF-8, and the following characters: + - = . _ : / @.
+//
+//    * Tag keys and values are case sensitive.
+//
+//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+//    delete tag keys with this prefix. Values can have this prefix. If a tag
+//    value has aws as its prefix but the key does not, then Forecast considers
+//    it to be a user tag and will count against the limit of 50 tags. Tags
+//    with only the key prefix of aws do not count against your tags per resource
+//    limit.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// One part of a key-value pair that makes up a tag. A key is a general label
+	// that acts like a category for more specific tag values.
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// The optional part of a key-value pair that makes up a tag. A value acts as
+	// a descriptor within a tag category (key).
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) that identifies the resource for which to
+	// list the tags. Currently, the supported resources are Forecast dataset groups,
+	// datasets, dataset import jobs, predictors, forecasts, and forecast export
+	// jobs.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `type:"string" required:"true"`
+
+	// The tags to add to the resource. A tag is an array of key-value pairs.
+	//
+	// The following basic restrictions apply to tags:
+	//
+	//    * Maximum number of tags per resource - 50.
+	//
+	//    * For each resource, each tag key must be unique, and each tag key can
+	//    have only one value.
+	//
+	//    * Maximum key length - 128 Unicode characters in UTF-8.
+	//
+	//    * Maximum value length - 256 Unicode characters in UTF-8.
+	//
+	//    * If your tagging schema is used across multiple services and resources,
+	//    remember that other services may have restrictions on allowed characters.
+	//    Generally allowed characters are: letters, numbers, and spaces representable
+	//    in UTF-8, and the following characters: + - = . _ : / @.
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Do not use aws:, AWS:, or any upper or lowercase combination of such
+	//    as a prefix for keys as it is reserved for AWS use. You cannot edit or
+	//    delete tag keys with this prefix. Values can have this prefix. If a tag
+	//    value has aws as its prefix but the key does not, then Forecast considers
+	//    it to be a user tag and will count against the limit of 50 tags. Tags
+	//    with only the key prefix of aws do not count against your tags per resource
+	//    limit.
+	//
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *TagResourceInput) SetResourceArn(v string) *TagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
 }
 
 // The status, start time, and end time of a backtest, as well as a failure
@@ -8124,6 +9031,74 @@ func (s *TestWindowSummary) SetTestWindowEnd(v time.Time) *TestWindowSummary {
 func (s *TestWindowSummary) SetTestWindowStart(v time.Time) *TestWindowSummary {
 	s.TestWindowStart = &v
 	return s
+}
+
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) that identifies the resource for which to
+	// list the tags. Currently, the supported resources are Forecast dataset groups,
+	// datasets, dataset import jobs, predictors, forecasts, and forecast exports.
+	//
+	// ResourceArn is a required field
+	ResourceArn *string `type:"string" required:"true"`
+
+	// The keys of the tags to be removed.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *UntagResourceInput) SetResourceArn(v string) *UntagResourceInput {
+	s.ResourceArn = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
 }
 
 type UpdateDatasetGroupInput struct {
@@ -8312,6 +9287,16 @@ const (
 	AttributeTypeTimestamp = "timestamp"
 )
 
+// AttributeType_Values returns all elements of the AttributeType enum
+func AttributeType_Values() []string {
+	return []string{
+		AttributeTypeString,
+		AttributeTypeInteger,
+		AttributeTypeFloat,
+		AttributeTypeTimestamp,
+	}
+}
+
 const (
 	// DatasetTypeTargetTimeSeries is a DatasetType enum value
 	DatasetTypeTargetTimeSeries = "TARGET_TIME_SERIES"
@@ -8322,6 +9307,15 @@ const (
 	// DatasetTypeItemMetadata is a DatasetType enum value
 	DatasetTypeItemMetadata = "ITEM_METADATA"
 )
+
+// DatasetType_Values returns all elements of the DatasetType enum
+func DatasetType_Values() []string {
+	return []string{
+		DatasetTypeTargetTimeSeries,
+		DatasetTypeRelatedTimeSeries,
+		DatasetTypeItemMetadata,
+	}
+}
 
 const (
 	// DomainRetail is a Domain enum value
@@ -8346,6 +9340,19 @@ const (
 	DomainMetrics = "METRICS"
 )
 
+// Domain_Values returns all elements of the Domain enum
+func Domain_Values() []string {
+	return []string{
+		DomainRetail,
+		DomainCustom,
+		DomainInventoryPlanning,
+		DomainEc2Capacity,
+		DomainWorkForce,
+		DomainWebTraffic,
+		DomainMetrics,
+	}
+}
+
 const (
 	// EvaluationTypeSummary is a EvaluationType enum value
 	EvaluationTypeSummary = "SUMMARY"
@@ -8354,10 +9361,25 @@ const (
 	EvaluationTypeComputed = "COMPUTED"
 )
 
+// EvaluationType_Values returns all elements of the EvaluationType enum
+func EvaluationType_Values() []string {
+	return []string{
+		EvaluationTypeSummary,
+		EvaluationTypeComputed,
+	}
+}
+
 const (
 	// FeaturizationMethodNameFilling is a FeaturizationMethodName enum value
 	FeaturizationMethodNameFilling = "filling"
 )
+
+// FeaturizationMethodName_Values returns all elements of the FeaturizationMethodName enum
+func FeaturizationMethodName_Values() []string {
+	return []string{
+		FeaturizationMethodNameFilling,
+	}
+}
 
 const (
 	// FilterConditionStringIs is a FilterConditionString enum value
@@ -8366,6 +9388,14 @@ const (
 	// FilterConditionStringIsNot is a FilterConditionString enum value
 	FilterConditionStringIsNot = "IS_NOT"
 )
+
+// FilterConditionString_Values returns all elements of the FilterConditionString enum
+func FilterConditionString_Values() []string {
+	return []string{
+		FilterConditionStringIs,
+		FilterConditionStringIsNot,
+	}
+}
 
 const (
 	// ScalingTypeAuto is a ScalingType enum value
@@ -8380,3 +9410,13 @@ const (
 	// ScalingTypeReverseLogarithmic is a ScalingType enum value
 	ScalingTypeReverseLogarithmic = "ReverseLogarithmic"
 )
+
+// ScalingType_Values returns all elements of the ScalingType enum
+func ScalingType_Values() []string {
+	return []string{
+		ScalingTypeAuto,
+		ScalingTypeLinear,
+		ScalingTypeLogarithmic,
+		ScalingTypeReverseLogarithmic,
+	}
+}

@@ -6715,10 +6715,25 @@ const (
 	EditionStandard = "STANDARD"
 )
 
+// Edition_Values returns all elements of the Edition enum
+func Edition_Values() []string {
+	return []string{
+		EditionStarter,
+		EditionStandard,
+	}
+}
+
 const (
 	// FrameworkHyperledgerFabric is a Framework enum value
 	FrameworkHyperledgerFabric = "HYPERLEDGER_FABRIC"
 )
+
+// Framework_Values returns all elements of the Framework enum
+func Framework_Values() []string {
+	return []string{
+		FrameworkHyperledgerFabric,
+	}
+}
 
 const (
 	// InvitationStatusPending is a InvitationStatus enum value
@@ -6736,6 +6751,17 @@ const (
 	// InvitationStatusExpired is a InvitationStatus enum value
 	InvitationStatusExpired = "EXPIRED"
 )
+
+// InvitationStatus_Values returns all elements of the InvitationStatus enum
+func InvitationStatus_Values() []string {
+	return []string{
+		InvitationStatusPending,
+		InvitationStatusAccepted,
+		InvitationStatusAccepting,
+		InvitationStatusRejected,
+		InvitationStatusExpired,
+	}
+}
 
 const (
 	// MemberStatusCreating is a MemberStatus enum value
@@ -6757,6 +6783,18 @@ const (
 	MemberStatusDeleted = "DELETED"
 )
 
+// MemberStatus_Values returns all elements of the MemberStatus enum
+func MemberStatus_Values() []string {
+	return []string{
+		MemberStatusCreating,
+		MemberStatusAvailable,
+		MemberStatusCreateFailed,
+		MemberStatusUpdating,
+		MemberStatusDeleting,
+		MemberStatusDeleted,
+	}
+}
+
 const (
 	// NetworkStatusCreating is a NetworkStatus enum value
 	NetworkStatusCreating = "CREATING"
@@ -6773,6 +6811,17 @@ const (
 	// NetworkStatusDeleted is a NetworkStatus enum value
 	NetworkStatusDeleted = "DELETED"
 )
+
+// NetworkStatus_Values returns all elements of the NetworkStatus enum
+func NetworkStatus_Values() []string {
+	return []string{
+		NetworkStatusCreating,
+		NetworkStatusAvailable,
+		NetworkStatusCreateFailed,
+		NetworkStatusDeleting,
+		NetworkStatusDeleted,
+	}
+}
 
 const (
 	// NodeStatusCreating is a NodeStatus enum value
@@ -6797,6 +6846,19 @@ const (
 	NodeStatusFailed = "FAILED"
 )
 
+// NodeStatus_Values returns all elements of the NodeStatus enum
+func NodeStatus_Values() []string {
+	return []string{
+		NodeStatusCreating,
+		NodeStatusAvailable,
+		NodeStatusCreateFailed,
+		NodeStatusUpdating,
+		NodeStatusDeleting,
+		NodeStatusDeleted,
+		NodeStatusFailed,
+	}
+}
+
 const (
 	// ProposalStatusInProgress is a ProposalStatus enum value
 	ProposalStatusInProgress = "IN_PROGRESS"
@@ -6814,6 +6876,17 @@ const (
 	ProposalStatusActionFailed = "ACTION_FAILED"
 )
 
+// ProposalStatus_Values returns all elements of the ProposalStatus enum
+func ProposalStatus_Values() []string {
+	return []string{
+		ProposalStatusInProgress,
+		ProposalStatusApproved,
+		ProposalStatusRejected,
+		ProposalStatusExpired,
+		ProposalStatusActionFailed,
+	}
+}
+
 const (
 	// ThresholdComparatorGreaterThan is a ThresholdComparator enum value
 	ThresholdComparatorGreaterThan = "GREATER_THAN"
@@ -6822,6 +6895,14 @@ const (
 	ThresholdComparatorGreaterThanOrEqualTo = "GREATER_THAN_OR_EQUAL_TO"
 )
 
+// ThresholdComparator_Values returns all elements of the ThresholdComparator enum
+func ThresholdComparator_Values() []string {
+	return []string{
+		ThresholdComparatorGreaterThan,
+		ThresholdComparatorGreaterThanOrEqualTo,
+	}
+}
+
 const (
 	// VoteValueYes is a VoteValue enum value
 	VoteValueYes = "YES"
@@ -6829,3 +6910,11 @@ const (
 	// VoteValueNo is a VoteValue enum value
 	VoteValueNo = "NO"
 )
+
+// VoteValue_Values returns all elements of the VoteValue enum
+func VoteValue_Values() []string {
+	return []string{
+		VoteValueYes,
+		VoteValueNo,
+	}
+}

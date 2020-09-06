@@ -12,9 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -126,7 +126,6 @@ func testAccAwsSnsPlatformApplicationPlatformFromEnv(t *testing.T) []*testAccAws
 }
 
 func TestDecodeResourceAwsSnsPlatformApplicationID(t *testing.T) {
-
 	var testCases = []struct {
 		Input            string
 		ExpectedArn      string
@@ -509,7 +508,9 @@ resource "aws_iam_role" "test" {
   "Version": "2012-10-17",
   "Statement": {
     "Effect": "Allow",
-    "Principal": {"Service": "sns.amazonaws.com"},
+    "Principal": {
+      "Service": "sns.amazonaws.com"
+    },
     "Action": "sts:AssumeRole"
   }
 }
@@ -520,7 +521,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "test" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-  role       = "${aws_iam_role.test.id}"
+  role       = aws_iam_role.test.id
 }
 
 %s

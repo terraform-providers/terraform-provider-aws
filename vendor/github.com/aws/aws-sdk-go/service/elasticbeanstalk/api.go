@@ -179,6 +179,91 @@ func (c *ElasticBeanstalk) ApplyEnvironmentManagedActionWithContext(ctx aws.Cont
 	return out, req.Send()
 }
 
+const opAssociateEnvironmentOperationsRole = "AssociateEnvironmentOperationsRole"
+
+// AssociateEnvironmentOperationsRoleRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateEnvironmentOperationsRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateEnvironmentOperationsRole for more information on using the AssociateEnvironmentOperationsRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateEnvironmentOperationsRoleRequest method.
+//    req, resp := client.AssociateEnvironmentOperationsRoleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/AssociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRoleRequest(input *AssociateEnvironmentOperationsRoleInput) (req *request.Request, output *AssociateEnvironmentOperationsRoleOutput) {
+	op := &request.Operation{
+		Name:       opAssociateEnvironmentOperationsRole,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AssociateEnvironmentOperationsRoleInput{}
+	}
+
+	output = &AssociateEnvironmentOperationsRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// AssociateEnvironmentOperationsRole API operation for AWS Elastic Beanstalk.
+//
+// Add or change the operations role used by an environment. After this call
+// is made, Elastic Beanstalk uses the associated operations role for permissions
+// to downstream services during subsequent calls acting on this environment.
+// For more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+// in the AWS Elastic Beanstalk Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation AssociateEnvironmentOperationsRole for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
+//   The specified account does not have sufficient privileges for one or more
+//   AWS services.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/AssociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRole(input *AssociateEnvironmentOperationsRoleInput) (*AssociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.AssociateEnvironmentOperationsRoleRequest(input)
+	return out, req.Send()
+}
+
+// AssociateEnvironmentOperationsRoleWithContext is the same as AssociateEnvironmentOperationsRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateEnvironmentOperationsRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) AssociateEnvironmentOperationsRoleWithContext(ctx aws.Context, input *AssociateEnvironmentOperationsRoleInput, opts ...request.Option) (*AssociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.AssociateEnvironmentOperationsRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCheckDNSAvailability = "CheckDNSAvailability"
 
 // CheckDNSAvailabilityRequest generates a "aws/request.Request" representing the
@@ -1865,6 +1950,12 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryRequest(input 
 		Name:       opDescribeEnvironmentManagedActionHistory,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxItems",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1911,6 +2002,58 @@ func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryWithContext(ct
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// DescribeEnvironmentManagedActionHistoryPages iterates over the pages of a DescribeEnvironmentManagedActionHistory operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeEnvironmentManagedActionHistory method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeEnvironmentManagedActionHistory operation.
+//    pageNum := 0
+//    err := client.DescribeEnvironmentManagedActionHistoryPages(params,
+//        func(page *elasticbeanstalk.DescribeEnvironmentManagedActionHistoryOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryPages(input *DescribeEnvironmentManagedActionHistoryInput, fn func(*DescribeEnvironmentManagedActionHistoryOutput, bool) bool) error {
+	return c.DescribeEnvironmentManagedActionHistoryPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeEnvironmentManagedActionHistoryPagesWithContext same as DescribeEnvironmentManagedActionHistoryPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) DescribeEnvironmentManagedActionHistoryPagesWithContext(ctx aws.Context, input *DescribeEnvironmentManagedActionHistoryInput, fn func(*DescribeEnvironmentManagedActionHistoryOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeEnvironmentManagedActionHistoryInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeEnvironmentManagedActionHistoryRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeEnvironmentManagedActionHistoryOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opDescribeEnvironmentManagedActions = "DescribeEnvironmentManagedActions"
@@ -2451,6 +2594,91 @@ func (c *ElasticBeanstalk) DescribePlatformVersionWithContext(ctx aws.Context, i
 	return out, req.Send()
 }
 
+const opDisassociateEnvironmentOperationsRole = "DisassociateEnvironmentOperationsRole"
+
+// DisassociateEnvironmentOperationsRoleRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateEnvironmentOperationsRole operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateEnvironmentOperationsRole for more information on using the DisassociateEnvironmentOperationsRole
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisassociateEnvironmentOperationsRoleRequest method.
+//    req, resp := client.DisassociateEnvironmentOperationsRoleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DisassociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRoleRequest(input *DisassociateEnvironmentOperationsRoleInput) (req *request.Request, output *DisassociateEnvironmentOperationsRoleOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateEnvironmentOperationsRole,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DisassociateEnvironmentOperationsRoleInput{}
+	}
+
+	output = &DisassociateEnvironmentOperationsRoleOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(query.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DisassociateEnvironmentOperationsRole API operation for AWS Elastic Beanstalk.
+//
+// Disassociate the operations role from an environment. After this call is
+// made, Elastic Beanstalk uses the caller's permissions for permissions to
+// downstream services during subsequent calls acting on this environment. For
+// more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+// in the AWS Elastic Beanstalk Developer Guide.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Elastic Beanstalk's
+// API operation DisassociateEnvironmentOperationsRole for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeInsufficientPrivilegesException "InsufficientPrivilegesException"
+//   The specified account does not have sufficient privileges for one or more
+//   AWS services.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/elasticbeanstalk-2010-12-01/DisassociateEnvironmentOperationsRole
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRole(input *DisassociateEnvironmentOperationsRoleInput) (*DisassociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentOperationsRoleRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateEnvironmentOperationsRoleWithContext is the same as DisassociateEnvironmentOperationsRole with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateEnvironmentOperationsRole for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) DisassociateEnvironmentOperationsRoleWithContext(ctx aws.Context, input *DisassociateEnvironmentOperationsRoleInput, opts ...request.Option) (*DisassociateEnvironmentOperationsRoleOutput, error) {
+	req, out := c.DisassociateEnvironmentOperationsRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListAvailableSolutionStacks = "ListAvailableSolutionStacks"
 
 // ListAvailableSolutionStacksRequest generates a "aws/request.Request" representing the
@@ -2693,6 +2921,12 @@ func (c *ElasticBeanstalk) ListPlatformVersionsRequest(input *ListPlatformVersio
 		Name:       opListPlatformVersions,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxRecords",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -2748,6 +2982,58 @@ func (c *ElasticBeanstalk) ListPlatformVersionsWithContext(ctx aws.Context, inpu
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// ListPlatformVersionsPages iterates over the pages of a ListPlatformVersions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPlatformVersions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPlatformVersions operation.
+//    pageNum := 0
+//    err := client.ListPlatformVersionsPages(params,
+//        func(page *elasticbeanstalk.ListPlatformVersionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ElasticBeanstalk) ListPlatformVersionsPages(input *ListPlatformVersionsInput, fn func(*ListPlatformVersionsOutput, bool) bool) error {
+	return c.ListPlatformVersionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPlatformVersionsPagesWithContext same as ListPlatformVersionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticBeanstalk) ListPlatformVersionsPagesWithContext(ctx aws.Context, input *ListPlatformVersionsInput, fn func(*ListPlatformVersionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPlatformVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPlatformVersionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPlatformVersionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListTagsForResource = "ListTagsForResource"
@@ -4552,6 +4838,80 @@ func (s *ApplyEnvironmentManagedActionOutput) SetStatus(v string) *ApplyEnvironm
 	return s
 }
 
+// Request to add or change the operations role used by an environment.
+type AssociateEnvironmentOperationsRoleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the environment to which to set the operations role.
+	//
+	// EnvironmentName is a required field
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of an existing IAM role to be used as the
+	// environment's operations role.
+	//
+	// OperationsRole is a required field
+	OperationsRole *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateEnvironmentOperationsRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateEnvironmentOperationsRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateEnvironmentOperationsRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateEnvironmentOperationsRoleInput"}
+	if s.EnvironmentName == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentName"))
+	}
+	if s.EnvironmentName != nil && len(*s.EnvironmentName) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentName", 4))
+	}
+	if s.OperationsRole == nil {
+		invalidParams.Add(request.NewErrParamRequired("OperationsRole"))
+	}
+	if s.OperationsRole != nil && len(*s.OperationsRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OperationsRole", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnvironmentName sets the EnvironmentName field's value.
+func (s *AssociateEnvironmentOperationsRoleInput) SetEnvironmentName(v string) *AssociateEnvironmentOperationsRoleInput {
+	s.EnvironmentName = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *AssociateEnvironmentOperationsRoleInput) SetOperationsRole(v string) *AssociateEnvironmentOperationsRoleInput {
+	s.OperationsRole = &v
+	return s
+}
+
+type AssociateEnvironmentOperationsRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssociateEnvironmentOperationsRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateEnvironmentOperationsRoleOutput) GoString() string {
+	return s.String()
+}
+
 // Describes an Auto Scaling launch configuration.
 type AutoScalingGroup struct {
 	_ struct{} `type:"structure"`
@@ -5762,6 +6122,15 @@ type CreateEnvironmentInput struct {
 	// for details.
 	GroupName *string `min:"1" type:"string"`
 
+	// The Amazon Resource Name (ARN) of an existing IAM role to be used as the
+	// environment's operations role. If specified, Elastic Beanstalk uses the operations
+	// role for permissions to downstream services during this call and during subsequent
+	// calls acting on this environment. To specify an operations role, you must
+	// have the iam:PassRole permission for the role. For more information, see
+	// Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	OperationsRole *string `min:"1" type:"string"`
+
 	// If specified, AWS Elastic Beanstalk sets the specified configuration options
 	// to the requested value in the configuration set for the new environment.
 	// These override the values obtained from the solution stack or the configuration
@@ -5839,6 +6208,9 @@ func (s *CreateEnvironmentInput) Validate() error {
 	if s.GroupName != nil && len(*s.GroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
 	}
+	if s.OperationsRole != nil && len(*s.OperationsRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("OperationsRole", 1))
+	}
 	if s.TemplateName != nil && len(*s.TemplateName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TemplateName", 1))
 	}
@@ -5909,6 +6281,12 @@ func (s *CreateEnvironmentInput) SetEnvironmentName(v string) *CreateEnvironment
 // SetGroupName sets the GroupName field's value.
 func (s *CreateEnvironmentInput) SetGroupName(v string) *CreateEnvironmentInput {
 	s.GroupName = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *CreateEnvironmentInput) SetOperationsRole(v string) *CreateEnvironmentInput {
+	s.OperationsRole = &v
 	return s
 }
 
@@ -7896,6 +8274,62 @@ func (s *DescribePlatformVersionOutput) SetPlatformDescription(v *PlatformDescri
 	return s
 }
 
+// Request to disassociate the operations role from an environment.
+type DisassociateEnvironmentOperationsRoleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the environment from which to disassociate the operations role.
+	//
+	// EnvironmentName is a required field
+	EnvironmentName *string `min:"4" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisassociateEnvironmentOperationsRoleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateEnvironmentOperationsRoleInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateEnvironmentOperationsRoleInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateEnvironmentOperationsRoleInput"}
+	if s.EnvironmentName == nil {
+		invalidParams.Add(request.NewErrParamRequired("EnvironmentName"))
+	}
+	if s.EnvironmentName != nil && len(*s.EnvironmentName) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("EnvironmentName", 4))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnvironmentName sets the EnvironmentName field's value.
+func (s *DisassociateEnvironmentOperationsRoleInput) SetEnvironmentName(v string) *DisassociateEnvironmentOperationsRoleInput {
+	s.EnvironmentName = &v
+	return s
+}
+
+type DisassociateEnvironmentOperationsRoleOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisassociateEnvironmentOperationsRoleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateEnvironmentOperationsRoleOutput) GoString() string {
+	return s.String()
+}
+
 // Describes the properties of an environment.
 type EnvironmentDescription struct {
 	_ struct{} `type:"structure"`
@@ -7961,6 +8395,11 @@ type EnvironmentDescription struct {
 	// Returns the health status of the application running in your environment.
 	// For more information, see Health Colors and Statuses (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-status.html).
 	HealthStatus *string `type:"string" enum:"EnvironmentHealthStatus"`
+
+	// The Amazon Resource Name (ARN) of the environment's operations role. For
+	// more information, see Operations roles (https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/iam-operationsrole.html)
+	// in the AWS Elastic Beanstalk Developer Guide.
+	OperationsRole *string `min:"1" type:"string"`
 
 	// The ARN of the platform version.
 	PlatformArn *string `type:"string"`
@@ -8081,6 +8520,12 @@ func (s *EnvironmentDescription) SetHealth(v string) *EnvironmentDescription {
 // SetHealthStatus sets the HealthStatus field's value.
 func (s *EnvironmentDescription) SetHealthStatus(v string) *EnvironmentDescription {
 	s.HealthStatus = &v
+	return s
+}
+
+// SetOperationsRole sets the OperationsRole field's value.
+func (s *EnvironmentDescription) SetOperationsRole(v string) *EnvironmentDescription {
+	s.OperationsRole = &v
 	return s
 }
 
@@ -11795,14 +12240,16 @@ type UpdateTagsForResourceInput struct {
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// A list of tags to add or update.
+	// A list of tags to add or update. If a key of an existing tag is added, the
+	// tag's value is updated.
 	//
-	// If a key of an existing tag is added, the tag's value is updated.
+	// Specify at least one of these parameters: TagsToAdd, TagsToRemove.
 	TagsToAdd []*Tag `type:"list"`
 
-	// A list of tag keys to remove.
+	// A list of tag keys to remove. If a tag key doesn't exist, it is silently
+	// ignored.
 	//
-	// If a tag key doesn't exist, it is silently ignored.
+	// Specify at least one of these parameters: TagsToAdd, TagsToRemove.
 	TagsToRemove []*string `type:"list"`
 }
 
@@ -12058,6 +12505,15 @@ const (
 	ActionHistoryStatusUnknown = "Unknown"
 )
 
+// ActionHistoryStatus_Values returns all elements of the ActionHistoryStatus enum
+func ActionHistoryStatus_Values() []string {
+	return []string{
+		ActionHistoryStatusCompleted,
+		ActionHistoryStatusFailed,
+		ActionHistoryStatusUnknown,
+	}
+}
+
 const (
 	// ActionStatusScheduled is a ActionStatus enum value
 	ActionStatusScheduled = "Scheduled"
@@ -12072,6 +12528,16 @@ const (
 	ActionStatusUnknown = "Unknown"
 )
 
+// ActionStatus_Values returns all elements of the ActionStatus enum
+func ActionStatus_Values() []string {
+	return []string{
+		ActionStatusScheduled,
+		ActionStatusPending,
+		ActionStatusRunning,
+		ActionStatusUnknown,
+	}
+}
+
 const (
 	// ActionTypeInstanceRefresh is a ActionType enum value
 	ActionTypeInstanceRefresh = "InstanceRefresh"
@@ -12082,6 +12548,15 @@ const (
 	// ActionTypeUnknown is a ActionType enum value
 	ActionTypeUnknown = "Unknown"
 )
+
+// ActionType_Values returns all elements of the ActionType enum
+func ActionType_Values() []string {
+	return []string{
+		ActionTypeInstanceRefresh,
+		ActionTypePlatformUpdate,
+		ActionTypeUnknown,
+	}
+}
 
 const (
 	// ApplicationVersionStatusProcessed is a ApplicationVersionStatus enum value
@@ -12100,6 +12575,17 @@ const (
 	ApplicationVersionStatusBuilding = "Building"
 )
 
+// ApplicationVersionStatus_Values returns all elements of the ApplicationVersionStatus enum
+func ApplicationVersionStatus_Values() []string {
+	return []string{
+		ApplicationVersionStatusProcessed,
+		ApplicationVersionStatusUnprocessed,
+		ApplicationVersionStatusFailed,
+		ApplicationVersionStatusProcessing,
+		ApplicationVersionStatusBuilding,
+	}
+}
+
 const (
 	// ComputeTypeBuildGeneral1Small is a ComputeType enum value
 	ComputeTypeBuildGeneral1Small = "BUILD_GENERAL1_SMALL"
@@ -12110,6 +12596,15 @@ const (
 	// ComputeTypeBuildGeneral1Large is a ComputeType enum value
 	ComputeTypeBuildGeneral1Large = "BUILD_GENERAL1_LARGE"
 )
+
+// ComputeType_Values returns all elements of the ComputeType enum
+func ComputeType_Values() []string {
+	return []string{
+		ComputeTypeBuildGeneral1Small,
+		ComputeTypeBuildGeneral1Medium,
+		ComputeTypeBuildGeneral1Large,
+	}
+}
 
 const (
 	// ConfigurationDeploymentStatusDeployed is a ConfigurationDeploymentStatus enum value
@@ -12122,6 +12617,15 @@ const (
 	ConfigurationDeploymentStatusFailed = "failed"
 )
 
+// ConfigurationDeploymentStatus_Values returns all elements of the ConfigurationDeploymentStatus enum
+func ConfigurationDeploymentStatus_Values() []string {
+	return []string{
+		ConfigurationDeploymentStatusDeployed,
+		ConfigurationDeploymentStatusPending,
+		ConfigurationDeploymentStatusFailed,
+	}
+}
+
 const (
 	// ConfigurationOptionValueTypeScalar is a ConfigurationOptionValueType enum value
 	ConfigurationOptionValueTypeScalar = "Scalar"
@@ -12129,6 +12633,14 @@ const (
 	// ConfigurationOptionValueTypeList is a ConfigurationOptionValueType enum value
 	ConfigurationOptionValueTypeList = "List"
 )
+
+// ConfigurationOptionValueType_Values returns all elements of the ConfigurationOptionValueType enum
+func ConfigurationOptionValueType_Values() []string {
+	return []string{
+		ConfigurationOptionValueTypeScalar,
+		ConfigurationOptionValueTypeList,
+	}
+}
 
 const (
 	// EnvironmentHealthGreen is a EnvironmentHealth enum value
@@ -12143,6 +12655,16 @@ const (
 	// EnvironmentHealthGrey is a EnvironmentHealth enum value
 	EnvironmentHealthGrey = "Grey"
 )
+
+// EnvironmentHealth_Values returns all elements of the EnvironmentHealth enum
+func EnvironmentHealth_Values() []string {
+	return []string{
+		EnvironmentHealthGreen,
+		EnvironmentHealthYellow,
+		EnvironmentHealthRed,
+		EnvironmentHealthGrey,
+	}
+}
 
 const (
 	// EnvironmentHealthAttributeStatus is a EnvironmentHealthAttribute enum value
@@ -12169,6 +12691,20 @@ const (
 	// EnvironmentHealthAttributeRefreshedAt is a EnvironmentHealthAttribute enum value
 	EnvironmentHealthAttributeRefreshedAt = "RefreshedAt"
 )
+
+// EnvironmentHealthAttribute_Values returns all elements of the EnvironmentHealthAttribute enum
+func EnvironmentHealthAttribute_Values() []string {
+	return []string{
+		EnvironmentHealthAttributeStatus,
+		EnvironmentHealthAttributeColor,
+		EnvironmentHealthAttributeCauses,
+		EnvironmentHealthAttributeApplicationMetrics,
+		EnvironmentHealthAttributeInstancesHealth,
+		EnvironmentHealthAttributeAll,
+		EnvironmentHealthAttributeHealthStatus,
+		EnvironmentHealthAttributeRefreshedAt,
+	}
+}
 
 const (
 	// EnvironmentHealthStatusNoData is a EnvironmentHealthStatus enum value
@@ -12199,6 +12735,21 @@ const (
 	EnvironmentHealthStatusSuspended = "Suspended"
 )
 
+// EnvironmentHealthStatus_Values returns all elements of the EnvironmentHealthStatus enum
+func EnvironmentHealthStatus_Values() []string {
+	return []string{
+		EnvironmentHealthStatusNoData,
+		EnvironmentHealthStatusUnknown,
+		EnvironmentHealthStatusPending,
+		EnvironmentHealthStatusOk,
+		EnvironmentHealthStatusInfo,
+		EnvironmentHealthStatusWarning,
+		EnvironmentHealthStatusDegraded,
+		EnvironmentHealthStatusSevere,
+		EnvironmentHealthStatusSuspended,
+	}
+}
+
 const (
 	// EnvironmentInfoTypeTail is a EnvironmentInfoType enum value
 	EnvironmentInfoTypeTail = "tail"
@@ -12206,6 +12757,14 @@ const (
 	// EnvironmentInfoTypeBundle is a EnvironmentInfoType enum value
 	EnvironmentInfoTypeBundle = "bundle"
 )
+
+// EnvironmentInfoType_Values returns all elements of the EnvironmentInfoType enum
+func EnvironmentInfoType_Values() []string {
+	return []string{
+		EnvironmentInfoTypeTail,
+		EnvironmentInfoTypeBundle,
+	}
+}
 
 const (
 	// EnvironmentStatusLaunching is a EnvironmentStatus enum value
@@ -12223,6 +12782,17 @@ const (
 	// EnvironmentStatusTerminated is a EnvironmentStatus enum value
 	EnvironmentStatusTerminated = "Terminated"
 )
+
+// EnvironmentStatus_Values returns all elements of the EnvironmentStatus enum
+func EnvironmentStatus_Values() []string {
+	return []string{
+		EnvironmentStatusLaunching,
+		EnvironmentStatusUpdating,
+		EnvironmentStatusReady,
+		EnvironmentStatusTerminating,
+		EnvironmentStatusTerminated,
+	}
+}
 
 const (
 	// EventSeverityTrace is a EventSeverity enum value
@@ -12243,6 +12813,18 @@ const (
 	// EventSeverityFatal is a EventSeverity enum value
 	EventSeverityFatal = "FATAL"
 )
+
+// EventSeverity_Values returns all elements of the EventSeverity enum
+func EventSeverity_Values() []string {
+	return []string{
+		EventSeverityTrace,
+		EventSeverityDebug,
+		EventSeverityInfo,
+		EventSeverityWarn,
+		EventSeverityError,
+		EventSeverityFatal,
+	}
+}
 
 const (
 	// FailureTypeUpdateCancelled is a FailureType enum value
@@ -12266,6 +12848,19 @@ const (
 	// FailureTypePermissionsError is a FailureType enum value
 	FailureTypePermissionsError = "PermissionsError"
 )
+
+// FailureType_Values returns all elements of the FailureType enum
+func FailureType_Values() []string {
+	return []string{
+		FailureTypeUpdateCancelled,
+		FailureTypeCancellationFailed,
+		FailureTypeRollbackFailed,
+		FailureTypeRollbackSuccessful,
+		FailureTypeInternalFailure,
+		FailureTypeInvalidEnvironmentState,
+		FailureTypePermissionsError,
+	}
+}
 
 const (
 	// InstancesHealthAttributeHealthStatus is a InstancesHealthAttribute enum value
@@ -12302,6 +12897,23 @@ const (
 	InstancesHealthAttributeAll = "All"
 )
 
+// InstancesHealthAttribute_Values returns all elements of the InstancesHealthAttribute enum
+func InstancesHealthAttribute_Values() []string {
+	return []string{
+		InstancesHealthAttributeHealthStatus,
+		InstancesHealthAttributeColor,
+		InstancesHealthAttributeCauses,
+		InstancesHealthAttributeApplicationMetrics,
+		InstancesHealthAttributeRefreshedAt,
+		InstancesHealthAttributeLaunchedAt,
+		InstancesHealthAttributeSystem,
+		InstancesHealthAttributeDeployment,
+		InstancesHealthAttributeAvailabilityZone,
+		InstancesHealthAttributeInstanceType,
+		InstancesHealthAttributeAll,
+	}
+}
+
 const (
 	// PlatformStatusCreating is a PlatformStatus enum value
 	PlatformStatusCreating = "Creating"
@@ -12319,6 +12931,17 @@ const (
 	PlatformStatusDeleted = "Deleted"
 )
 
+// PlatformStatus_Values returns all elements of the PlatformStatus enum
+func PlatformStatus_Values() []string {
+	return []string{
+		PlatformStatusCreating,
+		PlatformStatusFailed,
+		PlatformStatusReady,
+		PlatformStatusDeleting,
+		PlatformStatusDeleted,
+	}
+}
+
 const (
 	// SourceRepositoryCodeCommit is a SourceRepository enum value
 	SourceRepositoryCodeCommit = "CodeCommit"
@@ -12326,6 +12949,14 @@ const (
 	// SourceRepositoryS3 is a SourceRepository enum value
 	SourceRepositoryS3 = "S3"
 )
+
+// SourceRepository_Values returns all elements of the SourceRepository enum
+func SourceRepository_Values() []string {
+	return []string{
+		SourceRepositoryCodeCommit,
+		SourceRepositoryS3,
+	}
+}
 
 const (
 	// SourceTypeGit is a SourceType enum value
@@ -12335,6 +12966,14 @@ const (
 	SourceTypeZip = "Zip"
 )
 
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeGit,
+		SourceTypeZip,
+	}
+}
+
 const (
 	// ValidationSeverityError is a ValidationSeverity enum value
 	ValidationSeverityError = "error"
@@ -12342,3 +12981,11 @@ const (
 	// ValidationSeverityWarning is a ValidationSeverity enum value
 	ValidationSeverityWarning = "warning"
 )
+
+// ValidationSeverity_Values returns all elements of the ValidationSeverity enum
+func ValidationSeverity_Values() []string {
+	return []string{
+		ValidationSeverityError,
+		ValidationSeverityWarning,
+	}
+}

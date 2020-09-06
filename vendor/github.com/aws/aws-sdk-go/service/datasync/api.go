@@ -60,7 +60,7 @@ func (c *DataSync) CancelTaskExecutionRequest(input *CancelTaskExecutionInput) (
 //
 // Cancels execution of a task.
 //
-// When you cancel a task execution, the transfer of some files are abruptly
+// When you cancel a task execution, the transfer of some files is abruptly
 // interrupted. The contents of files that are transferred to the destination
 // might be incomplete or inconsistent with the source files. However, if you
 // start a new task execution on the same task and you allow the task execution
@@ -156,7 +156,7 @@ func (c *DataSync) CreateAgentRequest(input *CreateAgentInput) (req *request.Req
 // target locations (in Amazon S3 or Amazon EFS) reside. Your tasks are created
 // in this AWS Region.
 //
-// You can activate the agent in a VPC (Virtual private Cloud) or provide the
+// You can activate the agent in a VPC (virtual private cloud) or provide the
 // agent access to a VPC endpoint so you can run tasks without going over the
 // public Internet.
 //
@@ -413,7 +413,7 @@ func (c *DataSync) CreateLocationNfsRequest(input *CreateLocationNfsInput) (req 
 // CreateLocationNfs API operation for AWS DataSync.
 //
 // Defines a file system on a Network File System (NFS) server that can be read
-// from or written to
+// from or written to.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -446,6 +446,88 @@ func (c *DataSync) CreateLocationNfs(input *CreateLocationNfsInput) (*CreateLoca
 // for more information on using Contexts.
 func (c *DataSync) CreateLocationNfsWithContext(ctx aws.Context, input *CreateLocationNfsInput, opts ...request.Option) (*CreateLocationNfsOutput, error) {
 	req, out := c.CreateLocationNfsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateLocationObjectStorage = "CreateLocationObjectStorage"
+
+// CreateLocationObjectStorageRequest generates a "aws/request.Request" representing the
+// client's request for the CreateLocationObjectStorage operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateLocationObjectStorage for more information on using the CreateLocationObjectStorage
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateLocationObjectStorageRequest method.
+//    req, resp := client.CreateLocationObjectStorageRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datasync-2018-11-09/CreateLocationObjectStorage
+func (c *DataSync) CreateLocationObjectStorageRequest(input *CreateLocationObjectStorageInput) (req *request.Request, output *CreateLocationObjectStorageOutput) {
+	op := &request.Operation{
+		Name:       opCreateLocationObjectStorage,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateLocationObjectStorageInput{}
+	}
+
+	output = &CreateLocationObjectStorageOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateLocationObjectStorage API operation for AWS DataSync.
+//
+// Creates an endpoint for a self-managed object storage bucket.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS DataSync's
+// API operation CreateLocationObjectStorage for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   This exception is thrown when the client submits a malformed request.
+//
+//   * InternalException
+//   This exception is thrown when an error occurs in the AWS DataSync service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datasync-2018-11-09/CreateLocationObjectStorage
+func (c *DataSync) CreateLocationObjectStorage(input *CreateLocationObjectStorageInput) (*CreateLocationObjectStorageOutput, error) {
+	req, out := c.CreateLocationObjectStorageRequest(input)
+	return out, req.Send()
+}
+
+// CreateLocationObjectStorageWithContext is the same as CreateLocationObjectStorage with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateLocationObjectStorage for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataSync) CreateLocationObjectStorageWithContext(ctx aws.Context, input *CreateLocationObjectStorageInput, opts ...request.Option) (*CreateLocationObjectStorageOutput, error) {
+	req, out := c.CreateLocationObjectStorageRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -586,7 +668,7 @@ func (c *DataSync) CreateLocationSmbRequest(input *CreateLocationSmbInput) (req 
 
 // CreateLocationSmb API operation for AWS DataSync.
 //
-// Defines a file system on an Server Message Block (SMB) server that can be
+// Defines a file system on a Server Message Block (SMB) server that can be
 // read from or written to.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1269,7 +1351,7 @@ func (c *DataSync) DescribeLocationNfsRequest(input *DescribeLocationNfsInput) (
 
 // DescribeLocationNfs API operation for AWS DataSync.
 //
-// Returns metadata, such as the path information, about a NFS location.
+// Returns metadata, such as the path information, about an NFS location.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1302,6 +1384,88 @@ func (c *DataSync) DescribeLocationNfs(input *DescribeLocationNfsInput) (*Descri
 // for more information on using Contexts.
 func (c *DataSync) DescribeLocationNfsWithContext(ctx aws.Context, input *DescribeLocationNfsInput, opts ...request.Option) (*DescribeLocationNfsOutput, error) {
 	req, out := c.DescribeLocationNfsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeLocationObjectStorage = "DescribeLocationObjectStorage"
+
+// DescribeLocationObjectStorageRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeLocationObjectStorage operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeLocationObjectStorage for more information on using the DescribeLocationObjectStorage
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeLocationObjectStorageRequest method.
+//    req, resp := client.DescribeLocationObjectStorageRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datasync-2018-11-09/DescribeLocationObjectStorage
+func (c *DataSync) DescribeLocationObjectStorageRequest(input *DescribeLocationObjectStorageInput) (req *request.Request, output *DescribeLocationObjectStorageOutput) {
+	op := &request.Operation{
+		Name:       opDescribeLocationObjectStorage,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeLocationObjectStorageInput{}
+	}
+
+	output = &DescribeLocationObjectStorageOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeLocationObjectStorage API operation for AWS DataSync.
+//
+// Returns metadata about a self-managed object storage server location.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS DataSync's
+// API operation DescribeLocationObjectStorage for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   This exception is thrown when the client submits a malformed request.
+//
+//   * InternalException
+//   This exception is thrown when an error occurs in the AWS DataSync service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/datasync-2018-11-09/DescribeLocationObjectStorage
+func (c *DataSync) DescribeLocationObjectStorage(input *DescribeLocationObjectStorageInput) (*DescribeLocationObjectStorageOutput, error) {
+	req, out := c.DescribeLocationObjectStorageRequest(input)
+	return out, req.Send()
+}
+
+// DescribeLocationObjectStorageWithContext is the same as DescribeLocationObjectStorage with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeLocationObjectStorage for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *DataSync) DescribeLocationObjectStorageWithContext(ctx aws.Context, input *DescribeLocationObjectStorageInput, opts ...request.Option) (*DescribeLocationObjectStorageOutput, error) {
+	req, out := c.DescribeLocationObjectStorageRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1433,7 +1597,7 @@ func (c *DataSync) DescribeLocationSmbRequest(input *DescribeLocationSmbInput) (
 
 // DescribeLocationSmb API operation for AWS DataSync.
 //
-// Returns metadata, such as the path and user information about a SMB location.
+// Returns metadata, such as the path and user information about an SMB location.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1835,7 +1999,7 @@ func (c *DataSync) ListLocationsRequest(input *ListLocationsInput) (req *request
 
 // ListLocations API operation for AWS DataSync.
 //
-// Returns a lists of source and destination locations.
+// Returns a list of source and destination locations.
 //
 // If you have more locations than are returned in a response (that is, the
 // response returns only a truncated list of your agents), the response contains
@@ -1980,7 +2144,7 @@ func (c *DataSync) ListTagsForResourceRequest(input *ListTagsForResourceInput) (
 
 // ListTagsForResource API operation for AWS DataSync.
 //
-// Returns all the tags associated with a specified resources.
+// Returns all the tags associated with a specified resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2912,11 +3076,11 @@ type CreateAgentInput struct {
 	// in UTF-8 format, and the following special characters: + - = . _ : / @.
 	Tags []*TagListEntry `type:"list"`
 
-	// The ID of the VPC (Virtual Private Cloud) endpoint that the agent has access
+	// The ID of the VPC (virtual private cloud) endpoint that the agent has access
 	// to. This is the client-side VPC endpoint, also called a PrivateLink. If you
 	// don't have a PrivateLink VPC endpoint, see Creating a VPC Endpoint Service
 	// Configuration (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html#create-endpoint-service)
-	// in the AWS VPC User Guide.
+	// in the Amazon VPC User Guide.
 	//
 	// VPC endpoint ID looks like this: vpce-01234d5aff67890e1.
 	VpcEndpointId *string `type:"string"`
@@ -3061,7 +3225,7 @@ type CreateLocationEfsInput struct {
 	// system is used to read data from the EFS source location or write data to
 	// the EFS destination. By default, AWS DataSync uses the root directory.
 	//
-	// Subdirectory must be specified with forward slashes. For example /path/to/folder.
+	// Subdirectory must be specified with forward slashes. For example, /path/to/folder.
 	Subdirectory *string `type:"string"`
 
 	// The key-value pair that represents a tag that you want to add to the resource.
@@ -3323,12 +3487,20 @@ type CreateLocationNfsInput struct {
 	// Contains a list of Amazon Resource Names (ARNs) of agents that are used to
 	// connect to an NFS server.
 	//
+	// If you are copying data to or from your AWS Snowcone device, see NFS Server
+	// on AWS Snowcone (https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html#nfs-on-snowcone)
+	// for more information.
+	//
 	// OnPremConfig is a required field
 	OnPremConfig *OnPremConfig `type:"structure" required:"true"`
 
 	// The name of the NFS server. This value is the IP address or Domain Name Service
 	// (DNS) name of the NFS server. An agent that is installed on-premises uses
 	// this host name to mount the NFS server in a network.
+	//
+	// If you are copying data to or from your AWS Snowcone device, see NFS Server
+	// on AWS Snowcone (https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html#nfs-on-snowcone)
+	// for more information.
 	//
 	// This name must either be DNS-compliant or must be an IP version 4 (IPv4)
 	// address.
@@ -3353,6 +3525,10 @@ type CreateLocationNfsInput struct {
 	// files that you want DataSync allow read access for all users. Doing either
 	// enables the agent to read the files. For the agent to access directories,
 	// you must additionally enable all execute access.
+	//
+	// If you are copying data to or from your AWS Snowcone device, see NFS Server
+	// on AWS Snowcone (https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html#nfs-on-snowcone)
+	// for more information.
 	//
 	// For information about NFS export configuration, see 18.7. The /etc/exports
 	// Configuration File in the Red Hat Enterprise Linux documentation.
@@ -3460,6 +3636,189 @@ func (s CreateLocationNfsOutput) GoString() string {
 
 // SetLocationArn sets the LocationArn field's value.
 func (s *CreateLocationNfsOutput) SetLocationArn(v string) *CreateLocationNfsOutput {
+	s.LocationArn = &v
+	return s
+}
+
+// CreateLocationObjectStorageRequest
+type CreateLocationObjectStorageInput struct {
+	_ struct{} `type:"structure"`
+
+	// Optional. The access key is used if credentials are required to access the
+	// self-managed object storage server.
+	AccessKey *string `min:"8" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the agents associated with the self-managed
+	// object storage server location.
+	//
+	// AgentArns is a required field
+	AgentArns []*string `min:"1" type:"list" required:"true"`
+
+	// The bucket on the self-managed object storage server that is used to read
+	// data from.
+	//
+	// BucketName is a required field
+	BucketName *string `min:"3" type:"string" required:"true"`
+
+	// Optional. The secret key is used if credentials are required to access the
+	// self-managed object storage server.
+	SecretKey *string `min:"8" type:"string" sensitive:"true"`
+
+	// The name of the self-managed object storage server. This value is the IP
+	// address or Domain Name Service (DNS) name of the object storage server. An
+	// agent uses this host name to mount the object storage server in a network.
+	//
+	// ServerHostname is a required field
+	ServerHostname *string `type:"string" required:"true"`
+
+	// The port that your self-managed object storage server accepts inbound network
+	// traffic on. The server port is set by default to TCP 80 (HTTP) or TCP 443
+	// (HTTPS). You can specify a custom port if your self-managed object storage
+	// server requires one.
+	ServerPort *int64 `min:"1" type:"integer"`
+
+	// The protocol that the object storage server uses to communicate. Valid values
+	// are HTTP or HTTPS.
+	ServerProtocol *string `type:"string" enum:"ObjectStorageServerProtocol"`
+
+	// The subdirectory in the self-managed object storage server that is used to
+	// read data from.
+	Subdirectory *string `type:"string"`
+
+	// The key-value pair that represents the tag that you want to add to the location.
+	// The value can be an empty string. We recommend using tags to name your resources.
+	Tags []*TagListEntry `type:"list"`
+}
+
+// String returns the string representation
+func (s CreateLocationObjectStorageInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLocationObjectStorageInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateLocationObjectStorageInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateLocationObjectStorageInput"}
+	if s.AccessKey != nil && len(*s.AccessKey) < 8 {
+		invalidParams.Add(request.NewErrParamMinLen("AccessKey", 8))
+	}
+	if s.AgentArns == nil {
+		invalidParams.Add(request.NewErrParamRequired("AgentArns"))
+	}
+	if s.AgentArns != nil && len(s.AgentArns) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AgentArns", 1))
+	}
+	if s.BucketName == nil {
+		invalidParams.Add(request.NewErrParamRequired("BucketName"))
+	}
+	if s.BucketName != nil && len(*s.BucketName) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("BucketName", 3))
+	}
+	if s.SecretKey != nil && len(*s.SecretKey) < 8 {
+		invalidParams.Add(request.NewErrParamMinLen("SecretKey", 8))
+	}
+	if s.ServerHostname == nil {
+		invalidParams.Add(request.NewErrParamRequired("ServerHostname"))
+	}
+	if s.ServerPort != nil && *s.ServerPort < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("ServerPort", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAccessKey sets the AccessKey field's value.
+func (s *CreateLocationObjectStorageInput) SetAccessKey(v string) *CreateLocationObjectStorageInput {
+	s.AccessKey = &v
+	return s
+}
+
+// SetAgentArns sets the AgentArns field's value.
+func (s *CreateLocationObjectStorageInput) SetAgentArns(v []*string) *CreateLocationObjectStorageInput {
+	s.AgentArns = v
+	return s
+}
+
+// SetBucketName sets the BucketName field's value.
+func (s *CreateLocationObjectStorageInput) SetBucketName(v string) *CreateLocationObjectStorageInput {
+	s.BucketName = &v
+	return s
+}
+
+// SetSecretKey sets the SecretKey field's value.
+func (s *CreateLocationObjectStorageInput) SetSecretKey(v string) *CreateLocationObjectStorageInput {
+	s.SecretKey = &v
+	return s
+}
+
+// SetServerHostname sets the ServerHostname field's value.
+func (s *CreateLocationObjectStorageInput) SetServerHostname(v string) *CreateLocationObjectStorageInput {
+	s.ServerHostname = &v
+	return s
+}
+
+// SetServerPort sets the ServerPort field's value.
+func (s *CreateLocationObjectStorageInput) SetServerPort(v int64) *CreateLocationObjectStorageInput {
+	s.ServerPort = &v
+	return s
+}
+
+// SetServerProtocol sets the ServerProtocol field's value.
+func (s *CreateLocationObjectStorageInput) SetServerProtocol(v string) *CreateLocationObjectStorageInput {
+	s.ServerProtocol = &v
+	return s
+}
+
+// SetSubdirectory sets the Subdirectory field's value.
+func (s *CreateLocationObjectStorageInput) SetSubdirectory(v string) *CreateLocationObjectStorageInput {
+	s.Subdirectory = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateLocationObjectStorageInput) SetTags(v []*TagListEntry) *CreateLocationObjectStorageInput {
+	s.Tags = v
+	return s
+}
+
+// CreateLocationObjectStorageResponse
+type CreateLocationObjectStorageOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the agents associated with the self-managed
+	// object storage server location.
+	LocationArn *string `type:"string"`
+}
+
+// String returns the string representation
+func (s CreateLocationObjectStorageOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateLocationObjectStorageOutput) GoString() string {
+	return s.String()
+}
+
+// SetLocationArn sets the LocationArn field's value.
+func (s *CreateLocationObjectStorageOutput) SetLocationArn(v string) *CreateLocationObjectStorageOutput {
 	s.LocationArn = &v
 	return s
 }
@@ -3633,7 +3992,7 @@ type CreateLocationSmbInput struct {
 	// The path should be such that it can be mounted by other SMB clients in your
 	// network.
 	//
-	// Subdirectory must be specified with forward slashes. For example /path/to/folder.
+	// Subdirectory must be specified with forward slashes. For example, /path/to/folder.
 	//
 	// To transfer all the data in the folder you specified, DataSync needs to have
 	// permissions to mount the SMB share, as well as to access all the data in
@@ -3785,12 +4144,6 @@ type CreateTaskInput struct {
 
 	// The Amazon Resource Name (ARN) of the Amazon CloudWatch log group that is
 	// used to monitor and log events in the task.
-	//
-	// For more information on these groups, see Working with Log Groups and Log
-	// Streams in the Amazon CloudWatch User Guide.
-	//
-	// For more information about how to use CloudWatch Logs with DataSync, see
-	// Monitoring Your Task in the AWS DataSync User Guide.
 	CloudWatchLogGroupArn *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of an AWS storage resource's location.
@@ -3814,7 +4167,7 @@ type CreateTaskInput struct {
 	// file permissions, data integrity verification, and so on.
 	//
 	// For each individual task execution, you can override these options by specifying
-	// the OverrideOptions before starting a the task execution. For more information,
+	// the OverrideOptions before starting the task execution. For more information,
 	// see the operation.
 	Options *Options `type:"structure"`
 
@@ -4164,7 +4517,7 @@ type DescribeAgentOutput struct {
 	CreationTime *time.Time `type:"timestamp"`
 
 	// The type of endpoint that your agent is connected to. If the endpoint is
-	// a VPC endpoint, the agent is not accessible over the public Internet.
+	// a VPC endpoint, the agent is not accessible over the public internet.
 	EndpointType *string `type:"string" enum:"EndpointType"`
 
 	// The time that the agent last connected to DataSyc.
@@ -4288,7 +4641,7 @@ type DescribeLocationEfsOutput struct {
 	// with the security group on the mount target in the subnet specified.
 	Ec2Config *Ec2Config `type:"structure"`
 
-	// The Amazon resource Name (ARN) of the EFS location that was described.
+	// The Amazon Resource Name (ARN) of the EFS location that was described.
 	LocationArn *string `type:"string"`
 
 	// The URL of the EFS location that was described.
@@ -4376,14 +4729,14 @@ type DescribeLocationFsxWindowsOutput struct {
 	// The name of the Windows domain that the FSx for Windows server belongs to.
 	Domain *string `type:"string"`
 
-	// The Amazon resource Name (ARN) of the FSx for Windows location that was described.
+	// The Amazon Resource Name (ARN) of the FSx for Windows location that was described.
 	LocationArn *string `type:"string"`
 
 	// The URL of the FSx for Windows location that was described.
 	LocationUri *string `type:"string"`
 
 	// The Amazon Resource Names (ARNs) of the security groups that are configured
-	// for the for the FSx for Windows file system.
+	// for the FSx for Windows file system.
 	SecurityGroupArns []*string `min:"1" type:"list"`
 
 	// The user who has the permissions to access files and folders in the FSx for
@@ -4441,7 +4794,7 @@ func (s *DescribeLocationFsxWindowsOutput) SetUser(v string) *DescribeLocationFs
 type DescribeLocationNfsInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon resource Name (ARN) of the NFS location to describe.
+	// The Amazon Resource Name (ARN) of the NFS location to describe.
 	//
 	// LocationArn is a required field
 	LocationArn *string `type:"string" required:"true"`
@@ -4483,7 +4836,7 @@ type DescribeLocationNfsOutput struct {
 	// The time that the NFS location was created.
 	CreationTime *time.Time `type:"timestamp"`
 
-	// The Amazon resource Name (ARN) of the NFS location that was described.
+	// The Amazon Resource Name (ARN) of the NFS location that was described.
 	LocationArn *string `type:"string"`
 
 	// The URL of the source NFS location that was described.
@@ -4534,6 +4887,131 @@ func (s *DescribeLocationNfsOutput) SetMountOptions(v *NfsMountOptions) *Describ
 // SetOnPremConfig sets the OnPremConfig field's value.
 func (s *DescribeLocationNfsOutput) SetOnPremConfig(v *OnPremConfig) *DescribeLocationNfsOutput {
 	s.OnPremConfig = v
+	return s
+}
+
+// DescribeLocationObjectStorageRequest
+type DescribeLocationObjectStorageInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the self-managed object storage server
+	// location that was described.
+	//
+	// LocationArn is a required field
+	LocationArn *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeLocationObjectStorageInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeLocationObjectStorageInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeLocationObjectStorageInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeLocationObjectStorageInput"}
+	if s.LocationArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("LocationArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLocationArn sets the LocationArn field's value.
+func (s *DescribeLocationObjectStorageInput) SetLocationArn(v string) *DescribeLocationObjectStorageInput {
+	s.LocationArn = &v
+	return s
+}
+
+// DescribeLocationObjectStorageResponse
+type DescribeLocationObjectStorageOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Optional. The access key is used if credentials are required to access the
+	// self-managed object storage server.
+	AccessKey *string `min:"8" type:"string"`
+
+	// The Amazon Resource Name (ARN) of the agents associated with the self-managed
+	// object storage server location.
+	AgentArns []*string `min:"1" type:"list"`
+
+	// The time that the self-managed object storage server agent was created.
+	CreationTime *time.Time `type:"timestamp"`
+
+	// The Amazon Resource Name (ARN) of the self-managed object storage server
+	// location to describe.
+	LocationArn *string `type:"string"`
+
+	// The URL of the source self-managed object storage server location that was
+	// described.
+	LocationUri *string `type:"string"`
+
+	// The port that your self-managed object storage server accepts inbound network
+	// traffic on. The server port is set by default to TCP 80 (HTTP) or TCP 443
+	// (HTTPS).
+	ServerPort *int64 `min:"1" type:"integer"`
+
+	// The protocol that the object storage server uses to communicate. Valid values
+	// are HTTP or HTTPS.
+	ServerProtocol *string `type:"string" enum:"ObjectStorageServerProtocol"`
+}
+
+// String returns the string representation
+func (s DescribeLocationObjectStorageOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeLocationObjectStorageOutput) GoString() string {
+	return s.String()
+}
+
+// SetAccessKey sets the AccessKey field's value.
+func (s *DescribeLocationObjectStorageOutput) SetAccessKey(v string) *DescribeLocationObjectStorageOutput {
+	s.AccessKey = &v
+	return s
+}
+
+// SetAgentArns sets the AgentArns field's value.
+func (s *DescribeLocationObjectStorageOutput) SetAgentArns(v []*string) *DescribeLocationObjectStorageOutput {
+	s.AgentArns = v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *DescribeLocationObjectStorageOutput) SetCreationTime(v time.Time) *DescribeLocationObjectStorageOutput {
+	s.CreationTime = &v
+	return s
+}
+
+// SetLocationArn sets the LocationArn field's value.
+func (s *DescribeLocationObjectStorageOutput) SetLocationArn(v string) *DescribeLocationObjectStorageOutput {
+	s.LocationArn = &v
+	return s
+}
+
+// SetLocationUri sets the LocationUri field's value.
+func (s *DescribeLocationObjectStorageOutput) SetLocationUri(v string) *DescribeLocationObjectStorageOutput {
+	s.LocationUri = &v
+	return s
+}
+
+// SetServerPort sets the ServerPort field's value.
+func (s *DescribeLocationObjectStorageOutput) SetServerPort(v int64) *DescribeLocationObjectStorageOutput {
+	s.ServerPort = &v
+	return s
+}
+
+// SetServerProtocol sets the ServerProtocol field's value.
+func (s *DescribeLocationObjectStorageOutput) SetServerProtocol(v string) *DescribeLocationObjectStorageOutput {
+	s.ServerProtocol = &v
 	return s
 }
 
@@ -4649,7 +5127,7 @@ func (s *DescribeLocationS3Output) SetS3StorageClass(v string) *DescribeLocation
 type DescribeLocationSmbInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon resource Name (ARN) of the SMB location to describe.
+	// The Amazon Resource Name (ARN) of the SMB location to describe.
 	//
 	// LocationArn is a required field
 	LocationArn *string `type:"string" required:"true"`
@@ -4698,7 +5176,7 @@ type DescribeLocationSmbOutput struct {
 	// The name of the Windows domain that the SMB server belongs to.
 	Domain *string `type:"string"`
 
-	// The Amazon resource Name (ARN) of the SMB location that was described.
+	// The Amazon Resource Name (ARN) of the SMB location that was described.
 	LocationArn *string `type:"string"`
 
 	// The URL of the source SBM location that was described.
@@ -5458,6 +5936,8 @@ func (s *ListAgentsOutput) SetNextToken(v string) *ListAgentsOutput {
 type ListLocationsInput struct {
 	_ struct{} `type:"structure"`
 
+	Filters []*LocationFilter `type:"list"`
+
 	// The maximum number of locations to return.
 	MaxResults *int64 `type:"integer"`
 
@@ -5474,6 +5954,32 @@ func (s ListLocationsInput) String() string {
 // GoString returns the string representation
 func (s ListLocationsInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListLocationsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListLocationsInput"}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListLocationsInput) SetFilters(v []*LocationFilter) *ListLocationsInput {
+	s.Filters = v
+	return s
 }
 
 // SetMaxResults sets the MaxResults field's value.
@@ -5695,6 +6201,8 @@ func (s *ListTaskExecutionsOutput) SetTaskExecutions(v []*TaskExecutionListEntry
 type ListTasksInput struct {
 	_ struct{} `type:"structure"`
 
+	Filters []*TaskFilter `type:"list"`
+
 	// The maximum number of tasks to return.
 	MaxResults *int64 `type:"integer"`
 
@@ -5711,6 +6219,32 @@ func (s ListTasksInput) String() string {
 // GoString returns the string representation
 func (s ListTasksInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTasksInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTasksInput"}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListTasksInput) SetFilters(v []*TaskFilter) *ListTasksInput {
+	s.Filters = v
+	return s
 }
 
 // SetMaxResults sets the MaxResults field's value.
@@ -5756,6 +6290,66 @@ func (s *ListTasksOutput) SetNextToken(v string) *ListTasksOutput {
 // SetTasks sets the Tasks field's value.
 func (s *ListTasksOutput) SetTasks(v []*TaskListEntry) *ListTasksOutput {
 	s.Tasks = v
+	return s
+}
+
+type LocationFilter struct {
+	_ struct{} `type:"structure"`
+
+	// Name is a required field
+	Name *string `type:"string" required:"true" enum:"LocationFilterName"`
+
+	// Operator is a required field
+	Operator *string `type:"string" required:"true" enum:"Operator"`
+
+	// Values is a required field
+	Values []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s LocationFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LocationFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LocationFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LocationFilter"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Operator == nil {
+		invalidParams.Add(request.NewErrParamRequired("Operator"))
+	}
+	if s.Values == nil {
+		invalidParams.Add(request.NewErrParamRequired("Values"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *LocationFilter) SetName(v string) *LocationFilter {
+	s.Name = &v
+	return s
+}
+
+// SetOperator sets the Operator field's value.
+func (s *LocationFilter) SetOperator(v string) *LocationFilter {
+	s.Operator = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *LocationFilter) SetValues(v []*string) *LocationFilter {
+	s.Values = v
 	return s
 }
 
@@ -5938,10 +6532,12 @@ type Options struct {
 	// NONE: Ignore UID and GID.
 	Gid *string `type:"string" enum:"Gid"`
 
-	// A value that determines the type of logs DataSync will deliver to your AWS
-	// CloudWatch Logs file. If set to OFF, no logs will be delivered. BASIC will
-	// deliver a few logs per transfer operation and TRANSFER will deliver a verbose
-	// log that contains logs for every file that is transferred.
+	// A value that determines the type of logs that DataSync publishes to a log
+	// stream in the Amazon CloudWatch log group that you provide. For more information
+	// about providing a log group for DataSync, see CloudWatchLogGroupArn (https://docs.aws.amazon.com/datasync/latest/userguide/API_CreateTask.html#DataSync-CreateTask-request-CloudWatchLogGroupArn).
+	// If set to OFF, no logs are published. BASIC publishes logs on errors for
+	// individual files transferred, and TRANSFER publishes logs for every file
+	// or object that is transferred and integrity checked.
 	LogLevel *string `type:"string" enum:"LogLevel"`
 
 	// A value that indicates the last time that a file was modified (that is, a
@@ -6012,9 +6608,15 @@ type Options struct {
 	// A value that determines whether tasks should be queued before executing the
 	// tasks. If set to ENABLED, the tasks will be queued. The default is ENABLED.
 	//
-	// If you use the same agent to run multiple tasks you can enable the tasks
-	// to run in series. For more information see queue-task-execution.
+	// If you use the same agent to run multiple tasks, you can enable the tasks
+	// to run in series. For more information, see queue-task-execution.
 	TaskQueueing *string `type:"string" enum:"TaskQueueing"`
+
+	// TransferMode has two values: CHANGED and ALL. CHANGED performs an "incremental"
+	// or "delta sync", it compares file modification time between source and destination
+	// to determine which files need to be transferred. ALL skips destination inventory
+	// and transfers all files discovered on the source.
+	TransferMode *string `type:"string" enum:"TransferMode"`
 
 	// The user ID (UID) of the file's owner.
 	//
@@ -6027,14 +6629,21 @@ type Options struct {
 
 	// A value that determines whether a data integrity verification should be performed
 	// at the end of a task execution after all data and metadata have been transferred.
+	// For more information, see create-task
 	//
 	// Default value: POINT_IN_TIME_CONSISTENT.
 	//
-	// POINT_IN_TIME_CONSISTENT: Perform verification (recommended).
+	// ONLY_FILES_TRANSFERRED (recommended): Perform verification only on files
+	// that were transferred.
 	//
-	// ONLY_FILES_TRANSFERRED: Perform verification on only files that were transferred.
+	// POINT_IN_TIME_CONSISTENT: Scan the entire source and entire destination at
+	// the end of the transfer to verify that source and destination are fully synchronized.
+	// This option isn't supported when transferring to S3 Glacier or S3 Glacier
+	// Deep Archive storage classes.
 	//
-	// NONE: Skip verification.
+	// NONE: No additional verification is done at the end of the transfer, but
+	// all data transmissions are integrity-checked with checksum verification during
+	// the transfer.
 	VerifyMode *string `type:"string" enum:"VerifyMode"`
 }
 
@@ -6121,6 +6730,12 @@ func (s *Options) SetTaskQueueing(v string) *Options {
 	return s
 }
 
+// SetTransferMode sets the TransferMode field's value.
+func (s *Options) SetTransferMode(v string) *Options {
+	s.TransferMode = &v
+	return s
+}
+
 // SetUid sets the Uid field's value.
 func (s *Options) SetUid(v string) *Options {
 	s.Uid = &v
@@ -6133,7 +6748,7 @@ func (s *Options) SetVerifyMode(v string) *Options {
 	return s
 }
 
-// The VPC endpoint, subnet and security group that an agent uses to access
+// The VPC endpoint, subnet, and security group that an agent uses to access
 // IP addresses in a VPC (Virtual Private Cloud).
 type PrivateLinkConfig struct {
 	_ struct{} `type:"structure"`
@@ -6141,7 +6756,7 @@ type PrivateLinkConfig struct {
 	// The private endpoint that is configured for an agent that has access to IP
 	// addresses in a PrivateLink (https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-service.html).
 	// An agent that is configured with this endpoint will not be accessible over
-	// the public Internet.
+	// the public internet.
 	PrivateLinkEndpoint *string `min:"7" type:"string"`
 
 	// The Amazon Resource Names (ARNs) of the security groups that are configured
@@ -6155,7 +6770,7 @@ type PrivateLinkConfig struct {
 
 	// The ID of the VPC endpoint that is configured for an agent. An agent that
 	// is configured with a VPC endpoint will not be accessible over the public
-	// Internet.
+	// internet.
 	VpcEndpointId *string `type:"string"`
 }
 
@@ -6632,6 +7247,66 @@ func (s *TaskExecutionResultDetail) SetVerifyStatus(v string) *TaskExecutionResu
 	return s
 }
 
+type TaskFilter struct {
+	_ struct{} `type:"structure"`
+
+	// Name is a required field
+	Name *string `type:"string" required:"true" enum:"TaskFilterName"`
+
+	// Operator is a required field
+	Operator *string `type:"string" required:"true" enum:"Operator"`
+
+	// Values is a required field
+	Values []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TaskFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TaskFilter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TaskFilter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TaskFilter"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Operator == nil {
+		invalidParams.Add(request.NewErrParamRequired("Operator"))
+	}
+	if s.Values == nil {
+		invalidParams.Add(request.NewErrParamRequired("Values"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *TaskFilter) SetName(v string) *TaskFilter {
+	s.Name = &v
+	return s
+}
+
+// SetOperator sets the Operator field's value.
+func (s *TaskFilter) SetOperator(v string) *TaskFilter {
+	s.Operator = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *TaskFilter) SetValues(v []*string) *TaskFilter {
+	s.Values = v
+	return s
+}
+
 // Represents a single entry in a list of tasks. TaskListEntry returns an array
 // that contains a list of tasks when the ListTasks operation is called. A task
 // includes the source and destination file systems to sync and the options
@@ -6987,6 +7662,14 @@ const (
 	AgentStatusOffline = "OFFLINE"
 )
 
+// AgentStatus_Values returns all elements of the AgentStatus enum
+func AgentStatus_Values() []string {
+	return []string{
+		AgentStatusOnline,
+		AgentStatusOffline,
+	}
+}
+
 const (
 	// AtimeNone is a Atime enum value
 	AtimeNone = "NONE"
@@ -6994,6 +7677,14 @@ const (
 	// AtimeBestEffort is a Atime enum value
 	AtimeBestEffort = "BEST_EFFORT"
 )
+
+// Atime_Values returns all elements of the Atime enum
+func Atime_Values() []string {
+	return []string{
+		AtimeNone,
+		AtimeBestEffort,
+	}
+}
 
 const (
 	// EndpointTypePublic is a EndpointType enum value
@@ -7006,10 +7697,26 @@ const (
 	EndpointTypeFips = "FIPS"
 )
 
+// EndpointType_Values returns all elements of the EndpointType enum
+func EndpointType_Values() []string {
+	return []string{
+		EndpointTypePublic,
+		EndpointTypePrivateLink,
+		EndpointTypeFips,
+	}
+}
+
 const (
 	// FilterTypeSimplePattern is a FilterType enum value
 	FilterTypeSimplePattern = "SIMPLE_PATTERN"
 )
+
+// FilterType_Values returns all elements of the FilterType enum
+func FilterType_Values() []string {
+	return []string{
+		FilterTypeSimplePattern,
+	}
+}
 
 const (
 	// GidNone is a Gid enum value
@@ -7025,6 +7732,36 @@ const (
 	GidBoth = "BOTH"
 )
 
+// Gid_Values returns all elements of the Gid enum
+func Gid_Values() []string {
+	return []string{
+		GidNone,
+		GidIntValue,
+		GidName,
+		GidBoth,
+	}
+}
+
+const (
+	// LocationFilterNameLocationUri is a LocationFilterName enum value
+	LocationFilterNameLocationUri = "LocationUri"
+
+	// LocationFilterNameLocationType is a LocationFilterName enum value
+	LocationFilterNameLocationType = "LocationType"
+
+	// LocationFilterNameCreationTime is a LocationFilterName enum value
+	LocationFilterNameCreationTime = "CreationTime"
+)
+
+// LocationFilterName_Values returns all elements of the LocationFilterName enum
+func LocationFilterName_Values() []string {
+	return []string{
+		LocationFilterNameLocationUri,
+		LocationFilterNameLocationType,
+		LocationFilterNameCreationTime,
+	}
+}
+
 const (
 	// LogLevelOff is a LogLevel enum value
 	LogLevelOff = "OFF"
@@ -7036,6 +7773,15 @@ const (
 	LogLevelTransfer = "TRANSFER"
 )
 
+// LogLevel_Values returns all elements of the LogLevel enum
+func LogLevel_Values() []string {
+	return []string{
+		LogLevelOff,
+		LogLevelBasic,
+		LogLevelTransfer,
+	}
+}
+
 const (
 	// MtimeNone is a Mtime enum value
 	MtimeNone = "NONE"
@@ -7043,6 +7789,14 @@ const (
 	// MtimePreserve is a Mtime enum value
 	MtimePreserve = "PRESERVE"
 )
+
+// Mtime_Values returns all elements of the Mtime enum
+func Mtime_Values() []string {
+	return []string{
+		MtimeNone,
+		MtimePreserve,
+	}
+}
 
 const (
 	// NfsVersionAutomatic is a NfsVersion enum value
@@ -7058,6 +7812,80 @@ const (
 	NfsVersionNfs41 = "NFS4_1"
 )
 
+// NfsVersion_Values returns all elements of the NfsVersion enum
+func NfsVersion_Values() []string {
+	return []string{
+		NfsVersionAutomatic,
+		NfsVersionNfs3,
+		NfsVersionNfs40,
+		NfsVersionNfs41,
+	}
+}
+
+const (
+	// ObjectStorageServerProtocolHttps is a ObjectStorageServerProtocol enum value
+	ObjectStorageServerProtocolHttps = "HTTPS"
+
+	// ObjectStorageServerProtocolHttp is a ObjectStorageServerProtocol enum value
+	ObjectStorageServerProtocolHttp = "HTTP"
+)
+
+// ObjectStorageServerProtocol_Values returns all elements of the ObjectStorageServerProtocol enum
+func ObjectStorageServerProtocol_Values() []string {
+	return []string{
+		ObjectStorageServerProtocolHttps,
+		ObjectStorageServerProtocolHttp,
+	}
+}
+
+const (
+	// OperatorEquals is a Operator enum value
+	OperatorEquals = "Equals"
+
+	// OperatorNotEquals is a Operator enum value
+	OperatorNotEquals = "NotEquals"
+
+	// OperatorIn is a Operator enum value
+	OperatorIn = "In"
+
+	// OperatorLessThanOrEqual is a Operator enum value
+	OperatorLessThanOrEqual = "LessThanOrEqual"
+
+	// OperatorLessThan is a Operator enum value
+	OperatorLessThan = "LessThan"
+
+	// OperatorGreaterThanOrEqual is a Operator enum value
+	OperatorGreaterThanOrEqual = "GreaterThanOrEqual"
+
+	// OperatorGreaterThan is a Operator enum value
+	OperatorGreaterThan = "GreaterThan"
+
+	// OperatorContains is a Operator enum value
+	OperatorContains = "Contains"
+
+	// OperatorNotContains is a Operator enum value
+	OperatorNotContains = "NotContains"
+
+	// OperatorBeginsWith is a Operator enum value
+	OperatorBeginsWith = "BeginsWith"
+)
+
+// Operator_Values returns all elements of the Operator enum
+func Operator_Values() []string {
+	return []string{
+		OperatorEquals,
+		OperatorNotEquals,
+		OperatorIn,
+		OperatorLessThanOrEqual,
+		OperatorLessThan,
+		OperatorGreaterThanOrEqual,
+		OperatorGreaterThan,
+		OperatorContains,
+		OperatorNotContains,
+		OperatorBeginsWith,
+	}
+}
+
 const (
 	// OverwriteModeAlways is a OverwriteMode enum value
 	OverwriteModeAlways = "ALWAYS"
@@ -7065,6 +7893,14 @@ const (
 	// OverwriteModeNever is a OverwriteMode enum value
 	OverwriteModeNever = "NEVER"
 )
+
+// OverwriteMode_Values returns all elements of the OverwriteMode enum
+func OverwriteMode_Values() []string {
+	return []string{
+		OverwriteModeAlways,
+		OverwriteModeNever,
+	}
+}
 
 const (
 	// PhaseStatusPending is a PhaseStatus enum value
@@ -7077,6 +7913,15 @@ const (
 	PhaseStatusError = "ERROR"
 )
 
+// PhaseStatus_Values returns all elements of the PhaseStatus enum
+func PhaseStatus_Values() []string {
+	return []string{
+		PhaseStatusPending,
+		PhaseStatusSuccess,
+		PhaseStatusError,
+	}
+}
+
 const (
 	// PosixPermissionsNone is a PosixPermissions enum value
 	PosixPermissionsNone = "NONE"
@@ -7084,6 +7929,14 @@ const (
 	// PosixPermissionsPreserve is a PosixPermissions enum value
 	PosixPermissionsPreserve = "PRESERVE"
 )
+
+// PosixPermissions_Values returns all elements of the PosixPermissions enum
+func PosixPermissions_Values() []string {
+	return []string{
+		PosixPermissionsNone,
+		PosixPermissionsPreserve,
+	}
+}
 
 const (
 	// PreserveDeletedFilesPreserve is a PreserveDeletedFiles enum value
@@ -7093,6 +7946,14 @@ const (
 	PreserveDeletedFilesRemove = "REMOVE"
 )
 
+// PreserveDeletedFiles_Values returns all elements of the PreserveDeletedFiles enum
+func PreserveDeletedFiles_Values() []string {
+	return []string{
+		PreserveDeletedFilesPreserve,
+		PreserveDeletedFilesRemove,
+	}
+}
+
 const (
 	// PreserveDevicesNone is a PreserveDevices enum value
 	PreserveDevicesNone = "NONE"
@@ -7100,6 +7961,14 @@ const (
 	// PreserveDevicesPreserve is a PreserveDevices enum value
 	PreserveDevicesPreserve = "PRESERVE"
 )
+
+// PreserveDevices_Values returns all elements of the PreserveDevices enum
+func PreserveDevices_Values() []string {
+	return []string{
+		PreserveDevicesNone,
+		PreserveDevicesPreserve,
+	}
+}
 
 const (
 	// S3StorageClassStandard is a S3StorageClass enum value
@@ -7121,6 +7990,18 @@ const (
 	S3StorageClassDeepArchive = "DEEP_ARCHIVE"
 )
 
+// S3StorageClass_Values returns all elements of the S3StorageClass enum
+func S3StorageClass_Values() []string {
+	return []string{
+		S3StorageClassStandard,
+		S3StorageClassStandardIa,
+		S3StorageClassOnezoneIa,
+		S3StorageClassIntelligentTiering,
+		S3StorageClassGlacier,
+		S3StorageClassDeepArchive,
+	}
+}
+
 const (
 	// SmbVersionAutomatic is a SmbVersion enum value
 	SmbVersionAutomatic = "AUTOMATIC"
@@ -7131,6 +8012,15 @@ const (
 	// SmbVersionSmb3 is a SmbVersion enum value
 	SmbVersionSmb3 = "SMB3"
 )
+
+// SmbVersion_Values returns all elements of the SmbVersion enum
+func SmbVersion_Values() []string {
+	return []string{
+		SmbVersionAutomatic,
+		SmbVersionSmb2,
+		SmbVersionSmb3,
+	}
+}
 
 const (
 	// TaskExecutionStatusQueued is a TaskExecutionStatus enum value
@@ -7155,6 +8045,35 @@ const (
 	TaskExecutionStatusError = "ERROR"
 )
 
+// TaskExecutionStatus_Values returns all elements of the TaskExecutionStatus enum
+func TaskExecutionStatus_Values() []string {
+	return []string{
+		TaskExecutionStatusQueued,
+		TaskExecutionStatusLaunching,
+		TaskExecutionStatusPreparing,
+		TaskExecutionStatusTransferring,
+		TaskExecutionStatusVerifying,
+		TaskExecutionStatusSuccess,
+		TaskExecutionStatusError,
+	}
+}
+
+const (
+	// TaskFilterNameLocationId is a TaskFilterName enum value
+	TaskFilterNameLocationId = "LocationId"
+
+	// TaskFilterNameCreationTime is a TaskFilterName enum value
+	TaskFilterNameCreationTime = "CreationTime"
+)
+
+// TaskFilterName_Values returns all elements of the TaskFilterName enum
+func TaskFilterName_Values() []string {
+	return []string{
+		TaskFilterNameLocationId,
+		TaskFilterNameCreationTime,
+	}
+}
+
 const (
 	// TaskQueueingEnabled is a TaskQueueing enum value
 	TaskQueueingEnabled = "ENABLED"
@@ -7162,6 +8081,14 @@ const (
 	// TaskQueueingDisabled is a TaskQueueing enum value
 	TaskQueueingDisabled = "DISABLED"
 )
+
+// TaskQueueing_Values returns all elements of the TaskQueueing enum
+func TaskQueueing_Values() []string {
+	return []string{
+		TaskQueueingEnabled,
+		TaskQueueingDisabled,
+	}
+}
 
 const (
 	// TaskStatusAvailable is a TaskStatus enum value
@@ -7180,6 +8107,33 @@ const (
 	TaskStatusUnavailable = "UNAVAILABLE"
 )
 
+// TaskStatus_Values returns all elements of the TaskStatus enum
+func TaskStatus_Values() []string {
+	return []string{
+		TaskStatusAvailable,
+		TaskStatusCreating,
+		TaskStatusQueued,
+		TaskStatusRunning,
+		TaskStatusUnavailable,
+	}
+}
+
+const (
+	// TransferModeChanged is a TransferMode enum value
+	TransferModeChanged = "CHANGED"
+
+	// TransferModeAll is a TransferMode enum value
+	TransferModeAll = "ALL"
+)
+
+// TransferMode_Values returns all elements of the TransferMode enum
+func TransferMode_Values() []string {
+	return []string{
+		TransferModeChanged,
+		TransferModeAll,
+	}
+}
+
 const (
 	// UidNone is a Uid enum value
 	UidNone = "NONE"
@@ -7194,6 +8148,16 @@ const (
 	UidBoth = "BOTH"
 )
 
+// Uid_Values returns all elements of the Uid enum
+func Uid_Values() []string {
+	return []string{
+		UidNone,
+		UidIntValue,
+		UidName,
+		UidBoth,
+	}
+}
+
 const (
 	// VerifyModePointInTimeConsistent is a VerifyMode enum value
 	VerifyModePointInTimeConsistent = "POINT_IN_TIME_CONSISTENT"
@@ -7204,3 +8168,12 @@ const (
 	// VerifyModeNone is a VerifyMode enum value
 	VerifyModeNone = "NONE"
 )
+
+// VerifyMode_Values returns all elements of the VerifyMode enum
+func VerifyMode_Values() []string {
+	return []string{
+		VerifyModePointInTimeConsistent,
+		VerifyModeOnlyFilesTransferred,
+		VerifyModeNone,
+	}
+}

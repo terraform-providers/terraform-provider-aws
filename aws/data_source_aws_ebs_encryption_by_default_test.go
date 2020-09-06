@@ -3,8 +3,8 @@ package aws
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"strconv"
 	"testing"
 )
@@ -53,5 +53,5 @@ func testAccCheckDataSourceAwsEBSEncryptionByDefault(n string) resource.TestChec
 }
 
 const testAccDataSourceAwsEBSEncryptionByDefaultConfig = `
-data "aws_ebs_encryption_by_default" "current" { }
+data "aws_ebs_encryption_by_default" "current" {}
 `

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAccAWSAppmesh(t *testing.T) {
+func TestAccAWSAppmesh_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Mesh": {
 			"basic":        testAccAwsAppmeshMesh_basic,

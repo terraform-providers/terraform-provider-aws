@@ -67,7 +67,7 @@ data "aws_iam_policy_document" "example" {
 resource "aws_iam_policy" "example" {
   name   = "example_policy"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.example.json}"
+  policy = data.aws_iam_policy_document.example.json
 }
 ```
 
@@ -109,8 +109,8 @@ each accept the following arguments:
   does *not* apply to. Used to apply a policy statement to all resources
   *except* those listed.
 * `principals` (Optional) - A nested configuration block (described below)
-  specifying a resource (or resource pattern) to which this statement applies.
-* `not_principals` (Optional) - Like `principals` except gives resources that
+  specifying a principal (or principal pattern) to which this statement applies.
+* `not_principals` (Optional) - Like `principals` except gives principals that
   the statement does *not* apply to.
 * `condition` (Optional) - A nested configuration block (described below)
   that defines a further, possibly-service-specific condition that constrains
@@ -184,7 +184,7 @@ data "aws_iam_policy_document" "event_stream_bucket_role_assume_role_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = ["${var.trusted_role_arn}"]
+      identifiers = [var.trusted_role_arn]
     }
 
     principals {
@@ -215,7 +215,7 @@ data "aws_iam_policy_document" "source" {
 }
 
 data "aws_iam_policy_document" "source_json_example" {
-  source_json = "${data.aws_iam_policy_document.source.json}"
+  source_json = data.aws_iam_policy_document.source.json
 
   statement {
     sid = "SidToOverwrite"
@@ -239,7 +239,7 @@ data "aws_iam_policy_document" "override" {
 }
 
 data "aws_iam_policy_document" "override_json_example" {
-  override_json = "${data.aws_iam_policy_document.override.json}"
+  override_json = data.aws_iam_policy_document.override.json
 
   statement {
     actions   = ["ec2:*"]
@@ -330,8 +330,8 @@ data "aws_iam_policy_document" "override" {
 }
 
 data "aws_iam_policy_document" "politik" {
-  source_json   = "${data.aws_iam_policy_document.source.json}"
-  override_json = "${data.aws_iam_policy_document.override.json}"
+  source_json   = data.aws_iam_policy_document.source.json
+  override_json = data.aws_iam_policy_document.override.json
 }
 ```
 

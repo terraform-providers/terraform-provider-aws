@@ -5,12 +5,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceAwsSecretsManagerSecret_Basic(t *testing.T) {
+func TestAccDataSourceAwsSecretsManagerSecret_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSSecretsManager(t) },
 		Providers: testAccProviders,
@@ -138,7 +138,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 data "aws_secretsmanager_secret" "test" {
-  arn = "${aws_secretsmanager_secret.test.arn}"
+  arn = aws_secretsmanager_secret.test.arn
 }
 `, rName)
 }
@@ -165,7 +165,7 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 data "aws_secretsmanager_secret" "test" {
-  name = "${aws_secretsmanager_secret.test.name}"
+  name = aws_secretsmanager_secret.test.name
 }
 `, rName)
 }
@@ -179,22 +179,22 @@ resource "aws_secretsmanager_secret" "test" {
 {
   "Version": "2012-10-17",
   "Statement": [
-	{
-	  "Sid": "EnableAllPermissions",
-	  "Effect": "Allow",
-	  "Principal": {
-		"AWS": "*"
-	  },
-	  "Action": "secretsmanager:GetSecretValue",
-	  "Resource": "*"
-	}
+    {
+      "Sid": "EnableAllPermissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "*"
+    }
   ]
 }
 POLICY
 }
 
 data "aws_secretsmanager_secret" "test" {
-  name = "${aws_secretsmanager_secret.test.name}"
+  name = aws_secretsmanager_secret.test.name
 }
 `, rName)
 }

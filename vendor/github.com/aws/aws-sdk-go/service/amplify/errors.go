@@ -11,46 +11,43 @@ const (
 	// ErrCodeBadRequestException for service response error code
 	// "BadRequestException".
 	//
-	// Exception thrown when a request contains unexpected data.
+	// A request contains unexpected data.
 	ErrCodeBadRequestException = "BadRequestException"
 
 	// ErrCodeDependentServiceFailureException for service response error code
 	// "DependentServiceFailureException".
 	//
-	// Exception thrown when an operation fails due to a dependent service throwing
-	// an exception.
+	// An operation failed because a dependent service threw an exception.
 	ErrCodeDependentServiceFailureException = "DependentServiceFailureException"
 
 	// ErrCodeInternalFailureException for service response error code
 	// "InternalFailureException".
 	//
-	// Exception thrown when the service fails to perform an operation due to an
-	// internal issue.
+	// The service failed to perform an operation due to an internal issue.
 	ErrCodeInternalFailureException = "InternalFailureException"
 
 	// ErrCodeLimitExceededException for service response error code
 	// "LimitExceededException".
 	//
-	// Exception thrown when a resource could not be created because of service
-	// limits.
+	// A resource could not be created because service quotas were exceeded.
 	ErrCodeLimitExceededException = "LimitExceededException"
 
 	// ErrCodeNotFoundException for service response error code
 	// "NotFoundException".
 	//
-	// Exception thrown when an entity has not been found during an operation.
+	// An entity was not found during an operation.
 	ErrCodeNotFoundException = "NotFoundException"
 
 	// ErrCodeResourceNotFoundException for service response error code
 	// "ResourceNotFoundException".
 	//
-	// Exception thrown when an operation fails due to non-existent resource.
+	// An operation failed due to a non-existent resource.
 	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
 
 	// ErrCodeUnauthorizedException for service response error code
 	// "UnauthorizedException".
 	//
-	// Exception thrown when an operation fails due to a lack of access.
+	// An operation failed due to a lack of access.
 	ErrCodeUnauthorizedException = "UnauthorizedException"
 )
 

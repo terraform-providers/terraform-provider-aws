@@ -21,7 +21,7 @@ a conflict of rule settings and will overwrite rules.
 
 ```hcl
 resource "aws_network_acl" "main" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   egress {
     protocol   = "tcp"
@@ -80,6 +80,7 @@ valid network mask.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the network ACL
+* `arn` - The ARN of the network ACL
 * `owner_id` - The ID of the AWS account that owns the network ACL.
 
 

@@ -4,15 +4,15 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/typep"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "emptyStringTest"
 	info.Tags = []string{"style", "experimental"}
 	info.Summary = "Detects empty string checks that can be written more idiomatically"
@@ -20,14 +20,14 @@ func init() {
 	info.After = `s == ""`
 	info.Note = "See https://dmitri.shuralyov.com/idiomatic-go#empty-string-check."
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&emptyStringTestChecker{ctx: ctx})
 	})
 }
 
 type emptyStringTestChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *emptyStringTestChecker) VisitExpr(e ast.Expr) {

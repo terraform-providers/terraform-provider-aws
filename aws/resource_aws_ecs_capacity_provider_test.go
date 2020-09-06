@@ -2,16 +2,100 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/waiter"
 )
 
-// TODO sweepers once Delete is implemented
+func init() {
+	resource.AddTestSweepers("aws_ecs_capacity_provider", &resource.Sweeper{
+		Name: "aws_ecs_capacity_provider",
+		F:    testSweepEcsCapacityProviders,
+		Dependencies: []string{
+			"aws_ecs_cluster",
+			"aws_ecs_service",
+		},
+	})
+}
+
+func testSweepEcsCapacityProviders(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).ecsconn
+	input := &ecs.DescribeCapacityProvidersInput{}
+	var sweeperErrs *multierror.Error
+
+	for {
+		output, err := conn.DescribeCapacityProviders(input)
+
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping ECS Capacity Provider sweep for %s: %s", region, err)
+			return sweeperErrs.ErrorOrNil()
+		}
+
+		if err != nil {
+			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving ECS Capacity Provider: %w", err))
+			return sweeperErrs
+		}
+
+		for _, capacityProvider := range output.CapacityProviders {
+			if capacityProvider == nil {
+				continue
+			}
+
+			arn := aws.StringValue(capacityProvider.CapacityProviderArn)
+			input := &ecs.DeleteCapacityProviderInput{
+				CapacityProvider: capacityProvider.CapacityProviderArn,
+			}
+
+			if aws.StringValue(capacityProvider.Name) == "FARGATE" || aws.StringValue(capacityProvider.Name) == "FARGATE_SPOT" {
+				log.Printf("[INFO] Skipping AWS managed ECS Capacity Provider: %s", arn)
+				continue
+			}
+
+			if aws.StringValue(capacityProvider.Status) == ecs.CapacityProviderStatusInactive {
+				log.Printf("[INFO] Skipping ECS Capacity Provider with INACTIVE status: %s", arn)
+				continue
+			}
+
+			log.Printf("[INFO] Deleting ECS Capacity Provider: %s", arn)
+			_, err := conn.DeleteCapacityProvider(input)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting ECS Capacity Provider (%s): %w", arn, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			if _, err := waiter.CapacityProviderInactive(conn, arn); err != nil {
+				sweeperErr := fmt.Errorf("error waiting for ECS Capacity Provider (%s) to delete: %w", arn, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		if aws.StringValue(output.NextToken) == "" {
+			break
+		}
+
+		input.NextToken = output.NextToken
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSEcsCapacityProvider_basic(t *testing.T) {
 	var provider ecs.CapacityProvider
@@ -44,6 +128,28 @@ func TestAccAWSEcsCapacityProvider_basic(t *testing.T) {
 				ImportStateId:     rName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEcsCapacityProvider_disappears(t *testing.T) {
+	var provider ecs.CapacityProvider
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ecs_capacity_provider.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsCapacityProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEcsCapacityProviderConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEcsCapacityProviderExists(resourceName, &provider),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEcsCapacityProvider(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -163,7 +269,30 @@ func TestAccAWSEcsCapacityProvider_Tags(t *testing.T) {
 // TODO add an update test config - Reference: https://github.com/aws/containers-roadmap/issues/633
 
 func testAccCheckAWSEcsCapacityProviderDestroy(s *terraform.State) error {
-	// Reference: https://github.com/aws/containers-roadmap/issues/632
+	conn := testAccProvider.Meta().(*AWSClient).ecsconn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_ecs_capacity_provider" {
+			continue
+		}
+
+		input := &ecs.DescribeCapacityProvidersInput{
+			CapacityProviders: aws.StringSlice([]string{rs.Primary.ID}),
+		}
+
+		output, err := conn.DescribeCapacityProviders(input)
+
+		if err != nil {
+			return err
+		}
+
+		for _, capacityProvider := range output.CapacityProviders {
+			if aws.StringValue(capacityProvider.CapacityProviderArn) == rs.Primary.ID && aws.StringValue(capacityProvider.Status) != ecs.CapacityProviderStatusInactive {
+				return fmt.Errorf("ECS Capacity Provider (%s) still exists", rs.Primary.ID)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -250,11 +379,11 @@ resource "aws_autoscaling_group" "test" {
 func testAccAWSEcsCapacityProviderConfig(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName)
 }
@@ -262,18 +391,18 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigManagedScaling(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
 
-		managed_scaling {
-			maximum_scaling_step_size = 10
-			minimum_scaling_step_size = 2
-			status = "ENABLED"
-			target_capacity = 50
-		}
-	}
+    managed_scaling {
+      maximum_scaling_step_size = 10
+      minimum_scaling_step_size = 2
+      status                    = "ENABLED"
+      target_capacity           = 50
+    }
+  }
 }
 `, rName)
 }
@@ -281,16 +410,16 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigManagedScalingPartial(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
 
-		managed_scaling {
-			minimum_scaling_step_size = 2
-			status = "ENABLED"
-		}
-	}
+    managed_scaling {
+      minimum_scaling_step_size = 2
+      status                    = "ENABLED"
+    }
+  }
 }
 `, rName)
 }
@@ -298,15 +427,15 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigTags1(rName, tag1Key, tag1Value string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	tags = {
-		%q = %q,
-	}
+  tags = {
+    %q = %q,
+  }
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName, tag1Key, tag1Value)
 }
@@ -314,16 +443,16 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	tags = {
-		%q = %q,
-		%q = %q,
-	}
+  tags = {
+    %q = %q,
+    %q = %q,
+  }
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName, tag1Key, tag1Value, tag2Key, tag2Value)
 }

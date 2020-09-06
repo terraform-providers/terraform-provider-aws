@@ -15,8 +15,8 @@ Provides an API Gateway Stage.
 ```hcl
 resource "aws_api_gateway_stage" "test" {
   stage_name    = "prod"
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  deployment_id = "${aws_api_gateway_deployment.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  deployment_id = aws_api_gateway_deployment.test.id
 }
 
 resource "aws_api_gateway_rest_api" "test" {
@@ -25,27 +25,27 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on  = ["aws_api_gateway_integration.test"]
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  depends_on  = [aws_api_gateway_integration.test]
+  rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = "dev"
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "mytestresource"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_method_settings" "s" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_stage.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_stage.test.stage_name
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
 
   settings {
@@ -55,9 +55,9 @@ resource "aws_api_gateway_method_settings" "s" {
 }
 
 resource "aws_api_gateway_integration" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   type        = "MOCK"
 }
 ```
@@ -71,7 +71,7 @@ API Gateway provides the ability to [enable CloudWatch API logging](https://docs
 ```hcl
 variable "stage_name" {
   default = "example"
-  type    = "string"
+  type    = string
 }
 
 resource "aws_api_gateway_rest_api" "example" {
@@ -79,17 +79,15 @@ resource "aws_api_gateway_rest_api" "example" {
 }
 
 resource "aws_api_gateway_stage" "example" {
-  depends_on = ["aws_cloudwatch_log_group.example"]
+  depends_on = [aws_cloudwatch_log_group.example]
 
-  name = "${var.stage_name}"
-
+  stage_name = var.stage_name
   # ... other configuration ...
 }
 
 resource "aws_cloudwatch_log_group" "example" {
   name              = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.example.id}/${var.stage_name}"
   retention_in_days = 7
-
   # ... potentially other configuration ...
 }
 ```
@@ -117,7 +115,7 @@ The following arguments are supported:
 #### `access_log_settings`
 
 * `destination_arn` - (Required) The Amazon Resource Name (ARN) of the CloudWatch Logs log group or Kinesis Data Firehose delivery stream to receive access logs. If you specify a Kinesis Data Firehose delivery stream, the stream name must begin with `amazon-apigateway-`. Automatically removes trailing `:*` if present.
-* `format` - (Required) The formatting and values recorded in the logs. 
+* `format` - (Required) The formatting and values recorded in the logs.
 For more information on configuring the log format rules visit the AWS [documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html)
 
 ## Attribute Reference

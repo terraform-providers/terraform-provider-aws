@@ -26,10 +26,10 @@ resource "aws_sns_topic" "default" {
 
 resource "aws_redshift_event_subscription" "default" {
   name          = "redshift-event-sub"
-  sns_topic_arn = "${aws_sns_topic.default.arn}"
+  sns_topic_arn = aws_sns_topic.default.arn
 
   source_type = "cluster"
-  source_ids  = ["${aws_redshift_cluster.default.id}"]
+  source_ids  = [aws_redshift_cluster.default.id]
 
   severity = "INFO"
 

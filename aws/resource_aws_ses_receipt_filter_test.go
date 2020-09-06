@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSESReceiptFilter_basic(t *testing.T) {
@@ -24,6 +24,7 @@ func TestAccAWSSESReceiptFilter_basic(t *testing.T) {
 				Config: testAccAWSSESReceiptFilterConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsSESReceiptFilterExists(resourceName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ses", fmt.Sprintf("receipt-filter/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "cidr", "10.10.10.10"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "policy", "Block"),
@@ -33,6 +34,27 @@ func TestAccAWSSESReceiptFilter_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSESReceiptFilter_disappears(t *testing.T) {
+	resourceName := "aws_ses_receipt_filter.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSESReceiptFilterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSESReceiptFilterConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsSESReceiptFilterExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSesReceiptFilter(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

@@ -6,9 +6,9 @@ import (
 	"go/token"
 	"strconv"
 
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
 	"github.com/go-critic/go-critic/checkers/internal/lintutil"
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/astequal"
@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "boolExprSimplify"
 	info.Tags = []string{"style", "experimental"}
 	info.Summary = "Detects bool expressions that can be simplified"
@@ -29,14 +29,14 @@ b := !(x) == !(y)`
 a := elapsed < expectElapsedMin
 b := (x) == (y)`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&boolExprSimplifyChecker{ctx: ctx})
 	})
 }
 
 type boolExprSimplifyChecker struct {
 	astwalk.WalkHandler
-	ctx       *lintpack.CheckerContext
+	ctx       *linter.CheckerContext
 	hasFloats bool
 }
 

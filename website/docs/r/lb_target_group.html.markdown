@@ -21,7 +21,7 @@ resource "aws_lb_target_group" "test" {
   name     = "tf-example-lb-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = "${aws_vpc.main.id}"
+  vpc_id   = aws_vpc.main.id
 }
 
 resource "aws_vpc" "main" {
@@ -37,7 +37,7 @@ resource "aws_lb_target_group" "ip-example" {
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 }
 
 resource "aws_vpc" "main" {

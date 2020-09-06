@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -308,7 +308,7 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 	if !d.IsNewResource() {
 		if d.HasChange("instance") && d.Get("instance").(string) != "" {
 			disassociate = true
-		} else if (d.HasChange("network_interface") || d.HasChange("associate_with_private_ip")) && d.Get("association_id").(string) != "" {
+		} else if (d.HasChanges("network_interface", "associate_with_private_ip")) && d.Get("association_id").(string) != "" {
 			disassociate = true
 		}
 	}
@@ -325,7 +325,7 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("instance") && ok_instance {
 		associate = true
-	} else if (d.HasChange("network_interface") || d.HasChange("associate_with_private_ip")) && ok_interface {
+	} else if (d.HasChanges("network_interface", "associate_with_private_ip")) && ok_interface {
 		associate = true
 	}
 	if associate {

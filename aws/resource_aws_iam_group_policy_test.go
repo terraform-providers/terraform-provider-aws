@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIAMGroupPolicy_basic(t *testing.T) {
@@ -277,16 +277,16 @@ resource "aws_iam_group" "group" {
 
 resource "aws_iam_group_policy" "foo" {
   name  = "foo_policy_%d"
-  group = "${aws_iam_group.group.name}"
+  group = aws_iam_group.group.name
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": {
-		"Effect": "Allow",
-		"Action": "*",
-		"Resource": "*"
-	}
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
 }
 EOF
 }
@@ -302,16 +302,16 @@ resource "aws_iam_group" "test" {
 
 resource "aws_iam_group_policy" "test" {
   name_prefix = "test-%d"
-  group       = "${aws_iam_group.test.name}"
+  group       = aws_iam_group.test.name
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": {
-		"Effect": "Allow",
-		"Action": "%s",
-		"Resource": "*"
-	}
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "%s",
+    "Resource": "*"
+  }
 }
 EOF
 }
@@ -326,16 +326,16 @@ resource "aws_iam_group" "test" {
 }
 
 resource "aws_iam_group_policy" "test" {
-  group = "${aws_iam_group.test.name}"
+  group = aws_iam_group.test.name
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": {
-		"Effect": "Allow",
-		"Action": "%s",
-		"Resource": "*"
-	}
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "%s",
+    "Resource": "*"
+  }
 }
 EOF
 }
@@ -350,15 +350,35 @@ resource "aws_iam_group" "group" {
 }
 
 resource "aws_iam_group_policy" "foo" {
-  name   = "foo_policy_%d"
-  group  = "${aws_iam_group.group.name}"
-  policy = "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}}"
+  name  = "foo_policy_%d"
+  group = aws_iam_group.group.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
 }
 
 resource "aws_iam_group_policy" "bar" {
-  name   = "bar_policy_%d"
-  group  = "${aws_iam_group.group.name}"
-  policy = "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}}"
+  name  = "bar_policy_%d"
+  group = aws_iam_group.group.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Allow",
+    "Action": "*",
+    "Resource": "*"
+  }
+}
+EOF
 }
 `, rInt, rInt, rInt)
 }

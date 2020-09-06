@@ -16,7 +16,7 @@ A hosted virtual interface is a virtual interface that is owned by another AWS a
 
 ```hcl
 resource "aws_dx_hosted_transit_virtual_interface" "example" {
-  connection_id = "${aws_dx_connection.example.id}"
+  connection_id = aws_dx_connection.example.id
 
   name           = "tf-transit-vif-example"
   vlan           = 4094

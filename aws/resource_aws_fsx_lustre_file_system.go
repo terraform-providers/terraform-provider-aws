@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -108,6 +108,27 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 					validation.StringMatch(regexp.MustCompile(`^[1-7]:([01]\d|2[0-3]):?([0-5]\d)$`), "must be in the format d:HH:MM"),
 				),
 			},
+			"deployment_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  fsx.LustreDeploymentTypeScratch1,
+				ValidateFunc: validation.StringInSlice([]string{
+					fsx.LustreDeploymentTypeScratch1,
+					fsx.LustreDeploymentTypeScratch2,
+					fsx.LustreDeploymentTypePersistent1,
+				}, false),
+			},
+			"per_unit_storage_throughput": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					50,
+					100,
+					200,
+				}),
+			},
 		},
 	}
 }
@@ -160,6 +181,22 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 		}
 
 		input.LustreConfiguration.WeeklyMaintenanceStartTime = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("deployment_type"); ok {
+		if input.LustreConfiguration == nil {
+			input.LustreConfiguration = &fsx.CreateFileSystemLustreConfiguration{}
+		}
+
+		input.LustreConfiguration.DeploymentType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("per_unit_storage_throughput"); ok {
+		if input.LustreConfiguration == nil {
+			input.LustreConfiguration = &fsx.CreateFileSystemLustreConfiguration{}
+		}
+
+		input.LustreConfiguration.PerUnitStorageThroughput = aws.Int64(int64(v.(int)))
 	}
 
 	result, err := conn.CreateFileSystem(input)
@@ -251,6 +288,10 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 	d.Set("export_path", filesystem.LustreConfiguration.DataRepositoryConfiguration.ExportPath)
 	d.Set("import_path", filesystem.LustreConfiguration.DataRepositoryConfiguration.ImportPath)
 	d.Set("imported_file_chunk_size", filesystem.LustreConfiguration.DataRepositoryConfiguration.ImportedFileChunkSize)
+	d.Set("deployment_type", filesystem.LustreConfiguration.DeploymentType)
+	if filesystem.LustreConfiguration.PerUnitStorageThroughput != nil {
+		d.Set("per_unit_storage_throughput", filesystem.LustreConfiguration.PerUnitStorageThroughput)
+	}
 
 	if err := d.Set("network_interface_ids", aws.StringValueSlice(filesystem.NetworkInterfaceIds)); err != nil {
 		return fmt.Errorf("error setting network_interface_ids: %s", err)

@@ -4878,6 +4878,16 @@ const (
 	AnalyzerStatusFailed = "FAILED"
 )
 
+// AnalyzerStatus_Values returns all elements of the AnalyzerStatus enum
+func AnalyzerStatus_Values() []string {
+	return []string{
+		AnalyzerStatusActive,
+		AnalyzerStatusCreating,
+		AnalyzerStatusDisabled,
+		AnalyzerStatusFailed,
+	}
+}
+
 const (
 	// FindingSourceTypeBucketAcl is a FindingSourceType enum value
 	FindingSourceTypeBucketAcl = "BUCKET_ACL"
@@ -4888,6 +4898,15 @@ const (
 	// FindingSourceTypeS3AccessPoint is a FindingSourceType enum value
 	FindingSourceTypeS3AccessPoint = "S3_ACCESS_POINT"
 )
+
+// FindingSourceType_Values returns all elements of the FindingSourceType enum
+func FindingSourceType_Values() []string {
+	return []string{
+		FindingSourceTypeBucketAcl,
+		FindingSourceTypePolicy,
+		FindingSourceTypeS3AccessPoint,
+	}
+}
 
 const (
 	// FindingStatusActive is a FindingStatus enum value
@@ -4900,6 +4919,15 @@ const (
 	FindingStatusResolved = "RESOLVED"
 )
 
+// FindingStatus_Values returns all elements of the FindingStatus enum
+func FindingStatus_Values() []string {
+	return []string{
+		FindingStatusActive,
+		FindingStatusArchived,
+		FindingStatusResolved,
+	}
+}
+
 const (
 	// FindingStatusUpdateActive is a FindingStatusUpdate enum value
 	FindingStatusUpdateActive = "ACTIVE"
@@ -4908,6 +4936,14 @@ const (
 	FindingStatusUpdateArchived = "ARCHIVED"
 )
 
+// FindingStatusUpdate_Values returns all elements of the FindingStatusUpdate enum
+func FindingStatusUpdate_Values() []string {
+	return []string{
+		FindingStatusUpdateActive,
+		FindingStatusUpdateArchived,
+	}
+}
+
 const (
 	// OrderByAsc is a OrderBy enum value
 	OrderByAsc = "ASC"
@@ -4915,6 +4951,14 @@ const (
 	// OrderByDesc is a OrderBy enum value
 	OrderByDesc = "DESC"
 )
+
+// OrderBy_Values returns all elements of the OrderBy enum
+func OrderBy_Values() []string {
+	return []string{
+		OrderByAsc,
+		OrderByDesc,
+	}
+}
 
 const (
 	// ReasonCodeAwsServiceAccessDisabled is a ReasonCode enum value
@@ -4929,6 +4973,16 @@ const (
 	// ReasonCodeServiceLinkedRoleCreationFailed is a ReasonCode enum value
 	ReasonCodeServiceLinkedRoleCreationFailed = "SERVICE_LINKED_ROLE_CREATION_FAILED"
 )
+
+// ReasonCode_Values returns all elements of the ReasonCode enum
+func ReasonCode_Values() []string {
+	return []string{
+		ReasonCodeAwsServiceAccessDisabled,
+		ReasonCodeDelegatedAdministratorDeregistered,
+		ReasonCodeOrganizationDeleted,
+		ReasonCodeServiceLinkedRoleCreationFailed,
+	}
+}
 
 const (
 	// ResourceTypeAwsIamRole is a ResourceType enum value
@@ -4950,6 +5004,18 @@ const (
 	ResourceTypeAwsSqsQueue = "AWS::SQS::Queue"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeAwsIamRole,
+		ResourceTypeAwsKmsKey,
+		ResourceTypeAwsLambdaFunction,
+		ResourceTypeAwsLambdaLayerVersion,
+		ResourceTypeAwsS3Bucket,
+		ResourceTypeAwsSqsQueue,
+	}
+}
+
 const (
 	// TypeAccount is a Type enum value
 	TypeAccount = "ACCOUNT"
@@ -4957,6 +5023,14 @@ const (
 	// TypeOrganization is a Type enum value
 	TypeOrganization = "ORGANIZATION"
 )
+
+// Type_Values returns all elements of the Type enum
+func Type_Values() []string {
+	return []string{
+		TypeAccount,
+		TypeOrganization,
+	}
+}
 
 const (
 	// ValidationExceptionReasonCannotParse is a ValidationExceptionReason enum value
@@ -4971,3 +5045,13 @@ const (
 	// ValidationExceptionReasonUnknownOperation is a ValidationExceptionReason enum value
 	ValidationExceptionReasonUnknownOperation = "unknownOperation"
 )
+
+// ValidationExceptionReason_Values returns all elements of the ValidationExceptionReason enum
+func ValidationExceptionReason_Values() []string {
+	return []string{
+		ValidationExceptionReasonCannotParse,
+		ValidationExceptionReasonFieldValidationFailed,
+		ValidationExceptionReasonOther,
+		ValidationExceptionReasonUnknownOperation,
+	}
+}

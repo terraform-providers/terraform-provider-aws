@@ -17,26 +17,25 @@ Manages an EKS Cluster.
 ```hcl
 resource "aws_eks_cluster" "example" {
   name     = "example"
-  role_arn = "${aws_iam_role.example.arn}"
+  role_arn = aws_iam_role.example.arn
 
   vpc_config {
-    subnet_ids = ["${aws_subnet.example1.id}", "${aws_subnet.example2.id}"]
+    subnet_ids = [aws_subnet.example1.id, aws_subnet.example2.id]
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
   # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
-    "aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy",
-    "aws_iam_role_policy_attachment.example-AmazonEKSServicePolicy",
+    aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
   ]
 }
 
 output "endpoint" {
-  value = "${aws_eks_cluster.example.endpoint}"
+  value = aws_eks_cluster.example.endpoint
 }
 
 output "kubeconfig-certificate-authority-data" {
-  value = "${aws_eks_cluster.example.certificate_authority.0.data}"
+  value = aws_eks_cluster.example.certificate_authority[0].data
 }
 ```
 
@@ -64,12 +63,7 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "example-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = "${aws_iam_role.example.name}"
-}
-
-resource "aws_iam_role_policy_attachment" "example-AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = "${aws_iam_role.example.name}"
+  role       = aws_iam_role.example.name
 }
 ```
 
@@ -82,14 +76,14 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSServicePolicy" {
 ```hcl
 variable "cluster_name" {
   default = "example"
-  type    = "string"
+  type    = string
 }
 
 resource "aws_eks_cluster" "example" {
-  depends_on = ["aws_cloudwatch_log_group.example"]
+  depends_on = [aws_cloudwatch_log_group.example]
 
   enabled_cluster_log_types = ["api", "audit"]
-  name                      = "${var.cluster_name}"
+  name                      = var.cluster_name
 
   # ... other configuration ...
 }
@@ -114,7 +108,7 @@ resource "aws_eks_cluster" "example" {
 resource "aws_iam_openid_connect_provider" "example" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = []
-  url             = "${aws_eks_cluster.example.identity.0.oidc.0.issuer}"
+  url             = aws_eks_cluster.example.identity[0].oidc[0].issuer
 }
 
 data "aws_caller_identity" "current" {}
@@ -131,14 +125,14 @@ data "aws_iam_policy_document" "example_assume_role_policy" {
     }
 
     principals {
-      identifiers = ["${aws_iam_openid_connect_provider.example.arn}"]
+      identifiers = [aws_iam_openid_connect_provider.example.arn]
       type        = "Federated"
     }
   }
 }
 
 resource "aws_iam_role" "example" {
-  assume_role_policy = "${data.aws_iam_policy_document.example_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.example_assume_role_policy.json
   name               = "example"
 }
 ```
@@ -191,7 +185,7 @@ In addition to all arguments above, the following attributes are exported:
     * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
         * `issuer` - Issuer URL for the OpenID Connect identity provider.
 * `platform_version` - The platform version for the cluster.
-* `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`. 
+* `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`.
 * `version` - The Kubernetes server version for the cluster.
 * `vpc_config` - Additional nested attributes:
     * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.

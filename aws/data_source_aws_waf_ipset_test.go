@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsWafIPSet_Basic(t *testing.T) {
+func TestAccDataSourceAwsWafIPSet_basic(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_waf_ipset.ipset"
 	datasourceName := "data.aws_waf_ipset.ipset"
@@ -38,8 +38,9 @@ func testAccDataSourceAwsWafIPSet_Name(name string) string {
 resource "aws_waf_ipset" "ipset" {
   name = %[1]q
 }
+
 data "aws_waf_ipset" "ipset" {
-  name = "${aws_waf_ipset.ipset.name}"
+  name = aws_waf_ipset.ipset.name
 }
 `, name)
 }

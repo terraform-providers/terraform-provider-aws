@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsApiGatewayV2Integration() *schema.Resource {
@@ -33,21 +33,15 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
 			"connection_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  apigatewayv2.ConnectionTypeInternet,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.ConnectionTypeInternet,
-					apigatewayv2.ConnectionTypeVpcLink,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      apigatewayv2.ConnectionTypeInternet,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.ConnectionType_Values(), false),
 			},
 			"content_handling_strategy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.ContentHandlingStrategyConvertToBinary,
-					apigatewayv2.ContentHandlingStrategyConvertToText,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.ContentHandlingStrategy_Values(), false),
 			},
 			"credentials_arn": {
 				Type:         schema.TypeString,
@@ -62,36 +56,47 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateHTTPMethod(),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Default HTTP method for Lambda integration is POST.
+					if v := d.Get("integration_type").(string); (v == apigatewayv2.IntegrationTypeAws || v == apigatewayv2.IntegrationTypeAwsProxy) && old == "POST" && new == "" {
+						return true
+					}
+
+					return false
+				},
 			},
 			"integration_response_selection_expression": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"integration_subtype": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 128),
+			},
 			"integration_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.IntegrationTypeAws,
-					apigatewayv2.IntegrationTypeAwsProxy,
-					apigatewayv2.IntegrationTypeHttp,
-					apigatewayv2.IntegrationTypeHttpProxy,
-					apigatewayv2.IntegrationTypeMock,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.IntegrationType_Values(), false),
 			},
 			"integration_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"passthrough_behavior": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  apigatewayv2.PassthroughBehaviorWhenNoMatch,
-				ValidateFunc: validation.StringInSlice([]string{
-					apigatewayv2.PassthroughBehaviorWhenNoMatch,
-					apigatewayv2.PassthroughBehaviorNever,
-					apigatewayv2.PassthroughBehaviorWhenNoTemplates,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      apigatewayv2.PassthroughBehaviorWhenNoMatch,
+				ValidateFunc: validation.StringInSlice(apigatewayv2.PassthroughBehavior_Values(), false),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Not set for HTTP APIs.
+					if old == "" && new == apigatewayv2.PassthroughBehaviorWhenNoMatch {
+						return true
+					}
+					return false
+				},
 			},
 			"payload_format_version": {
 				Type:     schema.TypeString,
@@ -102,10 +107,17 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 					"2.0",
 				}, false),
 			},
+			"request_parameters": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				// Length between [1-512].
+				Elem: &schema.Schema{Type: schema.TypeString},
+			},
 			"request_templates": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				// Length between [0-32768].
+				Elem: &schema.Schema{Type: schema.TypeString},
 			},
 			"template_selection_expression": {
 				Type:     schema.TypeString,
@@ -116,6 +128,20 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 				Optional:     true,
 				Default:      29000,
 				ValidateFunc: validation.IntBetween(50, 29000),
+			},
+			"tls_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 0,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server_name_to_verify": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -146,6 +172,9 @@ func resourceAwsApiGatewayV2IntegrationCreate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("integration_method"); ok {
 		req.IntegrationMethod = aws.String(v.(string))
 	}
+	if v, ok := d.GetOk("integration_subtype"); ok {
+		req.IntegrationSubtype = aws.String(v.(string))
+	}
 	if v, ok := d.GetOk("integration_uri"); ok {
 		req.IntegrationUri = aws.String(v.(string))
 	}
@@ -155,6 +184,9 @@ func resourceAwsApiGatewayV2IntegrationCreate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("payload_format_version"); ok {
 		req.PayloadFormatVersion = aws.String(v.(string))
 	}
+	if v, ok := d.GetOk("request_parameters"); ok {
+		req.RequestParameters = stringMapToPointers(v.(map[string]interface{}))
+	}
 	if v, ok := d.GetOk("request_templates"); ok {
 		req.RequestTemplates = stringMapToPointers(v.(map[string]interface{}))
 	}
@@ -163,6 +195,9 @@ func resourceAwsApiGatewayV2IntegrationCreate(d *schema.ResourceData, meta inter
 	}
 	if v, ok := d.GetOk("timeout_milliseconds"); ok {
 		req.TimeoutInMillis = aws.Int64(int64(v.(int)))
+	}
+	if v, ok := d.GetOk("tls_config"); ok {
+		req.TlsConfig = expandApiGateway2TlsConfig(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] Creating API Gateway v2 integration: %s", req)
@@ -199,16 +234,24 @@ func resourceAwsApiGatewayV2IntegrationRead(d *schema.ResourceData, meta interfa
 	d.Set("description", resp.Description)
 	d.Set("integration_method", resp.IntegrationMethod)
 	d.Set("integration_response_selection_expression", resp.IntegrationResponseSelectionExpression)
+	d.Set("integration_subtype", resp.IntegrationSubtype)
 	d.Set("integration_type", resp.IntegrationType)
 	d.Set("integration_uri", resp.IntegrationUri)
 	d.Set("passthrough_behavior", resp.PassthroughBehavior)
 	d.Set("payload_format_version", resp.PayloadFormatVersion)
+	err = d.Set("request_parameters", pointersMapToStringList(resp.RequestParameters))
+	if err != nil {
+		return fmt.Errorf("error setting request_parameters: %s", err)
+	}
 	err = d.Set("request_templates", pointersMapToStringList(resp.RequestTemplates))
 	if err != nil {
 		return fmt.Errorf("error setting request_templates: %s", err)
 	}
 	d.Set("template_selection_expression", resp.TemplateSelectionExpression)
 	d.Set("timeout_milliseconds", resp.TimeoutInMillis)
+	if err := d.Set("tls_config", flattenApiGateway2TlsConfig(resp.TlsConfig)); err != nil {
+		return fmt.Errorf("error setting tls_config: %s", err)
+	}
 
 	return nil
 }
@@ -247,6 +290,19 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 	if d.HasChange("payload_format_version") {
 		req.PayloadFormatVersion = aws.String(d.Get("payload_format_version").(string))
 	}
+	if d.HasChange("request_parameters") {
+		o, n := d.GetChange("request_parameters")
+		add, del := diffStringMaps(o.(map[string]interface{}), n.(map[string]interface{}))
+		// Parameters are removed by setting the associated value to "".
+		for k := range del {
+			del[k] = aws.String("")
+		}
+		variables := del
+		for k, v := range add {
+			variables[k] = v
+		}
+		req.RequestParameters = variables
+	}
 	if d.HasChange("request_templates") {
 		req.RequestTemplates = stringMapToPointers(d.Get("request_templates").(map[string]interface{}))
 	}
@@ -255,6 +311,9 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 	}
 	if d.HasChange("timeout_milliseconds") {
 		req.TimeoutInMillis = aws.Int64(int64(d.Get("timeout_milliseconds").(int)))
+	}
+	if d.HasChange("tls_config") {
+		req.TlsConfig = expandApiGateway2TlsConfig(d.Get("tls_config").([]interface{}))
 	}
 
 	log.Printf("[DEBUG] Updating API Gateway v2 integration: %s", req)
@@ -311,4 +370,29 @@ func resourceAwsApiGatewayV2IntegrationImport(d *schema.ResourceData, meta inter
 	d.Set("api_id", apiId)
 
 	return []*schema.ResourceData{d}, nil
+}
+
+func expandApiGateway2TlsConfig(vConfig []interface{}) *apigatewayv2.TlsConfigInput {
+	config := &apigatewayv2.TlsConfigInput{}
+
+	if len(vConfig) == 0 || vConfig[0] == nil {
+		return config
+	}
+	mConfig := vConfig[0].(map[string]interface{})
+
+	if vServerNameToVerify, ok := mConfig["server_name_to_verify"].(string); ok && vServerNameToVerify != "" {
+		config.ServerNameToVerify = aws.String(vServerNameToVerify)
+	}
+
+	return config
+}
+
+func flattenApiGateway2TlsConfig(config *apigatewayv2.TlsConfig) []interface{} {
+	if config == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"server_name_to_verify": aws.StringValue(config.ServerNameToVerify),
+	}}
 }

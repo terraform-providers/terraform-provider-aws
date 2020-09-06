@@ -40,6 +40,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `id` - The key pair name.
+* `arn` - The key pair ARN.
 * `key_name` - The key pair name.
 * `key_pair_id` - The key pair ID.
 * `fingerprint` - The MD5 public key fingerprint as specified in section 4 of RFC 4716.

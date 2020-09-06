@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -246,9 +246,9 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "192.168.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -257,19 +257,19 @@ resource "aws_subnet" "test" {
 
 resource "aws_db_subnet_group" "test" {
   name       = %[1]q
-  subnet_ids = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  subnet_ids = [aws_subnet.test[0].id, aws_subnet.test[1].id]
 }
 
 resource "aws_rds_cluster" "test" {
   cluster_identifier   = %[1]q
-  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name = aws_db_subnet_group.test.name
   master_password      = "barbarbarbar"
   master_username      = "foo"
   skip_final_snapshot  = true
 }
 
 resource "aws_db_cluster_snapshot" "test" {
-  db_cluster_identifier          = "${aws_rds_cluster.test.id}"
+  db_cluster_identifier          = aws_rds_cluster.test.id
   db_cluster_snapshot_identifier = %[1]q
 }
 `, rName)
@@ -297,9 +297,9 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "192.168.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -308,19 +308,19 @@ resource "aws_subnet" "test" {
 
 resource "aws_db_subnet_group" "test" {
   name       = %[1]q
-  subnet_ids = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  subnet_ids = [aws_subnet.test.*.id[0], aws_subnet.test.*.id[1]]
 }
 
 resource "aws_rds_cluster" "test" {
   cluster_identifier   = %[1]q
-  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name = aws_db_subnet_group.test.name
   master_password      = "barbarbarbar"
   master_username      = "foo"
   skip_final_snapshot  = true
 }
 
 resource "aws_db_cluster_snapshot" "test" {
-  db_cluster_identifier          = "${aws_rds_cluster.test.id}"
+  db_cluster_identifier          = aws_rds_cluster.test.id
   db_cluster_snapshot_identifier = %[1]q
   tags = {
     %[2]q = %[3]q
@@ -351,9 +351,9 @@ resource "aws_vpc" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
   cidr_block        = "192.168.${count.index}.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -362,19 +362,19 @@ resource "aws_subnet" "test" {
 
 resource "aws_db_subnet_group" "test" {
   name       = %[1]q
-  subnet_ids = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
+  subnet_ids = [aws_subnet.test.*.id[0], aws_subnet.test.*.id[1]]
 }
 
 resource "aws_rds_cluster" "test" {
   cluster_identifier   = %[1]q
-  db_subnet_group_name = "${aws_db_subnet_group.test.name}"
+  db_subnet_group_name = aws_db_subnet_group.test.name
   master_password      = "barbarbarbar"
   master_username      = "foo"
   skip_final_snapshot  = true
 }
 
 resource "aws_db_cluster_snapshot" "test" {
-  db_cluster_identifier          = "${aws_rds_cluster.test.id}"
+  db_cluster_identifier          = aws_rds_cluster.test.id
   db_cluster_snapshot_identifier = %[1]q
   tags = {
     %[2]q = %[3]q

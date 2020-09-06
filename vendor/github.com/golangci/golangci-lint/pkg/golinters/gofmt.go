@@ -31,7 +31,7 @@ func NewGofmt() *goanalysis.Linter {
 		analyzer.Run = func(pass *analysis.Pass) (interface{}, error) {
 			var fileNames []string
 			for _, f := range pass.Files {
-				pos := pass.Fset.Position(f.Pos())
+				pos := pass.Fset.PositionFor(f.Pos(), false)
 				fileNames = append(fileNames, pos.Filename)
 			}
 
@@ -46,7 +46,7 @@ func NewGofmt() *goanalysis.Linter {
 					continue
 				}
 
-				is, err := extractIssuesFromPatch(string(diff), lintCtx.Log, lintCtx, false)
+				is, err := extractIssuesFromPatch(string(diff), lintCtx.Log, lintCtx, gofmtName)
 				if err != nil {
 					return nil, errors.Wrapf(err, "can't extract issues from gofmt diff output %q", string(diff))
 				}

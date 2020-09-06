@@ -27,7 +27,7 @@ func IsTypeExpr(info *types.Info, x ast.Expr) bool {
 		_, ok := info.ObjectOf(x).(*types.TypeName)
 		return ok
 
-	case *ast.FuncType, *ast.StructType, *ast.InterfaceType, *ast.ArrayType, *ast.MapType:
+	case *ast.FuncType, *ast.StructType, *ast.InterfaceType, *ast.ArrayType, *ast.MapType, *ast.ChanType:
 		return true
 
 	default:

@@ -12,13 +12,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsSecurityGroupRule() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsSecurityGroupRuleCreate,
 		Read:   resourceAwsSecurityGroupRuleRead,
@@ -326,9 +327,8 @@ func resourceAwsSecurityGroupRuleRead(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Found rule for Security Group Rule (%s): %s", d.Id(), rule)
 
 	d.Set("type", ruleType)
-	if err := setFromIPPerm(d, sg, p); err != nil {
-		return fmt.Errorf("Error setting IP Permission for Security Group Rule: %s", err)
-	}
+
+	setFromIPPerm(d, sg, p)
 
 	d.Set("description", descriptionFromIPPerm(d, rule))
 
@@ -731,8 +731,8 @@ func expandIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup) (*ec2.IpPermiss
 	return &perm, nil
 }
 
-func setFromIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup, rule *ec2.IpPermission) error {
-	isVPC := sg.VpcId != nil && *sg.VpcId != ""
+func setFromIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup, rule *ec2.IpPermission) {
+	isVPC := aws.StringValue(sg.VpcId) != ""
 
 	d.Set("from_port", rule.FromPort)
 	d.Set("to_port", rule.ToPort)
@@ -777,8 +777,6 @@ func setFromIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup, rule *ec2.IpPe
 			d.Set("source_security_group_id", s.GroupName)
 		}
 	}
-
-	return nil
 }
 
 func descriptionFromIPPerm(d *schema.ResourceData, rule *ec2.IpPermission) string {
@@ -1004,8 +1002,14 @@ func populateSecurityGroupRuleFromImport(d *schema.ResourceData, importParts []s
 	sgID := importParts[0]
 	ruleType := importParts[1]
 	protocol := importParts[2]
-	fromPort, _ := strconv.Atoi(importParts[3])
-	toPort, _ := strconv.Atoi(importParts[4])
+	fromPort, err := strconv.Atoi(importParts[3])
+	if err != nil {
+		return err
+	}
+	toPort, err := strconv.Atoi(importParts[4])
+	if err != nil {
+		return err
+	}
 	sources := importParts[5:]
 
 	d.Set("security_group_id", sgID)

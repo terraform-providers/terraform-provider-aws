@@ -4,29 +4,29 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/astequal"
 	"github.com/go-toolsmith/typep"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "assignOp"
 	info.Tags = []string{"style"}
 	info.Summary = "Detects assignments that can be simplified by using assignment operators"
 	info.Before = `x = x * 2`
 	info.After = `x *= 2`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForStmt(&assignOpChecker{ctx: ctx})
 	})
 }
 
 type assignOpChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *assignOpChecker) VisitStmt(stmt ast.Stmt) {

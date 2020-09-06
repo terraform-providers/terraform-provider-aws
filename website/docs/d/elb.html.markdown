@@ -20,12 +20,12 @@ with it, etc.
 
 ```hcl
 variable "lb_name" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 data "aws_elb" "test" {
-  name = "${var.lb_name}"
+  name = var.lb_name
 }
 ```
 

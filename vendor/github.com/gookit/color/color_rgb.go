@@ -47,6 +47,8 @@ const (
 // 	// 3th: Fg=0, Bg=1, >1: unset value
 // 	RGBColor{30,144,255, 0}
 // 	RGBColor{30,144,255, 1}
+//
+// NOTICE: now support RGB color on windows CMD, PowerShell
 type RGBColor [4]uint8
 
 // create a empty RGBColor
@@ -107,17 +109,17 @@ func RGBFromString(rgb string, isBg ...bool) RGBColor {
 
 // Print print message
 func (c RGBColor) Print(a ...interface{}) {
-	fmt.Print(RenderCode(c.String(), a...))
+	doPrintV2(c.String(), fmt.Sprint(a...))
 }
 
 // Printf format and print message
 func (c RGBColor) Printf(format string, a ...interface{}) {
-	fmt.Print(RenderString(c.String(), fmt.Sprintf(format, a...)))
+	doPrintV2(c.String(), fmt.Sprintf(format, a...))
 }
 
 // Println print message with newline
 func (c RGBColor) Println(a ...interface{}) {
-	fmt.Println(RenderCode(c.String(), a...))
+	doPrintlnV2(c.String(), a)
 }
 
 // Sprint returns rendered message
@@ -127,12 +129,17 @@ func (c RGBColor) Sprint(a ...interface{}) string {
 
 // Sprintf returns format and rendered message
 func (c RGBColor) Sprintf(format string, a ...interface{}) string {
-	return RenderString(c.String(), fmt.Sprintf(format, a...))
+	return RenderString(c.Code(), fmt.Sprintf(format, a...))
 }
 
 // Values to RGB values
 func (c RGBColor) Values() []int {
 	return []int{int(c[0]), int(c[1]), int(c[2])}
+}
+
+// Code to color code string
+func (c RGBColor) Code() string {
+	return c.String()
 }
 
 // String to color code string
@@ -234,7 +241,11 @@ func HEXStyle(fg string, bg ...string) *RGBStyle {
 		s.SetBg(HEX(bg[0]))
 	}
 
-	return s.SetFg(HEX(fg))
+	if len(fg) > 0 {
+		s.SetFg(HEX(fg))
+	}
+
+	return s
 }
 
 // RGBStyleFromString create a RGBStyle from color value string.
@@ -271,17 +282,17 @@ func (s *RGBStyle) SetBg(bg RGBColor) *RGBStyle {
 
 // Print print message
 func (s *RGBStyle) Print(a ...interface{}) {
-	fmt.Print(RenderCode(s.String(), a...))
+	doPrintV2(s.String(), fmt.Sprint(a...))
 }
 
 // Printf format and print message
 func (s *RGBStyle) Printf(format string, a ...interface{}) {
-	fmt.Print(RenderString(s.String(), fmt.Sprintf(format, a...)))
+	doPrintV2(s.String(), fmt.Sprintf(format, a...))
 }
 
 // Println print message with newline
 func (s *RGBStyle) Println(a ...interface{}) {
-	fmt.Println(RenderCode(s.String(), a...))
+	doPrintlnV2(s.String(), a)
 }
 
 // Sprint returns rendered message
@@ -291,7 +302,12 @@ func (s *RGBStyle) Sprint(a ...interface{}) string {
 
 // Sprintf returns format and rendered message
 func (s *RGBStyle) Sprintf(format string, a ...interface{}) string {
-	return RenderString(s.String(), fmt.Sprintf(format, a...))
+	return RenderString(s.Code(), fmt.Sprintf(format, a...))
+}
+
+// Code convert to color code string
+func (s *RGBStyle) Code() string {
+	return s.String()
 }
 
 // String convert to color code string

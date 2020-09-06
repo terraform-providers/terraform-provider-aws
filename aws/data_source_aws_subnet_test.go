@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsSubnet_basic(t *testing.T) {
@@ -154,9 +154,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "172.%d.123.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-subnet-data-source"
@@ -164,36 +164,36 @@ resource "aws_subnet" "test" {
 }
 
 data "aws_subnet" "by_id" {
-  id = "${aws_subnet.test.id}"
+  id = aws_subnet.test.id
 }
 
 data "aws_subnet" "by_cidr" {
-  vpc_id     = "${aws_subnet.test.vpc_id}"
-  cidr_block = "${aws_subnet.test.cidr_block}"
+  vpc_id     = aws_subnet.test.vpc_id
+  cidr_block = aws_subnet.test.cidr_block
 }
 
 data "aws_subnet" "by_tag" {
-  vpc_id = "${aws_subnet.test.vpc_id}"
+  vpc_id = aws_subnet.test.vpc_id
 
   tags = {
-    Name = "${aws_subnet.test.tags["Name"]}"
+    Name = aws_subnet.test.tags["Name"]
   }
 }
 
 data "aws_subnet" "by_vpc" {
-  vpc_id = "${aws_subnet.test.vpc_id}"
+  vpc_id = aws_subnet.test.vpc_id
 }
 
 data "aws_subnet" "by_filter" {
   filter {
     name   = "vpc-id"
-    values = ["${aws_subnet.test.vpc_id}"]
+    values = [aws_subnet.test.vpc_id]
   }
 }
 
 data "aws_subnet" "by_az_id" {
-  vpc_id               = "${aws_subnet.test.vpc_id}"
-  availability_zone_id = "${aws_subnet.test.availability_zone_id}"
+  vpc_id               = aws_subnet.test.vpc_id
+  availability_zone_id = aws_subnet.test.availability_zone_id
 }
 `, rInt, rInt)
 }
@@ -219,10 +219,10 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "172.%d.123.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  ipv6_cidr_block   = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  ipv6_cidr_block   = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
 
   tags = {
     Name = "tf-acc-subnet-data-source-ipv6"
@@ -252,10 +252,10 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "172.%d.123.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  ipv6_cidr_block   = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  ipv6_cidr_block   = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
 
   tags = {
     Name = "tf-acc-subnet-data-source-ipv6-with-ds-filter"
@@ -265,7 +265,7 @@ resource "aws_subnet" "test" {
 data "aws_subnet" "by_ipv6_cidr" {
   filter {
     name   = "ipv6-cidr-block-association.ipv6-cidr-block"
-    values = ["${aws_subnet.test.ipv6_cidr_block}"]
+    values = [aws_subnet.test.ipv6_cidr_block]
   }
 }
 `, rInt, rInt)
@@ -292,10 +292,10 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "172.%d.123.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  ipv6_cidr_block   = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  ipv6_cidr_block   = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
 
   tags = {
     Name = "tf-acc-subnet-data-source-ipv6-cidr-block"
@@ -303,7 +303,7 @@ resource "aws_subnet" "test" {
 }
 
 data "aws_subnet" "by_ipv6_cidr" {
-  ipv6_cidr_block = "${aws_subnet.test.ipv6_cidr_block}"
+  ipv6_cidr_block = aws_subnet.test.ipv6_cidr_block
 }
 `, rInt, rInt)
 }

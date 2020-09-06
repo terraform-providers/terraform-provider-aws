@@ -26,9 +26,9 @@ resource "aws_appautoscaling_target" "dynamodb_table_read_target" {
 resource "aws_appautoscaling_policy" "dynamodb_table_read_policy" {
   name               = "DynamoDBReadCapacityUtilization:${aws_appautoscaling_target.dynamodb_table_read_target.resource_id}"
   policy_type        = "TargetTrackingScaling"
-  resource_id        = "${aws_appautoscaling_target.dynamodb_table_read_target.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.dynamodb_table_read_target.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.dynamodb_table_read_target.service_namespace}"
+  resource_id        = aws_appautoscaling_target.dynamodb_table_read_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.dynamodb_table_read_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.dynamodb_table_read_target.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -54,9 +54,9 @@ resource "aws_appautoscaling_target" "ecs_target" {
 resource "aws_appautoscaling_policy" "ecs_policy" {
   name               = "scale-down"
   policy_type        = "StepScaling"
-  resource_id        = "${aws_appautoscaling_target.ecs_target.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.ecs_target.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.ecs_target.service_namespace}"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
@@ -81,7 +81,7 @@ resource "aws_ecs_service" "ecs_service" {
   desired_count   = 2
 
   lifecycle {
-    ignore_changes = ["desired_count"]
+    ignore_changes = [desired_count]
   }
 }
 ```
@@ -99,9 +99,9 @@ resource "aws_appautoscaling_target" "replicas" {
 
 resource "aws_appautoscaling_policy" "replicas" {
   name               = "cpu-auto-scaling"
-  service_namespace  = "${aws_appautoscaling_target.replicas.service_namespace}"
-  scalable_dimension = "${aws_appautoscaling_target.replicas.scalable_dimension}"
-  resource_id        = "${aws_appautoscaling_target.replicas.resource_id}"
+  service_namespace  = aws_appautoscaling_target.replicas.service_namespace
+  scalable_dimension = aws_appautoscaling_target.replicas.scalable_dimension
+  resource_id        = aws_appautoscaling_target.replicas.resource_id
   policy_type        = "TargetTrackingScaling"
 
   target_tracking_scaling_policy_configuration {
@@ -160,9 +160,9 @@ resource "aws_appautoscaling_policy" "ecs_policy" {
 }
 ```
 
-  * `metric_interval_lower_bound` - (Optional) The lower bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as negative infinity.
-  * `metric_interval_upper_bound` - (Optional) The upper bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as infinity. The upper bound must be greater than the lower bound.
-  * `scaling_adjustment` - (Required) The number of members by which to scale, when the adjustment bounds are breached. A positive value scales up. A negative value scales down.
+* `metric_interval_lower_bound` - (Optional) The lower bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as negative infinity.
+* `metric_interval_upper_bound` - (Optional) The upper bound for the difference between the alarm threshold and the CloudWatch metric. Without a value, AWS will treat this bound as infinity. The upper bound must be greater than the lower bound.
+* `scaling_adjustment` - (Required) The number of members by which to scale, when the adjustment bounds are breached. A positive value scales up. A negative value scales down.
 
 ### target_tracking_scaling_policy_configuration
 

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLBCookieStickinessPolicy_basic(t *testing.T) {
@@ -197,7 +197,7 @@ resource "aws_elb" "lb" {
 
 resource "aws_lb_cookie_stickiness_policy" "foo" {
   name          = "foo-policy"
-  load_balancer = "${aws_elb.lb.id}"
+  load_balancer = aws_elb.lb.id
   lb_port       = 80
 }
 `, rName)
@@ -220,7 +220,7 @@ resource "aws_elb" "lb" {
 
 resource "aws_lb_cookie_stickiness_policy" "foo" {
   name                     = "foo-policy"
-  load_balancer            = "${aws_elb.lb.id}"
+  load_balancer            = aws_elb.lb.id
   lb_port                  = 80
   cookie_expiration_period = 300
 }

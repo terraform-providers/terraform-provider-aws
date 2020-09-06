@@ -29,7 +29,7 @@ Basic usage
 resource "aws_security_group" "allow_tls" {
   name        = "allow_tls"
   description = "Allow TLS inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "TLS from VPC"
@@ -118,11 +118,15 @@ surprises in terms of controlling your egress rules. If you desire this rule to
 be in place, you can use this `egress` block:
 
 ```hcl
-egress {
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
+resource "aws_security_group" "example" {
+  # ... other configuration ...
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 ```
 
@@ -133,17 +137,19 @@ are associated with a prefix list name, or service name, that is linked to a spe
 Prefix list IDs are exported on VPC Endpoints, so you can use this format:
 
 ```hcl
-# ...
-egress {
-  from_port       = 0
-  to_port         = 0
-  protocol        = "-1"
-  prefix_list_ids = ["${aws_vpc_endpoint.my_endpoint.prefix_list_id}"]
+resource "aws_security_group" "example" {
+  # ... other configuration ...
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    prefix_list_ids = [aws_vpc_endpoint.my_endpoint.prefix_list_id]
+  }
 }
 
-# ...
 resource "aws_vpc_endpoint" "my_endpoint" {
-  # ...
+  # ... other configuration ...
 }
 ```
 

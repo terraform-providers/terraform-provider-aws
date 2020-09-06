@@ -1,6 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-toolsmith/typep)](https://goreportcard.com/report/github.com/go-toolsmith/typep)
 [![GoDoc](https://godoc.org/github.com/go-toolsmith/typep?status.svg)](https://godoc.org/github.com/go-toolsmith/typep)
-
+[![Build Status](https://travis-ci.org/go-toolsmith/typep.svg?branch=master)](https://travis-ci.org/go-toolsmith/typep)
 
 # typep
 

@@ -12,3 +12,4 @@ variable "aws_amis" {
     "us-west-2" = "ami-21f78e11"
   }
 }
+

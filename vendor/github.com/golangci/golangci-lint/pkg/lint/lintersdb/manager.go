@@ -87,9 +87,11 @@ func enableLinterConfigs(lcs []*linter.Config, isEnabled func(lc *linter.Config)
 func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 	var govetCfg *config.GovetSettings
 	var testpackageCfg *config.TestpackageSettings
+	var exhaustiveCfg *config.ExhaustiveSettings
 	if m.cfg != nil {
 		govetCfg = &m.cfg.LintersSettings.Govet
 		testpackageCfg = &m.cfg.LintersSettings.Testpackage
+		exhaustiveCfg = &m.cfg.LintersSettings.Exhaustive
 	}
 	const megacheckName = "megacheck"
 	lcs := []*linter.Config{
@@ -102,6 +104,10 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 			WithLoadForGoAnalysis().
 			WithPresets(linter.PresetPerformance, linter.PresetBugs).
 			WithURL("https://github.com/timakin/bodyclose"),
+		linter.NewConfig(golinters.NewNoctx()).
+			WithLoadForGoAnalysis().
+			WithPresets(linter.PresetPerformance, linter.PresetBugs).
+			WithURL("https://github.com/sonatard/noctx"),
 		linter.NewConfig(golinters.NewErrcheck()).
 			WithLoadForGoAnalysis().
 			WithPresets(linter.PresetBugs).
@@ -125,6 +131,7 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 			WithPresets(linter.PresetUnused).
 			WithAlternativeNames(megacheckName).
 			ConsiderSlow().
+			WithChangeTypes().
 			WithURL("https://github.com/dominikh/go-tools/tree/master/unused"),
 		linter.NewConfig(golinters.NewGosimple()).
 			WithLoadForGoAnalysis().
@@ -188,10 +195,17 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 			WithPresets(linter.PresetFormatting).
 			WithAutoFix().
 			WithURL("https://golang.org/cmd/gofmt/"),
+		linter.NewConfig(golinters.NewGofumpt()).
+			WithPresets(linter.PresetFormatting).
+			WithURL("https://github.com/mvdan/gofumpt"),
 		linter.NewConfig(golinters.NewGoimports()).
 			WithPresets(linter.PresetFormatting).
 			WithAutoFix().
 			WithURL("https://godoc.org/golang.org/x/tools/cmd/goimports"),
+		linter.NewConfig(golinters.NewGoHeader()).
+			WithPresets(linter.PresetStyle).
+			WithLoadForGoAnalysis().
+			WithURL("https://github.com/denis-tingajkin/go-header"),
 		linter.NewConfig(golinters.NewMaligned()).
 			WithLoadForGoAnalysis().
 			WithPresets(linter.PresetPerformance).
@@ -254,6 +268,7 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 			WithURL("https://github.com/tommy-muehle/go-mnd"),
 		linter.NewConfig(golinters.NewGoerr113()).
 			WithPresets(linter.PresetStyle).
+			WithLoadForGoAnalysis().
 			WithURL("https://github.com/Djarvur/go-err113"),
 		linter.NewConfig(golinters.NewGomodguard()).
 			WithPresets(linter.PresetStyle).
@@ -261,6 +276,7 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 			WithURL("https://github.com/ryancurrah/gomodguard"),
 		linter.NewConfig(golinters.NewGodot()).
 			WithPresets(linter.PresetStyle).
+			WithAutoFix().
 			WithURL("https://github.com/tetafro/godot"),
 		linter.NewConfig(golinters.NewTestpackage(testpackageCfg)).
 			WithPresets(linter.PresetStyle).
@@ -269,10 +285,21 @@ func (m Manager) GetAllSupportedLinterConfigs() []*linter.Config {
 		linter.NewConfig(golinters.NewNestif()).
 			WithPresets(linter.PresetComplexity).
 			WithURL("https://github.com/nakabonne/nestif"),
+		linter.NewConfig(golinters.NewExportLoopRef()).
+			WithPresets(linter.PresetBugs).
+			WithURL("https://github.com/kyoh86/exportloopref"),
+		linter.NewConfig(golinters.NewExhaustive(exhaustiveCfg)).
+			WithPresets(linter.PresetBugs).
+			WithLoadForGoAnalysis().
+			WithURL("https://github.com/nishanths/exhaustive"),
+		linter.NewConfig(golinters.NewSQLCloseCheck()).
+			WithPresets(linter.PresetBugs).
+			WithLoadForGoAnalysis().
+			WithURL("https://github.com/ryanrolds/sqlclosecheck"),
 		// nolintlint must be last because it looks at the results of all the previous linters for unused nolint directives
 		linter.NewConfig(golinters.NewNoLintLint()).
 			WithPresets(linter.PresetStyle).
-			WithURL("https://github.com/golangci-lint/pkg/golinters/nolintlint"),
+			WithURL("https://github.com/golangci/golangci-lint/blob/master/pkg/golinters/nolintlint/README.md"),
 	}
 
 	isLocalRun := os.Getenv("GOLANGCI_COM_RUN") == ""

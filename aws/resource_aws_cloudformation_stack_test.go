@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -179,10 +180,9 @@ func TestAccAWSCloudFormationStack_allAttributes(t *testing.T) {
 	expectedPolicyBody := "{\"Statement\":[{\"Action\":\"Update:*\",\"Effect\":\"Deny\",\"Principal\":\"*\",\"Resource\":\"LogicalResourceId/StaticVPC\"},{\"Action\":\"Update:*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"*\"}]}"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSCloudFormationDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCloudFormationStackConfig_allAttributesWithBodies(stackName),
@@ -190,7 +190,7 @@ func TestAccAWSCloudFormationStack_allAttributes(t *testing.T) {
 					testAccCheckCloudFormationStackExists(resourceName, &stack),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "capabilities.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "capabilities.1328347040", "CAPABILITY_IAM"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "capabilities.*", "CAPABILITY_IAM"),
 					resource.TestCheckResourceAttr(resourceName, "disable_rollback", "false"),
 					resource.TestCheckResourceAttr(resourceName, "notification_arns.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
@@ -214,7 +214,7 @@ func TestAccAWSCloudFormationStack_allAttributes(t *testing.T) {
 					testAccCheckCloudFormationStackExists(resourceName, &stack),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "capabilities.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "capabilities.1328347040", "CAPABILITY_IAM"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "capabilities.*", "CAPABILITY_IAM"),
 					resource.TestCheckResourceAttr(resourceName, "disable_rollback", "false"),
 					resource.TestCheckResourceAttr(resourceName, "notification_arns.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
@@ -569,6 +569,7 @@ resource "aws_cloudformation_stack" "test" {
 }
 BODY
 
+
   parameters = {
     TopicName = "%[1]s"
   }
@@ -759,6 +760,7 @@ resource "aws_s3_bucket" "b" {
 }
 POLICY
 
+
   website {
     index_document = "index.html"
     error_document = "error.html"
@@ -766,7 +768,7 @@ POLICY
 }
 
 resource "aws_s3_bucket_object" "object" {
-  bucket = "${aws_s3_bucket.b.id}"
+  bucket = aws_s3_bucket.b.id
   key    = "%[2]s"
   source = "test-fixtures/cloudformation-template.json"
 }
@@ -808,6 +810,7 @@ resource "aws_s3_bucket" "b" {
 }
 POLICY
 
+
   website {
     index_document = "index.html"
     error_document = "error.html"
@@ -815,7 +818,7 @@ POLICY
 }
 
 resource "aws_s3_bucket_object" "object" {
-  bucket = "${aws_s3_bucket.b.id}"
+  bucket = aws_s3_bucket.b.id
   key    = "%[2]s"
   source = "test-fixtures/cloudformation-template.yaml"
 }
@@ -839,7 +842,7 @@ func testAccAWSCloudFormationStackConfig_withTransform(rName string) string {
 resource "aws_cloudformation_stack" "with-transform" {
   name = "%[1]s"
 
-  template_body      = <<STACK
+  template_body = <<STACK
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
@@ -882,6 +885,8 @@ resource "aws_cloudformation_stack" "with-transform" {
   }
 }
 STACK
+
+
   capabilities       = ["CAPABILITY_AUTO_EXPAND"]
   on_failure         = "DELETE"
   timeout_in_minutes = 10

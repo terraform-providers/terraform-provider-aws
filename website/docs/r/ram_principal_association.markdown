@@ -32,7 +32,7 @@ resource "aws_ram_resource_share" "example" {
 
 resource "aws_ram_principal_association" "example" {
   principal          = "111111111111"
-  resource_share_arn = "${aws_ram_resource_share.example.arn}"
+  resource_share_arn = aws_ram_resource_share.example.arn
 }
 ```
 
@@ -40,8 +40,8 @@ resource "aws_ram_principal_association" "example" {
 
 ```hcl
 resource "aws_ram_principal_association" "example" {
-  principal          = "${aws_organizations_organization.example.arn}"
-  resource_share_arn = "${aws_ram_resource_share.example.arn}"
+  principal          = aws_organizations_organization.example.arn
+  resource_share_arn = aws_ram_resource_share.example.arn
 }
 ```
 

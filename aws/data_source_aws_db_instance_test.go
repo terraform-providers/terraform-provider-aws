@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDbInstanceDataSource_basic(t *testing.T) {
@@ -68,7 +68,7 @@ resource "aws_db_instance" "bar" {
   identifier = "datasource-test-terraform-%d"
 
   allocated_storage = 10
-  engine            = "MySQL"
+  engine            = "mariadb"
   instance_class    = "db.t2.micro"
   name              = "baz"
   password          = "barbarbarbar"
@@ -88,7 +88,7 @@ resource "aws_db_instance" "bar" {
 }
 
 data "aws_db_instance" "bar" {
-  db_instance_identifier = "${aws_db_instance.bar.identifier}"
+  db_instance_identifier = aws_db_instance.bar.identifier
 }
 `, rInt)
 }
@@ -98,7 +98,7 @@ func testAccAWSDBInstanceDataSourceConfig_ec2Classic(rInt int) string {
 %s
 
 data "aws_db_instance" "bar" {
-  db_instance_identifier = "${aws_db_instance.bar.identifier}"
+  db_instance_identifier = aws_db_instance.bar.identifier
 }
 `, testAccAWSDBInstanceConfigEc2Classic(rInt))
 }

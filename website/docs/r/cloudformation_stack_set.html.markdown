@@ -30,12 +30,12 @@ data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_assu
 }
 
 resource "aws_iam_role" "AWSCloudFormationStackSetAdministrationRole" {
-  assume_role_policy = "${data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_assume_role_policy.json
   name               = "AWSCloudFormationStackSetAdministrationRole"
 }
 
 resource "aws_cloudformation_stack_set" "example" {
-  administration_role_arn = "${aws_iam_role.AWSCloudFormationStackSetAdministrationRole.arn}"
+  administration_role_arn = aws_iam_role.AWSCloudFormationStackSetAdministrationRole.arn
   name                    = "example"
 
   parameters = {
@@ -76,8 +76,8 @@ data "aws_iam_policy_document" "AWSCloudFormationStackSetAdministrationRole_Exec
 
 resource "aws_iam_role_policy" "AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy" {
   name   = "ExecutionPolicy"
-  policy = "${data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy.json}"
-  role   = "${aws_iam_role.AWSCloudFormationStackSetAdministrationRole.name}"
+  policy = data.aws_iam_policy_document.AWSCloudFormationStackSetAdministrationRole_ExecutionPolicy.json
+  role   = aws_iam_role.AWSCloudFormationStackSetAdministrationRole.name
 }
 ```
 

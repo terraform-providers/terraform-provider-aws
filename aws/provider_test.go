@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -14,45 +15,57 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const rfc3339RegexPattern = `^[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?([Zz]|([+-]([01][0-9]|2[0-3]):[0-5][0-9]))$`
 const uuidRegexPattern = `[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[ab89][a-f0-9]{3}-[a-f0-9]{12}`
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProviderFactories func(providers *[]*schema.Provider) map[string]terraform.ResourceProviderFactory
+// TestAccSkip implements a wrapper for (*testing.T).Skip() to prevent unused linting reports
+//
+// Reference: https://github.com/dominikh/go-tools/issues/633#issuecomment-606560616
+var TestAccSkip = func(t *testing.T, message string) {
+	t.Skip(message)
+}
+
+var testAccProviders map[string]*schema.Provider
+var testAccProviderFactories func(providers *[]*schema.Provider) map[string]func() (*schema.Provider, error)
 var testAccProvider *schema.Provider
 var testAccProviderFunc func() *schema.Provider
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProvider = Provider()
+	testAccProviders = map[string]*schema.Provider{
 		"aws": testAccProvider,
 	}
-	testAccProviderFactories = func(providers *[]*schema.Provider) map[string]terraform.ResourceProviderFactory {
-		return map[string]terraform.ResourceProviderFactory{
-			"aws": func() (terraform.ResourceProvider, error) {
-				p := Provider()
-				*providers = append(*providers, p.(*schema.Provider))
+	testAccProviderFactories = func(providers *[]*schema.Provider) map[string]func() (*schema.Provider, error) {
+		// this is an SDKV2 compatible hack, the "factory" functions are
+		// effectively singletons for the lifecycle of a resource.Test
+		var providerNames = []string{"aws", "awseast", "awswest", "awsalternate", "awsus-east-1", "awsalternateaccountalternateregion", "awsalternateaccountsameregion", "awssameaccountalternateregion", "awsthird"}
+		var factories = make(map[string]func() (*schema.Provider, error), len(providerNames))
+		for _, name := range providerNames {
+			p := Provider()
+			factories[name] = func() (*schema.Provider, error) { //nolint:unparam
 				return p, nil
-			},
+			}
+			*providers = append(*providers, p)
 		}
+		return factories
 	}
 	testAccProviderFunc = func() *schema.Provider { return testAccProvider }
 }
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ *schema.Provider = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -68,7 +81,7 @@ func testAccPreCheck(t *testing.T) {
 	log.Printf("[INFO] Test: Using %s as test region", region)
 	os.Setenv("AWS_DEFAULT_REGION", region)
 
-	err := testAccProvider.Configure(terraform.NewResourceConfigRaw(nil))
+	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,6 +150,25 @@ func testAccCheckResourceAttrRegionalARNAccountID(resourceName, attributeName, a
 			Service:   arnService,
 		}.String()
 		return resource.TestCheckResourceAttr(resourceName, attributeName, attributeValue)(s)
+	}
+}
+
+// testAccCheckResourceAttrRegionalHostname ensures the Terraform state exactly matches a formatted DNS hostname with region and partition DNS suffix
+func testAccCheckResourceAttrRegionalHostname(resourceName, attributeName, serviceName, hostnamePrefix string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		hostname := fmt.Sprintf("%s.%s.%s.%s", hostnamePrefix, serviceName, testAccGetRegion(), testAccGetPartitionDNSSuffix())
+
+		return resource.TestCheckResourceAttr(resourceName, attributeName, hostname)(s)
+	}
+}
+
+// testAccCheckResourceAttrHostnameWithPort ensures the Terraform state regexp matches a formatted DNS hostname with prefix, partition DNS suffix, and given port
+func testAccCheckResourceAttrHostnameWithPort(resourceName, attributeName, serviceName, hostnamePrefix string, port int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// kafka broker example: "ec2-12-345-678-901.compute-1.amazonaws.com:2345"
+		hostname := fmt.Sprintf("%s.%s.%s:%d", hostnamePrefix, serviceName, testAccGetPartitionDNSSuffix(), port)
+
+		return resource.TestCheckResourceAttr(resourceName, attributeName, hostname)(s)
 	}
 }
 
@@ -519,6 +551,20 @@ func testAccMultipleRegionsPreCheck(t *testing.T) {
 	}
 }
 
+// testAccRegionPreCheck checks that the test region is the specified region.
+func testAccRegionPreCheck(t *testing.T, region string) {
+	if testAccGetRegion() != region {
+		t.Skipf("skipping tests; AWS_DEFAULT_REGION (%s) does not equal %s", testAccGetRegion(), region)
+	}
+}
+
+// testAccPartitionPreCheck checks that the test partition is the specified partition.
+func testAccPartitionPreCheck(t *testing.T, partition string) {
+	if testAccGetPartition() != partition {
+		t.Skipf("skipping tests; partition (%s) does not equal %s", testAccGetPartition(), partition)
+	}
+}
+
 func testAccOrganizationsAccountPreCheck(t *testing.T) {
 	conn := testAccProvider.Meta().(*AWSClient).organizationsconn
 	input := &organizations.DescribeOrganizationInput{}
@@ -547,9 +593,8 @@ func testAccOrganizationsEnabledPreCheck(t *testing.T) {
 func testAccAlternateAccountProviderConfig() string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
-provider "aws" {
+provider "awsalternate" {
   access_key = %[1]q
-  alias      = "alternate"
   profile    = %[2]q
   secret_key = %[3]q
 }
@@ -559,9 +604,8 @@ provider "aws" {
 func testAccAlternateAccountAlternateRegionProviderConfig() string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
-provider "aws" {
+provider "awsalternate" {
   access_key = %[1]q
-  alias      = "alternate"
   profile    = %[2]q
   region     = %[3]q
   secret_key = %[4]q
@@ -574,23 +618,20 @@ provider "aws" {
 func testAccAlternateAccountAndAlternateRegionProviderConfig() string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
-provider "aws" {
+provider "awsalternateaccountalternateregion" {
   access_key = %[1]q
-  alias      = "alternateaccountalternateregion"
   profile    = %[2]q
   region     = %[3]q
   secret_key = %[4]q
 }
 
-provider "aws" {
+provider "awsalternateaccountsameregion" {
   access_key = %[1]q
-  alias      = "alternateaccountsameregion"
   profile    = %[2]q
   secret_key = %[4]q
 }
 
-provider "aws" {
-  alias  = "sameaccountalternateregion"
+provider "awssameaccountalternateregion" {
   region = %[3]q
 }
 `, os.Getenv("AWS_ALTERNATE_ACCESS_KEY_ID"), os.Getenv("AWS_ALTERNATE_PROFILE"), testAccGetAlternateRegion(), os.Getenv("AWS_ALTERNATE_SECRET_ACCESS_KEY"))
@@ -600,8 +641,7 @@ provider "aws" {
 func testAccAlternateRegionProviderConfig() string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
-provider "aws" {
-  alias  = "alternate"
+provider "awsalternate" {
   region = %[1]q
 }
 `, testAccGetAlternateRegion())
@@ -612,8 +652,7 @@ func testAccMultipleRegionProviderConfig(regions int) string {
 
 	//lintignore:AT004
 	fmt.Fprintf(&config, `
-provider "aws" {
-  alias  = "alternate"
+provider "awsalternate" {
   region = %[1]q
 }
 `, testAccGetAlternateRegion())
@@ -621,8 +660,7 @@ provider "aws" {
 	if regions >= 3 {
 		//lintignore:AT004
 		fmt.Fprintf(&config, `
-provider "aws" {
-  alias  = "third"
+provider "awsthird" {
   region = %[1]q
 }
 `, testAccGetThirdRegion())
@@ -661,12 +699,11 @@ provider "aws" {
 // Cost and Usage Reporting and Pricing services.
 func testAccUsEast1RegionProviderConfig() string {
 	//lintignore:AT004
-	return fmt.Sprintf(`
-provider "aws" {
-  alias  = "us-east-1"
+	return `
+provider "awsus-east-1" {
   region = "us-east-1"
 }
-`)
+`
 }
 
 func testAccAwsRegionProviderFunc(region string, providers *[]*schema.Provider) func() *schema.Provider {
@@ -812,11 +849,6 @@ func TestAccAWSProvider_Endpoints(t *testing.T) {
 
 	// Initialize each endpoint configuration with matching name and value
 	for _, endpointServiceName := range endpointServiceNames {
-		// Skip deprecated endpoint configurations as they will override expected values
-		if endpointServiceName == "kinesis_analytics" || endpointServiceName == "r53" {
-			continue
-		}
-
 		endpoints.WriteString(fmt.Sprintf("%s = \"http://%s\"\n", endpointServiceName, endpointServiceName))
 	}
 
@@ -830,34 +862,6 @@ func TestAccAWSProvider_Endpoints(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSProviderEndpoints(&providers),
 				),
-			},
-		},
-	})
-}
-
-func TestAccAWSProvider_Endpoints_Deprecated(t *testing.T) {
-	var providers []*schema.Provider
-	var endpointsDeprecated strings.Builder
-
-	// Initialize each deprecated endpoint configuration with matching name and value
-	for _, endpointServiceName := range endpointServiceNames {
-		// Only configure deprecated endpoint configurations
-		if endpointServiceName != "kinesis_analytics" && endpointServiceName != "r53" {
-			continue
-		}
-
-		endpointsDeprecated.WriteString(fmt.Sprintf("%s = \"http://%s\"\n", endpointServiceName, endpointServiceName))
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories(&providers),
-		CheckDestroy:      nil,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSProviderConfigEndpoints(endpointsDeprecated.String()),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSProviderEndpointsDeprecated(&providers)),
 			},
 		},
 	})
@@ -1144,61 +1148,6 @@ func testAccCheckAWSProviderEndpoints(providers *[]*schema.Provider) resource.Te
 			providerClient := provider.Meta().(*AWSClient)
 
 			for _, endpointServiceName := range endpointServiceNames {
-				// Skip deprecated endpoint configurations as they will override expected values
-				if endpointServiceName == "kinesis_analytics" || endpointServiceName == "r53" {
-					continue
-				}
-
-				providerClientField := reflect.Indirect(reflect.ValueOf(providerClient)).FieldByNameFunc(endpointFieldNameF(endpointServiceName))
-
-				if !providerClientField.IsValid() {
-					return fmt.Errorf("unable to match AWSClient struct field name for endpoint name: %s", endpointServiceName)
-				}
-
-				actualEndpoint := reflect.Indirect(reflect.Indirect(providerClientField).FieldByName("Config").FieldByName("Endpoint")).String()
-				expectedEndpoint := fmt.Sprintf("http://%s", endpointServiceName)
-
-				if actualEndpoint != expectedEndpoint {
-					return fmt.Errorf("expected endpoint (%s) value (%s), got: %s", endpointServiceName, expectedEndpoint, actualEndpoint)
-				}
-			}
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAWSProviderEndpointsDeprecated(providers *[]*schema.Provider) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if providers == nil {
-			return fmt.Errorf("no providers initialized")
-		}
-
-		// Match AWSClient struct field names to endpoint configuration names
-		endpointFieldNameF := func(endpoint string) func(string) bool {
-			return func(name string) bool {
-				switch endpoint {
-				case "kinesis_analytics":
-					endpoint = "kinesisanalytics"
-				}
-
-				return name == fmt.Sprintf("%sconn", endpoint)
-			}
-		}
-
-		for _, provider := range *providers {
-			if provider == nil || provider.Meta() == nil || provider.Meta().(*AWSClient) == nil {
-				continue
-			}
-
-			providerClient := provider.Meta().(*AWSClient)
-
-			for _, endpointServiceName := range endpointServiceNames {
-				// Only check deprecated endpoint configurations
-				if endpointServiceName != "kinesis_analytics" && endpointServiceName != "r53" {
-					continue
-				}
-
 				providerClientField := reflect.Indirect(reflect.ValueOf(providerClient)).FieldByNameFunc(endpointFieldNameF(endpointServiceName))
 
 				if !providerClientField.IsValid() {
@@ -1366,16 +1315,19 @@ func testAccCheckAWSProviderPartition(providers *[]*schema.Provider, expectedPar
 	}
 }
 
-// testAccPreCheckHasDefaultVpcOrEc2Classic checks that the test region has a default VPC or has the EC2-Classic platform.
+// testAccPreCheckEc2ClassicOrHasDefaultVpcWithDefaultSubnets checks that the test region has either
+// - The EC2-Classic platform available, or
+// - A default VPC with default subnets.
 // This check is useful to ensure that an instance can be launched without specifying a subnet.
-func testAccPreCheckHasDefaultVpcOrEc2Classic(t *testing.T) {
+func testAccPreCheckEc2ClassicOrHasDefaultVpcWithDefaultSubnets(t *testing.T) {
 	client := testAccProvider.Meta().(*AWSClient)
 
-	if !testAccHasDefaultVpc(t) && !hasEc2Classic(client.supportedplatforms) {
-		t.Skipf("skipping tests; %s does not have a default VPC or EC2-Classic", client.region)
+	if !hasEc2Classic(client.supportedplatforms) && !(testAccHasDefaultVpc(t) && testAccDefaultSubnetCount(t) > 0) {
+		t.Skipf("skipping tests; %s does not have EC2-Classic or a default VPC with default subnets", client.region)
 	}
 }
 
+// testAccHasDefaultVpc returns whether the current AWS region has a default VPC.
 func testAccHasDefaultVpc(t *testing.T) bool {
 	conn := testAccProvider.Meta().(*AWSClient).ec2conn
 
@@ -1393,6 +1345,26 @@ func testAccHasDefaultVpc(t *testing.T) bool {
 	}
 
 	return true
+}
+
+// testAccDefaultSubnetCount returns the number of default subnets in the current region's default VPC.
+func testAccDefaultSubnetCount(t *testing.T) int {
+	conn := testAccProvider.Meta().(*AWSClient).ec2conn
+
+	input := &ec2.DescribeSubnetsInput{
+		Filters: buildEC2AttributeFilterList(map[string]string{
+			"defaultForAz": "true",
+		}),
+	}
+	output, err := conn.DescribeSubnets(input)
+	if testAccPreCheckSkipError(err) {
+		return 0
+	}
+	if err != nil {
+		t.Fatalf("error describing default subnets: %s", err)
+	}
+
+	return len(output.Subnets)
 }
 
 func testAccAWSProviderConfigEndpoints(endpoints string) string {
@@ -1418,7 +1390,7 @@ data "aws_arn" "test" {
 
 func testAccAWSProviderConfigIgnoreTagsEmptyConfigurationBlock() string {
 	//lintignore:AT004
-	return fmt.Sprintf(`
+	return `
 provider "aws" {
   ignore_tags {}
 
@@ -1432,12 +1404,12 @@ provider "aws" {
 data "aws_arn" "test" {
   arn = "arn:aws:s3:::test"
 }
-`)
+`
 }
 
 func testAccAWSProviderConfigIgnoreTagsKeyPrefixes0() string {
 	//lintignore:AT004
-	return fmt.Sprintf(`
+	return `
 provider "aws" {
   skip_credentials_validation = true
   skip_get_ec2_platforms      = true
@@ -1449,7 +1421,7 @@ provider "aws" {
 data "aws_arn" "test" {
   arn = "arn:aws:s3:::test"
 }
-`)
+`
 }
 
 func testAccAWSProviderConfigIgnoreTagsKeyPrefixes1(tagPrefix1 string) string {
@@ -1496,7 +1468,7 @@ data "aws_arn" "test" {
 
 func testAccAWSProviderConfigIgnoreTagsKeys0() string {
 	//lintignore:AT004
-	return fmt.Sprintf(`
+	return `
 provider "aws" {
   skip_credentials_validation = true
   skip_get_ec2_platforms      = true
@@ -1508,7 +1480,7 @@ provider "aws" {
 data "aws_arn" "test" {
   arn = "arn:aws:s3:::test"
 }
-`)
+`
 }
 
 func testAccAWSProviderConfigIgnoreTagsKeys1(tag1 string) string {
@@ -1582,10 +1554,10 @@ func testAccProviderConfigAssumeRolePolicy(policy string) string {
 	//lintignore:AT004
 	return fmt.Sprintf(`
 provider "aws" {
-	assume_role {
-		role_arn = %q
-		policy   = %q
-	}
+  assume_role {
+    role_arn = %q
+    policy   = %q
+  }
 }
 `, os.Getenv("TF_ACC_ASSUME_ROLE_ARN"), policy)
 }

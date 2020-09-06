@@ -9,9 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestValidateAppautoscalingPolicyImportInput(t *testing.T) {
@@ -84,10 +85,9 @@ func TestAccAWSAppautoScalingPolicy_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAppautoscalingPolicyDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAppautoscalingPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAppautoscalingPolicyConfig(rName),
@@ -101,9 +101,11 @@ func TestAccAWSAppautoScalingPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.adjustment_type", "ChangeInCapacity"),
 					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.cooldown", "60"),
 					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.step_adjustment.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.step_adjustment.207530251.scaling_adjustment", "1"),
-					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.step_adjustment.207530251.metric_interval_lower_bound", "0"),
-					resource.TestCheckResourceAttr(resourceName, "step_scaling_policy_configuration.0.step_adjustment.207530251.metric_interval_upper_bound", ""),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"scaling_adjustment":          "1",
+						"metric_interval_lower_bound": "0",
+						"metric_interval_upper_bound": "",
+					}),
 				),
 			},
 			{
@@ -145,10 +147,9 @@ func TestAccAWSAppautoScalingPolicy_scaleOutAndIn(t *testing.T) {
 	randPolicyNamePrefix := fmt.Sprintf("terraform-test-foobar-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAppautoscalingPolicyDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAppautoscalingPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAppautoscalingPolicyScaleOutAndInConfig(randClusterName, randPolicyNamePrefix),
@@ -157,15 +158,21 @@ func TestAccAWSAppautoScalingPolicy_scaleOutAndIn(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.adjustment_type", "PercentChangeInCapacity"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.cooldown", "60"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.#", "3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2218643358.metric_interval_lower_bound", "3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2218643358.metric_interval_upper_bound", ""),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2218643358.scaling_adjustment", "3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.594919880.metric_interval_lower_bound", "1"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.594919880.metric_interval_upper_bound", "3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.594919880.scaling_adjustment", "2"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2601972131.metric_interval_lower_bound", "0"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2601972131.metric_interval_upper_bound", "1"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.2601972131.scaling_adjustment", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "3",
+						"metric_interval_upper_bound": "",
+						"scaling_adjustment":          "3",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "1",
+						"metric_interval_upper_bound": "3",
+						"scaling_adjustment":          "2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_out", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "0",
+						"metric_interval_upper_bound": "1",
+						"scaling_adjustment":          "1",
+					}),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "name", fmt.Sprintf("%s-out", randPolicyNamePrefix)),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "policy_type", "StepScaling"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_out", "resource_id", fmt.Sprintf("service/%s/foobar", randClusterName)),
@@ -175,15 +182,21 @@ func TestAccAWSAppautoScalingPolicy_scaleOutAndIn(t *testing.T) {
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.adjustment_type", "PercentChangeInCapacity"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.cooldown", "60"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.#", "3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.3898905432.metric_interval_lower_bound", "-1"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.3898905432.metric_interval_upper_bound", "0"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.3898905432.scaling_adjustment", "-1"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.386467692.metric_interval_lower_bound", "-3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.386467692.metric_interval_upper_bound", "-1"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.386467692.scaling_adjustment", "-2"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.602910043.metric_interval_lower_bound", ""),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.602910043.metric_interval_upper_bound", "-3"),
-					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.602910043.scaling_adjustment", "-3"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "-1",
+						"metric_interval_upper_bound": "0",
+						"scaling_adjustment":          "-1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "-3",
+						"metric_interval_upper_bound": "-1",
+						"scaling_adjustment":          "-2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_appautoscaling_policy.foobar_in", "step_scaling_policy_configuration.0.step_adjustment.*", map[string]string{
+						"metric_interval_lower_bound": "",
+						"metric_interval_upper_bound": "-3",
+						"scaling_adjustment":          "-3",
+					}),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "name", fmt.Sprintf("%s-in", randPolicyNamePrefix)),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "policy_type", "StepScaling"),
 					resource.TestCheckResourceAttr("aws_appautoscaling_policy.foobar_in", "resource_id", fmt.Sprintf("service/%s/foobar", randClusterName)),
@@ -501,12 +514,12 @@ EOF
 }
 
 resource "aws_ecs_service" "test" {
-  cluster                            = "${aws_ecs_cluster.test.id}"
+  cluster                            = aws_ecs_cluster.test.id
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
   desired_count                      = 0
   name                               = %[1]q
-  task_definition                    = "${aws_ecs_task_definition.test.arn}"
+  task_definition                    = aws_ecs_task_definition.test.arn
 }
 
 resource "aws_appautoscaling_target" "test" {
@@ -519,9 +532,9 @@ resource "aws_appautoscaling_target" "test" {
 
 resource "aws_appautoscaling_policy" "test" {
   name               = %[1]q
-  resource_id        = "${aws_appautoscaling_target.test.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.test.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.test.service_namespace}"
+  resource_id        = aws_appautoscaling_target.test.resource_id
+  scalable_dimension = aws_appautoscaling_target.test.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.test.service_namespace
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
@@ -547,7 +560,7 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     name   = "name"
     values = ["amzn-ami-minimal-hvm-*"]
   }
-  
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
@@ -577,12 +590,12 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "fleet_role_policy" {
-  role       = "${aws_iam_role.fleet_role.name}"
+  role       = aws_iam_role.fleet_role.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole"
 }
 
 resource "aws_spot_fleet_request" "test" {
-  iam_fleet_role                      = "${aws_iam_role.fleet_role.arn}"
+  iam_fleet_role                      = aws_iam_role.fleet_role.arn
   spot_price                          = "0.005"
   target_capacity                     = 2
   valid_until                         = %[2]q
@@ -590,7 +603,7 @@ resource "aws_spot_fleet_request" "test" {
 
   launch_specification {
     instance_type = "m3.medium"
-    ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+    ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   }
 }
 
@@ -604,9 +617,9 @@ resource "aws_appautoscaling_target" "test" {
 
 resource "aws_appautoscaling_policy" "test" {
   name               = %[1]q
-  resource_id        = "${aws_appautoscaling_target.test.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.test.scalable_dimension}"
-  service_namespace  = "${aws_appautoscaling_target.test.service_namespace}"
+  resource_id        = aws_appautoscaling_target.test.resource_id
+  scalable_dimension = aws_appautoscaling_target.test.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.test.service_namespace
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
@@ -646,10 +659,10 @@ resource "aws_appautoscaling_target" "dynamo_test" {
 }
 
 resource "aws_appautoscaling_policy" "dynamo_test" {
-  name = "DynamoDBWriteCapacityUtilization:${aws_appautoscaling_target.dynamo_test.resource_id}"
-  policy_type = "TargetTrackingScaling"
-  service_namespace = "dynamodb"
-  resource_id = "table/${aws_dynamodb_table.dynamodb_table_test.name}"
+  name               = "DynamoDBWriteCapacityUtilization:${aws_appautoscaling_target.dynamo_test.resource_id}"
+  policy_type        = "TargetTrackingScaling"
+  service_namespace  = "dynamodb"
+  resource_id        = "table/${aws_dynamodb_table.dynamodb_table_test.name}"
   scalable_dimension = "dynamodb:table:WriteCapacityUnits"
 
   target_tracking_scaling_policy_configuration {
@@ -662,7 +675,7 @@ resource "aws_appautoscaling_policy" "dynamo_test" {
     target_value       = 70
   }
 
-  depends_on = ["aws_appautoscaling_target.dynamo_test"]
+  depends_on = [aws_appautoscaling_target.dynamo_test]
 }
 `, randPolicyName)
 }
@@ -768,8 +781,8 @@ resource "aws_appautoscaling_policy" "read1" {
   name               = "%[3]s-read"
   policy_type        = "TargetTrackingScaling"
   service_namespace  = "dynamodb"
-  resource_id        = "${aws_appautoscaling_target.read1.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.read1.scalable_dimension}"
+  resource_id        = aws_appautoscaling_target.read1.resource_id
+  scalable_dimension = aws_appautoscaling_target.read1.scalable_dimension
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -795,7 +808,7 @@ resource "aws_appautoscaling_policy" "read2" {
   policy_type        = "TargetTrackingScaling"
   service_namespace  = "dynamodb"
   resource_id        = "table/${aws_dynamodb_table.dynamodb_table_test2.name}"
-  scalable_dimension = "${aws_appautoscaling_target.read2.scalable_dimension}"
+  scalable_dimension = aws_appautoscaling_target.read2.scalable_dimension
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
@@ -849,7 +862,7 @@ resource "aws_appautoscaling_policy" "write" {
     target_value       = 70
   }
 
-  depends_on = ["aws_appautoscaling_target.write"]
+  depends_on = [aws_appautoscaling_target.write]
 }
 
 resource "aws_appautoscaling_target" "read" {
@@ -877,7 +890,7 @@ resource "aws_appautoscaling_policy" "read" {
     target_value       = 70
   }
 
-  depends_on = ["aws_appautoscaling_target.read"]
+  depends_on = [aws_appautoscaling_target.read]
 }
 `, tableName, namePrefix, namePrefix)
 }
@@ -908,8 +921,8 @@ EOF
 
 resource "aws_ecs_service" "service" {
   name                               = "foobar"
-  cluster                            = "${aws_ecs_cluster.foo.id}"
-  task_definition                    = "${aws_ecs_task_definition.task.arn}"
+  cluster                            = aws_ecs_cluster.foo.id
+  task_definition                    = aws_ecs_task_definition.task.arn
   desired_count                      = 1
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
@@ -952,7 +965,7 @@ resource "aws_appautoscaling_policy" "foobar_out" {
     }
   }
 
-  depends_on = ["aws_appautoscaling_target.tgt"]
+  depends_on = [aws_appautoscaling_target.tgt]
 }
 
 resource "aws_appautoscaling_policy" "foobar_in" {
@@ -984,7 +997,7 @@ resource "aws_appautoscaling_policy" "foobar_in" {
     }
   }
 
-  depends_on = ["aws_appautoscaling_target.tgt"]
+  depends_on = [aws_appautoscaling_target.tgt]
 }
 `, randClusterName, randPolicyNamePrefix, randPolicyNamePrefix)
 }
@@ -1012,21 +1025,21 @@ EOF
 }
 
 resource "aws_ecs_service" "test1" {
-  cluster                            = "${aws_ecs_cluster.test.id}"
+  cluster                            = aws_ecs_cluster.test.id
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
   desired_count                      = 0
   name                               = "%[1]s-1"
-  task_definition                    = "${aws_ecs_task_definition.test.arn}"
+  task_definition                    = aws_ecs_task_definition.test.arn
 }
 
 resource "aws_ecs_service" "test2" {
-  cluster                            = "${aws_ecs_cluster.test.id}"
+  cluster                            = aws_ecs_cluster.test.id
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 50
   desired_count                      = 0
   name                               = "%[1]s-2"
-  task_definition                    = "${aws_ecs_task_definition.test.arn}"
+  task_definition                    = aws_ecs_task_definition.test.arn
 }
 `, rName)
 }
@@ -1043,7 +1056,7 @@ resource "aws_appautoscaling_target" "test" {
 
 resource "aws_appautoscaling_policy" "test" {
   # The usage of depends_on here is intentional as this used to be a documented example
-  depends_on = ["aws_appautoscaling_target.test"]
+  depends_on = [aws_appautoscaling_target.test]
 
   name               = %[1]q
   resource_id        = "service/${aws_ecs_cluster.test.name}/${aws_ecs_service.test1.name}"
@@ -1092,7 +1105,7 @@ resource "aws_appautoscaling_target" "test" {
 
 resource "aws_appautoscaling_policy" "test" {
   # The usage of depends_on here is intentional as this used to be a documented example
-  depends_on = ["aws_appautoscaling_target.test"]
+  depends_on = [aws_appautoscaling_target.test]
 
   name               = %[1]q
   resource_id        = "service/${aws_ecs_cluster.test.name}/${aws_ecs_service.test2.name}"

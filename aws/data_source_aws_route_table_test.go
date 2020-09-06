@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsRouteTable_basic(t *testing.T) {
@@ -169,26 +169,29 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "172.16.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
+
   tags = {
     Name = "tf-acc-route-table-data-source"
   }
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
+
   tags = {
     Name = "terraform-testacc-routetable-data-source"
   }
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test.id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
+
   tags = {
     Name = "terraform-testacc-routetable-data-source"
   }
@@ -201,19 +204,21 @@ resource "aws_route_table_association" "b" {
 
 data "aws_route_table" "by_filter" {
   filter {
-    name = "association.route-table-association-id"
-    values = ["${aws_route_table_association.a.id}"]
+    name   = "association.route-table-association-id"
+    values = [aws_route_table_association.a.id]
   }
+
   depends_on = [
-	"aws_route_table_association.a",
-	"aws_route_table_association.b"
+    "aws_route_table_association.a",
+    "aws_route_table_association.b"
   ]
 }
 
 data "aws_route_table" "by_tag" {
   tags = {
-    Name = "${aws_route_table.test.tags["Name"]}"
+    Name = aws_route_table.test.tags["Name"]
   }
+
   depends_on = [
     "aws_route_table_association.a",
     "aws_route_table_association.b"
@@ -221,26 +226,26 @@ data "aws_route_table" "by_tag" {
 }
 
 data "aws_route_table" "by_subnet" {
-  subnet_id = "${aws_subnet.test.id}"
+  subnet_id = aws_subnet.test.id
   depends_on = [
-	"aws_route_table_association.a",
-	"aws_route_table_association.b"
+    "aws_route_table_association.a",
+    "aws_route_table_association.b"
   ]
 }
 
 data "aws_route_table" "by_gateway" {
-  gateway_id = "${aws_internet_gateway.test.id}"
+  gateway_id = aws_internet_gateway.test.id
   depends_on = [
-	  "aws_route_table_association.a",
-	  "aws_route_table_association.b"
+    "aws_route_table_association.a",
+    "aws_route_table_association.b"
   ]
 }
-  
+
 data "aws_route_table" "by_id" {
-  route_table_id = "${aws_route_table.test.id}"
+  route_table_id = aws_route_table.test.id
   depends_on = [
-	"aws_route_table_association.a",
-	"aws_route_table_association.b"
+    "aws_route_table_association.a",
+    "aws_route_table_association.b"
   ]
 }
 `
@@ -256,12 +261,13 @@ resource "aws_vpc" "test" {
 
 data "aws_route_table" "by_filter" {
   filter {
-    name = "association.main"
+    name   = "association.main"
     values = ["true"]
   }
+
   filter {
-    name = "vpc-id"
-    values = ["${aws_vpc.test.id}"]
+    name   = "vpc-id"
+    values = [aws_vpc.test.id]
   }
 }
 `

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafregional"
@@ -109,7 +109,7 @@ func testAccCheckWafRegionalWebAclAssociationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		input := &wafregional.GetWebACLForResourceInput{
 			ResourceArn: aws.String(resourceArn),
@@ -142,7 +142,7 @@ func testAccCheckWafRegionalWebAclAssociationExists(n string) resource.TestCheck
 			return fmt.Errorf("No WebACL association ID is set")
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
 
@@ -169,7 +169,7 @@ func testAccCheckWafRegionalWebAclAssociationDisappears(resourceName string) res
 			return fmt.Errorf("No WebACL association ID is set")
 		}
 
-		_, resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
+		resourceArn := resourceAwsWafRegionalWebAclAssociationParseId(rs.Primary.ID)
 
 		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
 
@@ -185,22 +185,25 @@ func testAccCheckWafRegionalWebAclAssociationDisappears(resourceName string) res
 
 const testAccCheckWafRegionalWebAclAssociationConfig_basic = `
 resource "aws_wafregional_rule" "foo" {
-  name = "foo"
+  name        = "foo"
   metric_name = "foo"
 }
 
 resource "aws_wafregional_web_acl" "foo" {
-  name = "foo"
+  name        = "foo"
   metric_name = "foo"
+
   default_action {
     type = "ALLOW"
   }
+
   rule {
     action {
       type = "COUNT"
     }
+
     priority = 100
-    rule_id = "${aws_wafregional_rule.foo.id}"
+    rule_id  = aws_wafregional_rule.foo.id
   }
 }
 
@@ -218,37 +221,37 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_subnet" "foo" {
-  vpc_id = "${aws_vpc.foo.id}"
-  cidr_block = "10.1.1.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "10.1.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[0]
 }
 
 resource "aws_subnet" "bar" {
-  vpc_id = "${aws_vpc.foo.id}"
-  cidr_block = "10.1.2.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = "10.1.2.0/24"
+  availability_zone = data.aws_availability_zones.available.names[1]
 }
 
 resource "aws_alb" "foo" {
   internal = true
-  subnets = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+  subnets  = [aws_subnet.foo.id, aws_subnet.bar.id]
 }
 
 resource "aws_wafregional_web_acl_association" "foo" {
-  resource_arn = "${aws_alb.foo.arn}"
-  web_acl_id = "${aws_wafregional_web_acl.foo.id}"
+  resource_arn = aws_alb.foo.arn
+  web_acl_id   = aws_wafregional_web_acl.foo.id
 }
 `
 
 const testAccCheckWafRegionalWebAclAssociationConfig_multipleAssociations = testAccCheckWafRegionalWebAclAssociationConfig_basic + `
 resource "aws_alb" "bar" {
   internal = true
-  subnets = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+  subnets  = [aws_subnet.foo.id, aws_subnet.bar.id]
 }
 
 resource "aws_wafregional_web_acl_association" "bar" {
-  resource_arn = "${aws_alb.bar.arn}"
-  web_acl_id = "${aws_wafregional_web_acl.foo.id}"
+  resource_arn = aws_alb.bar.arn
+  web_acl_id   = aws_wafregional_web_acl.foo.id
 }
 `
 
@@ -259,50 +262,50 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_resource" "test" {
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "test"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_method" "test" {
   authorization = "NONE"
   http_method   = "GET"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
+  resource_id   = aws_api_gateway_resource.test.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_method_response" "test" {
-  http_method = "${aws_api_gateway_method.test.http_method}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  http_method = aws_api_gateway_method.test.http_method
+  resource_id = aws_api_gateway_resource.test.id
+  rest_api_id = aws_api_gateway_rest_api.test.id
   status_code = "400"
 }
 
 resource "aws_api_gateway_integration" "test" {
-  http_method             = "${aws_api_gateway_method.test.http_method}"
+  http_method             = aws_api_gateway_method.test.http_method
   integration_http_method = "GET"
-  resource_id             = "${aws_api_gateway_resource.test.id}"
-  rest_api_id             = "${aws_api_gateway_rest_api.test.id}"
+  resource_id             = aws_api_gateway_resource.test.id
+  rest_api_id             = aws_api_gateway_rest_api.test.id
   type                    = "HTTP"
   uri                     = "http://www.example.com"
 }
 
 resource "aws_api_gateway_integration_response" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_integration.test.http_method}"
-  status_code = "${aws_api_gateway_method_response.test.status_code}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_integration.test.http_method
+  status_code = aws_api_gateway_method_response.test.status_code
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration_response.test"]
+  depends_on = [aws_api_gateway_integration_response.test]
 
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_stage" "test" {
-  deployment_id = "${aws_api_gateway_deployment.test.id}"
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
+  deployment_id = aws_api_gateway_deployment.test.id
+  rest_api_id   = aws_api_gateway_rest_api.test.id
   stage_name    = "test"
 }
 
@@ -316,8 +319,8 @@ resource "aws_wafregional_web_acl" "test" {
 }
 
 resource "aws_wafregional_web_acl_association" "test" {
-  resource_arn = "${aws_api_gateway_stage.test.arn}"
-  web_acl_id   = "${aws_wafregional_web_acl.test.id}"
+  resource_arn = aws_api_gateway_stage.test.arn
+  web_acl_id   = aws_wafregional_web_acl.test.id
 }
 `, rName)
 }

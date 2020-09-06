@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -104,7 +104,10 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 							Required: true,
 							MinItems: 1,
 							MaxItems: 2,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsIPAddress,
+							},
 						},
 						"domain_name": {
 							Type:     schema.TypeString,
@@ -151,7 +154,6 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
-				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"tags": tagsSchema(),
@@ -173,6 +175,41 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 					validation.StringLenBetween(7, 7),
 					validation.StringMatch(regexp.MustCompile(`^[1-7]:([01]\d|2[0-3]):?([0-5]\d)$`), "must be in the format d:HH:MM"),
 				),
+			},
+			"deployment_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  fsx.WindowsDeploymentTypeSingleAz1,
+				ValidateFunc: validation.StringInSlice([]string{
+					fsx.WindowsDeploymentTypeMultiAz1,
+					fsx.WindowsDeploymentTypeSingleAz1,
+					fsx.WindowsDeploymentTypeSingleAz2,
+				}, false),
+			},
+			"preferred_subnet_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"preferred_file_server_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"remote_administration_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"storage_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  fsx.StorageTypeSsd,
+				ValidateFunc: validation.StringInSlice([]string{
+					fsx.StorageTypeSsd,
+					fsx.StorageTypeHdd,
+				}, false),
 			},
 		},
 	}
@@ -197,6 +234,14 @@ func resourceAwsFsxWindowsFileSystemCreate(d *schema.ResourceData, meta interfac
 		input.WindowsConfiguration.ActiveDirectoryId = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("deployment_type"); ok {
+		input.WindowsConfiguration.DeploymentType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("preferred_subnet_id"); ok {
+		input.WindowsConfiguration.PreferredSubnetId = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("daily_automatic_backup_start_time"); ok {
 		input.WindowsConfiguration.DailyAutomaticBackupStartTime = aws.String(v.(string))
 	}
@@ -219,6 +264,10 @@ func resourceAwsFsxWindowsFileSystemCreate(d *schema.ResourceData, meta interfac
 
 	if v, ok := d.GetOk("weekly_maintenance_start_time"); ok {
 		input.WindowsConfiguration.WeeklyMaintenanceStartTime = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_type"); ok {
+		input.StorageType = aws.String(v.(string))
 	}
 
 	result, err := conn.CreateFileSystem(input)
@@ -320,8 +369,13 @@ func resourceAwsFsxWindowsFileSystemRead(d *schema.ResourceData, meta interface{
 	d.Set("automatic_backup_retention_days", filesystem.WindowsConfiguration.AutomaticBackupRetentionDays)
 	d.Set("copy_tags_to_backups", filesystem.WindowsConfiguration.CopyTagsToBackups)
 	d.Set("daily_automatic_backup_start_time", filesystem.WindowsConfiguration.DailyAutomaticBackupStartTime)
+	d.Set("deployment_type", filesystem.WindowsConfiguration.DeploymentType)
+	d.Set("preferred_subnet_id", filesystem.WindowsConfiguration.PreferredSubnetId)
+	d.Set("preferred_file_server_ip", filesystem.WindowsConfiguration.PreferredFileServerIp)
+	d.Set("remote_administration_endpoint", filesystem.WindowsConfiguration.RemoteAdministrationEndpoint)
 	d.Set("dns_name", filesystem.DNSName)
 	d.Set("kms_key_id", filesystem.KmsKeyId)
+	d.Set("storage_type", filesystem.StorageType)
 
 	if err := d.Set("network_interface_ids", aws.StringValueSlice(filesystem.NetworkInterfaceIds)); err != nil {
 		return fmt.Errorf("error setting network_interface_ids: %s", err)

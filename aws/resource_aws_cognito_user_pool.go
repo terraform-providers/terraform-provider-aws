@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -62,14 +62,6 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 									},
 								},
 							},
-						},
-						"unused_account_validity_days": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							Computed:      true,
-							Deprecated:    "Use password_policy.temporary_password_validity_days instead",
-							ValidateFunc:  validation.IntBetween(0, 90),
-							ConflictsWith: []string{"password_policy.0.temporary_password_validity_days"},
 						},
 					},
 				},
@@ -301,10 +293,9 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 							Optional: true,
 						},
 						"temporary_password_validity_days": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							ValidateFunc:  validation.IntBetween(0, 365),
-							ConflictsWith: []string{"admin_create_user_config.0.unused_account_validity_days"},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 365),
 						},
 					},
 				},
@@ -722,8 +713,10 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 			log.Printf("[DEBUG] Received %s, retrying CreateUserPool", err)
 			return resource.RetryableError(err)
 		}
-
-		return resource.NonRetryableError(err)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 	if isResourceTimeoutError(err) {
 		resp, err = conn.CreateUserPool(params)
@@ -1145,8 +1138,10 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 				params.AdminCreateUserConfig.UnusedAccountValidityDays = nil
 				return resource.RetryableError(err)
 			}
-
-			return resource.NonRetryableError(err)
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+			return nil
 		})
 		if isResourceTimeoutError(err) {
 			_, err = conn.UpdateUserPool(params)

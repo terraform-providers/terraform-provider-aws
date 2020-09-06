@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -492,23 +492,23 @@ data "aws_availability_zones" "available" {
 
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-directory-service-directory-tags"
-	}
+  tags = {
+    Name = "terraform-testacc-directory-service-directory-tags"
+  }
 }
 
 resource "aws_subnet" "test1" {
-  vpc_id = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  cidr_block = "10.0.1.0/24"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.1.0/24"
   tags = {
     Name = "tf-acc-directory-service-directory-foo"
   }
 }
 resource "aws_subnet" "test2" {
-  vpc_id = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
-  cidr_block = "10.0.2.0/24"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[1]
+  cidr_block        = "10.0.2.0/24"
   tags = {
     Name = "tf-acc-directory-service-directory-test"
   }
@@ -517,13 +517,13 @@ resource "aws_subnet" "test2" {
 
 const testAccDirectoryServiceDirectoryConfig = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  size = "Small"
+  size     = "Small"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `
@@ -535,12 +535,12 @@ resource "aws_directory_service_directory" "test" {
   size = "Small"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 
   tags = {
-    foo = "test"
+    foo     = "test"
     project = "test"
   }
 }
@@ -548,19 +548,19 @@ resource "aws_directory_service_directory" "test" {
 
 const testAccDirectoryServiceDirectoryUpdateTagsConfig = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  size = "Small"
+  size     = "Small"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 
   tags = {
-    foo = "test"
+    foo     = "test"
     project = "test2"
-    fizz = "buzz"
+    fizz    = "buzz"
   }
 }
 `
@@ -572,8 +572,8 @@ resource "aws_directory_service_directory" "test" {
   size = "Small"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 
   tags = {
@@ -589,49 +589,49 @@ resource "aws_directory_service_directory" "base" {
   size = "Small"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  size = "Small"
-  type = "ADConnector"
+  size     = "Small"
+  type     = "ADConnector"
 
   connect_settings {
-    customer_dns_ips = aws_directory_service_directory.base.dns_ip_addresses
+    customer_dns_ips  = aws_directory_service_directory.base.dns_ip_addresses
     customer_username = "Administrator"
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id            = aws_vpc.test.id
+    subnet_ids        = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `
 
 const testAccDirectoryServiceDirectoryConfig_microsoft = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  type = "MicrosoftAD"
+  type     = "MicrosoftAD"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `
 
 const testAccDirectoryServiceDirectoryConfig_microsoftStandard = testAccDirectoryServiceDirectoryConfigBase + `
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  type = "MicrosoftAD"
-  edition = "Standard"
+  type     = "MicrosoftAD"
+  edition  = "Standard"
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `
@@ -639,14 +639,14 @@ resource "aws_directory_service_directory" "test" {
 func testAccDirectoryServiceDirectoryConfig_withAlias(alias string) string {
 	return testAccDirectoryServiceDirectoryConfigBase + fmt.Sprintf(`
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
+  name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
-  size = "Small"
-  alias = %[1]q
+  size     = "Small"
+  alias    = %[1]q
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `, alias)
@@ -655,15 +655,15 @@ resource "aws_directory_service_directory" "test" {
 func testAccDirectoryServiceDirectoryConfig_withSso(alias string) string {
 	return testAccDirectoryServiceDirectoryConfigBase + fmt.Sprintf(`
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
-  password = "SuperSecretPassw0rd"
-  size = "Small"
-  alias = %[1]q
+  name       = "corp.notexample.com"
+  password   = "SuperSecretPassw0rd"
+  size       = "Small"
+  alias      = %[1]q
   enable_sso = true
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `, alias)
@@ -672,15 +672,15 @@ resource "aws_directory_service_directory" "test" {
 func testAccDirectoryServiceDirectoryConfig_withSso_modified(alias string) string {
 	return testAccDirectoryServiceDirectoryConfigBase + fmt.Sprintf(`
 resource "aws_directory_service_directory" "test" {
-  name = "corp.notexample.com"
-  password = "SuperSecretPassw0rd"
-  size = "Small"
-  alias = %[1]q
+  name       = "corp.notexample.com"
+  password   = "SuperSecretPassw0rd"
+  size       = "Small"
+  alias      = %[1]q
   enable_sso = false
 
   vpc_settings {
-    vpc_id = "${aws_vpc.test.id}"
-    subnet_ids = ["${aws_subnet.test1.id}", "${aws_subnet.test2.id}"]
+    vpc_id     = aws_vpc.test.id
+    subnet_ids = [aws_subnet.test1.id, aws_subnet.test2.id]
   }
 }
 `, alias)

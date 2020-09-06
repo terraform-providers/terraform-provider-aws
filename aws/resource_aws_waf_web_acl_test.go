@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -520,7 +520,7 @@ resource "aws_waf_rule" "test" {
   name        = %q
 
   predicates {
-    data_id = "${aws_waf_ipset.test.id}"
+    data_id = aws_waf_ipset.test.id
     negated = false
     type    = "IPMatch"
   }
@@ -536,7 +536,7 @@ resource "aws_waf_web_acl" "test" {
 
   rules {
     priority = 1
-    rule_id  = "${aws_waf_rule.test.id}"
+    rule_id  = aws_waf_rule.test.id
 
     action {
       type = "BLOCK"
@@ -563,7 +563,7 @@ resource "aws_waf_web_acl" "test" {
 
   rules {
     priority = 1
-    rule_id  = "${aws_waf_rule_group.test.id}"
+    rule_id  = aws_waf_rule_group.test.id
     type     = "GROUP"
 
     override_action {
@@ -590,7 +590,7 @@ resource "aws_waf_rule" "test" {
   name        = %q
 
   predicates {
-    data_id = "${aws_waf_ipset.test.id}"
+    data_id = aws_waf_ipset.test.id
     negated = false
     type    = "IPMatch"
   }
@@ -611,7 +611,7 @@ resource "aws_waf_web_acl" "test" {
 
   rules {
     priority = 1
-    rule_id  = "${aws_waf_rule.test.id}"
+    rule_id  = aws_waf_rule.test.id
 
     action {
       type = "BLOCK"
@@ -620,7 +620,7 @@ resource "aws_waf_web_acl" "test" {
 
   rules {
     priority = 2
-    rule_id  = "${aws_waf_rule_group.test.id}"
+    rule_id  = aws_waf_rule_group.test.id
     type     = "GROUP"
 
     override_action {
@@ -642,7 +642,7 @@ resource "aws_waf_web_acl" "test" {
   }
 
   logging_configuration {
-    log_destination = "${aws_kinesis_firehose_delivery_stream.test.arn}"
+    log_destination = aws_kinesis_firehose_delivery_stream.test.arn
 
     redacted_fields {
       field_to_match {
@@ -680,6 +680,7 @@ resource "aws_iam_role" "test" {
   ]
 }
 EOF
+
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "test" {
@@ -688,8 +689,8 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.test.arn}"
-    bucket_arn = "${aws_s3_bucket.test.arn}"
+    role_arn   = aws_iam_role.test.arn
+    bucket_arn = aws_s3_bucket.test.arn
   }
 }
 `, rName)
@@ -706,7 +707,7 @@ resource "aws_waf_web_acl" "test" {
   }
 
   logging_configuration {
-    log_destination = "${aws_kinesis_firehose_delivery_stream.test.arn}"
+    log_destination = aws_kinesis_firehose_delivery_stream.test.arn
   }
 }
 
@@ -733,6 +734,7 @@ resource "aws_iam_role" "test" {
   ]
 }
 EOF
+
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "test" {
@@ -741,8 +743,8 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.test.arn}"
-    bucket_arn = "${aws_s3_bucket.test.arn}"
+    role_arn   = aws_iam_role.test.arn
+    bucket_arn = aws_s3_bucket.test.arn
   }
 }
 `, rName)
@@ -757,9 +759,10 @@ resource "aws_waf_web_acl" "test" {
   default_action {
     type = "ALLOW"
   }
-	tags = {
-		%q = %q
-	}
+
+  tags = {
+    %q = %q
+  }
 }
 `, rName, rName, tag1Key, tag1Value)
 }
@@ -767,16 +770,17 @@ resource "aws_waf_web_acl" "test" {
 func testAccAWSWafWebAclConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
 resource "aws_waf_web_acl" "test" {
- metric_name = %q
- name        = %q
+  metric_name = %q
+  name        = %q
 
- default_action {
-   type = "ALLOW"
- }
-	tags = {
-		%q = %q
-		%q = %q
-	}
+  default_action {
+    type = "ALLOW"
+  }
+
+  tags = {
+    %q = %q
+    %q = %q
+  }
 }
 `, rName, rName, tag1Key, tag1Value, tag2Key, tag2Value)
 }

@@ -27,6 +27,7 @@ type T interface {
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 	Name() string
+	Parallel()
 	Skip(args ...interface{})
 	SkipNow()
 	Skipf(format string, args ...interface{})
@@ -38,9 +39,11 @@ type T interface {
 // mimic *testing.T behavior. Unlike *testing.T, this will simply panic
 // for calls to Fatal. For calls to Error, you'll have to check the errors
 // list to determine whether to exit yourself.
+//
+// Parallel does not do anything.
 type RuntimeT struct {
-	skipped bool
 	failed  bool
+	skipped bool
 }
 
 func (t *RuntimeT) Error(args ...interface{}) {
@@ -86,6 +89,8 @@ func (t *RuntimeT) Logf(format string, args ...interface{}) {
 func (t *RuntimeT) Name() string {
 	return ""
 }
+
+func (t *RuntimeT) Parallel() {}
 
 func (t *RuntimeT) Skip(args ...interface{}) {
 	log.Print(args...)

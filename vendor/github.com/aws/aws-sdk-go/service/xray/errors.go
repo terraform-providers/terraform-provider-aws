@@ -14,6 +14,10 @@ const (
 	// The request is missing required parameters or has invalid parameters.
 	ErrCodeInvalidRequestException = "InvalidRequestException"
 
+	// ErrCodeResourceNotFoundException for service response error code
+	// "ResourceNotFoundException".
+	ErrCodeResourceNotFoundException = "ResourceNotFoundException"
+
 	// ErrCodeRuleLimitExceededException for service response error code
 	// "RuleLimitExceededException".
 	//
@@ -25,10 +29,16 @@ const (
 	//
 	// The request exceeds the maximum number of requests per second.
 	ErrCodeThrottledException = "ThrottledException"
+
+	// ErrCodeTooManyTagsException for service response error code
+	// "TooManyTagsException".
+	ErrCodeTooManyTagsException = "TooManyTagsException"
 )
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidRequestException":    newErrorInvalidRequestException,
+	"ResourceNotFoundException":  newErrorResourceNotFoundException,
 	"RuleLimitExceededException": newErrorRuleLimitExceededException,
 	"ThrottledException":         newErrorThrottledException,
+	"TooManyTagsException":       newErrorTooManyTagsException,
 }

@@ -17,12 +17,12 @@ Provides an AWS App Mesh virtual service resource.
 ```hcl
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${aws_appmesh_virtual_node.serviceb1.name}"
+        virtual_node_name = aws_appmesh_virtual_node.serviceb1.name
       }
     }
   }
@@ -34,12 +34,12 @@ resource "aws_appmesh_virtual_service" "servicea" {
 ```hcl
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     provider {
       virtual_router {
-        virtual_router_name = "${aws_appmesh_virtual_router.serviceb.name}"
+        virtual_router_name = aws_appmesh_virtual_router.serviceb.name
       }
     }
   }

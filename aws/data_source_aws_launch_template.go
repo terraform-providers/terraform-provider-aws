@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -244,7 +244,7 @@ func dataSourceAwsLaunchTemplate() *schema.Resource {
 							Computed: true,
 						},
 						"delete_on_termination": {
-							Type:     schema.TypeBool,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"description": {
@@ -399,38 +399,31 @@ func dataSourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) e
 
 	dlt, err := conn.DescribeLaunchTemplates(params)
 
-	if isAWSErr(err, ec2.LaunchTemplateErrorCodeLaunchTemplateIdDoesNotExist, "") {
-		log.Printf("[WARN] launch template (%s) not found - removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
-	// AWS SDK constant above is currently incorrect
-	if isAWSErr(err, "InvalidLaunchTemplateId.NotFound", "") {
-		log.Printf("[WARN] launch template (%s) not found - removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
 	if err != nil {
-		return fmt.Errorf("Error getting launch template: %s", err)
+		if isAWSErr(err, "InvalidLaunchTemplateId.NotFound", "") ||
+			isAWSErr(err, "InvalidLaunchTemplateName.NotFoundException", "") {
+			return fmt.Errorf("Launch Template not found")
+		}
+		return fmt.Errorf("Error getting launch template: %w", err)
 	}
 
 	if dlt == nil || len(dlt.LaunchTemplates) == 0 {
-		log.Printf("[WARN] launch template (%s) not found - removing from state", d.Id())
-		d.SetId("")
-		return nil
+		return fmt.Errorf("error reading launch template: empty output")
 	}
 
-	log.Printf("[DEBUG] Found launch template %s", d.Id())
+	if len(dlt.LaunchTemplates) > 1 {
+		return fmt.Errorf("Search returned %d result(s), please revise so only one is returned", len(dlt.LaunchTemplates))
+	}
 
 	lt := dlt.LaunchTemplates[0]
-	d.SetId(*lt.LaunchTemplateId)
+	log.Printf("[DEBUG] Found launch template %s", aws.StringValue(lt.LaunchTemplateId))
+
+	d.SetId(aws.StringValue(lt.LaunchTemplateId))
 	d.Set("name", lt.LaunchTemplateName)
 	d.Set("latest_version", lt.LatestVersionNumber)
 	d.Set("default_version", lt.DefaultVersionNumber)
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(lt.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	arn := arn.ARN{
@@ -448,10 +441,14 @@ func dataSourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) e
 		Versions:         []*string{aws.String(version)},
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading launch template version (%s) for launch template (%s): %w", version, d.Id(), err)
 	}
 
-	log.Printf("[DEBUG] Received launch template version %q (version %d)", d.Id(), *lt.LatestVersionNumber)
+	if dltv == nil || len(dltv.LaunchTemplateVersions) == 0 {
+		return fmt.Errorf("error reading launch template version (%s) for launch template (%s): empty output", version, d.Id())
+	}
+
+	log.Printf("[DEBUG] Received launch template version %q (version %d)", d.Id(), aws.Int64Value(lt.LatestVersionNumber))
 
 	ltData := dltv.LaunchTemplateVersions[0].LaunchTemplateData
 
@@ -462,9 +459,13 @@ func dataSourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("kernel_id", ltData.KernelId)
 	d.Set("key_name", ltData.KeyName)
 	d.Set("ram_disk_id", ltData.RamDiskId)
-	d.Set("security_group_names", aws.StringValueSlice(ltData.SecurityGroups))
+	if err := d.Set("security_group_names", aws.StringValueSlice(ltData.SecurityGroups)); err != nil {
+		return fmt.Errorf("error setting security_group_names: %w", err)
+	}
 	d.Set("user_data", ltData.UserData)
-	d.Set("vpc_security_group_ids", aws.StringValueSlice(ltData.SecurityGroupIds))
+	if err := d.Set("vpc_security_group_ids", aws.StringValueSlice(ltData.SecurityGroupIds)); err != nil {
+		return fmt.Errorf("error setting vpc_security_group_ids: %w", err)
+	}
 	d.Set("ebs_optimized", "")
 
 	if ltData.EbsOptimized != nil {
@@ -472,49 +473,49 @@ func dataSourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("block_device_mappings", getBlockDeviceMappings(ltData.BlockDeviceMappings)); err != nil {
-		return fmt.Errorf("error setting block_device_mappings: %s", err)
+		return fmt.Errorf("error setting block_device_mappings: %w", err)
 	}
 
 	if strings.HasPrefix(aws.StringValue(ltData.InstanceType), "t2") || strings.HasPrefix(aws.StringValue(ltData.InstanceType), "t3") {
 		if err := d.Set("credit_specification", getCreditSpecification(ltData.CreditSpecification)); err != nil {
-			return fmt.Errorf("error setting credit_specification: %s", err)
+			return fmt.Errorf("error setting credit_specification: %w", err)
 		}
 	}
 
 	if err := d.Set("elastic_gpu_specifications", getElasticGpuSpecifications(ltData.ElasticGpuSpecifications)); err != nil {
-		return fmt.Errorf("error setting elastic_gpu_specifications: %s", err)
+		return fmt.Errorf("error setting elastic_gpu_specifications: %w", err)
 	}
 
 	if err := d.Set("iam_instance_profile", getIamInstanceProfile(ltData.IamInstanceProfile)); err != nil {
-		return fmt.Errorf("error setting iam_instance_profile: %s", err)
+		return fmt.Errorf("error setting iam_instance_profile: %w", err)
 	}
 
 	if err := d.Set("instance_market_options", getInstanceMarketOptions(ltData.InstanceMarketOptions)); err != nil {
-		return fmt.Errorf("error setting instance_market_options: %s", err)
+		return fmt.Errorf("error setting instance_market_options: %w", err)
 	}
 
 	if err := d.Set("metadata_options", flattenLaunchTemplateInstanceMetadataOptions(ltData.MetadataOptions)); err != nil {
-		return fmt.Errorf("error setting metadata_options: %s", err)
+		return fmt.Errorf("error setting metadata_options: %w", err)
 	}
 
 	if err := d.Set("monitoring", getMonitoring(ltData.Monitoring)); err != nil {
-		return fmt.Errorf("error setting monitoring: %s", err)
+		return fmt.Errorf("error setting monitoring: %w", err)
 	}
 
 	if err := d.Set("network_interfaces", getNetworkInterfaces(ltData.NetworkInterfaces)); err != nil {
-		return fmt.Errorf("error setting network_interfaces: %s", err)
+		return fmt.Errorf("error setting network_interfaces: %w", err)
 	}
 
 	if err := d.Set("placement", getPlacement(ltData.Placement)); err != nil {
-		return fmt.Errorf("error setting placement: %s", err)
+		return fmt.Errorf("error setting placement: %w", err)
 	}
 
 	if err := d.Set("hibernation_options", flattenLaunchTemplateHibernationOptions(ltData.HibernationOptions)); err != nil {
-		return fmt.Errorf("error setting hibernation_options: %s", err)
+		return fmt.Errorf("error setting hibernation_options: %w", err)
 	}
 
 	if err := d.Set("tag_specifications", getTagSpecifications(ltData.TagSpecifications)); err != nil {
-		return fmt.Errorf("error setting tag_specifications: %s", err)
+		return fmt.Errorf("error setting tag_specifications: %w", err)
 	}
 
 	return nil

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -141,7 +141,7 @@ func resourceAwsRDSClusterParameterGroupRead(d *schema.ResourceData, meta interf
 	}
 
 	if len(describeResp.DBClusterParameterGroups) != 1 ||
-		*describeResp.DBClusterParameterGroups[0].DBClusterParameterGroupName != d.Id() {
+		aws.StringValue(describeResp.DBClusterParameterGroups[0].DBClusterParameterGroupName) != d.Id() {
 		return fmt.Errorf("Unable to find Cluster Parameter Group: %#v", describeResp.DBClusterParameterGroups)
 	}
 
@@ -196,11 +196,7 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 		ns := n.(*schema.Set)
 
 		// Expand the "parameter" set to aws-sdk-go compat []rds.Parameter
-		parameters, err := expandParameters(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
-
+		parameters := expandParameters(ns.Difference(os).List())
 		if len(parameters) > 0 {
 			// We can only modify 20 parameters at a time, so walk them until
 			// we've got them all.
@@ -218,26 +214,40 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 				}
 
 				log.Printf("[DEBUG] Modify DB Cluster Parameter Group: %s", modifyOpts)
-				_, err = rdsconn.ModifyDBClusterParameterGroup(&modifyOpts)
+				_, err := rdsconn.ModifyDBClusterParameterGroup(&modifyOpts)
 				if err != nil {
 					return fmt.Errorf("error modifying DB Cluster Parameter Group: %s", err)
 				}
 			}
 		}
 
-		// Reset parameters that have been removed
-		parameters, err = expandParameters(os.Difference(ns).List())
-		if err != nil {
-			return err
+		toRemove := map[string]*rds.Parameter{}
+
+		for _, p := range expandParameters(os.List()) {
+			if p.ParameterName != nil {
+				toRemove[*p.ParameterName] = p
+			}
 		}
-		if len(parameters) > 0 {
-			for parameters != nil {
+
+		for _, p := range expandParameters(ns.List()) {
+			if p.ParameterName != nil {
+				delete(toRemove, *p.ParameterName)
+			}
+		}
+
+		// Reset parameters that have been removed
+		var resetParameters []*rds.Parameter
+		for _, v := range toRemove {
+			resetParameters = append(resetParameters, v)
+		}
+		if len(resetParameters) > 0 {
+			for resetParameters != nil {
 				parameterGroupName := d.Get("name").(string)
 				var paramsToReset []*rds.Parameter
-				if len(parameters) <= rdsClusterParameterGroupMaxParamsBulkEdit {
-					paramsToReset, parameters = parameters[:], nil
+				if len(resetParameters) <= rdsClusterParameterGroupMaxParamsBulkEdit {
+					paramsToReset, resetParameters = resetParameters[:], nil
 				} else {
-					paramsToReset, parameters = parameters[:rdsClusterParameterGroupMaxParamsBulkEdit], parameters[rdsClusterParameterGroupMaxParamsBulkEdit:]
+					paramsToReset, resetParameters = resetParameters[:rdsClusterParameterGroupMaxParamsBulkEdit], resetParameters[rdsClusterParameterGroupMaxParamsBulkEdit:]
 				}
 
 				resetOpts := rds.ResetDBClusterParameterGroupInput{

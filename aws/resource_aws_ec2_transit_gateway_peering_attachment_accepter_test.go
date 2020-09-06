@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestAccAWSEc2TransitGatewayPeeringAttachmentAccepter_basic_sameAccount(t *testing.T) {
@@ -150,14 +150,15 @@ resource "aws_ec2_transit_gateway" "test" {
 }
 
 resource "aws_ec2_transit_gateway" "peer" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   tags = {
     Name = %[1]q
   }
 }
+
 resource "aws_ec2_transit_gateway_peering_attachment" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   peer_account_id         = aws_ec2_transit_gateway.test.owner_id
   peer_region             = data.aws_region.current.name
@@ -171,11 +172,11 @@ func testAccAWSEc2TransitGatewayPeeringAttachmentAccepterConfig_basic_sameAccoun
 	return composeConfig(
 		testAccAlternateRegionProviderConfig(),
 		testAccAWSEc2TransitGatewayPeeringAttachmentAccepterConfigBase(rName),
-		fmt.Sprintf(`
+		`
 resource "aws_ec2_transit_gateway_peering_attachment_accepter" "test" {
   transit_gateway_attachment_id = aws_ec2_transit_gateway_peering_attachment.test.id
 }
-`))
+`)
 }
 
 func testAccAWSEc2TransitGatewayPeeringAttachmentAccepterConfig_tags_sameAccount(rName string) string {

@@ -638,7 +638,17 @@ func (c *MarketplaceCatalog) StartChangeSetRequest(input *StartChangeSetInput) (
 
 // StartChangeSet API operation for AWS Marketplace Catalog Service.
 //
-// This operation allows you to request changes in your entities.
+// This operation allows you to request changes for your entities. Within a
+// single ChangeSet, you cannot start the same change type against the same
+// entity multiple times. Additionally, when a ChangeSet is running, all the
+// entities targeted by the different changes are locked until the ChangeSet
+// has completed (either succeeded, cancelled, or failed). If you try to start
+// a ChangeSet containing a change against an entity that is already locked,
+// you will receive a ResourceInUseException.
+//
+// For example, you cannot start the ChangeSet described in the example (https://docs.aws.amazon.com/marketplace-catalog/latest/api-reference/API_StartChangeSet.html#API_StartChangeSet_Examples)
+// below because it contains two changes to execute the same change type (AddRevisions)
+// against the same entity (entity-id@1).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1011,6 +1021,10 @@ type ChangeSummary struct {
 	// The type of the change.
 	ChangeType *string `min:"1" type:"string"`
 
+	// This object contains details specific to the change type of the requested
+	// change.
+	Details *string `min:"2" type:"string"`
+
 	// The entity to be changed.
 	Entity *Entity `type:"structure"`
 
@@ -1031,6 +1045,12 @@ func (s ChangeSummary) GoString() string {
 // SetChangeType sets the ChangeType field's value.
 func (s *ChangeSummary) SetChangeType(v string) *ChangeSummary {
 	s.ChangeType = &v
+	return s
+}
+
+// SetDetails sets the Details field's value.
+func (s *ChangeSummary) SetDetails(v string) *ChangeSummary {
+	s.Details = &v
 	return s
 }
 
@@ -1388,13 +1408,13 @@ type EntitySummary struct {
 	// The last time the entity was published, using ISO 8601 format (2018-02-27T13:45:22Z).
 	LastModifiedDate *string `type:"string"`
 
-	// The name for the entity. This value is not unique. It is defined by the provider.
+	// The name for the entity. This value is not unique. It is defined by the seller.
 	Name *string `type:"string"`
 
-	// The visibility status of the entity to subscribers. This value can be Public
-	// (everyone can view the entity), Limited (the entity is visible to limited
-	// accounts only), or Restricted (the entity was published and then unpublished
-	// and only existing subscribers can view it).
+	// The visibility status of the entity to buyers. This value can be Public (everyone
+	// can view the entity), Limited (the entity is visible to limited accounts
+	// only), or Restricted (the entity was published and then unpublished and only
+	// existing buyers can view it).
 	Visibility *string `type:"string"`
 }
 
@@ -1628,7 +1648,7 @@ type ListChangeSetsInput struct {
 	// results.
 	NextToken *string `min:"1" type:"string"`
 
-	// An object that contains two attributes, sortBy and sortOrder.
+	// An object that contains two attributes, SortBy and SortOrder.
 	Sort *Sort `type:"structure"`
 }
 
@@ -1768,7 +1788,7 @@ type ListEntitiesInput struct {
 	// The value of the next token, if it exists. Null if there are no more results.
 	NextToken *string `min:"1" type:"string"`
 
-	// An object that contains two attributes, sortBy and sortOrder.
+	// An object that contains two attributes, SortBy and SortOrder.
 	Sort *Sort `type:"structure"`
 }
 
@@ -2120,7 +2140,7 @@ func (s *ServiceQuotaExceededException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// An object that contains two attributes, sortBy and sortOrder.
+// An object that contains two attributes, SortBy and SortOrder.
 type Sort struct {
 	_ struct{} `type:"structure"`
 
@@ -2423,6 +2443,17 @@ const (
 	ChangeStatusFailed = "FAILED"
 )
 
+// ChangeStatus_Values returns all elements of the ChangeStatus enum
+func ChangeStatus_Values() []string {
+	return []string{
+		ChangeStatusPreparing,
+		ChangeStatusApplying,
+		ChangeStatusSucceeded,
+		ChangeStatusCancelled,
+		ChangeStatusFailed,
+	}
+}
+
 const (
 	// SortOrderAscending is a SortOrder enum value
 	SortOrderAscending = "ASCENDING"
@@ -2430,3 +2461,11 @@ const (
 	// SortOrderDescending is a SortOrder enum value
 	SortOrderDescending = "DESCENDING"
 )
+
+// SortOrder_Values returns all elements of the SortOrder enum
+func SortOrder_Values() []string {
+	return []string{
+		SortOrderAscending,
+		SortOrderDescending,
+	}
+}

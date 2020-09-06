@@ -63,19 +63,19 @@ interpolation.
 * `associate_public_ip_address` - Whether or not the Instance is associated with a public IP address or not (Boolean).
 * `availability_zone` - The availability zone of the Instance.
 * `ebs_block_device` - The EBS block device mappings of the Instance.
-  * `delete_on_termination` - If the EBS volume will be deleted on termination.
-  * `device_name` - The physical name of the device.
-  * `encrypted` - If the EBS volume is encrypted.
-  * `iops` - `0` If the EBS volume is not a provisioned IOPS image, otherwise the supported IOPS count.
-  * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
-  * `snapshot_id` - The ID of the snapshot.
-  * `volume_size` - The size of the volume, in GiB.
-  * `volume_type` - The volume type.
+    * `delete_on_termination` - If the EBS volume will be deleted on termination.
+    * `device_name` - The physical name of the device.
+    * `encrypted` - If the EBS volume is encrypted.
+    * `iops` - `0` If the EBS volume is not a provisioned IOPS image, otherwise the supported IOPS count.
+    * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
+    * `snapshot_id` - The ID of the snapshot.
+    * `volume_size` - The size of the volume, in GiB.
+    * `volume_type` - The volume type.
 * `ebs_optimized` - Whether the Instance is EBS optimized or not (Boolean).
 * `ephemeral_block_device` - The ephemeral block device mappings of the Instance.
-  * `device_name` - The physical name of the device.
-  * `no_device` - Whether the specified device included in the device mapping was suppressed or not (Boolean).
-  * `virtual_name` - The virtual device name.
+    * `device_name` - The physical name of the device.
+    * `no_device` - Whether the specified device included in the device mapping was suppressed or not (Boolean).
+    * `virtual_name` - The virtual device name.
 * `iam_instance_profile` - The name of the instance profile associated with the Instance.
 * `ipv6_addresses` - The IPv6 addresses associated to the Instance, if applicable. **NOTE**: Unlike the IPv4 address, this doesn't change if you attach an EIP to the instance.
 * `instance_state` - The state of the instance. One of: `pending`, `running`, `shutting-down`, `terminated`, `stopping`, `stopped`. See [Instance Lifecycle](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html) for more information.
@@ -92,17 +92,18 @@ interpolation.
   used inside the Amazon EC2, and only available if you've enabled DNS hostnames
   for your VPC.
 * `private_ip` - The private IP address assigned to the Instance.
+* `secondary_private_ips` - The secondary private IPv4 addresses assigned to the instance's primary network interface (eth0) in a VPC.
 * `public_dns` - The public DNS name assigned to the Instance. For EC2-VPC, this
   is only available if you've enabled DNS hostnames for your VPC.
 * `public_ip` - The public IP address assigned to the Instance, if applicable. **NOTE**: If you are using an [`aws_eip`](/docs/providers/aws/r/eip.html) with your instance, you should refer to the EIP's address directly and not use `public_ip`, as this field will change after the EIP is attached.
 * `root_block_device` - The root block device mappings of the Instance
-  * `device_name` - The physical name of the device.
-  * `delete_on_termination` - If the root block device will be deleted on termination.
-  * `encrypted` - If the EBS volume is encrypted.
-  * `iops` - `0` If the volume is not a provisioned IOPS image, otherwise the supported IOPS count.
-  * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
-  * `volume_size` - The size of the volume, in GiB.
-  * `volume_type` - The type of the volume.
+    * `device_name` - The physical name of the device.
+    * `delete_on_termination` - If the root block device will be deleted on termination.
+    * `encrypted` - If the EBS volume is encrypted.
+    * `iops` - `0` If the volume is not a provisioned IOPS image, otherwise the supported IOPS count.
+    * `kms_key_arn` - Amazon Resource Name (ARN) of KMS Key, if EBS volume is encrypted.
+    * `volume_size` - The size of the volume, in GiB.
+    * `volume_type` - The type of the volume.
 * `security_groups` - The associated security groups.
 * `source_dest_check` - Whether the network interface performs source/destination checking (Boolean).
 * `subnet_id` - The VPC subnet ID.
@@ -115,8 +116,8 @@ interpolation.
 * `vpc_security_group_ids` - The associated security groups in a non-default VPC.
 * `credit_specification` - The credit specification of the Instance.
 * `metadata_options` - The metadata options of the Instance.
-  * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
-  * `http_tokens` - If session tokens are required: `optional`, `required`.
-  * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
+    * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+    * `http_tokens` - If session tokens are required: `optional`, `required`.
+    * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 
 [1]: http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html

@@ -5,8 +5,6 @@ import (
 	"go/types"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
-	tfschema "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 const (
@@ -14,6 +12,7 @@ const (
 	ResourceFieldCustomizeDiff      = `CustomizeDiff`
 	ResourceFieldDelete             = `Delete`
 	ResourceFieldDeprecationMessage = `DeprecationMessage`
+	ResourceFieldDescription        = `Description`
 	ResourceFieldExists             = `Exists`
 	ResourceFieldImporter           = `Importer`
 	ResourceFieldMigrateState       = `MigrateState`
@@ -27,11 +26,22 @@ const (
 	TypeNameResource = `Resource`
 )
 
+// resourceType is an internal representation of the SDK helper/schema.Resource type
+//
+// This is used to prevent importing the real type since the project supports
+// multiple versions of the Terraform Plugin SDK, while allowing passes to
+// access the data in a familiar manner.
+type resourceType struct {
+	Description  string
+	MigrateState func(int, interface{}, interface{}) (interface{}, error)
+	Schema       map[string]*schemaType
+}
+
 // ResourceInfo represents all gathered Resource data for easier access
 type ResourceInfo struct {
 	AstCompositeLit *ast.CompositeLit
 	Fields          map[string]*ast.KeyValueExpr
-	Resource        *tfschema.Resource
+	Resource        *resourceType
 	TypesInfo       *types.Info
 }
 
@@ -40,12 +50,48 @@ func NewResourceInfo(cl *ast.CompositeLit, info *types.Info) *ResourceInfo {
 	result := &ResourceInfo{
 		AstCompositeLit: cl,
 		Fields:          astutils.CompositeLitFields(cl),
-		Resource:        &tfschema.Resource{},
+		Resource:        &resourceType{},
 		TypesInfo:       info,
 	}
 
+	if kvExpr := result.Fields[ResourceFieldDescription]; kvExpr != nil && astutils.ExprStringValue(kvExpr.Value) != nil {
+		result.Resource.Description = *astutils.ExprStringValue(kvExpr.Value)
+	}
+
 	if kvExpr := result.Fields[ResourceFieldMigrateState]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {
-		result.Resource.MigrateState = func(int, *terraform.InstanceState, interface{}) (*terraform.InstanceState, error) { return nil, nil }
+		result.Resource.MigrateState = func(int, interface{}, interface{}) (interface{}, error) { return nil, nil }
+	}
+
+	if kvExpr := result.Fields[ResourceFieldSchema]; kvExpr != nil && astutils.ExprValue(kvExpr.Value) != nil {
+		result.Resource.Schema = map[string]*schemaType{}
+		if smap, ok := kvExpr.Value.(*ast.CompositeLit); ok {
+			for _, expr := range smap.Elts {
+				switch elt := expr.(type) {
+				case *ast.KeyValueExpr:
+					var key string
+
+					switch keyExpr := elt.Key.(type) {
+					case *ast.BasicLit:
+						keyPtr := astutils.ExprStringValue(keyExpr)
+
+						if keyPtr == nil {
+							continue
+						}
+
+						key = *keyPtr
+					}
+
+					if key == "" {
+						continue
+					}
+
+					switch valueExpr := elt.Value.(type) {
+					case *ast.CompositeLit:
+						result.Resource.Schema[key] = NewSchemaInfo(valueExpr, info).Schema
+					}
+				}
+			}
+		}
 	}
 
 	return result

@@ -34,6 +34,32 @@ const (
 	// the Lambda function.
 	ErrCodeEC2UnexpectedException = "EC2UnexpectedException"
 
+	// ErrCodeEFSIOException for service response error code
+	// "EFSIOException".
+	//
+	// An error occured when reading from or writing to a connected file system.
+	ErrCodeEFSIOException = "EFSIOException"
+
+	// ErrCodeEFSMountConnectivityException for service response error code
+	// "EFSMountConnectivityException".
+	//
+	// The function couldn't make a network connection to the configured file system.
+	ErrCodeEFSMountConnectivityException = "EFSMountConnectivityException"
+
+	// ErrCodeEFSMountFailureException for service response error code
+	// "EFSMountFailureException".
+	//
+	// The function couldn't mount the configured file system due to a permission
+	// or configuration issue.
+	ErrCodeEFSMountFailureException = "EFSMountFailureException"
+
+	// ErrCodeEFSMountTimeoutException for service response error code
+	// "EFSMountTimeoutException".
+	//
+	// The function was able to make a network connection to the configured file
+	// system, but the mount operation timed out.
+	ErrCodeEFSMountTimeoutException = "EFSMountTimeoutException"
+
 	// ErrCodeENILimitReachedException for service response error code
 	// "ENILimitReachedException".
 	//
@@ -192,6 +218,10 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"EC2AccessDeniedException":                      newErrorEC2AccessDeniedException,
 	"EC2ThrottledException":                         newErrorEC2ThrottledException,
 	"EC2UnexpectedException":                        newErrorEC2UnexpectedException,
+	"EFSIOException":                                newErrorEFSIOException,
+	"EFSMountConnectivityException":                 newErrorEFSMountConnectivityException,
+	"EFSMountFailureException":                      newErrorEFSMountFailureException,
+	"EFSMountTimeoutException":                      newErrorEFSMountTimeoutException,
 	"ENILimitReachedException":                      newErrorENILimitReachedException,
 	"InvalidParameterValueException":                newErrorInvalidParameterValueException,
 	"InvalidRequestContentException":                newErrorInvalidRequestContentException,

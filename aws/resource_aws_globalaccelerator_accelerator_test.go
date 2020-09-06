@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/globalaccelerator"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -386,7 +386,7 @@ resource "aws_globalaccelerator_accelerator" "example" {
 
   attributes {
     flow_logs_enabled   = true
-    flow_logs_s3_bucket = "${aws_s3_bucket.example.bucket}"
+    flow_logs_s3_bucket = aws_s3_bucket.example.bucket
     flow_logs_s3_prefix = "flow-logs/"
   }
 }
@@ -401,8 +401,8 @@ resource "aws_globalaccelerator_accelerator" "example" {
   enabled         = %t
 
   tags = {
-	  Name = "%[1]s"
-	  %[3]s  = "%[4]s"
+    Name  = "%[1]s"
+    %[3]s = "%[4]s"
   }
 }
 `, rName, enabled, tagKey, tagValue)

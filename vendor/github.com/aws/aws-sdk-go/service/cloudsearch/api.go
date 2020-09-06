@@ -6625,6 +6625,16 @@ const (
 	AlgorithmicStemmingFull = "full"
 )
 
+// AlgorithmicStemming_Values returns all elements of the AlgorithmicStemming enum
+func AlgorithmicStemming_Values() []string {
+	return []string{
+		AlgorithmicStemmingNone,
+		AlgorithmicStemmingMinimal,
+		AlgorithmicStemmingLight,
+		AlgorithmicStemmingFull,
+	}
+}
+
 // An IETF RFC 4646 (http://tools.ietf.org/html/rfc4646) language code or mul
 // for multiple languages.
 const (
@@ -6734,6 +6744,47 @@ const (
 	AnalysisSchemeLanguageZhHant = "zh-Hant"
 )
 
+// AnalysisSchemeLanguage_Values returns all elements of the AnalysisSchemeLanguage enum
+func AnalysisSchemeLanguage_Values() []string {
+	return []string{
+		AnalysisSchemeLanguageAr,
+		AnalysisSchemeLanguageBg,
+		AnalysisSchemeLanguageCa,
+		AnalysisSchemeLanguageCs,
+		AnalysisSchemeLanguageDa,
+		AnalysisSchemeLanguageDe,
+		AnalysisSchemeLanguageEl,
+		AnalysisSchemeLanguageEn,
+		AnalysisSchemeLanguageEs,
+		AnalysisSchemeLanguageEu,
+		AnalysisSchemeLanguageFa,
+		AnalysisSchemeLanguageFi,
+		AnalysisSchemeLanguageFr,
+		AnalysisSchemeLanguageGa,
+		AnalysisSchemeLanguageGl,
+		AnalysisSchemeLanguageHe,
+		AnalysisSchemeLanguageHi,
+		AnalysisSchemeLanguageHu,
+		AnalysisSchemeLanguageHy,
+		AnalysisSchemeLanguageId,
+		AnalysisSchemeLanguageIt,
+		AnalysisSchemeLanguageJa,
+		AnalysisSchemeLanguageKo,
+		AnalysisSchemeLanguageLv,
+		AnalysisSchemeLanguageMul,
+		AnalysisSchemeLanguageNl,
+		AnalysisSchemeLanguageNo,
+		AnalysisSchemeLanguagePt,
+		AnalysisSchemeLanguageRo,
+		AnalysisSchemeLanguageRu,
+		AnalysisSchemeLanguageSv,
+		AnalysisSchemeLanguageTh,
+		AnalysisSchemeLanguageTr,
+		AnalysisSchemeLanguageZhHans,
+		AnalysisSchemeLanguageZhHant,
+	}
+}
+
 // The type of field. The valid options for a field depend on the field type.
 // For more information about the supported field types, see Configuring Index
 // Fields (http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html)
@@ -6773,6 +6824,23 @@ const (
 	IndexFieldTypeDateArray = "date-array"
 )
 
+// IndexFieldType_Values returns all elements of the IndexFieldType enum
+func IndexFieldType_Values() []string {
+	return []string{
+		IndexFieldTypeInt,
+		IndexFieldTypeDouble,
+		IndexFieldTypeLiteral,
+		IndexFieldTypeText,
+		IndexFieldTypeDate,
+		IndexFieldTypeLatlon,
+		IndexFieldTypeIntArray,
+		IndexFieldTypeDoubleArray,
+		IndexFieldTypeLiteralArray,
+		IndexFieldTypeTextArray,
+		IndexFieldTypeDateArray,
+	}
+}
+
 // The state of processing a change to an option. One of:
 //
 //    * RequiresIndexDocuments: The option's latest value will not be deployed
@@ -6798,6 +6866,16 @@ const (
 	// OptionStateFailedToValidate is a OptionState enum value
 	OptionStateFailedToValidate = "FailedToValidate"
 )
+
+// OptionState_Values returns all elements of the OptionState enum
+func OptionState_Values() []string {
+	return []string{
+		OptionStateRequiresIndexDocuments,
+		OptionStateProcessing,
+		OptionStateActive,
+		OptionStateFailedToValidate,
+	}
+}
 
 // The instance type (such as search.m1.small) on which an index partition is
 // hosted.
@@ -6827,6 +6905,20 @@ const (
 	PartitionInstanceTypeSearchM32xlarge = "search.m3.2xlarge"
 )
 
+// PartitionInstanceType_Values returns all elements of the PartitionInstanceType enum
+func PartitionInstanceType_Values() []string {
+	return []string{
+		PartitionInstanceTypeSearchM1Small,
+		PartitionInstanceTypeSearchM1Large,
+		PartitionInstanceTypeSearchM2Xlarge,
+		PartitionInstanceTypeSearchM22xlarge,
+		PartitionInstanceTypeSearchM3Medium,
+		PartitionInstanceTypeSearchM3Large,
+		PartitionInstanceTypeSearchM3Xlarge,
+		PartitionInstanceTypeSearchM32xlarge,
+	}
+}
+
 const (
 	// SuggesterFuzzyMatchingNone is a SuggesterFuzzyMatching enum value
 	SuggesterFuzzyMatchingNone = "none"
@@ -6838,6 +6930,15 @@ const (
 	SuggesterFuzzyMatchingHigh = "high"
 )
 
+// SuggesterFuzzyMatching_Values returns all elements of the SuggesterFuzzyMatching enum
+func SuggesterFuzzyMatching_Values() []string {
+	return []string{
+		SuggesterFuzzyMatchingNone,
+		SuggesterFuzzyMatchingLow,
+		SuggesterFuzzyMatchingHigh,
+	}
+}
+
 // The minimum required TLS version.
 const (
 	// TLSSecurityPolicyPolicyMinTls10201907 is a TLSSecurityPolicy enum value
@@ -6846,3 +6947,11 @@ const (
 	// TLSSecurityPolicyPolicyMinTls12201907 is a TLSSecurityPolicy enum value
 	TLSSecurityPolicyPolicyMinTls12201907 = "Policy-Min-TLS-1-2-2019-07"
 )
+
+// TLSSecurityPolicy_Values returns all elements of the TLSSecurityPolicy enum
+func TLSSecurityPolicy_Values() []string {
+	return []string{
+		TLSSecurityPolicyPolicyMinTls10201907,
+		TLSSecurityPolicyPolicyMinTls12201907,
+	}
+}

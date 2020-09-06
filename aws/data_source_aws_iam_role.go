@@ -9,7 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsIAMRole() *schema.Resource {
@@ -20,11 +20,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"assume_role_policy_document": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Removed:  "Use `assume_role_policy` instead",
 			},
 			"assume_role_policy": {
 				Type:     schema.TypeString,
@@ -38,11 +33,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"role_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Removed:  "Use `unique_id` instead",
-			},
 			"unique_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -50,11 +40,6 @@ func dataSourceAwsIAMRole() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"role_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `name` instead",
 			},
 			"name": {
 				Type:     schema.TypeString,

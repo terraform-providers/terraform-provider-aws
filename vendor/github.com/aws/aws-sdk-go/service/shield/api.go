@@ -58,7 +58,7 @@ func (c *Shield) AssociateDRTLogBucketRequest(input *AssociateDRTLogBucketInput)
 
 // AssociateDRTLogBucket API operation for AWS Shield.
 //
-// Authorizes the DDoS Response team (DRT) to access the specified Amazon S3
+// Authorizes the DDoS Response Team (DRT) to access the specified Amazon S3
 // bucket containing your AWS WAF logs. You can associate up to 10 Amazon S3
 // buckets with your subscription.
 //
@@ -96,14 +96,14 @@ func (c *Shield) AssociateDRTLogBucketRequest(input *AssociateDRTLogBucketInput)
 //   Exception that indicates that the parameters passed to the API are invalid.
 //
 //   * AccessDeniedForDependencyException
-//   In order to grant the necessary access to the DDoS Response Team, the user
-//   submitting the request must have the iam:PassRole permission. This error
+//   In order to grant the necessary access to the DDoS Response Team (DRT), the
+//   user submitting the request must have the iam:PassRole permission. This error
 //   indicates the user did not have the appropriate permissions. For more information,
 //   see Granting a User Permissions to Pass a Role to an AWS Service (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html).
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -175,7 +175,7 @@ func (c *Shield) AssociateDRTRoleRequest(input *AssociateDRTRoleInput) (req *req
 
 // AssociateDRTRole API operation for AWS Shield.
 //
-// Authorizes the DDoS Response team (DRT), using the specified role, to access
+// Authorizes the DDoS Response Team (DRT), using the specified role, to access
 // your AWS account to assist with DDoS attack mitigation during potential attacks.
 // This enables the DRT to inspect your AWS WAF configuration and create or
 // update AWS WAF rules and web ACLs.
@@ -224,14 +224,14 @@ func (c *Shield) AssociateDRTRoleRequest(input *AssociateDRTRoleInput) (req *req
 //   Exception that indicates that the parameters passed to the API are invalid.
 //
 //   * AccessDeniedForDependencyException
-//   In order to grant the necessary access to the DDoS Response Team, the user
-//   submitting the request must have the iam:PassRole permission. This error
+//   In order to grant the necessary access to the DDoS Response Team (DRT), the
+//   user submitting the request must have the iam:PassRole permission. This error
 //   indicates the user did not have the appropriate permissions. For more information,
 //   see Granting a User Permissions to Pass a Role to an AWS Service (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html).
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -338,8 +338,8 @@ func (c *Shield) AssociateHealthCheckRequest(input *AssociateHealthCheckInput) (
 //   Exception that indicates that the parameters passed to the API are invalid.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/AssociateHealthCheck
 func (c *Shield) AssociateHealthCheck(input *AssociateHealthCheckInput) (*AssociateHealthCheckOutput, error) {
@@ -358,6 +358,116 @@ func (c *Shield) AssociateHealthCheck(input *AssociateHealthCheckInput) (*Associ
 // for more information on using Contexts.
 func (c *Shield) AssociateHealthCheckWithContext(ctx aws.Context, input *AssociateHealthCheckInput, opts ...request.Option) (*AssociateHealthCheckOutput, error) {
 	req, out := c.AssociateHealthCheckRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opAssociateProactiveEngagementDetails = "AssociateProactiveEngagementDetails"
+
+// AssociateProactiveEngagementDetailsRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateProactiveEngagementDetails operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateProactiveEngagementDetails for more information on using the AssociateProactiveEngagementDetails
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateProactiveEngagementDetailsRequest method.
+//    req, resp := client.AssociateProactiveEngagementDetailsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/AssociateProactiveEngagementDetails
+func (c *Shield) AssociateProactiveEngagementDetailsRequest(input *AssociateProactiveEngagementDetailsInput) (req *request.Request, output *AssociateProactiveEngagementDetailsOutput) {
+	op := &request.Operation{
+		Name:       opAssociateProactiveEngagementDetails,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AssociateProactiveEngagementDetailsInput{}
+	}
+
+	output = &AssociateProactiveEngagementDetailsOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// AssociateProactiveEngagementDetails API operation for AWS Shield.
+//
+// Initializes proactive engagement and sets the list of contacts for the DDoS
+// Response Team (DRT) to use. You must provide at least one phone number in
+// the emergency contact list.
+//
+// After you have initialized proactive engagement using this call, to disable
+// or enable proactive engagement, use the calls DisableProactiveEngagement
+// and EnableProactiveEngagement.
+//
+// This call defines the list of email addresses and phone numbers that the
+// DDoS Response Team (DRT) can use to contact you for escalations to the DRT
+// and to initiate proactive customer support.
+//
+// The contacts that you provide in the request replace any contacts that were
+// already defined. If you already have contacts defined and want to use them,
+// retrieve the list using DescribeEmergencyContactSettings and then provide
+// it to this call.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Shield's
+// API operation AssociateProactiveEngagementDetails for usage and error information.
+//
+// Returned Error Types:
+//   * InternalErrorException
+//   Exception that indicates that a problem occurred with the service infrastructure.
+//   You can retry the request.
+//
+//   * InvalidOperationException
+//   Exception that indicates that the operation would not cause any change to
+//   occur.
+//
+//   * InvalidParameterException
+//   Exception that indicates that the parameters passed to the API are invalid.
+//
+//   * ResourceNotFoundException
+//   Exception indicating the specified resource does not exist.
+//
+//   * OptimisticLockException
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/AssociateProactiveEngagementDetails
+func (c *Shield) AssociateProactiveEngagementDetails(input *AssociateProactiveEngagementDetailsInput) (*AssociateProactiveEngagementDetailsOutput, error) {
+	req, out := c.AssociateProactiveEngagementDetailsRequest(input)
+	return out, req.Send()
+}
+
+// AssociateProactiveEngagementDetailsWithContext is the same as AssociateProactiveEngagementDetails with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateProactiveEngagementDetails for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Shield) AssociateProactiveEngagementDetailsWithContext(ctx aws.Context, input *AssociateProactiveEngagementDetailsInput, opts ...request.Option) (*AssociateProactiveEngagementDetailsOutput, error) {
+	req, out := c.AssociateProactiveEngagementDetailsRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -449,8 +559,8 @@ func (c *Shield) CreateProtectionRequest(input *CreateProtectionInput) (req *req
 //   Exception indicating the specified resource already exists.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -523,15 +633,6 @@ func (c *Shield) CreateSubscriptionRequest(input *CreateSubscriptionInput) (req 
 // CreateSubscription API operation for AWS Shield.
 //
 // Activates AWS Shield Advanced for an account.
-//
-// As part of this request you can specify EmergencySettings that automaticaly
-// grant the DDoS response team (DRT) needed permissions to assist you during
-// a suspected DDoS attack. For more information see Authorize the DDoS Response
-// Team to Create Rules and Web ACLs on Your Behalf (https://docs.aws.amazon.com/waf/latest/developerguide/authorize-DRT.html).
-//
-// To use the services of the DRT, you must be subscribed to the Business Support
-// plan (https://aws.amazon.com/premiumsupport/business-support/) or the Enterprise
-// Support plan (https://aws.amazon.com/premiumsupport/enterprise-support/).
 //
 // When you initally create a subscription, your subscription is set to be automatically
 // renewed at the end of the existing subscription period. You can change this
@@ -637,8 +738,8 @@ func (c *Shield) DeleteProtectionRequest(input *DeleteProtectionInput) (req *req
 //   Exception indicating the specified resource does not exist.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/DeleteProtection
 func (c *Shield) DeleteProtection(input *DeleteProtectionInput) (*DeleteProtectionOutput, error) {
@@ -892,7 +993,7 @@ func (c *Shield) DescribeDRTAccessRequest(input *DescribeDRTAccessInput) (req *r
 // DescribeDRTAccess API operation for AWS Shield.
 //
 // Returns the current role and list of Amazon S3 log buckets used by the DDoS
-// Response team (DRT) to access your AWS account while assisting with attack
+// Response Team (DRT) to access your AWS account while assisting with attack
 // mitigation.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -976,8 +1077,9 @@ func (c *Shield) DescribeEmergencyContactSettingsRequest(input *DescribeEmergenc
 
 // DescribeEmergencyContactSettings API operation for AWS Shield.
 //
-// Lists the email addresses that the DRT can use to contact you during a suspected
-// attack.
+// A list of email addresses and phone numbers that the DDoS Response Team (DRT)
+// can use to contact you if you have proactive engagement enabled, for escalations
+// to the DRT and to initiate proactive customer support.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1185,6 +1287,102 @@ func (c *Shield) DescribeSubscriptionWithContext(ctx aws.Context, input *Describ
 	return out, req.Send()
 }
 
+const opDisableProactiveEngagement = "DisableProactiveEngagement"
+
+// DisableProactiveEngagementRequest generates a "aws/request.Request" representing the
+// client's request for the DisableProactiveEngagement operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisableProactiveEngagement for more information on using the DisableProactiveEngagement
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisableProactiveEngagementRequest method.
+//    req, resp := client.DisableProactiveEngagementRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/DisableProactiveEngagement
+func (c *Shield) DisableProactiveEngagementRequest(input *DisableProactiveEngagementInput) (req *request.Request, output *DisableProactiveEngagementOutput) {
+	op := &request.Operation{
+		Name:       opDisableProactiveEngagement,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DisableProactiveEngagementInput{}
+	}
+
+	output = &DisableProactiveEngagementOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DisableProactiveEngagement API operation for AWS Shield.
+//
+// Removes authorization from the DDoS Response Team (DRT) to notify contacts
+// about escalations to the DRT and to initiate proactive customer support.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Shield's
+// API operation DisableProactiveEngagement for usage and error information.
+//
+// Returned Error Types:
+//   * InternalErrorException
+//   Exception that indicates that a problem occurred with the service infrastructure.
+//   You can retry the request.
+//
+//   * InvalidOperationException
+//   Exception that indicates that the operation would not cause any change to
+//   occur.
+//
+//   * InvalidParameterException
+//   Exception that indicates that the parameters passed to the API are invalid.
+//
+//   * ResourceNotFoundException
+//   Exception indicating the specified resource does not exist.
+//
+//   * OptimisticLockException
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/DisableProactiveEngagement
+func (c *Shield) DisableProactiveEngagement(input *DisableProactiveEngagementInput) (*DisableProactiveEngagementOutput, error) {
+	req, out := c.DisableProactiveEngagementRequest(input)
+	return out, req.Send()
+}
+
+// DisableProactiveEngagementWithContext is the same as DisableProactiveEngagement with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisableProactiveEngagement for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Shield) DisableProactiveEngagementWithContext(ctx aws.Context, input *DisableProactiveEngagementInput, opts ...request.Option) (*DisableProactiveEngagementOutput, error) {
+	req, out := c.DisableProactiveEngagementRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDisassociateDRTLogBucket = "DisassociateDRTLogBucket"
 
 // DisassociateDRTLogBucketRequest generates a "aws/request.Request" representing the
@@ -1230,7 +1428,7 @@ func (c *Shield) DisassociateDRTLogBucketRequest(input *DisassociateDRTLogBucket
 
 // DisassociateDRTLogBucket API operation for AWS Shield.
 //
-// Removes the DDoS Response team's (DRT) access to the specified Amazon S3
+// Removes the DDoS Response Team's (DRT) access to the specified Amazon S3
 // bucket containing your AWS WAF logs.
 //
 // To make a DisassociateDRTLogBucket request, you must be subscribed to the
@@ -1260,14 +1458,14 @@ func (c *Shield) DisassociateDRTLogBucketRequest(input *DisassociateDRTLogBucket
 //   The ARN of the role that you specifed does not exist.
 //
 //   * AccessDeniedForDependencyException
-//   In order to grant the necessary access to the DDoS Response Team, the user
-//   submitting the request must have the iam:PassRole permission. This error
+//   In order to grant the necessary access to the DDoS Response Team (DRT), the
+//   user submitting the request must have the iam:PassRole permission. This error
 //   indicates the user did not have the appropriate permissions. For more information,
 //   see Granting a User Permissions to Pass a Role to an AWS Service (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html).
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -1339,7 +1537,7 @@ func (c *Shield) DisassociateDRTRoleRequest(input *DisassociateDRTRoleInput) (re
 
 // DisassociateDRTRole API operation for AWS Shield.
 //
-// Removes the DDoS Response team's (DRT) access to your AWS account.
+// Removes the DDoS Response Team's (DRT) access to your AWS account.
 //
 // To make a DisassociateDRTRole request, you must be subscribed to the Business
 // Support plan (https://aws.amazon.com/premiumsupport/business-support/) or
@@ -1365,8 +1563,8 @@ func (c *Shield) DisassociateDRTRoleRequest(input *DisassociateDRTRoleInput) (re
 //   occur.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -1467,8 +1665,8 @@ func (c *Shield) DisassociateHealthCheckRequest(input *DisassociateHealthCheckIn
 //   Exception indicating the specified resource does not exist.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/DisassociateHealthCheck
 func (c *Shield) DisassociateHealthCheck(input *DisassociateHealthCheckInput) (*DisassociateHealthCheckOutput, error) {
@@ -1487,6 +1685,103 @@ func (c *Shield) DisassociateHealthCheck(input *DisassociateHealthCheckInput) (*
 // for more information on using Contexts.
 func (c *Shield) DisassociateHealthCheckWithContext(ctx aws.Context, input *DisassociateHealthCheckInput, opts ...request.Option) (*DisassociateHealthCheckOutput, error) {
 	req, out := c.DisassociateHealthCheckRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opEnableProactiveEngagement = "EnableProactiveEngagement"
+
+// EnableProactiveEngagementRequest generates a "aws/request.Request" representing the
+// client's request for the EnableProactiveEngagement operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See EnableProactiveEngagement for more information on using the EnableProactiveEngagement
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the EnableProactiveEngagementRequest method.
+//    req, resp := client.EnableProactiveEngagementRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/EnableProactiveEngagement
+func (c *Shield) EnableProactiveEngagementRequest(input *EnableProactiveEngagementInput) (req *request.Request, output *EnableProactiveEngagementOutput) {
+	op := &request.Operation{
+		Name:       opEnableProactiveEngagement,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &EnableProactiveEngagementInput{}
+	}
+
+	output = &EnableProactiveEngagementOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// EnableProactiveEngagement API operation for AWS Shield.
+//
+// Authorizes the DDoS Response Team (DRT) to use email and phone to notify
+// contacts about escalations to the DRT and to initiate proactive customer
+// support.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Shield's
+// API operation EnableProactiveEngagement for usage and error information.
+//
+// Returned Error Types:
+//   * InternalErrorException
+//   Exception that indicates that a problem occurred with the service infrastructure.
+//   You can retry the request.
+//
+//   * InvalidOperationException
+//   Exception that indicates that the operation would not cause any change to
+//   occur.
+//
+//   * InvalidParameterException
+//   Exception that indicates that the parameters passed to the API are invalid.
+//
+//   * ResourceNotFoundException
+//   Exception indicating the specified resource does not exist.
+//
+//   * OptimisticLockException
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/EnableProactiveEngagement
+func (c *Shield) EnableProactiveEngagement(input *EnableProactiveEngagementInput) (*EnableProactiveEngagementOutput, error) {
+	req, out := c.EnableProactiveEngagementRequest(input)
+	return out, req.Send()
+}
+
+// EnableProactiveEngagementWithContext is the same as EnableProactiveEngagement with the addition of
+// the ability to pass a context and additional request options.
+//
+// See EnableProactiveEngagement for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Shield) EnableProactiveEngagementWithContext(ctx aws.Context, input *EnableProactiveEngagementInput, opts ...request.Option) (*EnableProactiveEngagementOutput, error) {
+	req, out := c.EnableProactiveEngagementRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1603,6 +1898,12 @@ func (c *Shield) ListAttacksRequest(input *ListAttacksInput) (req *request.Reque
 		Name:       opListAttacks,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1660,6 +1961,58 @@ func (c *Shield) ListAttacksWithContext(ctx aws.Context, input *ListAttacksInput
 	return out, req.Send()
 }
 
+// ListAttacksPages iterates over the pages of a ListAttacks operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAttacks method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAttacks operation.
+//    pageNum := 0
+//    err := client.ListAttacksPages(params,
+//        func(page *shield.ListAttacksOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Shield) ListAttacksPages(input *ListAttacksInput, fn func(*ListAttacksOutput, bool) bool) error {
+	return c.ListAttacksPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAttacksPagesWithContext same as ListAttacksPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Shield) ListAttacksPagesWithContext(ctx aws.Context, input *ListAttacksInput, fn func(*ListAttacksOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAttacksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttacksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAttacksOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListProtections = "ListProtections"
 
 // ListProtectionsRequest generates a "aws/request.Request" representing the
@@ -1691,6 +2044,12 @@ func (c *Shield) ListProtectionsRequest(input *ListProtectionsInput) (req *reque
 		Name:       opListProtections,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1747,6 +2106,58 @@ func (c *Shield) ListProtectionsWithContext(ctx aws.Context, input *ListProtecti
 	return out, req.Send()
 }
 
+// ListProtectionsPages iterates over the pages of a ListProtections operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListProtections method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListProtections operation.
+//    pageNum := 0
+//    err := client.ListProtectionsPages(params,
+//        func(page *shield.ListProtectionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Shield) ListProtectionsPages(input *ListProtectionsInput, fn func(*ListProtectionsOutput, bool) bool) error {
+	return c.ListProtectionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListProtectionsPagesWithContext same as ListProtectionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Shield) ListProtectionsPagesWithContext(ctx aws.Context, input *ListProtectionsInput, fn func(*ListProtectionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListProtectionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListProtectionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListProtectionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opUpdateEmergencyContactSettings = "UpdateEmergencyContactSettings"
 
 // UpdateEmergencyContactSettingsRequest generates a "aws/request.Request" representing the
@@ -1792,8 +2203,10 @@ func (c *Shield) UpdateEmergencyContactSettingsRequest(input *UpdateEmergencyCon
 
 // UpdateEmergencyContactSettings API operation for AWS Shield.
 //
-// Updates the details of the list of email addresses that the DRT can use to
-// contact you during a suspected attack.
+// Updates the details of the list of email addresses and phone numbers that
+// the DDoS Response Team (DRT) can use to contact you if you have proactive
+// engagement enabled, for escalations to the DRT and to initiate proactive
+// customer support.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1811,8 +2224,8 @@ func (c *Shield) UpdateEmergencyContactSettingsRequest(input *UpdateEmergencyCon
 //   Exception that indicates that the parameters passed to the API are invalid.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 //   * ResourceNotFoundException
 //   Exception indicating the specified resource does not exist.
@@ -1912,8 +2325,8 @@ func (c *Shield) UpdateSubscriptionRequest(input *UpdateSubscriptionInput) (req 
 //   Exception that indicates that the parameters passed to the API are invalid.
 //
 //   * OptimisticLockException
-//   Exception that indicates that the protection state has been modified by another
-//   client. You can retry the request.
+//   Exception that indicates that the resource state has been modified by another
+//   client. Retrieve the resource and then retry your request.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/shield-2016-06-02/UpdateSubscription
 func (c *Shield) UpdateSubscription(input *UpdateSubscriptionInput) (*UpdateSubscriptionOutput, error) {
@@ -1994,8 +2407,8 @@ func (s *AccessDeniedException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// In order to grant the necessary access to the DDoS Response Team, the user
-// submitting the request must have the iam:PassRole permission. This error
+// In order to grant the necessary access to the DDoS Response Team (DRT), the
+// user submitting the request must have the iam:PassRole permission. This error
 // indicates the user did not have the appropriate permissions. For more information,
 // see Granting a User Permissions to Pass a Role to an AWS Service (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html).
 type AccessDeniedForDependencyException struct {
@@ -2240,6 +2653,77 @@ func (s AssociateHealthCheckOutput) String() string {
 
 // GoString returns the string representation
 func (s AssociateHealthCheckOutput) GoString() string {
+	return s.String()
+}
+
+type AssociateProactiveEngagementDetailsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of email addresses and phone numbers that the DDoS Response Team (DRT)
+	// can use to contact you for escalations to the DRT and to initiate proactive
+	// customer support.
+	//
+	// To enable proactive engagement, the contact list must include at least one
+	// phone number.
+	//
+	// The contacts that you provide here replace any contacts that were already
+	// defined. If you already have contacts defined and want to use them, retrieve
+	// the list using DescribeEmergencyContactSettings and then provide it here.
+	//
+	// EmergencyContactList is a required field
+	EmergencyContactList []*EmergencyContact `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateProactiveEngagementDetailsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateProactiveEngagementDetailsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateProactiveEngagementDetailsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateProactiveEngagementDetailsInput"}
+	if s.EmergencyContactList == nil {
+		invalidParams.Add(request.NewErrParamRequired("EmergencyContactList"))
+	}
+	if s.EmergencyContactList != nil {
+		for i, v := range s.EmergencyContactList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "EmergencyContactList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEmergencyContactList sets the EmergencyContactList field's value.
+func (s *AssociateProactiveEngagementDetailsInput) SetEmergencyContactList(v []*EmergencyContact) *AssociateProactiveEngagementDetailsInput {
+	s.EmergencyContactList = v
+	return s
+}
+
+type AssociateProactiveEngagementDetailsOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssociateProactiveEngagementDetailsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateProactiveEngagementDetailsOutput) GoString() string {
 	return s.String()
 }
 
@@ -2895,8 +3379,9 @@ func (s DescribeEmergencyContactSettingsInput) GoString() string {
 type DescribeEmergencyContactSettingsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of email addresses that the DRT can use to contact you during a suspected
-	// attack.
+	// A list of email addresses and phone numbers that the DDoS Response Team (DRT)
+	// can use to contact you if you have proactive engagement enabled, for escalations
+	// to the DRT and to initiate proactive customer support.
 	EmergencyContactList []*EmergencyContact `type:"list"`
 }
 
@@ -3026,6 +3511,34 @@ func (s DescribeSubscriptionOutput) GoString() string {
 func (s *DescribeSubscriptionOutput) SetSubscription(v *Subscription) *DescribeSubscriptionOutput {
 	s.Subscription = v
 	return s
+}
+
+type DisableProactiveEngagementInput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableProactiveEngagementInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableProactiveEngagementInput) GoString() string {
+	return s.String()
+}
+
+type DisableProactiveEngagementOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisableProactiveEngagementOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisableProactiveEngagementOutput) GoString() string {
+	return s.String()
 }
 
 type DisassociateDRTLogBucketInput struct {
@@ -3185,15 +3698,22 @@ func (s DisassociateHealthCheckOutput) GoString() string {
 	return s.String()
 }
 
-// Contact information that the DRT can use to contact you during a suspected
-// attack.
+// Contact information that the DRT can use to contact you if you have proactive
+// engagement enabled, for escalations to the DRT and to initiate proactive
+// customer support.
 type EmergencyContact struct {
 	_ struct{} `type:"structure"`
 
-	// An email address that the DRT can use to contact you during a suspected attack.
+	// Additional notes regarding the contact.
+	ContactNotes *string `min:"1" type:"string"`
+
+	// The email address for the contact.
 	//
 	// EmailAddress is a required field
 	EmailAddress *string `min:"1" type:"string" required:"true"`
+
+	// The phone number for the contact.
+	PhoneNumber *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -3209,11 +3729,17 @@ func (s EmergencyContact) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *EmergencyContact) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "EmergencyContact"}
+	if s.ContactNotes != nil && len(*s.ContactNotes) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ContactNotes", 1))
+	}
 	if s.EmailAddress == nil {
 		invalidParams.Add(request.NewErrParamRequired("EmailAddress"))
 	}
 	if s.EmailAddress != nil && len(*s.EmailAddress) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("EmailAddress", 1))
+	}
+	if s.PhoneNumber != nil && len(*s.PhoneNumber) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PhoneNumber", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -3222,10 +3748,50 @@ func (s *EmergencyContact) Validate() error {
 	return nil
 }
 
+// SetContactNotes sets the ContactNotes field's value.
+func (s *EmergencyContact) SetContactNotes(v string) *EmergencyContact {
+	s.ContactNotes = &v
+	return s
+}
+
 // SetEmailAddress sets the EmailAddress field's value.
 func (s *EmergencyContact) SetEmailAddress(v string) *EmergencyContact {
 	s.EmailAddress = &v
 	return s
+}
+
+// SetPhoneNumber sets the PhoneNumber field's value.
+func (s *EmergencyContact) SetPhoneNumber(v string) *EmergencyContact {
+	s.PhoneNumber = &v
+	return s
+}
+
+type EnableProactiveEngagementInput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableProactiveEngagementInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableProactiveEngagementInput) GoString() string {
+	return s.String()
+}
+
+type EnableProactiveEngagementOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s EnableProactiveEngagementOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s EnableProactiveEngagementOutput) GoString() string {
+	return s.String()
 }
 
 type GetSubscriptionStateInput struct {
@@ -4006,8 +4572,8 @@ func (s *NoAssociatedRoleException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Exception that indicates that the protection state has been modified by another
-// client. You can retry the request.
+// Exception that indicates that the resource state has been modified by another
+// client. Retrieve the resource and then retry your request.
 type OptimisticLockException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -4297,6 +4863,17 @@ type Subscription struct {
 	// Specifies how many protections of a given type you can create.
 	Limits []*Limit `type:"list"`
 
+	// If ENABLED, the DDoS Response Team (DRT) will use email and phone to notify
+	// contacts about escalations to the DRT and to initiate proactive customer
+	// support.
+	//
+	// If PENDING, you have requested proactive engagement and the request is pending.
+	// The status changes to ENABLED when your request is fully processed.
+	//
+	// If DISABLED, the DRT will not proactively notify contacts about escalations
+	// or to initiate proactive customer support.
+	ProactiveEngagementStatus *string `type:"string" enum:"ProactiveEngagementStatus"`
+
 	// The start time of the subscription, in Unix time in seconds. For more information
 	// see timestamp (http://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#parameter-types).
 	StartTime *time.Time `type:"timestamp"`
@@ -4330,6 +4907,12 @@ func (s *Subscription) SetEndTime(v time.Time) *Subscription {
 // SetLimits sets the Limits field's value.
 func (s *Subscription) SetLimits(v []*Limit) *Subscription {
 	s.Limits = v
+	return s
+}
+
+// SetProactiveEngagementStatus sets the ProactiveEngagementStatus field's value.
+func (s *Subscription) SetProactiveEngagementStatus(v string) *Subscription {
+	s.ProactiveEngagementStatus = &v
 	return s
 }
 
@@ -4487,8 +5070,12 @@ func (s *TimeRange) SetToExclusive(v time.Time) *TimeRange {
 type UpdateEmergencyContactSettingsInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of email addresses that the DRT can use to contact you during a suspected
-	// attack.
+	// A list of email addresses and phone numbers that the DDoS Response Team (DRT)
+	// can use to contact you if you have proactive engagement enabled, for escalations
+	// to the DRT and to initiate proactive customer support.
+	//
+	// If you have proactive engagement enabled, the contact list must include at
+	// least one phone number.
 	EmergencyContactList []*EmergencyContact `type:"list"`
 }
 
@@ -4591,6 +5178,14 @@ const (
 	AttackLayerApplication = "APPLICATION"
 )
 
+// AttackLayer_Values returns all elements of the AttackLayer enum
+func AttackLayer_Values() []string {
+	return []string{
+		AttackLayerNetwork,
+		AttackLayerApplication,
+	}
+}
+
 const (
 	// AttackPropertyIdentifierDestinationUrl is a AttackPropertyIdentifier enum value
 	AttackPropertyIdentifierDestinationUrl = "DESTINATION_URL"
@@ -4617,6 +5212,20 @@ const (
 	AttackPropertyIdentifierWordpressPingbackSource = "WORDPRESS_PINGBACK_SOURCE"
 )
 
+// AttackPropertyIdentifier_Values returns all elements of the AttackPropertyIdentifier enum
+func AttackPropertyIdentifier_Values() []string {
+	return []string{
+		AttackPropertyIdentifierDestinationUrl,
+		AttackPropertyIdentifierReferrer,
+		AttackPropertyIdentifierSourceAsn,
+		AttackPropertyIdentifierSourceCountry,
+		AttackPropertyIdentifierSourceIpAddress,
+		AttackPropertyIdentifierSourceUserAgent,
+		AttackPropertyIdentifierWordpressPingbackReflector,
+		AttackPropertyIdentifierWordpressPingbackSource,
+	}
+}
+
 const (
 	// AutoRenewEnabled is a AutoRenew enum value
 	AutoRenewEnabled = "ENABLED"
@@ -4624,6 +5233,34 @@ const (
 	// AutoRenewDisabled is a AutoRenew enum value
 	AutoRenewDisabled = "DISABLED"
 )
+
+// AutoRenew_Values returns all elements of the AutoRenew enum
+func AutoRenew_Values() []string {
+	return []string{
+		AutoRenewEnabled,
+		AutoRenewDisabled,
+	}
+}
+
+const (
+	// ProactiveEngagementStatusEnabled is a ProactiveEngagementStatus enum value
+	ProactiveEngagementStatusEnabled = "ENABLED"
+
+	// ProactiveEngagementStatusDisabled is a ProactiveEngagementStatus enum value
+	ProactiveEngagementStatusDisabled = "DISABLED"
+
+	// ProactiveEngagementStatusPending is a ProactiveEngagementStatus enum value
+	ProactiveEngagementStatusPending = "PENDING"
+)
+
+// ProactiveEngagementStatus_Values returns all elements of the ProactiveEngagementStatus enum
+func ProactiveEngagementStatus_Values() []string {
+	return []string{
+		ProactiveEngagementStatusEnabled,
+		ProactiveEngagementStatusDisabled,
+		ProactiveEngagementStatusPending,
+	}
+}
 
 const (
 	// SubResourceTypeIp is a SubResourceType enum value
@@ -4633,6 +5270,14 @@ const (
 	SubResourceTypeUrl = "URL"
 )
 
+// SubResourceType_Values returns all elements of the SubResourceType enum
+func SubResourceType_Values() []string {
+	return []string{
+		SubResourceTypeIp,
+		SubResourceTypeUrl,
+	}
+}
+
 const (
 	// SubscriptionStateActive is a SubscriptionState enum value
 	SubscriptionStateActive = "ACTIVE"
@@ -4640,6 +5285,14 @@ const (
 	// SubscriptionStateInactive is a SubscriptionState enum value
 	SubscriptionStateInactive = "INACTIVE"
 )
+
+// SubscriptionState_Values returns all elements of the SubscriptionState enum
+func SubscriptionState_Values() []string {
+	return []string{
+		SubscriptionStateActive,
+		SubscriptionStateInactive,
+	}
+}
 
 const (
 	// UnitBits is a Unit enum value
@@ -4654,3 +5307,13 @@ const (
 	// UnitRequests is a Unit enum value
 	UnitRequests = "REQUESTS"
 )
+
+// Unit_Values returns all elements of the Unit enum
+func Unit_Values() []string {
+	return []string{
+		UnitBits,
+		UnitBytes,
+		UnitPackets,
+		UnitRequests,
+	}
+}

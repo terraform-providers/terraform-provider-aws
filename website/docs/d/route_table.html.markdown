@@ -23,11 +23,11 @@ and use this data source to obtain the data necessary to create a route.
 variable "subnet_id" {}
 
 data "aws_route_table" "selected" {
-  subnet_id = "${var.subnet_id}"
+  subnet_id = var.subnet_id
 }
 
 resource "aws_route" "route" {
-  route_table_id            = "${data.aws_route_table.selected.id}"
+  route_table_id            = data.aws_route_table.selected.id
   destination_cidr_block    = "10.0.1.0/22"
   vpc_peering_connection_id = "pcx-45ff3dc1"
 }
@@ -78,6 +78,7 @@ Each route supports the following:
 * `egress_only_gateway_id` - The ID of the Egress Only Internet Gateway.
 * `gateway_id` - The Internet Gateway ID.
 * `nat_gateway_id` - The NAT Gateway ID.
+* `local_gateway_id` - The Local Gateway ID.
 * `instance_id` - The EC2 instance ID.
 * `transit_gateway_id` - The EC2 Transit Gateway ID.
 * `vpc_peering_connection_id` - The VPC Peering ID.

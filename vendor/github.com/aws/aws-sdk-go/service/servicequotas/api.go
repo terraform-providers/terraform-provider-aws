@@ -4791,6 +4791,16 @@ const (
 	ErrorCodeServiceQuotaNotAvailableError = "SERVICE_QUOTA_NOT_AVAILABLE_ERROR"
 )
 
+// ErrorCode_Values returns all elements of the ErrorCode enum
+func ErrorCode_Values() []string {
+	return []string{
+		ErrorCodeDependencyAccessDeniedError,
+		ErrorCodeDependencyThrottlingError,
+		ErrorCodeDependencyServiceError,
+		ErrorCodeServiceQuotaNotAvailableError,
+	}
+}
+
 const (
 	// PeriodUnitMicrosecond is a PeriodUnit enum value
 	PeriodUnitMicrosecond = "MICROSECOND"
@@ -4814,6 +4824,19 @@ const (
 	PeriodUnitWeek = "WEEK"
 )
 
+// PeriodUnit_Values returns all elements of the PeriodUnit enum
+func PeriodUnit_Values() []string {
+	return []string{
+		PeriodUnitMicrosecond,
+		PeriodUnitMillisecond,
+		PeriodUnitSecond,
+		PeriodUnitMinute,
+		PeriodUnitHour,
+		PeriodUnitDay,
+		PeriodUnitWeek,
+	}
+}
+
 const (
 	// RequestStatusPending is a RequestStatus enum value
 	RequestStatusPending = "PENDING"
@@ -4831,6 +4854,17 @@ const (
 	RequestStatusCaseClosed = "CASE_CLOSED"
 )
 
+// RequestStatus_Values returns all elements of the RequestStatus enum
+func RequestStatus_Values() []string {
+	return []string{
+		RequestStatusPending,
+		RequestStatusCaseOpened,
+		RequestStatusApproved,
+		RequestStatusDenied,
+		RequestStatusCaseClosed,
+	}
+}
+
 const (
 	// ServiceQuotaTemplateAssociationStatusAssociated is a ServiceQuotaTemplateAssociationStatus enum value
 	ServiceQuotaTemplateAssociationStatusAssociated = "ASSOCIATED"
@@ -4838,3 +4872,11 @@ const (
 	// ServiceQuotaTemplateAssociationStatusDisassociated is a ServiceQuotaTemplateAssociationStatus enum value
 	ServiceQuotaTemplateAssociationStatusDisassociated = "DISASSOCIATED"
 )
+
+// ServiceQuotaTemplateAssociationStatus_Values returns all elements of the ServiceQuotaTemplateAssociationStatus enum
+func ServiceQuotaTemplateAssociationStatus_Values() []string {
+	return []string{
+		ServiceQuotaTemplateAssociationStatusAssociated,
+		ServiceQuotaTemplateAssociationStatusDisassociated,
+	}
+}

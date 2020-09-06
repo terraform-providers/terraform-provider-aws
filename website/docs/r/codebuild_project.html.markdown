@@ -38,7 +38,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "example" {
-  role = "${aws_iam_role.example.name}"
+  role = aws_iam_role.example.name
 
   policy = <<POLICY
 {
@@ -105,7 +105,7 @@ resource "aws_codebuild_project" "example" {
   name          = "test-project"
   description   = "test_codebuild_project"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.example.arn}"
+  service_role  = aws_iam_role.example.arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -113,7 +113,7 @@ resource "aws_codebuild_project" "example" {
 
   cache {
     type     = "S3"
-    location = "${aws_s3_bucket.example.bucket}"
+    location = aws_s3_bucket.example.bucket
   }
 
   environment {
@@ -159,16 +159,16 @@ resource "aws_codebuild_project" "example" {
   source_version = "master"
 
   vpc_config {
-    vpc_id = "${aws_vpc.example.id}"
+    vpc_id = aws_vpc.example.id
 
     subnets = [
-      "${aws_subnet.example1.id}",
-      "${aws_subnet.example2.id}",
+      aws_subnet.example1.id,
+      aws_subnet.example2.id,
     ]
 
     security_group_ids = [
-      "${aws_security_group.example1.id}",
-      "${aws_security_group.example2.id}",
+      aws_security_group.example1.id,
+      aws_security_group.example2.id,
     ]
   }
 
@@ -183,7 +183,7 @@ resource "aws_codebuild_project" "project-with-cache" {
   build_timeout  = "5"
   queued_timeout = "5"
 
-  service_role = "${aws_iam_role.example.arn}"
+  service_role = aws_iam_role.example.arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -262,7 +262,7 @@ The following arguments are supported:
 
 * `compute_type` - (Required) Information about the compute resources the build project will use. Available values for this parameter are: `BUILD_GENERAL1_SMALL`, `BUILD_GENERAL1_MEDIUM`, `BUILD_GENERAL1_LARGE` or `BUILD_GENERAL1_2XLARGE`. `BUILD_GENERAL1_SMALL` is only valid if `type` is set to `LINUX_CONTAINER`. When `type` is set to `LINUX_GPU_CONTAINER`, `compute_type` need to be `BUILD_GENERAL1_LARGE`.
 * `image` - (Required) The Docker image to use for this build project. Valid values include [Docker images provided by CodeBuild](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html) (e.g `aws/codebuild/standard:2.0`), [Docker Hub images](https://hub.docker.com/) (e.g. `hashicorp/terraform:latest`), and full Docker repository URIs such as those for ECR (e.g. `137112412989.dkr.ecr.us-west-2.amazonaws.com/amazonlinux:latest`).
-* `type` - (Required) The type of build environment to use for related builds. Available values are: `LINUX_CONTAINER`, `LINUX_GPU_CONTAINER`, `WINDOWS_CONTAINER` or `ARM_CONTAINER`.
+* `type` - (Required) The type of build environment to use for related builds. Available values are: `LINUX_CONTAINER`, `LINUX_GPU_CONTAINER`, `WINDOWS_CONTAINER`, `WINDOWS_SERVER_2019_CONTAINER` or `ARM_CONTAINER`.
 * `image_pull_credentials_type` - (Optional) The type of credentials AWS CodeBuild uses to pull images in your build. Available values for this parameter are `CODEBUILD` or `SERVICE_ROLE`. When you use a cross-account or private registry image, you must use SERVICE_ROLE credentials. When you use an AWS CodeBuild curated image, you must use CODEBUILD credentials. Default to `CODEBUILD`
 * `environment_variable` - (Optional) A set of environment variables to make available to builds for this build project.
 * `privileged_mode` - (Optional) If set to true, enables running the Docker daemon inside a Docker container. Defaults to `false`.
@@ -273,7 +273,7 @@ The following arguments are supported:
 
 * `name` - (Required) The environment variable's name or key.
 * `value` - (Required) The environment variable's value.
-* `type` - (Optional) The type of environment variable. Valid values: `PARAMETER_STORE`, `PLAINTEXT`.
+* `type` - (Optional) The type of environment variable. Valid values: `PARAMETER_STORE`, `PLAINTEXT`, and `SECRETS_MANAGER`.
 
 `logs_config` supports the following:
 

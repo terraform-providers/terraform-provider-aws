@@ -8,13 +8,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIoTPolicy_basic(t *testing.T) {
-	rName := acctest.RandomWithPrefix("PubSubToAnyTopic-")
+	var v iot.GetPolicyOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iot_policy.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,18 +26,46 @@ func TestAccAWSIoTPolicy_basic(t *testing.T) {
 			{
 				Config: testAccAWSIoTPolicyConfigInitialState(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("aws_iot_policy.pubsub", "name", rName),
-					resource.TestCheckResourceAttrSet("aws_iot_policy.pubsub", "arn"),
-					resource.TestCheckResourceAttrSet("aws_iot_policy.pubsub", "default_version_id"),
-					resource.TestCheckResourceAttrSet("aws_iot_policy.pubsub", "policy"),
+					testAccCheckAWSIoTPolicyExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "iot", fmt.Sprintf("policy/%s", rName)),
+					resource.TestCheckResourceAttrSet(resourceName, "default_version_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "policy"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSIoTPolicy_disappears(t *testing.T) {
+	var v iot.GetPolicyOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iot_policy.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSIoTPolicyDestroy_basic,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIoTPolicyConfigInitialState(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTPolicyExists(resourceName, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsIotPolicy(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccAWSIoTPolicy_invalidJson(t *testing.T) {
-	rName := acctest.RandomWithPrefix("PubSubToAnyTopic-")
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,40 +113,80 @@ func testAccCheckAWSIoTPolicyDestroy_basic(s *terraform.State) error {
 	return nil
 }
 
+func testAccCheckAWSIoTPolicyExists(n string, v *iot.GetPolicyOutput) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No IoT Policy ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).iotconn
+
+		resp, err := conn.GetPolicy(&iot.GetPolicyInput{
+			PolicyName: aws.String(rs.Primary.ID),
+		})
+		if err != nil {
+			return err
+		}
+
+		*v = *resp
+
+		return nil
+	}
+}
+
 func testAccAWSIoTPolicyConfigInitialState(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_iot_policy" "pubsub" {
+resource "aws_iot_policy" "test" {
   name = "%s"
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["iot:*"],
-    "Resource": ["*"]
-  }]
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
 }
 EOF
+
 }
 `, rName)
 }
 
 func testAccAWSIoTPolicyInvalidJsonConfig(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_iot_policy" "pubsub" {
+resource "aws_iot_policy" "test" {
   name = "%s"
 
   policy = <<EOF
-	{
-	  "Version": "2012-10-17",
-	  "Statement": [{
-		"Effect": "Allow",
-		"Action": ["iot:*"],
-		"Resource": ["*"]
-	  }]
-	}
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
 EOF
+
 }
 `, rName)
 }

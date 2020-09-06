@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLoadBalancerListenerPolicy_basic(t *testing.T) {
@@ -165,7 +165,7 @@ resource "aws_elb" "test-lb" {
 }
 
 resource "aws_load_balancer_policy" "magic-cookie-sticky" {
-  load_balancer_name = "${aws_elb.test-lb.name}"
+  load_balancer_name = aws_elb.test-lb.name
   policy_name        = "%s"
   policy_type_name   = "AppCookieStickinessPolicyType"
 
@@ -176,11 +176,11 @@ resource "aws_load_balancer_policy" "magic-cookie-sticky" {
 }
 
 resource "aws_load_balancer_listener_policy" "test-lb-listener-policies-80" {
-  load_balancer_name = "${aws_elb.test-lb.name}"
+  load_balancer_name = aws_elb.test-lb.name
   load_balancer_port = 80
 
   policy_names = [
-    "${aws_load_balancer_policy.magic-cookie-sticky.policy_name}",
+    aws_load_balancer_policy.magic-cookie-sticky.policy_name,
   ]
 }
 `, lbName, mcName)
@@ -205,7 +205,7 @@ resource "aws_elb" "test-lb" {
 }
 
 resource "aws_load_balancer_policy" "magic-cookie-sticky" {
-  load_balancer_name = "${aws_elb.test-lb.name}"
+  load_balancer_name = aws_elb.test-lb.name
   policy_name        = "%s"
   policy_type_name   = "AppCookieStickinessPolicyType"
 
@@ -216,11 +216,11 @@ resource "aws_load_balancer_policy" "magic-cookie-sticky" {
 }
 
 resource "aws_load_balancer_listener_policy" "test-lb-listener-policies-80" {
-  load_balancer_name = "${aws_elb.test-lb.name}"
+  load_balancer_name = aws_elb.test-lb.name
   load_balancer_port = 80
 
   policy_names = [
-    "${aws_load_balancer_policy.magic-cookie-sticky.policy_name}",
+    aws_load_balancer_policy.magic-cookie-sticky.policy_name,
   ]
 }
 `, lbName, mcName)

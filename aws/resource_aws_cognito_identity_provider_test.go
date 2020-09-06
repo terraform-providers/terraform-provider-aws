@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCognitoIdentityProvider_basic(t *testing.T) {
@@ -137,14 +137,13 @@ func testAccCheckAWSCognitoIdentityProviderExists(resourceName string, identityP
 
 func testAccAWSCognitoIdentityProviderConfig_basic(userPoolName string) string {
 	return fmt.Sprintf(`
-
 resource "aws_cognito_user_pool" "test" {
   name                     = "%s"
   auto_verified_attributes = ["email"]
 }
 
 resource "aws_cognito_identity_provider" "test" {
-  user_pool_id  = "${aws_cognito_user_pool.test.id}"
+  user_pool_id  = aws_cognito_user_pool.test.id
   provider_name = "Google"
   provider_type = "Google"
 
@@ -165,14 +164,13 @@ resource "aws_cognito_identity_provider" "test" {
 
 func testAccAWSCognitoIdentityProviderConfig_basicUpdated(userPoolName string) string {
 	return fmt.Sprintf(`
-
 resource "aws_cognito_user_pool" "test" {
   name                     = "%s"
   auto_verified_attributes = ["email"]
 }
 
 resource "aws_cognito_identity_provider" "test" {
-  user_pool_id  = "${aws_cognito_user_pool.test.id}"
+  user_pool_id  = aws_cognito_user_pool.test.id
   provider_name = "Google"
   provider_type = "Google"
 

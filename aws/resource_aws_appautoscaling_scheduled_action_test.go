@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAppautoscalingScheduledAction_dynamo(t *testing.T) {
@@ -161,9 +161,9 @@ resource "aws_appautoscaling_target" "read" {
 
 resource "aws_appautoscaling_scheduled_action" "hoge" {
   name               = "tf-appauto-%s"
-  service_namespace  = "${aws_appautoscaling_target.read.service_namespace}"
-  resource_id        = "${aws_appautoscaling_target.read.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.read.scalable_dimension}"
+  service_namespace  = aws_appautoscaling_target.read.service_namespace
+  resource_id        = aws_appautoscaling_target.read.resource_id
+  scalable_dimension = aws_appautoscaling_target.read.scalable_dimension
   schedule           = "at(%s)"
 
   scalable_target_action {
@@ -198,8 +198,8 @@ EOF
 
 resource "aws_ecs_service" "hoge" {
   name            = "tf-ecs-service-%s"
-  cluster         = "${aws_ecs_cluster.hoge.id}"
-  task_definition = "${aws_ecs_task_definition.hoge.arn}"
+  cluster         = aws_ecs_cluster.hoge.id
+  task_definition = aws_ecs_task_definition.hoge.arn
   desired_count   = 1
 
   deployment_maximum_percent         = 200
@@ -216,9 +216,9 @@ resource "aws_appautoscaling_target" "hoge" {
 
 resource "aws_appautoscaling_scheduled_action" "hoge" {
   name               = "tf-appauto-%s"
-  service_namespace  = "${aws_appautoscaling_target.hoge.service_namespace}"
-  resource_id        = "${aws_appautoscaling_target.hoge.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.hoge.scalable_dimension}"
+  service_namespace  = aws_appautoscaling_target.hoge.service_namespace
+  resource_id        = aws_appautoscaling_target.hoge.resource_id
+  scalable_dimension = aws_appautoscaling_target.hoge.scalable_dimension
   schedule           = "at(%s)"
 
   scalable_target_action {
@@ -233,8 +233,8 @@ func testAccAppautoscalingScheduledActionConfig_EMR(rName, ts string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   # The requested instance type c4.large is not supported in the requested availability zone.
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -250,15 +250,20 @@ resource "aws_emr_cluster" "hoge" {
   applications  = ["Spark"]
 
   ec2_attributes {
-    subnet_id                         = "${aws_subnet.hoge.id}"
-    emr_managed_master_security_group = "${aws_security_group.hoge.id}"
-    emr_managed_slave_security_group  = "${aws_security_group.hoge.id}"
-    instance_profile                  = "${aws_iam_instance_profile.instance_profile.arn}"
+    subnet_id                         = aws_subnet.hoge.id
+    emr_managed_master_security_group = aws_security_group.hoge.id
+    emr_managed_slave_security_group  = aws_security_group.hoge.id
+    instance_profile                  = aws_iam_instance_profile.instance_profile.arn
   }
 
-  master_instance_type = "c4.large"
-  core_instance_type   = "c4.large"
-  core_instance_count  = 2
+  master_instance_group {
+    instance_type = "c4.large"
+  }
+
+  core_instance_group {
+    instance_count = 2
+    instance_type  = "c4.large"
+  }
 
   tags = {
     role     = "rolename"
@@ -277,14 +282,14 @@ resource "aws_emr_cluster" "hoge" {
 
   configurations = "test-fixtures/emr_configurations.json"
 
-  depends_on = ["aws_main_route_table_association.hoge"]
+  depends_on = [aws_main_route_table_association.hoge]
 
-  service_role     = "${aws_iam_role.emr_role.arn}"
-  autoscaling_role = "${aws_iam_role.autoscale_role.arn}"
+  service_role     = aws_iam_role.emr_role.arn
+  autoscaling_role = aws_iam_role.autoscale_role.arn
 }
 
 resource "aws_emr_instance_group" "hoge" {
-  cluster_id     = "${aws_emr_cluster.hoge.id}"
+  cluster_id     = aws_emr_cluster.hoge.id
   instance_count = 1
   instance_type  = "c4.large"
 }
@@ -292,7 +297,7 @@ resource "aws_emr_instance_group" "hoge" {
 resource "aws_security_group" "hoge" {
   name        = "tf-sg-%s"
   description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.hoge.id}"
+  vpc_id      = aws_vpc.hoge.id
 
   ingress {
     from_port = 0
@@ -308,10 +313,13 @@ resource "aws_security_group" "hoge" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on = ["aws_subnet.hoge"]
+  depends_on = [aws_subnet.hoge]
 
   lifecycle {
-    ignore_changes = ["ingress", "egress"]
+    ignore_changes = [
+      ingress,
+      egress,
+    ]
   }
 }
 
@@ -325,9 +333,9 @@ resource "aws_vpc" "hoge" {
 }
 
 resource "aws_subnet" "hoge" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "168.31.0.0/20"
-  vpc_id            = "${aws_vpc.hoge.id}"
+  vpc_id            = aws_vpc.hoge.id
 
   tags = {
     Name = "tf-acc-appautoscaling-scheduled-action"
@@ -335,21 +343,21 @@ resource "aws_subnet" "hoge" {
 }
 
 resource "aws_internet_gateway" "hoge" {
-  vpc_id = "${aws_vpc.hoge.id}"
+  vpc_id = aws_vpc.hoge.id
 }
 
 resource "aws_route_table" "hoge" {
-  vpc_id = "${aws_vpc.hoge.id}"
+  vpc_id = aws_vpc.hoge.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.hoge.id}"
+    gateway_id = aws_internet_gateway.hoge.id
   }
 }
 
 resource "aws_main_route_table_association" "hoge" {
-  vpc_id         = "${aws_vpc.hoge.id}"
-  route_table_id = "${aws_route_table.hoge.id}"
+  vpc_id         = aws_vpc.hoge.id
+  route_table_id = aws_route_table.hoge.id
 }
 
 resource "aws_iam_role" "emr_role" {
@@ -371,8 +379,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "emr_role" {
-  role       = "${aws_iam_role.emr_role.id}"
-  policy_arn = "${aws_iam_policy.emr_policy.arn}"
+  role       = aws_iam_role.emr_role.id
+  policy_arn = aws_iam_policy.emr_policy.arn
 }
 
 resource "aws_iam_policy" "emr_policy" {
@@ -463,12 +471,12 @@ EOT
 
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "tf-emr-profile-%s"
-  role = "${aws_iam_role.instance_role.name}"
+  role = aws_iam_role.instance_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "instance_role" {
-  role       = "${aws_iam_role.instance_role.id}"
-  policy_arn = "${aws_iam_policy.instance_policy.arn}"
+  role       = aws_iam_role.instance_role.id
+  policy_arn = aws_iam_policy.instance_policy.arn
 }
 
 resource "aws_iam_policy" "instance_policy" {
@@ -509,7 +517,7 @@ EOT
 
 # IAM Role for autoscaling
 resource "aws_iam_role" "autoscale_role" {
-  assume_role_policy = "${data.aws_iam_policy_document.autoscale_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.autoscale_role.json
 }
 
 data "aws_iam_policy_document" "autoscale_role" {
@@ -525,7 +533,7 @@ data "aws_iam_policy_document" "autoscale_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "autoscale_role" {
-  role       = "${aws_iam_role.autoscale_role.name}"
+  role       = aws_iam_role.autoscale_role.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
 
@@ -533,16 +541,16 @@ resource "aws_appautoscaling_target" "hoge" {
   service_namespace  = "elasticmapreduce"
   resource_id        = "instancegroup/${aws_emr_cluster.hoge.id}/${aws_emr_instance_group.hoge.id}"
   scalable_dimension = "elasticmapreduce:instancegroup:InstanceCount"
-  role_arn           = "${aws_iam_role.autoscale_role.arn}"
+  role_arn           = aws_iam_role.autoscale_role.arn
   min_capacity       = 1
   max_capacity       = 5
 }
 
 resource "aws_appautoscaling_scheduled_action" "hoge" {
   name               = "tf-appauto-%s"
-  service_namespace  = "${aws_appautoscaling_target.hoge.service_namespace}"
-  resource_id        = "${aws_appautoscaling_target.hoge.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.hoge.scalable_dimension}"
+  service_namespace  = aws_appautoscaling_target.hoge.service_namespace
+  resource_id        = aws_appautoscaling_target.hoge.resource_id
+  scalable_dimension = aws_appautoscaling_target.hoge.scalable_dimension
   schedule           = "at(%s)"
 
   scalable_target_action {
@@ -663,12 +671,12 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "fleet_role_policy" {
-  role       = "${aws_iam_role.fleet_role.name}"
+  role       = aws_iam_role.fleet_role.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole"
 }
 
 resource "aws_spot_fleet_request" "hoge" {
-  iam_fleet_role                      = "${aws_iam_role.fleet_role.arn}"
+  iam_fleet_role                      = aws_iam_role.fleet_role.arn
   spot_price                          = "0.005"
   target_capacity                     = 2
   valid_until                         = %[3]q
@@ -676,7 +684,7 @@ resource "aws_spot_fleet_request" "hoge" {
 
   launch_specification {
     instance_type = "m3.medium"
-    ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+    ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   }
 }
 
@@ -690,9 +698,9 @@ resource "aws_appautoscaling_target" "hoge" {
 
 resource "aws_appautoscaling_scheduled_action" "hoge" {
   name               = "tf-appauto-%[1]s"
-  service_namespace  = "${aws_appautoscaling_target.hoge.service_namespace}"
-  resource_id        = "${aws_appautoscaling_target.hoge.resource_id}"
-  scalable_dimension = "${aws_appautoscaling_target.hoge.scalable_dimension}"
+  service_namespace  = aws_appautoscaling_target.hoge.service_namespace
+  resource_id        = aws_appautoscaling_target.hoge.resource_id
+  scalable_dimension = aws_appautoscaling_target.hoge.scalable_dimension
   schedule           = "at(%[2]s)"
 
   scalable_target_action {

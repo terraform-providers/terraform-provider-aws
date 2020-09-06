@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayV2IntegrationResponse_basic(t *testing.T) {
@@ -198,20 +198,20 @@ func testAccAWSAPIGatewayV2IntegrationResponseImportStateIdFunc(resourceName str
 }
 
 func testAccAWSAPIGatewayV2IntegrationResponseConfig_basic(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + `
 resource "aws_apigatewayv2_integration_response" "test" {
-  api_id                   = "${aws_apigatewayv2_api.test.id}"
-  integration_id           = "${aws_apigatewayv2_integration.test.id}"
+  api_id                   = aws_apigatewayv2_api.test.id
+  integration_id           = aws_apigatewayv2_integration.test.id
   integration_response_key = "/200/"
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2IntegrationResponseConfig_allAttributes(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + `
 resource "aws_apigatewayv2_integration_response" "test" {
-  api_id                   = "${aws_apigatewayv2_api.test.id}"
-  integration_id           = "${aws_apigatewayv2_integration.test.id}"
+  api_id                   = aws_apigatewayv2_api.test.id
+  integration_id           = aws_apigatewayv2_integration.test.id
   integration_response_key = "$default"
 
   content_handling_strategy     = "CONVERT_TO_TEXT"
@@ -221,14 +221,14 @@ resource "aws_apigatewayv2_integration_response" "test" {
     "application/json" = ""
   }
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2IntegrationResponseConfig_allAttributesUpdated(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + `
 resource "aws_apigatewayv2_integration_response" "test" {
-  api_id                   = "${aws_apigatewayv2_api.test.id}"
-  integration_id           = "${aws_apigatewayv2_integration.test.id}"
+  api_id                   = aws_apigatewayv2_api.test.id
+  integration_id           = aws_apigatewayv2_integration.test.id
   integration_response_key = "/404/"
 
   content_handling_strategy     = "CONVERT_TO_BINARY"
@@ -239,5 +239,5 @@ resource "aws_apigatewayv2_integration_response" "test" {
     "application/xml"  = "#set($percent=$number/100)"
   }
 }
-`)
+`
 }

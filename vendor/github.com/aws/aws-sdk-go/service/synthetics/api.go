@@ -63,7 +63,8 @@ func (c *Synthetics) CreateCanaryRequest(input *CreateCanaryInput) (req *request
 // data, screenshots of the UI, logs, and metrics. You can set up a canary to
 // run continuously or just once.
 //
-// Do not use CreateCanary to modify an existing canary. Use UpdateCanary instead.
+// Do not use CreateCanary to modify an existing canary. Use UpdateCanary (https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_UpdateCanary.html)
+// instead.
 //
 // To create canaries, you must have the CloudWatchSyntheticsFullAccess policy.
 // If you are creating a new IAM role for the canary, you also need the the
@@ -1815,6 +1816,10 @@ func (s *CanaryRun) SetTimeline(v *CanaryRunTimeline) *CanaryRun {
 type CanaryRunConfigInput struct {
 	_ struct{} `type:"structure"`
 
+	// The maximum amount of memory available to the canary while it is running,
+	// in MB. The value you specify must be a multiple of 64.
+	MemoryInMB *int64 `min:"960" type:"integer"`
+
 	// How long the canary is allowed to run before it must stop. If you omit this
 	// field, the frequency of the canary is used as this value, up to a maximum
 	// of 14 minutes.
@@ -1836,6 +1841,9 @@ func (s CanaryRunConfigInput) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *CanaryRunConfigInput) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "CanaryRunConfigInput"}
+	if s.MemoryInMB != nil && *s.MemoryInMB < 960 {
+		invalidParams.Add(request.NewErrParamMinValue("MemoryInMB", 960))
+	}
 	if s.TimeoutInSeconds == nil {
 		invalidParams.Add(request.NewErrParamRequired("TimeoutInSeconds"))
 	}
@@ -1849,6 +1857,12 @@ func (s *CanaryRunConfigInput) Validate() error {
 	return nil
 }
 
+// SetMemoryInMB sets the MemoryInMB field's value.
+func (s *CanaryRunConfigInput) SetMemoryInMB(v int64) *CanaryRunConfigInput {
+	s.MemoryInMB = &v
+	return s
+}
+
 // SetTimeoutInSeconds sets the TimeoutInSeconds field's value.
 func (s *CanaryRunConfigInput) SetTimeoutInSeconds(v int64) *CanaryRunConfigInput {
 	s.TimeoutInSeconds = &v
@@ -1858,6 +1872,10 @@ func (s *CanaryRunConfigInput) SetTimeoutInSeconds(v int64) *CanaryRunConfigInpu
 // A structure that contains information for a canary run.
 type CanaryRunConfigOutput struct {
 	_ struct{} `type:"structure"`
+
+	// The maximum amount of memory available to the canary while it is running,
+	// in MB. The value you must be a multiple of 64.
+	MemoryInMB *int64 `min:"960" type:"integer"`
 
 	// How long the canary is allowed to run before it must stop.
 	TimeoutInSeconds *int64 `min:"60" type:"integer"`
@@ -1871,6 +1889,12 @@ func (s CanaryRunConfigOutput) String() string {
 // GoString returns the string representation
 func (s CanaryRunConfigOutput) GoString() string {
 	return s.String()
+}
+
+// SetMemoryInMB sets the MemoryInMB field's value.
+func (s *CanaryRunConfigOutput) SetMemoryInMB(v int64) *CanaryRunConfigOutput {
+	s.MemoryInMB = &v
+	return s
 }
 
 // SetTimeoutInSeconds sets the TimeoutInSeconds field's value.
@@ -2466,7 +2490,7 @@ type DeleteCanaryInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the canary that you want to delete. To find the names of your
-	// canaries, use DescribeCanaries.
+	// canaries, use DescribeCanaries (https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html).
 	//
 	// Name is a required field
 	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
@@ -3169,7 +3193,8 @@ func (s *RuntimeVersion) SetVersionName(v string) *RuntimeVersion {
 type StartCanaryInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the canary that you want to run. To find canary names, use DescribeCanaries.
+	// The name of the canary that you want to run. To find canary names, use DescribeCanaries
+	// (https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html).
 	//
 	// Name is a required field
 	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
@@ -3225,7 +3250,7 @@ type StopCanaryInput struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the canary that you want to stop. To find the names of your canaries,
-	// use DescribeCanaries.
+	// use DescribeCanaries (https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html).
 	//
 	// Name is a required field
 	Name *string `location:"uri" locationName:"name" min:"1" type:"string" required:"true"`
@@ -3456,7 +3481,7 @@ type UpdateCanaryInput struct {
 	FailureRetentionPeriodInDays *int64 `min:"1" type:"integer"`
 
 	// The name of the canary that you want to update. To find the names of your
-	// canaries, use DescribeCanaries.
+	// canaries, use DescribeCanaries (https://docs.aws.amazon.com/AmazonSynthetics/latest/APIReference/API_DescribeCanaries.html).
 	//
 	// You cannot change the name of a canary that has already been created.
 	//
@@ -3749,6 +3774,15 @@ const (
 	CanaryRunStateFailed = "FAILED"
 )
 
+// CanaryRunState_Values returns all elements of the CanaryRunState enum
+func CanaryRunState_Values() []string {
+	return []string{
+		CanaryRunStateRunning,
+		CanaryRunStatePassed,
+		CanaryRunStateFailed,
+	}
+}
+
 const (
 	// CanaryRunStateReasonCodeCanaryFailure is a CanaryRunStateReasonCode enum value
 	CanaryRunStateReasonCodeCanaryFailure = "CANARY_FAILURE"
@@ -3756,6 +3790,14 @@ const (
 	// CanaryRunStateReasonCodeExecutionFailure is a CanaryRunStateReasonCode enum value
 	CanaryRunStateReasonCodeExecutionFailure = "EXECUTION_FAILURE"
 )
+
+// CanaryRunStateReasonCode_Values returns all elements of the CanaryRunStateReasonCode enum
+func CanaryRunStateReasonCode_Values() []string {
+	return []string{
+		CanaryRunStateReasonCodeCanaryFailure,
+		CanaryRunStateReasonCodeExecutionFailure,
+	}
+}
 
 const (
 	// CanaryStateCreating is a CanaryState enum value
@@ -3786,7 +3828,29 @@ const (
 	CanaryStateDeleting = "DELETING"
 )
 
+// CanaryState_Values returns all elements of the CanaryState enum
+func CanaryState_Values() []string {
+	return []string{
+		CanaryStateCreating,
+		CanaryStateReady,
+		CanaryStateStarting,
+		CanaryStateRunning,
+		CanaryStateUpdating,
+		CanaryStateStopping,
+		CanaryStateStopped,
+		CanaryStateError,
+		CanaryStateDeleting,
+	}
+}
+
 const (
 	// CanaryStateReasonCodeInvalidPermissions is a CanaryStateReasonCode enum value
 	CanaryStateReasonCodeInvalidPermissions = "INVALID_PERMISSIONS"
 )
+
+// CanaryStateReasonCode_Values returns all elements of the CanaryStateReasonCode enum
+func CanaryStateReasonCode_Values() []string {
+	return []string{
+		CanaryStateReasonCodeInvalidPermissions,
+	}
+}

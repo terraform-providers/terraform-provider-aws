@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsApiGatewayRequestValidator() *schema.Resource {
@@ -88,7 +87,7 @@ func resourceAwsApiGatewayRequestValidatorRead(d *schema.ResourceData, meta inte
 
 	out, err := conn.GetRequestValidator(&input)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == apigateway.ErrCodeNotFoundException {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] API Gateway Request Validator (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -111,7 +110,7 @@ func resourceAwsApiGatewayRequestValidatorUpdate(d *schema.ResourceData, meta in
 
 	if d.HasChange("name") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/name"),
 			Value: aws.String(d.Get("name").(string)),
 		})
@@ -119,7 +118,7 @@ func resourceAwsApiGatewayRequestValidatorUpdate(d *schema.ResourceData, meta in
 
 	if d.HasChange("validate_request_body") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/validateRequestBody"),
 			Value: aws.String(fmt.Sprintf("%t", d.Get("validate_request_body").(bool))),
 		})
@@ -127,7 +126,7 @@ func resourceAwsApiGatewayRequestValidatorUpdate(d *schema.ResourceData, meta in
 
 	if d.HasChange("validate_request_parameters") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/validateRequestParameters"),
 			Value: aws.String(fmt.Sprintf("%t", d.Get("validate_request_parameters").(bool))),
 		})

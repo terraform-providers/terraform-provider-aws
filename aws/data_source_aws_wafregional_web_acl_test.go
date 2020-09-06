@@ -2,14 +2,14 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsWafRegionalWebAcl_Basic(t *testing.T) {
+func TestAccDataSourceAwsWafRegionalWebAcl_basic(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_wafregional_web_acl.web_acl"
 	datasourceName := "data.aws_wafregional_web_acl.web_acl"
@@ -38,13 +38,14 @@ func testAccDataSourceAwsWafRegionalWebAclConfig_Name(name string) string {
 resource "aws_wafregional_web_acl" "web_acl" {
   name        = %[1]q
   metric_name = "tfWebACL"
+
   default_action {
     type = "ALLOW"
   }
 }
 
 data "aws_wafregional_web_acl" "web_acl" {
-  name = "${aws_wafregional_web_acl.web_acl.name}"
+  name = aws_wafregional_web_acl.web_acl.name
 }
 `, name)
 }

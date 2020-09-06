@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSESEventDestination_basic(t *testing.T) {
@@ -195,15 +195,15 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.test.arn}"
-    bucket_arn = "${aws_s3_bucket.test.arn}"
+    role_arn   = aws_iam_role.test.arn
+    bucket_arn = aws_s3_bucket.test.arn
   }
 }
 
 resource "aws_iam_role_policy" "test" {
   name   = %[2]q
-  role   = "${aws_iam_role.test.id}"
-  policy = "${data.aws_iam_policy_document.test.json}"
+  role   = aws_iam_role.test.id
+  policy = data.aws_iam_policy_document.test.json
 }
 
 data "aws_iam_policy_document" "test" {
@@ -231,19 +231,19 @@ resource "aws_ses_configuration_set" "test" {
 
 resource "aws_ses_event_destination" "kinesis" {
   name                   = %[2]q
-  configuration_set_name = "${aws_ses_configuration_set.test.name}"
+  configuration_set_name = aws_ses_configuration_set.test.name
   enabled                = true
   matching_types         = ["bounce", "send"]
 
   kinesis_destination {
-    stream_arn = "${aws_kinesis_firehose_delivery_stream.test.arn}"
-    role_arn   = "${aws_iam_role.test.arn}"
+    stream_arn = aws_kinesis_firehose_delivery_stream.test.arn
+    role_arn   = aws_iam_role.test.arn
   }
 }
 
 resource "aws_ses_event_destination" "cloudwatch" {
   name                   = %[1]q
-  configuration_set_name = "${aws_ses_configuration_set.test.name}"
+  configuration_set_name = aws_ses_configuration_set.test.name
   enabled                = true
   matching_types         = ["bounce", "send"]
 
@@ -262,12 +262,12 @@ resource "aws_ses_event_destination" "cloudwatch" {
 
 resource "aws_ses_event_destination" "sns" {
   name                   = %[3]q
-  configuration_set_name = "${aws_ses_configuration_set.test.name}"
+  configuration_set_name = aws_ses_configuration_set.test.name
   enabled                = true
   matching_types         = ["bounce", "send"]
 
   sns_destination {
-    topic_arn = "${aws_sns_topic.test.arn}"
+    topic_arn = aws_sns_topic.test.arn
   }
 }
 `, rName1, rName2, rName3)

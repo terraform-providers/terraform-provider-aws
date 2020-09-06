@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsCloudWatchEventPermission() *schema.Resource {
@@ -111,7 +111,10 @@ func resourceAwsCloudWatchEventPermissionRead(d *schema.ResourceData, meta inter
 		}
 
 		policyStatement, err = getPolicyStatement(output, d.Id())
-		return resource.RetryableError(err)
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+		return nil
 	})
 
 	if isResourceTimeoutError(err) {

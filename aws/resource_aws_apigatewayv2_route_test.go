@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayV2Route_basic(t *testing.T) {
@@ -63,7 +63,7 @@ func TestAccAWSAPIGatewayV2Route_disappears(t *testing.T) {
 				Config: testAccAWSAPIGatewayV2RouteConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2RouteExists(resourceName, &apiId, &v),
-					testAccCheckAWSAPIGatewayV2RouteDisappears(&apiId, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayV2Route(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -148,7 +148,7 @@ func TestAccAWSAPIGatewayV2Route_JwtAuthorization(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "model_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "operation_name", ""),
 					resource.TestCheckResourceAttr(resourceName, "request_models.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "route_key", "$connect"),
+					resource.TestCheckResourceAttr(resourceName, "route_key", "GET /test"),
 					resource.TestCheckResourceAttr(resourceName, "route_response_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "target", ""),
 				),
@@ -170,7 +170,7 @@ func TestAccAWSAPIGatewayV2Route_JwtAuthorization(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "model_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "operation_name", ""),
 					resource.TestCheckResourceAttr(resourceName, "request_models.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "route_key", "$connect"),
+					resource.TestCheckResourceAttr(resourceName, "route_key", "GET /test"),
 					resource.TestCheckResourceAttr(resourceName, "route_response_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "target", ""),
 				),
@@ -322,6 +322,57 @@ func TestAccAWSAPIGatewayV2Route_Target(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayV2Route_UpdateRouteKey(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetRouteOutput
+	resourceName := "aws_apigatewayv2_route.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2RouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2RouteConfig_routeKey(rName, "GET /path"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2RouteExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "api_key_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "authorization_type", apigatewayv2.AuthorizationTypeNone),
+					resource.TestCheckResourceAttr(resourceName, "authorizer_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "model_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "operation_name", ""),
+					resource.TestCheckResourceAttr(resourceName, "request_models.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "route_key", "GET /path"),
+					resource.TestCheckResourceAttr(resourceName, "route_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "target", ""),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayV2RouteConfig_routeKey(rName, "POST /new/path"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2RouteExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "api_key_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "authorization_type", apigatewayv2.AuthorizationTypeNone),
+					resource.TestCheckResourceAttr(resourceName, "authorizer_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "model_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "operation_name", ""),
+					resource.TestCheckResourceAttr(resourceName, "request_models.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "route_key", "POST /new/path"),
+					resource.TestCheckResourceAttr(resourceName, "route_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "target", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2RouteImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAPIGatewayV2RouteDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).apigatewayv2conn
 
@@ -345,19 +396,6 @@ func testAccCheckAWSAPIGatewayV2RouteDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckAWSAPIGatewayV2RouteDisappears(apiId *string, v *apigatewayv2.GetRouteOutput) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigatewayv2conn
-
-		_, err := conn.DeleteRoute(&apigatewayv2.DeleteRouteInput{
-			ApiId:   apiId,
-			RouteId: v.RouteId,
-		})
-
-		return err
-	}
 }
 
 func testAccCheckAWSAPIGatewayV2RouteExists(n string, vApiId *string, v *apigatewayv2.GetRouteOutput) resource.TestCheckFunc {
@@ -421,64 +459,73 @@ resource "aws_apigatewayv2_api" "test" {
 `, rName)
 }
 
+func testAccAWSAPIGatewayV2RouteConfig_apiHttp(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = %[1]q
+  protocol_type = "HTTP"
+}
+`, rName)
+}
+
 func testAccAWSAPIGatewayV2RouteConfig_basic(rName string) string {
-	return testAccAWSAPIGatewayV2RouteConfig_apiWebSocket(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2RouteConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$default"
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_authorizer(rName string) string {
-	return testAccAWSAPIGatewayV2AuthorizerConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2AuthorizerConfig_basic(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$connect"
 
   authorization_type = "CUSTOM"
-  authorizer_id      = "${aws_apigatewayv2_authorizer.test.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.test.id
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_authorizerUpdated(rName string) string {
-	return testAccAWSAPIGatewayV2AuthorizerConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2AuthorizerConfig_basic(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$connect"
 
   authorization_type = "AWS_IAM"
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_jwtAuthorization(rName string) string {
-	return testAccAWSAPIGatewayV2AuthorizerConfig_jwt(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2AuthorizerConfig_jwt(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
-  route_key = "$connect"
+  api_id    = aws_apigatewayv2_api.test.id
+  route_key = "GET /test"
 
   authorization_type = "JWT"
-  authorizer_id      = "${aws_apigatewayv2_authorizer.test.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.test.id
 
   authorization_scopes = ["user.id", "user.email"]
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_jwtAuthorizationUpdated(rName string) string {
-	return testAccAWSAPIGatewayV2AuthorizerConfig_jwt(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2AuthorizerConfig_jwt(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
-  route_key = "$connect"
+  api_id    = aws_apigatewayv2_api.test.id
+  route_key = "GET /test"
 
   authorization_type = "JWT"
-  authorizer_id      = "${aws_apigatewayv2_authorizer.test.id}"
+  authorizer_id      = aws_apigatewayv2_authorizer.test.id
 
   authorization_scopes = ["user.email"]
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_model(rName string) string {
@@ -495,41 +542,52 @@ func testAccAWSAPIGatewayV2RouteConfig_model(rName string) string {
 }
 `
 
-	return testAccAWSAPIGatewayV2ModelConfig_basic(rName, schema) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2ModelConfig_basic(rName, schema) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$default"
 
   model_selection_expression = "action"
 
   request_models = {
-    "test" = "${aws_apigatewayv2_model.test.name}"
+    "test" = aws_apigatewayv2_model.test.name
   }
 }
-`)
+`
+}
+
+func testAccAWSAPIGatewayV2RouteConfig_routeKey(rName, routeKey string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2RouteConfig_apiHttp(rName),
+		fmt.Sprintf(`
+resource "aws_apigatewayv2_route" "test" {
+  api_id    = aws_apigatewayv2_api.test.id
+  route_key = %[1]q
+}
+`, routeKey))
 }
 
 // Simple attributes - No authorization, models or targets.
 func testAccAWSAPIGatewayV2RouteConfig_simpleAttributes(rName string) string {
-	return testAccAWSAPIGatewayV2RouteConfig_apiWebSocket(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2RouteConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$default"
 
   api_key_required                    = true
   operation_name                      = "GET"
   route_response_selection_expression = "$default"
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2RouteConfig_target(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_basic(rName) + `
 resource "aws_apigatewayv2_route" "test" {
-  api_id    = "${aws_apigatewayv2_api.test.id}"
+  api_id    = aws_apigatewayv2_api.test.id
   route_key = "$default"
 
   target = "integrations/${aws_apigatewayv2_integration.test.id}"
 }
-`)
+`
 }

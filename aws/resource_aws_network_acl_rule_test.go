@@ -9,14 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNetworkAclRule_basic(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -25,9 +23,9 @@ func TestAccAWSNetworkAclRule_basic(t *testing.T) {
 			{
 				Config: testAccAWSNetworkAclRuleBasicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz", &networkAcl),
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.qux", &networkAcl),
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.wibble", &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz"),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.qux"),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.wibble"),
 				),
 			},
 			{
@@ -53,8 +51,6 @@ func TestAccAWSNetworkAclRule_basic(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_disappears(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -63,7 +59,7 @@ func TestAccAWSNetworkAclRule_disappears(t *testing.T) {
 			{
 				Config: testAccAWSNetworkAclRuleBasicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz", &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz"),
 					testAccCheckAWSNetworkAclRuleDelete("aws_network_acl_rule.baz"),
 				),
 				ExpectNonEmptyPlan: true,
@@ -73,8 +69,6 @@ func TestAccAWSNetworkAclRule_disappears(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_ingressEgressSameNumberDisappears(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -83,7 +77,7 @@ func TestAccAWSNetworkAclRule_ingressEgressSameNumberDisappears(t *testing.T) {
 			{
 				Config: testAccAWSNetworkAclRuleIngressEgressSameNumberMissing,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz", &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz"),
 					testAccCheckAWSNetworkAclRuleDelete("aws_network_acl_rule.baz"),
 				),
 				ExpectNonEmptyPlan: true,
@@ -105,7 +99,7 @@ func TestAccAWSNetworkAclRule_disappears_NetworkAcl(t *testing.T) {
 				Config: testAccAWSNetworkAclRuleBasicConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
-					testAccCheckAWSNetworkAclDisappears(&networkAcl),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsNetworkAcl(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -114,7 +108,6 @@ func TestAccAWSNetworkAclRule_disappears_NetworkAcl(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_missingParam(t *testing.T) {
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -129,8 +122,6 @@ func TestAccAWSNetworkAclRule_missingParam(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_ipv6(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -139,7 +130,7 @@ func TestAccAWSNetworkAclRule_ipv6(t *testing.T) {
 			{
 				Config: testAccAWSNetworkAclRuleIpv6Config,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz", &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists("aws_network_acl_rule.baz"),
 				),
 			},
 			{
@@ -153,7 +144,6 @@ func TestAccAWSNetworkAclRule_ipv6(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_ipv6ICMP(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_network_acl_rule.test"
 
@@ -165,7 +155,7 @@ func TestAccAWSNetworkAclRule_ipv6ICMP(t *testing.T) {
 			{
 				Config: testAccAWSNetworkAclRuleConfigIpv6ICMP(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSNetworkAclRuleExists(resourceName, &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists(resourceName),
 				),
 			},
 			{
@@ -180,7 +170,6 @@ func TestAccAWSNetworkAclRule_ipv6ICMP(t *testing.T) {
 
 // Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6710
 func TestAccAWSNetworkAclRule_ipv6VpcAssignGeneratedIpv6CidrBlockUpdate(t *testing.T) {
-	var networkAcl ec2.NetworkAcl
 	var vpc ec2.Vpc
 	vpcResourceName := "aws_vpc.test"
 	resourceName := "aws_network_acl_rule.test"
@@ -204,7 +193,7 @@ func TestAccAWSNetworkAclRule_ipv6VpcAssignGeneratedIpv6CidrBlockUpdate(t *testi
 					testAccCheckVpcExists(vpcResourceName, &vpc),
 					resource.TestCheckResourceAttr(vpcResourceName, "assign_generated_ipv6_cidr_block", "true"),
 					resource.TestMatchResourceAttr(vpcResourceName, "ipv6_cidr_block", regexp.MustCompile(`/56$`)),
-					testAccCheckAWSNetworkAclRuleExists(resourceName, &networkAcl),
+					testAccCheckAWSNetworkAclRuleExists(resourceName),
 				),
 			},
 			{
@@ -218,7 +207,6 @@ func TestAccAWSNetworkAclRule_ipv6VpcAssignGeneratedIpv6CidrBlockUpdate(t *testi
 }
 
 func TestAccAWSNetworkAclRule_allProtocol(t *testing.T) {
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -237,7 +225,6 @@ func TestAccAWSNetworkAclRule_allProtocol(t *testing.T) {
 }
 
 func TestAccAWSNetworkAclRule_tcpProtocol(t *testing.T) {
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -308,7 +295,6 @@ func TestResourceAWSNetworkAclRule_validateICMPArgumentValue(t *testing.T) {
 }
 
 func testAccCheckAWSNetworkAclRuleDestroy(s *terraform.State) error {
-
 	for _, rs := range s.RootModule().Resources {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 		if rs.Type != "aws_network_acl_rule" {
@@ -340,7 +326,7 @@ func testAccCheckAWSNetworkAclRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSNetworkAclRuleExists(n string, networkAcl *ec2.NetworkAcl) resource.TestCheckFunc {
+func testAccCheckAWSNetworkAclRuleExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
 		rs, ok := s.RootModule().Resources[n]
@@ -415,237 +401,251 @@ func testAccCheckAWSNetworkAclRuleDelete(n string) resource.TestCheckFunc {
 
 const testAccAWSNetworkAclRuleBasicConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-basic"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-basic"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-basic"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-basic"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 200
-	egress = false
-	protocol = "tcp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 200
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 
 resource "aws_network_acl_rule" "qux" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 300
-	protocol = "icmp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	icmp_type = 0
-	icmp_code = -1
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 300
+  protocol       = "icmp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  icmp_type      = 0
+  icmp_code      = -1
 }
 
 resource "aws_network_acl_rule" "wibble" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 400
-	protocol = "icmp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	icmp_type = -1
-	icmp_code = -1
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 400
+  protocol       = "icmp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  icmp_type      = -1
+  icmp_code      = -1
 }
 `
 
 const testAccAWSNetworkAclRuleMissingParam = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-missing-param"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-missing-param"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-missing-param"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-missing-param"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 200
-	egress = false
-	protocol = "tcp"
-	rule_action = "allow"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 200
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
 const testAccAWSNetworkAclRuleAllProtocolConfigNoRealUpdate = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-all-proto-no-real-upd"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-all-proto-no-real-upd"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-no-real-update"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-no-real-update"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 150
-	egress = false
-	protocol = "all"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 150
+  egress         = false
+  protocol       = "all"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
 const testAccAWSNetworkAclRuleTcpProtocolConfigNoRealUpdate = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "testAccAWSNetworkAclRuleTcpProtocolConfigNoRealUpdate"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "testAccAWSNetworkAclRuleTcpProtocolConfigNoRealUpdate"
+  }
 }
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 150
-	egress = false
-	protocol = "tcp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 150
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
 const testAccAWSNetworkAclRuleAllProtocolConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-proto"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-proto"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-all-protocol"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-all-protocol"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 150
-	egress = false
-	protocol = "-1"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 150
+  egress         = false
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
 const testAccAWSNetworkAclRuleTcpProtocolConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "testAccAWSNetworkAclRuleTcpProtocolConfig"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "testAccAWSNetworkAclRuleTcpProtocolConfig"
+  }
 }
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 150
-	egress = false
-	protocol = "6"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 150
+  egress         = false
+  protocol       = "6"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
 const testAccAWSNetworkAclRuleIpv6Config = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-ipv6"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-ipv6"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-ipv6"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-ipv6"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 150
-	egress = false
-	protocol = "tcp"
-	rule_action = "allow"
-	ipv6_cidr_block = "::/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id  = aws_network_acl.bar.id
+  rule_number     = 150
+  egress          = false
+  protocol        = "tcp"
+  rule_action     = "allow"
+  ipv6_cidr_block = "::/0"
+  from_port       = 22
+  to_port         = 22
 }
 `
 
 const testAccAWSNetworkAclRuleIngressEgressSameNumberMissing = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.3.0.0/16"
-	tags = {
-		Name = "terraform-testacc-network-acl-rule-ingress-egress-same-number-missing"
-	}
+  cidr_block = "10.3.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-network-acl-rule-ingress-egress-same-number-missing"
+  }
 }
 
 resource "aws_network_acl" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-acl-rule-basic"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-acl-rule-basic"
+  }
 }
 
 resource "aws_network_acl_rule" "baz" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 100
-	egress = false
-	protocol = "tcp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 100
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 
 resource "aws_network_acl_rule" "qux" {
-	network_acl_id = "${aws_network_acl.bar.id}"
-	rule_number = 100
-	egress = true
-	protocol = "tcp"
-	rule_action = "allow"
-	cidr_block = "0.0.0.0/0"
-	from_port = 22
-	to_port = 22
+  network_acl_id = aws_network_acl.bar.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = "0.0.0.0/0"
+  from_port      = 22
+  to_port        = 22
 }
 `
 
@@ -660,7 +660,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_network_acl" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = %q
@@ -671,7 +671,7 @@ resource "aws_network_acl_rule" "test" {
   icmp_code       = -1
   icmp_type       = -1
   ipv6_cidr_block = "::/0"
-  network_acl_id  = "${aws_network_acl.test.id}"
+  network_acl_id  = aws_network_acl.test.id
   protocol        = 58
   rule_action     = "allow"
   rule_number     = 150
@@ -691,7 +691,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_network_acl" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-network-acl-rule-ipv6-enabled"
@@ -699,11 +699,11 @@ resource "aws_network_acl" "test" {
 }
 
 resource "aws_network_acl_rule" "test" {
-  count = "${%[1]t ? 1 : 0}"
+  count = %[1]t ? 1 : 0
 
   from_port       = 22
-  ipv6_cidr_block = "${aws_vpc.test.ipv6_cidr_block}"
-  network_acl_id  = "${aws_network_acl.test.id}"
+  ipv6_cidr_block = aws_vpc.test.ipv6_cidr_block
+  network_acl_id  = aws_network_acl.test.id
   protocol        = "tcp"
   rule_action     = "allow"
   rule_number     = 150

@@ -53,4 +53,5 @@ You can resume managing the DHCP Options Set via the AWS Console.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the DHCP Options Set.
+* `arn` - The ARN of the DHCP Options Set.
 * `owner_id` - The ID of the AWS account that owns the DHCP options set.

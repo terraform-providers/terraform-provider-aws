@@ -10,9 +10,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSWafIPSet_basic(t *testing.T) {
@@ -21,18 +22,19 @@ func TestAccAWSWafIPSet_basic(t *testing.T) {
 	resourceName := "aws_waf_ipset.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafIPSetDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafIPSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafIPSetConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.type", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.value", "192.0.7.0/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+						"type":  "IPV4",
+						"value": "192.0.7.0/24",
+					}),
 					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "waf", regexp.MustCompile("ipset/.+$")),
 				),
 			},
@@ -74,18 +76,19 @@ func TestAccAWSWafIPSet_changeNameForceNew(t *testing.T) {
 	resourceName := "aws_waf_ipset.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafIPSetDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafIPSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafIPSetConfig(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.type", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.value", "192.0.7.0/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+						"type":  "IPV4",
+						"value": "192.0.7.0/24",
+					}),
 				),
 			},
 			{
@@ -98,8 +101,10 @@ func TestAccAWSWafIPSet_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", uName),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.type", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.value", "192.0.7.0/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+						"type":  "IPV4",
+						"value": "192.0.7.0/24",
+					}),
 				),
 			},
 		},
@@ -112,10 +117,9 @@ func TestAccAWSWafIPSet_changeDescriptors(t *testing.T) {
 	resourceName := "aws_waf_ipset.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSWafIPSetDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafIPSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafIPSetConfig(rName),
@@ -123,8 +127,10 @@ func TestAccAWSWafIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.type", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.4037960608.value", "192.0.7.0/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+						"type":  "IPV4",
+						"value": "192.0.7.0/24",
+					}),
 				),
 			},
 			{
@@ -138,8 +144,10 @@ func TestAccAWSWafIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.115741513.type", "IPV4"),
-					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.115741513.value", "192.0.8.0/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+						"type":  "IPV4",
+						"value": "192.0.8.0/24",
+					}),
 				),
 			},
 		},

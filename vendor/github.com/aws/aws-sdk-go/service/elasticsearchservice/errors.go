@@ -43,6 +43,13 @@ const (
 	// of 500.
 	ErrCodeInternalException = "InternalException"
 
+	// ErrCodeInvalidPaginationTokenException for service response error code
+	// "InvalidPaginationTokenException".
+	//
+	// The request processing has failed because of invalid pagination token provided
+	// by customer. Returns an HTTP status code of 400.
+	ErrCodeInvalidPaginationTokenException = "InvalidPaginationTokenException"
+
 	// ErrCodeInvalidTypeException for service response error code
 	// "InvalidTypeException".
 	//
@@ -80,14 +87,15 @@ const (
 )
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
-	"AccessDeniedException":          newErrorAccessDeniedException,
-	"BaseException":                  newErrorBaseException,
-	"ConflictException":              newErrorConflictException,
-	"DisabledOperationException":     newErrorDisabledOperationException,
-	"InternalException":              newErrorInternalException,
-	"InvalidTypeException":           newErrorInvalidTypeException,
-	"LimitExceededException":         newErrorLimitExceededException,
-	"ResourceAlreadyExistsException": newErrorResourceAlreadyExistsException,
-	"ResourceNotFoundException":      newErrorResourceNotFoundException,
-	"ValidationException":            newErrorValidationException,
+	"AccessDeniedException":           newErrorAccessDeniedException,
+	"BaseException":                   newErrorBaseException,
+	"ConflictException":               newErrorConflictException,
+	"DisabledOperationException":      newErrorDisabledOperationException,
+	"InternalException":               newErrorInternalException,
+	"InvalidPaginationTokenException": newErrorInvalidPaginationTokenException,
+	"InvalidTypeException":            newErrorInvalidTypeException,
+	"LimitExceededException":          newErrorLimitExceededException,
+	"ResourceAlreadyExistsException":  newErrorResourceAlreadyExistsException,
+	"ResourceNotFoundException":       newErrorResourceNotFoundException,
+	"ValidationException":             newErrorValidationException,
 }

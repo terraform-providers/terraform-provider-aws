@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/docdb"
@@ -243,7 +243,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  vpc_id            = "${aws_vpc.foo.id}"
+  vpc_id            = aws_vpc.foo.id
 
   tags = {
     Name = "tf-acc-docdb-subnet-group-1"
@@ -253,7 +253,7 @@ resource "aws_subnet" "foo" {
 resource "aws_subnet" "bar" {
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2b"
-  vpc_id            = "${aws_vpc.foo.id}"
+  vpc_id            = aws_vpc.foo.id
 
   tags = {
     Name = "tf-acc-docdb-subnet-group-2"
@@ -262,7 +262,7 @@ resource "aws_subnet" "bar" {
 
 resource "aws_docdb_subnet_group" "foo" {
   name       = "%s"
-  subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+  subnet_ids = [aws_subnet.foo.id, aws_subnet.bar.id]
 
   tags = {
     Name = "tf-docdb-subnet-group-test"
@@ -284,7 +284,7 @@ resource "aws_vpc" "foo" {
 resource "aws_subnet" "foo" {
   cidr_block        = "10.1.1.0/24"
   availability_zone = "us-west-2a"
-  vpc_id            = "${aws_vpc.foo.id}"
+  vpc_id            = aws_vpc.foo.id
 
   tags = {
     Name = "tf-acc-docdb-subnet-group-1"
@@ -294,7 +294,7 @@ resource "aws_subnet" "foo" {
 resource "aws_subnet" "bar" {
   cidr_block        = "10.1.2.0/24"
   availability_zone = "us-west-2b"
-  vpc_id            = "${aws_vpc.foo.id}"
+  vpc_id            = aws_vpc.foo.id
 
   tags = {
     Name = "tf-acc-docdb-subnet-group-2"
@@ -304,7 +304,7 @@ resource "aws_subnet" "bar" {
 resource "aws_docdb_subnet_group" "foo" {
   name        = "%s"
   description = "foo description updated"
-  subnet_ids  = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+  subnet_ids  = [aws_subnet.foo.id, aws_subnet.bar.id]
 
   tags = {
     Name = "tf-docdb-subnet-group-test"
@@ -315,61 +315,61 @@ resource "aws_docdb_subnet_group" "foo" {
 
 const testAccDocDBSubnetGroupConfig_namePrefix = `
 resource "aws_vpc" "test" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-docdb-subnet-group-name-prefix"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-docdb-subnet-group-name-prefix"
+  }
 }
 
 resource "aws_subnet" "a" {
-	vpc_id = "${aws_vpc.test.id}"
-	cidr_block = "10.1.1.0/24"
-	availability_zone = "us-west-2a"
-	tags = {
-		Name = "tf-acc-docdb-subnet-group-name-prefix-a"
-	}
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.1.1.0/24"
+  availability_zone = "us-west-2a"
+  tags = {
+    Name = "tf-acc-docdb-subnet-group-name-prefix-a"
+  }
 }
 
 resource "aws_subnet" "b" {
-	vpc_id = "${aws_vpc.test.id}"
-	cidr_block = "10.1.2.0/24"
-	availability_zone = "us-west-2b"
-	tags = {
-		Name = "tf-acc-docdb-subnet-group-name-prefix-b"
-	}
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.1.2.0/24"
+  availability_zone = "us-west-2b"
+  tags = {
+    Name = "tf-acc-docdb-subnet-group-name-prefix-b"
+  }
 }
 
 resource "aws_docdb_subnet_group" "test" {
-	name_prefix = "tf_test-"
-	subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  name_prefix = "tf_test-"
+  subnet_ids  = [aws_subnet.a.id, aws_subnet.b.id]
 }`
 
 const testAccDocDBSubnetGroupConfig_generatedName = `
 resource "aws_vpc" "test" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-docdb-subnet-group-generated-name"
-	}
+  cidr_block = "10.1.0.0/16"
+  tags = {
+    Name = "terraform-testacc-docdb-subnet-group-generated-name"
+  }
 }
 
 resource "aws_subnet" "a" {
-	vpc_id = "${aws_vpc.test.id}"
-	cidr_block = "10.1.1.0/24"
-	availability_zone = "us-west-2a"
-	tags = {
-		Name = "tf-acc-docdb-subnet-group-generated-name-a"
-	}
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.1.1.0/24"
+  availability_zone = "us-west-2a"
+  tags = {
+    Name = "tf-acc-docdb-subnet-group-generated-name-a"
+  }
 }
 
 resource "aws_subnet" "b" {
-	vpc_id = "${aws_vpc.test.id}"
-	cidr_block = "10.1.2.0/24"
-	availability_zone = "us-west-2b"
-	tags = {
-		Name = "tf-acc-docdb-subnet-group-generated-name-a"
-	}
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.1.2.0/24"
+  availability_zone = "us-west-2b"
+  tags = {
+    Name = "tf-acc-docdb-subnet-group-generated-name-a"
+  }
 }
 
 resource "aws_docdb_subnet_group" "test" {
-	subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }`

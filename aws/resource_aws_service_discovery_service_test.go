@@ -3,14 +3,15 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -114,7 +115,7 @@ func testSweepServiceDiscoveryServices(region string) error {
 
 func TestAccAWSServiceDiscoveryService_private(t *testing.T) {
 	resourceName := "aws_service_discovery_service.test"
-	rName := acctest.RandString(5)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceDiscovery(t) },
@@ -130,7 +131,9 @@ func TestAccAWSServiceDiscoveryService_private(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.dns_records.0.type", "A"),
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.dns_records.0.ttl", "5"),
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.routing_policy", "MULTIVALUE"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
 				),
 			},
 			{
@@ -147,7 +150,9 @@ func TestAccAWSServiceDiscoveryService_private(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.dns_records.0.ttl", "10"),
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.dns_records.1.type", "AAAA"),
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.dns_records.1.ttl", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
 				),
 			},
 		},
@@ -155,7 +160,7 @@ func TestAccAWSServiceDiscoveryService_private(t *testing.T) {
 }
 
 func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
-	rName := acctest.RandString(5)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -171,7 +176,9 @@ func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check_config.0.failure_threshold", "5"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_config.0.resource_path", "/path"),
 					resource.TestCheckResourceAttr(resourceName, "dns_config.0.routing_policy", "WEIGHTED"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
 				),
 			},
 			{
@@ -186,7 +193,19 @@ func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "health_check_config.0.type", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_config.0.failure_threshold", "3"),
 					resource.TestCheckResourceAttr(resourceName, "health_check_config.0.resource_path", "/updated-path"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
+				),
+			},
+			{
+				Config: testAccServiceDiscoveryServiceConfig_public_update_noHealthCheckConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "health_check_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
 				),
 			},
 		},
@@ -194,7 +213,7 @@ func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
 }
 
 func TestAccAWSServiceDiscoveryService_http(t *testing.T) {
-	rName := acctest.RandStringFromCharSet(5, acctest.CharSetAlpha)
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -207,13 +226,78 @@ func TestAccAWSServiceDiscoveryService_http(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "servicediscovery", regexp.MustCompile(`service/.+`)),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSServiceDiscoveryService_disappears(t *testing.T) {
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+	resourceName := "aws_service_discovery_service.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceDiscoveryServiceConfig_http(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsServiceDiscoveryService(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSServiceDiscoveryService_Tags(t *testing.T) {
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+	resourceName := "aws_service_discovery_service.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccServiceDiscoveryServiceConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccServiceDiscoveryServiceConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccServiceDiscoveryServiceConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -266,21 +350,20 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-service-discovery-service-private"
+    Name = %[1]q
   }
 }
 
 resource "aws_service_discovery_private_dns_namespace" "test" {
-  name        = "tf-sd-%s.terraform.local"
-  description = "test"
-  vpc         = "${aws_vpc.test.id}"
+  name = "%[1]s.tf"
+  vpc  = aws_vpc.test.id
 }
 
 resource "aws_service_discovery_service" "test" {
-  name = "tf-sd-%s"
+  name = %[1]q
 
   dns_config {
-    namespace_id = "${aws_service_discovery_private_dns_namespace.test.id}"
+    namespace_id = aws_service_discovery_private_dns_namespace.test.id
 
     dns_records {
       ttl  = 5
@@ -289,10 +372,10 @@ resource "aws_service_discovery_service" "test" {
   }
 
   health_check_custom_config {
-    failure_threshold = %d
+    failure_threshold = %[2]d
   }
 }
-`, rName, rName, th)
+`, rName, th)
 }
 
 func testAccServiceDiscoveryServiceConfig_private_update(rName string, th int) string {
@@ -301,21 +384,22 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "terraform-testacc-service-discovery-service-private"
+    Name = %[1]q
   }
 }
 
 resource "aws_service_discovery_private_dns_namespace" "test" {
-  name        = "tf-sd-%s.terraform.local"
-  description = "test"
-  vpc         = "${aws_vpc.test.id}"
+  name = "%[1]s.tf"
+  vpc  = aws_vpc.test.id
 }
 
 resource "aws_service_discovery_service" "test" {
-  name = "tf-sd-%s"
+  name = %[1]q
+
+  description = "test"
 
   dns_config {
-    namespace_id = "${aws_service_discovery_private_dns_namespace.test.id}"
+    namespace_id = aws_service_discovery_private_dns_namespace.test.id
 
     dns_records {
       ttl  = 10
@@ -331,24 +415,25 @@ resource "aws_service_discovery_service" "test" {
   }
 
   health_check_custom_config {
-    failure_threshold = %d
+    failure_threshold = %[2]d
   }
 }
-`, rName, rName, th)
+`, rName, th)
 }
 
 func testAccServiceDiscoveryServiceConfig_public(rName string, th int, path string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_public_dns_namespace" "test" {
-  name        = "tf-sd-%s.terraform.com"
-  description = "test"
+  name = "%[1]s.tf"
 }
 
 resource "aws_service_discovery_service" "test" {
-  name = "tf-sd-%s"
+  name = %[1]q
+
+  description = "test"
 
   dns_config {
-    namespace_id = "${aws_service_discovery_public_dns_namespace.test.id}"
+    namespace_id = aws_service_discovery_public_dns_namespace.test.id
 
     dns_records {
       ttl  = 5
@@ -359,24 +444,81 @@ resource "aws_service_discovery_service" "test" {
   }
 
   health_check_config {
-    failure_threshold = %d
-    resource_path     = "%s"
+    failure_threshold = %[2]d
+    resource_path     = %[3]q
     type              = "HTTP"
   }
 }
-`, rName, rName, th, path)
+`, rName, th, path)
+}
+
+func testAccServiceDiscoveryServiceConfig_public_update_noHealthCheckConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_service_discovery_public_dns_namespace" "test" {
+  name = "%[1]s.tf"
+}
+
+resource "aws_service_discovery_service" "test" {
+  name = %[1]q
+
+  dns_config {
+    namespace_id = aws_service_discovery_public_dns_namespace.test.id
+
+    dns_records {
+      ttl  = 5
+      type = "A"
+    }
+
+    routing_policy = "WEIGHTED"
+  }
+}
+`, rName)
 }
 
 func testAccServiceDiscoveryServiceConfig_http(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_http_namespace" "test" {
-  name = "tf-sd-ns-%s"
-  description = "test"
+  name = %[1]q
 }
 
 resource "aws_service_discovery_service" "test" {
-  name = "tf-sd-%s"
-  namespace_id = "${aws_service_discovery_http_namespace.test.id}"
+  name         = %[1]q
+  namespace_id = aws_service_discovery_http_namespace.test.id
 }
-`, rName, rName)
+`, rName)
+}
+
+func testAccServiceDiscoveryServiceConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_service_discovery_http_namespace" "test" {
+  name = %[1]q
+}
+
+resource "aws_service_discovery_service" "test" {
+  name         = %[1]q
+  namespace_id = aws_service_discovery_http_namespace.test.id
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccServiceDiscoveryServiceConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_service_discovery_http_namespace" "test" {
+  name = %[1]q
+}
+
+resource "aws_service_discovery_service" "test" {
+  name         = %[1]q
+  namespace_id = aws_service_discovery_http_namespace.test.id
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

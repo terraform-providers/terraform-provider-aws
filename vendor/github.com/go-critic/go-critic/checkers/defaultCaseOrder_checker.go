@@ -3,12 +3,12 @@ package checkers
 import (
 	"go/ast"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "defaultCaseOrder"
 	info.Tags = []string{"style"}
 	info.Summary = "Detects when default case in switch isn't on 1st or last position"
@@ -31,14 +31,14 @@ default: // <- last case (could also be the first one)
 	// ...
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForStmt(&defaultCaseOrderChecker{ctx: ctx})
 	})
 }
 
 type defaultCaseOrderChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *defaultCaseOrderChecker) VisitStmt(stmt ast.Stmt) {

@@ -6,9 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/efs"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEFSFileSystemPolicy_basic(t *testing.T) {
@@ -120,11 +120,11 @@ func testAccCheckEfsFileSystemPolicy(resourceID string, efsFsPolicy *efs.Describ
 func testAccAWSEFSFileSystemPolicyConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %q
+  creation_token = %q
 }
 
 resource "aws_efs_file_system_policy" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
+  file_system_id = aws_efs_file_system.test.id
 
   policy = <<POLICY
 {
@@ -158,11 +158,11 @@ POLICY
 func testAccAWSEFSFileSystemPolicyConfigUpdated(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %q
+  creation_token = %q
 }
 
 resource "aws_efs_file_system_policy" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
+  file_system_id = aws_efs_file_system.test.id
 
   policy = <<POLICY
 {

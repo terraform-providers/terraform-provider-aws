@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSElasticTranscoderPreset_basic(t *testing.T) {
@@ -53,6 +53,33 @@ func TestAccAWSElasticTranscoderPreset_disappears(t *testing.T) {
 					testAccCheckElasticTranscoderPresetDisappears(&preset),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/14087
+func TestAccAWSElasticTranscoderPreset_AudioCodecOptions_empty(t *testing.T) {
+	var preset elastictranscoder.Preset
+	resourceName := "aws_elastictranscoder_preset.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckElasticTranscoderPresetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsElasticTranscoderPresetConfigAudioCodecOptionsEmpty(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"audio_codec_options.#"}, // Due to incorrect schema (should be nested under audio)
 			},
 		},
 	})
@@ -122,6 +149,33 @@ func TestAccAWSElasticTranscoderPreset_Full(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "video.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "video_codec_options.%", "5"),
 					resource.TestCheckResourceAttr(resourceName, "video_watermarks.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/695
+func TestAccAWSElasticTranscoderPreset_Video_FrameRate(t *testing.T) {
+	var preset elastictranscoder.Preset
+	resourceName := "aws_elastictranscoder_preset.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSElasticTranscoder(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckElasticTranscoderPresetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsElasticTranscoderPresetConfigVideoFrameRate(rName, "29.97"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckElasticTranscoderPresetExists(resourceName, &preset),
+					resource.TestCheckResourceAttr(resourceName, "video.0.frame_rate", "29.97"),
 				),
 			},
 			{
@@ -209,6 +263,25 @@ resource "aws_elastictranscoder_preset" "test" {
     codec              = "mp3"
     sample_rate        = 44100
   }
+}
+`, rName)
+}
+
+func testAccAwsElasticTranscoderPresetConfigAudioCodecOptionsEmpty(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elastictranscoder_preset" "test" {
+  container = "mp4"
+  name      = %[1]q
+
+  audio {
+    audio_packing_mode = "SingleTrack"
+    bit_rate           = 320
+    channels           = 2
+    codec              = "mp3"
+    sample_rate        = 44100
+  }
+
+  audio_codec_options {}
 }
 `, rName)
 }
@@ -345,4 +418,43 @@ resource "aws_elastictranscoder_preset" "test" {
   }
 }
 `, rName)
+}
+
+func testAccAwsElasticTranscoderPresetConfigVideoFrameRate(rName string, frameRate string) string {
+	return fmt.Sprintf(`
+resource "aws_elastictranscoder_preset" "test" {
+  container = "mp4"
+  name      = %[1]q
+
+  thumbnails {
+    format         = "png"
+    interval       = 120
+    max_width      = "auto"
+    max_height     = "auto"
+    padding_policy = "Pad"
+    sizing_policy  = "Fit"
+  }
+
+  video {
+    bit_rate             = "auto"
+    codec                = "H.264"
+    display_aspect_ratio = "16:9"
+    fixed_gop            = "true"
+    frame_rate           = %[2]q
+    keyframes_max_dist   = 90
+    max_height           = 1080
+    max_width            = 1920
+    padding_policy       = "Pad"
+    sizing_policy        = "Fit"
+  }
+
+  video_codec_options = {
+    Profile                  = "main"
+    Level                    = "4.1"
+    MaxReferenceFrames       = 4
+    InterlacedMode           = "Auto"
+    ColorSpaceConversionMode = "None"
+  }
+}
+`, rName, frameRate)
 }

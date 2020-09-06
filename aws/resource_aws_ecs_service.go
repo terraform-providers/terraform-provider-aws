@@ -11,10 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -26,6 +26,10 @@ func resourceAwsEcsService() *schema.Resource {
 		Delete: resourceAwsEcsServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceAwsEcsServiceImport,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -72,7 +76,7 @@ func resourceAwsEcsService() *schema.Resource {
 
 			"task_definition": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"desired_count": {
@@ -156,6 +160,7 @@ func resourceAwsEcsService() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								ecs.DeploymentControllerTypeCodeDeploy,
 								ecs.DeploymentControllerTypeEcs,
+								ecs.DeploymentControllerTypeExternal,
 							}, false),
 						},
 					},
@@ -247,12 +252,10 @@ func resourceAwsEcsService() *schema.Resource {
 					},
 				},
 			},
-			"placement_strategy": {
-				Type:     schema.TypeSet,
+			"ordered_placement_strategy": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 5,
-				Removed:  "Use `ordered_placement_strategy` configuration block(s) instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -263,26 +266,6 @@ func resourceAwsEcsService() *schema.Resource {
 								ecs.PlacementStrategyTypeRandom,
 								ecs.PlacementStrategyTypeSpread,
 							}, false),
-						},
-						"field": {
-							Type:     schema.TypeString,
-							Optional: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								return strings.EqualFold(old, new)
-							},
-						},
-					},
-				},
-			},
-			"ordered_placement_strategy": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 5,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
 						},
 						"field": {
 							Type:     schema.TypeString,
@@ -399,10 +382,11 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	deploymentMinimumHealthyPercent := d.Get("deployment_minimum_healthy_percent").(int)
 	schedulingStrategy := d.Get("scheduling_strategy").(string)
+	deploymentController := expandEcsDeploymentController(d.Get("deployment_controller").([]interface{}))
 
 	input := ecs.CreateServiceInput{
 		ClientToken:          aws.String(resource.UniqueId()),
-		DeploymentController: expandEcsDeploymentController(d.Get("deployment_controller").([]interface{})),
+		DeploymentController: deploymentController,
 		SchedulingStrategy:   aws.String(schedulingStrategy),
 		ServiceName:          aws.String(d.Get("name").(string)),
 		Tags:                 keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().EcsTags(),
@@ -432,6 +416,13 @@ func resourceAwsEcsServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	if v, ok := d.GetOk("launch_type"); ok {
 		input.LaunchType = aws.String(v.(string))
+		// When creating a service that uses the EXTERNAL deployment controller,
+		// you can specify only parameters that aren't controlled at the task set level
+		// hence you cannot set LaunchType, not changing the default launch_type from EC2 to empty
+		// string to have backward compatibility
+		if deploymentController != nil && aws.StringValue(deploymentController.Type) == ecs.DeploymentControllerTypeExternal {
+			input.LaunchType = aws.String("")
+		}
 	}
 
 	if v, ok := d.GetOk("propagate_tags"); ok {
@@ -608,12 +599,17 @@ func resourceAwsEcsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(aws.StringValue(service.ServiceArn))
 	d.Set("name", service.ServiceName)
 
-	// Save task definition in the same format
-	if strings.HasPrefix(d.Get("task_definition").(string), "arn:"+meta.(*AWSClient).partition+":ecs:") {
-		d.Set("task_definition", service.TaskDefinition)
-	} else {
-		taskDefinition := buildFamilyAndRevisionFromARN(*service.TaskDefinition)
-		d.Set("task_definition", taskDefinition)
+	// When creating a service that uses the EXTERNAL deployment controller,
+	// you can specify only parameters that aren't controlled at the task set level
+	// hence TaskDefinition will not be set by aws sdk
+	if service.TaskDefinition != nil {
+		// Save task definition in the same format
+		if strings.HasPrefix(d.Get("task_definition").(string), "arn:"+meta.(*AWSClient).partition+":ecs:") {
+			d.Set("task_definition", service.TaskDefinition)
+		} else {
+			taskDefinition := buildFamilyAndRevisionFromARN(*service.TaskDefinition)
+			d.Set("task_definition", taskDefinition)
+		}
 	}
 
 	d.Set("scheduling_strategy", service.SchedulingStrategy)
@@ -843,9 +839,24 @@ func expandPlacementStrategy(s []interface{}) ([]*ecs.PlacementStrategy, error) 
 	}
 	pss := make([]*ecs.PlacementStrategy, 0)
 	for _, raw := range s {
-		p := raw.(map[string]interface{})
-		t := p["type"].(string)
-		f := p["field"].(string)
+		p, ok := raw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		t, ok := p["type"].(string)
+
+		if !ok {
+			return nil, fmt.Errorf("missing type attribute in placement strategy configuration block")
+		}
+
+		f, ok := p["field"].(string)
+
+		if !ok {
+			return nil, fmt.Errorf("missing field attribute in placement strategy configuration block")
+		}
+
 		if err := validateAwsEcsPlacementStrategy(t, f); err != nil {
 			return nil, err
 		}
@@ -932,7 +943,7 @@ func resourceAwsEcsServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			input.DesiredCount = aws.Int64(int64(d.Get("desired_count").(int)))
 		}
 
-		if d.HasChange("deployment_maximum_percent") || d.HasChange("deployment_minimum_healthy_percent") {
+		if d.HasChanges("deployment_maximum_percent", "deployment_minimum_healthy_percent") {
 			updateService = true
 			input.DeploymentConfiguration = &ecs.DeploymentConfiguration{
 				MaximumPercent:        aws.Int64(int64(d.Get("deployment_maximum_percent").(int))),
@@ -1080,7 +1091,7 @@ func resourceAwsEcsServiceDelete(d *schema.ResourceData, meta interface{}) error
 		Cluster: aws.String(d.Get("cluster").(string)),
 	}
 	// Wait until the ECS service is drained
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		log.Printf("[DEBUG] Trying to delete ECS service %s", input)
 		_, err := conn.DeleteService(&input)
 		if err != nil {

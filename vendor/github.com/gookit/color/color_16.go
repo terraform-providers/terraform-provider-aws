@@ -20,8 +20,8 @@ const (
 	FgGreen
 	FgYellow
 	FgBlue
-	FgMagenta  // 品红
-	FgCyan     // 青色
+	FgMagenta // 品红
+	FgCyan    // 青色
 	FgWhite
 	// FgDefault revert default FG
 	FgDefault Color = 39
@@ -46,7 +46,7 @@ const (
 	BgBlack Color = iota + 40
 	BgRed
 	BgGreen
-	BgYellow  // BgBrown like yellow
+	BgYellow // BgBrown like yellow
 	BgBlue
 	BgMagenta
 	BgCyan
@@ -94,10 +94,14 @@ const (
 	White   = FgWhite
 	Yellow  = FgYellow
 	Magenta = FgMagenta
+
 	// special
+
 	Bold   = OpBold
 	Normal = FgDefault
+
 	// extra light
+
 	LightRed     = FgLightRed
 	LightCyan    = FgLightCyan
 	LightBlue    = FgLightBlue
@@ -124,6 +128,15 @@ func (c Color) Render(a ...interface{}) string {
 	return RenderCode(c.String(), a...)
 }
 
+// Renderln messages by color setting.
+// like Println, will add spaces for each argument
+// Usage:
+// 		green := color.FgGreen.Renderln
+// 		fmt.Println(green("message"))
+func (c Color) Renderln(a ...interface{}) string {
+	return RenderWithSpaces(c.String(), a...)
+}
+
 // Sprint render messages by color setting. is alias of the Render()
 func (c Color) Sprint(a ...interface{}) string {
 	return RenderCode(c.String(), a...)
@@ -144,24 +157,19 @@ func (c Color) Sprintf(format string, args ...interface{}) string {
 // 		green := color.FgGreen.Print
 // 		green("message")
 func (c Color) Print(args ...interface{}) {
-	message := fmt.Sprint(args...)
-	if isLikeInCmd {
-		winPrint(message, c)
-	} else {
-		fmt.Print(RenderString(c.String(), message))
-	}
+	doPrint(c.Code(), []Color{c}, fmt.Sprint(args...))
 }
 
 // Printf format and print messages.
 // Usage:
 // 		color.Cyan.Printf("string %s", "arg0")
 func (c Color) Printf(format string, a ...interface{}) {
-	msg := fmt.Sprintf(format, a...)
-	if isLikeInCmd {
-		winPrint(msg, c)
-	} else {
-		fmt.Print(RenderString(c.String(), msg))
-	}
+	doPrint(c.Code(), []Color{c}, fmt.Sprintf(format, a...))
+}
+
+// Println messages with new line
+func (c Color) Println(a ...interface{}) {
+	doPrintln(c.String(), []Color{c}, a)
 }
 
 // Light current color. eg: 36(FgCyan) -> 96(FgLightCyan).
@@ -192,7 +200,12 @@ func (c Color) Darken() Color {
 	return c
 }
 
-// String to code string. eg "35"
+// Code convert to code string. eg "35"
+func (c Color) Code() string {
+	return fmt.Sprintf("%d", c)
+}
+
+// String convert to code string. eg "35"
 func (c Color) String() string {
 	return fmt.Sprintf("%d", c)
 }
@@ -284,13 +297,4 @@ func colors2code(colors ...Color) string {
 	}
 
 	return strings.Join(codes, ";")
-}
-
-// Println messages with new line
-func (c Color) Println(a ...interface{}) {
-	if isLikeInCmd {
-		winPrintln(fmt.Sprint(a...), c)
-	} else {
-		fmt.Println(RenderCode(c.String(), a...))
-	}
 }

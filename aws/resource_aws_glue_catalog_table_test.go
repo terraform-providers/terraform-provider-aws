@@ -7,14 +7,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSGlueCatalogTable_recreates(t *testing.T) {
 	resourceName := "aws_glue_catalog_table.test"
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAWSGlueCatalogTable_recreates(t *testing.T) {
 		CheckDestroy: testAccCheckGlueTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGlueCatalogTable_basic(rInt),
+				Config: testAccGlueCatalogTable_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
 				),
@@ -31,15 +31,15 @@ func TestAccAWSGlueCatalogTable_recreates(t *testing.T) {
 				PreConfig: func() {
 					conn := testAccProvider.Meta().(*AWSClient).glueconn
 					input := &glue.DeleteTableInput{
-						Name:         aws.String(fmt.Sprintf("my_test_catalog_table_%d", rInt)),
-						DatabaseName: aws.String(fmt.Sprintf("my_test_catalog_database_%d", rInt)),
+						Name:         aws.String(rName),
+						DatabaseName: aws.String(rName),
 					}
 					_, err := conn.DeleteTable(input)
 					if err != nil {
 						t.Fatalf("error deleting Glue Catalog Table: %s", err)
 					}
 				},
-				Config:             testAccGlueCatalogTable_basic(rInt),
+				Config:             testAccGlueCatalogTable_basic(rName),
 				ExpectNonEmptyPlan: true,
 				PlanOnly:           true,
 			},
@@ -48,7 +48,7 @@ func TestAccAWSGlueCatalogTable_recreates(t *testing.T) {
 }
 
 func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_catalog_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,20 +57,13 @@ func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 		CheckDestroy: testAccCheckGlueTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  testAccGlueCatalogTable_basic(rInt),
+				Config:  testAccGlueCatalogTable_basic(rName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"name",
-						fmt.Sprintf("my_test_catalog_table_%d", rInt),
-					),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"database_name",
-						fmt.Sprintf("my_test_catalog_database_%d", rInt),
-					),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("table/%s/%s", rName, rName)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 				),
 			},
 			{
@@ -83,7 +76,7 @@ func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 }
 
 func TestAccAWSGlueCatalogTable_full(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	description := "A test table from terraform"
 	resourceName := "aws_glue_catalog_table.test"
 
@@ -93,12 +86,12 @@ func TestAccAWSGlueCatalogTable_full(t *testing.T) {
 		CheckDestroy: testAccCheckGlueTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  testAccGlueCatalogTable_full(rInt, description),
+				Config:  testAccGlueCatalogTable_full(rName, description),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("my_test_catalog_table_%d", rInt)),
-					resource.TestCheckResourceAttr(resourceName, "database_name", fmt.Sprintf("my_test_catalog_database_%d", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "owner", "my_owner"),
 					resource.TestCheckResourceAttr(resourceName, "retention", "1"),
@@ -146,7 +139,7 @@ func TestAccAWSGlueCatalogTable_full(t *testing.T) {
 }
 
 func TestAccAWSGlueCatalogTable_update_addValues(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	description := "A test table from terraform"
 	resourceName := "aws_glue_catalog_table.test"
 
@@ -156,20 +149,12 @@ func TestAccAWSGlueCatalogTable_update_addValues(t *testing.T) {
 		CheckDestroy: testAccCheckGlueTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  testAccGlueCatalogTable_basic(rInt),
+				Config:  testAccGlueCatalogTable_basic(rName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"name",
-						fmt.Sprintf("my_test_catalog_table_%d", rInt),
-					),
-					resource.TestCheckResourceAttr(
-						resourceName,
-						"database_name",
-						fmt.Sprintf("my_test_catalog_database_%d", rInt),
-					),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 				),
 			},
 			{
@@ -178,12 +163,12 @@ func TestAccAWSGlueCatalogTable_update_addValues(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config:  testAccGlueCatalogTable_full(rInt, description),
+				Config:  testAccGlueCatalogTable_full(rName, description),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("my_test_catalog_table_%d", rInt)),
-					resource.TestCheckResourceAttr(resourceName, "database_name", fmt.Sprintf("my_test_catalog_database_%d", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "owner", "my_owner"),
 					resource.TestCheckResourceAttr(resourceName, "retention", "1"),
@@ -226,7 +211,7 @@ func TestAccAWSGlueCatalogTable_update_addValues(t *testing.T) {
 }
 
 func TestAccAWSGlueCatalogTable_update_replaceValues(t *testing.T) {
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	description := "A test table from terraform"
 	resourceName := "aws_glue_catalog_table.test"
 
@@ -236,12 +221,12 @@ func TestAccAWSGlueCatalogTable_update_replaceValues(t *testing.T) {
 		CheckDestroy: testAccCheckGlueTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  testAccGlueCatalogTable_full(rInt, description),
+				Config:  testAccGlueCatalogTable_full(rName, description),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("my_test_catalog_table_%d", rInt)),
-					resource.TestCheckResourceAttr(resourceName, "database_name", fmt.Sprintf("my_test_catalog_database_%d", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
 					resource.TestCheckResourceAttr(resourceName, "owner", "my_owner"),
 					resource.TestCheckResourceAttr(resourceName, "retention", "1"),
@@ -285,12 +270,12 @@ func TestAccAWSGlueCatalogTable_update_replaceValues(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config:  testAccGlueCatalogTable_full_replacedValues(rInt),
+				Config:  testAccGlueCatalogTable_full_replacedValues(rName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGlueCatalogTableExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("my_test_catalog_table_%d", rInt)),
-					resource.TestCheckResourceAttr(resourceName, "database_name", fmt.Sprintf("my_test_catalog_database_%d", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "description", "A test table from terraform2"),
 					resource.TestCheckResourceAttr(resourceName, "owner", "my_owner2"),
 					resource.TestCheckResourceAttr(resourceName, "retention", "2"),
@@ -404,29 +389,51 @@ func TestAccAWSGlueCatalogTable_StorageDescriptor_SkewedInfo_EmptyConfigurationB
 	})
 }
 
-func testAccGlueCatalogTable_basic(rInt int) string {
+func TestAccAWSGlueCatalogTable_disappears(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTable_basic(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsGlueCatalogTable(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func testAccGlueCatalogTable_basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_glue_catalog_database" "test" {
-  name = "my_test_catalog_database_%d"
+  name = %[1]q
 }
 
 resource "aws_glue_catalog_table" "test" {
-  name          = "my_test_catalog_table_%d"
-  database_name = "${aws_glue_catalog_database.test.name}"
+  name          = %[1]q
+  database_name = aws_glue_catalog_database.test.name
 }
-`, rInt, rInt)
+`, rName)
 }
 
-func testAccGlueCatalogTable_full(rInt int, desc string) string {
+func testAccGlueCatalogTable_full(rName, desc string) string {
 	return fmt.Sprintf(`
 resource "aws_glue_catalog_database" "test" {
-  name = "my_test_catalog_database_%d"
+  name = %[1]q
 }
 
 resource "aws_glue_catalog_table" "test" {
-  name               = "my_test_catalog_table_%d"
-  database_name      = "${aws_glue_catalog_database.test.name}"
-  description        = "%s"
+  name               = %[1]q
+  database_name      = aws_glue_catalog_database.test.name
+  description        = %[2]q
   owner              = "my_owner"
   retention          = 1
   table_type         = "VIRTUAL_VIEW"
@@ -504,18 +511,18 @@ resource "aws_glue_catalog_table" "test" {
     param1 = "param1_val"
   }
 }
-`, rInt, rInt, desc)
+`, rName, desc)
 }
 
-func testAccGlueCatalogTable_full_replacedValues(rInt int) string {
+func testAccGlueCatalogTable_full_replacedValues(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_glue_catalog_database" "test" {
-  name = "my_test_catalog_database_%d"
+  name = %[1]q
 }
 
 resource "aws_glue_catalog_table" "test" {
-  name               = "my_test_catalog_table_%d"
-  database_name      = "${aws_glue_catalog_database.test.name}"
+  name               = %[1]q
+  database_name      = aws_glue_catalog_database.test.name
   description        = "A test table from terraform2"
   owner              = "my_owner2"
   retention          = 2
@@ -599,7 +606,7 @@ resource "aws_glue_catalog_table" "test" {
     param2 = "param1_val2"
   }
 }
-`, rInt, rInt)
+`, rName)
 }
 
 func testAccGlueCatalogTableConfigStorageDescriptorEmptyConfigurationBlock(rName string) string {
@@ -646,7 +653,8 @@ resource "aws_glue_catalog_table" "test" {
 
   storage_descriptor {
     skewed_info {
-      skewed_column_names               = []
+      skewed_column_names = []
+
       skewed_column_value_location_maps = {}
       skewed_column_values              = []
     }
@@ -702,8 +710,8 @@ func testAccCheckGlueCatalogTableExists(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		glueconn := testAccProvider.Meta().(*AWSClient).glueconn
-		out, err := glueconn.GetTable(&glue.GetTableInput{
+		conn := testAccProvider.Meta().(*AWSClient).glueconn
+		out, err := conn.GetTable(&glue.GetTableInput{
 			CatalogId:    aws.String(catalogId),
 			DatabaseName: aws.String(dbName),
 			Name:         aws.String(resourceName),
@@ -717,9 +725,9 @@ func testAccCheckGlueCatalogTableExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("No Glue Table Found")
 		}
 
-		if *out.Table.Name != resourceName {
+		if aws.StringValue(out.Table.Name) != resourceName {
 			return fmt.Errorf("Glue Table Mismatch - existing: %q, state: %q",
-				*out.Table.Name, resourceName)
+				aws.StringValue(out.Table.Name), resourceName)
 		}
 
 		return nil

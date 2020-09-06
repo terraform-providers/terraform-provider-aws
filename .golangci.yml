@@ -1,9 +1,18 @@
 issues:
   exclude-rules:
+    - linters:
+        - gosimple
+      text: "S1039:"
+
     # Exclude issues bypassing staticcheck.conf
     - linters:
         - staticcheck
       text: "SA1019:"
+
+    - linters:
+        - unparam
+      text: "always receives"
+
   max-per-linter: 0
   max-same-issues: 0
 
@@ -20,12 +29,13 @@ linters:
     - structcheck
     - unconvert
     - unused
+    - unparam
     - varcheck
     - vet
 
 linters-settings:
   errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
+    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
 
 run:
   modules-download-mode: vendor

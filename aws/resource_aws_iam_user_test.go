@@ -12,9 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -33,7 +33,9 @@ func testSweepIamUsers(region string) error {
 	conn := client.(*AWSClient).iamconn
 	prefixes := []string{
 		"test-user",
-		"tf-acc-test",
+		"test_user",
+		"tf-acc",
+		"tf_acc",
 	}
 	users := make([]*iam.User, 0)
 
@@ -762,7 +764,6 @@ func testAccCheckAWSUserCreatesMFADevice(getUserOutput *iam.GetUserOutput) resou
 }
 
 func testAccCheckAWSUserUploadsSSHKey(getUserOutput *iam.GetUserOutput) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 
 		sshKey, err := ioutil.ReadFile("./test-fixtures/public-ssh-key.pub")

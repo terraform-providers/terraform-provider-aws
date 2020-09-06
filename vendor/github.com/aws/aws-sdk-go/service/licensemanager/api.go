@@ -63,8 +63,8 @@ func (c *LicenseManager) CreateLicenseConfigurationRequest(input *CreateLicenseC
 // that can be consumed and enforced by License Manager. Components include
 // specifications for the license type (licensing by instance, socket, CPU,
 // or vCPU), allowed tenancy (shared tenancy, Dedicated Instance, Dedicated
-// Host, or all of these), host affinity (how long a VM must be associated with
-// a host), and the number of licenses purchased and used.
+// Host, or all of these), license affinity to host (how long a license must
+// be associated with a host), and the number of licenses purchased and used.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1289,13 +1289,6 @@ func (c *LicenseManager) UpdateLicenseConfigurationRequest(input *UpdateLicenseC
 //
 // Modifies the attributes of an existing license configuration.
 //
-// A license configuration is an abstraction of a customer license agreement
-// that can be consumed and enforced by License Manager. Components include
-// specifications for the license type (licensing by instance, socket, CPU,
-// or vCPU), allowed tenancy (shared tenancy, Dedicated Instance, Dedicated
-// Host, or all of these), host affinity (how long a VM must be associated with
-// a host), and the number of licenses purchased and used.
-//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -1732,17 +1725,24 @@ type CreateLicenseConfigurationInput struct {
 	LicenseCountingType *string `type:"string" required:"true" enum:"LicenseCountingType"`
 
 	// License rules. The syntax is #name=value (for example, #allowedTenancy=EC2-DedicatedHost).
-	// Available rules vary by dimension.
+	// The available rules vary by dimension, as follows.
 	//
-	//    * Cores dimension: allowedTenancy | maximumCores | minimumCores
+	//    * Cores dimension: allowedTenancy | licenseAffinityToHost | maximumCores
+	//    | minimumCores
 	//
 	//    * Instances dimension: allowedTenancy | maximumCores | minimumCores |
 	//    maximumSockets | minimumSockets | maximumVcpus | minimumVcpus
 	//
-	//    * Sockets dimension: allowedTenancy | maximumSockets | minimumSockets
+	//    * Sockets dimension: allowedTenancy | licenseAffinityToHost | maximumSockets
+	//    | minimumSockets
 	//
 	//    * vCPUs dimension: allowedTenancy | honorVcpuOptimization | maximumVcpus
 	//    | minimumVcpus
+	//
+	// The unit for licenseAffinityToHost is days and the range is 1 to 180. The
+	// possible values for allowedTenancy are EC2-Default, EC2-DedicatedHost, and
+	// EC2-DedicatedInstance. The possible values for honorVcpuOptimization are
+	// True and False.
 	LicenseRules []*string `type:"list"`
 
 	// Name of the license configuration.
@@ -3151,8 +3151,9 @@ type ListLicenseConfigurationsInput struct {
 	// Filters to scope the results. The following filters and logical operators
 	// are supported:
 	//
-	//    * licenseCountingType - The dimension on which licenses are counted (vCPU).
-	//    Logical operators are EQUALS | NOT_EQUALS.
+	//    * licenseCountingType - The dimension on which licenses are counted. Possible
+	//    values are vCPU | Instance | Core | Socket. Logical operators are EQUALS
+	//    | NOT_EQUALS.
 	//
 	//    * enforceLicenseCount - A Boolean value that indicates whether hard license
 	//    enforcement is used. Logical operators are EQUALS | NOT_EQUALS.
@@ -3712,8 +3713,10 @@ func (s *OrganizationConfiguration) SetEnableIntegration(v bool) *OrganizationCo
 type ProductInformation struct {
 	_ struct{} `type:"structure"`
 
-	// Product information filters. The following filters and logical operators
-	// are supported:
+	// Product information filters.
+	//
+	// The following filters and logical operators are supported when the resource
+	// type is SSM_MANAGED:
 	//
 	//    * Application Name - The name of the application. Logical operator is
 	//    EQUALS.
@@ -3729,13 +3732,23 @@ type ProductInformation struct {
 	//    * Platform Type - The platform type. Logical operator is EQUALS.
 	//
 	//    * License Included - The type of license included. Logical operators are
-	//    EQUALS and NOT_EQUALS. Possible values are sql-server-enterprise | sql-server-standard
+	//    EQUALS and NOT_EQUALS. Possible values are: sql-server-enterprise | sql-server-standard
 	//    | sql-server-web | windows-server-datacenter.
+	//
+	// The following filters and logical operators are supported when the resource
+	// type is RDS:
+	//
+	//    * Engine Edition - The edition of the database engine. Logical operator
+	//    is EQUALS. Possible values are: oracle-ee | oracle-se | oracle-se1 | oracle-se2.
+	//
+	//    * License Pack - The license pack. Logical operator is EQUALS. Possible
+	//    values are: data guard | diagnostic pack sqlt | tuning pack sqlt | ols
+	//    | olap.
 	//
 	// ProductInformationFilterList is a required field
 	ProductInformationFilterList []*ProductInformationFilter `type:"list" required:"true"`
 
-	// Resource type. The value is SSM_MANAGED.
+	// Resource type. The possible values are SSM_MANAGED | RDS.
 	//
 	// ResourceType is a required field
 	ResourceType *string `type:"string" required:"true"`
@@ -4278,7 +4291,8 @@ type UpdateLicenseConfigurationInput struct {
 	// New hard limit of the number of available licenses.
 	LicenseCountHardLimit *bool `type:"boolean"`
 
-	// New license rules.
+	// New license rule. The only rule that you can add after you create a license
+	// configuration is licenseAffinityToHost.
 	LicenseRules []*string `type:"list"`
 
 	// New name of the license configuration.
@@ -4568,6 +4582,16 @@ const (
 	InventoryFilterConditionContains = "CONTAINS"
 )
 
+// InventoryFilterCondition_Values returns all elements of the InventoryFilterCondition enum
+func InventoryFilterCondition_Values() []string {
+	return []string{
+		InventoryFilterConditionEquals,
+		InventoryFilterConditionNotEquals,
+		InventoryFilterConditionBeginsWith,
+		InventoryFilterConditionContains,
+	}
+}
+
 const (
 	// LicenseConfigurationStatusAvailable is a LicenseConfigurationStatus enum value
 	LicenseConfigurationStatusAvailable = "AVAILABLE"
@@ -4575,6 +4599,14 @@ const (
 	// LicenseConfigurationStatusDisabled is a LicenseConfigurationStatus enum value
 	LicenseConfigurationStatusDisabled = "DISABLED"
 )
+
+// LicenseConfigurationStatus_Values returns all elements of the LicenseConfigurationStatus enum
+func LicenseConfigurationStatus_Values() []string {
+	return []string{
+		LicenseConfigurationStatusAvailable,
+		LicenseConfigurationStatusDisabled,
+	}
+}
 
 const (
 	// LicenseCountingTypeVCpu is a LicenseCountingType enum value
@@ -4589,6 +4621,16 @@ const (
 	// LicenseCountingTypeSocket is a LicenseCountingType enum value
 	LicenseCountingTypeSocket = "Socket"
 )
+
+// LicenseCountingType_Values returns all elements of the LicenseCountingType enum
+func LicenseCountingType_Values() []string {
+	return []string{
+		LicenseCountingTypeVCpu,
+		LicenseCountingTypeInstance,
+		LicenseCountingTypeCore,
+		LicenseCountingTypeSocket,
+	}
+}
 
 const (
 	// ResourceTypeEc2Instance is a ResourceType enum value
@@ -4606,3 +4648,14 @@ const (
 	// ResourceTypeSystemsManagerManagedInstance is a ResourceType enum value
 	ResourceTypeSystemsManagerManagedInstance = "SYSTEMS_MANAGER_MANAGED_INSTANCE"
 )
+
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeEc2Instance,
+		ResourceTypeEc2Host,
+		ResourceTypeEc2Ami,
+		ResourceTypeRds,
+		ResourceTypeSystemsManagerManagedInstance,
+	}
+}

@@ -18,6 +18,7 @@ CloudFront
 CloudHSM v2
 CloudTrail
 CloudWatch
+CodeArtifact
 CodeBuild
 CodeCommit
 CodeDeploy
@@ -64,6 +65,7 @@ Kinesis Data Analytics v2 (SQL and Java Applications)
 Kinesis Firehose
 Kinesis Video
 Lambda
+Lex
 License Manager
 Lightsail
 MQ
@@ -75,6 +77,7 @@ MediaStore
 Neptune
 OpsWorks
 Organizations
+Outposts
 Pinpoint
 Pricing
 Quantum Ledger Database (QLDB)
@@ -83,6 +86,7 @@ RAM
 RDS
 Redshift
 Resource Groups
+Resource Groups Tagging API
 Route53 Domains
 Route53 Resolver
 Route53

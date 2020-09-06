@@ -36,7 +36,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		if !astutils.IsFieldListTypePackageType(funcType.Params, 0, pass.TypesInfo, schema.PackagePath, schema.TypeNameResourceData) {
+		if !astutils.IsFieldListTypeModulePackageType(funcType.Params, 0, pass.TypesInfo, schema.PackageModule, schema.PackageModulePath, schema.TypeNameResourceData) {
 			return
 		}
 

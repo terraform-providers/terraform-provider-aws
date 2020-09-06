@@ -6,27 +6,27 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "flagName"
 	info.Tags = []string{"diagnostic", "experimental"}
 	info.Summary = "Detects flag names with whitespace"
 	info.Before = `b := flag.Bool(" foo ", false, "description")`
 	info.After = `b := flag.Bool("foo", false, "description")`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&flagNameChecker{ctx: ctx})
 	})
 }
 
 type flagNameChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *flagNameChecker) VisitExpr(expr ast.Expr) {

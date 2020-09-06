@@ -14,7 +14,7 @@ Provides an OpsWorks Ganglia layer resource.
 
 ```hcl
 resource "aws_opsworks_ganglia_layer" "monitor" {
-  stack_id = "${aws_opsworks_stack.main.id}"
+  stack_id = aws_opsworks_stack.main.id
   password = "foobarbaz"
 }
 ```

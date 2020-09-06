@@ -18,16 +18,16 @@ data "aws_eks_cluster" "example" {
 }
 
 output "endpoint" {
-  value = "${data.aws_eks_cluster.example.endpoint}"
+  value = data.aws_eks_cluster.example.endpoint
 }
 
 output "kubeconfig-certificate-authority-data" {
-  value = "${data.aws_eks_cluster.example.certificate_authority.0.data}"
+  value = data.aws_eks_cluster.example.certificate_authority[0].data
 }
 
 # Only available on Kubernetes version 1.13 and 1.14 clusters created or upgraded on or after September 3, 2019.
 output "identity-oidc-issuer" {
-  value = "${data.aws_eks_cluster.example.identity.0.oidc.0.issuer}"
+  value = data.aws_eks_cluster.example.identity[0].oidc[0].issuer
 }
 ```
 
@@ -53,7 +53,7 @@ output "identity-oidc-issuer" {
 * `tags` - Key-value map of resource tags.
 * `version` - The Kubernetes server version for the cluster.
 * `vpc_config` - Nested list containing VPC configuration for the cluster.
-    * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster. 
+    * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
     * `endpoint_private_access` - Indicates whether or not the Amazon EKS private API server endpoint is enabled.
     * `endpoint_public_access` - Indicates whether or not the Amazon EKS public API server endpoint is enabled.
     * `public_access_cidrs` - List of CIDR blocks. Indicates which CIDR blocks can access the Amazon EKS public API server endpoint.

@@ -56,7 +56,7 @@ resource "aws_elasticache_replication_group" "example" {
   port                          = 6379
 
   lifecycle {
-    ignore_changes = ["number_cache_clusters"]
+    ignore_changes = [number_cache_clusters]
   }
 }
 
@@ -64,7 +64,7 @@ resource "aws_elasticache_cluster" "replica" {
   count = 1
 
   cluster_id           = "tf-rep-group-1-${count.index}"
-  replication_group_id = "${aws_elasticache_replication_group.example.id}"
+  replication_group_id = aws_elasticache_replication_group.example.id
 }
 ```
 
@@ -134,7 +134,7 @@ SnapshotRetentionLimit to 5, then a snapshot that was taken today will be retain
 before being deleted. If the value of SnapshotRetentionLimit is set to zero (0), backups are turned off.
 Please note that setting a `snapshot_retention_limit` is not supported on cache.t1.micro or cache.t2.* cache nodes
 * `apply_immediately` - (Optional) Specifies whether any modifications are applied immediately, or during the next maintenance window. Default is `false`.
-* `tags` - (Optional) A map of tags to assign to the resource
+* `tags` - (Optional) A map of tags to assign to the resource. Adding tags to this resource will add or overwrite any existing tags on the clusters in the replication group and not to the group itself.
 * `cluster_mode` - (Optional) Create a native redis cluster. `automatic_failover_enabled` must be set to true. Cluster Mode documented below. Only 1 `cluster_mode` block is allowed.
 
 Cluster Mode (`cluster_mode`) supports the following:

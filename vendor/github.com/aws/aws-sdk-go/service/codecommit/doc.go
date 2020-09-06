@@ -224,6 +224,9 @@
 //
 //    * GetComment, which returns information about a comment on a commit.
 //
+//    * GetCommentReactions, which returns information about emoji reactions
+//    to comments.
+//
 //    * GetCommentsForComparedCommit, which returns information about comments
 //    on the comparison between two commit specifiers in a repository.
 //
@@ -231,6 +234,9 @@
 //    between two commit specifiers in a repository.
 //
 //    * PostCommentReply, which creates a reply to a comment.
+//
+//    * PutCommentReaction, which creates or updates an emoji reaction to a
+//    comment.
 //
 //    * UpdateComment, which updates the content of a comment on a commit in
 //    a repository.

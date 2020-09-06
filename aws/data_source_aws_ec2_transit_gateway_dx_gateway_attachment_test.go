@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2TransitGatewayDxGatewayAttachmentDataSource_TransitGatewayIdAndDxGatewayId(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	dataSourceName := "data.aws_ec2_transit_gateway_dx_gateway_attachment.test"
 	transitGatewayResourceName := "aws_ec2_transit_gateway.test"
 	dxGatewayResourceName := "aws_dx_gateway.test"
@@ -37,7 +37,7 @@ func TestAccAWSEc2TransitGatewayDxGatewayAttachmentDataSource_TransitGatewayIdAn
 
 func TestAccAWSEc2TransitGatewayDxGatewayAttachmentDataSource_filter(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	dataSourceName := "data.aws_ec2_transit_gateway_dx_gateway_attachment.test"
 	transitGatewayResourceName := "aws_ec2_transit_gateway.test"
 	dxGatewayResourceName := "aws_dx_gateway.test"
@@ -76,8 +76,8 @@ resource "aws_ec2_transit_gateway" "test" {
 }
 
 resource "aws_dx_gateway_association" "test" {
-  dx_gateway_id         = "${aws_dx_gateway.test.id}"
-  associated_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  dx_gateway_id         = aws_dx_gateway.test.id
+  associated_gateway_id = aws_ec2_transit_gateway.test.id
 
   allowed_prefixes = [
     "10.255.255.0/30",
@@ -86,8 +86,8 @@ resource "aws_dx_gateway_association" "test" {
 }
 
 data "aws_ec2_transit_gateway_dx_gateway_attachment" "test" {
-  transit_gateway_id = "${aws_dx_gateway_association.test.associated_gateway_id}"
-  dx_gateway_id      = "${aws_dx_gateway_association.test.dx_gateway_id}"
+  transit_gateway_id = aws_dx_gateway_association.test.associated_gateway_id
+  dx_gateway_id      = aws_dx_gateway_association.test.dx_gateway_id
 }
 `, rName, rBgpAsn)
 }
@@ -106,8 +106,8 @@ resource "aws_ec2_transit_gateway" "test" {
 }
 
 resource "aws_dx_gateway_association" "test" {
-  dx_gateway_id         = "${aws_dx_gateway.test.id}"
-  associated_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  dx_gateway_id         = aws_dx_gateway.test.id
+  associated_gateway_id = aws_ec2_transit_gateway.test.id
 
   allowed_prefixes = [
     "10.255.255.0/30",
@@ -118,7 +118,7 @@ resource "aws_dx_gateway_association" "test" {
 data "aws_ec2_transit_gateway_dx_gateway_attachment" "test" {
   filter {
     name   = "resource-id"
-    values = ["${aws_dx_gateway_association.test.dx_gateway_id}"]
+    values = [aws_dx_gateway_association.test.dx_gateway_id]
   }
 }
 `, rName, rBgpAsn)

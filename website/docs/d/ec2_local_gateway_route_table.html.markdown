@@ -19,8 +19,9 @@ The following example returns a specific local gateway route table ID
 
 ```hcl
 variable "aws_ec2_local_gateway_route_table" {}
+
 data "aws_ec2_local_gateway_route_table" "selected" {
-  local_gateway_route_table_id = "${var.aws_ec2_local_gateway_route_table}"
+  local_gateway_route_table_id = var.aws_ec2_local_gateway_route_table
 }
 ```
 

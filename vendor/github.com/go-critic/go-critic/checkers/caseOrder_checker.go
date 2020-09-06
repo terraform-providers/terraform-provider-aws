@@ -4,12 +4,12 @@ import (
 	"go/ast"
 	"go/types"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "caseOrder"
 	info.Tags = []string{"diagnostic"}
 	info.Summary = "Detects erroneous case order inside switch statements"
@@ -28,14 +28,14 @@ case ast.Expr:
 	fmt.Println("expr")
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForStmt(&caseOrderChecker{ctx: ctx})
 	})
 }
 
 type caseOrderChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *caseOrderChecker) VisitStmt(stmt ast.Stmt) {

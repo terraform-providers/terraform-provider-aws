@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -50,7 +50,6 @@ func dataSourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 						"vpc_id": {
 							Type:     schema.TypeString,
@@ -73,7 +72,6 @@ func dataSourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 						"customer_username": {
 							Type:     schema.TypeString,
@@ -83,13 +81,11 @@ func dataSourceAwsDirectoryServiceDirectory() *schema.Resource {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 						"subnet_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 						"vpc_id": {
 							Type:     schema.TypeString,
@@ -114,7 +110,6 @@ func dataSourceAwsDirectoryServiceDirectory() *schema.Resource {
 			"dns_ip_addresses": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Computed: true,
 			},
 			"security_group_id": {
@@ -142,13 +137,14 @@ func dataSourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta int
 		DirectoryIds: []*string{aws.String(directoryID)},
 	})
 	if err != nil {
-		return err
+		if isAWSErr(err, directoryservice.ErrCodeEntityDoesNotExistException, "") {
+			return fmt.Errorf("DirectoryService Directory (%s) not found", directoryID)
+		}
+		return fmt.Errorf("error reading DirectoryService Directory: %w", err)
 	}
 
-	if len(out.DirectoryDescriptions) == 0 {
-		log.Printf("[WARN] Directory %s not found", d.Id())
-		d.SetId("")
-		return nil
+	if out == nil || len(out.DirectoryDescriptions) == 0 {
+		return fmt.Errorf("error reading DirectoryService Directory (%s): empty output", directoryID)
 	}
 
 	d.SetId(directoryID)
@@ -160,11 +156,16 @@ func dataSourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta int
 	d.Set("alias", dir.Alias)
 	d.Set("description", dir.Description)
 
-	if *dir.Type == directoryservice.DirectoryTypeAdconnector {
-		d.Set("dns_ip_addresses", schema.NewSet(schema.HashString, flattenStringList(dir.ConnectSettings.ConnectIps)))
+	var addresses []interface{}
+	if aws.StringValue(dir.Type) == directoryservice.DirectoryTypeAdconnector {
+		addresses = flattenStringList(dir.ConnectSettings.ConnectIps)
 	} else {
-		d.Set("dns_ip_addresses", schema.NewSet(schema.HashString, flattenStringList(dir.DnsIpAddrs)))
+		addresses = flattenStringList(dir.DnsIpAddrs)
 	}
+	if err := d.Set("dns_ip_addresses", addresses); err != nil {
+		return fmt.Errorf("error setting dns_ip_addresses: %w", err)
+	}
+
 	d.Set("name", dir.Name)
 	d.Set("short_name", dir.ShortName)
 	d.Set("size", dir.Size)
@@ -172,28 +173,30 @@ func dataSourceAwsDirectoryServiceDirectoryRead(d *schema.ResourceData, meta int
 	d.Set("type", dir.Type)
 
 	if err := d.Set("vpc_settings", flattenDSVpcSettings(dir.VpcSettings)); err != nil {
-		return fmt.Errorf("error setting VPC settings: %s", err)
+		return fmt.Errorf("error setting VPC settings: %w", err)
 	}
 
 	if err := d.Set("connect_settings", flattenDSConnectSettings(dir.DnsIpAddrs, dir.ConnectSettings)); err != nil {
-		return fmt.Errorf("error setting connect settings: %s", err)
+		return fmt.Errorf("error setting connect settings: %w", err)
 	}
 
 	d.Set("enable_sso", dir.SsoEnabled)
 
+	var securityGroupId *string
 	if aws.StringValue(dir.Type) == directoryservice.DirectoryTypeAdconnector {
-		d.Set("security_group_id", aws.StringValue(dir.ConnectSettings.SecurityGroupId))
+		securityGroupId = dir.ConnectSettings.SecurityGroupId
 	} else {
-		d.Set("security_group_id", aws.StringValue(dir.VpcSettings.SecurityGroupId))
+		securityGroupId = dir.VpcSettings.SecurityGroupId
 	}
+	d.Set("security_group_id", aws.StringValue(securityGroupId))
 
 	tags, err := keyvaluetags.DirectoryserviceListTags(conn, d.Id())
 	if err != nil {
-		return fmt.Errorf("error listing tags for Directory Service Directory (%s): %s", d.Id(), err)
+		return fmt.Errorf("error listing tags for Directory Service Directory (%s): %w", d.Id(), err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil

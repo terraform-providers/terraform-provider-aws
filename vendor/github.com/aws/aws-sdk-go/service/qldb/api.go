@@ -679,8 +679,12 @@ func (c *QLDB) GetBlockRequest(input *GetBlockInput) (req *request.Request, outp
 
 // GetBlock API operation for Amazon QLDB.
 //
-// Returns a journal block object at a specified address in a ledger. Also returns
+// Returns a block object at a specified address in a journal. Also returns
 // a proof of the specified block for verification if DigestTipAddress is provided.
+//
+// For information about the data contents in a block, see Journal contents
+// (https://docs.aws.amazon.com/qldb/latest/developerguide/journal-contents.html)
+// in the Amazon QLDB Developer Guide.
 //
 // If the specified ledger doesn't exist or is in DELETING status, then throws
 // ResourceNotFoundException.
@@ -1592,10 +1596,9 @@ func (c *QLDB) StreamJournalToKinesisRequest(input *StreamJournalToKinesisInput)
 
 // StreamJournalToKinesis API operation for Amazon QLDB.
 //
-// Creates a stream for a given Amazon QLDB ledger that delivers the journal
-// data to a specified Amazon Kinesis Data Streams resource. The stream captures
-// every document revision that is committed to your journal and sends it to
-// the Kinesis data stream.
+// Creates a journal stream for a given Amazon QLDB ledger. The stream captures
+// every document revision that is committed to the ledger's journal and delivers
+// the data to a specified Amazon Kinesis Data Streams resource.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1984,6 +1987,10 @@ type CreateLedgerInput struct {
 
 	// The name of the ledger that you want to create. The name must be unique among
 	// all of your ledgers in the current AWS Region.
+	//
+	// Naming constraints for ledger names are defined in Quotas in Amazon QLDB
+	// (https://docs.aws.amazon.com/qldb/latest/developerguide/limits.html#limits.naming)
+	// in the Amazon QLDB Developer Guide.
 	//
 	// Name is a required field
 	Name *string `min:"1" type:"string" required:"true"`
@@ -3250,8 +3257,8 @@ func (s *JournalS3ExportDescription) SetStatus(v string) *JournalS3ExportDescrip
 type KinesisConfiguration struct {
 	_ struct{} `type:"structure"`
 
-	// Enables QLDB to publish multiple stream records in a single Kinesis Data
-	// Streams record. To learn more, see KPL Key Concepts (https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html)
+	// Enables QLDB to publish multiple data records in a single Kinesis Data Streams
+	// record. To learn more, see KPL Key Concepts (https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html)
 	// in the Amazon Kinesis Data Streams Developer Guide.
 	AggregationEnabled *bool `type:"boolean"`
 
@@ -4270,8 +4277,8 @@ func (s *S3ExportConfiguration) SetPrefix(v string) *S3ExportConfiguration {
 type StreamJournalToKinesisInput struct {
 	_ struct{} `type:"structure"`
 
-	// The exclusive date and time that specifies when the stream ends. If you keep
-	// this parameter blank, the stream runs indefinitely until you cancel it.
+	// The exclusive date and time that specifies when the stream ends. If you don't
+	// define this parameter, the stream runs indefinitely until you cancel it.
 	//
 	// The ExclusiveEndTime must be in ISO 8601 date and time format and in Universal
 	// Coordinated Time (UTC). For example: 2019-06-13T21:36:34Z
@@ -4310,10 +4317,8 @@ type StreamJournalToKinesisInput struct {
 	// names can help identify and indicate the purpose of a stream.
 	//
 	// Your stream name must be unique among other active streams for a given ledger.
-	// If you try to create a stream with the same name and configuration of an
-	// active, existing stream for the same ledger, QLDB simply returns the existing
-	// stream. Stream names have the same naming constraints as ledger names, as
-	// defined in Quotas in Amazon QLDB (https://docs.aws.amazon.com/qldb/latest/developerguide/limits.html#limits.naming)
+	// Stream names have the same naming constraints as ledger names, as defined
+	// in Quotas in Amazon QLDB (https://docs.aws.amazon.com/qldb/latest/developerguide/limits.html#limits.naming)
 	// in the Amazon QLDB Developer Guide.
 	//
 	// StreamName is a required field
@@ -4709,7 +4714,7 @@ func (s *UpdateLedgerOutput) SetState(v string) *UpdateLedgerOutput {
 	return s
 }
 
-// A structure that can contain an Amazon Ion value in multiple encoding formats.
+// A structure that can contain a value in multiple encoding formats.
 type ValueHolder struct {
 	_ struct{} `type:"structure" sensitive:"true"`
 
@@ -4754,6 +4759,14 @@ const (
 	ErrorCauseIamPermissionRevoked = "IAM_PERMISSION_REVOKED"
 )
 
+// ErrorCause_Values returns all elements of the ErrorCause enum
+func ErrorCause_Values() []string {
+	return []string{
+		ErrorCauseKinesisStreamNotFound,
+		ErrorCauseIamPermissionRevoked,
+	}
+}
+
 const (
 	// ExportStatusInProgress is a ExportStatus enum value
 	ExportStatusInProgress = "IN_PROGRESS"
@@ -4764,6 +4777,15 @@ const (
 	// ExportStatusCancelled is a ExportStatus enum value
 	ExportStatusCancelled = "CANCELLED"
 )
+
+// ExportStatus_Values returns all elements of the ExportStatus enum
+func ExportStatus_Values() []string {
+	return []string{
+		ExportStatusInProgress,
+		ExportStatusCompleted,
+		ExportStatusCancelled,
+	}
+}
 
 const (
 	// LedgerStateCreating is a LedgerState enum value
@@ -4779,10 +4801,27 @@ const (
 	LedgerStateDeleted = "DELETED"
 )
 
+// LedgerState_Values returns all elements of the LedgerState enum
+func LedgerState_Values() []string {
+	return []string{
+		LedgerStateCreating,
+		LedgerStateActive,
+		LedgerStateDeleting,
+		LedgerStateDeleted,
+	}
+}
+
 const (
 	// PermissionsModeAllowAll is a PermissionsMode enum value
 	PermissionsModeAllowAll = "ALLOW_ALL"
 )
+
+// PermissionsMode_Values returns all elements of the PermissionsMode enum
+func PermissionsMode_Values() []string {
+	return []string{
+		PermissionsModeAllowAll,
+	}
+}
 
 const (
 	// S3ObjectEncryptionTypeSseKms is a S3ObjectEncryptionType enum value
@@ -4794,6 +4833,15 @@ const (
 	// S3ObjectEncryptionTypeNoEncryption is a S3ObjectEncryptionType enum value
 	S3ObjectEncryptionTypeNoEncryption = "NO_ENCRYPTION"
 )
+
+// S3ObjectEncryptionType_Values returns all elements of the S3ObjectEncryptionType enum
+func S3ObjectEncryptionType_Values() []string {
+	return []string{
+		S3ObjectEncryptionTypeSseKms,
+		S3ObjectEncryptionTypeSseS3,
+		S3ObjectEncryptionTypeNoEncryption,
+	}
+}
 
 const (
 	// StreamStatusActive is a StreamStatus enum value
@@ -4811,3 +4859,14 @@ const (
 	// StreamStatusImpaired is a StreamStatus enum value
 	StreamStatusImpaired = "IMPAIRED"
 )
+
+// StreamStatus_Values returns all elements of the StreamStatus enum
+func StreamStatus_Values() []string {
+	return []string{
+		StreamStatusActive,
+		StreamStatusCompleted,
+		StreamStatusCanceled,
+		StreamStatusFailed,
+		StreamStatusImpaired,
+	}
+}

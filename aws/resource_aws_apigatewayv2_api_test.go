@@ -9,9 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -316,6 +317,231 @@ func TestAccAWSAPIGatewayV2Api_AllAttributesHttp(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayV2Api_Openapi(t *testing.T) {
+	var v apigatewayv2.GetApiOutput
+	resourceName := "aws_apigatewayv2_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPI(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "api_endpoint"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "version", ""),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/apis/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /test"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_UpdatedOpenAPIYaml(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "version", ""),
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Api_Openapi_WithTags(t *testing.T) {
+	var v apigatewayv2.GetApiOutput
+	resourceName := "aws_apigatewayv2_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_tags(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "api_endpoint"),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/apis/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /test"}),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value2"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_tagsUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value1U"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value2U"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Api_Openapi_WithCorsConfiguration(t *testing.T) {
+	var v apigatewayv2.GetApiOutput
+	resourceName := "aws_apigatewayv2_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfiguration(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "api_endpoint"),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/apis/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.#", "1"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "delete"),
+					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.#", "1"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "https://www.google.de"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfigurationUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+					resource.TestCheckResourceAttr(resourceName, "cors_configuration.#", "0"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfigurationUpdated2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.#", "2"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "get"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "put"),
+					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.#", "2"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "https://www.example.com"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "https://www.google.de"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Api_OpenapiWithMoreFields(t *testing.T) {
+	var v apigatewayv2.GetApiOutput
+	resourceName := "aws_apigatewayv2_api.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "api_endpoint"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "version", ""),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/apis/.+`)),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /test"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayV2ApiConfig_UpdatedOpenAPI2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", "description test"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "version", "2017-04-21T04:08:08Z"),
+					testAccCheckAWSAPIGatewayV2ApiExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "protocol_type", apigatewayv2.ProtocolTypeHttp),
+					testAccCheckAWSAPIGatewayV2ApiRoutes(&v, []string{"GET /update"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
+}
+
+func testAccCheckAWSAPIGatewayV2ApiRoutes(v *apigatewayv2.GetApiOutput, routes []string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayv2conn
+
+		resp, err := conn.GetRoutes(&apigatewayv2.GetRoutesInput{
+			ApiId: v.ApiId,
+		})
+		if err != nil {
+			return err
+		}
+
+		actualRoutePaths := map[string]bool{}
+		for _, route := range resp.Items {
+			actualRoutePaths[*route.RouteKey] = true
+		}
+
+		for _, route := range routes {
+			if _, ok := actualRoutePaths[route]; !ok {
+				return fmt.Errorf("Expected path %v but did not find it in %v", route, actualRoutePaths)
+			}
+			delete(actualRoutePaths, route)
+		}
+
+		if len(actualRoutePaths) > 0 {
+			return fmt.Errorf("Found unexpected paths %v", actualRoutePaths)
+		}
+
+		return nil
+	}
+}
+
 func TestAccAWSAPIGatewayV2Api_Tags(t *testing.T) {
 	var v apigatewayv2.GetApiOutput
 	resourceName := "aws_apigatewayv2_api.test"
@@ -374,10 +600,9 @@ func TestAccAWSAPIGatewayV2Api_CorsConfiguration(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSAPIGatewayV2ApiDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2ApiDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSAPIGatewayV2ApiConfig_corsConfiguration(rName),
@@ -389,12 +614,12 @@ func TestAccAWSAPIGatewayV2Api_CorsConfiguration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_credentials", "false"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_headers.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_headers.2053999599", "Authorization"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_headers.*", "Authorization"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.4248514160", "GET"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.2928708052", "put"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "GET"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "put"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.89023941", "https://www.example.com"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "https://www.example.com"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.expose_headers.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.max_age", "0"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -422,12 +647,12 @@ func TestAccAWSAPIGatewayV2Api_CorsConfiguration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_credentials", "true"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_headers.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_methods.163128923", "*"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_methods.*", "*"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.1868318776", "HTTP://WWW.EXAMPLE.ORG"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.allow_origins.3551736600", "https://example.io"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "HTTP://WWW.EXAMPLE.ORG"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.allow_origins.*", "https://example.io"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.expose_headers.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.expose_headers.115091893", "X-Api-Id"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cors_configuration.0.expose_headers.*", "X-Api-Id"),
 					resource.TestCheckResourceAttr(resourceName, "cors_configuration.0.max_age", "500"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					testAccMatchResourceAttrRegionalARN(resourceName, "execution_arn", "execute-api", regexp.MustCompile(`.+`)),
@@ -764,4 +989,274 @@ resource "aws_apigatewayv2_api" "test" {
   route_key     = "GET /pets"
 }
 `, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPI(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  body          = <<EOF
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "%s_DIFFERENT",
+    "version": "1.0"
+  },
+  "paths": {
+    "/test": {
+      "get": {
+        "x-amazon-apigateway-integration": {
+          "type": "HTTP_PROXY",
+          "httpMethod": "GET",
+          "payloadFormatVersion": "1.0",
+          "uri": "https://www.google.de"
+        }
+      }
+    }
+  }
+}
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  body          = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 1.0
+paths:
+  "/test":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: '1.0'
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfiguration(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  cors_configuration {
+    allow_methods = ["delete"]
+    allow_origins = ["https://www.google.de"]
+  }
+  body = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+x-amazon-apigateway-cors:
+  allow_methods:
+    - delete
+  allow_origins:
+    - https://www.google.de
+paths:
+  "/test":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: '1.0'
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfigurationUpdated(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  body          = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+x-amazon-apigateway-cors:
+  allow_methods:
+    - delete
+  allow_origins:
+    - https://www.google.de
+paths:
+  "/update":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: 1.0
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_corsConfigurationUpdated2(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  cors_configuration {
+    allow_methods = ["put", "get"]
+    allow_origins = ["https://www.google.de", "https://www.example.com"]
+  }
+  body = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+x-amazon-apigateway-cors:
+  allow_methods:
+    - delete
+  allow_origins:
+    - https://www.google.de
+paths:
+  "/update":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: 1.0
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_tags(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  tags = {
+    Key1 = "Value1"
+    Key2 = "Value2"
+  }
+  body = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+tags:
+  - name: Key1
+    x-amazon-apigateway-tag-value: Value3
+paths:
+  "/test":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: '1.0'
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_OpenAPIYaml_tagsUpdated(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  tags = {
+    Key1 = "Value1U"
+    Key2 = "Value2U"
+  }
+  body = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+tags:
+  - name: Key3
+    x-amazon-apigateway-tag-value: Value3
+  - name: Key4
+    x-amazon-apigateway-tag-value: Value3
+paths:
+  "/update":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: 1.0
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_UpdatedOpenAPIYaml(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  body          = <<EOF
+---
+openapi: 3.0.1
+info:
+  title: %s_DIFFERENT
+  version: 2.0
+paths:
+  "/update":
+    get:
+      x-amazon-apigateway-integration:
+        type: HTTP_PROXY
+        httpMethod: GET
+        payloadFormatVersion: 1.0
+        uri: https://www.google.de
+EOF
+}
+`, rName, rName)
+}
+
+func testAccAWSAPIGatewayV2ApiConfig_UpdatedOpenAPI2(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = "%s"
+  protocol_type = "HTTP"
+  version       = "2017-04-21T04:08:08Z"
+  description   = "description test"
+  body          = <<EOF
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "%s_DIFFERENT",
+    "version": "2.0",
+    "description": "description different" 
+  },
+  "paths": {
+    "/update": {
+      "get": {
+        "x-amazon-apigateway-integration": {
+          "type": "HTTP_PROXY",
+          "httpMethod": "GET",
+          "payloadFormatVersion": "1.0",
+          "uri": "https://www.google.de"
+        }
+      }
+    }
+  }
+}
+EOF
+}
+`, rName, rName)
 }

@@ -1,0 +1,59 @@
+name: Dependency Checks
+
+on:
+  push:
+    branches:
+      - master
+      - 'release/**'
+  pull_request:
+    paths:
+      - awsproviderlint/** # go/analysis/analysistest requires vendoring
+      - go.mod
+      - go.sum
+      - vendor/**
+
+env:
+  GO_VERSION: "1.14"
+
+jobs:
+  comment:
+    if: github.event_name == 'pull_request' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver", "renovate[bot]"]'), github.actor)
+    name: Comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Comment
+        uses: unsplash/comment-on-pr@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          check_duplicate_msg: true
+          msg: |-
+            Thank you for your contribution! :rocket:
+
+            Please note that typically Go dependency changes are handled in this repository by Renovate Bot or the maintainers. This is to prevent pull request merge conflicts and further delay reviews of contributions. Remove any changes to the `go.mod`, `go.sum`, and `vendor/` files and commit them into this pull request.
+
+            Additional details:
+
+            * Check [open pull requests with the `dependencies` label](https://github.com/terraform-providers/terraform-provider-aws/pulls?q=is%3Aopen+is%3Apr+label%3Adependencies) to view other dependency updates.
+            * If this pull request includes an update the AWS Go SDK (or any other dependency) version, only updates submitted via Renovate Bot will be merged. This pull request will need to remove these changes and will need to be rebased after the existing dependency update via Renovate Bot has been merged for this pull request to be reviewed.
+            * If this pull request is for supporting a new AWS service:
+              * Ensure the new AWS service changes are following the [Contributing Guide section on new services](https://github.com/terraform-providers/terraform-provider-aws/blob/master/docs/contributing/contribution-checklists.md#new-service), in particular that the dependency addition and initial provider support are in a separate pull request from other changes (e.g. new resources). Contributions not following this item will not be reviewed until the changes are split.
+              * If this pull request is already a separate pull request from the above item, you can ignore this message.
+  go_mod:
+    name: go mod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: go mod
+        run: |
+          echo "==> Checking source code with go mod tidy..."
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum || \
+            (echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+          echo "==> Checking source code with go mod vendor..."
+          go mod vendor
+          git diff --compact-summary --exit-code -- vendor || \
+            (echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)

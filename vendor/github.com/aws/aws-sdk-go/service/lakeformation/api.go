@@ -402,7 +402,8 @@ func (c *LakeFormation) GetDataLakeSettingsRequest(input *GetDataLakeSettingsInp
 
 // GetDataLakeSettings API operation for AWS Lake Formation.
 //
-// The AWS Lake Formation principal.
+// Retrieves the list of the data lake administrators of a Lake Formation-managed
+// data lake.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -493,8 +494,9 @@ func (c *LakeFormation) GetEffectivePermissionsForPathRequest(input *GetEffectiv
 
 // GetEffectivePermissionsForPath API operation for AWS Lake Formation.
 //
-// Returns the permissions for a specified table or database resource located
-// at a path in Amazon S3.
+// Returns the Lake Formation permissions for a specified table or database
+// resource located at a path in Amazon S3. GetEffectivePermissionsForPath will
+// not return databases and tables if the catalog is encrypted.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -639,7 +641,7 @@ func (c *LakeFormation) GrantPermissionsRequest(input *GrantPermissionsInput) (r
 // and data organized in underlying data storage such as Amazon S3.
 //
 // For information about permissions, see Security and Access Control to Metadata
-// and Data (https://docs-aws.amazon.com/michigan/latest/dg/security-data-access.html).
+// and Data (https://docs-aws.amazon.com/lake-formation/latest/dg/security-data-access.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -737,7 +739,7 @@ func (c *LakeFormation) ListPermissionsRequest(input *ListPermissionsInput) (req
 // This operation returns only those permissions that have been explicitly granted.
 //
 // For information about permissions, see Security and Access Control to Metadata
-// and Data (https://docs-aws.amazon.com/michigan/latest/dg/security-data-access.html).
+// and Data (https://docs-aws.amazon.com/lake-formation/latest/dg/security-data-access.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1018,7 +1020,13 @@ func (c *LakeFormation) PutDataLakeSettingsRequest(input *PutDataLakeSettingsInp
 
 // PutDataLakeSettings API operation for AWS Lake Formation.
 //
-// The AWS Lake Formation principal.
+// Sets the list of data lake administrators who have admin privileges on all
+// resources managed by Lake Formation. For more information on admin privileges,
+// see Granting Lake Formation Permissions (https://docs.aws.amazon.com/lake-formation/latest/dg/lake-formation-permissions.html).
+//
+// This API replaces the current list of data lake admins with the new list
+// being passed. To add an admin, fetch the current list and add the new admin
+// to that list and pass that list in this API.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1111,6 +1119,15 @@ func (c *LakeFormation) RegisterResourceRequest(input *RegisterResourceInput) (r
 // path to the inline policy and attaches it to the service-linked role. When
 // you register subsequent paths, Lake Formation adds the path to the existing
 // policy.
+//
+// The following request registers a new location and gives AWS Lake Formation
+// permission to use the service-linked role to access that location.
+//
+// ResourceArn = arn:aws:s3:::my-bucket UseServiceLinkedRole = true
+//
+// If UseServiceLinkedRole is not set to true, you must provide or set the RoleArn:
+//
+// arn:aws:iam::12345:role/my-data-access-role
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1780,7 +1797,8 @@ func (s *ConcurrentModificationException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The AWS Lake Formation principal.
+// The AWS Lake Formation principal. Supported principals are IAM users or IAM
+// roles.
 type DataLakePrincipal struct {
 	_ struct{} `type:"structure"`
 
@@ -1817,20 +1835,31 @@ func (s *DataLakePrincipal) SetDataLakePrincipalIdentifier(v string) *DataLakePr
 	return s
 }
 
-// The AWS Lake Formation principal.
+// A structure representing a list of AWS Lake Formation principals designated
+// as data lake administrators and lists of principal permission entries for
+// default create database and default create table permissions.
 type DataLakeSettings struct {
 	_ struct{} `type:"structure"`
 
-	// A list of up to three principal permissions entries for default create database
-	// permissions.
+	// A structure representing a list of up to three principal permissions entries
+	// for default create database permissions.
 	CreateDatabaseDefaultPermissions []*PrincipalPermissions `type:"list"`
 
-	// A list of up to three principal permissions entries for default create table
-	// permissions.
+	// A structure representing a list of up to three principal permissions entries
+	// for default create table permissions.
 	CreateTableDefaultPermissions []*PrincipalPermissions `type:"list"`
 
-	// A list of AWS Lake Formation principals.
+	// A list of AWS Lake Formation principals. Supported principals are IAM users
+	// or IAM roles.
 	DataLakeAdmins []*DataLakePrincipal `type:"list"`
+
+	// A list of the resource-owning account IDs that the caller's account can use
+	// to share their user access details (user ARNs). The user ARNs can be logged
+	// in the resource owner's AWS CloudTrail log.
+	//
+	// You may want to specify this property when you are in a high-trust boundary,
+	// such as the same team or company.
+	TrustedResourceOwners []*string `type:"list"`
 }
 
 // String returns the string representation
@@ -1901,9 +1930,19 @@ func (s *DataLakeSettings) SetDataLakeAdmins(v []*DataLakePrincipal) *DataLakeSe
 	return s
 }
 
+// SetTrustedResourceOwners sets the TrustedResourceOwners field's value.
+func (s *DataLakeSettings) SetTrustedResourceOwners(v []*string) *DataLakeSettings {
+	s.TrustedResourceOwners = v
+	return s
+}
+
 // A structure for a data location object where permissions are granted or revoked.
 type DataLocationResource struct {
 	_ struct{} `type:"structure"`
+
+	// The identifier for the Data Catalog where the location is registered with
+	// AWS Lake Formation. By default, it is the account ID of the caller.
+	CatalogId *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) that uniquely identifies the data location
 	// resource.
@@ -1925,6 +1964,9 @@ func (s DataLocationResource) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DataLocationResource) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DataLocationResource"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
 	if s.ResourceArn == nil {
 		invalidParams.Add(request.NewErrParamRequired("ResourceArn"))
 	}
@@ -1933,6 +1975,12 @@ func (s *DataLocationResource) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *DataLocationResource) SetCatalogId(v string) *DataLocationResource {
+	s.CatalogId = &v
+	return s
 }
 
 // SetResourceArn sets the ResourceArn field's value.
@@ -1944,6 +1992,10 @@ func (s *DataLocationResource) SetResourceArn(v string) *DataLocationResource {
 // A structure for the database object.
 type DatabaseResource struct {
 	_ struct{} `type:"structure"`
+
+	// The identifier for the Data Catalog. By default, it is the account ID of
+	// the caller.
+	CatalogId *string `min:"1" type:"string"`
 
 	// The name of the database resource. Unique to the Data Catalog.
 	//
@@ -1964,6 +2016,9 @@ func (s DatabaseResource) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *DatabaseResource) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "DatabaseResource"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
 	if s.Name == nil {
 		invalidParams.Add(request.NewErrParamRequired("Name"))
 	}
@@ -1975,6 +2030,12 @@ func (s *DatabaseResource) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *DatabaseResource) SetCatalogId(v string) *DatabaseResource {
+	s.CatalogId = &v
+	return s
 }
 
 // SetName sets the Name field's value.
@@ -2093,6 +2154,35 @@ func (s DescribeResourceOutput) GoString() string {
 // SetResourceInfo sets the ResourceInfo field's value.
 func (s *DescribeResourceOutput) SetResourceInfo(v *ResourceInfo) *DescribeResourceOutput {
 	s.ResourceInfo = v
+	return s
+}
+
+// A structure containing the additional details to be returned in the AdditionalDetails
+// attribute of PrincipalResourcePermissions.
+//
+// If a catalog resource is shared through AWS Resource Access Manager (AWS
+// RAM), then there will exist a corresponding RAM share resource ARN.
+type DetailsMap struct {
+	_ struct{} `type:"structure"`
+
+	// A share resource ARN for a catalog resource shared through AWS Resource Access
+	// Manager (AWS RAM).
+	ResourceShare []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DetailsMap) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DetailsMap) GoString() string {
+	return s.String()
+}
+
+// SetResourceShare sets the ResourceShare field's value.
+func (s *DetailsMap) SetResourceShare(v []*string) *DetailsMap {
+	s.ResourceShare = v
 	return s
 }
 
@@ -2271,7 +2361,8 @@ func (s *GetDataLakeSettingsInput) SetCatalogId(v string) *GetDataLakeSettingsIn
 type GetDataLakeSettingsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of AWS Lake Formation principals.
+	// A structure representing a list of AWS Lake Formation principals designated
+	// as data lake administrators.
 	DataLakeSettings *DataLakeSettings `type:"structure"`
 }
 
@@ -2973,6 +3064,10 @@ func (s *PrincipalPermissions) SetPrincipal(v *DataLakePrincipal) *PrincipalPerm
 type PrincipalResourcePermissions struct {
 	_ struct{} `type:"structure"`
 
+	// This attribute can be used to return any additional details of PrincipalResourcePermissions.
+	// Currently returns only as a RAM share resource ARN.
+	AdditionalDetails *DetailsMap `type:"structure"`
+
 	// The permissions to be granted or revoked on the resource.
 	Permissions []*string `type:"list"`
 
@@ -2995,6 +3090,12 @@ func (s PrincipalResourcePermissions) String() string {
 // GoString returns the string representation
 func (s PrincipalResourcePermissions) GoString() string {
 	return s.String()
+}
+
+// SetAdditionalDetails sets the AdditionalDetails field's value.
+func (s *PrincipalResourcePermissions) SetAdditionalDetails(v *DetailsMap) *PrincipalResourcePermissions {
+	s.AdditionalDetails = v
+	return s
 }
 
 // SetPermissions sets the Permissions field's value.
@@ -3030,7 +3131,8 @@ type PutDataLakeSettingsInput struct {
 	// Formation environment.
 	CatalogId *string `min:"1" type:"string"`
 
-	// A list of AWS Lake Formation principals.
+	// A structure representing a list of AWS Lake Formation principals designated
+	// as data lake administrators.
 	//
 	// DataLakeSettings is a required field
 	DataLakeSettings *DataLakeSettings `type:"structure" required:"true"`
@@ -3101,11 +3203,14 @@ type RegisterResourceInput struct {
 	// ResourceArn is a required field
 	ResourceArn *string `type:"string" required:"true"`
 
-	// The identifier for the role.
+	// The identifier for the role that registers the resource.
 	RoleArn *string `type:"string"`
 
-	// Designates a trusted caller, an IAM principal, by registering this caller
-	// with the Data Catalog.
+	// Designates an AWS Identity and Access Management (IAM) service-linked role
+	// by registering this role with the Data Catalog. A service-linked role is
+	// a unique type of IAM role that is linked directly to Lake Formation.
+	//
+	// For more information, see Using Service-Linked Roles for Lake Formation (https://docs-aws.amazon.com/lake-formation/latest/dg/service-linked-roles.html).
 	UseServiceLinkedRole *bool `type:"boolean"`
 }
 
@@ -3314,7 +3419,7 @@ type RevokePermissionsInput struct {
 	CatalogId *string `min:"1" type:"string"`
 
 	// The permissions revoked to the principal on the resource. For information
-	// about permissions, see Security and Access Control to Metadata and Data (https://docs-aws.amazon.com/michigan/latest/dg/security-data-access.html).
+	// about permissions, see Security and Access Control to Metadata and Data (https://docs-aws.amazon.com/lake-formation/latest/dg/security-data-access.html).
 	//
 	// Permissions is a required field
 	Permissions []*string `type:"list" required:"true"`
@@ -3425,6 +3530,10 @@ func (s RevokePermissionsOutput) GoString() string {
 type TableResource struct {
 	_ struct{} `type:"structure"`
 
+	// The identifier for the Data Catalog. By default, it is the account ID of
+	// the caller.
+	CatalogId *string `min:"1" type:"string"`
+
 	// The name of the database for the table. Unique to a Data Catalog. A database
 	// is a set of associated table definitions organized into a logical group.
 	// You can Grant and Revoke database privileges to a principal.
@@ -3433,9 +3542,12 @@ type TableResource struct {
 	DatabaseName *string `min:"1" type:"string" required:"true"`
 
 	// The name of the table.
+	Name *string `min:"1" type:"string"`
+
+	// A wildcard object representing every table under a database.
 	//
-	// Name is a required field
-	Name *string `min:"1" type:"string" required:"true"`
+	// At least one of TableResource$Name or TableResource$TableWildcard is required.
+	TableWildcard *TableWildcard `type:"structure"`
 }
 
 // String returns the string representation
@@ -3451,6 +3563,114 @@ func (s TableResource) GoString() string {
 // Validate inspects the fields of the type to determine if they are valid.
 func (s *TableResource) Validate() error {
 	invalidParams := request.ErrInvalidParams{Context: "TableResource"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *TableResource) SetCatalogId(v string) *TableResource {
+	s.CatalogId = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *TableResource) SetDatabaseName(v string) *TableResource {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *TableResource) SetName(v string) *TableResource {
+	s.Name = &v
+	return s
+}
+
+// SetTableWildcard sets the TableWildcard field's value.
+func (s *TableResource) SetTableWildcard(v *TableWildcard) *TableResource {
+	s.TableWildcard = v
+	return s
+}
+
+// A wildcard object representing every table under a database.
+type TableWildcard struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TableWildcard) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TableWildcard) GoString() string {
+	return s.String()
+}
+
+// A structure for a table with columns object. This object is only used when
+// granting a SELECT permission.
+//
+// This object must take a value for at least one of ColumnsNames, ColumnsIndexes,
+// or ColumnsWildcard.
+type TableWithColumnsResource struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier for the Data Catalog. By default, it is the account ID of
+	// the caller.
+	CatalogId *string `min:"1" type:"string"`
+
+	// The list of column names for the table. At least one of ColumnNames or ColumnWildcard
+	// is required.
+	ColumnNames []*string `type:"list"`
+
+	// A wildcard specified by a ColumnWildcard object. At least one of ColumnNames
+	// or ColumnWildcard is required.
+	ColumnWildcard *ColumnWildcard `type:"structure"`
+
+	// The name of the database for the table with columns resource. Unique to the
+	// Data Catalog. A database is a set of associated table definitions organized
+	// into a logical group. You can Grant and Revoke database privileges to a principal.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the table resource. A table is a metadata definition that represents
+	// your data. You can Grant and Revoke table privileges to a principal.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s TableWithColumnsResource) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TableWithColumnsResource) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TableWithColumnsResource) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TableWithColumnsResource"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
 	if s.DatabaseName == nil {
 		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
 	}
@@ -3470,68 +3690,10 @@ func (s *TableResource) Validate() error {
 	return nil
 }
 
-// SetDatabaseName sets the DatabaseName field's value.
-func (s *TableResource) SetDatabaseName(v string) *TableResource {
-	s.DatabaseName = &v
+// SetCatalogId sets the CatalogId field's value.
+func (s *TableWithColumnsResource) SetCatalogId(v string) *TableWithColumnsResource {
+	s.CatalogId = &v
 	return s
-}
-
-// SetName sets the Name field's value.
-func (s *TableResource) SetName(v string) *TableResource {
-	s.Name = &v
-	return s
-}
-
-// A structure for a table with columns object. This object is only used when
-// granting a SELECT permission.
-//
-// This object must take a value for at least one of ColumnsNames, ColumnsIndexes,
-// or ColumnsWildcard.
-type TableWithColumnsResource struct {
-	_ struct{} `type:"structure"`
-
-	// The list of column names for the table. At least one of ColumnNames or ColumnWildcard
-	// is required.
-	ColumnNames []*string `type:"list"`
-
-	// A wildcard specified by a ColumnWildcard object. At least one of ColumnNames
-	// or ColumnWildcard is required.
-	ColumnWildcard *ColumnWildcard `type:"structure"`
-
-	// The name of the database for the table with columns resource. Unique to the
-	// Data Catalog. A database is a set of associated table definitions organized
-	// into a logical group. You can Grant and Revoke database privileges to a principal.
-	DatabaseName *string `min:"1" type:"string"`
-
-	// The name of the table resource. A table is a metadata definition that represents
-	// your data. You can Grant and Revoke table privileges to a principal.
-	Name *string `min:"1" type:"string"`
-}
-
-// String returns the string representation
-func (s TableWithColumnsResource) String() string {
-	return awsutil.Prettify(s)
-}
-
-// GoString returns the string representation
-func (s TableWithColumnsResource) GoString() string {
-	return s.String()
-}
-
-// Validate inspects the fields of the type to determine if they are valid.
-func (s *TableWithColumnsResource) Validate() error {
-	invalidParams := request.ErrInvalidParams{Context: "TableWithColumnsResource"}
-	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
-		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
-	}
-	if s.Name != nil && len(*s.Name) < 1 {
-		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
-	}
-
-	if invalidParams.Len() > 0 {
-		return invalidParams
-	}
-	return nil
 }
 
 // SetColumnNames sets the ColumnNames field's value.
@@ -3659,6 +3821,23 @@ const (
 	ComparisonOperatorBetween = "BETWEEN"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorEq,
+		ComparisonOperatorNe,
+		ComparisonOperatorLe,
+		ComparisonOperatorLt,
+		ComparisonOperatorGe,
+		ComparisonOperatorGt,
+		ComparisonOperatorContains,
+		ComparisonOperatorNotContains,
+		ComparisonOperatorBeginsWith,
+		ComparisonOperatorIn,
+		ComparisonOperatorBetween,
+	}
+}
+
 const (
 	// DataLakeResourceTypeCatalog is a DataLakeResourceType enum value
 	DataLakeResourceTypeCatalog = "CATALOG"
@@ -3673,6 +3852,16 @@ const (
 	DataLakeResourceTypeDataLocation = "DATA_LOCATION"
 )
 
+// DataLakeResourceType_Values returns all elements of the DataLakeResourceType enum
+func DataLakeResourceType_Values() []string {
+	return []string{
+		DataLakeResourceTypeCatalog,
+		DataLakeResourceTypeDatabase,
+		DataLakeResourceTypeTable,
+		DataLakeResourceTypeDataLocation,
+	}
+}
+
 const (
 	// FieldNameStringResourceArn is a FieldNameString enum value
 	FieldNameStringResourceArn = "RESOURCE_ARN"
@@ -3683,6 +3872,15 @@ const (
 	// FieldNameStringLastModified is a FieldNameString enum value
 	FieldNameStringLastModified = "LAST_MODIFIED"
 )
+
+// FieldNameString_Values returns all elements of the FieldNameString enum
+func FieldNameString_Values() []string {
+	return []string{
+		FieldNameStringResourceArn,
+		FieldNameStringRoleArn,
+		FieldNameStringLastModified,
+	}
+}
 
 const (
 	// PermissionAll is a Permission enum value
@@ -3703,6 +3901,9 @@ const (
 	// PermissionInsert is a Permission enum value
 	PermissionInsert = "INSERT"
 
+	// PermissionDescribe is a Permission enum value
+	PermissionDescribe = "DESCRIBE"
+
 	// PermissionCreateDatabase is a Permission enum value
 	PermissionCreateDatabase = "CREATE_DATABASE"
 
@@ -3712,3 +3913,19 @@ const (
 	// PermissionDataLocationAccess is a Permission enum value
 	PermissionDataLocationAccess = "DATA_LOCATION_ACCESS"
 )
+
+// Permission_Values returns all elements of the Permission enum
+func Permission_Values() []string {
+	return []string{
+		PermissionAll,
+		PermissionSelect,
+		PermissionAlter,
+		PermissionDrop,
+		PermissionDelete,
+		PermissionInsert,
+		PermissionDescribe,
+		PermissionCreateDatabase,
+		PermissionCreateTable,
+		PermissionDataLocationAccess,
+	}
+}

@@ -6218,6 +6218,14 @@ const (
 	ChangeTypeRequiresReboot = "REQUIRES_REBOOT"
 )
 
+// ChangeType_Values returns all elements of the ChangeType enum
+func ChangeType_Values() []string {
+	return []string{
+		ChangeTypeImmediate,
+		ChangeTypeRequiresReboot,
+	}
+}
+
 const (
 	// IsModifiableTrue is a IsModifiable enum value
 	IsModifiableTrue = "TRUE"
@@ -6229,6 +6237,15 @@ const (
 	IsModifiableConditional = "CONDITIONAL"
 )
 
+// IsModifiable_Values returns all elements of the IsModifiable enum
+func IsModifiable_Values() []string {
+	return []string{
+		IsModifiableTrue,
+		IsModifiableFalse,
+		IsModifiableConditional,
+	}
+}
+
 const (
 	// ParameterTypeDefault is a ParameterType enum value
 	ParameterTypeDefault = "DEFAULT"
@@ -6236,6 +6253,14 @@ const (
 	// ParameterTypeNodeTypeSpecific is a ParameterType enum value
 	ParameterTypeNodeTypeSpecific = "NODE_TYPE_SPECIFIC"
 )
+
+// ParameterType_Values returns all elements of the ParameterType enum
+func ParameterType_Values() []string {
+	return []string{
+		ParameterTypeDefault,
+		ParameterTypeNodeTypeSpecific,
+	}
+}
 
 const (
 	// SSEStatusEnabling is a SSEStatus enum value
@@ -6251,6 +6276,16 @@ const (
 	SSEStatusDisabled = "DISABLED"
 )
 
+// SSEStatus_Values returns all elements of the SSEStatus enum
+func SSEStatus_Values() []string {
+	return []string{
+		SSEStatusEnabling,
+		SSEStatusEnabled,
+		SSEStatusDisabling,
+		SSEStatusDisabled,
+	}
+}
+
 const (
 	// SourceTypeCluster is a SourceType enum value
 	SourceTypeCluster = "CLUSTER"
@@ -6261,3 +6296,12 @@ const (
 	// SourceTypeSubnetGroup is a SourceType enum value
 	SourceTypeSubnetGroup = "SUBNET_GROUP"
 )
+
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeCluster,
+		SourceTypeParameterGroup,
+		SourceTypeSubnetGroup,
+	}
+}

@@ -22,7 +22,7 @@ data "aws_ec2_local_gateways" "foo" {
 }
 
 output "foo" {
-  value = "${data.aws_ec2_local_gateways.foo.ids}"
+  value = data.aws_ec2_local_gateways.foo.ids
 }
 ```
 

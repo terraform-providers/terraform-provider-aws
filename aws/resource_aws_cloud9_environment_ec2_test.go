@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloud9"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
@@ -290,11 +290,11 @@ func testAccPreCheckAWSCloud9(t *testing.T) {
 }
 
 func testAccAWSCloud9EnvironmentEc2ConfigBase() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_availability_zones" "available" {
   # t2.micro instance type is not available in these Availability Zones
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -333,7 +333,7 @@ resource "aws_route" "test" {
   gateway_id             = aws_internet_gateway.test.id
   route_table_id         = aws_vpc.test.main_route_table_id
 }
-`)
+`
 }
 
 func testAccAWSCloud9EnvironmentEc2Config(name string) string {
@@ -398,7 +398,6 @@ resource "aws_cloud9_environment_ec2" "test" {
   tags = {
     %[2]q = %[3]q
     %[4]q = %[5]q
-
   }
 }
 `, name, tagKey1, tagValue1, tagKey2, tagValue2)

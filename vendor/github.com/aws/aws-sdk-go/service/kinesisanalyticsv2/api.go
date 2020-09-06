@@ -11739,6 +11739,15 @@ const (
 	ApplicationRestoreTypeRestoreFromCustomSnapshot = "RESTORE_FROM_CUSTOM_SNAPSHOT"
 )
 
+// ApplicationRestoreType_Values returns all elements of the ApplicationRestoreType enum
+func ApplicationRestoreType_Values() []string {
+	return []string{
+		ApplicationRestoreTypeSkipRestoreFromSnapshot,
+		ApplicationRestoreTypeRestoreFromLatestSnapshot,
+		ApplicationRestoreTypeRestoreFromCustomSnapshot,
+	}
+}
+
 const (
 	// ApplicationStatusDeleting is a ApplicationStatus enum value
 	ApplicationStatusDeleting = "DELETING"
@@ -11759,6 +11768,18 @@ const (
 	ApplicationStatusUpdating = "UPDATING"
 )
 
+// ApplicationStatus_Values returns all elements of the ApplicationStatus enum
+func ApplicationStatus_Values() []string {
+	return []string{
+		ApplicationStatusDeleting,
+		ApplicationStatusStarting,
+		ApplicationStatusStopping,
+		ApplicationStatusReady,
+		ApplicationStatusRunning,
+		ApplicationStatusUpdating,
+	}
+}
+
 const (
 	// CodeContentTypePlaintext is a CodeContentType enum value
 	CodeContentTypePlaintext = "PLAINTEXT"
@@ -11767,6 +11788,14 @@ const (
 	CodeContentTypeZipfile = "ZIPFILE"
 )
 
+// CodeContentType_Values returns all elements of the CodeContentType enum
+func CodeContentType_Values() []string {
+	return []string{
+		CodeContentTypePlaintext,
+		CodeContentTypeZipfile,
+	}
+}
+
 const (
 	// ConfigurationTypeDefault is a ConfigurationType enum value
 	ConfigurationTypeDefault = "DEFAULT"
@@ -11774,6 +11803,14 @@ const (
 	// ConfigurationTypeCustom is a ConfigurationType enum value
 	ConfigurationTypeCustom = "CUSTOM"
 )
+
+// ConfigurationType_Values returns all elements of the ConfigurationType enum
+func ConfigurationType_Values() []string {
+	return []string{
+		ConfigurationTypeDefault,
+		ConfigurationTypeCustom,
+	}
+}
 
 const (
 	// InputStartingPositionNow is a InputStartingPosition enum value
@@ -11785,6 +11822,15 @@ const (
 	// InputStartingPositionLastStoppedPoint is a InputStartingPosition enum value
 	InputStartingPositionLastStoppedPoint = "LAST_STOPPED_POINT"
 )
+
+// InputStartingPosition_Values returns all elements of the InputStartingPosition enum
+func InputStartingPosition_Values() []string {
+	return []string{
+		InputStartingPositionNow,
+		InputStartingPositionTrimHorizon,
+		InputStartingPositionLastStoppedPoint,
+	}
+}
 
 const (
 	// LogLevelInfo is a LogLevel enum value
@@ -11800,6 +11846,16 @@ const (
 	LogLevelDebug = "DEBUG"
 )
 
+// LogLevel_Values returns all elements of the LogLevel enum
+func LogLevel_Values() []string {
+	return []string{
+		LogLevelInfo,
+		LogLevelWarn,
+		LogLevelError,
+		LogLevelDebug,
+	}
+}
+
 const (
 	// MetricsLevelApplication is a MetricsLevel enum value
 	MetricsLevelApplication = "APPLICATION"
@@ -11814,6 +11870,16 @@ const (
 	MetricsLevelParallelism = "PARALLELISM"
 )
 
+// MetricsLevel_Values returns all elements of the MetricsLevel enum
+func MetricsLevel_Values() []string {
+	return []string{
+		MetricsLevelApplication,
+		MetricsLevelTask,
+		MetricsLevelOperator,
+		MetricsLevelParallelism,
+	}
+}
+
 const (
 	// RecordFormatTypeJson is a RecordFormatType enum value
 	RecordFormatTypeJson = "JSON"
@@ -11821,6 +11887,14 @@ const (
 	// RecordFormatTypeCsv is a RecordFormatType enum value
 	RecordFormatTypeCsv = "CSV"
 )
+
+// RecordFormatType_Values returns all elements of the RecordFormatType enum
+func RecordFormatType_Values() []string {
+	return []string{
+		RecordFormatTypeJson,
+		RecordFormatTypeCsv,
+	}
+}
 
 const (
 	// RuntimeEnvironmentSql10 is a RuntimeEnvironment enum value
@@ -11832,6 +11906,15 @@ const (
 	// RuntimeEnvironmentFlink18 is a RuntimeEnvironment enum value
 	RuntimeEnvironmentFlink18 = "FLINK-1_8"
 )
+
+// RuntimeEnvironment_Values returns all elements of the RuntimeEnvironment enum
+func RuntimeEnvironment_Values() []string {
+	return []string{
+		RuntimeEnvironmentSql10,
+		RuntimeEnvironmentFlink16,
+		RuntimeEnvironmentFlink18,
+	}
+}
 
 const (
 	// SnapshotStatusCreating is a SnapshotStatus enum value
@@ -11846,3 +11929,13 @@ const (
 	// SnapshotStatusFailed is a SnapshotStatus enum value
 	SnapshotStatusFailed = "FAILED"
 )
+
+// SnapshotStatus_Values returns all elements of the SnapshotStatus enum
+func SnapshotStatus_Values() []string {
+	return []string{
+		SnapshotStatusCreating,
+		SnapshotStatusReady,
+		SnapshotStatusDeleting,
+		SnapshotStatusFailed,
+	}
+}

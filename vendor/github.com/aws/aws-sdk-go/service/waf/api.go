@@ -23047,6 +23047,14 @@ const (
 	ChangeActionDelete = "DELETE"
 )
 
+// ChangeAction_Values returns all elements of the ChangeAction enum
+func ChangeAction_Values() []string {
+	return []string{
+		ChangeActionInsert,
+		ChangeActionDelete,
+	}
+}
+
 const (
 	// ChangeTokenStatusProvisioned is a ChangeTokenStatus enum value
 	ChangeTokenStatusProvisioned = "PROVISIONED"
@@ -23057,6 +23065,15 @@ const (
 	// ChangeTokenStatusInsync is a ChangeTokenStatus enum value
 	ChangeTokenStatusInsync = "INSYNC"
 )
+
+// ChangeTokenStatus_Values returns all elements of the ChangeTokenStatus enum
+func ChangeTokenStatus_Values() []string {
+	return []string{
+		ChangeTokenStatusProvisioned,
+		ChangeTokenStatusPending,
+		ChangeTokenStatusInsync,
+	}
+}
 
 const (
 	// ComparisonOperatorEq is a ComparisonOperator enum value
@@ -23078,10 +23095,29 @@ const (
 	ComparisonOperatorGt = "GT"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorEq,
+		ComparisonOperatorNe,
+		ComparisonOperatorLe,
+		ComparisonOperatorLt,
+		ComparisonOperatorGe,
+		ComparisonOperatorGt,
+	}
+}
+
 const (
 	// GeoMatchConstraintTypeCountry is a GeoMatchConstraintType enum value
 	GeoMatchConstraintTypeCountry = "Country"
 )
+
+// GeoMatchConstraintType_Values returns all elements of the GeoMatchConstraintType enum
+func GeoMatchConstraintType_Values() []string {
+	return []string{
+		GeoMatchConstraintTypeCountry,
+	}
+}
 
 const (
 	// GeoMatchConstraintValueAf is a GeoMatchConstraintValue enum value
@@ -23832,6 +23868,261 @@ const (
 	GeoMatchConstraintValueZw = "ZW"
 )
 
+// GeoMatchConstraintValue_Values returns all elements of the GeoMatchConstraintValue enum
+func GeoMatchConstraintValue_Values() []string {
+	return []string{
+		GeoMatchConstraintValueAf,
+		GeoMatchConstraintValueAx,
+		GeoMatchConstraintValueAl,
+		GeoMatchConstraintValueDz,
+		GeoMatchConstraintValueAs,
+		GeoMatchConstraintValueAd,
+		GeoMatchConstraintValueAo,
+		GeoMatchConstraintValueAi,
+		GeoMatchConstraintValueAq,
+		GeoMatchConstraintValueAg,
+		GeoMatchConstraintValueAr,
+		GeoMatchConstraintValueAm,
+		GeoMatchConstraintValueAw,
+		GeoMatchConstraintValueAu,
+		GeoMatchConstraintValueAt,
+		GeoMatchConstraintValueAz,
+		GeoMatchConstraintValueBs,
+		GeoMatchConstraintValueBh,
+		GeoMatchConstraintValueBd,
+		GeoMatchConstraintValueBb,
+		GeoMatchConstraintValueBy,
+		GeoMatchConstraintValueBe,
+		GeoMatchConstraintValueBz,
+		GeoMatchConstraintValueBj,
+		GeoMatchConstraintValueBm,
+		GeoMatchConstraintValueBt,
+		GeoMatchConstraintValueBo,
+		GeoMatchConstraintValueBq,
+		GeoMatchConstraintValueBa,
+		GeoMatchConstraintValueBw,
+		GeoMatchConstraintValueBv,
+		GeoMatchConstraintValueBr,
+		GeoMatchConstraintValueIo,
+		GeoMatchConstraintValueBn,
+		GeoMatchConstraintValueBg,
+		GeoMatchConstraintValueBf,
+		GeoMatchConstraintValueBi,
+		GeoMatchConstraintValueKh,
+		GeoMatchConstraintValueCm,
+		GeoMatchConstraintValueCa,
+		GeoMatchConstraintValueCv,
+		GeoMatchConstraintValueKy,
+		GeoMatchConstraintValueCf,
+		GeoMatchConstraintValueTd,
+		GeoMatchConstraintValueCl,
+		GeoMatchConstraintValueCn,
+		GeoMatchConstraintValueCx,
+		GeoMatchConstraintValueCc,
+		GeoMatchConstraintValueCo,
+		GeoMatchConstraintValueKm,
+		GeoMatchConstraintValueCg,
+		GeoMatchConstraintValueCd,
+		GeoMatchConstraintValueCk,
+		GeoMatchConstraintValueCr,
+		GeoMatchConstraintValueCi,
+		GeoMatchConstraintValueHr,
+		GeoMatchConstraintValueCu,
+		GeoMatchConstraintValueCw,
+		GeoMatchConstraintValueCy,
+		GeoMatchConstraintValueCz,
+		GeoMatchConstraintValueDk,
+		GeoMatchConstraintValueDj,
+		GeoMatchConstraintValueDm,
+		GeoMatchConstraintValueDo,
+		GeoMatchConstraintValueEc,
+		GeoMatchConstraintValueEg,
+		GeoMatchConstraintValueSv,
+		GeoMatchConstraintValueGq,
+		GeoMatchConstraintValueEr,
+		GeoMatchConstraintValueEe,
+		GeoMatchConstraintValueEt,
+		GeoMatchConstraintValueFk,
+		GeoMatchConstraintValueFo,
+		GeoMatchConstraintValueFj,
+		GeoMatchConstraintValueFi,
+		GeoMatchConstraintValueFr,
+		GeoMatchConstraintValueGf,
+		GeoMatchConstraintValuePf,
+		GeoMatchConstraintValueTf,
+		GeoMatchConstraintValueGa,
+		GeoMatchConstraintValueGm,
+		GeoMatchConstraintValueGe,
+		GeoMatchConstraintValueDe,
+		GeoMatchConstraintValueGh,
+		GeoMatchConstraintValueGi,
+		GeoMatchConstraintValueGr,
+		GeoMatchConstraintValueGl,
+		GeoMatchConstraintValueGd,
+		GeoMatchConstraintValueGp,
+		GeoMatchConstraintValueGu,
+		GeoMatchConstraintValueGt,
+		GeoMatchConstraintValueGg,
+		GeoMatchConstraintValueGn,
+		GeoMatchConstraintValueGw,
+		GeoMatchConstraintValueGy,
+		GeoMatchConstraintValueHt,
+		GeoMatchConstraintValueHm,
+		GeoMatchConstraintValueVa,
+		GeoMatchConstraintValueHn,
+		GeoMatchConstraintValueHk,
+		GeoMatchConstraintValueHu,
+		GeoMatchConstraintValueIs,
+		GeoMatchConstraintValueIn,
+		GeoMatchConstraintValueId,
+		GeoMatchConstraintValueIr,
+		GeoMatchConstraintValueIq,
+		GeoMatchConstraintValueIe,
+		GeoMatchConstraintValueIm,
+		GeoMatchConstraintValueIl,
+		GeoMatchConstraintValueIt,
+		GeoMatchConstraintValueJm,
+		GeoMatchConstraintValueJp,
+		GeoMatchConstraintValueJe,
+		GeoMatchConstraintValueJo,
+		GeoMatchConstraintValueKz,
+		GeoMatchConstraintValueKe,
+		GeoMatchConstraintValueKi,
+		GeoMatchConstraintValueKp,
+		GeoMatchConstraintValueKr,
+		GeoMatchConstraintValueKw,
+		GeoMatchConstraintValueKg,
+		GeoMatchConstraintValueLa,
+		GeoMatchConstraintValueLv,
+		GeoMatchConstraintValueLb,
+		GeoMatchConstraintValueLs,
+		GeoMatchConstraintValueLr,
+		GeoMatchConstraintValueLy,
+		GeoMatchConstraintValueLi,
+		GeoMatchConstraintValueLt,
+		GeoMatchConstraintValueLu,
+		GeoMatchConstraintValueMo,
+		GeoMatchConstraintValueMk,
+		GeoMatchConstraintValueMg,
+		GeoMatchConstraintValueMw,
+		GeoMatchConstraintValueMy,
+		GeoMatchConstraintValueMv,
+		GeoMatchConstraintValueMl,
+		GeoMatchConstraintValueMt,
+		GeoMatchConstraintValueMh,
+		GeoMatchConstraintValueMq,
+		GeoMatchConstraintValueMr,
+		GeoMatchConstraintValueMu,
+		GeoMatchConstraintValueYt,
+		GeoMatchConstraintValueMx,
+		GeoMatchConstraintValueFm,
+		GeoMatchConstraintValueMd,
+		GeoMatchConstraintValueMc,
+		GeoMatchConstraintValueMn,
+		GeoMatchConstraintValueMe,
+		GeoMatchConstraintValueMs,
+		GeoMatchConstraintValueMa,
+		GeoMatchConstraintValueMz,
+		GeoMatchConstraintValueMm,
+		GeoMatchConstraintValueNa,
+		GeoMatchConstraintValueNr,
+		GeoMatchConstraintValueNp,
+		GeoMatchConstraintValueNl,
+		GeoMatchConstraintValueNc,
+		GeoMatchConstraintValueNz,
+		GeoMatchConstraintValueNi,
+		GeoMatchConstraintValueNe,
+		GeoMatchConstraintValueNg,
+		GeoMatchConstraintValueNu,
+		GeoMatchConstraintValueNf,
+		GeoMatchConstraintValueMp,
+		GeoMatchConstraintValueNo,
+		GeoMatchConstraintValueOm,
+		GeoMatchConstraintValuePk,
+		GeoMatchConstraintValuePw,
+		GeoMatchConstraintValuePs,
+		GeoMatchConstraintValuePa,
+		GeoMatchConstraintValuePg,
+		GeoMatchConstraintValuePy,
+		GeoMatchConstraintValuePe,
+		GeoMatchConstraintValuePh,
+		GeoMatchConstraintValuePn,
+		GeoMatchConstraintValuePl,
+		GeoMatchConstraintValuePt,
+		GeoMatchConstraintValuePr,
+		GeoMatchConstraintValueQa,
+		GeoMatchConstraintValueRe,
+		GeoMatchConstraintValueRo,
+		GeoMatchConstraintValueRu,
+		GeoMatchConstraintValueRw,
+		GeoMatchConstraintValueBl,
+		GeoMatchConstraintValueSh,
+		GeoMatchConstraintValueKn,
+		GeoMatchConstraintValueLc,
+		GeoMatchConstraintValueMf,
+		GeoMatchConstraintValuePm,
+		GeoMatchConstraintValueVc,
+		GeoMatchConstraintValueWs,
+		GeoMatchConstraintValueSm,
+		GeoMatchConstraintValueSt,
+		GeoMatchConstraintValueSa,
+		GeoMatchConstraintValueSn,
+		GeoMatchConstraintValueRs,
+		GeoMatchConstraintValueSc,
+		GeoMatchConstraintValueSl,
+		GeoMatchConstraintValueSg,
+		GeoMatchConstraintValueSx,
+		GeoMatchConstraintValueSk,
+		GeoMatchConstraintValueSi,
+		GeoMatchConstraintValueSb,
+		GeoMatchConstraintValueSo,
+		GeoMatchConstraintValueZa,
+		GeoMatchConstraintValueGs,
+		GeoMatchConstraintValueSs,
+		GeoMatchConstraintValueEs,
+		GeoMatchConstraintValueLk,
+		GeoMatchConstraintValueSd,
+		GeoMatchConstraintValueSr,
+		GeoMatchConstraintValueSj,
+		GeoMatchConstraintValueSz,
+		GeoMatchConstraintValueSe,
+		GeoMatchConstraintValueCh,
+		GeoMatchConstraintValueSy,
+		GeoMatchConstraintValueTw,
+		GeoMatchConstraintValueTj,
+		GeoMatchConstraintValueTz,
+		GeoMatchConstraintValueTh,
+		GeoMatchConstraintValueTl,
+		GeoMatchConstraintValueTg,
+		GeoMatchConstraintValueTk,
+		GeoMatchConstraintValueTo,
+		GeoMatchConstraintValueTt,
+		GeoMatchConstraintValueTn,
+		GeoMatchConstraintValueTr,
+		GeoMatchConstraintValueTm,
+		GeoMatchConstraintValueTc,
+		GeoMatchConstraintValueTv,
+		GeoMatchConstraintValueUg,
+		GeoMatchConstraintValueUa,
+		GeoMatchConstraintValueAe,
+		GeoMatchConstraintValueGb,
+		GeoMatchConstraintValueUs,
+		GeoMatchConstraintValueUm,
+		GeoMatchConstraintValueUy,
+		GeoMatchConstraintValueUz,
+		GeoMatchConstraintValueVu,
+		GeoMatchConstraintValueVe,
+		GeoMatchConstraintValueVn,
+		GeoMatchConstraintValueVg,
+		GeoMatchConstraintValueVi,
+		GeoMatchConstraintValueWf,
+		GeoMatchConstraintValueEh,
+		GeoMatchConstraintValueYe,
+		GeoMatchConstraintValueZm,
+		GeoMatchConstraintValueZw,
+	}
+}
+
 const (
 	// IPSetDescriptorTypeIpv4 is a IPSetDescriptorType enum value
 	IPSetDescriptorTypeIpv4 = "IPV4"
@@ -23839,6 +24130,14 @@ const (
 	// IPSetDescriptorTypeIpv6 is a IPSetDescriptorType enum value
 	IPSetDescriptorTypeIpv6 = "IPV6"
 )
+
+// IPSetDescriptorType_Values returns all elements of the IPSetDescriptorType enum
+func IPSetDescriptorType_Values() []string {
+	return []string{
+		IPSetDescriptorTypeIpv4,
+		IPSetDescriptorTypeIpv6,
+	}
+}
 
 const (
 	// MatchFieldTypeUri is a MatchFieldType enum value
@@ -23863,6 +24162,19 @@ const (
 	MatchFieldTypeAllQueryArgs = "ALL_QUERY_ARGS"
 )
 
+// MatchFieldType_Values returns all elements of the MatchFieldType enum
+func MatchFieldType_Values() []string {
+	return []string{
+		MatchFieldTypeUri,
+		MatchFieldTypeQueryString,
+		MatchFieldTypeHeader,
+		MatchFieldTypeMethod,
+		MatchFieldTypeBody,
+		MatchFieldTypeSingleQueryArg,
+		MatchFieldTypeAllQueryArgs,
+	}
+}
+
 const (
 	// MigrationErrorTypeEntityNotSupported is a MigrationErrorType enum value
 	MigrationErrorTypeEntityNotSupported = "ENTITY_NOT_SUPPORTED"
@@ -23885,6 +24197,19 @@ const (
 	// MigrationErrorTypeS3InternalError is a MigrationErrorType enum value
 	MigrationErrorTypeS3InternalError = "S3_INTERNAL_ERROR"
 )
+
+// MigrationErrorType_Values returns all elements of the MigrationErrorType enum
+func MigrationErrorType_Values() []string {
+	return []string{
+		MigrationErrorTypeEntityNotSupported,
+		MigrationErrorTypeEntityNotFound,
+		MigrationErrorTypeS3BucketNoPermission,
+		MigrationErrorTypeS3BucketNotAccessible,
+		MigrationErrorTypeS3BucketNotFound,
+		MigrationErrorTypeS3BucketInvalidRegion,
+		MigrationErrorTypeS3InternalError,
+	}
+}
 
 const (
 	// ParameterExceptionFieldChangeAction is a ParameterExceptionField enum value
@@ -23942,6 +24267,30 @@ const (
 	ParameterExceptionFieldTagKeys = "TAG_KEYS"
 )
 
+// ParameterExceptionField_Values returns all elements of the ParameterExceptionField enum
+func ParameterExceptionField_Values() []string {
+	return []string{
+		ParameterExceptionFieldChangeAction,
+		ParameterExceptionFieldWafAction,
+		ParameterExceptionFieldWafOverrideAction,
+		ParameterExceptionFieldPredicateType,
+		ParameterExceptionFieldIpsetType,
+		ParameterExceptionFieldByteMatchFieldType,
+		ParameterExceptionFieldSqlInjectionMatchFieldType,
+		ParameterExceptionFieldByteMatchTextTransformation,
+		ParameterExceptionFieldByteMatchPositionalConstraint,
+		ParameterExceptionFieldSizeConstraintComparisonOperator,
+		ParameterExceptionFieldGeoMatchLocationType,
+		ParameterExceptionFieldGeoMatchLocationValue,
+		ParameterExceptionFieldRateKey,
+		ParameterExceptionFieldRuleType,
+		ParameterExceptionFieldNextMarker,
+		ParameterExceptionFieldResourceArn,
+		ParameterExceptionFieldTags,
+		ParameterExceptionFieldTagKeys,
+	}
+}
+
 const (
 	// ParameterExceptionReasonInvalidOption is a ParameterExceptionReason enum value
 	ParameterExceptionReasonInvalidOption = "INVALID_OPTION"
@@ -23955,6 +24304,16 @@ const (
 	// ParameterExceptionReasonInvalidTagKey is a ParameterExceptionReason enum value
 	ParameterExceptionReasonInvalidTagKey = "INVALID_TAG_KEY"
 )
+
+// ParameterExceptionReason_Values returns all elements of the ParameterExceptionReason enum
+func ParameterExceptionReason_Values() []string {
+	return []string{
+		ParameterExceptionReasonInvalidOption,
+		ParameterExceptionReasonIllegalCombination,
+		ParameterExceptionReasonIllegalArgument,
+		ParameterExceptionReasonInvalidTagKey,
+	}
+}
 
 const (
 	// PositionalConstraintExactly is a PositionalConstraint enum value
@@ -23972,6 +24331,17 @@ const (
 	// PositionalConstraintContainsWord is a PositionalConstraint enum value
 	PositionalConstraintContainsWord = "CONTAINS_WORD"
 )
+
+// PositionalConstraint_Values returns all elements of the PositionalConstraint enum
+func PositionalConstraint_Values() []string {
+	return []string{
+		PositionalConstraintExactly,
+		PositionalConstraintStartsWith,
+		PositionalConstraintEndsWith,
+		PositionalConstraintContains,
+		PositionalConstraintContainsWord,
+	}
+}
 
 const (
 	// PredicateTypeIpmatch is a PredicateType enum value
@@ -23996,10 +24366,30 @@ const (
 	PredicateTypeRegexMatch = "RegexMatch"
 )
 
+// PredicateType_Values returns all elements of the PredicateType enum
+func PredicateType_Values() []string {
+	return []string{
+		PredicateTypeIpmatch,
+		PredicateTypeByteMatch,
+		PredicateTypeSqlInjectionMatch,
+		PredicateTypeGeoMatch,
+		PredicateTypeSizeConstraint,
+		PredicateTypeXssMatch,
+		PredicateTypeRegexMatch,
+	}
+}
+
 const (
 	// RateKeyIp is a RateKey enum value
 	RateKeyIp = "IP"
 )
+
+// RateKey_Values returns all elements of the RateKey enum
+func RateKey_Values() []string {
+	return []string{
+		RateKeyIp,
+	}
+}
 
 const (
 	// TextTransformationNone is a TextTransformation enum value
@@ -24021,6 +24411,18 @@ const (
 	TextTransformationUrlDecode = "URL_DECODE"
 )
 
+// TextTransformation_Values returns all elements of the TextTransformation enum
+func TextTransformation_Values() []string {
+	return []string{
+		TextTransformationNone,
+		TextTransformationCompressWhiteSpace,
+		TextTransformationHtmlEntityDecode,
+		TextTransformationLowercase,
+		TextTransformationCmdLine,
+		TextTransformationUrlDecode,
+	}
+}
+
 const (
 	// WafActionTypeBlock is a WafActionType enum value
 	WafActionTypeBlock = "BLOCK"
@@ -24032,6 +24434,15 @@ const (
 	WafActionTypeCount = "COUNT"
 )
 
+// WafActionType_Values returns all elements of the WafActionType enum
+func WafActionType_Values() []string {
+	return []string{
+		WafActionTypeBlock,
+		WafActionTypeAllow,
+		WafActionTypeCount,
+	}
+}
+
 const (
 	// WafOverrideActionTypeNone is a WafOverrideActionType enum value
 	WafOverrideActionTypeNone = "NONE"
@@ -24039,6 +24450,14 @@ const (
 	// WafOverrideActionTypeCount is a WafOverrideActionType enum value
 	WafOverrideActionTypeCount = "COUNT"
 )
+
+// WafOverrideActionType_Values returns all elements of the WafOverrideActionType enum
+func WafOverrideActionType_Values() []string {
+	return []string{
+		WafOverrideActionTypeNone,
+		WafOverrideActionTypeCount,
+	}
+}
 
 const (
 	// WafRuleTypeRegular is a WafRuleType enum value
@@ -24050,3 +24469,12 @@ const (
 	// WafRuleTypeGroup is a WafRuleType enum value
 	WafRuleTypeGroup = "GROUP"
 )
+
+// WafRuleType_Values returns all elements of the WafRuleType enum
+func WafRuleType_Values() []string {
+	return []string{
+		WafRuleTypeRegular,
+		WafRuleTypeRateBased,
+		WafRuleTypeGroup,
+	}
+}

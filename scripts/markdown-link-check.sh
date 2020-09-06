@@ -22,7 +22,15 @@ docker run --rm -i -t \
   -w /github/workspace \
   --entrypoint /usr/bin/find \
   markdown-link-check \
-  website -type f -name "*.md" -or -name "*.markdown" -exec /src/markdown-link-check --config .markdownlinkcheck.json --quiet --verbose {} \; \
+  docs -type f -name "*.md" -exec /src/markdown-link-check --config .markdownlinkcheck.json --quiet --verbose {} \; \
+  | tee -a "${output_file}"
+
+docker run --rm -i -t \
+  -v $(pwd):/github/workspace:ro \
+  -w /github/workspace \
+  --entrypoint /usr/bin/find \
+  markdown-link-check \
+  website \( -type f -name "*.md" -or -name "*.markdown" \) -exec /src/markdown-link-check --config .markdownlinkcheck.json --quiet --verbose {} \; \
   | tee -a "${output_file}"
 
 touch "${error_file}"

@@ -60,6 +60,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the DHCP Options Set.
+* `arn` - The ARN of the DHCP Options Set.
 * `owner_id` - The ID of the AWS account that owns the DHCP options set.
 
 You can find more technical documentation about DHCP Options Set in the

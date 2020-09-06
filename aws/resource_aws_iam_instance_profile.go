@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsIamInstanceProfile() *schema.Resource {
@@ -70,21 +70,9 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"roles": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"role"},
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
-				Deprecated:    "Use `role` instead. Only a single role can be passed to an IAM Instance Profile",
-			},
-
 			"role": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"roles"},
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -173,50 +161,14 @@ func instanceProfileRemoveRole(iamconn *iam.IAM, profileName, roleName string) e
 	return err
 }
 
-func instanceProfileSetRoles(d *schema.ResourceData, iamconn *iam.IAM) error {
-	oldInterface, newInterface := d.GetChange("roles")
-	oldRoles := oldInterface.(*schema.Set)
-	newRoles := newInterface.(*schema.Set)
-
-	currentRoles := schema.CopySet(oldRoles)
-
-	for _, role := range oldRoles.Difference(newRoles).List() {
-		err := instanceProfileRemoveRole(iamconn, d.Id(), role.(string))
-		if err != nil {
-			return fmt.Errorf("Error removing role %s from IAM instance profile %s: %s", role, d.Id(), err)
-		}
-		currentRoles.Remove(role)
-		d.Set("roles", currentRoles)
-	}
-
-	for _, role := range newRoles.Difference(oldRoles).List() {
-		err := instanceProfileAddRole(iamconn, d.Id(), role.(string))
-		if err != nil {
-			return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", role, d.Id(), err)
-		}
-		currentRoles.Add(role)
-		d.Set("roles", currentRoles)
-	}
-
-	return nil
-}
-
 func instanceProfileRemoveAllRoles(d *schema.ResourceData, iamconn *iam.IAM) error {
-	role, hasRole := d.GetOk("role")
-	roles, hasRoles := d.GetOk("roles")
-	if hasRole && !hasRoles { // "roles" will always be a superset of "role", if set
+	if role, ok := d.GetOk("role"); ok {
 		err := instanceProfileRemoveRole(iamconn, d.Id(), role.(string))
 		if err != nil {
 			return fmt.Errorf("Error removing role %s from IAM instance profile %s: %s", role, d.Id(), err)
 		}
-	} else {
-		for _, role := range roles.(*schema.Set).List() {
-			err := instanceProfileRemoveRole(iamconn, d.Id(), role.(string))
-			if err != nil {
-				return fmt.Errorf("Error removing role %s from IAM instance profile %s: %s", role, d.Id(), err)
-			}
-		}
 	}
+
 	return nil
 }
 
@@ -239,10 +191,6 @@ func resourceAwsIamInstanceProfileUpdate(d *schema.ResourceData, meta interface{
 				return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", newRole.(string), d.Id(), err)
 			}
 		}
-	}
-
-	if d.HasChange("roles") {
-		return instanceProfileSetRoles(d, iamconn)
 	}
 
 	return nil
@@ -306,10 +254,5 @@ func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfi
 		d.Set("role", result.Roles[0].RoleName) //there will only be 1 role returned
 	}
 
-	roles := &schema.Set{F: schema.HashString}
-	for _, role := range result.Roles {
-		roles.Add(*role.RoleName)
-	}
-	err := d.Set("roles", roles)
-	return err
+	return nil
 }

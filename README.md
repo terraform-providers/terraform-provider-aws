@@ -2,13 +2,10 @@
     <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" alt="Terraform logo" title="Terraform" align="right" height="50" />
 </a>
 
-# Terraform Provider for AWS 
+# Terraform Provider for AWS
 
-[![Build Status][travis-badge]][travis]
 [![Forums][discuss-badge]][discuss]
 
-[travis-badge]: https://api.travis-ci.org/terraform-providers/terraform-provider-aws.svg?branch=master
-[travis]: https://travis-ci.org/github/terraform-providers/terraform-provider-aws
 [discuss-badge]: https://img.shields.io/badge/discuss-terraform--aws-623CE4.svg?style=flat
 [discuss]: https://discuss.hashicorp.com/c/terraform-providers/tf-aws/
 
@@ -18,7 +15,7 @@
 - Chat: [gitter](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing List: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-The Terraform AWS provider is a plugin for Terraform that allows for the full lifecycle management of AWS resources. 
+The Terraform AWS provider is a plugin for Terraform that allows for the full lifecycle management of AWS resources.
 This provider is maintained internally by the HashiCorp AWS Provider team.
 
 Please note: We take Terraform's security and our users' trust very seriously. If you believe you have found a security issue in the Terraform AWS Provider, please responsibly disclose by contacting us at security@hashicorp.com.

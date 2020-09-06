@@ -2,14 +2,12 @@ package aws
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsLambdaInvocation() *schema.Resource {
@@ -37,15 +35,6 @@ func dataSourceAwsLambdaInvocation() *schema.Resource {
 			"result": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"result_map": {
-				Type:       schema.TypeMap,
-				Computed:   true,
-				Deprecated: "use `result` attribute with jsondecode() function",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 		},
 	}
@@ -75,16 +64,6 @@ func dataSourceAwsLambdaInvocationRead(d *schema.ResourceData, meta interface{})
 
 	if err = d.Set("result", string(res.Payload)); err != nil {
 		return err
-	}
-
-	var result map[string]interface{}
-
-	if err = json.Unmarshal(res.Payload, &result); err != nil {
-		return err
-	}
-
-	if err = d.Set("result_map", result); err != nil {
-		log.Printf("[WARN] Cannot use the result invocation as a string map: %s", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s_%s_%x", functionName, qualifier, md5.Sum(input)))

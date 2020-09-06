@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEcsServiceDataSource_basic(t *testing.T) {
@@ -38,6 +38,7 @@ resource "aws_ecs_cluster" "test" {
 
 resource "aws_ecs_task_definition" "test" {
   family = "mongodb"
+
   container_definitions = <<DEFINITION
 [
   {
@@ -53,14 +54,14 @@ DEFINITION
 }
 
 resource "aws_ecs_service" "test" {
-  name = "mongodb"
-  cluster = "${aws_ecs_cluster.test.id}"
-  task_definition = "${aws_ecs_task_definition.test.arn}"
-  desired_count = 1
+  name            = "mongodb"
+  cluster         = aws_ecs_cluster.test.id
+  task_definition = aws_ecs_task_definition.test.arn
+  desired_count   = 1
 }
 
 data "aws_ecs_service" "test" {
-  service_name = "${aws_ecs_service.test.name}"
-  cluster_arn = "${aws_ecs_cluster.test.arn}"
+  service_name = aws_ecs_service.test.name
+  cluster_arn  = aws_ecs_cluster.test.arn
 }
 `, acctest.RandInt())

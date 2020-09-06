@@ -1241,3 +1241,10 @@ const (
 	// FilterTypeTermMatch is a FilterType enum value
 	FilterTypeTermMatch = "TERM_MATCH"
 )
+
+// FilterType_Values returns all elements of the FilterType enum
+func FilterType_Values() []string {
+	return []string{
+		FilterTypeTermMatch,
+	}
+}

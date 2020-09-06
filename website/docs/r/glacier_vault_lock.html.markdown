@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "example" {
   statement {
     actions   = ["glacier:DeleteArchive"]
     effect    = "Deny"
-    resources = ["${aws_glacier_vault.example.arn}"]
+    resources = [aws_glacier_vault.example.arn]
 
     condition {
       test     = "NumericLessThanEquals"
@@ -39,8 +39,8 @@ data "aws_iam_policy_document" "example" {
 
 resource "aws_glacier_vault_lock" "example" {
   complete_lock = false
-  policy        = "${data.aws_iam_policy_document.example.json}"
-  vault_name    = "${aws_glacier_vault.example.name}"
+  policy        = data.aws_iam_policy_document.example.json
+  vault_name    = aws_glacier_vault.example.name
 }
 ```
 
@@ -49,8 +49,8 @@ resource "aws_glacier_vault_lock" "example" {
 ```hcl
 resource "aws_glacier_vault_lock" "example" {
   complete_lock = true
-  policy        = "${data.aws_iam_policy_document.example.json}"
-  vault_name    = "${aws_glacier_vault.example.name}"
+  policy        = data.aws_iam_policy_document.example.json
+  vault_name    = aws_glacier_vault.example.name
 }
 ```
 

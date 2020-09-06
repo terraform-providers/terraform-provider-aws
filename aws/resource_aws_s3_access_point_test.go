@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3control"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
@@ -171,32 +171,43 @@ func TestAccAWSS3AccessPoint_Policy(t *testing.T) {
 	resourceName := "aws_s3_access_point.test"
 
 	expectedPolicyText1 := func() string {
-		return fmt.Sprintf(`
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [{
-			"Sid": "",
-			"Effect": "Allow",
-			"Principal": {"AWS":"*"},
-			"Action": "s3:GetObjectTagging",
-			"Resource": ["arn:%s:s3:%s:%s:accesspoint/%s/object/*"]
-		  }]
-		}
-		`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
+		return fmt.Sprintf(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:GetObjectTagging",
+      "Resource": [
+        "arn:%s:s3:%s:%s:accesspoint/%s/object/*"
+      ]
+    }
+  ]
+}`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
 	}
 	expectedPolicyText2 := func() string {
-		return fmt.Sprintf(`
-		{
-		  "Version": "2012-10-17",
-		  "Statement": [{
-			"Sid": "",
-			"Effect": "Allow",
-			"Principal": {"AWS":"*"},
-			"Action": ["s3:GetObjectLegalHold","s3:GetObjectRetention"],
-			"Resource": ["arn:%s:s3:%s:%s:accesspoint/%s/object/*"]
-		  }]
-		}
-		`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
+		return fmt.Sprintf(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "s3:GetObjectLegalHold",
+        "s3:GetObjectRetention"
+      ],
+      "Resource": [
+        "arn:%s:s3:%s:%s:accesspoint/%s/object/*"
+      ]
+    }
+  ]
+}`, testAccGetPartition(), testAccGetRegion(), testAccGetAccountID(), rName)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -460,7 +471,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[2]q
 }
 `, bucketName, accessPointName)
@@ -473,9 +484,9 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
-  policy = "${data.aws_iam_policy_document.test.json}"
+  policy = data.aws_iam_policy_document.test.json
 
   public_access_block_configuration {
     block_public_acls       = true
@@ -517,9 +528,9 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
-  policy = "${data.aws_iam_policy_document.test.json}"
+  policy = data.aws_iam_policy_document.test.json
 
   public_access_block_configuration {
     block_public_acls       = true
@@ -562,7 +573,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   public_access_block_configuration {
@@ -582,7 +593,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   public_access_block_configuration {
@@ -610,11 +621,11 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
   name   = %[1]q
 
   vpc_configuration {
-    vpc_id = "${aws_vpc.test.id}"
+    vpc_id = aws_vpc.test.id
   }
 }
 `, rName)

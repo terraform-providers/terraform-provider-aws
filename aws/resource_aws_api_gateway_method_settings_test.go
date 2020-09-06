@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayMethodSettings_basic(t *testing.T) {
@@ -29,6 +29,12 @@ func TestAccAWSAPIGatewayMethodSettings_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.logging_level", "INFO"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -60,6 +66,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_CacheDataEncrypted(t *testing.T
 					resource.TestCheckResourceAttr(resourceName, "settings.0.cache_data_encrypted", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -75,6 +87,14 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_CacheTtlInSeconds(t *testing.T)
 		CheckDestroy: testAccCheckAWSAPIGatewayMethodSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsCacheTtlInSeconds(rName, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage1),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "settings.0.cache_ttl_in_seconds", "0"),
+				),
+			},
+			{
 				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsCacheTtlInSeconds(rName, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage1),
@@ -89,6 +109,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_CacheTtlInSeconds(t *testing.T)
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.cache_ttl_in_seconds", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -120,6 +146,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_CachingEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "settings.0.caching_enabled", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -149,6 +181,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_DataTraceEnabled(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.data_trace_enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -182,6 +220,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_LoggingLevel(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "settings.0.logging_level", "OFF"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -213,6 +257,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_MetricsEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.metrics_enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -250,6 +300,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_Multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "settings.0.logging_level", "OFF"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -280,6 +336,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_RequireAuthorizationForCacheCon
 					resource.TestCheckResourceAttr(resourceName, "settings.0.require_authorization_for_cache_control", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -308,6 +370,49 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingBurstLimit(t *testing
 					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage2),
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_burst_limit", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/5690
+func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingBurstLimitDisabledByDefault(t *testing.T) {
+	var stage1, stage2 apigateway.Stage
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_method_settings.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayMethodSettingsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsLoggingLevel(rName, "INFO"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage2),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_burst_limit", "-1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsThrottlingBurstLimit(rName, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage1),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_burst_limit", "1"),
 				),
 			},
 		},
@@ -340,6 +445,49 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingRateLimit(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_rate_limit", "2.2"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/5690
+func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingRateLimitDisabledByDefault(t *testing.T) {
+	var stage1, stage2 apigateway.Stage
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_method_settings.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayMethodSettingsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsLoggingLevel(rName, "INFO"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage1),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_rate_limit", "-1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsThrottlingRateLimit(rName, 1.1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage2),
+					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "settings.0.throttling_rate_limit", "1.1"),
+				),
+			},
 		},
 	})
 }
@@ -369,6 +517,12 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_UnauthorizedCacheControlHeaderS
 					resource.TestCheckResourceAttr(resourceName, "settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "settings.0.unauthorized_cache_control_header_strategy", "SUCCEED_WITHOUT_RESPONSE_HEADER"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -405,6 +559,28 @@ func testAccCheckAWSAPIGatewayMethodSettings_loggingLevel(conf *apigateway.Stage
 
 		return nil
 	}
+}
+
+func TestAccAWSAPIGatewayMethodSettings_disappears(t *testing.T) {
+	var stage apigateway.Stage
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_method_settings.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayMethodSettingsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayMethodSettingsConfigSettingsLoggingLevel(rName, "INFO"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodSettingsExists(resourceName, &stage),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayMethodSettings(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testAccCheckAWSAPIGatewayMethodSettingsExists(n string, res *apigateway.Stage) resource.TestCheckFunc {
@@ -464,6 +640,21 @@ func testAccCheckAWSAPIGatewayMethodSettingsDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAWSAPIGatewayMethodSettingsImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", resourceName)
+		}
+
+		restApiID := rs.Primary.Attributes["rest_api_id"]
+		stageName := rs.Primary.Attributes["stage_name"]
+		methodPath := rs.Primary.Attributes["method_path"]
+
+		return fmt.Sprintf("%s/%s/%s", restApiID, stageName, methodPath), nil
+	}
+}
+
 func testAccAWSAPIGatewayMethodSettingsConfigBase(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
@@ -471,14 +662,14 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
   http_method   = "GET"
   authorization = "NONE"
 
@@ -493,9 +684,9 @@ resource "aws_api_gateway_method" "test" {
 }
 
 resource "aws_api_gateway_integration" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   type        = "MOCK"
 
   request_templates = {
@@ -508,8 +699,8 @@ EOF
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on  = ["aws_api_gateway_integration.test"]
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  depends_on  = [aws_api_gateway_integration.test]
+  rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = "dev"
 }
 `, rName)
@@ -519,8 +710,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsCacheDataEncrypted(rName st
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     cache_data_encrypted = %t
@@ -533,8 +724,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsCacheTtlInSeconds(rName str
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     cache_ttl_in_seconds = %d
@@ -547,8 +738,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsCachingEnabled(rName string
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     caching_enabled = %t
@@ -561,8 +752,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsDataTraceEnabled(rName stri
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     data_trace_enabled = %t
@@ -575,8 +766,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsLoggingLevel(rName, logging
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     logging_level = %q
@@ -589,8 +780,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsMetricsEnabled(rName string
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     metrics_enabled = %t
@@ -602,8 +793,8 @@ resource "aws_api_gateway_method_settings" "test" {
 func testAccAWSAPIGatewayMethodSettingsConfigSettingsMultiple(rName, loggingLevel string, metricsEnabled bool) string {
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
 
   settings {
@@ -618,8 +809,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsRequireAuthorizationForCach
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     require_authorization_for_cache_control = %t
@@ -632,8 +823,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsThrottlingBurstLimit(rName 
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     throttling_burst_limit = %d
@@ -646,8 +837,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsThrottlingRateLimit(rName s
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     throttling_rate_limit = %f
@@ -660,8 +851,8 @@ func testAccAWSAPIGatewayMethodSettingsConfigSettingsUnauthorizedCacheControlHea
 	return testAccAWSAPIGatewayMethodSettingsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_method_settings" "test" {
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_deployment.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_deployment.test.stage_name
 
   settings {
     unauthorized_cache_control_header_strategy = %q

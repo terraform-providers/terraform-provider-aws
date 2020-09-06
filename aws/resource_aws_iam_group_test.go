@@ -3,15 +3,98 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iam_group", &resource.Sweeper{
+		Name: "aws_iam_group",
+		F:    testSweepIamGroups,
+		Dependencies: []string{
+			"aws_iam_user",
+		},
+	})
+}
+
+func testSweepIamGroups(region string) error {
+	client, err := sharedClientForRegion(region)
+
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+
+	conn := client.(*AWSClient).iamconn
+	input := &iam.ListGroupsInput{}
+	var sweeperErrs *multierror.Error
+
+	err = conn.ListGroupsPages(input, func(page *iam.ListGroupsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, group := range page.Groups {
+			input := &iam.DeleteGroupInput{
+				GroupName: group.GroupName,
+			}
+			name := aws.StringValue(group.GroupName)
+
+			if name == "Admin" || name == "TerraformAccTests" {
+				continue
+			}
+
+			log.Printf("[INFO] Deleting IAM Group: %s", name)
+
+			if err := deleteAwsIamGroupPolicyAttachments(conn, name); err != nil {
+				sweeperErr := fmt.Errorf("error deleting IAM Group (%s) policy attachments: %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			if err := deleteAwsIamGroupPolicies(conn, name); err != nil {
+				sweeperErr := fmt.Errorf("error deleting IAM Group (%s) policies: %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			_, err := conn.DeleteGroup(input)
+
+			if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+				continue
+			}
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting IAM Group (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping IAM Group sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil()
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving IAM Groups: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSIAMGroup_basic(t *testing.T) {
 	var conf iam.GetGroupOutput

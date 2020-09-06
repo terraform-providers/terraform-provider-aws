@@ -29,9 +29,9 @@ resource "aws_appsync_graphql_api" "example" {
   name                = "example"
 
   user_pool_config {
-    aws_region     = "${data.aws_region.current.name}"
+    aws_region     = data.aws_region.current.name
     default_action = "DENY"
-    user_pool_id   = "${aws_cognito_user_pool.example.id}"
+    user_pool_id   = aws_cognito_user_pool.example.id
   }
 }
 ```
@@ -113,14 +113,14 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "example" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs"
-  role       = "${aws_iam_role.example.name}"
+  role       = aws_iam_role.example.name
 }
 
 resource "aws_appsync_graphql_api" "example" {
   # ... other configuration ...
 
   log_config {
-    cloudwatch_logs_role_arn = "${aws_iam_role.example.arn}"
+    cloudwatch_logs_role_arn = aws_iam_role.example.arn
     field_log_level          = "ERROR"
   }
 }

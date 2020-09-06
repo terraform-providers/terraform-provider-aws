@@ -1,10 +1,9 @@
 package aws
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2TransitGatewayDataSource_Filter(t *testing.T) {
@@ -68,24 +67,24 @@ func TestAccAWSEc2TransitGatewayDataSource_ID(t *testing.T) {
 }
 
 func testAccAWSEc2TransitGatewayDataSourceConfigFilter() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_ec2_transit_gateway" "test" {}
 
 data "aws_ec2_transit_gateway" "test" {
   filter {
     name   = "transit-gateway-id"
-    values = ["${aws_ec2_transit_gateway.test.id}"]
+    values = [aws_ec2_transit_gateway.test.id]
   }
 }
-`)
+`
 }
 
 func testAccAWSEc2TransitGatewayDataSourceConfigID() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_ec2_transit_gateway" "test" {}
 
 data "aws_ec2_transit_gateway" "test" {
-  id = "${aws_ec2_transit_gateway.test.id}"
+  id = aws_ec2_transit_gateway.test.id
 }
-`)
+`
 }

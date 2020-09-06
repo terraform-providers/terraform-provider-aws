@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEBSDefaultKmsKey_basic(t *testing.T) {
@@ -118,6 +118,6 @@ const testAccAwsEbsDefaultKmsKeyConfig_basic = `
 resource "aws_kms_key" "test" {}
 
 resource "aws_ebs_default_kms_key" "test" {
-  key_arn = "${aws_kms_key.test.arn}"
+  key_arn = aws_kms_key.test.arn
 }
 `

@@ -21,14 +21,14 @@ data "aws_customer_gateway" "foo" {
 }
 
 resource "aws_vpn_gateway" "main" {
-  vpc_id          = "${aws_vpc.main.id}"
+  vpc_id          = aws_vpc.main.id
   amazon_side_asn = 7224
 }
 
 resource "aws_vpn_connection" "transit" {
-  vpn_gateway_id      = "${aws_vpn_gateway.main.id}"
-  customer_gateway_id = "${data.aws_customer_gateway.foo.id}"
-  type                = "${data.aws_customer_gateway.foo.type}"
+  vpn_gateway_id      = aws_vpn_gateway.main.id
+  customer_gateway_id = data.aws_customer_gateway.foo.id
+  type                = data.aws_customer_gateway.foo.type
   static_routes_only  = false
 }
 ```
@@ -46,6 +46,7 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the customer gateway.
 * `bgp_asn` - (Optional) The gateway's Border Gateway Protocol (BGP) Autonomous System Number (ASN).
 * `ip_address` - (Optional) The IP address of the gateway's Internet-routable external interface.
 * `tags` - Map of key-value pairs assigned to the gateway.

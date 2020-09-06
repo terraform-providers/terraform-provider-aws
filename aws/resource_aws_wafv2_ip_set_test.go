@@ -7,12 +7,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
-func TestAccAwsWafv2IPSet_Basic(t *testing.T) {
+func TestAccAwsWafv2IPSet_basic(t *testing.T) {
 	var v wafv2.IPSet
 	ipSetName := fmt.Sprintf("ip-set-%s", acctest.RandString(5))
 	resourceName := "aws_wafv2_ip_set.ip_set"
@@ -101,9 +102,9 @@ func TestAccAwsWafv2IPSet_IPv6(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "ip_address_version", wafv2.IPAddressVersionIpv6),
 					resource.TestCheckResourceAttr(resourceName, "addresses.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "addresses.1676510651", "1234:5678:9abc:6811:0000:0000:0000:0000/64"),
-					resource.TestCheckResourceAttr(resourceName, "addresses.3671909787", "2001:db8::/32"),
-					resource.TestCheckResourceAttr(resourceName, "addresses.4089736081", "0:0:0:0:0:ffff:7f00:1/64"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1234:5678:9abc:6811:0000:0000:0000:0000/64"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "2001:db8::/32"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "addresses.*", "1111:0000:0000:0000:0000:0000:0000:0111/128"),
 				),
 			},
 			{
@@ -235,6 +236,38 @@ func TestAccAwsWafv2IPSet_Tags(t *testing.T) {
 	})
 }
 
+func TestAccAwsWafv2IPSet_Large(t *testing.T) {
+	var v wafv2.IPSet
+	ipSetName := fmt.Sprintf("ip-set-%s", acctest.RandString(5))
+	resourceName := "aws_wafv2_ip_set.ip_set"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSWafv2IPSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsWafv2IPSetConfigLarge(ipSetName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSWafv2IPSetExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "wafv2", regexp.MustCompile(`regional/ipset/.+$`)),
+					resource.TestCheckResourceAttr(resourceName, "name", ipSetName),
+					resource.TestCheckResourceAttr(resourceName, "description", ipSetName),
+					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_version", wafv2.IPAddressVersionIpv4),
+					resource.TestCheckResourceAttr(resourceName, "addresses.#", "50"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccAWSWafv2IPSetImportStateIdFunc(resourceName),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSWafv2IPSetDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_wafv2_ip_set" {
@@ -341,8 +374,8 @@ resource "aws_wafv2_ip_set" "ip_set" {
   description        = "%s"
   scope              = "REGIONAL"
   ip_address_version = "IPV6"
-  addresses          = [
-    "0:0:0:0:0:ffff:7f00:1/64",
+  addresses = [
+    "1111:0000:0000:0000:0000:0000:0000:0111/128",
     "1234:5678:9abc:6811:0000:0000:0000:0000/64",
     "2001:db8::/32"
   ]
@@ -391,6 +424,29 @@ resource "aws_wafv2_ip_set" "ip_set" {
   }
 }
 `, name, name, tag1Key, tag1Value, tag2Key, tag2Value)
+}
+
+func testAccAwsWafv2IPSetConfigLarge(name string) string {
+	return fmt.Sprintf(`
+resource "aws_wafv2_ip_set" "ip_set" {
+  name               = "%s"
+  description        = "%s"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+  addresses = [
+    "1.1.1.50/32", "1.1.1.73/32", "1.1.1.15/32", "2.2.2.30/32", "1.1.1.38/32",
+    "2.2.2.53/32", "1.1.1.21/32", "2.2.2.24/32", "1.1.1.44/32", "1.1.1.1/32",
+    "1.1.1.67/32", "2.2.2.76/32", "2.2.2.99/32", "1.1.1.26/32", "2.2.2.93/32",
+    "2.2.2.64/32", "1.1.1.32/32", "2.2.2.12/32", "2.2.2.47/32", "1.1.1.91/32",
+    "1.1.1.78/32", "2.2.2.82/32", "2.2.2.58/32", "1.1.1.85/32", "2.2.2.4/32",
+    "2.2.2.65/32", "2.2.2.23/32", "2.2.2.17/32", "2.2.2.42/32", "1.1.1.56/32",
+    "1.1.1.79/32", "2.2.2.81/32", "2.2.2.36/32", "2.2.2.59/32", "2.2.2.9/32",
+    "1.1.1.7/32", "1.1.1.84/32", "1.1.1.51/32", "2.2.2.70/32", "2.2.2.87/32",
+    "1.1.1.39/32", "1.1.1.90/32", "2.2.2.31/32", "1.1.1.62/32", "1.1.1.14/32",
+    "1.1.1.20/32", "2.2.2.25/32", "1.1.1.45/32", "1.1.1.2/32", "2.2.2.98/32"
+  ]
+}
+`, name, name)
 }
 
 func testAccAWSWafv2IPSetImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {

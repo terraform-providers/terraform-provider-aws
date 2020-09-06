@@ -76,9 +76,12 @@ func (c *FMS) AssociateAdminAccountRequest(input *AssociateAdminAccountInput) (r
 //
 // Returned Error Types:
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InvalidInputException
 //   The parameters of the request were invalid.
@@ -107,6 +110,98 @@ func (c *FMS) AssociateAdminAccount(input *AssociateAdminAccountInput) (*Associa
 // for more information on using Contexts.
 func (c *FMS) AssociateAdminAccountWithContext(ctx aws.Context, input *AssociateAdminAccountInput, opts ...request.Option) (*AssociateAdminAccountOutput, error) {
 	req, out := c.AssociateAdminAccountRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteAppsList = "DeleteAppsList"
+
+// DeleteAppsListRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAppsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAppsList for more information on using the DeleteAppsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteAppsListRequest method.
+//    req, resp := client.DeleteAppsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/DeleteAppsList
+func (c *FMS) DeleteAppsListRequest(input *DeleteAppsListInput) (req *request.Request, output *DeleteAppsListOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAppsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteAppsListInput{}
+	}
+
+	output = &DeleteAppsListOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteAppsList API operation for Firewall Management Service.
+//
+// Permanently deletes an AWS Firewall Manager applications list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation DeleteAppsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/DeleteAppsList
+func (c *FMS) DeleteAppsList(input *DeleteAppsListInput) (*DeleteAppsListOutput, error) {
+	req, out := c.DeleteAppsListRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAppsListWithContext is the same as DeleteAppsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAppsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) DeleteAppsListWithContext(ctx aws.Context, input *DeleteAppsListInput, opts ...request.Option) (*DeleteAppsListOutput, error) {
+	req, out := c.DeleteAppsListRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -173,9 +268,12 @@ func (c *FMS) DeleteNotificationChannelRequest(input *DeleteNotificationChannelI
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -262,9 +360,12 @@ func (c *FMS) DeletePolicyRequest(input *DeletePolicyInput) (req *request.Reques
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -287,6 +388,98 @@ func (c *FMS) DeletePolicy(input *DeletePolicyInput) (*DeletePolicyOutput, error
 // for more information on using Contexts.
 func (c *FMS) DeletePolicyWithContext(ctx aws.Context, input *DeletePolicyInput, opts ...request.Option) (*DeletePolicyOutput, error) {
 	req, out := c.DeletePolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteProtocolsList = "DeleteProtocolsList"
+
+// DeleteProtocolsListRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteProtocolsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteProtocolsList for more information on using the DeleteProtocolsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteProtocolsListRequest method.
+//    req, resp := client.DeleteProtocolsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/DeleteProtocolsList
+func (c *FMS) DeleteProtocolsListRequest(input *DeleteProtocolsListInput) (req *request.Request, output *DeleteProtocolsListOutput) {
+	op := &request.Operation{
+		Name:       opDeleteProtocolsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteProtocolsListInput{}
+	}
+
+	output = &DeleteProtocolsListOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteProtocolsList API operation for Firewall Management Service.
+//
+// Permanently deletes an AWS Firewall Manager protocols list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation DeleteProtocolsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/DeleteProtocolsList
+func (c *FMS) DeleteProtocolsList(input *DeleteProtocolsListInput) (*DeleteProtocolsListOutput, error) {
+	req, out := c.DeleteProtocolsListRequest(input)
+	return out, req.Send()
+}
+
+// DeleteProtocolsListWithContext is the same as DeleteProtocolsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteProtocolsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) DeleteProtocolsListWithContext(ctx aws.Context, input *DeleteProtocolsListInput, opts ...request.Option) (*DeleteProtocolsListOutput, error) {
+	req, out := c.DeleteProtocolsListRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -350,9 +543,12 @@ func (c *FMS) DisassociateAdminAccountRequest(input *DisassociateAdminAccountInp
 //
 // Returned Error Types:
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * ResourceNotFoundException
 //   The specified resource was not found.
@@ -439,9 +635,12 @@ func (c *FMS) GetAdminAccountRequest(input *GetAdminAccountInput) (req *request.
 //
 // Returned Error Types:
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * ResourceNotFoundException
 //   The specified resource was not found.
@@ -467,6 +666,98 @@ func (c *FMS) GetAdminAccount(input *GetAdminAccountInput) (*GetAdminAccountOutp
 // for more information on using Contexts.
 func (c *FMS) GetAdminAccountWithContext(ctx aws.Context, input *GetAdminAccountInput, opts ...request.Option) (*GetAdminAccountOutput, error) {
 	req, out := c.GetAdminAccountRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetAppsList = "GetAppsList"
+
+// GetAppsListRequest generates a "aws/request.Request" representing the
+// client's request for the GetAppsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetAppsList for more information on using the GetAppsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetAppsListRequest method.
+//    req, resp := client.GetAppsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetAppsList
+func (c *FMS) GetAppsListRequest(input *GetAppsListInput) (req *request.Request, output *GetAppsListOutput) {
+	op := &request.Operation{
+		Name:       opGetAppsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetAppsListInput{}
+	}
+
+	output = &GetAppsListOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetAppsList API operation for Firewall Management Service.
+//
+// Returns information about the specified AWS Firewall Manager applications
+// list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation GetAppsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetAppsList
+func (c *FMS) GetAppsList(input *GetAppsListInput) (*GetAppsListOutput, error) {
+	req, out := c.GetAppsListRequest(input)
+	return out, req.Send()
+}
+
+// GetAppsListWithContext is the same as GetAppsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetAppsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) GetAppsListWithContext(ctx aws.Context, input *GetAppsListInput, opts ...request.Option) (*GetAppsListOutput, error) {
+	req, out := c.GetAppsListRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -538,6 +829,17 @@ func (c *FMS) GetComplianceDetailRequest(input *GetComplianceDetailInput) (req *
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
 //   was valid. Retry your request.
+//
+//   * InvalidInputException
+//   The parameters of the request were invalid.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetComplianceDetail
 func (c *FMS) GetComplianceDetail(input *GetComplianceDetailInput) (*GetComplianceDetailOutput, error) {
@@ -620,9 +922,12 @@ func (c *FMS) GetNotificationChannelRequest(input *GetNotificationChannelInput) 
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -708,9 +1013,12 @@ func (c *FMS) GetPolicyRequest(input *GetPolicyInput) (req *request.Request, out
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -829,6 +1137,281 @@ func (c *FMS) GetProtectionStatusWithContext(ctx aws.Context, input *GetProtecti
 	return out, req.Send()
 }
 
+const opGetProtocolsList = "GetProtocolsList"
+
+// GetProtocolsListRequest generates a "aws/request.Request" representing the
+// client's request for the GetProtocolsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetProtocolsList for more information on using the GetProtocolsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetProtocolsListRequest method.
+//    req, resp := client.GetProtocolsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetProtocolsList
+func (c *FMS) GetProtocolsListRequest(input *GetProtocolsListInput) (req *request.Request, output *GetProtocolsListOutput) {
+	op := &request.Operation{
+		Name:       opGetProtocolsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetProtocolsListInput{}
+	}
+
+	output = &GetProtocolsListOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetProtocolsList API operation for Firewall Management Service.
+//
+// Returns information about the specified AWS Firewall Manager protocols list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation GetProtocolsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetProtocolsList
+func (c *FMS) GetProtocolsList(input *GetProtocolsListInput) (*GetProtocolsListOutput, error) {
+	req, out := c.GetProtocolsListRequest(input)
+	return out, req.Send()
+}
+
+// GetProtocolsListWithContext is the same as GetProtocolsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetProtocolsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) GetProtocolsListWithContext(ctx aws.Context, input *GetProtocolsListInput, opts ...request.Option) (*GetProtocolsListOutput, error) {
+	req, out := c.GetProtocolsListRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetViolationDetails = "GetViolationDetails"
+
+// GetViolationDetailsRequest generates a "aws/request.Request" representing the
+// client's request for the GetViolationDetails operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetViolationDetails for more information on using the GetViolationDetails
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetViolationDetailsRequest method.
+//    req, resp := client.GetViolationDetailsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetViolationDetails
+func (c *FMS) GetViolationDetailsRequest(input *GetViolationDetailsInput) (req *request.Request, output *GetViolationDetailsOutput) {
+	op := &request.Operation{
+		Name:       opGetViolationDetails,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetViolationDetailsInput{}
+	}
+
+	output = &GetViolationDetailsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetViolationDetails API operation for Firewall Management Service.
+//
+// Retrieves violations for a resource based on the specified AWS Firewall Manager
+// policy and AWS account.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation GetViolationDetails for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidInputException
+//   The parameters of the request were invalid.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/GetViolationDetails
+func (c *FMS) GetViolationDetails(input *GetViolationDetailsInput) (*GetViolationDetailsOutput, error) {
+	req, out := c.GetViolationDetailsRequest(input)
+	return out, req.Send()
+}
+
+// GetViolationDetailsWithContext is the same as GetViolationDetails with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetViolationDetails for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) GetViolationDetailsWithContext(ctx aws.Context, input *GetViolationDetailsInput, opts ...request.Option) (*GetViolationDetailsOutput, error) {
+	req, out := c.GetViolationDetailsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opListAppsLists = "ListAppsLists"
+
+// ListAppsListsRequest generates a "aws/request.Request" representing the
+// client's request for the ListAppsLists operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListAppsLists for more information on using the ListAppsLists
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListAppsListsRequest method.
+//    req, resp := client.ListAppsListsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/ListAppsLists
+func (c *FMS) ListAppsListsRequest(input *ListAppsListsInput) (req *request.Request, output *ListAppsListsOutput) {
+	op := &request.Operation{
+		Name:       opListAppsLists,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListAppsListsInput{}
+	}
+
+	output = &ListAppsListsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListAppsLists API operation for Firewall Management Service.
+//
+// Returns an array of AppsListDataSummary objects.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation ListAppsLists for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * LimitExceededException
+//   The operation exceeds a resource limit, for example, the maximum number of
+//   policy objects that you can create for an AWS account. For more information,
+//   see Firewall Manager Limits (https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html)
+//   in the AWS WAF Developer Guide.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/ListAppsLists
+func (c *FMS) ListAppsLists(input *ListAppsListsInput) (*ListAppsListsOutput, error) {
+	req, out := c.ListAppsListsRequest(input)
+	return out, req.Send()
+}
+
+// ListAppsListsWithContext is the same as ListAppsLists with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListAppsLists for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) ListAppsListsWithContext(ctx aws.Context, input *ListAppsListsInput, opts ...request.Option) (*ListAppsListsOutput, error) {
+	req, out := c.ListAppsListsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListComplianceStatus = "ListComplianceStatus"
 
 // ListComplianceStatusRequest generates a "aws/request.Request" representing the
@@ -879,7 +1462,7 @@ func (c *FMS) ListComplianceStatusRequest(input *ListComplianceStatusInput) (req
 
 // ListComplianceStatus API operation for Firewall Management Service.
 //
-// Returns an array of PolicyComplianceStatus objects in the response. Use PolicyComplianceStatus
+// Returns an array of PolicyComplianceStatus objects. Use PolicyComplianceStatus
 // to get a summary of which member accounts are protected by the specified
 // policy.
 //
@@ -1167,7 +1750,7 @@ func (c *FMS) ListPoliciesRequest(input *ListPoliciesInput) (req *request.Reques
 
 // ListPolicies API operation for Firewall Management Service.
 //
-// Returns an array of PolicySummary objects in the response.
+// Returns an array of PolicySummary objects.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1181,9 +1764,12 @@ func (c *FMS) ListPoliciesRequest(input *ListPoliciesInput) (req *request.Reques
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * LimitExceededException
 //   The operation exceeds a resource limit, for example, the maximum number of
@@ -1269,6 +1855,97 @@ func (c *FMS) ListPoliciesPagesWithContext(ctx aws.Context, input *ListPoliciesI
 	return p.Err()
 }
 
+const opListProtocolsLists = "ListProtocolsLists"
+
+// ListProtocolsListsRequest generates a "aws/request.Request" representing the
+// client's request for the ListProtocolsLists operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListProtocolsLists for more information on using the ListProtocolsLists
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListProtocolsListsRequest method.
+//    req, resp := client.ListProtocolsListsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/ListProtocolsLists
+func (c *FMS) ListProtocolsListsRequest(input *ListProtocolsListsInput) (req *request.Request, output *ListProtocolsListsOutput) {
+	op := &request.Operation{
+		Name:       opListProtocolsLists,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListProtocolsListsInput{}
+	}
+
+	output = &ListProtocolsListsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListProtocolsLists API operation for Firewall Management Service.
+//
+// Returns an array of ProtocolsListDataSummary objects.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation ListProtocolsLists for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/ListProtocolsLists
+func (c *FMS) ListProtocolsLists(input *ListProtocolsListsInput) (*ListProtocolsListsOutput, error) {
+	req, out := c.ListProtocolsListsRequest(input)
+	return out, req.Send()
+}
+
+// ListProtocolsListsWithContext is the same as ListProtocolsLists with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListProtocolsLists for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) ListProtocolsListsWithContext(ctx aws.Context, input *ListProtocolsListsInput, opts ...request.Option) (*ListProtocolsListsOutput, error) {
+	req, out := c.ListProtocolsListsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListTagsForResource = "ListTagsForResource"
 
 // ListTagsForResourceRequest generates a "aws/request.Request" representing the
@@ -1327,9 +2004,12 @@ func (c *FMS) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -1355,6 +2035,106 @@ func (c *FMS) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsFor
 // for more information on using Contexts.
 func (c *FMS) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
 	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opPutAppsList = "PutAppsList"
+
+// PutAppsListRequest generates a "aws/request.Request" representing the
+// client's request for the PutAppsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutAppsList for more information on using the PutAppsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutAppsListRequest method.
+//    req, resp := client.PutAppsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/PutAppsList
+func (c *FMS) PutAppsListRequest(input *PutAppsListInput) (req *request.Request, output *PutAppsListOutput) {
+	op := &request.Operation{
+		Name:       opPutAppsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutAppsListInput{}
+	}
+
+	output = &PutAppsListOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutAppsList API operation for Firewall Management Service.
+//
+// Creates an AWS Firewall Manager applications list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation PutAppsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InvalidInputException
+//   The parameters of the request were invalid.
+//
+//   * LimitExceededException
+//   The operation exceeds a resource limit, for example, the maximum number of
+//   policy objects that you can create for an AWS account. For more information,
+//   see Firewall Manager Limits (https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html)
+//   in the AWS WAF Developer Guide.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/PutAppsList
+func (c *FMS) PutAppsList(input *PutAppsListInput) (*PutAppsListOutput, error) {
+	req, out := c.PutAppsListRequest(input)
+	return out, req.Send()
+}
+
+// PutAppsListWithContext is the same as PutAppsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutAppsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) PutAppsListWithContext(ctx aws.Context, input *PutAppsListInput, opts ...request.Option) (*PutAppsListOutput, error) {
+	req, out := c.PutAppsListRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1420,9 +2200,12 @@ func (c *FMS) PutNotificationChannelRequest(input *PutNotificationChannelInput) 
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -1530,9 +2313,12 @@ func (c *FMS) PutPolicyRequest(input *PutPolicyInput) (req *request.Request, out
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InvalidInputException
 //   The parameters of the request were invalid.
@@ -1567,6 +2353,106 @@ func (c *FMS) PutPolicy(input *PutPolicyInput) (*PutPolicyOutput, error) {
 // for more information on using Contexts.
 func (c *FMS) PutPolicyWithContext(ctx aws.Context, input *PutPolicyInput, opts ...request.Option) (*PutPolicyOutput, error) {
 	req, out := c.PutPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opPutProtocolsList = "PutProtocolsList"
+
+// PutProtocolsListRequest generates a "aws/request.Request" representing the
+// client's request for the PutProtocolsList operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutProtocolsList for more information on using the PutProtocolsList
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutProtocolsListRequest method.
+//    req, resp := client.PutProtocolsListRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/PutProtocolsList
+func (c *FMS) PutProtocolsListRequest(input *PutProtocolsListInput) (req *request.Request, output *PutProtocolsListOutput) {
+	op := &request.Operation{
+		Name:       opPutProtocolsList,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutProtocolsListInput{}
+	}
+
+	output = &PutProtocolsListOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutProtocolsList API operation for Firewall Management Service.
+//
+// Creates an AWS Firewall Manager protocols list.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Firewall Management Service's
+// API operation PutProtocolsList for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource was not found.
+//
+//   * InvalidOperationException
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
+//
+//   * InvalidInputException
+//   The parameters of the request were invalid.
+//
+//   * LimitExceededException
+//   The operation exceeds a resource limit, for example, the maximum number of
+//   policy objects that you can create for an AWS account. For more information,
+//   see Firewall Manager Limits (https://docs.aws.amazon.com/waf/latest/developerguide/fms-limits.html)
+//   in the AWS WAF Developer Guide.
+//
+//   * InternalErrorException
+//   The operation failed because of a system problem, even though the request
+//   was valid. Retry your request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/fms-2018-01-01/PutProtocolsList
+func (c *FMS) PutProtocolsList(input *PutProtocolsListInput) (*PutProtocolsListOutput, error) {
+	req, out := c.PutProtocolsListRequest(input)
+	return out, req.Send()
+}
+
+// PutProtocolsListWithContext is the same as PutProtocolsList with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutProtocolsList for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *FMS) PutProtocolsListWithContext(ctx aws.Context, input *PutProtocolsListInput, opts ...request.Option) (*PutProtocolsListOutput, error) {
+	req, out := c.PutProtocolsListRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1631,9 +2517,12 @@ func (c *FMS) TagResourceRequest(input *TagResourceInput) (req *request.Request,
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -1729,9 +2618,12 @@ func (c *FMS) UntagResourceRequest(input *UntagResourceInput) (req *request.Requ
 //   The specified resource was not found.
 //
 //   * InvalidOperationException
-//   The operation failed because there was nothing to do. For example, you might
-//   have submitted an AssociateAdminAccount request, but the account ID that
-//   you submitted was already set as the AWS Firewall Manager administrator.
+//   The operation failed because there was nothing to do or the operation wasn't
+//   possible. For example, you might have submitted an AssociateAdminAccount
+//   request for an account ID that was already set as the AWS Firewall Manager
+//   administrator. Or you might have tried to access a Region that's disabled
+//   by default, and that you need to enable for the Firewall Manager administrator
+//   account and for AWS Organizations before you can access it.
 //
 //   * InternalErrorException
 //   The operation failed because of a system problem, even though the request
@@ -1760,6 +2652,250 @@ func (c *FMS) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInpu
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// An individual AWS Firewall Manager application.
+type App struct {
+	_ struct{} `type:"structure"`
+
+	// The application's name.
+	//
+	// AppName is a required field
+	AppName *string `min:"1" type:"string" required:"true"`
+
+	// The application's port number, for example 80.
+	//
+	// Port is a required field
+	Port *int64 `type:"long" required:"true"`
+
+	// The IP protocol name or number. The name can be one of tcp, udp, or icmp.
+	// For information on possible numbers, see Protocol Numbers (https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml).
+	//
+	// Protocol is a required field
+	Protocol *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s App) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s App) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *App) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "App"}
+	if s.AppName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AppName"))
+	}
+	if s.AppName != nil && len(*s.AppName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AppName", 1))
+	}
+	if s.Port == nil {
+		invalidParams.Add(request.NewErrParamRequired("Port"))
+	}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+	if s.Protocol != nil && len(*s.Protocol) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Protocol", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAppName sets the AppName field's value.
+func (s *App) SetAppName(v string) *App {
+	s.AppName = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *App) SetPort(v int64) *App {
+	s.Port = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *App) SetProtocol(v string) *App {
+	s.Protocol = &v
+	return s
+}
+
+// An AWS Firewall Manager applications list.
+type AppsListData struct {
+	_ struct{} `type:"structure"`
+
+	// An array of applications in the AWS Firewall Manager applications list.
+	//
+	// AppsList is a required field
+	AppsList []*App `type:"list" required:"true"`
+
+	// The time that the AWS Firewall Manager applications list was created.
+	CreateTime *time.Time `type:"timestamp"`
+
+	// The time that the AWS Firewall Manager applications list was last updated.
+	LastUpdateTime *time.Time `type:"timestamp"`
+
+	// The ID of the AWS Firewall Manager applications list.
+	ListId *string `min:"36" type:"string"`
+
+	// The name of the AWS Firewall Manager applications list.
+	//
+	// ListName is a required field
+	ListName *string `min:"1" type:"string" required:"true"`
+
+	// A unique identifier for each update to the list. When you update the list,
+	// the update token must match the token of the current version of the application
+	// list. You can retrieve the update token by getting the list.
+	ListUpdateToken *string `min:"1" type:"string"`
+
+	// A map of previous version numbers to their corresponding App object arrays.
+	PreviousAppsList map[string][]*App `type:"map"`
+}
+
+// String returns the string representation
+func (s AppsListData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AppsListData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AppsListData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AppsListData"}
+	if s.AppsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("AppsList"))
+	}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+	if s.ListName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListName"))
+	}
+	if s.ListName != nil && len(*s.ListName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ListName", 1))
+	}
+	if s.ListUpdateToken != nil && len(*s.ListUpdateToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ListUpdateToken", 1))
+	}
+	if s.AppsList != nil {
+		for i, v := range s.AppsList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "AppsList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAppsList sets the AppsList field's value.
+func (s *AppsListData) SetAppsList(v []*App) *AppsListData {
+	s.AppsList = v
+	return s
+}
+
+// SetCreateTime sets the CreateTime field's value.
+func (s *AppsListData) SetCreateTime(v time.Time) *AppsListData {
+	s.CreateTime = &v
+	return s
+}
+
+// SetLastUpdateTime sets the LastUpdateTime field's value.
+func (s *AppsListData) SetLastUpdateTime(v time.Time) *AppsListData {
+	s.LastUpdateTime = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *AppsListData) SetListId(v string) *AppsListData {
+	s.ListId = &v
+	return s
+}
+
+// SetListName sets the ListName field's value.
+func (s *AppsListData) SetListName(v string) *AppsListData {
+	s.ListName = &v
+	return s
+}
+
+// SetListUpdateToken sets the ListUpdateToken field's value.
+func (s *AppsListData) SetListUpdateToken(v string) *AppsListData {
+	s.ListUpdateToken = &v
+	return s
+}
+
+// SetPreviousAppsList sets the PreviousAppsList field's value.
+func (s *AppsListData) SetPreviousAppsList(v map[string][]*App) *AppsListData {
+	s.PreviousAppsList = v
+	return s
+}
+
+// Details of the AWS Firewall Manager applications list.
+type AppsListDataSummary struct {
+	_ struct{} `type:"structure"`
+
+	// An array of App objects in the AWS Firewall Manager applications list.
+	AppsList []*App `type:"list"`
+
+	// The Amazon Resource Name (ARN) of the applications list.
+	ListArn *string `min:"1" type:"string"`
+
+	// The ID of the applications list.
+	ListId *string `min:"36" type:"string"`
+
+	// The name of the applications list.
+	ListName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s AppsListDataSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AppsListDataSummary) GoString() string {
+	return s.String()
+}
+
+// SetAppsList sets the AppsList field's value.
+func (s *AppsListDataSummary) SetAppsList(v []*App) *AppsListDataSummary {
+	s.AppsList = v
+	return s
+}
+
+// SetListArn sets the ListArn field's value.
+func (s *AppsListDataSummary) SetListArn(v string) *AppsListDataSummary {
+	s.ListArn = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *AppsListDataSummary) SetListId(v string) *AppsListDataSummary {
+	s.ListId = &v
+	return s
+}
+
+// SetListName sets the ListName field's value.
+func (s *AppsListDataSummary) SetListName(v string) *AppsListDataSummary {
+	s.ListName = &v
+	return s
 }
 
 type AssociateAdminAccountInput struct {
@@ -1820,6 +2956,126 @@ func (s AssociateAdminAccountOutput) GoString() string {
 	return s.String()
 }
 
+// Violations for an EC2 instance resource.
+type AwsEc2InstanceViolation struct {
+	_ struct{} `type:"structure"`
+
+	// Violations for network interfaces associated with the EC2 instance.
+	AwsEc2NetworkInterfaceViolations []*AwsEc2NetworkInterfaceViolation `type:"list"`
+
+	// The resource ID of the EC2 instance.
+	ViolationTarget *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AwsEc2InstanceViolation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsEc2InstanceViolation) GoString() string {
+	return s.String()
+}
+
+// SetAwsEc2NetworkInterfaceViolations sets the AwsEc2NetworkInterfaceViolations field's value.
+func (s *AwsEc2InstanceViolation) SetAwsEc2NetworkInterfaceViolations(v []*AwsEc2NetworkInterfaceViolation) *AwsEc2InstanceViolation {
+	s.AwsEc2NetworkInterfaceViolations = v
+	return s
+}
+
+// SetViolationTarget sets the ViolationTarget field's value.
+func (s *AwsEc2InstanceViolation) SetViolationTarget(v string) *AwsEc2InstanceViolation {
+	s.ViolationTarget = &v
+	return s
+}
+
+// Violations for network interfaces associated with an EC2 instance.
+type AwsEc2NetworkInterfaceViolation struct {
+	_ struct{} `type:"structure"`
+
+	// List of security groups that violate the rules specified in the master security
+	// group of the AWS Firewall Manager policy.
+	ViolatingSecurityGroups []*string `type:"list"`
+
+	// The resource ID of the network interface.
+	ViolationTarget *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AwsEc2NetworkInterfaceViolation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsEc2NetworkInterfaceViolation) GoString() string {
+	return s.String()
+}
+
+// SetViolatingSecurityGroups sets the ViolatingSecurityGroups field's value.
+func (s *AwsEc2NetworkInterfaceViolation) SetViolatingSecurityGroups(v []*string) *AwsEc2NetworkInterfaceViolation {
+	s.ViolatingSecurityGroups = v
+	return s
+}
+
+// SetViolationTarget sets the ViolationTarget field's value.
+func (s *AwsEc2NetworkInterfaceViolation) SetViolationTarget(v string) *AwsEc2NetworkInterfaceViolation {
+	s.ViolationTarget = &v
+	return s
+}
+
+// Details of the rule violation in a security group when compared to the master
+// security group of the AWS Firewall Manager policy.
+type AwsVPCSecurityGroupViolation struct {
+	_ struct{} `type:"structure"`
+
+	// List of rules specified in the security group of the AWS Firewall Manager
+	// policy that partially match the ViolationTarget rule.
+	PartialMatches []*PartialMatch `type:"list"`
+
+	// Remediation options for the rule specified in the ViolationTarget.
+	PossibleSecurityGroupRemediationActions []*SecurityGroupRemediationAction `type:"list"`
+
+	// The security group rule that is being evaluated.
+	ViolationTarget *string `type:"string"`
+
+	// A description of the security group that violates the policy.
+	ViolationTargetDescription *string `type:"string"`
+}
+
+// String returns the string representation
+func (s AwsVPCSecurityGroupViolation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AwsVPCSecurityGroupViolation) GoString() string {
+	return s.String()
+}
+
+// SetPartialMatches sets the PartialMatches field's value.
+func (s *AwsVPCSecurityGroupViolation) SetPartialMatches(v []*PartialMatch) *AwsVPCSecurityGroupViolation {
+	s.PartialMatches = v
+	return s
+}
+
+// SetPossibleSecurityGroupRemediationActions sets the PossibleSecurityGroupRemediationActions field's value.
+func (s *AwsVPCSecurityGroupViolation) SetPossibleSecurityGroupRemediationActions(v []*SecurityGroupRemediationAction) *AwsVPCSecurityGroupViolation {
+	s.PossibleSecurityGroupRemediationActions = v
+	return s
+}
+
+// SetViolationTarget sets the ViolationTarget field's value.
+func (s *AwsVPCSecurityGroupViolation) SetViolationTarget(v string) *AwsVPCSecurityGroupViolation {
+	s.ViolationTarget = &v
+	return s
+}
+
+// SetViolationTargetDescription sets the ViolationTargetDescription field's value.
+func (s *AwsVPCSecurityGroupViolation) SetViolationTargetDescription(v string) *AwsVPCSecurityGroupViolation {
+	s.ViolationTargetDescription = &v
+	return s
+}
+
 // Details of the resource that is not protected by the policy.
 type ComplianceViolator struct {
 	_ struct{} `type:"structure"`
@@ -1862,6 +3118,62 @@ func (s *ComplianceViolator) SetResourceType(v string) *ComplianceViolator {
 func (s *ComplianceViolator) SetViolationReason(v string) *ComplianceViolator {
 	s.ViolationReason = &v
 	return s
+}
+
+type DeleteAppsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the applications list that you want to delete. You can retrieve
+	// this ID from PutAppsList, ListAppsLists, and GetAppsList.
+	//
+	// ListId is a required field
+	ListId *string `min:"36" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAppsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAppsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAppsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAppsListInput"}
+	if s.ListId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListId"))
+	}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetListId sets the ListId field's value.
+func (s *DeleteAppsListInput) SetListId(v string) *DeleteAppsListInput {
+	s.ListId = &v
+	return s
+}
+
+type DeleteAppsListOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteAppsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAppsListOutput) GoString() string {
+	return s.String()
 }
 
 type DeleteNotificationChannelInput struct {
@@ -1922,8 +3234,8 @@ type DeletePolicyInput struct {
 	// If you don't specify tags or accounts, all resources are in scope.
 	DeleteAllPolicyResources *bool `type:"boolean"`
 
-	// The ID of the policy that you want to delete. PolicyId is returned by PutPolicy
-	// and by ListPolicies.
+	// The ID of the policy that you want to delete. You can retrieve this ID from
+	// PutPolicy and ListPolicies.
 	//
 	// PolicyId is a required field
 	PolicyId *string `min:"36" type:"string" required:"true"`
@@ -1978,6 +3290,62 @@ func (s DeletePolicyOutput) String() string {
 
 // GoString returns the string representation
 func (s DeletePolicyOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteProtocolsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the protocols list that you want to delete. You can retrieve this
+	// ID from PutProtocolsList, ListProtocolsLists, and GetProtocolsLost.
+	//
+	// ListId is a required field
+	ListId *string `min:"36" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteProtocolsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteProtocolsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteProtocolsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteProtocolsListInput"}
+	if s.ListId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListId"))
+	}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetListId sets the ListId field's value.
+func (s *DeleteProtocolsListInput) SetListId(v string) *DeleteProtocolsListInput {
+	s.ListId = &v
+	return s
+}
+
+type DeleteProtocolsListOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteProtocolsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteProtocolsListOutput) GoString() string {
 	return s.String()
 }
 
@@ -2101,6 +3469,90 @@ func (s *GetAdminAccountOutput) SetAdminAccount(v string) *GetAdminAccountOutput
 // SetRoleStatus sets the RoleStatus field's value.
 func (s *GetAdminAccountOutput) SetRoleStatus(v string) *GetAdminAccountOutput {
 	s.RoleStatus = &v
+	return s
+}
+
+type GetAppsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether the list to retrieve is a default list owned by AWS Firewall
+	// Manager.
+	DefaultList *bool `type:"boolean"`
+
+	// The ID of the AWS Firewall Manager applications list that you want the details
+	// for.
+	//
+	// ListId is a required field
+	ListId *string `min:"36" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetAppsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAppsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetAppsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetAppsListInput"}
+	if s.ListId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListId"))
+	}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefaultList sets the DefaultList field's value.
+func (s *GetAppsListInput) SetDefaultList(v bool) *GetAppsListInput {
+	s.DefaultList = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *GetAppsListInput) SetListId(v string) *GetAppsListInput {
+	s.ListId = &v
+	return s
+}
+
+type GetAppsListOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the specified AWS Firewall Manager applications list.
+	AppsList *AppsListData `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the applications list.
+	AppsListArn *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s GetAppsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetAppsListOutput) GoString() string {
+	return s.String()
+}
+
+// SetAppsList sets the AppsList field's value.
+func (s *GetAppsListOutput) SetAppsList(v *AppsListData) *GetAppsListOutput {
+	s.AppsList = v
+	return s
+}
+
+// SetAppsListArn sets the AppsListArn field's value.
+func (s *GetAppsListOutput) SetAppsListArn(v string) *GetAppsListOutput {
+	s.AppsListArn = &v
 	return s
 }
 
@@ -2488,6 +3940,209 @@ func (s *GetProtectionStatusOutput) SetServiceType(v string) *GetProtectionStatu
 	return s
 }
 
+type GetProtocolsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether the list to retrieve is a default list owned by AWS Firewall
+	// Manager.
+	DefaultList *bool `type:"boolean"`
+
+	// The ID of the AWS Firewall Manager protocols list that you want the details
+	// for.
+	//
+	// ListId is a required field
+	ListId *string `min:"36" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetProtocolsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetProtocolsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetProtocolsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetProtocolsListInput"}
+	if s.ListId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListId"))
+	}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefaultList sets the DefaultList field's value.
+func (s *GetProtocolsListInput) SetDefaultList(v bool) *GetProtocolsListInput {
+	s.DefaultList = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *GetProtocolsListInput) SetListId(v string) *GetProtocolsListInput {
+	s.ListId = &v
+	return s
+}
+
+type GetProtocolsListOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the specified AWS Firewall Manager protocols list.
+	ProtocolsList *ProtocolsListData `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the specified protocols list.
+	ProtocolsListArn *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s GetProtocolsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetProtocolsListOutput) GoString() string {
+	return s.String()
+}
+
+// SetProtocolsList sets the ProtocolsList field's value.
+func (s *GetProtocolsListOutput) SetProtocolsList(v *ProtocolsListData) *GetProtocolsListOutput {
+	s.ProtocolsList = v
+	return s
+}
+
+// SetProtocolsListArn sets the ProtocolsListArn field's value.
+func (s *GetProtocolsListOutput) SetProtocolsListArn(v string) *GetProtocolsListOutput {
+	s.ProtocolsListArn = &v
+	return s
+}
+
+type GetViolationDetailsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS account ID that you want the details for.
+	//
+	// MemberAccount is a required field
+	MemberAccount *string `min:"1" type:"string" required:"true"`
+
+	// The ID of the AWS Firewall Manager policy that you want the details for.
+	// This currently only supports security group content audit policies.
+	//
+	// PolicyId is a required field
+	PolicyId *string `min:"36" type:"string" required:"true"`
+
+	// The ID of the resource that has violations.
+	//
+	// ResourceId is a required field
+	ResourceId *string `min:"1" type:"string" required:"true"`
+
+	// The resource type. This is in the format shown in the AWS Resource Types
+	// Reference (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html).
+	// Supported resource types are: AWS::EC2::Instance, AWS::EC2::NetworkInterface,
+	// or AWS::EC2::SecurityGroup.
+	//
+	// ResourceType is a required field
+	ResourceType *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetViolationDetailsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetViolationDetailsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetViolationDetailsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetViolationDetailsInput"}
+	if s.MemberAccount == nil {
+		invalidParams.Add(request.NewErrParamRequired("MemberAccount"))
+	}
+	if s.MemberAccount != nil && len(*s.MemberAccount) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MemberAccount", 1))
+	}
+	if s.PolicyId == nil {
+		invalidParams.Add(request.NewErrParamRequired("PolicyId"))
+	}
+	if s.PolicyId != nil && len(*s.PolicyId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("PolicyId", 36))
+	}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+	if s.ResourceType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceType"))
+	}
+	if s.ResourceType != nil && len(*s.ResourceType) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceType", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMemberAccount sets the MemberAccount field's value.
+func (s *GetViolationDetailsInput) SetMemberAccount(v string) *GetViolationDetailsInput {
+	s.MemberAccount = &v
+	return s
+}
+
+// SetPolicyId sets the PolicyId field's value.
+func (s *GetViolationDetailsInput) SetPolicyId(v string) *GetViolationDetailsInput {
+	s.PolicyId = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *GetViolationDetailsInput) SetResourceId(v string) *GetViolationDetailsInput {
+	s.ResourceId = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *GetViolationDetailsInput) SetResourceType(v string) *GetViolationDetailsInput {
+	s.ResourceType = &v
+	return s
+}
+
+type GetViolationDetailsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Violation detail for a resource.
+	ViolationDetail *ViolationDetail `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetViolationDetailsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetViolationDetailsOutput) GoString() string {
+	return s.String()
+}
+
+// SetViolationDetail sets the ViolationDetail field's value.
+func (s *GetViolationDetailsOutput) SetViolationDetail(v *ViolationDetail) *GetViolationDetailsOutput {
+	s.ViolationDetail = v
+	return s
+}
+
 // The operation failed because of a system problem, even though the request
 // was valid. Retry your request.
 type InternalErrorException struct {
@@ -2601,9 +4256,12 @@ func (s *InvalidInputException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The operation failed because there was nothing to do. For example, you might
-// have submitted an AssociateAdminAccount request, but the account ID that
-// you submitted was already set as the AWS Firewall Manager administrator.
+// The operation failed because there was nothing to do or the operation wasn't
+// possible. For example, you might have submitted an AssociateAdminAccount
+// request for an account ID that was already set as the AWS Firewall Manager
+// administrator. Or you might have tried to access a Region that's disabled
+// by default, and that you need to enable for the Firewall Manager administrator
+// account and for AWS Organizations before you can access it.
 type InvalidOperationException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -2772,6 +4430,113 @@ func (s *LimitExceededException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *LimitExceededException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type ListAppsListsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether the lists to retrieve are default lists owned by AWS Firewall
+	// Manager.
+	DefaultLists *bool `type:"boolean"`
+
+	// The maximum number of objects that you want AWS Firewall Manager to return
+	// for this request. If more objects are available, in the response, AWS Firewall
+	// Manager provides a NextToken value that you can use in a subsequent call
+	// to get the next batch of objects.
+	//
+	// If you don't specify this, AWS Firewall Manager returns all available objects.
+	//
+	// MaxResults is a required field
+	MaxResults *int64 `min:"1" type:"integer" required:"true"`
+
+	// If you specify a value for MaxResults in your list request, and you have
+	// more objects than the maximum, AWS Firewall Manager returns this token in
+	// the response. For all but the first request, you provide the token returned
+	// by the prior request in the request parameters, to retrieve the next batch
+	// of objects.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListAppsListsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAppsListsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListAppsListsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListAppsListsInput"}
+	if s.MaxResults == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaxResults"))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefaultLists sets the DefaultLists field's value.
+func (s *ListAppsListsInput) SetDefaultLists(v bool) *ListAppsListsInput {
+	s.DefaultLists = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListAppsListsInput) SetMaxResults(v int64) *ListAppsListsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAppsListsInput) SetNextToken(v string) *ListAppsListsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListAppsListsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of AppsListDataSummary objects.
+	AppsLists []*AppsListDataSummary `type:"list"`
+
+	// If you specify a value for MaxResults in your list request, and you have
+	// more objects than the maximum, AWS Firewall Manager returns this token in
+	// the response. You can use this token in subsequent requests to retrieve the
+	// next batch of objects.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListAppsListsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAppsListsOutput) GoString() string {
+	return s.String()
+}
+
+// SetAppsLists sets the AppsLists field's value.
+func (s *ListAppsListsOutput) SetAppsLists(v []*AppsListDataSummary) *ListAppsListsOutput {
+	s.AppsLists = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAppsListsOutput) SetNextToken(v string) *ListAppsListsOutput {
+	s.NextToken = &v
+	return s
 }
 
 type ListComplianceStatusInput struct {
@@ -3067,12 +4832,119 @@ func (s *ListPoliciesOutput) SetPolicyList(v []*PolicySummary) *ListPoliciesOutp
 	return s
 }
 
+type ListProtocolsListsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether the lists to retrieve are default lists owned by AWS Firewall
+	// Manager.
+	DefaultLists *bool `type:"boolean"`
+
+	// The maximum number of objects that you want AWS Firewall Manager to return
+	// for this request. If more objects are available, in the response, AWS Firewall
+	// Manager provides a NextToken value that you can use in a subsequent call
+	// to get the next batch of objects.
+	//
+	// If you don't specify this, AWS Firewall Manager returns all available objects.
+	//
+	// MaxResults is a required field
+	MaxResults *int64 `min:"1" type:"integer" required:"true"`
+
+	// If you specify a value for MaxResults in your list request, and you have
+	// more objects than the maximum, AWS Firewall Manager returns this token in
+	// the response. For all but the first request, you provide the token returned
+	// by the prior request in the request parameters, to retrieve the next batch
+	// of objects.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListProtocolsListsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListProtocolsListsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListProtocolsListsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListProtocolsListsInput"}
+	if s.MaxResults == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaxResults"))
+	}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDefaultLists sets the DefaultLists field's value.
+func (s *ListProtocolsListsInput) SetDefaultLists(v bool) *ListProtocolsListsInput {
+	s.DefaultLists = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListProtocolsListsInput) SetMaxResults(v int64) *ListProtocolsListsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListProtocolsListsInput) SetNextToken(v string) *ListProtocolsListsInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListProtocolsListsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If you specify a value for MaxResults in your list request, and you have
+	// more objects than the maximum, AWS Firewall Manager returns this token in
+	// the response. You can use this token in subsequent requests to retrieve the
+	// next batch of objects.
+	NextToken *string `min:"1" type:"string"`
+
+	// An array of ProtocolsListDataSummary objects.
+	ProtocolsLists []*ProtocolsListDataSummary `type:"list"`
+}
+
+// String returns the string representation
+func (s ListProtocolsListsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListProtocolsListsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListProtocolsListsOutput) SetNextToken(v string) *ListProtocolsListsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetProtocolsLists sets the ProtocolsLists field's value.
+func (s *ListProtocolsListsOutput) SetProtocolsLists(v []*ProtocolsListDataSummary) *ListProtocolsListsOutput {
+	s.ProtocolsLists = v
+	return s
+}
+
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource to return tags for. The Firewall
-	// Manager policy is the only AWS resource that supports tagging, so this ARN
-	// is a policy ARN..
+	// The Amazon Resource Name (ARN) of the resource to return tags for. The AWS
+	// Firewall Manager resources that support tagging are policies, applications
+	// lists, and protocols lists.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -3130,6 +5002,41 @@ func (s ListTagsForResourceOutput) GoString() string {
 // SetTagList sets the TagList field's value.
 func (s *ListTagsForResourceOutput) SetTagList(v []*Tag) *ListTagsForResourceOutput {
 	s.TagList = v
+	return s
+}
+
+// The reference rule that partially matches the ViolationTarget rule and violation
+// reason.
+type PartialMatch struct {
+	_ struct{} `type:"structure"`
+
+	// The reference rule from the master security group of the AWS Firewall Manager
+	// policy.
+	Reference *string `type:"string"`
+
+	// The violation reason.
+	TargetViolationReasons []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s PartialMatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PartialMatch) GoString() string {
+	return s.String()
+}
+
+// SetReference sets the Reference field's value.
+func (s *PartialMatch) SetReference(v string) *PartialMatch {
+	s.Reference = &v
+	return s
+}
+
+// SetTargetViolationReasons sets the TargetViolationReasons field's value.
+func (s *PartialMatch) SetTargetViolationReasons(v []*string) *PartialMatch {
+	s.TargetViolationReasons = v
 	return s
 }
 
@@ -3196,7 +5103,7 @@ type Policy struct {
 	// The ID of the AWS Firewall Manager policy.
 	PolicyId *string `min:"36" type:"string"`
 
-	// The friendly name of the AWS Firewall Manager policy.
+	// The name of the AWS Firewall Manager policy.
 	//
 	// PolicyName is a required field
 	PolicyName *string `min:"1" type:"string" required:"true"`
@@ -3475,7 +5382,7 @@ type PolicyComplianceStatus struct {
 	// The ID of the AWS Firewall Manager policy.
 	PolicyId *string `min:"36" type:"string"`
 
-	// The friendly name of the AWS Firewall Manager policy.
+	// The name of the AWS Firewall Manager policy.
 	PolicyName *string `min:"1" type:"string"`
 
 	// The AWS account that created the AWS Firewall Manager policy.
@@ -3544,7 +5451,7 @@ type PolicySummary struct {
 	// The ID of the specified policy.
 	PolicyId *string `min:"36" type:"string"`
 
-	// The friendly name of the specified policy.
+	// The name of the specified policy.
 	PolicyName *string `min:"1" type:"string"`
 
 	// Indicates if the policy should be automatically applied to new resources.
@@ -3609,6 +5516,260 @@ func (s *PolicySummary) SetResourceType(v string) *PolicySummary {
 // SetSecurityServiceType sets the SecurityServiceType field's value.
 func (s *PolicySummary) SetSecurityServiceType(v string) *PolicySummary {
 	s.SecurityServiceType = &v
+	return s
+}
+
+// An AWS Firewall Manager protocols list.
+type ProtocolsListData struct {
+	_ struct{} `type:"structure"`
+
+	// The time that the AWS Firewall Manager protocols list was created.
+	CreateTime *time.Time `type:"timestamp"`
+
+	// The time that the AWS Firewall Manager protocols list was last updated.
+	LastUpdateTime *time.Time `type:"timestamp"`
+
+	// The ID of the AWS Firewall Manager protocols list.
+	ListId *string `min:"36" type:"string"`
+
+	// The name of the AWS Firewall Manager protocols list.
+	//
+	// ListName is a required field
+	ListName *string `min:"1" type:"string" required:"true"`
+
+	// A unique identifier for each update to the list. When you update the list,
+	// the update token must match the token of the current version of the application
+	// list. You can retrieve the update token by getting the list.
+	ListUpdateToken *string `min:"1" type:"string"`
+
+	// A map of previous version numbers to their corresponding protocol arrays.
+	PreviousProtocolsList map[string][]*string `type:"map"`
+
+	// An array of protocols in the AWS Firewall Manager protocols list.
+	//
+	// ProtocolsList is a required field
+	ProtocolsList []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ProtocolsListData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProtocolsListData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProtocolsListData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProtocolsListData"}
+	if s.ListId != nil && len(*s.ListId) < 36 {
+		invalidParams.Add(request.NewErrParamMinLen("ListId", 36))
+	}
+	if s.ListName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ListName"))
+	}
+	if s.ListName != nil && len(*s.ListName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ListName", 1))
+	}
+	if s.ListUpdateToken != nil && len(*s.ListUpdateToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ListUpdateToken", 1))
+	}
+	if s.ProtocolsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("ProtocolsList"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCreateTime sets the CreateTime field's value.
+func (s *ProtocolsListData) SetCreateTime(v time.Time) *ProtocolsListData {
+	s.CreateTime = &v
+	return s
+}
+
+// SetLastUpdateTime sets the LastUpdateTime field's value.
+func (s *ProtocolsListData) SetLastUpdateTime(v time.Time) *ProtocolsListData {
+	s.LastUpdateTime = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *ProtocolsListData) SetListId(v string) *ProtocolsListData {
+	s.ListId = &v
+	return s
+}
+
+// SetListName sets the ListName field's value.
+func (s *ProtocolsListData) SetListName(v string) *ProtocolsListData {
+	s.ListName = &v
+	return s
+}
+
+// SetListUpdateToken sets the ListUpdateToken field's value.
+func (s *ProtocolsListData) SetListUpdateToken(v string) *ProtocolsListData {
+	s.ListUpdateToken = &v
+	return s
+}
+
+// SetPreviousProtocolsList sets the PreviousProtocolsList field's value.
+func (s *ProtocolsListData) SetPreviousProtocolsList(v map[string][]*string) *ProtocolsListData {
+	s.PreviousProtocolsList = v
+	return s
+}
+
+// SetProtocolsList sets the ProtocolsList field's value.
+func (s *ProtocolsListData) SetProtocolsList(v []*string) *ProtocolsListData {
+	s.ProtocolsList = v
+	return s
+}
+
+// Details of the AWS Firewall Manager protocols list.
+type ProtocolsListDataSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the specified protocols list.
+	ListArn *string `min:"1" type:"string"`
+
+	// The ID of the specified protocols list.
+	ListId *string `min:"36" type:"string"`
+
+	// The name of the specified protocols list.
+	ListName *string `min:"1" type:"string"`
+
+	// An array of protocols in the AWS Firewall Manager protocols list.
+	ProtocolsList []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s ProtocolsListDataSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProtocolsListDataSummary) GoString() string {
+	return s.String()
+}
+
+// SetListArn sets the ListArn field's value.
+func (s *ProtocolsListDataSummary) SetListArn(v string) *ProtocolsListDataSummary {
+	s.ListArn = &v
+	return s
+}
+
+// SetListId sets the ListId field's value.
+func (s *ProtocolsListDataSummary) SetListId(v string) *ProtocolsListDataSummary {
+	s.ListId = &v
+	return s
+}
+
+// SetListName sets the ListName field's value.
+func (s *ProtocolsListDataSummary) SetListName(v string) *ProtocolsListDataSummary {
+	s.ListName = &v
+	return s
+}
+
+// SetProtocolsList sets the ProtocolsList field's value.
+func (s *ProtocolsListDataSummary) SetProtocolsList(v []*string) *ProtocolsListDataSummary {
+	s.ProtocolsList = v
+	return s
+}
+
+type PutAppsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// The details of the AWS Firewall Manager applications list to be created.
+	//
+	// AppsList is a required field
+	AppsList *AppsListData `type:"structure" required:"true"`
+
+	// The tags associated with the resource.
+	TagList []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s PutAppsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutAppsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutAppsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutAppsListInput"}
+	if s.AppsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("AppsList"))
+	}
+	if s.AppsList != nil {
+		if err := s.AppsList.Validate(); err != nil {
+			invalidParams.AddNested("AppsList", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.TagList != nil {
+		for i, v := range s.TagList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "TagList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAppsList sets the AppsList field's value.
+func (s *PutAppsListInput) SetAppsList(v *AppsListData) *PutAppsListInput {
+	s.AppsList = v
+	return s
+}
+
+// SetTagList sets the TagList field's value.
+func (s *PutAppsListInput) SetTagList(v []*Tag) *PutAppsListInput {
+	s.TagList = v
+	return s
+}
+
+type PutAppsListOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The details of the AWS Firewall Manager applications list.
+	AppsList *AppsListData `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the applications list.
+	AppsListArn *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s PutAppsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutAppsListOutput) GoString() string {
+	return s.String()
+}
+
+// SetAppsList sets the AppsList field's value.
+func (s *PutAppsListOutput) SetAppsList(v *AppsListData) *PutAppsListOutput {
+	s.AppsList = v
+	return s
+}
+
+// SetAppsListArn sets the AppsListArn field's value.
+func (s *PutAppsListOutput) SetAppsListArn(v string) *PutAppsListOutput {
+	s.AppsListArn = &v
 	return s
 }
 
@@ -3751,10 +5912,10 @@ func (s *PutPolicyInput) SetTagList(v []*Tag) *PutPolicyInput {
 type PutPolicyOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The details of the AWS Firewall Manager policy that was created.
+	// The details of the AWS Firewall Manager policy.
 	Policy *Policy `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the policy that was created.
+	// The Amazon Resource Name (ARN) of the policy.
 	PolicyArn *string `min:"1" type:"string"`
 }
 
@@ -3777,6 +5938,100 @@ func (s *PutPolicyOutput) SetPolicy(v *Policy) *PutPolicyOutput {
 // SetPolicyArn sets the PolicyArn field's value.
 func (s *PutPolicyOutput) SetPolicyArn(v string) *PutPolicyOutput {
 	s.PolicyArn = &v
+	return s
+}
+
+type PutProtocolsListInput struct {
+	_ struct{} `type:"structure"`
+
+	// The details of the AWS Firewall Manager protocols list to be created.
+	//
+	// ProtocolsList is a required field
+	ProtocolsList *ProtocolsListData `type:"structure" required:"true"`
+
+	// The tags associated with the resource.
+	TagList []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s PutProtocolsListInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutProtocolsListInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutProtocolsListInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutProtocolsListInput"}
+	if s.ProtocolsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("ProtocolsList"))
+	}
+	if s.ProtocolsList != nil {
+		if err := s.ProtocolsList.Validate(); err != nil {
+			invalidParams.AddNested("ProtocolsList", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.TagList != nil {
+		for i, v := range s.TagList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "TagList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetProtocolsList sets the ProtocolsList field's value.
+func (s *PutProtocolsListInput) SetProtocolsList(v *ProtocolsListData) *PutProtocolsListInput {
+	s.ProtocolsList = v
+	return s
+}
+
+// SetTagList sets the TagList field's value.
+func (s *PutProtocolsListInput) SetTagList(v []*Tag) *PutProtocolsListInput {
+	s.TagList = v
+	return s
+}
+
+type PutProtocolsListOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The details of the AWS Firewall Manager protocols list.
+	ProtocolsList *ProtocolsListData `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the protocols list.
+	ProtocolsListArn *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s PutProtocolsListOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutProtocolsListOutput) GoString() string {
+	return s.String()
+}
+
+// SetProtocolsList sets the ProtocolsList field's value.
+func (s *PutProtocolsListOutput) SetProtocolsList(v *ProtocolsListData) *PutProtocolsListOutput {
+	s.ProtocolsList = v
+	return s
+}
+
+// SetProtocolsListArn sets the ProtocolsListArn field's value.
+func (s *PutProtocolsListOutput) SetProtocolsListArn(v string) *PutProtocolsListOutput {
+	s.ProtocolsListArn = &v
 	return s
 }
 
@@ -3894,6 +6149,171 @@ func (s *ResourceTag) SetValue(v string) *ResourceTag {
 	return s
 }
 
+// Violation detail based on resource type.
+type ResourceViolation struct {
+	_ struct{} `type:"structure"`
+
+	// Violation details for an EC2 instance.
+	AwsEc2InstanceViolation *AwsEc2InstanceViolation `type:"structure"`
+
+	// Violation details for network interface.
+	AwsEc2NetworkInterfaceViolation *AwsEc2NetworkInterfaceViolation `type:"structure"`
+
+	// Violation details for security groups.
+	AwsVPCSecurityGroupViolation *AwsVPCSecurityGroupViolation `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResourceViolation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceViolation) GoString() string {
+	return s.String()
+}
+
+// SetAwsEc2InstanceViolation sets the AwsEc2InstanceViolation field's value.
+func (s *ResourceViolation) SetAwsEc2InstanceViolation(v *AwsEc2InstanceViolation) *ResourceViolation {
+	s.AwsEc2InstanceViolation = v
+	return s
+}
+
+// SetAwsEc2NetworkInterfaceViolation sets the AwsEc2NetworkInterfaceViolation field's value.
+func (s *ResourceViolation) SetAwsEc2NetworkInterfaceViolation(v *AwsEc2NetworkInterfaceViolation) *ResourceViolation {
+	s.AwsEc2NetworkInterfaceViolation = v
+	return s
+}
+
+// SetAwsVPCSecurityGroupViolation sets the AwsVPCSecurityGroupViolation field's value.
+func (s *ResourceViolation) SetAwsVPCSecurityGroupViolation(v *AwsVPCSecurityGroupViolation) *ResourceViolation {
+	s.AwsVPCSecurityGroupViolation = v
+	return s
+}
+
+// Remediation option for the rule specified in the ViolationTarget.
+type SecurityGroupRemediationAction struct {
+	_ struct{} `type:"structure"`
+
+	// Brief description of the action that will be performed.
+	Description *string `type:"string"`
+
+	// Indicates if the current action is the default action.
+	IsDefaultAction *bool `type:"boolean"`
+
+	// The remediation action that will be performed.
+	RemediationActionType *string `type:"string" enum:"RemediationActionType"`
+
+	// The final state of the rule specified in the ViolationTarget after it is
+	// remediated.
+	RemediationResult *SecurityGroupRuleDescription `type:"structure"`
+}
+
+// String returns the string representation
+func (s SecurityGroupRemediationAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SecurityGroupRemediationAction) GoString() string {
+	return s.String()
+}
+
+// SetDescription sets the Description field's value.
+func (s *SecurityGroupRemediationAction) SetDescription(v string) *SecurityGroupRemediationAction {
+	s.Description = &v
+	return s
+}
+
+// SetIsDefaultAction sets the IsDefaultAction field's value.
+func (s *SecurityGroupRemediationAction) SetIsDefaultAction(v bool) *SecurityGroupRemediationAction {
+	s.IsDefaultAction = &v
+	return s
+}
+
+// SetRemediationActionType sets the RemediationActionType field's value.
+func (s *SecurityGroupRemediationAction) SetRemediationActionType(v string) *SecurityGroupRemediationAction {
+	s.RemediationActionType = &v
+	return s
+}
+
+// SetRemediationResult sets the RemediationResult field's value.
+func (s *SecurityGroupRemediationAction) SetRemediationResult(v *SecurityGroupRuleDescription) *SecurityGroupRemediationAction {
+	s.RemediationResult = v
+	return s
+}
+
+// Describes a set of permissions for a security group rule.
+type SecurityGroupRuleDescription struct {
+	_ struct{} `type:"structure"`
+
+	// The start of the port range for the TCP and UDP protocols, or an ICMP/ICMPv6
+	// type number. A value of -1 indicates all ICMP/ICMPv6 types.
+	FromPort *int64 `type:"long"`
+
+	// The IPv4 ranges for the security group rule.
+	IPV4Range *string `type:"string"`
+
+	// The IPv6 ranges for the security group rule.
+	IPV6Range *string `type:"string"`
+
+	// The ID of the prefix list for the security group rule.
+	PrefixListId *string `min:"1" type:"string"`
+
+	// The IP protocol name (tcp, udp, icmp, icmpv6) or number.
+	Protocol *string `type:"string"`
+
+	// The end of the port range for the TCP and UDP protocols, or an ICMP/ICMPv6
+	// code. A value of -1 indicates all ICMP/ICMPv6 codes.
+	ToPort *int64 `type:"long"`
+}
+
+// String returns the string representation
+func (s SecurityGroupRuleDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s SecurityGroupRuleDescription) GoString() string {
+	return s.String()
+}
+
+// SetFromPort sets the FromPort field's value.
+func (s *SecurityGroupRuleDescription) SetFromPort(v int64) *SecurityGroupRuleDescription {
+	s.FromPort = &v
+	return s
+}
+
+// SetIPV4Range sets the IPV4Range field's value.
+func (s *SecurityGroupRuleDescription) SetIPV4Range(v string) *SecurityGroupRuleDescription {
+	s.IPV4Range = &v
+	return s
+}
+
+// SetIPV6Range sets the IPV6Range field's value.
+func (s *SecurityGroupRuleDescription) SetIPV6Range(v string) *SecurityGroupRuleDescription {
+	s.IPV6Range = &v
+	return s
+}
+
+// SetPrefixListId sets the PrefixListId field's value.
+func (s *SecurityGroupRuleDescription) SetPrefixListId(v string) *SecurityGroupRuleDescription {
+	s.PrefixListId = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *SecurityGroupRuleDescription) SetProtocol(v string) *SecurityGroupRuleDescription {
+	s.Protocol = &v
+	return s
+}
+
+// SetToPort sets the ToPort field's value.
+func (s *SecurityGroupRuleDescription) SetToPort(v int64) *SecurityGroupRuleDescription {
+	s.ToPort = &v
+	return s
+}
+
 // Details about the security service that is being used to protect the resources.
 type SecurityServicePolicyData struct {
 	_ struct{} `type:"structure"`
@@ -3901,7 +6321,7 @@ type SecurityServicePolicyData struct {
 	// Details about the service that are specific to the service type, in JSON
 	// format. For service type SHIELD_ADVANCED, this is an empty string.
 	//
-	//    * Example: WAFV2 "ManagedServiceData": "{\"type\":\"WAFV2\",\"defaultAction\":{\"type\":\"ALLOW\"},\"preProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":null,\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"COUNT\"},\"excludedRules\":[{\"name\":\"EntityName\"}],\"ruleGroupType\":\"RuleGroup\"}],\"postProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":{\"managedRuleGroupName\":\"AWSManagedRulesAdminProtectionRuleSet\",\"vendor\":\"AWS\"},\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"NONE\"},\"excludedRules\":[],\"ruleGroupType\":\"ManagedRuleGroup\"}],\"overrideCustomerWebACLAssociation\":false}"
+	//    * Example: WAFV2 "ManagedServiceData": "{\"type\":\"WAFV2\",\"defaultAction\":{\"type\":\"ALLOW\"},\"preProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":null,\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"COUNT\"},\"excludeRules\":[{\"name\":\"EntityName\"}],\"ruleGroupType\":\"RuleGroup\"}],\"postProcessRuleGroups\":[{\"managedRuleGroupIdentifier\":{\"managedRuleGroupName\":\"AWSManagedRulesAdminProtectionRuleSet\",\"vendorName\":\"AWS\"},\"ruleGroupArn\":\"rulegrouparn\",\"overrideAction\":{\"type\":\"NONE\"},\"excludeRules\":[],\"ruleGroupType\":\"ManagedRuleGroup\"}],\"overrideCustomerWebACLAssociation\":false}"
 	//
 	//    * Example: WAF Classic "ManagedServiceData": "{\"type\": \"WAF\", \"ruleGroups\":
 	//    [{\"id\": \"12345678-1bcd-9012-efga-0987654321ab\", \"overrideAction\"
@@ -4037,8 +6457,9 @@ func (s *Tag) SetValue(v string) *Tag {
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource. The Firewall Manager policy
-	// is the only AWS resource that supports tagging, so this ARN is a policy ARN.
+	// The Amazon Resource Name (ARN) of the resource to return tags for. The AWS
+	// Firewall Manager resources that support tagging are policies, applications
+	// lists, and protocols lists.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -4117,8 +6538,9 @@ func (s TagResourceOutput) GoString() string {
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the resource. The Firewall Manager policy
-	// is the only AWS resource that supports tagging, so this ARN is a policy ARN.
+	// The Amazon Resource Name (ARN) of the resource to return tags for. The AWS
+	// Firewall Manager resources that support tagging are policies, applications
+	// lists, and protocols lists.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -4184,6 +6606,96 @@ func (s UntagResourceOutput) GoString() string {
 	return s.String()
 }
 
+// Violations for a resource based on the specified AWS Firewall Manager policy
+// and AWS account.
+type ViolationDetail struct {
+	_ struct{} `type:"structure"`
+
+	// The AWS account that the violation details were requested for.
+	//
+	// MemberAccount is a required field
+	MemberAccount *string `min:"1" type:"string" required:"true"`
+
+	// The ID of the AWS Firewall Manager policy that the violation details were
+	// requested for.
+	//
+	// PolicyId is a required field
+	PolicyId *string `min:"36" type:"string" required:"true"`
+
+	// Brief description for the requested resource.
+	ResourceDescription *string `type:"string"`
+
+	// The resource ID that the violation details were requested for.
+	//
+	// ResourceId is a required field
+	ResourceId *string `min:"1" type:"string" required:"true"`
+
+	// The ResourceTag objects associated with the resource.
+	ResourceTags []*Tag `type:"list"`
+
+	// The resource type that the violation details were requested for.
+	//
+	// ResourceType is a required field
+	ResourceType *string `min:"1" type:"string" required:"true"`
+
+	// List of violations for the requested resource.
+	//
+	// ResourceViolations is a required field
+	ResourceViolations []*ResourceViolation `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ViolationDetail) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ViolationDetail) GoString() string {
+	return s.String()
+}
+
+// SetMemberAccount sets the MemberAccount field's value.
+func (s *ViolationDetail) SetMemberAccount(v string) *ViolationDetail {
+	s.MemberAccount = &v
+	return s
+}
+
+// SetPolicyId sets the PolicyId field's value.
+func (s *ViolationDetail) SetPolicyId(v string) *ViolationDetail {
+	s.PolicyId = &v
+	return s
+}
+
+// SetResourceDescription sets the ResourceDescription field's value.
+func (s *ViolationDetail) SetResourceDescription(v string) *ViolationDetail {
+	s.ResourceDescription = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *ViolationDetail) SetResourceId(v string) *ViolationDetail {
+	s.ResourceId = &v
+	return s
+}
+
+// SetResourceTags sets the ResourceTags field's value.
+func (s *ViolationDetail) SetResourceTags(v []*Tag) *ViolationDetail {
+	s.ResourceTags = v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *ViolationDetail) SetResourceType(v string) *ViolationDetail {
+	s.ResourceType = &v
+	return s
+}
+
+// SetResourceViolations sets the ResourceViolations field's value.
+func (s *ViolationDetail) SetResourceViolations(v []*ResourceViolation) *ViolationDetail {
+	s.ResourceViolations = v
+	return s
+}
+
 const (
 	// AccountRoleStatusReady is a AccountRoleStatus enum value
 	AccountRoleStatusReady = "READY"
@@ -4201,6 +6713,17 @@ const (
 	AccountRoleStatusDeleted = "DELETED"
 )
 
+// AccountRoleStatus_Values returns all elements of the AccountRoleStatus enum
+func AccountRoleStatus_Values() []string {
+	return []string{
+		AccountRoleStatusReady,
+		AccountRoleStatusCreating,
+		AccountRoleStatusPendingDeletion,
+		AccountRoleStatusDeleting,
+		AccountRoleStatusDeleted,
+	}
+}
+
 const (
 	// CustomerPolicyScopeIdTypeAccount is a CustomerPolicyScopeIdType enum value
 	CustomerPolicyScopeIdTypeAccount = "ACCOUNT"
@@ -4208,6 +6731,14 @@ const (
 	// CustomerPolicyScopeIdTypeOrgUnit is a CustomerPolicyScopeIdType enum value
 	CustomerPolicyScopeIdTypeOrgUnit = "ORG_UNIT"
 )
+
+// CustomerPolicyScopeIdType_Values returns all elements of the CustomerPolicyScopeIdType enum
+func CustomerPolicyScopeIdType_Values() []string {
+	return []string{
+		CustomerPolicyScopeIdTypeAccount,
+		CustomerPolicyScopeIdTypeOrgUnit,
+	}
+}
 
 const (
 	// DependentServiceNameAwsconfig is a DependentServiceName enum value
@@ -4223,6 +6754,16 @@ const (
 	DependentServiceNameAwsvpc = "AWSVPC"
 )
 
+// DependentServiceName_Values returns all elements of the DependentServiceName enum
+func DependentServiceName_Values() []string {
+	return []string{
+		DependentServiceNameAwsconfig,
+		DependentServiceNameAwswaf,
+		DependentServiceNameAwsshieldAdvanced,
+		DependentServiceNameAwsvpc,
+	}
+}
+
 const (
 	// PolicyComplianceStatusTypeCompliant is a PolicyComplianceStatusType enum value
 	PolicyComplianceStatusTypeCompliant = "COMPLIANT"
@@ -4230,6 +6771,30 @@ const (
 	// PolicyComplianceStatusTypeNonCompliant is a PolicyComplianceStatusType enum value
 	PolicyComplianceStatusTypeNonCompliant = "NON_COMPLIANT"
 )
+
+// PolicyComplianceStatusType_Values returns all elements of the PolicyComplianceStatusType enum
+func PolicyComplianceStatusType_Values() []string {
+	return []string{
+		PolicyComplianceStatusTypeCompliant,
+		PolicyComplianceStatusTypeNonCompliant,
+	}
+}
+
+const (
+	// RemediationActionTypeRemove is a RemediationActionType enum value
+	RemediationActionTypeRemove = "REMOVE"
+
+	// RemediationActionTypeModify is a RemediationActionType enum value
+	RemediationActionTypeModify = "MODIFY"
+)
+
+// RemediationActionType_Values returns all elements of the RemediationActionType enum
+func RemediationActionType_Values() []string {
+	return []string{
+		RemediationActionTypeRemove,
+		RemediationActionTypeModify,
+	}
+}
 
 const (
 	// SecurityServiceTypeWaf is a SecurityServiceType enum value
@@ -4250,6 +6815,18 @@ const (
 	// SecurityServiceTypeSecurityGroupsUsageAudit is a SecurityServiceType enum value
 	SecurityServiceTypeSecurityGroupsUsageAudit = "SECURITY_GROUPS_USAGE_AUDIT"
 )
+
+// SecurityServiceType_Values returns all elements of the SecurityServiceType enum
+func SecurityServiceType_Values() []string {
+	return []string{
+		SecurityServiceTypeWaf,
+		SecurityServiceTypeWafv2,
+		SecurityServiceTypeShieldAdvanced,
+		SecurityServiceTypeSecurityGroupsCommon,
+		SecurityServiceTypeSecurityGroupsContentAudit,
+		SecurityServiceTypeSecurityGroupsUsageAudit,
+	}
+}
 
 const (
 	// ViolationReasonWebAclMissingRuleGroup is a ViolationReason enum value
@@ -4279,3 +6856,18 @@ const (
 	// ViolationReasonSecurityGroupRedundant is a ViolationReason enum value
 	ViolationReasonSecurityGroupRedundant = "SECURITY_GROUP_REDUNDANT"
 )
+
+// ViolationReason_Values returns all elements of the ViolationReason enum
+func ViolationReason_Values() []string {
+	return []string{
+		ViolationReasonWebAclMissingRuleGroup,
+		ViolationReasonResourceMissingWebAcl,
+		ViolationReasonResourceIncorrectWebAcl,
+		ViolationReasonResourceMissingShieldProtection,
+		ViolationReasonResourceMissingWebAclOrShieldProtection,
+		ViolationReasonResourceMissingSecurityGroup,
+		ViolationReasonResourceViolatesAuditSecurityGroup,
+		ViolationReasonSecurityGroupUnused,
+		ViolationReasonSecurityGroupRedundant,
+	}
+}

@@ -30,9 +30,9 @@ resource "aws_customer_gateway" "example" {
 }
 
 resource "aws_vpn_connection" "example" {
-  customer_gateway_id = "${aws_customer_gateway.example.id}"
-  transit_gateway_id  = "${aws_ec2_transit_gateway.example.id}"
-  type                = "${aws_customer_gateway.example.type}"
+  customer_gateway_id = aws_customer_gateway.example.id
+  transit_gateway_id  = aws_ec2_transit_gateway.example.id
+  type                = aws_customer_gateway.example.type
 }
 ```
 
@@ -44,7 +44,7 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_vpn_gateway" "vpn_gateway" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 }
 
 resource "aws_customer_gateway" "customer_gateway" {
@@ -54,8 +54,8 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "main" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = true
 }
@@ -88,11 +88,11 @@ Other arguments:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of the VPN Connection.
 * `id` - The amazon-assigned ID of the VPN connection.
 * `customer_gateway_configuration` - The configuration information for the VPN connection's customer gateway (in the native XML format).
 * `customer_gateway_id` - The ID of the customer gateway to which the connection is attached.
 * `static_routes_only` - Whether the VPN connection uses static routes exclusively.
-* `tags` - Tags applied to the connection.
 * `transit_gateway_attachment_id` - When associated with an EC2 Transit Gateway (`transit_gateway_id` argument), the attachment ID.
 * `tunnel1_address` - The public IP address of the first VPN tunnel.
 * `tunnel1_cgw_inside_address` - The RFC 6890 link-local address of the first VPN tunnel (Customer Gateway Side).
@@ -106,7 +106,6 @@ In addition to all arguments above, the following attributes are exported:
 * `tunnel2_preshared_key` - The preshared key of the second VPN tunnel.
 * `tunnel2_bgp_asn` - The bgp asn number of the second VPN tunnel.
 * `tunnel2_bgp_holdtime` - The bgp holdtime of the second VPN tunnel.
-* `type` - The type of VPN connection.
 * `vpn_gateway_id` - The ID of the virtual private gateway to which the connection is attached.
 
 

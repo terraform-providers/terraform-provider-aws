@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/mediaconvert"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -174,7 +174,7 @@ func resourceAwsMediaConvertQueueUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error getting Media Convert Account Client: %s", err)
 	}
 
-	if d.HasChange("description") || d.HasChange("reservation_plan_settings") || d.HasChange("status") {
+	if d.HasChanges("description", "reservation_plan_settings", "status") {
 
 		updateOpts := &mediaconvert.UpdateQueueInput{
 			Name:   aws.String(d.Id()),

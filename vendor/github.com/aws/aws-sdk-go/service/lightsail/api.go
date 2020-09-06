@@ -116,6 +116,118 @@ func (c *Lightsail) AllocateStaticIpWithContext(ctx aws.Context, input *Allocate
 	return out, req.Send()
 }
 
+const opAttachCertificateToDistribution = "AttachCertificateToDistribution"
+
+// AttachCertificateToDistributionRequest generates a "aws/request.Request" representing the
+// client's request for the AttachCertificateToDistribution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AttachCertificateToDistribution for more information on using the AttachCertificateToDistribution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AttachCertificateToDistributionRequest method.
+//    req, resp := client.AttachCertificateToDistributionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/AttachCertificateToDistribution
+func (c *Lightsail) AttachCertificateToDistributionRequest(input *AttachCertificateToDistributionInput) (req *request.Request, output *AttachCertificateToDistributionOutput) {
+	op := &request.Operation{
+		Name:       opAttachCertificateToDistribution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AttachCertificateToDistributionInput{}
+	}
+
+	output = &AttachCertificateToDistributionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AttachCertificateToDistribution API operation for Amazon Lightsail.
+//
+// Attaches an SSL/TLS certificate to your Amazon Lightsail content delivery
+// network (CDN) distribution.
+//
+// After the certificate is attached, your distribution accepts HTTPS traffic
+// for all of the domains that are associated with the certificate.
+//
+// Use the CreateCertificate action to create a certificate that you can attach
+// to your distribution.
+//
+// Only certificates created in the us-east-1 AWS Region can be attached to
+// Lightsail distributions. Lightsail distributions are global resources that
+// can reference an origin in any AWS Region, and distribute its content globally.
+// However, all distributions are located in the us-east-1 Region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation AttachCertificateToDistribution for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/AttachCertificateToDistribution
+func (c *Lightsail) AttachCertificateToDistribution(input *AttachCertificateToDistributionInput) (*AttachCertificateToDistributionOutput, error) {
+	req, out := c.AttachCertificateToDistributionRequest(input)
+	return out, req.Send()
+}
+
+// AttachCertificateToDistributionWithContext is the same as AttachCertificateToDistribution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AttachCertificateToDistribution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) AttachCertificateToDistributionWithContext(ctx aws.Context, input *AttachCertificateToDistributionInput, opts ...request.Option) (*AttachCertificateToDistributionOutput, error) {
+	req, out := c.AttachCertificateToDistributionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opAttachDisk = "AttachDisk"
 
 // AttachDiskRequest generates a "aws/request.Request" representing the
@@ -777,6 +889,112 @@ func (c *Lightsail) CopySnapshotWithContext(ctx aws.Context, input *CopySnapshot
 	return out, req.Send()
 }
 
+const opCreateCertificate = "CreateCertificate"
+
+// CreateCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the CreateCertificate operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateCertificate for more information on using the CreateCertificate
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateCertificateRequest method.
+//    req, resp := client.CreateCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateCertificate
+func (c *Lightsail) CreateCertificateRequest(input *CreateCertificateInput) (req *request.Request, output *CreateCertificateOutput) {
+	op := &request.Operation{
+		Name:       opCreateCertificate,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateCertificateInput{}
+	}
+
+	output = &CreateCertificateOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateCertificate API operation for Amazon Lightsail.
+//
+// Creates an SSL/TLS certificate for a Amazon Lightsail content delivery network
+// (CDN) distribution.
+//
+// After the certificate is created, use the AttachCertificateToDistribution
+// action to attach the certificate to your distribution.
+//
+// Only certificates created in the us-east-1 AWS Region can be attached to
+// Lightsail distributions. Lightsail distributions are global resources that
+// can reference an origin in any AWS Region, and distribute its content globally.
+// However, all distributions are located in the us-east-1 Region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation CreateCertificate for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateCertificate
+func (c *Lightsail) CreateCertificate(input *CreateCertificateInput) (*CreateCertificateOutput, error) {
+	req, out := c.CreateCertificateRequest(input)
+	return out, req.Send()
+}
+
+// CreateCertificateWithContext is the same as CreateCertificate with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateCertificate for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) CreateCertificateWithContext(ctx aws.Context, input *CreateCertificateInput, opts ...request.Option) (*CreateCertificateOutput, error) {
+	req, out := c.CreateCertificateRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateCloudFormationStack = "CreateCloudFormationStack"
 
 // CreateCloudFormationStackRequest generates a "aws/request.Request" representing the
@@ -1338,6 +1556,111 @@ func (c *Lightsail) CreateDiskSnapshot(input *CreateDiskSnapshotInput) (*CreateD
 // for more information on using Contexts.
 func (c *Lightsail) CreateDiskSnapshotWithContext(ctx aws.Context, input *CreateDiskSnapshotInput, opts ...request.Option) (*CreateDiskSnapshotOutput, error) {
 	req, out := c.CreateDiskSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateDistribution = "CreateDistribution"
+
+// CreateDistributionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateDistribution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateDistribution for more information on using the CreateDistribution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateDistributionRequest method.
+//    req, resp := client.CreateDistributionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateDistribution
+func (c *Lightsail) CreateDistributionRequest(input *CreateDistributionInput) (req *request.Request, output *CreateDistributionOutput) {
+	op := &request.Operation{
+		Name:       opCreateDistribution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateDistributionInput{}
+	}
+
+	output = &CreateDistributionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateDistribution API operation for Amazon Lightsail.
+//
+// Creates an Amazon Lightsail content delivery network (CDN) distribution.
+//
+// A distribution is a globally distributed network of caching servers that
+// improve the performance of your website or web application hosted on a Lightsail
+// instance. For more information, see Content delivery networks in Amazon Lightsail
+// (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-content-delivery-networks).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation CreateDistribution for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/CreateDistribution
+func (c *Lightsail) CreateDistribution(input *CreateDistributionInput) (*CreateDistributionOutput, error) {
+	req, out := c.CreateDistributionRequest(input)
+	return out, req.Send()
+}
+
+// CreateDistributionWithContext is the same as CreateDistribution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateDistribution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) CreateDistributionWithContext(ctx aws.Context, input *CreateDistributionInput, opts ...request.Option) (*CreateDistributionOutput, error) {
+	req, out := c.CreateDistributionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2752,6 +3075,108 @@ func (c *Lightsail) DeleteAutoSnapshotWithContext(ctx aws.Context, input *Delete
 	return out, req.Send()
 }
 
+const opDeleteCertificate = "DeleteCertificate"
+
+// DeleteCertificateRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteCertificate operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteCertificate for more information on using the DeleteCertificate
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteCertificateRequest method.
+//    req, resp := client.DeleteCertificateRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteCertificate
+func (c *Lightsail) DeleteCertificateRequest(input *DeleteCertificateInput) (req *request.Request, output *DeleteCertificateOutput) {
+	op := &request.Operation{
+		Name:       opDeleteCertificate,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteCertificateInput{}
+	}
+
+	output = &DeleteCertificateOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteCertificate API operation for Amazon Lightsail.
+//
+// Deletes an SSL/TLS certificate for your Amazon Lightsail content delivery
+// network (CDN) distribution.
+//
+// Certificates that are currently attached to a distribution cannot be deleted.
+// Use the DetachCertificateFromDistribution action to detach a certificate
+// from a distribution.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation DeleteCertificate for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteCertificate
+func (c *Lightsail) DeleteCertificate(input *DeleteCertificateInput) (*DeleteCertificateOutput, error) {
+	req, out := c.DeleteCertificateRequest(input)
+	return out, req.Send()
+}
+
+// DeleteCertificateWithContext is the same as DeleteCertificate with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteCertificate for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) DeleteCertificateWithContext(ctx aws.Context, input *DeleteCertificateInput, opts ...request.Option) (*DeleteCertificateOutput, error) {
+	req, out := c.DeleteCertificateRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteContactMethod = "DeleteContactMethod"
 
 // DeleteContactMethodRequest generates a "aws/request.Request" representing the
@@ -3079,6 +3504,106 @@ func (c *Lightsail) DeleteDiskSnapshot(input *DeleteDiskSnapshotInput) (*DeleteD
 // for more information on using Contexts.
 func (c *Lightsail) DeleteDiskSnapshotWithContext(ctx aws.Context, input *DeleteDiskSnapshotInput, opts ...request.Option) (*DeleteDiskSnapshotOutput, error) {
 	req, out := c.DeleteDiskSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteDistribution = "DeleteDistribution"
+
+// DeleteDistributionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteDistribution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteDistribution for more information on using the DeleteDistribution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteDistributionRequest method.
+//    req, resp := client.DeleteDistributionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteDistribution
+func (c *Lightsail) DeleteDistributionRequest(input *DeleteDistributionInput) (req *request.Request, output *DeleteDistributionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteDistribution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteDistributionInput{}
+	}
+
+	output = &DeleteDistributionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteDistribution API operation for Amazon Lightsail.
+//
+// Deletes your Amazon Lightsail content delivery network (CDN) distribution.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation DeleteDistribution for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DeleteDistribution
+func (c *Lightsail) DeleteDistribution(input *DeleteDistributionInput) (*DeleteDistributionOutput, error) {
+	req, out := c.DeleteDistributionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteDistributionWithContext is the same as DeleteDistribution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteDistribution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) DeleteDistributionWithContext(ctx aws.Context, input *DeleteDistributionInput, opts ...request.Option) (*DeleteDistributionOutput, error) {
+	req, out := c.DeleteDistributionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -4165,6 +4690,110 @@ func (c *Lightsail) DeleteRelationalDatabaseSnapshot(input *DeleteRelationalData
 // for more information on using Contexts.
 func (c *Lightsail) DeleteRelationalDatabaseSnapshotWithContext(ctx aws.Context, input *DeleteRelationalDatabaseSnapshotInput, opts ...request.Option) (*DeleteRelationalDatabaseSnapshotOutput, error) {
 	req, out := c.DeleteRelationalDatabaseSnapshotRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDetachCertificateFromDistribution = "DetachCertificateFromDistribution"
+
+// DetachCertificateFromDistributionRequest generates a "aws/request.Request" representing the
+// client's request for the DetachCertificateFromDistribution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DetachCertificateFromDistribution for more information on using the DetachCertificateFromDistribution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DetachCertificateFromDistributionRequest method.
+//    req, resp := client.DetachCertificateFromDistributionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DetachCertificateFromDistribution
+func (c *Lightsail) DetachCertificateFromDistributionRequest(input *DetachCertificateFromDistributionInput) (req *request.Request, output *DetachCertificateFromDistributionOutput) {
+	op := &request.Operation{
+		Name:       opDetachCertificateFromDistribution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DetachCertificateFromDistributionInput{}
+	}
+
+	output = &DetachCertificateFromDistributionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DetachCertificateFromDistribution API operation for Amazon Lightsail.
+//
+// Detaches an SSL/TLS certificate from your Amazon Lightsail content delivery
+// network (CDN) distribution.
+//
+// After the certificate is detached, your distribution stops accepting traffic
+// for all of the domains that are associated with the certificate.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation DetachCertificateFromDistribution for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/DetachCertificateFromDistribution
+func (c *Lightsail) DetachCertificateFromDistribution(input *DetachCertificateFromDistributionInput) (*DetachCertificateFromDistributionOutput, error) {
+	req, out := c.DetachCertificateFromDistributionRequest(input)
+	return out, req.Send()
+}
+
+// DetachCertificateFromDistributionWithContext is the same as DetachCertificateFromDistribution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DetachCertificateFromDistribution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) DetachCertificateFromDistributionWithContext(ctx aws.Context, input *DetachCertificateFromDistributionInput, opts ...request.Option) (*DetachCertificateFromDistributionOutput, error) {
+	req, out := c.DetachCertificateFromDistributionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -5450,6 +6079,107 @@ func (c *Lightsail) GetBundlesWithContext(ctx aws.Context, input *GetBundlesInpu
 	return out, req.Send()
 }
 
+const opGetCertificates = "GetCertificates"
+
+// GetCertificatesRequest generates a "aws/request.Request" representing the
+// client's request for the GetCertificates operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetCertificates for more information on using the GetCertificates
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetCertificatesRequest method.
+//    req, resp := client.GetCertificatesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetCertificates
+func (c *Lightsail) GetCertificatesRequest(input *GetCertificatesInput) (req *request.Request, output *GetCertificatesOutput) {
+	op := &request.Operation{
+		Name:       opGetCertificates,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetCertificatesInput{}
+	}
+
+	output = &GetCertificatesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetCertificates API operation for Amazon Lightsail.
+//
+// Returns information about one or more Amazon Lightsail SSL/TLS certificates.
+//
+// To get a summary of a certificate, ommit includeCertificateDetails from your
+// request. The response will include only the certificate Amazon Resource Name
+// (ARN), certificate name, domain name, and tags.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetCertificates for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetCertificates
+func (c *Lightsail) GetCertificates(input *GetCertificatesInput) (*GetCertificatesOutput, error) {
+	req, out := c.GetCertificatesRequest(input)
+	return out, req.Send()
+}
+
+// GetCertificatesWithContext is the same as GetCertificates with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetCertificates for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetCertificatesWithContext(ctx aws.Context, input *GetCertificatesInput, opts ...request.Option) (*GetCertificatesOutput, error) {
+	req, out := c.GetCertificatesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetCloudFormationStackRecords = "GetCloudFormationStackRecords"
 
 // GetCloudFormationStackRecordsRequest generates a "aws/request.Request" representing the
@@ -6083,6 +6813,417 @@ func (c *Lightsail) GetDisksWithContext(ctx aws.Context, input *GetDisksInput, o
 	return out, req.Send()
 }
 
+const opGetDistributionBundles = "GetDistributionBundles"
+
+// GetDistributionBundlesRequest generates a "aws/request.Request" representing the
+// client's request for the GetDistributionBundles operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetDistributionBundles for more information on using the GetDistributionBundles
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetDistributionBundlesRequest method.
+//    req, resp := client.GetDistributionBundlesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionBundles
+func (c *Lightsail) GetDistributionBundlesRequest(input *GetDistributionBundlesInput) (req *request.Request, output *GetDistributionBundlesOutput) {
+	op := &request.Operation{
+		Name:       opGetDistributionBundles,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetDistributionBundlesInput{}
+	}
+
+	output = &GetDistributionBundlesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetDistributionBundles API operation for Amazon Lightsail.
+//
+// Returns the list bundles that can be applied to you Amazon Lightsail content
+// delivery network (CDN) distributions.
+//
+// A distribution bundle specifies the monthly network transfer quota and monthly
+// cost of your dsitribution.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetDistributionBundles for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionBundles
+func (c *Lightsail) GetDistributionBundles(input *GetDistributionBundlesInput) (*GetDistributionBundlesOutput, error) {
+	req, out := c.GetDistributionBundlesRequest(input)
+	return out, req.Send()
+}
+
+// GetDistributionBundlesWithContext is the same as GetDistributionBundles with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetDistributionBundles for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetDistributionBundlesWithContext(ctx aws.Context, input *GetDistributionBundlesInput, opts ...request.Option) (*GetDistributionBundlesOutput, error) {
+	req, out := c.GetDistributionBundlesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetDistributionLatestCacheReset = "GetDistributionLatestCacheReset"
+
+// GetDistributionLatestCacheResetRequest generates a "aws/request.Request" representing the
+// client's request for the GetDistributionLatestCacheReset operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetDistributionLatestCacheReset for more information on using the GetDistributionLatestCacheReset
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetDistributionLatestCacheResetRequest method.
+//    req, resp := client.GetDistributionLatestCacheResetRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionLatestCacheReset
+func (c *Lightsail) GetDistributionLatestCacheResetRequest(input *GetDistributionLatestCacheResetInput) (req *request.Request, output *GetDistributionLatestCacheResetOutput) {
+	op := &request.Operation{
+		Name:       opGetDistributionLatestCacheReset,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetDistributionLatestCacheResetInput{}
+	}
+
+	output = &GetDistributionLatestCacheResetOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetDistributionLatestCacheReset API operation for Amazon Lightsail.
+//
+// Returns the timestamp and status of the last cache reset of a specific Amazon
+// Lightsail content delivery network (CDN) distribution.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetDistributionLatestCacheReset for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionLatestCacheReset
+func (c *Lightsail) GetDistributionLatestCacheReset(input *GetDistributionLatestCacheResetInput) (*GetDistributionLatestCacheResetOutput, error) {
+	req, out := c.GetDistributionLatestCacheResetRequest(input)
+	return out, req.Send()
+}
+
+// GetDistributionLatestCacheResetWithContext is the same as GetDistributionLatestCacheReset with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetDistributionLatestCacheReset for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetDistributionLatestCacheResetWithContext(ctx aws.Context, input *GetDistributionLatestCacheResetInput, opts ...request.Option) (*GetDistributionLatestCacheResetOutput, error) {
+	req, out := c.GetDistributionLatestCacheResetRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetDistributionMetricData = "GetDistributionMetricData"
+
+// GetDistributionMetricDataRequest generates a "aws/request.Request" representing the
+// client's request for the GetDistributionMetricData operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetDistributionMetricData for more information on using the GetDistributionMetricData
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetDistributionMetricDataRequest method.
+//    req, resp := client.GetDistributionMetricDataRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionMetricData
+func (c *Lightsail) GetDistributionMetricDataRequest(input *GetDistributionMetricDataInput) (req *request.Request, output *GetDistributionMetricDataOutput) {
+	op := &request.Operation{
+		Name:       opGetDistributionMetricData,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetDistributionMetricDataInput{}
+	}
+
+	output = &GetDistributionMetricDataOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetDistributionMetricData API operation for Amazon Lightsail.
+//
+// Returns the data points of a specific metric for an Amazon Lightsail content
+// delivery network (CDN) distribution.
+//
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetDistributionMetricData for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributionMetricData
+func (c *Lightsail) GetDistributionMetricData(input *GetDistributionMetricDataInput) (*GetDistributionMetricDataOutput, error) {
+	req, out := c.GetDistributionMetricDataRequest(input)
+	return out, req.Send()
+}
+
+// GetDistributionMetricDataWithContext is the same as GetDistributionMetricData with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetDistributionMetricData for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetDistributionMetricDataWithContext(ctx aws.Context, input *GetDistributionMetricDataInput, opts ...request.Option) (*GetDistributionMetricDataOutput, error) {
+	req, out := c.GetDistributionMetricDataRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetDistributions = "GetDistributions"
+
+// GetDistributionsRequest generates a "aws/request.Request" representing the
+// client's request for the GetDistributions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetDistributions for more information on using the GetDistributions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetDistributionsRequest method.
+//    req, resp := client.GetDistributionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributions
+func (c *Lightsail) GetDistributionsRequest(input *GetDistributionsInput) (req *request.Request, output *GetDistributionsOutput) {
+	op := &request.Operation{
+		Name:       opGetDistributions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetDistributionsInput{}
+	}
+
+	output = &GetDistributionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetDistributions API operation for Amazon Lightsail.
+//
+// Returns information about one or more of your Amazon Lightsail content delivery
+// network (CDN) distributions.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation GetDistributions for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/GetDistributions
+func (c *Lightsail) GetDistributions(input *GetDistributionsInput) (*GetDistributionsOutput, error) {
+	req, out := c.GetDistributionsRequest(input)
+	return out, req.Send()
+}
+
+// GetDistributionsWithContext is the same as GetDistributions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetDistributions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) GetDistributionsWithContext(ctx aws.Context, input *GetDistributionsInput, opts ...request.Option) (*GetDistributionsOutput, error) {
+	req, out := c.GetDistributionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opGetDomain = "GetDomain"
 
 // GetDomainRequest generates a "aws/request.Request" representing the
@@ -6659,6 +7800,10 @@ func (c *Lightsail) GetInstanceMetricDataRequest(input *GetInstanceMetricDataInp
 //
 // Returns the data points for the specified Amazon Lightsail instance metric,
 // given an instance name.
+//
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7598,6 +8743,10 @@ func (c *Lightsail) GetLoadBalancerMetricDataRequest(input *GetLoadBalancerMetri
 // GetLoadBalancerMetricData API operation for Amazon Lightsail.
 //
 // Returns information about health metrics for your Lightsail load balancer.
+//
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -9081,6 +10230,10 @@ func (c *Lightsail) GetRelationalDatabaseMetricDataRequest(input *GetRelationalD
 //
 // Returns the data points of the specified metric for a database in Amazon
 // Lightsail.
+//
+// Metrics report the utilization of your resources, and the error counts generated
+// by them. Monitor and collect metric data regularly to maintain the reliability,
+// availability, and performance of your resources.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -10737,6 +11890,110 @@ func (c *Lightsail) ReleaseStaticIpWithContext(ctx aws.Context, input *ReleaseSt
 	return out, req.Send()
 }
 
+const opResetDistributionCache = "ResetDistributionCache"
+
+// ResetDistributionCacheRequest generates a "aws/request.Request" representing the
+// client's request for the ResetDistributionCache operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResetDistributionCache for more information on using the ResetDistributionCache
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResetDistributionCacheRequest method.
+//    req, resp := client.ResetDistributionCacheRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/ResetDistributionCache
+func (c *Lightsail) ResetDistributionCacheRequest(input *ResetDistributionCacheInput) (req *request.Request, output *ResetDistributionCacheOutput) {
+	op := &request.Operation{
+		Name:       opResetDistributionCache,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResetDistributionCacheInput{}
+	}
+
+	output = &ResetDistributionCacheOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResetDistributionCache API operation for Amazon Lightsail.
+//
+// Deletes currently cached content from your Amazon Lightsail content delivery
+// network (CDN) distribution.
+//
+// After resetting the cache, the next time a content request is made, your
+// distribution pulls, serves, and caches it from the origin.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation ResetDistributionCache for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/ResetDistributionCache
+func (c *Lightsail) ResetDistributionCache(input *ResetDistributionCacheInput) (*ResetDistributionCacheOutput, error) {
+	req, out := c.ResetDistributionCacheRequest(input)
+	return out, req.Send()
+}
+
+// ResetDistributionCacheWithContext is the same as ResetDistributionCache with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResetDistributionCache for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) ResetDistributionCacheWithContext(ctx aws.Context, input *ResetDistributionCacheInput, opts ...request.Option) (*ResetDistributionCacheOutput, error) {
+	req, out := c.ResetDistributionCacheRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opSendContactMethodVerification = "SendContactMethodVerification"
 
 // SendContactMethodVerificationRequest generates a "aws/request.Request" representing the
@@ -11722,6 +12979,221 @@ func (c *Lightsail) UntagResource(input *UntagResourceInput) (*UntagResourceOutp
 // for more information on using Contexts.
 func (c *Lightsail) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
 	req, out := c.UntagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateDistribution = "UpdateDistribution"
+
+// UpdateDistributionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateDistribution operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateDistribution for more information on using the UpdateDistribution
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateDistributionRequest method.
+//    req, resp := client.UpdateDistributionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UpdateDistribution
+func (c *Lightsail) UpdateDistributionRequest(input *UpdateDistributionInput) (req *request.Request, output *UpdateDistributionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateDistribution,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateDistributionInput{}
+	}
+
+	output = &UpdateDistributionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateDistribution API operation for Amazon Lightsail.
+//
+// Updates an existing Amazon Lightsail content delivery network (CDN) distribution.
+//
+// Use this action to update the configuration of your existing distribution
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation UpdateDistribution for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UpdateDistribution
+func (c *Lightsail) UpdateDistribution(input *UpdateDistributionInput) (*UpdateDistributionOutput, error) {
+	req, out := c.UpdateDistributionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateDistributionWithContext is the same as UpdateDistribution with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateDistribution for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) UpdateDistributionWithContext(ctx aws.Context, input *UpdateDistributionInput, opts ...request.Option) (*UpdateDistributionOutput, error) {
+	req, out := c.UpdateDistributionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateDistributionBundle = "UpdateDistributionBundle"
+
+// UpdateDistributionBundleRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateDistributionBundle operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateDistributionBundle for more information on using the UpdateDistributionBundle
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateDistributionBundleRequest method.
+//    req, resp := client.UpdateDistributionBundleRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UpdateDistributionBundle
+func (c *Lightsail) UpdateDistributionBundleRequest(input *UpdateDistributionBundleInput) (req *request.Request, output *UpdateDistributionBundleOutput) {
+	op := &request.Operation{
+		Name:       opUpdateDistributionBundle,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateDistributionBundleInput{}
+	}
+
+	output = &UpdateDistributionBundleOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateDistributionBundle API operation for Amazon Lightsail.
+//
+// Updates the bundle of your Amazon Lightsail content delivery network (CDN)
+// distribution.
+//
+// A distribution bundle specifies the monthly network transfer quota and monthly
+// cost of your dsitribution.
+//
+// Update your distribution's bundle if your distribution is going over its
+// monthly network transfer quota and is incurring an overage fee.
+//
+// You can update your distribution's bundle only one time within your monthly
+// AWS billing cycle. To determine if you can update your distribution's bundle,
+// use the GetDistributions action. The ableToUpdateBundle parameter in the
+// result will indicate whether you can currently update your distribution's
+// bundle.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Lightsail's
+// API operation UpdateDistributionBundle for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceException
+//   A general service exception.
+//
+//   * InvalidInputException
+//   Lightsail throws this exception when user input does not conform to the validation
+//   rules of an input field.
+//
+//   Domain-related APIs are only available in the N. Virginia (us-east-1) Region.
+//   Please set your AWS Region configuration to us-east-1 to create, view, or
+//   edit these resources.
+//
+//   * NotFoundException
+//   Lightsail throws this exception when it cannot find a resource.
+//
+//   * OperationFailureException
+//   Lightsail throws this exception when an operation fails to execute.
+//
+//   * AccessDeniedException
+//   Lightsail throws this exception when the user cannot be authenticated or
+//   uses invalid credentials to access a resource.
+//
+//   * UnauthenticatedException
+//   Lightsail throws this exception when the user has not been authenticated.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/lightsail-2016-11-28/UpdateDistributionBundle
+func (c *Lightsail) UpdateDistributionBundle(input *UpdateDistributionBundleInput) (*UpdateDistributionBundleOutput, error) {
+	req, out := c.UpdateDistributionBundleRequest(input)
+	return out, req.Send()
+}
+
+// UpdateDistributionBundleWithContext is the same as UpdateDistributionBundle with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateDistributionBundle for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Lightsail) UpdateDistributionBundleWithContext(ctx aws.Context, input *UpdateDistributionBundleInput, opts ...request.Option) (*UpdateDistributionBundleOutput, error) {
+	req, out := c.UpdateDistributionBundleRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -12719,6 +14191,96 @@ func (s *AllocateStaticIpOutput) SetOperations(v []*Operation) *AllocateStaticIp
 	return s
 }
 
+type AttachCertificateToDistributionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the certificate to attach to a distribution.
+	//
+	// Only certificates with a status of ISSUED can be attached to a distribution.
+	//
+	// Use the GetCertificates action to get a list of certificate names that you
+	// can specify.
+	//
+	// This is the name of the certificate resource type and is used only to reference
+	// the certificate in other API actions. It can be different than the domain
+	// name of the certificate. For example, your certificate name might be WordPress-Blog-Certificate
+	// and the domain name of the certificate might be example.com.
+	//
+	// CertificateName is a required field
+	CertificateName *string `locationName:"certificateName" type:"string" required:"true"`
+
+	// The name of the distribution that the certificate will be attached to.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// DistributionName is a required field
+	DistributionName *string `locationName:"distributionName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AttachCertificateToDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AttachCertificateToDistributionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AttachCertificateToDistributionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AttachCertificateToDistributionInput"}
+	if s.CertificateName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateName"))
+	}
+	if s.DistributionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DistributionName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *AttachCertificateToDistributionInput) SetCertificateName(v string) *AttachCertificateToDistributionInput {
+	s.CertificateName = &v
+	return s
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *AttachCertificateToDistributionInput) SetDistributionName(v string) *AttachCertificateToDistributionInput {
+	s.DistributionName = &v
+	return s
+}
+
+type AttachCertificateToDistributionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the result of the action, such as the status of
+	// the request, the timestamp of the request, and the resources affected by
+	// the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s AttachCertificateToDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AttachCertificateToDistributionOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperation sets the Operation field's value.
+func (s *AttachCertificateToDistributionOutput) SetOperation(v *Operation) *AttachCertificateToDistributionOutput {
+	s.Operation = v
+	return s
+}
+
 type AttachDiskInput struct {
 	_ struct{} `type:"structure"`
 
@@ -13396,7 +14958,7 @@ type Bundle struct {
 	// instance that uses a blueprint with a minimum power value of 500.
 	Power *int64 `locationName:"power" type:"integer"`
 
-	// The price in US dollars (e.g., 5.0).
+	// The price in US dollars (e.g., 5.0) of the bundle.
 	Price *float64 `locationName:"price" type:"float"`
 
 	// The amount of RAM in GB (e.g., 2.0).
@@ -13485,6 +15047,564 @@ func (s *Bundle) SetSupportedPlatforms(v []*string) *Bundle {
 // SetTransferPerMonthInGb sets the TransferPerMonthInGb field's value.
 func (s *Bundle) SetTransferPerMonthInGb(v int64) *Bundle {
 	s.TransferPerMonthInGb = &v
+	return s
+}
+
+// Describes the default cache behavior of an Amazon Lightsail content delivery
+// network (CDN) distribution.
+type CacheBehavior struct {
+	_ struct{} `type:"structure"`
+
+	// The cache behavior of the distribution.
+	//
+	// The following cache behaviors can be specified:
+	//
+	//    * cache - This option is best for static sites. When specified, your distribution
+	//    caches and serves your entire website as static content. This behavior
+	//    is ideal for websites with static content that doesn't change depending
+	//    on who views it, or for websites that don't use cookies, headers, or query
+	//    strings to personalize content.
+	//
+	//    * dont-cache - This option is best for sites that serve a mix of static
+	//    and dynamic content. When specified, your distribution caches and serve
+	//    only the content that is specified in the distribution's CacheBehaviorPerPath
+	//    parameter. This behavior is ideal for websites or web applications that
+	//    use cookies, headers, and query strings to personalize content for individual
+	//    users.
+	Behavior *string `locationName:"behavior" type:"string" enum:"BehaviorEnum"`
+}
+
+// String returns the string representation
+func (s CacheBehavior) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheBehavior) GoString() string {
+	return s.String()
+}
+
+// SetBehavior sets the Behavior field's value.
+func (s *CacheBehavior) SetBehavior(v string) *CacheBehavior {
+	s.Behavior = &v
+	return s
+}
+
+// Describes the per-path cache behavior of an Amazon Lightsail content delivery
+// network (CDN) distribution.
+//
+// A per-path cache behavior is used to override, or add an exception to, the
+// default cache behavior of a distribution. For example, if the cacheBehavior
+// is set to cache, then a per-path cache behavior can be used to specify a
+// directory, file, or file type that your distribution will cache. Alternately,
+// if the distribution's cacheBehavior is dont-cache, then a per-path cache
+// behavior can be used to specify a directory, file, or file type that your
+// distribution will not cache.
+//
+// if the cacheBehavior's behavior is set to 'cache', then
+type CacheBehaviorPerPath struct {
+	_ struct{} `type:"structure"`
+
+	// The cache behavior for the specified path.
+	//
+	// You can specify one of the following per-path cache behaviors:
+	//
+	//    * cache - This behavior caches the specified path.
+	//
+	//    * dont-cache - This behavior doesn't cache the specified path.
+	Behavior *string `locationName:"behavior" type:"string" enum:"BehaviorEnum"`
+
+	// The path to a directory or file to cached, or not cache. Use an asterisk
+	// symbol to specify wildcard directories (path/to/assets/*), and file types
+	// (*.html, *jpg, *js). Directories and file paths are case-sensitive.
+	//
+	// Examples:
+	//
+	//    * Specify the following to cache all files in the document root of an
+	//    Apache web server running on a Lightsail instance. var/www/html/
+	//
+	//    * Specify the following file to cache only the index page in the document
+	//    root of an Apache web server. var/www/html/index.html
+	//
+	//    * Specify the following to cache only the .html files in the document
+	//    root of an Apache web server. var/www/html/*.html
+	//
+	//    * Specify the following to cache only the .jpg, .png, and .gif files in
+	//    the images sub-directory of the document root of an Apache web server.
+	//    var/www/html/images/*.jpg var/www/html/images/*.png var/www/html/images/*.gif
+	//    Specify the following to cache all files in the images sub-directory of
+	//    the document root of an Apache web server. var/www/html/images/
+	Path *string `locationName:"path" type:"string"`
+}
+
+// String returns the string representation
+func (s CacheBehaviorPerPath) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheBehaviorPerPath) GoString() string {
+	return s.String()
+}
+
+// SetBehavior sets the Behavior field's value.
+func (s *CacheBehaviorPerPath) SetBehavior(v string) *CacheBehaviorPerPath {
+	s.Behavior = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *CacheBehaviorPerPath) SetPath(v string) *CacheBehaviorPerPath {
+	s.Path = &v
+	return s
+}
+
+// Describes the cache settings of an Amazon Lightsail content delivery network
+// (CDN) distribution.
+//
+// These settings apply only to your distribution's cacheBehaviors (including
+// the defaultCacheBehavior) that have a behavior of cache.
+type CacheSettings struct {
+	_ struct{} `type:"structure"`
+
+	// The HTTP methods that are processed and forwarded to the distribution's origin.
+	//
+	// You can specify the following options:
+	//
+	//    * GET,HEAD - The distribution forwards the GET and HEAD methods.
+	//
+	//    * GET,HEAD,OPTIONS - The distribution forwards the GET, HEAD, and OPTIONS
+	//    methods.
+	//
+	//    * GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE - The distribution forwards the
+	//    GET, HEAD, OPTIONS, PUT, PATCH, POST, and DELETE methods.
+	//
+	// If you specify the third option, you might need to restrict access to your
+	// distribution's origin so users can't perform operations that you don't want
+	// them to. For example, you might not want users to have permission to delete
+	// objects from your origin.
+	AllowedHTTPMethods *string `locationName:"allowedHTTPMethods" type:"string"`
+
+	// The HTTP method responses that are cached by your distribution.
+	//
+	// You can specify the following options:
+	//
+	//    * GET,HEAD - The distribution caches responses to the GET and HEAD methods.
+	//
+	//    * GET,HEAD,OPTIONS - The distribution caches responses to the GET, HEAD,
+	//    and OPTIONS methods.
+	CachedHTTPMethods *string `locationName:"cachedHTTPMethods" type:"string"`
+
+	// The default amount of time that objects stay in the distribution's cache
+	// before the distribution forwards another request to the origin to determine
+	// whether the content has been updated.
+	//
+	// The value specified applies only when the origin does not add HTTP headers
+	// such as Cache-Control max-age, Cache-Control s-maxage, and Expires to objects.
+	DefaultTTL *int64 `locationName:"defaultTTL" type:"long"`
+
+	// An object that describes the cookies that are forwarded to the origin. Your
+	// content is cached based on the cookies that are forwarded.
+	ForwardedCookies *CookieObject `locationName:"forwardedCookies" type:"structure"`
+
+	// An object that describes the headers that are forwarded to the origin. Your
+	// content is cached based on the headers that are forwarded.
+	ForwardedHeaders *HeaderObject `locationName:"forwardedHeaders" type:"structure"`
+
+	// An object that describes the query strings that are forwarded to the origin.
+	// Your content is cached based on the query strings that are forwarded.
+	ForwardedQueryStrings *QueryStringObject `locationName:"forwardedQueryStrings" type:"structure"`
+
+	// The maximum amount of time that objects stay in the distribution's cache
+	// before the distribution forwards another request to the origin to determine
+	// whether the object has been updated.
+	//
+	// The value specified applies only when the origin adds HTTP headers such as
+	// Cache-Control max-age, Cache-Control s-maxage, and Expires to objects.
+	MaximumTTL *int64 `locationName:"maximumTTL" type:"long"`
+
+	// The minimum amount of time that objects stay in the distribution's cache
+	// before the distribution forwards another request to the origin to determine
+	// whether the object has been updated.
+	//
+	// A value of 0 must be specified for minimumTTL if the distribution is configured
+	// to forward all headers to the origin.
+	MinimumTTL *int64 `locationName:"minimumTTL" type:"long"`
+}
+
+// String returns the string representation
+func (s CacheSettings) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheSettings) GoString() string {
+	return s.String()
+}
+
+// SetAllowedHTTPMethods sets the AllowedHTTPMethods field's value.
+func (s *CacheSettings) SetAllowedHTTPMethods(v string) *CacheSettings {
+	s.AllowedHTTPMethods = &v
+	return s
+}
+
+// SetCachedHTTPMethods sets the CachedHTTPMethods field's value.
+func (s *CacheSettings) SetCachedHTTPMethods(v string) *CacheSettings {
+	s.CachedHTTPMethods = &v
+	return s
+}
+
+// SetDefaultTTL sets the DefaultTTL field's value.
+func (s *CacheSettings) SetDefaultTTL(v int64) *CacheSettings {
+	s.DefaultTTL = &v
+	return s
+}
+
+// SetForwardedCookies sets the ForwardedCookies field's value.
+func (s *CacheSettings) SetForwardedCookies(v *CookieObject) *CacheSettings {
+	s.ForwardedCookies = v
+	return s
+}
+
+// SetForwardedHeaders sets the ForwardedHeaders field's value.
+func (s *CacheSettings) SetForwardedHeaders(v *HeaderObject) *CacheSettings {
+	s.ForwardedHeaders = v
+	return s
+}
+
+// SetForwardedQueryStrings sets the ForwardedQueryStrings field's value.
+func (s *CacheSettings) SetForwardedQueryStrings(v *QueryStringObject) *CacheSettings {
+	s.ForwardedQueryStrings = v
+	return s
+}
+
+// SetMaximumTTL sets the MaximumTTL field's value.
+func (s *CacheSettings) SetMaximumTTL(v int64) *CacheSettings {
+	s.MaximumTTL = &v
+	return s
+}
+
+// SetMinimumTTL sets the MinimumTTL field's value.
+func (s *CacheSettings) SetMinimumTTL(v int64) *CacheSettings {
+	s.MinimumTTL = &v
+	return s
+}
+
+// Describes the full details of an Amazon Lightsail SSL/TLS certificate.
+//
+// To get a summary of a certificate, use the GetCertificates action and ommit
+// includeCertificateDetails from your request. The response will include only
+// the certificate Amazon Resource Name (ARN), certificate name, domain name,
+// and tags.
+type Certificate struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the certificate.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The timestamp when the certificate was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// The domain name of the certificate.
+	DomainName *string `locationName:"domainName" type:"string"`
+
+	// An array of objects that describe the domain validation records of the certificate.
+	DomainValidationRecords []*DomainValidationRecord `locationName:"domainValidationRecords" type:"list"`
+
+	// The renewal eligibility of the certificate.
+	EligibleToRenew *string `locationName:"eligibleToRenew" type:"string"`
+
+	// The number of Lightsail resources that the certificate is attached to.
+	InUseResourceCount *int64 `locationName:"inUseResourceCount" type:"integer"`
+
+	// The timestamp when the certificate was issued.
+	IssuedAt *time.Time `locationName:"issuedAt" type:"timestamp"`
+
+	// The certificate authority that issued the certificate.
+	IssuerCA *string `locationName:"issuerCA" type:"string"`
+
+	// The algorithm used to generate the key pair (the public and private key)
+	// of the certificate.
+	KeyAlgorithm *string `locationName:"keyAlgorithm" type:"string"`
+
+	// The name of the certificate (e.g., my-certificate).
+	Name *string `locationName:"name" type:"string"`
+
+	// The timestamp when the certificate expires.
+	NotAfter *time.Time `locationName:"notAfter" type:"timestamp"`
+
+	// The timestamp when the certificate is first valid.
+	NotBefore *time.Time `locationName:"notBefore" type:"timestamp"`
+
+	// An object that describes the status of the certificate renewal managed by
+	// Lightsail.
+	RenewalSummary *RenewalSummary `locationName:"renewalSummary" type:"structure"`
+
+	// The validation failure reason, if any, of the certificate.
+	//
+	// The following failure reasons are possible:
+	//
+	//    * NO_AVAILABLE_CONTACTS - This failure applies to email validation, which
+	//    is not available for Lightsail certificates.
+	//
+	//    * ADDITIONAL_VERIFICATION_REQUIRED - Lightsail requires additional information
+	//    to process this certificate request. This can happen as a fraud-protection
+	//    measure, such as when the domain ranks within the Alexa top 1000 websites.
+	//    To provide the required information, use the AWS Support Center (https://console.aws.amazon.com/support/home)
+	//    to contact AWS Support. You cannot request a certificate for Amazon-owned
+	//    domain names such as those ending in amazonaws.com, cloudfront.net, or
+	//    elasticbeanstalk.com.
+	//
+	//    * DOMAIN_NOT_ALLOWED - One or more of the domain names in the certificate
+	//    request was reported as an unsafe domain by VirusTotal (https://www.virustotal.com/gui/home/url).
+	//    To correct the problem, search for your domain name on the VirusTotal
+	//    (https://www.virustotal.com/gui/home/url) website. If your domain is reported
+	//    as suspicious, see Google Help for Hacked Websites (https://www.google.com/webmasters/hacked/?hl=en)
+	//    to learn what you can do. If you believe that the result is a false positive,
+	//    notify the organization that is reporting the domain. VirusTotal is an
+	//    aggregate of several antivirus and URL scanners and cannot remove your
+	//    domain from a block list itself. After you correct the problem and the
+	//    VirusTotal registry has been updated, request a new certificate. If you
+	//    see this error and your domain is not included in the VirusTotal list,
+	//    visit the AWS Support Center (https://console.aws.amazon.com/support/home)
+	//    and create a case.
+	//
+	//    * INVALID_PUBLIC_DOMAIN - One or more of the domain names in the certificate
+	//    request is not valid. Typically, this is because a domain name in the
+	//    request is not a valid top-level domain. Try to request a certificate
+	//    again, correcting any spelling errors or typos that were in the failed
+	//    request, and ensure that all domain names in the request are for valid
+	//    top-level domains. For example, you cannot request a certificate for example.invalidpublicdomain
+	//    because invalidpublicdomain is not a valid top-level domain.
+	//
+	//    * OTHER - Typically, this failure occurs when there is a typographical
+	//    error in one or more of the domain names in the certificate request. Try
+	//    to request a certificate again, correcting any spelling errors or typos
+	//    that were in the failed request.
+	RequestFailureReason *string `locationName:"requestFailureReason" type:"string"`
+
+	// The reason the certificate was revoked. This value is present only when the
+	// certificate status is REVOKED.
+	RevocationReason *string `locationName:"revocationReason" type:"string"`
+
+	// The timestamp when the certificate was revoked. This value is present only
+	// when the certificate status is REVOKED.
+	RevokedAt *time.Time `locationName:"revokedAt" type:"timestamp"`
+
+	// The serial number of the certificate.
+	SerialNumber *string `locationName:"serialNumber" type:"string"`
+
+	// The validation status of the certificate.
+	Status *string `locationName:"status" type:"string" enum:"CertificateStatus"`
+
+	// An array of strings that specify the alternate domains (e.g., example2.com)
+	// and subdomains (e.g., blog.example.com) of the certificate.
+	SubjectAlternativeNames []*string `locationName:"subjectAlternativeNames" type:"list"`
+
+	// The support code. Include this code in your email to support when you have
+	// questions about your Lightsail certificate. This code enables our support
+	// team to look up your Lightsail information more easily.
+	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s Certificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Certificate) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *Certificate) SetArn(v string) *Certificate {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *Certificate) SetCreatedAt(v time.Time) *Certificate {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *Certificate) SetDomainName(v string) *Certificate {
+	s.DomainName = &v
+	return s
+}
+
+// SetDomainValidationRecords sets the DomainValidationRecords field's value.
+func (s *Certificate) SetDomainValidationRecords(v []*DomainValidationRecord) *Certificate {
+	s.DomainValidationRecords = v
+	return s
+}
+
+// SetEligibleToRenew sets the EligibleToRenew field's value.
+func (s *Certificate) SetEligibleToRenew(v string) *Certificate {
+	s.EligibleToRenew = &v
+	return s
+}
+
+// SetInUseResourceCount sets the InUseResourceCount field's value.
+func (s *Certificate) SetInUseResourceCount(v int64) *Certificate {
+	s.InUseResourceCount = &v
+	return s
+}
+
+// SetIssuedAt sets the IssuedAt field's value.
+func (s *Certificate) SetIssuedAt(v time.Time) *Certificate {
+	s.IssuedAt = &v
+	return s
+}
+
+// SetIssuerCA sets the IssuerCA field's value.
+func (s *Certificate) SetIssuerCA(v string) *Certificate {
+	s.IssuerCA = &v
+	return s
+}
+
+// SetKeyAlgorithm sets the KeyAlgorithm field's value.
+func (s *Certificate) SetKeyAlgorithm(v string) *Certificate {
+	s.KeyAlgorithm = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *Certificate) SetName(v string) *Certificate {
+	s.Name = &v
+	return s
+}
+
+// SetNotAfter sets the NotAfter field's value.
+func (s *Certificate) SetNotAfter(v time.Time) *Certificate {
+	s.NotAfter = &v
+	return s
+}
+
+// SetNotBefore sets the NotBefore field's value.
+func (s *Certificate) SetNotBefore(v time.Time) *Certificate {
+	s.NotBefore = &v
+	return s
+}
+
+// SetRenewalSummary sets the RenewalSummary field's value.
+func (s *Certificate) SetRenewalSummary(v *RenewalSummary) *Certificate {
+	s.RenewalSummary = v
+	return s
+}
+
+// SetRequestFailureReason sets the RequestFailureReason field's value.
+func (s *Certificate) SetRequestFailureReason(v string) *Certificate {
+	s.RequestFailureReason = &v
+	return s
+}
+
+// SetRevocationReason sets the RevocationReason field's value.
+func (s *Certificate) SetRevocationReason(v string) *Certificate {
+	s.RevocationReason = &v
+	return s
+}
+
+// SetRevokedAt sets the RevokedAt field's value.
+func (s *Certificate) SetRevokedAt(v time.Time) *Certificate {
+	s.RevokedAt = &v
+	return s
+}
+
+// SetSerialNumber sets the SerialNumber field's value.
+func (s *Certificate) SetSerialNumber(v string) *Certificate {
+	s.SerialNumber = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *Certificate) SetStatus(v string) *Certificate {
+	s.Status = &v
+	return s
+}
+
+// SetSubjectAlternativeNames sets the SubjectAlternativeNames field's value.
+func (s *Certificate) SetSubjectAlternativeNames(v []*string) *Certificate {
+	s.SubjectAlternativeNames = v
+	return s
+}
+
+// SetSupportCode sets the SupportCode field's value.
+func (s *Certificate) SetSupportCode(v string) *Certificate {
+	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *Certificate) SetTags(v []*Tag) *Certificate {
+	s.Tags = v
+	return s
+}
+
+// Describes an Amazon Lightsail SSL/TLS certificate.
+type CertificateSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the certificate.
+	CertificateArn *string `locationName:"certificateArn" type:"string"`
+
+	// An object that describes a certificate in detail.
+	CertificateDetail *Certificate `locationName:"certificateDetail" type:"structure"`
+
+	// The name of the certificate.
+	CertificateName *string `locationName:"certificateName" type:"string"`
+
+	// The domain name of the certificate.
+	DomainName *string `locationName:"domainName" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s CertificateSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CertificateSummary) GoString() string {
+	return s.String()
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *CertificateSummary) SetCertificateArn(v string) *CertificateSummary {
+	s.CertificateArn = &v
+	return s
+}
+
+// SetCertificateDetail sets the CertificateDetail field's value.
+func (s *CertificateSummary) SetCertificateDetail(v *Certificate) *CertificateSummary {
+	s.CertificateDetail = v
+	return s
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *CertificateSummary) SetCertificateName(v string) *CertificateSummary {
+	s.CertificateName = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *CertificateSummary) SetDomainName(v string) *CertificateSummary {
+	s.DomainName = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CertificateSummary) SetTags(v []*Tag) *CertificateSummary {
+	s.Tags = v
 	return s
 }
 
@@ -13820,6 +15940,45 @@ func (s *ContactMethod) SetSupportCode(v string) *ContactMethod {
 	return s
 }
 
+// Describes whether an Amazon Lightsail content delivery network (CDN) distribution
+// forwards cookies to the origin and, if so, which ones.
+//
+// For the cookies that you specify, your distribution caches separate versions
+// of the specified content based on the cookie values in viewer requests.
+type CookieObject struct {
+	_ struct{} `type:"structure"`
+
+	// The specific cookies to forward to your distribution's origin.
+	CookiesAllowList []*string `locationName:"cookiesAllowList" type:"list"`
+
+	// Specifies which cookies to forward to the distribution's origin for a cache
+	// behavior: all, none, or allow-list to forward only the cookies specified
+	// in the cookiesAllowList parameter.
+	Option *string `locationName:"option" type:"string" enum:"ForwardValues"`
+}
+
+// String returns the string representation
+func (s CookieObject) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CookieObject) GoString() string {
+	return s.String()
+}
+
+// SetCookiesAllowList sets the CookiesAllowList field's value.
+func (s *CookieObject) SetCookiesAllowList(v []*string) *CookieObject {
+	s.CookiesAllowList = v
+	return s
+}
+
+// SetOption sets the Option field's value.
+func (s *CookieObject) SetOption(v string) *CookieObject {
+	s.Option = &v
+	return s
+}
+
 type CopySnapshotInput struct {
 	_ struct{} `type:"structure"`
 
@@ -13962,6 +16121,118 @@ func (s CopySnapshotOutput) GoString() string {
 
 // SetOperations sets the Operations field's value.
 func (s *CopySnapshotOutput) SetOperations(v []*Operation) *CopySnapshotOutput {
+	s.Operations = v
+	return s
+}
+
+type CreateCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name for the certificate.
+	//
+	// CertificateName is a required field
+	CertificateName *string `locationName:"certificateName" type:"string" required:"true"`
+
+	// The domain name (e.g., example.com) for the certificate.
+	//
+	// DomainName is a required field
+	DomainName *string `locationName:"domainName" type:"string" required:"true"`
+
+	// An array of strings that specify the alternate domains (e.g., example2.com)
+	// and subdomains (e.g., blog.example.com) for the certificate.
+	//
+	// You can specify a maximum of nine alternate domains (in addition to the primary
+	// domain name).
+	//
+	// Wildcard domain entries (e.g., *.example.com) are not supported.
+	SubjectAlternativeNames []*string `locationName:"subjectAlternativeNames" type:"list"`
+
+	// The tag keys and optional values to add to the certificate during create.
+	//
+	// Use the TagResource action to tag a resource after it's created.
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateCertificateInput"}
+	if s.CertificateName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateName"))
+	}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *CreateCertificateInput) SetCertificateName(v string) *CreateCertificateInput {
+	s.CertificateName = &v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *CreateCertificateInput) SetDomainName(v string) *CreateCertificateInput {
+	s.DomainName = &v
+	return s
+}
+
+// SetSubjectAlternativeNames sets the SubjectAlternativeNames field's value.
+func (s *CreateCertificateInput) SetSubjectAlternativeNames(v []*string) *CreateCertificateInput {
+	s.SubjectAlternativeNames = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateCertificateInput) SetTags(v []*Tag) *CreateCertificateInput {
+	s.Tags = v
+	return s
+}
+
+type CreateCertificateOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the certificate created.
+	Certificate *CertificateSummary `locationName:"certificate" type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateCertificateOutput) GoString() string {
+	return s.String()
+}
+
+// SetCertificate sets the Certificate field's value.
+func (s *CreateCertificateOutput) SetCertificate(v *CertificateSummary) *CreateCertificateOutput {
+	s.Certificate = v
+	return s
+}
+
+// SetOperations sets the Operations field's value.
+func (s *CreateCertificateOutput) SetOperations(v []*Operation) *CreateCertificateOutput {
 	s.Operations = v
 	return s
 }
@@ -14218,7 +16489,7 @@ type CreateDiskFromSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// A Boolean value to indicate whether to use the latest available automatic
@@ -14381,7 +16652,7 @@ type CreateDiskInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -14503,7 +16774,7 @@ type CreateDiskSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -14576,6 +16847,158 @@ func (s CreateDiskSnapshotOutput) GoString() string {
 // SetOperations sets the Operations field's value.
 func (s *CreateDiskSnapshotOutput) SetOperations(v []*Operation) *CreateDiskSnapshotOutput {
 	s.Operations = v
+	return s
+}
+
+type CreateDistributionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The bundle ID to use for the distribution.
+	//
+	// A distribution bundle describes the specifications of your distribution,
+	// such as the monthly cost and monthly network transfer quota.
+	//
+	// Use the GetDistributionBundles action to get a list of distribution bundle
+	// IDs that you can specify.
+	//
+	// BundleId is a required field
+	BundleId *string `locationName:"bundleId" type:"string" required:"true"`
+
+	// An object that describes the cache behavior settings for the distribution.
+	CacheBehaviorSettings *CacheSettings `locationName:"cacheBehaviorSettings" type:"structure"`
+
+	// An array of objects that describe the per-path cache behavior for the distribution.
+	CacheBehaviors []*CacheBehaviorPerPath `locationName:"cacheBehaviors" type:"list"`
+
+	// An object that describes the default cache behavior for the distribution.
+	//
+	// DefaultCacheBehavior is a required field
+	DefaultCacheBehavior *CacheBehavior `locationName:"defaultCacheBehavior" type:"structure" required:"true"`
+
+	// The name for the distribution.
+	//
+	// DistributionName is a required field
+	DistributionName *string `locationName:"distributionName" type:"string" required:"true"`
+
+	// An object that describes the origin resource for the distribution, such as
+	// a Lightsail instance or load balancer.
+	//
+	// The distribution pulls, caches, and serves content from the origin.
+	//
+	// Origin is a required field
+	Origin *InputOrigin `locationName:"origin" type:"structure" required:"true"`
+
+	// The tag keys and optional values to add to the distribution during create.
+	//
+	// Use the TagResource action to tag a resource after it's created.
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s CreateDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDistributionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateDistributionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateDistributionInput"}
+	if s.BundleId == nil {
+		invalidParams.Add(request.NewErrParamRequired("BundleId"))
+	}
+	if s.DefaultCacheBehavior == nil {
+		invalidParams.Add(request.NewErrParamRequired("DefaultCacheBehavior"))
+	}
+	if s.DistributionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DistributionName"))
+	}
+	if s.Origin == nil {
+		invalidParams.Add(request.NewErrParamRequired("Origin"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBundleId sets the BundleId field's value.
+func (s *CreateDistributionInput) SetBundleId(v string) *CreateDistributionInput {
+	s.BundleId = &v
+	return s
+}
+
+// SetCacheBehaviorSettings sets the CacheBehaviorSettings field's value.
+func (s *CreateDistributionInput) SetCacheBehaviorSettings(v *CacheSettings) *CreateDistributionInput {
+	s.CacheBehaviorSettings = v
+	return s
+}
+
+// SetCacheBehaviors sets the CacheBehaviors field's value.
+func (s *CreateDistributionInput) SetCacheBehaviors(v []*CacheBehaviorPerPath) *CreateDistributionInput {
+	s.CacheBehaviors = v
+	return s
+}
+
+// SetDefaultCacheBehavior sets the DefaultCacheBehavior field's value.
+func (s *CreateDistributionInput) SetDefaultCacheBehavior(v *CacheBehavior) *CreateDistributionInput {
+	s.DefaultCacheBehavior = v
+	return s
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *CreateDistributionInput) SetDistributionName(v string) *CreateDistributionInput {
+	s.DistributionName = &v
+	return s
+}
+
+// SetOrigin sets the Origin field's value.
+func (s *CreateDistributionInput) SetOrigin(v *InputOrigin) *CreateDistributionInput {
+	s.Origin = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateDistributionInput) SetTags(v []*Tag) *CreateDistributionInput {
+	s.Tags = v
+	return s
+}
+
+type CreateDistributionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the distribution created.
+	Distribution *LightsailDistribution `locationName:"distribution" type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateDistributionOutput) GoString() string {
+	return s.String()
+}
+
+// SetDistribution sets the Distribution field's value.
+func (s *CreateDistributionOutput) SetDistribution(v *LightsailDistribution) *CreateDistributionOutput {
+	s.Distribution = v
+	return s
+}
+
+// SetOperation sets the Operation field's value.
+func (s *CreateDistributionOutput) SetOperation(v *Operation) *CreateDistributionOutput {
+	s.Operation = v
 	return s
 }
 
@@ -14673,7 +17096,7 @@ type CreateDomainInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -14752,7 +17175,7 @@ type CreateInstanceSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -14899,7 +17322,7 @@ type CreateInstancesFromSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// A Boolean value to indicate whether to use the latest available automatic
@@ -15113,7 +17536,7 @@ type CreateInstancesInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// A launch script you can create that configures a server with additional user
@@ -15257,7 +17680,7 @@ type CreateKeyPairInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -15389,7 +17812,7 @@ type CreateLoadBalancerInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -15520,7 +17943,7 @@ type CreateLoadBalancerTlsCertificateInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -15669,7 +18092,7 @@ type CreateRelationalDatabaseFromSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 
 	// Specifies whether your database is restored from the latest backup time.
@@ -15905,7 +18328,7 @@ type CreateRelationalDatabaseInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -16056,7 +18479,7 @@ type CreateRelationalDatabaseSnapshotInput struct {
 
 	// The tag keys and optional values to add to the resource during create.
 	//
-	// To tag a resource after it has been created, see the tag resource operation.
+	// Use the TagResource action to tag a resource after it's created.
 	Tags []*Tag `locationName:"tags" type:"list"`
 }
 
@@ -16272,6 +18695,72 @@ func (s *DeleteAutoSnapshotOutput) SetOperations(v []*Operation) *DeleteAutoSnap
 	return s
 }
 
+type DeleteCertificateInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the certificate to delete.
+	//
+	// Use the GetCertificates action to get a list of certificate names that you
+	// can specify.
+	//
+	// CertificateName is a required field
+	CertificateName *string `locationName:"certificateName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteCertificateInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCertificateInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteCertificateInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteCertificateInput"}
+	if s.CertificateName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *DeleteCertificateInput) SetCertificateName(v string) *DeleteCertificateInput {
+	s.CertificateName = &v
+	return s
+}
+
+type DeleteCertificateOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operations []*Operation `locationName:"operations" type:"list"`
+}
+
+// String returns the string representation
+func (s DeleteCertificateOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteCertificateOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperations sets the Operations field's value.
+func (s *DeleteCertificateOutput) SetOperations(v []*Operation) *DeleteCertificateOutput {
+	s.Operations = v
+	return s
+}
+
 type DeleteContactMethodInput struct {
 	_ struct{} `type:"structure"`
 
@@ -16471,6 +18960,57 @@ func (s DeleteDiskSnapshotOutput) GoString() string {
 // SetOperations sets the Operations field's value.
 func (s *DeleteDiskSnapshotOutput) SetOperations(v []*Operation) *DeleteDiskSnapshotOutput {
 	s.Operations = v
+	return s
+}
+
+type DeleteDistributionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution to delete.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	DistributionName *string `locationName:"distributionName" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDistributionInput) GoString() string {
+	return s.String()
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *DeleteDistributionInput) SetDistributionName(v string) *DeleteDistributionInput {
+	s.DistributionName = &v
+	return s
+}
+
+type DeleteDistributionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the result of the action, such as the status of
+	// the request, the timestamp of the request, and the resources affected by
+	// the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteDistributionOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperation sets the Operation field's value.
+func (s *DeleteDistributionOutput) SetOperation(v *Operation) *DeleteDistributionOutput {
+	s.Operation = v
 	return s
 }
 
@@ -17223,6 +19763,72 @@ func (s *DestinationInfo) SetService(v string) *DestinationInfo {
 	return s
 }
 
+type DetachCertificateFromDistributionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution from which to detach the certificate.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// DistributionName is a required field
+	DistributionName *string `locationName:"distributionName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DetachCertificateFromDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DetachCertificateFromDistributionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DetachCertificateFromDistributionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DetachCertificateFromDistributionInput"}
+	if s.DistributionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DistributionName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *DetachCertificateFromDistributionInput) SetDistributionName(v string) *DetachCertificateFromDistributionInput {
+	s.DistributionName = &v
+	return s
+}
+
+type DetachCertificateFromDistributionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the result of the action, such as the status of
+	// the request, the timestamp of the request, and the resources affected by
+	// the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s DetachCertificateFromDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DetachCertificateFromDistributionOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperation sets the Operation field's value.
+func (s *DetachCertificateFromDistributionOutput) SetOperation(v *Operation) *DetachCertificateFromDistributionOutput {
+	s.Operation = v
+	return s
+}
+
 type DetachDiskInput struct {
 	_ struct{} `type:"structure"`
 
@@ -17954,6 +20560,66 @@ func (s *DiskSnapshotInfo) SetSizeInGb(v int64) *DiskSnapshotInfo {
 	return s
 }
 
+// Describes the specifications of a distribution bundle.
+type DistributionBundle struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the bundle.
+	BundleId *string `locationName:"bundleId" type:"string"`
+
+	// Indicates whether the bundle is active, and can be specified for a new distribution.
+	IsActive *bool `locationName:"isActive" type:"boolean"`
+
+	// The name of the distribution bundle.
+	Name *string `locationName:"name" type:"string"`
+
+	// The monthly price, in US dollars, of the bundle.
+	Price *float64 `locationName:"price" type:"float"`
+
+	// The monthly network transfer quota of the bundle.
+	TransferPerMonthInGb *int64 `locationName:"transferPerMonthInGb" type:"integer"`
+}
+
+// String returns the string representation
+func (s DistributionBundle) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DistributionBundle) GoString() string {
+	return s.String()
+}
+
+// SetBundleId sets the BundleId field's value.
+func (s *DistributionBundle) SetBundleId(v string) *DistributionBundle {
+	s.BundleId = &v
+	return s
+}
+
+// SetIsActive sets the IsActive field's value.
+func (s *DistributionBundle) SetIsActive(v bool) *DistributionBundle {
+	s.IsActive = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *DistributionBundle) SetName(v string) *DistributionBundle {
+	s.Name = &v
+	return s
+}
+
+// SetPrice sets the Price field's value.
+func (s *DistributionBundle) SetPrice(v float64) *DistributionBundle {
+	s.Price = &v
+	return s
+}
+
+// SetTransferPerMonthInGb sets the TransferPerMonthInGb field's value.
+func (s *DistributionBundle) SetTransferPerMonthInGb(v int64) *DistributionBundle {
+	s.TransferPerMonthInGb = &v
+	return s
+}
+
 // Describes a domain where you are storing recordsets in Lightsail.
 type Domain struct {
 	_ struct{} `type:"structure"`
@@ -18140,6 +20806,41 @@ func (s *DomainEntry) SetTarget(v string) *DomainEntry {
 // SetType sets the Type field's value.
 func (s *DomainEntry) SetType(v string) *DomainEntry {
 	s.Type = &v
+	return s
+}
+
+// Describes the domain validation records of an Amazon Lightsail SSL/TLS certificate.
+type DomainValidationRecord struct {
+	_ struct{} `type:"structure"`
+
+	// The domain name of the certificate validation record. For example, example.com
+	// or www.example.com.
+	DomainName *string `locationName:"domainName" type:"string"`
+
+	// An object that describes the DNS records to add to your domain's DNS to validate
+	// it for the certificate.
+	ResourceRecord *ResourceRecord `locationName:"resourceRecord" type:"structure"`
+}
+
+// String returns the string representation
+func (s DomainValidationRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainValidationRecord) GoString() string {
+	return s.String()
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *DomainValidationRecord) SetDomainName(v string) *DomainValidationRecord {
+	s.DomainName = &v
+	return s
+}
+
+// SetResourceRecord sets the ResourceRecord field's value.
+func (s *DomainValidationRecord) SetResourceRecord(v *ResourceRecord) *DomainValidationRecord {
+	s.ResourceRecord = v
 	return s
 }
 
@@ -18890,6 +21591,82 @@ func (s *GetBundlesOutput) SetNextPageToken(v string) *GetBundlesOutput {
 	return s
 }
 
+type GetCertificatesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name for the certificate for which to return information.
+	//
+	// When omitted, the response includes all of your certificates in the AWS region
+	// where the request is made.
+	CertificateName *string `locationName:"certificateName" type:"string"`
+
+	// The status of the certificates for which to return information.
+	//
+	// For example, specify ISSUED to return only certificates with an ISSUED status.
+	//
+	// When omitted, the response includes all of your certificates in the AWS region
+	// where the request is made, regardless of their current status.
+	CertificateStatuses []*string `locationName:"certificateStatuses" type:"list"`
+
+	// Indicates whether to include detailed information about the certificates
+	// in the response.
+	//
+	// When omitted, the response includes only the certificate names, Amazon Resource
+	// Names (ARNs), domain names, and tags.
+	IncludeCertificateDetails *bool `locationName:"includeCertificateDetails" type:"boolean"`
+}
+
+// String returns the string representation
+func (s GetCertificatesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCertificatesInput) GoString() string {
+	return s.String()
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *GetCertificatesInput) SetCertificateName(v string) *GetCertificatesInput {
+	s.CertificateName = &v
+	return s
+}
+
+// SetCertificateStatuses sets the CertificateStatuses field's value.
+func (s *GetCertificatesInput) SetCertificateStatuses(v []*string) *GetCertificatesInput {
+	s.CertificateStatuses = v
+	return s
+}
+
+// SetIncludeCertificateDetails sets the IncludeCertificateDetails field's value.
+func (s *GetCertificatesInput) SetIncludeCertificateDetails(v bool) *GetCertificatesInput {
+	s.IncludeCertificateDetails = &v
+	return s
+}
+
+type GetCertificatesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes certificates.
+	Certificates []*CertificateSummary `locationName:"certificates" type:"list"`
+}
+
+// String returns the string representation
+func (s GetCertificatesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCertificatesOutput) GoString() string {
+	return s.String()
+}
+
+// SetCertificates sets the Certificates field's value.
+func (s *GetCertificatesOutput) SetCertificates(v []*CertificateSummary) *GetCertificatesOutput {
+	s.Certificates = v
+	return s
+}
+
 type GetCloudFormationStackRecordsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -19253,6 +22030,422 @@ func (s *GetDisksOutput) SetNextPageToken(v string) *GetDisksOutput {
 	return s
 }
 
+type GetDistributionBundlesInput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetDistributionBundlesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionBundlesInput) GoString() string {
+	return s.String()
+}
+
+type GetDistributionBundlesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes a distribution bundle.
+	Bundles []*DistributionBundle `locationName:"bundles" type:"list"`
+}
+
+// String returns the string representation
+func (s GetDistributionBundlesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionBundlesOutput) GoString() string {
+	return s.String()
+}
+
+// SetBundles sets the Bundles field's value.
+func (s *GetDistributionBundlesOutput) SetBundles(v []*DistributionBundle) *GetDistributionBundlesOutput {
+	s.Bundles = v
+	return s
+}
+
+type GetDistributionLatestCacheResetInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution for which to return the timestamp of the last
+	// cache reset.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// When omitted, the response includes the latest cache reset timestamp of all
+	// your distributions.
+	DistributionName *string `locationName:"distributionName" type:"string"`
+}
+
+// String returns the string representation
+func (s GetDistributionLatestCacheResetInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionLatestCacheResetInput) GoString() string {
+	return s.String()
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *GetDistributionLatestCacheResetInput) SetDistributionName(v string) *GetDistributionLatestCacheResetInput {
+	s.DistributionName = &v
+	return s
+}
+
+type GetDistributionLatestCacheResetOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The timestamp of the last cache reset (e.g., 1479734909.17) in Unix time
+	// format.
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+
+	// The status of the last cache reset.
+	Status *string `locationName:"status" type:"string"`
+}
+
+// String returns the string representation
+func (s GetDistributionLatestCacheResetOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionLatestCacheResetOutput) GoString() string {
+	return s.String()
+}
+
+// SetCreateTime sets the CreateTime field's value.
+func (s *GetDistributionLatestCacheResetOutput) SetCreateTime(v time.Time) *GetDistributionLatestCacheResetOutput {
+	s.CreateTime = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *GetDistributionLatestCacheResetOutput) SetStatus(v string) *GetDistributionLatestCacheResetOutput {
+	s.Status = &v
+	return s
+}
+
+type GetDistributionMetricDataInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution for which to get metric data.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// DistributionName is a required field
+	DistributionName *string `locationName:"distributionName" type:"string" required:"true"`
+
+	// The end of the time interval for which to get metric data.
+	//
+	// Constraints:
+	//
+	//    * Specified in Coordinated Universal Time (UTC).
+	//
+	//    * Specified in the Unix time format. For example, if you wish to use an
+	//    end time of October 1, 2018, at 9 PM UTC, specify 1538427600 as the end
+	//    time.
+	//
+	// You can convert a human-friendly time to Unix time format using a converter
+	// like Epoch converter (https://www.epochconverter.com/).
+	//
+	// EndTime is a required field
+	EndTime *time.Time `locationName:"endTime" type:"timestamp" required:"true"`
+
+	// The metric for which you want to return information.
+	//
+	// Valid distribution metric names are listed below, along with the most useful
+	// statistics to include in your request, and the published unit value.
+	//
+	//    * Requests - The total number of viewer requests received by your Lightsail
+	//    distribution, for all HTTP methods, and for both HTTP and HTTPS requests.
+	//    Statistics: The most useful statistic is Sum. Unit: The published unit
+	//    is None.
+	//
+	//    * BytesDownloaded - The number of bytes downloaded by viewers for GET,
+	//    HEAD, and OPTIONS requests. Statistics: The most useful statistic is Sum.
+	//    Unit: The published unit is None.
+	//
+	//    * BytesUploaded - The number of bytes uploaded to your origin by your
+	//    Lightsail distribution, using POST and PUT requests. Statistics: The most
+	//    useful statistic is Sum. Unit: The published unit is None.
+	//
+	//    * TotalErrorRate - The percentage of all viewer requests for which the
+	//    response's HTTP status code was 4xx or 5xx. Statistics: The most useful
+	//    statistic is Average. Unit: The published unit is Percent.
+	//
+	//    * 4xxErrorRate - The percentage of all viewer requests for which the response's
+	//    HTTP status cod was 4xx. In these cases, the client or client viewer may
+	//    have made an error. For example, a status code of 404 (Not Found) means
+	//    that the client requested an object that could not be found. Statistics:
+	//    The most useful statistic is Average. Unit: The published unit is Percent.
+	//
+	//    * 5xxErrorRate - The percentage of all viewer requests for which the response's
+	//    HTTP status code was 5xx. In these cases, the origin server did not satisfy
+	//    the requests. For example, a status code of 503 (Service Unavailable)
+	//    means that the origin server is currently unavailable. Statistics: The
+	//    most useful statistic is Average. Unit: The published unit is Percent.
+	//
+	// MetricName is a required field
+	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"DistributionMetricName"`
+
+	// The granularity, in seconds, for the metric data points that will be returned.
+	//
+	// Period is a required field
+	Period *int64 `locationName:"period" min:"60" type:"integer" required:"true"`
+
+	// The start of the time interval for which to get metric data.
+	//
+	// Constraints:
+	//
+	//    * Specified in Coordinated Universal Time (UTC).
+	//
+	//    * Specified in the Unix time format. For example, if you wish to use a
+	//    start time of October 1, 2018, at 8 PM UTC, specify 1538424000 as the
+	//    start time.
+	//
+	// You can convert a human-friendly time to Unix time format using a converter
+	// like Epoch converter (https://www.epochconverter.com/).
+	//
+	// StartTime is a required field
+	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
+
+	// The statistic for the metric.
+	//
+	// The following statistics are available:
+	//
+	//    * Minimum - The lowest value observed during the specified period. Use
+	//    this value to determine low volumes of activity for your application.
+	//
+	//    * Maximum - The highest value observed during the specified period. Use
+	//    this value to determine high volumes of activity for your application.
+	//
+	//    * Sum - All values submitted for the matching metric added together. You
+	//    can use this statistic to determine the total volume of a metric.
+	//
+	//    * Average - The value of Sum / SampleCount during the specified period.
+	//    By comparing this statistic with the Minimum and Maximum values, you can
+	//    determine the full scope of a metric and how close the average use is
+	//    to the Minimum and Maximum values. This comparison helps you to know when
+	//    to increase or decrease your resources.
+	//
+	//    * SampleCount - The count, or number, of data points used for the statistical
+	//    calculation.
+	//
+	// Statistics is a required field
+	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
+
+	// The unit for the metric data request.
+	//
+	// Valid units depend on the metric data being requested. For the valid units
+	// with each available metric, see the metricName parameter.
+	//
+	// Unit is a required field
+	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
+}
+
+// String returns the string representation
+func (s GetDistributionMetricDataInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionMetricDataInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetDistributionMetricDataInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetDistributionMetricDataInput"}
+	if s.DistributionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DistributionName"))
+	}
+	if s.EndTime == nil {
+		invalidParams.Add(request.NewErrParamRequired("EndTime"))
+	}
+	if s.MetricName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MetricName"))
+	}
+	if s.Period == nil {
+		invalidParams.Add(request.NewErrParamRequired("Period"))
+	}
+	if s.Period != nil && *s.Period < 60 {
+		invalidParams.Add(request.NewErrParamMinValue("Period", 60))
+	}
+	if s.StartTime == nil {
+		invalidParams.Add(request.NewErrParamRequired("StartTime"))
+	}
+	if s.Statistics == nil {
+		invalidParams.Add(request.NewErrParamRequired("Statistics"))
+	}
+	if s.Unit == nil {
+		invalidParams.Add(request.NewErrParamRequired("Unit"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *GetDistributionMetricDataInput) SetDistributionName(v string) *GetDistributionMetricDataInput {
+	s.DistributionName = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *GetDistributionMetricDataInput) SetEndTime(v time.Time) *GetDistributionMetricDataInput {
+	s.EndTime = &v
+	return s
+}
+
+// SetMetricName sets the MetricName field's value.
+func (s *GetDistributionMetricDataInput) SetMetricName(v string) *GetDistributionMetricDataInput {
+	s.MetricName = &v
+	return s
+}
+
+// SetPeriod sets the Period field's value.
+func (s *GetDistributionMetricDataInput) SetPeriod(v int64) *GetDistributionMetricDataInput {
+	s.Period = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *GetDistributionMetricDataInput) SetStartTime(v time.Time) *GetDistributionMetricDataInput {
+	s.StartTime = &v
+	return s
+}
+
+// SetStatistics sets the Statistics field's value.
+func (s *GetDistributionMetricDataInput) SetStatistics(v []*string) *GetDistributionMetricDataInput {
+	s.Statistics = v
+	return s
+}
+
+// SetUnit sets the Unit field's value.
+func (s *GetDistributionMetricDataInput) SetUnit(v string) *GetDistributionMetricDataInput {
+	s.Unit = &v
+	return s
+}
+
+type GetDistributionMetricDataOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the metric data returned.
+	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
+
+	// The name of the metric returned.
+	MetricName *string `locationName:"metricName" type:"string" enum:"DistributionMetricName"`
+}
+
+// String returns the string representation
+func (s GetDistributionMetricDataOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionMetricDataOutput) GoString() string {
+	return s.String()
+}
+
+// SetMetricData sets the MetricData field's value.
+func (s *GetDistributionMetricDataOutput) SetMetricData(v []*MetricDatapoint) *GetDistributionMetricDataOutput {
+	s.MetricData = v
+	return s
+}
+
+// SetMetricName sets the MetricName field's value.
+func (s *GetDistributionMetricDataOutput) SetMetricName(v string) *GetDistributionMetricDataOutput {
+	s.MetricName = &v
+	return s
+}
+
+type GetDistributionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution for which to return information.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// When omitted, the response includes all of your distributions in the AWS
+	// Region where the request is made.
+	DistributionName *string `locationName:"distributionName" type:"string"`
+
+	// The token to advance to the next page of results from your request.
+	//
+	// To get a page token, perform an initial GetDistributions request. If your
+	// results are paginated, the response will return a next page token that you
+	// can specify as the page token in a subsequent request.
+	PageToken *string `locationName:"pageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetDistributionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionsInput) GoString() string {
+	return s.String()
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *GetDistributionsInput) SetDistributionName(v string) *GetDistributionsInput {
+	s.DistributionName = &v
+	return s
+}
+
+// SetPageToken sets the PageToken field's value.
+func (s *GetDistributionsInput) SetPageToken(v string) *GetDistributionsInput {
+	s.PageToken = &v
+	return s
+}
+
+type GetDistributionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe your distributions.
+	Distributions []*LightsailDistribution `locationName:"distributions" type:"list"`
+
+	// The token to advance to the next page of results from your request.
+	//
+	// A next page token is not returned if there are no more results to display.
+	//
+	// To get the next page of results, perform another GetDistributions request
+	// and specify the next page token using the pageToken parameter.
+	NextPageToken *string `locationName:"nextPageToken" type:"string"`
+}
+
+// String returns the string representation
+func (s GetDistributionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetDistributionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetDistributions sets the Distributions field's value.
+func (s *GetDistributionsOutput) SetDistributions(v []*LightsailDistribution) *GetDistributionsOutput {
+	s.Distributions = v
+	return s
+}
+
+// SetNextPageToken sets the NextPageToken field's value.
+func (s *GetDistributionsOutput) SetNextPageToken(v string) *GetDistributionsOutput {
+	s.NextPageToken = &v
+	return s
+}
+
 type GetDomainInput struct {
 	_ struct{} `type:"structure"`
 
@@ -19571,6 +22764,28 @@ type GetInstanceMetricDataInput struct {
 	// Valid instance metric names are listed below, along with the most useful
 	// statistics to include in your request, and the published unit value.
 	//
+	//    * BurstCapacityPercentage - The percentage of CPU performance available
+	//    for your instance to burst above its baseline. Your instance continuously
+	//    accrues and consumes burst capacity. Burst capacity stops accruing when
+	//    your instance's BurstCapacityPercentage reaches 100%. For more information,
+	//    see Viewing instance burst capacity in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-viewing-instance-burst-capacity).
+	//    Statistics: The most useful statistics are Maximum and Average. Unit:
+	//    The published unit is Percent.
+	//
+	//    * BurstCapacityTime - The available amount of time for your instance to
+	//    burst at 100% CPU utilization. Your instance continuously accrues and
+	//    consumes burst capacity. Burst capacity time stops accruing when your
+	//    instance's BurstCapacityPercentage metric reaches 100%. Burst capacity
+	//    time is consumed at the full rate only when your instance operates at
+	//    100% CPU utilization. For example, if your instance operates at 50% CPU
+	//    utilization in the burstable zone for a 5-minute period, then it consumes
+	//    CPU burst capacity minutes at a 50% rate in that period. Your instance
+	//    consumed 2 minutes and 30 seconds of CPU burst capacity minutes in the
+	//    5-minute period. For more information, see Viewing instance burst capacity
+	//    in Amazon Lightsail (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-viewing-instance-burst-capacity).
+	//    Statistics: The most useful statistics are Maximum and Average. Unit:
+	//    The published unit is Seconds.
+	//
 	//    * CPUUtilization - The percentage of allocated compute units that are
 	//    currently in use on the instance. This metric identifies the processing
 	//    power to run the applications on the instance. Tools in your operating
@@ -19748,11 +22963,10 @@ func (s *GetInstanceMetricDataInput) SetUnit(v string) *GetInstanceMetricDataInp
 type GetInstanceMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of key-value pairs containing information about the results of your
-	// get instance metric data request.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The metric name to return data for.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"InstanceMetricName"`
 }
 
@@ -20405,8 +23619,8 @@ type GetLoadBalancerMetricDataInput struct {
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
 	// The unit for the metric data request. Valid units depend on the metric data
-	// being required. For the valid units with each available metric, see the metricName
-	// parameter.
+	// being requested. For the valid units with each available metric, see the
+	// metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -20501,70 +23715,10 @@ func (s *GetLoadBalancerMetricDataInput) SetUnit(v string) *GetLoadBalancerMetri
 type GetLoadBalancerMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An array of metric datapoint objects.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The metric about which you are receiving information. Valid values are listed
-	// below, along with the most useful statistics to include in your request.
-	//
-	//    * ClientTLSNegotiationErrorCount - The number of TLS connections initiated
-	//    by the client that did not establish a session with the load balancer.
-	//    Possible causes include a mismatch of ciphers or protocols. Statistics:
-	//    The most useful statistic is Sum.
-	//
-	//    * HealthyHostCount - The number of target instances that are considered
-	//    healthy. Statistics: The most useful statistic are Average, Minimum, and
-	//    Maximum.
-	//
-	//    * UnhealthyHostCount - The number of target instances that are considered
-	//    unhealthy. Statistics: The most useful statistic are Average, Minimum,
-	//    and Maximum.
-	//
-	//    * HTTPCode_LB_4XX_Count - The number of HTTP 4XX client error codes that
-	//    originate from the load balancer. Client errors are generated when requests
-	//    are malformed or incomplete. These requests have not been received by
-	//    the target instance. This count does not include any response codes generated
-	//    by the target instances. Statistics: The most useful statistic is Sum.
-	//    Note that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_LB_5XX_Count - The number of HTTP 5XX server error codes that
-	//    originate from the load balancer. This count does not include any response
-	//    codes generated by the target instances. Statistics: The most useful statistic
-	//    is Sum. Note that Minimum, Maximum, and Average all return 1. Note that
-	//    Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_2XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_3XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_4XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * HTTPCode_Instance_5XX_Count - The number of HTTP response codes generated
-	//    by the target instances. This does not include any response codes generated
-	//    by the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
-	//
-	//    * InstanceResponseTime - The time elapsed, in seconds, after the request
-	//    leaves the load balancer until a response from the target instance is
-	//    received. Statistics: The most useful statistic is Average.
-	//
-	//    * RejectedConnectionCount - The number of connections that were rejected
-	//    because the load balancer had reached its maximum number of connections.
-	//    Statistics: The most useful statistic is Sum.
-	//
-	//    * RequestCount - The number of requests processed over IPv4. This count
-	//    includes only the requests with a response generated by a target instance
-	//    of the load balancer. Statistics: The most useful statistic is Sum. Note
-	//    that Minimum, Maximum, and Average all return 1.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"LoadBalancerMetricName"`
 }
 
@@ -21712,8 +24866,8 @@ type GetRelationalDatabaseMetricDataInput struct {
 	Statistics []*string `locationName:"statistics" type:"list" required:"true"`
 
 	// The unit for the metric data request. Valid units depend on the metric data
-	// being required. For the valid units with each available metric, see the metricName
-	// parameter.
+	// being requested. For the valid units with each available metric, see the
+	// metricName parameter.
 	//
 	// Unit is a required field
 	Unit *string `locationName:"unit" type:"string" required:"true" enum:"MetricUnit"`
@@ -21808,11 +24962,10 @@ func (s *GetRelationalDatabaseMetricDataInput) SetUnit(v string) *GetRelationalD
 type GetRelationalDatabaseMetricDataOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An object describing the result of your get relational database metric data
-	// request.
+	// An array of objects that describe the metric data returned.
 	MetricData []*MetricDatapoint `locationName:"metricData" type:"list"`
 
-	// The name of the metric.
+	// The name of the metric returned.
 	MetricName *string `locationName:"metricName" type:"string" enum:"RelationalDatabaseMetricName"`
 }
 
@@ -22267,6 +25420,58 @@ func (s *GetStaticIpsOutput) SetStaticIps(v []*StaticIp) *GetStaticIpsOutput {
 	return s
 }
 
+// Describes the request headers that a Lightsail distribution bases caching
+// on.
+//
+// For the headers that you specify, your distribution caches separate versions
+// of the specified content based on the header values in viewer requests. For
+// example, suppose viewer requests for logo.jpg contain a custom product header
+// that has a value of either acme or apex, and you configure your distribution
+// to cache your content based on values in the product header. Your distribution
+// forwards the product header to the origin and caches the response from the
+// origin once for each header value.
+type HeaderObject struct {
+	_ struct{} `type:"structure"`
+
+	// The specific headers to forward to your distribution's origin.
+	HeadersAllowList []*string `locationName:"headersAllowList" type:"list"`
+
+	// The headers that you want your distribution to forward to your origin and
+	// base caching on.
+	//
+	// You can configure your distribution to do one of the following:
+	//
+	//    * all - Forward all headers to your origin.
+	//
+	//    * none - Forward only the default headers.
+	//
+	//    * allow-list - Forward only the headers you specify using the headersAllowList
+	//    parameter.
+	Option *string `locationName:"option" type:"string" enum:"ForwardValues"`
+}
+
+// String returns the string representation
+func (s HeaderObject) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HeaderObject) GoString() string {
+	return s.String()
+}
+
+// SetHeadersAllowList sets the HeadersAllowList field's value.
+func (s *HeaderObject) SetHeadersAllowList(v []*string) *HeaderObject {
+	s.HeadersAllowList = v
+	return s
+}
+
+// SetOption sets the Option field's value.
+func (s *HeaderObject) SetOption(v string) *HeaderObject {
+	s.Option = &v
+	return s
+}
+
 // Describes the public SSH host keys or the RDP certificate.
 type HostKeyAttributes struct {
 	_ struct{} `type:"structure"`
@@ -22437,6 +25642,54 @@ func (s *ImportKeyPairOutput) SetOperation(v *Operation) *ImportKeyPairOutput {
 	return s
 }
 
+// Describes the origin resource of an Amazon Lightsail content delivery network
+// (CDN) distribution.
+//
+// An origin can be a Lightsail instance or load balancer. A distribution pulls
+// content from an origin, caches it, and serves it to viewers via a worldwide
+// network of edge servers.
+type InputOrigin struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the origin resource.
+	Name *string `locationName:"name" type:"string"`
+
+	// The protocol that your Amazon Lightsail distribution uses when establishing
+	// a connection with your origin to pull content.
+	ProtocolPolicy *string `locationName:"protocolPolicy" type:"string" enum:"OriginProtocolPolicyEnum"`
+
+	// The AWS Region name of the origin resource.
+	RegionName *string `locationName:"regionName" type:"string" enum:"RegionName"`
+}
+
+// String returns the string representation
+func (s InputOrigin) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InputOrigin) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *InputOrigin) SetName(v string) *InputOrigin {
+	s.Name = &v
+	return s
+}
+
+// SetProtocolPolicy sets the ProtocolPolicy field's value.
+func (s *InputOrigin) SetProtocolPolicy(v string) *InputOrigin {
+	s.ProtocolPolicy = &v
+	return s
+}
+
+// SetRegionName sets the RegionName field's value.
+func (s *InputOrigin) SetRegionName(v string) *InputOrigin {
+	s.RegionName = &v
+	return s
+}
+
 // Describes an instance (a virtual private server).
 type Instance struct {
 	_ struct{} `type:"structure"`
@@ -22456,7 +25709,8 @@ type Instance struct {
 	// The bundle for the instance (e.g., micro_1_0).
 	BundleId *string `locationName:"bundleId" type:"string"`
 
-	// The timestamp when the instance was created (e.g., 1479734909.17).
+	// The timestamp when the instance was created (e.g., 1479734909.17) in Unix
+	// time format.
 	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
 
 	// The size of the vCPU and the amount of RAM for the instance.
@@ -23082,9 +26336,10 @@ type InstancePortInfo struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
 	// The IP protocol name.
@@ -23111,9 +26366,9 @@ type InstancePortInfo struct {
 	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
 	//    messages and operational information indicating success or failure when
 	//    communicating with an instance. For example, an error is indicated when
-	//    an instance could not be reached. Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
 	// The last port in a range of open ports on an instance.
@@ -23122,9 +26377,10 @@ type InstancePortInfo struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -23219,9 +26475,10 @@ type InstancePortState struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
 	// The IP protocol name.
@@ -23248,9 +26505,9 @@ type InstancePortState struct {
 	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
 	//    messages and operational information indicating success or failure when
 	//    communicating with an instance. For example, an error is indicated when
-	//    an instance could not be reached. Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
 	// Specifies whether the instance port is open or closed.
@@ -23264,9 +26521,10 @@ type InstancePortState struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -23751,6 +27009,207 @@ func (s *KeyPair) SetTags(v []*Tag) *KeyPair {
 	return s
 }
 
+// Describes an Amazon Lightsail content delivery network (CDN) distribution.
+type LightsailDistribution struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether the bundle that is currently applied to your distribution,
+	// specified using the distributionName parameter, can be changed to another
+	// bundle.
+	//
+	// Use the UpdateDistributionBundle action to change your distribution's bundle.
+	AbleToUpdateBundle *bool `locationName:"ableToUpdateBundle" type:"boolean"`
+
+	// The alternate domain names of the distribution.
+	AlternativeDomainNames []*string `locationName:"alternativeDomainNames" type:"list"`
+
+	// The Amazon Resource Name (ARN) of the distribution.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The ID of the bundle currently applied to the distribution.
+	BundleId *string `locationName:"bundleId" type:"string"`
+
+	// An object that describes the cache behavior settings of the distribution.
+	CacheBehaviorSettings *CacheSettings `locationName:"cacheBehaviorSettings" type:"structure"`
+
+	// An array of objects that describe the per-path cache behavior of the distribution.
+	CacheBehaviors []*CacheBehaviorPerPath `locationName:"cacheBehaviors" type:"list"`
+
+	// The name of the SSL/TLS certificate attached to the distribution, if any.
+	CertificateName *string `locationName:"certificateName" type:"string"`
+
+	// The timestamp when the distribution was created.
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp"`
+
+	// An object that describes the default cache behavior of the distribution.
+	DefaultCacheBehavior *CacheBehavior `locationName:"defaultCacheBehavior" type:"structure"`
+
+	// The domain name of the distribution.
+	DomainName *string `locationName:"domainName" type:"string"`
+
+	// Indicates whether the distribution is enabled.
+	IsEnabled *bool `locationName:"isEnabled" type:"boolean"`
+
+	// An object that describes the location of the distribution, such as the AWS
+	// Region and Availability Zone.
+	//
+	// Lightsail distributions are global resources that can reference an origin
+	// in any AWS Region, and distribute its content globally. However, all distributions
+	// are located in the us-east-1 Region.
+	Location *ResourceLocation `locationName:"location" type:"structure"`
+
+	// The name of the distribution.
+	Name *string `locationName:"name" type:"string"`
+
+	// An object that describes the origin resource of the distribution, such as
+	// a Lightsail instance or load balancer.
+	//
+	// The distribution pulls, caches, and serves content from the origin.
+	Origin *Origin `locationName:"origin" type:"structure"`
+
+	// The public DNS of the origin.
+	OriginPublicDNS *string `locationName:"originPublicDNS" type:"string"`
+
+	// The Lightsail resource type (e.g., Distribution).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+
+	// The status of the distribution.
+	Status *string `locationName:"status" type:"string"`
+
+	// The support code. Include this code in your email to support when you have
+	// questions about your Lightsail distribution. This code enables our support
+	// team to look up your Lightsail information more easily.
+	SupportCode *string `locationName:"supportCode" type:"string"`
+
+	// The tag keys and optional values for the resource. For more information about
+	// tags in Lightsail, see the Lightsail Dev Guide (https://lightsail.aws.amazon.com/ls/docs/en/articles/amazon-lightsail-tags).
+	Tags []*Tag `locationName:"tags" type:"list"`
+}
+
+// String returns the string representation
+func (s LightsailDistribution) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LightsailDistribution) GoString() string {
+	return s.String()
+}
+
+// SetAbleToUpdateBundle sets the AbleToUpdateBundle field's value.
+func (s *LightsailDistribution) SetAbleToUpdateBundle(v bool) *LightsailDistribution {
+	s.AbleToUpdateBundle = &v
+	return s
+}
+
+// SetAlternativeDomainNames sets the AlternativeDomainNames field's value.
+func (s *LightsailDistribution) SetAlternativeDomainNames(v []*string) *LightsailDistribution {
+	s.AlternativeDomainNames = v
+	return s
+}
+
+// SetArn sets the Arn field's value.
+func (s *LightsailDistribution) SetArn(v string) *LightsailDistribution {
+	s.Arn = &v
+	return s
+}
+
+// SetBundleId sets the BundleId field's value.
+func (s *LightsailDistribution) SetBundleId(v string) *LightsailDistribution {
+	s.BundleId = &v
+	return s
+}
+
+// SetCacheBehaviorSettings sets the CacheBehaviorSettings field's value.
+func (s *LightsailDistribution) SetCacheBehaviorSettings(v *CacheSettings) *LightsailDistribution {
+	s.CacheBehaviorSettings = v
+	return s
+}
+
+// SetCacheBehaviors sets the CacheBehaviors field's value.
+func (s *LightsailDistribution) SetCacheBehaviors(v []*CacheBehaviorPerPath) *LightsailDistribution {
+	s.CacheBehaviors = v
+	return s
+}
+
+// SetCertificateName sets the CertificateName field's value.
+func (s *LightsailDistribution) SetCertificateName(v string) *LightsailDistribution {
+	s.CertificateName = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *LightsailDistribution) SetCreatedAt(v time.Time) *LightsailDistribution {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetDefaultCacheBehavior sets the DefaultCacheBehavior field's value.
+func (s *LightsailDistribution) SetDefaultCacheBehavior(v *CacheBehavior) *LightsailDistribution {
+	s.DefaultCacheBehavior = v
+	return s
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *LightsailDistribution) SetDomainName(v string) *LightsailDistribution {
+	s.DomainName = &v
+	return s
+}
+
+// SetIsEnabled sets the IsEnabled field's value.
+func (s *LightsailDistribution) SetIsEnabled(v bool) *LightsailDistribution {
+	s.IsEnabled = &v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *LightsailDistribution) SetLocation(v *ResourceLocation) *LightsailDistribution {
+	s.Location = v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *LightsailDistribution) SetName(v string) *LightsailDistribution {
+	s.Name = &v
+	return s
+}
+
+// SetOrigin sets the Origin field's value.
+func (s *LightsailDistribution) SetOrigin(v *Origin) *LightsailDistribution {
+	s.Origin = v
+	return s
+}
+
+// SetOriginPublicDNS sets the OriginPublicDNS field's value.
+func (s *LightsailDistribution) SetOriginPublicDNS(v string) *LightsailDistribution {
+	s.OriginPublicDNS = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *LightsailDistribution) SetResourceType(v string) *LightsailDistribution {
+	s.ResourceType = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *LightsailDistribution) SetStatus(v string) *LightsailDistribution {
+	s.Status = &v
+	return s
+}
+
+// SetSupportCode sets the SupportCode field's value.
+func (s *LightsailDistribution) SetSupportCode(v string) *LightsailDistribution {
+	s.SupportCode = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *LightsailDistribution) SetTags(v []*Tag) *LightsailDistribution {
+	s.Tags = v
+	return s
+}
+
 // Describes the Lightsail load balancer.
 type LoadBalancer struct {
 	_ struct{} `type:"structure"`
@@ -23942,7 +27401,47 @@ type LoadBalancerTlsCertificate struct {
 	// the records.
 	DomainValidationRecords []*LoadBalancerTlsCertificateDomainValidationRecord `locationName:"domainValidationRecords" type:"list"`
 
-	// The reason for the SSL/TLS certificate validation failure.
+	// The validation failure reason, if any, of the certificate.
+	//
+	// The following failure reasons are possible:
+	//
+	//    * NO_AVAILABLE_CONTACTS - This failure applies to email validation, which
+	//    is not available for Lightsail certificates.
+	//
+	//    * ADDITIONAL_VERIFICATION_REQUIRED - Lightsail requires additional information
+	//    to process this certificate request. This can happen as a fraud-protection
+	//    measure, such as when the domain ranks within the Alexa top 1000 websites.
+	//    To provide the required information, use the AWS Support Center (https://console.aws.amazon.com/support/home)
+	//    to contact AWS Support. You cannot request a certificate for Amazon-owned
+	//    domain names such as those ending in amazonaws.com, cloudfront.net, or
+	//    elasticbeanstalk.com.
+	//
+	//    * DOMAIN_NOT_ALLOWED - One or more of the domain names in the certificate
+	//    request was reported as an unsafe domain by VirusTotal (https://www.virustotal.com/gui/home/url).
+	//    To correct the problem, search for your domain name on the VirusTotal
+	//    (https://www.virustotal.com/gui/home/url) website. If your domain is reported
+	//    as suspicious, see Google Help for Hacked Websites (https://www.google.com/webmasters/hacked/?hl=en)
+	//    to learn what you can do. If you believe that the result is a false positive,
+	//    notify the organization that is reporting the domain. VirusTotal is an
+	//    aggregate of several antivirus and URL scanners and cannot remove your
+	//    domain from a block list itself. After you correct the problem and the
+	//    VirusTotal registry has been updated, request a new certificate. If you
+	//    see this error and your domain is not included in the VirusTotal list,
+	//    visit the AWS Support Center (https://console.aws.amazon.com/support/home)
+	//    and create a case.
+	//
+	//    * INVALID_PUBLIC_DOMAIN - One or more of the domain names in the certificate
+	//    request is not valid. Typically, this is because a domain name in the
+	//    request is not a valid top-level domain. Try to request a certificate
+	//    again, correcting any spelling errors or typos that were in the failed
+	//    request, and ensure that all domain names in the request are for valid
+	//    top-level domains. For example, you cannot request a certificate for example.invalidpublicdomain
+	//    because invalidpublicdomain is not a valid top-level domain.
+	//
+	//    * OTHER - Typically, this failure occurs when there is a typographical
+	//    error in one or more of the domain names in the certificate request. Try
+	//    to request a certificate again, correcting any spelling errors or typos
+	//    that were in the failed request.
 	FailureReason *string `locationName:"failureReason" type:"string" enum:"LoadBalancerTlsCertificateFailureReason"`
 
 	// When true, the SSL/TLS certificate is attached to the Lightsail load balancer.
@@ -23954,8 +27453,7 @@ type LoadBalancerTlsCertificate struct {
 	// The issuer of the certificate.
 	Issuer *string `locationName:"issuer" type:"string"`
 
-	// The algorithm that was used to generate the key pair (the public and private
-	// key).
+	// The algorithm used to generate the key pair (the public and private key).
 	KeyAlgorithm *string `locationName:"keyAlgorithm" type:"string"`
 
 	// The load balancer name where your SSL/TLS certificate is attached.
@@ -23973,8 +27471,8 @@ type LoadBalancerTlsCertificate struct {
 	// The timestamp when the SSL/TLS certificate is first valid.
 	NotBefore *time.Time `locationName:"notBefore" type:"timestamp"`
 
-	// An object containing information about the status of Lightsail's managed
-	// renewal for the certificate.
+	// An object that describes the status of the certificate renewal managed by
+	// Lightsail.
 	RenewalSummary *LoadBalancerTlsCertificateRenewalSummary `locationName:"renewalSummary" type:"structure"`
 
 	// The resource type (e.g., LoadBalancerTlsCertificate).
@@ -24001,10 +27499,12 @@ type LoadBalancerTlsCertificate struct {
 	//    * DiskSnapshot - A block storage disk snapshot
 	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
 
-	// The reason the certificate was revoked. Valid values are below.
+	// The reason the certificate was revoked. This value is present only when the
+	// certificate status is REVOKED.
 	RevocationReason *string `locationName:"revocationReason" type:"string" enum:"LoadBalancerTlsCertificateRevocationReason"`
 
-	// The timestamp when the SSL/TLS certificate was revoked.
+	// The timestamp when the certificate was revoked. This value is present only
+	// when the certificate status is REVOKED.
 	RevokedAt *time.Time `locationName:"revokedAt" type:"timestamp"`
 
 	// The serial number of the certificate.
@@ -24013,18 +27513,15 @@ type LoadBalancerTlsCertificate struct {
 	// The algorithm that was used to sign the certificate.
 	SignatureAlgorithm *string `locationName:"signatureAlgorithm" type:"string"`
 
-	// The status of the SSL/TLS certificate. Valid values are below.
+	// The validation status of the SSL/TLS certificate. Valid values are below.
 	Status *string `locationName:"status" type:"string" enum:"LoadBalancerTlsCertificateStatus"`
 
 	// The name of the entity that is associated with the public key contained in
 	// the certificate.
 	Subject *string `locationName:"subject" type:"string"`
 
-	// One or more domains or subdomains included in the certificate. This list
-	// contains the domain names that are bound to the public key that is contained
-	// in the certificate. The subject alternative names include the canonical domain
-	// name (CNAME) of the certificate and additional domain names that can be used
-	// to connect to the website, such as example.com, www.example.com, or m.example.com.
+	// An array of strings that specify the alternate domains (e.g., example2.com)
+	// and subdomains (e.g., blog.example.com) for the certificate.
 	SubjectAlternativeNames []*string `locationName:"subjectAlternativeNames" type:"list"`
 
 	// The support code. Include this code in your email to support when you have
@@ -24294,6 +27791,26 @@ func (s *LoadBalancerTlsCertificateDomainValidationRecord) SetValue(v string) *L
 
 // Contains information about the status of Lightsail's managed renewal for
 // the certificate.
+//
+// The renewal status of the certificate.
+//
+// The following renewal status are possible:
+//
+//    * PendingAutoRenewal - Lightsail is attempting to automatically validate
+//    the domain names in the certificate. No further action is required.
+//
+//    * PendingValidation - Lightsail couldn't automatically validate one or
+//    more domain names in the certificate. You must take action to validate
+//    these domain names or the certificate won't be renewed. If you used DNS
+//    validation, check to make sure your certificate's domain validation records
+//    exist in your domain's DNS, and that your certificate remains in use.
+//
+//    * Success - All domain names in the certificate are validated, and Lightsail
+//    renewed the certificate. No further action is required.
+//
+//    * Failed - One or more domain names were not validated before the certificate
+//    expired, and Lightsail did not renew the certificate. You can request
+//    a new certificate using the CreateCertificate action.
 type LoadBalancerTlsCertificateRenewalSummary struct {
 	_ struct{} `type:"structure"`
 
@@ -24302,8 +27819,25 @@ type LoadBalancerTlsCertificateRenewalSummary struct {
 	// initial validation that occurs as a result of the RequestCertificate request.
 	DomainValidationOptions []*LoadBalancerTlsCertificateDomainValidationOption `locationName:"domainValidationOptions" type:"list"`
 
-	// The status of Lightsail's managed renewal of the certificate. Valid values
-	// are listed below.
+	// The renewal status of the certificate.
+	//
+	// The following renewal status are possible:
+	//
+	//    * PendingAutoRenewal - Lightsail is attempting to automatically validate
+	//    the domain names of the certificate. No further action is required.
+	//
+	//    * PendingValidation - Lightsail couldn't automatically validate one or
+	//    more domain names of the certificate. You must take action to validate
+	//    these domain names or the certificate won't be renewed. Check to make
+	//    sure your certificate's domain validation records exist in your domain's
+	//    DNS, and that your certificate remains in use.
+	//
+	//    * Success - All domain names in the certificate are validated, and Lightsail
+	//    renewed the certificate. No further action is required.
+	//
+	//    * Failed - One or more domain names were not validated before the certificate
+	//    expired, and Lightsail did not renew the certificate. You can request
+	//    a new certificate using the CreateCertificate action.
 	RenewalStatus *string `locationName:"renewalStatus" type:"string" enum:"LoadBalancerTlsCertificateRenewalStatus"`
 }
 
@@ -24875,6 +28409,63 @@ func (s *OperationFailureException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// Describes the origin resource of an Amazon Lightsail content delivery network
+// (CDN) distribution.
+//
+// An origin can be a Lightsail instance or load balancer. A distribution pulls
+// content from an origin, caches it, and serves it to viewers via a worldwide
+// network of edge servers.
+type Origin struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the origin resource.
+	Name *string `locationName:"name" type:"string"`
+
+	// The protocol that your Amazon Lightsail distribution uses when establishing
+	// a connection with your origin to pull content.
+	ProtocolPolicy *string `locationName:"protocolPolicy" type:"string" enum:"OriginProtocolPolicyEnum"`
+
+	// The AWS Region name of the origin resource.
+	RegionName *string `locationName:"regionName" type:"string" enum:"RegionName"`
+
+	// The resource type of the origin resource (e.g., Instance).
+	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
+}
+
+// String returns the string representation
+func (s Origin) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Origin) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *Origin) SetName(v string) *Origin {
+	s.Name = &v
+	return s
+}
+
+// SetProtocolPolicy sets the ProtocolPolicy field's value.
+func (s *Origin) SetProtocolPolicy(v string) *Origin {
+	s.ProtocolPolicy = &v
+	return s
+}
+
+// SetRegionName sets the RegionName field's value.
+func (s *Origin) SetRegionName(v string) *Origin {
+	s.RegionName = &v
+	return s
+}
+
+// SetResourceType sets the ResourceType field's value.
+func (s *Origin) SetResourceType(v string) *Origin {
+	s.ResourceType = &v
+	return s
+}
+
 // The password data for the Windows Server-based instance, including the ciphertext
 // and the key pair name.
 type PasswordData struct {
@@ -25083,9 +28674,10 @@ type PortInfo struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - 8 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP type. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	FromPort *int64 `locationName:"fromPort" type:"integer"`
 
 	// The IP protocol name.
@@ -25112,9 +28704,9 @@ type PortInfo struct {
 	//    * icmp - Internet Control Message Protocol (ICMP) is used to send error
 	//    messages and operational information indicating success or failure when
 	//    communicating with an instance. For example, an error is indicated when
-	//    an instance could not be reached. Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    an instance could not be reached. When you specify icmp as the protocol,
+	//    you must specify the ICMP type using the fromPort parameter, and ICMP
+	//    code using the toPort parameter.
 	Protocol *string `locationName:"protocol" type:"string" enum:"NetworkProtocol"`
 
 	// The last port in a range of open ports on an instance.
@@ -25123,9 +28715,10 @@ type PortInfo struct {
 	//
 	//    * TCP and UDP - 0 to 65535
 	//
-	//    * ICMP - -1 (to configure Ping) Ping is the only communication supported
-	//    through the ICMP protocol in Lightsail. To configure ping, specify the
-	//    fromPort parameter as 8, and the toPort parameter as -1.
+	//    * ICMP - The ICMP code. For example, specify 8 as the fromPort (ICMP type),
+	//    and -1 as the toPort (ICMP code), to enable ICMP Ping. For more information,
+	//    see Control Messages (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages)
+	//    on Wikipedia.
 	ToPort *int64 `locationName:"toPort" type:"integer"`
 }
 
@@ -25242,8 +28835,9 @@ type PutAlarmInput struct {
 	//
 	// The following metrics are available for each resource type:
 	//
-	//    * Instances: CPUUtilization, NetworkIn, NetworkOut, StatusCheckFailed,
-	//    StatusCheckFailed_Instance, and StatusCheckFailed_System.
+	//    * Instances: BurstCapacityPercentage, BurstCapacityTime, CPUUtilization,
+	//    NetworkIn, NetworkOut, StatusCheckFailed, StatusCheckFailed_Instance,
+	//    and StatusCheckFailed_System.
 	//
 	//    * Load balancers: ClientTLSNegotiationErrorCount, HealthyHostCount, UnhealthyHostCount,
 	//    HTTPCode_LB_4XX_Count, HTTPCode_LB_5XX_Count, HTTPCode_Instance_2XX_Count,
@@ -25252,6 +28846,9 @@ type PutAlarmInput struct {
 	//
 	//    * Relational databases: CPUUtilization, DatabaseConnections, DiskQueueDepth,
 	//    FreeStorageSpace, NetworkReceiveThroughput, and NetworkTransmitThroughput.
+	//
+	// For more information about these metrics, see Metrics available in Lightsail
+	// (https://lightsail.aws.amazon.com/ls/docs/en_us/articles/amazon-lightsail-resource-health-metrics#available-metrics).
 	//
 	// MetricName is a required field
 	MetricName *string `locationName:"metricName" type:"string" required:"true" enum:"MetricName"`
@@ -25534,6 +29131,49 @@ func (s PutInstancePublicPortsOutput) GoString() string {
 // SetOperation sets the Operation field's value.
 func (s *PutInstancePublicPortsOutput) SetOperation(v *Operation) *PutInstancePublicPortsOutput {
 	s.Operation = v
+	return s
+}
+
+// Describes the query string parameters that an Amazon Lightsail content delivery
+// network (CDN) distribution to bases caching on.
+//
+// For the query strings that you specify, your distribution caches separate
+// versions of the specified content based on the query string values in viewer
+// requests.
+type QueryStringObject struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether the distribution forwards and caches based on query strings.
+	Option *bool `locationName:"option" type:"boolean"`
+
+	// The specific query strings that the distribution forwards to the origin.
+	//
+	// Your distribution will cache content based on the specified query strings.
+	//
+	// If the option parameter is true, then your distribution forwards all query
+	// strings, regardless of what you specify using the queryStringsAllowList parameter.
+	QueryStringsAllowList []*string `locationName:"queryStringsAllowList" type:"list"`
+}
+
+// String returns the string representation
+func (s QueryStringObject) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s QueryStringObject) GoString() string {
+	return s.String()
+}
+
+// SetOption sets the Option field's value.
+func (s *QueryStringObject) SetOption(v bool) *QueryStringObject {
+	s.Option = &v
+	return s
+}
+
+// SetQueryStringsAllowList sets the QueryStringsAllowList field's value.
+func (s *QueryStringObject) SetQueryStringsAllowList(v []*string) *QueryStringObject {
+	s.QueryStringsAllowList = v
 	return s
 }
 
@@ -26598,6 +30238,145 @@ func (s *ReleaseStaticIpOutput) SetOperations(v []*Operation) *ReleaseStaticIpOu
 	return s
 }
 
+// Describes the status of a SSL/TLS certificate renewal managed by Amazon Lightsail.
+type RenewalSummary struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the domain validation records of the certificate.
+	DomainValidationRecords []*DomainValidationRecord `locationName:"domainValidationRecords" type:"list"`
+
+	// The renewal status of the certificate.
+	//
+	// The following renewal status are possible:
+	//
+	//    * PendingAutoRenewal - Lightsail is attempting to automatically validate
+	//    the domain names of the certificate. No further action is required.
+	//
+	//    * PendingValidation - Lightsail couldn't automatically validate one or
+	//    more domain names of the certificate. You must take action to validate
+	//    these domain names or the certificate won't be renewed. Check to make
+	//    sure your certificate's domain validation records exist in your domain's
+	//    DNS, and that your certificate remains in use.
+	//
+	//    * Success - All domain names in the certificate are validated, and Lightsail
+	//    renewed the certificate. No further action is required.
+	//
+	//    * Failed - One or more domain names were not validated before the certificate
+	//    expired, and Lightsail did not renew the certificate. You can request
+	//    a new certificate using the CreateCertificate action.
+	RenewalStatus *string `locationName:"renewalStatus" type:"string" enum:"RenewalStatus"`
+
+	// The reason for the renewal status of the certificate.
+	RenewalStatusReason *string `locationName:"renewalStatusReason" type:"string"`
+
+	// The timestamp when the certificate was last updated.
+	UpdatedAt *time.Time `locationName:"updatedAt" type:"timestamp"`
+}
+
+// String returns the string representation
+func (s RenewalSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RenewalSummary) GoString() string {
+	return s.String()
+}
+
+// SetDomainValidationRecords sets the DomainValidationRecords field's value.
+func (s *RenewalSummary) SetDomainValidationRecords(v []*DomainValidationRecord) *RenewalSummary {
+	s.DomainValidationRecords = v
+	return s
+}
+
+// SetRenewalStatus sets the RenewalStatus field's value.
+func (s *RenewalSummary) SetRenewalStatus(v string) *RenewalSummary {
+	s.RenewalStatus = &v
+	return s
+}
+
+// SetRenewalStatusReason sets the RenewalStatusReason field's value.
+func (s *RenewalSummary) SetRenewalStatusReason(v string) *RenewalSummary {
+	s.RenewalStatusReason = &v
+	return s
+}
+
+// SetUpdatedAt sets the UpdatedAt field's value.
+func (s *RenewalSummary) SetUpdatedAt(v time.Time) *RenewalSummary {
+	s.UpdatedAt = &v
+	return s
+}
+
+type ResetDistributionCacheInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the distribution for which to reset cache.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	DistributionName *string `locationName:"distributionName" type:"string"`
+}
+
+// String returns the string representation
+func (s ResetDistributionCacheInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetDistributionCacheInput) GoString() string {
+	return s.String()
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *ResetDistributionCacheInput) SetDistributionName(v string) *ResetDistributionCacheInput {
+	s.DistributionName = &v
+	return s
+}
+
+type ResetDistributionCacheOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The timestamp of the reset cache request (e.g., 1479734909.17) in Unix time
+	// format.
+	CreateTime *time.Time `locationName:"createTime" type:"timestamp"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+
+	// The status of the reset cache request.
+	Status *string `locationName:"status" type:"string"`
+}
+
+// String returns the string representation
+func (s ResetDistributionCacheOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetDistributionCacheOutput) GoString() string {
+	return s.String()
+}
+
+// SetCreateTime sets the CreateTime field's value.
+func (s *ResetDistributionCacheOutput) SetCreateTime(v time.Time) *ResetDistributionCacheOutput {
+	s.CreateTime = &v
+	return s
+}
+
+// SetOperation sets the Operation field's value.
+func (s *ResetDistributionCacheOutput) SetOperation(v *Operation) *ResetDistributionCacheOutput {
+	s.Operation = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ResetDistributionCacheOutput) SetStatus(v string) *ResetDistributionCacheOutput {
+	s.Status = &v
+	return s
+}
+
 // Describes the resource location.
 type ResourceLocation struct {
 	_ struct{} `type:"structure"`
@@ -26628,6 +30407,49 @@ func (s *ResourceLocation) SetAvailabilityZone(v string) *ResourceLocation {
 // SetRegionName sets the RegionName field's value.
 func (s *ResourceLocation) SetRegionName(v string) *ResourceLocation {
 	s.RegionName = &v
+	return s
+}
+
+// Describes the domain name system (DNS) records to add to your domain's DNS
+// to validate it for an Amazon Lightsail certificate.
+type ResourceRecord struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the record.
+	Name *string `locationName:"name" type:"string"`
+
+	// The DNS record type.
+	Type *string `locationName:"type" type:"string"`
+
+	// The value for the DNS record.
+	Value *string `locationName:"value" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceRecord) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceRecord) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *ResourceRecord) SetName(v string) *ResourceRecord {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ResourceRecord) SetType(v string) *ResourceRecord {
+	s.Type = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *ResourceRecord) SetValue(v string) *ResourceRecord {
+	s.Value = &v
 	return s
 }
 
@@ -27534,6 +31356,184 @@ func (s *UntagResourceOutput) SetOperations(v []*Operation) *UntagResourceOutput
 	return s
 }
 
+type UpdateDistributionBundleInput struct {
+	_ struct{} `type:"structure"`
+
+	// The bundle ID of the new bundle to apply to your distribution.
+	//
+	// Use the GetDistributionBundles action to get a list of distribution bundle
+	// IDs that you can specify.
+	BundleId *string `locationName:"bundleId" type:"string"`
+
+	// The name of the distribution for which to update the bundle.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	DistributionName *string `locationName:"distributionName" type:"string"`
+}
+
+// String returns the string representation
+func (s UpdateDistributionBundleInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionBundleInput) GoString() string {
+	return s.String()
+}
+
+// SetBundleId sets the BundleId field's value.
+func (s *UpdateDistributionBundleInput) SetBundleId(v string) *UpdateDistributionBundleInput {
+	s.BundleId = &v
+	return s
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *UpdateDistributionBundleInput) SetDistributionName(v string) *UpdateDistributionBundleInput {
+	s.DistributionName = &v
+	return s
+}
+
+type UpdateDistributionBundleOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the API operation.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDistributionBundleOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionBundleOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperation sets the Operation field's value.
+func (s *UpdateDistributionBundleOutput) SetOperation(v *Operation) *UpdateDistributionBundleOutput {
+	s.Operation = v
+	return s
+}
+
+type UpdateDistributionInput struct {
+	_ struct{} `type:"structure"`
+
+	// An object that describes the cache behavior settings for the distribution.
+	//
+	// The cacheBehaviorSettings specified in your UpdateDistributionRequest will
+	// replace your distribution's existing settings.
+	CacheBehaviorSettings *CacheSettings `locationName:"cacheBehaviorSettings" type:"structure"`
+
+	// An array of objects that describe the per-path cache behavior for the distribution.
+	CacheBehaviors []*CacheBehaviorPerPath `locationName:"cacheBehaviors" type:"list"`
+
+	// An object that describes the default cache behavior for the distribution.
+	DefaultCacheBehavior *CacheBehavior `locationName:"defaultCacheBehavior" type:"structure"`
+
+	// The name of the distribution to update.
+	//
+	// Use the GetDistributions action to get a list of distribution names that
+	// you can specify.
+	//
+	// DistributionName is a required field
+	DistributionName *string `locationName:"distributionName" type:"string" required:"true"`
+
+	// Indicates whether to enable the distribution.
+	IsEnabled *bool `locationName:"isEnabled" type:"boolean"`
+
+	// An object that describes the origin resource for the distribution, such as
+	// a Lightsail instance or load balancer.
+	//
+	// The distribution pulls, caches, and serves content from the origin.
+	Origin *InputOrigin `locationName:"origin" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDistributionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateDistributionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateDistributionInput"}
+	if s.DistributionName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DistributionName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCacheBehaviorSettings sets the CacheBehaviorSettings field's value.
+func (s *UpdateDistributionInput) SetCacheBehaviorSettings(v *CacheSettings) *UpdateDistributionInput {
+	s.CacheBehaviorSettings = v
+	return s
+}
+
+// SetCacheBehaviors sets the CacheBehaviors field's value.
+func (s *UpdateDistributionInput) SetCacheBehaviors(v []*CacheBehaviorPerPath) *UpdateDistributionInput {
+	s.CacheBehaviors = v
+	return s
+}
+
+// SetDefaultCacheBehavior sets the DefaultCacheBehavior field's value.
+func (s *UpdateDistributionInput) SetDefaultCacheBehavior(v *CacheBehavior) *UpdateDistributionInput {
+	s.DefaultCacheBehavior = v
+	return s
+}
+
+// SetDistributionName sets the DistributionName field's value.
+func (s *UpdateDistributionInput) SetDistributionName(v string) *UpdateDistributionInput {
+	s.DistributionName = &v
+	return s
+}
+
+// SetIsEnabled sets the IsEnabled field's value.
+func (s *UpdateDistributionInput) SetIsEnabled(v bool) *UpdateDistributionInput {
+	s.IsEnabled = &v
+	return s
+}
+
+// SetOrigin sets the Origin field's value.
+func (s *UpdateDistributionInput) SetOrigin(v *InputOrigin) *UpdateDistributionInput {
+	s.Origin = v
+	return s
+}
+
+type UpdateDistributionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of objects that describe the result of the action, such as the status
+	// of the request, the timestamp of the request, and the resources affected
+	// by the request.
+	Operation *Operation `locationName:"operation" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateDistributionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateDistributionOutput) GoString() string {
+	return s.String()
+}
+
+// SetOperation sets the Operation field's value.
+func (s *UpdateDistributionOutput) SetOperation(v *Operation) *UpdateDistributionOutput {
+	s.Operation = v
+	return s
+}
+
 type UpdateDomainEntryInput struct {
 	_ struct{} `type:"structure"`
 
@@ -27983,10 +31983,25 @@ const (
 	AccessDirectionOutbound = "outbound"
 )
 
+// AccessDirection_Values returns all elements of the AccessDirection enum
+func AccessDirection_Values() []string {
+	return []string{
+		AccessDirectionInbound,
+		AccessDirectionOutbound,
+	}
+}
+
 const (
 	// AddOnTypeAutoSnapshot is a AddOnType enum value
 	AddOnTypeAutoSnapshot = "AutoSnapshot"
 )
+
+// AddOnType_Values returns all elements of the AddOnType enum
+func AddOnType_Values() []string {
+	return []string{
+		AddOnTypeAutoSnapshot,
+	}
+}
 
 const (
 	// AlarmStateOk is a AlarmState enum value
@@ -27998,6 +32013,15 @@ const (
 	// AlarmStateInsufficientData is a AlarmState enum value
 	AlarmStateInsufficientData = "INSUFFICIENT_DATA"
 )
+
+// AlarmState_Values returns all elements of the AlarmState enum
+func AlarmState_Values() []string {
+	return []string{
+		AlarmStateOk,
+		AlarmStateAlarm,
+		AlarmStateInsufficientData,
+	}
+}
 
 const (
 	// AutoSnapshotStatusSuccess is a AutoSnapshotStatus enum value
@@ -28013,6 +32037,32 @@ const (
 	AutoSnapshotStatusNotFound = "NotFound"
 )
 
+// AutoSnapshotStatus_Values returns all elements of the AutoSnapshotStatus enum
+func AutoSnapshotStatus_Values() []string {
+	return []string{
+		AutoSnapshotStatusSuccess,
+		AutoSnapshotStatusFailed,
+		AutoSnapshotStatusInProgress,
+		AutoSnapshotStatusNotFound,
+	}
+}
+
+const (
+	// BehaviorEnumDontCache is a BehaviorEnum enum value
+	BehaviorEnumDontCache = "dont-cache"
+
+	// BehaviorEnumCache is a BehaviorEnum enum value
+	BehaviorEnumCache = "cache"
+)
+
+// BehaviorEnum_Values returns all elements of the BehaviorEnum enum
+func BehaviorEnum_Values() []string {
+	return []string{
+		BehaviorEnumDontCache,
+		BehaviorEnumCache,
+	}
+}
+
 const (
 	// BlueprintTypeOs is a BlueprintType enum value
 	BlueprintTypeOs = "os"
@@ -28021,10 +32071,61 @@ const (
 	BlueprintTypeApp = "app"
 )
 
+// BlueprintType_Values returns all elements of the BlueprintType enum
+func BlueprintType_Values() []string {
+	return []string{
+		BlueprintTypeOs,
+		BlueprintTypeApp,
+	}
+}
+
+const (
+	// CertificateStatusPendingValidation is a CertificateStatus enum value
+	CertificateStatusPendingValidation = "PENDING_VALIDATION"
+
+	// CertificateStatusIssued is a CertificateStatus enum value
+	CertificateStatusIssued = "ISSUED"
+
+	// CertificateStatusInactive is a CertificateStatus enum value
+	CertificateStatusInactive = "INACTIVE"
+
+	// CertificateStatusExpired is a CertificateStatus enum value
+	CertificateStatusExpired = "EXPIRED"
+
+	// CertificateStatusValidationTimedOut is a CertificateStatus enum value
+	CertificateStatusValidationTimedOut = "VALIDATION_TIMED_OUT"
+
+	// CertificateStatusRevoked is a CertificateStatus enum value
+	CertificateStatusRevoked = "REVOKED"
+
+	// CertificateStatusFailed is a CertificateStatus enum value
+	CertificateStatusFailed = "FAILED"
+)
+
+// CertificateStatus_Values returns all elements of the CertificateStatus enum
+func CertificateStatus_Values() []string {
+	return []string{
+		CertificateStatusPendingValidation,
+		CertificateStatusIssued,
+		CertificateStatusInactive,
+		CertificateStatusExpired,
+		CertificateStatusValidationTimedOut,
+		CertificateStatusRevoked,
+		CertificateStatusFailed,
+	}
+}
+
 const (
 	// CloudFormationStackRecordSourceTypeExportSnapshotRecord is a CloudFormationStackRecordSourceType enum value
 	CloudFormationStackRecordSourceTypeExportSnapshotRecord = "ExportSnapshotRecord"
 )
+
+// CloudFormationStackRecordSourceType_Values returns all elements of the CloudFormationStackRecordSourceType enum
+func CloudFormationStackRecordSourceType_Values() []string {
+	return []string{
+		CloudFormationStackRecordSourceTypeExportSnapshotRecord,
+	}
+}
 
 const (
 	// ComparisonOperatorGreaterThanOrEqualToThreshold is a ComparisonOperator enum value
@@ -28040,6 +32141,16 @@ const (
 	ComparisonOperatorLessThanOrEqualToThreshold = "LessThanOrEqualToThreshold"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorGreaterThanOrEqualToThreshold,
+		ComparisonOperatorGreaterThanThreshold,
+		ComparisonOperatorLessThanThreshold,
+		ComparisonOperatorLessThanOrEqualToThreshold,
+	}
+}
+
 const (
 	// ContactMethodStatusPendingVerification is a ContactMethodStatus enum value
 	ContactMethodStatusPendingVerification = "PendingVerification"
@@ -28051,10 +32162,26 @@ const (
 	ContactMethodStatusInvalid = "Invalid"
 )
 
+// ContactMethodStatus_Values returns all elements of the ContactMethodStatus enum
+func ContactMethodStatus_Values() []string {
+	return []string{
+		ContactMethodStatusPendingVerification,
+		ContactMethodStatusValid,
+		ContactMethodStatusInvalid,
+	}
+}
+
 const (
 	// ContactMethodVerificationProtocolEmail is a ContactMethodVerificationProtocol enum value
 	ContactMethodVerificationProtocolEmail = "Email"
 )
+
+// ContactMethodVerificationProtocol_Values returns all elements of the ContactMethodVerificationProtocol enum
+func ContactMethodVerificationProtocol_Values() []string {
+	return []string{
+		ContactMethodVerificationProtocolEmail,
+	}
+}
 
 const (
 	// ContactProtocolEmail is a ContactProtocol enum value
@@ -28063,6 +32190,14 @@ const (
 	// ContactProtocolSms is a ContactProtocol enum value
 	ContactProtocolSms = "SMS"
 )
+
+// ContactProtocol_Values returns all elements of the ContactProtocol enum
+func ContactProtocol_Values() []string {
+	return []string{
+		ContactProtocolEmail,
+		ContactProtocolSms,
+	}
+}
 
 const (
 	// DiskSnapshotStatePending is a DiskSnapshotState enum value
@@ -28077,6 +32212,16 @@ const (
 	// DiskSnapshotStateUnknown is a DiskSnapshotState enum value
 	DiskSnapshotStateUnknown = "unknown"
 )
+
+// DiskSnapshotState_Values returns all elements of the DiskSnapshotState enum
+func DiskSnapshotState_Values() []string {
+	return []string{
+		DiskSnapshotStatePending,
+		DiskSnapshotStateCompleted,
+		DiskSnapshotStateError,
+		DiskSnapshotStateUnknown,
+	}
+}
 
 const (
 	// DiskStatePending is a DiskState enum value
@@ -28095,6 +32240,49 @@ const (
 	DiskStateUnknown = "unknown"
 )
 
+// DiskState_Values returns all elements of the DiskState enum
+func DiskState_Values() []string {
+	return []string{
+		DiskStatePending,
+		DiskStateError,
+		DiskStateAvailable,
+		DiskStateInUse,
+		DiskStateUnknown,
+	}
+}
+
+const (
+	// DistributionMetricNameRequests is a DistributionMetricName enum value
+	DistributionMetricNameRequests = "Requests"
+
+	// DistributionMetricNameBytesDownloaded is a DistributionMetricName enum value
+	DistributionMetricNameBytesDownloaded = "BytesDownloaded"
+
+	// DistributionMetricNameBytesUploaded is a DistributionMetricName enum value
+	DistributionMetricNameBytesUploaded = "BytesUploaded"
+
+	// DistributionMetricNameTotalErrorRate is a DistributionMetricName enum value
+	DistributionMetricNameTotalErrorRate = "TotalErrorRate"
+
+	// DistributionMetricNameHttp4xxErrorRate is a DistributionMetricName enum value
+	DistributionMetricNameHttp4xxErrorRate = "Http4xxErrorRate"
+
+	// DistributionMetricNameHttp5xxErrorRate is a DistributionMetricName enum value
+	DistributionMetricNameHttp5xxErrorRate = "Http5xxErrorRate"
+)
+
+// DistributionMetricName_Values returns all elements of the DistributionMetricName enum
+func DistributionMetricName_Values() []string {
+	return []string{
+		DistributionMetricNameRequests,
+		DistributionMetricNameBytesDownloaded,
+		DistributionMetricNameBytesUploaded,
+		DistributionMetricNameTotalErrorRate,
+		DistributionMetricNameHttp4xxErrorRate,
+		DistributionMetricNameHttp5xxErrorRate,
+	}
+}
+
 const (
 	// ExportSnapshotRecordSourceTypeInstanceSnapshot is a ExportSnapshotRecordSourceType enum value
 	ExportSnapshotRecordSourceTypeInstanceSnapshot = "InstanceSnapshot"
@@ -28103,6 +32291,102 @@ const (
 	ExportSnapshotRecordSourceTypeDiskSnapshot = "DiskSnapshot"
 )
 
+// ExportSnapshotRecordSourceType_Values returns all elements of the ExportSnapshotRecordSourceType enum
+func ExportSnapshotRecordSourceType_Values() []string {
+	return []string{
+		ExportSnapshotRecordSourceTypeInstanceSnapshot,
+		ExportSnapshotRecordSourceTypeDiskSnapshot,
+	}
+}
+
+const (
+	// ForwardValuesNone is a ForwardValues enum value
+	ForwardValuesNone = "none"
+
+	// ForwardValuesAllowList is a ForwardValues enum value
+	ForwardValuesAllowList = "allow-list"
+
+	// ForwardValuesAll is a ForwardValues enum value
+	ForwardValuesAll = "all"
+)
+
+// ForwardValues_Values returns all elements of the ForwardValues enum
+func ForwardValues_Values() []string {
+	return []string{
+		ForwardValuesNone,
+		ForwardValuesAllowList,
+		ForwardValuesAll,
+	}
+}
+
+const (
+	// HeaderEnumAccept is a HeaderEnum enum value
+	HeaderEnumAccept = "Accept"
+
+	// HeaderEnumAcceptCharset is a HeaderEnum enum value
+	HeaderEnumAcceptCharset = "Accept-Charset"
+
+	// HeaderEnumAcceptDatetime is a HeaderEnum enum value
+	HeaderEnumAcceptDatetime = "Accept-Datetime"
+
+	// HeaderEnumAcceptEncoding is a HeaderEnum enum value
+	HeaderEnumAcceptEncoding = "Accept-Encoding"
+
+	// HeaderEnumAcceptLanguage is a HeaderEnum enum value
+	HeaderEnumAcceptLanguage = "Accept-Language"
+
+	// HeaderEnumAuthorization is a HeaderEnum enum value
+	HeaderEnumAuthorization = "Authorization"
+
+	// HeaderEnumCloudFrontForwardedProto is a HeaderEnum enum value
+	HeaderEnumCloudFrontForwardedProto = "CloudFront-Forwarded-Proto"
+
+	// HeaderEnumCloudFrontIsDesktopViewer is a HeaderEnum enum value
+	HeaderEnumCloudFrontIsDesktopViewer = "CloudFront-Is-Desktop-Viewer"
+
+	// HeaderEnumCloudFrontIsMobileViewer is a HeaderEnum enum value
+	HeaderEnumCloudFrontIsMobileViewer = "CloudFront-Is-Mobile-Viewer"
+
+	// HeaderEnumCloudFrontIsSmartTvViewer is a HeaderEnum enum value
+	HeaderEnumCloudFrontIsSmartTvViewer = "CloudFront-Is-SmartTV-Viewer"
+
+	// HeaderEnumCloudFrontIsTabletViewer is a HeaderEnum enum value
+	HeaderEnumCloudFrontIsTabletViewer = "CloudFront-Is-Tablet-Viewer"
+
+	// HeaderEnumCloudFrontViewerCountry is a HeaderEnum enum value
+	HeaderEnumCloudFrontViewerCountry = "CloudFront-Viewer-Country"
+
+	// HeaderEnumHost is a HeaderEnum enum value
+	HeaderEnumHost = "Host"
+
+	// HeaderEnumOrigin is a HeaderEnum enum value
+	HeaderEnumOrigin = "Origin"
+
+	// HeaderEnumReferer is a HeaderEnum enum value
+	HeaderEnumReferer = "Referer"
+)
+
+// HeaderEnum_Values returns all elements of the HeaderEnum enum
+func HeaderEnum_Values() []string {
+	return []string{
+		HeaderEnumAccept,
+		HeaderEnumAcceptCharset,
+		HeaderEnumAcceptDatetime,
+		HeaderEnumAcceptEncoding,
+		HeaderEnumAcceptLanguage,
+		HeaderEnumAuthorization,
+		HeaderEnumCloudFrontForwardedProto,
+		HeaderEnumCloudFrontIsDesktopViewer,
+		HeaderEnumCloudFrontIsMobileViewer,
+		HeaderEnumCloudFrontIsSmartTvViewer,
+		HeaderEnumCloudFrontIsTabletViewer,
+		HeaderEnumCloudFrontViewerCountry,
+		HeaderEnumHost,
+		HeaderEnumOrigin,
+		HeaderEnumReferer,
+	}
+}
+
 const (
 	// InstanceAccessProtocolSsh is a InstanceAccessProtocol enum value
 	InstanceAccessProtocolSsh = "ssh"
@@ -28110,6 +32394,14 @@ const (
 	// InstanceAccessProtocolRdp is a InstanceAccessProtocol enum value
 	InstanceAccessProtocolRdp = "rdp"
 )
+
+// InstanceAccessProtocol_Values returns all elements of the InstanceAccessProtocol enum
+func InstanceAccessProtocol_Values() []string {
+	return []string{
+		InstanceAccessProtocolSsh,
+		InstanceAccessProtocolRdp,
+	}
+}
 
 const (
 	// InstanceHealthReasonLbRegistrationInProgress is a InstanceHealthReason enum value
@@ -28146,6 +32438,23 @@ const (
 	InstanceHealthReasonInstanceIpUnusable = "Instance.IpUnusable"
 )
 
+// InstanceHealthReason_Values returns all elements of the InstanceHealthReason enum
+func InstanceHealthReason_Values() []string {
+	return []string{
+		InstanceHealthReasonLbRegistrationInProgress,
+		InstanceHealthReasonLbInitialHealthChecking,
+		InstanceHealthReasonLbInternalError,
+		InstanceHealthReasonInstanceResponseCodeMismatch,
+		InstanceHealthReasonInstanceTimeout,
+		InstanceHealthReasonInstanceFailedHealthChecks,
+		InstanceHealthReasonInstanceNotRegistered,
+		InstanceHealthReasonInstanceNotInUse,
+		InstanceHealthReasonInstanceDeregistrationInProgress,
+		InstanceHealthReasonInstanceInvalidState,
+		InstanceHealthReasonInstanceIpUnusable,
+	}
+}
+
 const (
 	// InstanceHealthStateInitial is a InstanceHealthState enum value
 	InstanceHealthStateInitial = "initial"
@@ -28166,6 +32475,18 @@ const (
 	InstanceHealthStateUnavailable = "unavailable"
 )
 
+// InstanceHealthState_Values returns all elements of the InstanceHealthState enum
+func InstanceHealthState_Values() []string {
+	return []string{
+		InstanceHealthStateInitial,
+		InstanceHealthStateHealthy,
+		InstanceHealthStateUnhealthy,
+		InstanceHealthStateUnused,
+		InstanceHealthStateDraining,
+		InstanceHealthStateUnavailable,
+	}
+}
+
 const (
 	// InstanceMetricNameCpuutilization is a InstanceMetricName enum value
 	InstanceMetricNameCpuutilization = "CPUUtilization"
@@ -28184,7 +32505,27 @@ const (
 
 	// InstanceMetricNameStatusCheckFailedSystem is a InstanceMetricName enum value
 	InstanceMetricNameStatusCheckFailedSystem = "StatusCheckFailed_System"
+
+	// InstanceMetricNameBurstCapacityTime is a InstanceMetricName enum value
+	InstanceMetricNameBurstCapacityTime = "BurstCapacityTime"
+
+	// InstanceMetricNameBurstCapacityPercentage is a InstanceMetricName enum value
+	InstanceMetricNameBurstCapacityPercentage = "BurstCapacityPercentage"
 )
+
+// InstanceMetricName_Values returns all elements of the InstanceMetricName enum
+func InstanceMetricName_Values() []string {
+	return []string{
+		InstanceMetricNameCpuutilization,
+		InstanceMetricNameNetworkIn,
+		InstanceMetricNameNetworkOut,
+		InstanceMetricNameStatusCheckFailed,
+		InstanceMetricNameStatusCheckFailedInstance,
+		InstanceMetricNameStatusCheckFailedSystem,
+		InstanceMetricNameBurstCapacityTime,
+		InstanceMetricNameBurstCapacityPercentage,
+	}
+}
 
 const (
 	// InstancePlatformLinuxUnix is a InstancePlatform enum value
@@ -28193,6 +32534,14 @@ const (
 	// InstancePlatformWindows is a InstancePlatform enum value
 	InstancePlatformWindows = "WINDOWS"
 )
+
+// InstancePlatform_Values returns all elements of the InstancePlatform enum
+func InstancePlatform_Values() []string {
+	return []string{
+		InstancePlatformLinuxUnix,
+		InstancePlatformWindows,
+	}
+}
 
 const (
 	// InstanceSnapshotStatePending is a InstanceSnapshotState enum value
@@ -28205,6 +32554,15 @@ const (
 	InstanceSnapshotStateAvailable = "available"
 )
 
+// InstanceSnapshotState_Values returns all elements of the InstanceSnapshotState enum
+func InstanceSnapshotState_Values() []string {
+	return []string{
+		InstanceSnapshotStatePending,
+		InstanceSnapshotStateError,
+		InstanceSnapshotStateAvailable,
+	}
+}
+
 const (
 	// LoadBalancerAttributeNameHealthCheckPath is a LoadBalancerAttributeName enum value
 	LoadBalancerAttributeNameHealthCheckPath = "HealthCheckPath"
@@ -28215,6 +32573,15 @@ const (
 	// LoadBalancerAttributeNameSessionStickinessLbCookieDurationSeconds is a LoadBalancerAttributeName enum value
 	LoadBalancerAttributeNameSessionStickinessLbCookieDurationSeconds = "SessionStickiness_LB_CookieDurationSeconds"
 )
+
+// LoadBalancerAttributeName_Values returns all elements of the LoadBalancerAttributeName enum
+func LoadBalancerAttributeName_Values() []string {
+	return []string{
+		LoadBalancerAttributeNameHealthCheckPath,
+		LoadBalancerAttributeNameSessionStickinessEnabled,
+		LoadBalancerAttributeNameSessionStickinessLbCookieDurationSeconds,
+	}
+}
 
 const (
 	// LoadBalancerMetricNameClientTlsnegotiationErrorCount is a LoadBalancerMetricName enum value
@@ -28254,6 +32621,24 @@ const (
 	LoadBalancerMetricNameRequestCount = "RequestCount"
 )
 
+// LoadBalancerMetricName_Values returns all elements of the LoadBalancerMetricName enum
+func LoadBalancerMetricName_Values() []string {
+	return []string{
+		LoadBalancerMetricNameClientTlsnegotiationErrorCount,
+		LoadBalancerMetricNameHealthyHostCount,
+		LoadBalancerMetricNameUnhealthyHostCount,
+		LoadBalancerMetricNameHttpcodeLb4xxCount,
+		LoadBalancerMetricNameHttpcodeLb5xxCount,
+		LoadBalancerMetricNameHttpcodeInstance2xxCount,
+		LoadBalancerMetricNameHttpcodeInstance3xxCount,
+		LoadBalancerMetricNameHttpcodeInstance4xxCount,
+		LoadBalancerMetricNameHttpcodeInstance5xxCount,
+		LoadBalancerMetricNameInstanceResponseTime,
+		LoadBalancerMetricNameRejectedConnectionCount,
+		LoadBalancerMetricNameRequestCount,
+	}
+}
+
 const (
 	// LoadBalancerProtocolHttpHttps is a LoadBalancerProtocol enum value
 	LoadBalancerProtocolHttpHttps = "HTTP_HTTPS"
@@ -28261,6 +32646,14 @@ const (
 	// LoadBalancerProtocolHttp is a LoadBalancerProtocol enum value
 	LoadBalancerProtocolHttp = "HTTP"
 )
+
+// LoadBalancerProtocol_Values returns all elements of the LoadBalancerProtocol enum
+func LoadBalancerProtocol_Values() []string {
+	return []string{
+		LoadBalancerProtocolHttpHttps,
+		LoadBalancerProtocolHttp,
+	}
+}
 
 const (
 	// LoadBalancerStateActive is a LoadBalancerState enum value
@@ -28279,6 +32672,17 @@ const (
 	LoadBalancerStateUnknown = "unknown"
 )
 
+// LoadBalancerState_Values returns all elements of the LoadBalancerState enum
+func LoadBalancerState_Values() []string {
+	return []string{
+		LoadBalancerStateActive,
+		LoadBalancerStateProvisioning,
+		LoadBalancerStateActiveImpaired,
+		LoadBalancerStateFailed,
+		LoadBalancerStateUnknown,
+	}
+}
+
 const (
 	// LoadBalancerTlsCertificateDomainStatusPendingValidation is a LoadBalancerTlsCertificateDomainStatus enum value
 	LoadBalancerTlsCertificateDomainStatusPendingValidation = "PENDING_VALIDATION"
@@ -28289,6 +32693,15 @@ const (
 	// LoadBalancerTlsCertificateDomainStatusSuccess is a LoadBalancerTlsCertificateDomainStatus enum value
 	LoadBalancerTlsCertificateDomainStatusSuccess = "SUCCESS"
 )
+
+// LoadBalancerTlsCertificateDomainStatus_Values returns all elements of the LoadBalancerTlsCertificateDomainStatus enum
+func LoadBalancerTlsCertificateDomainStatus_Values() []string {
+	return []string{
+		LoadBalancerTlsCertificateDomainStatusPendingValidation,
+		LoadBalancerTlsCertificateDomainStatusFailed,
+		LoadBalancerTlsCertificateDomainStatusSuccess,
+	}
+}
 
 const (
 	// LoadBalancerTlsCertificateFailureReasonNoAvailableContacts is a LoadBalancerTlsCertificateFailureReason enum value
@@ -28307,6 +32720,17 @@ const (
 	LoadBalancerTlsCertificateFailureReasonOther = "OTHER"
 )
 
+// LoadBalancerTlsCertificateFailureReason_Values returns all elements of the LoadBalancerTlsCertificateFailureReason enum
+func LoadBalancerTlsCertificateFailureReason_Values() []string {
+	return []string{
+		LoadBalancerTlsCertificateFailureReasonNoAvailableContacts,
+		LoadBalancerTlsCertificateFailureReasonAdditionalVerificationRequired,
+		LoadBalancerTlsCertificateFailureReasonDomainNotAllowed,
+		LoadBalancerTlsCertificateFailureReasonInvalidPublicDomain,
+		LoadBalancerTlsCertificateFailureReasonOther,
+	}
+}
+
 const (
 	// LoadBalancerTlsCertificateRenewalStatusPendingAutoRenewal is a LoadBalancerTlsCertificateRenewalStatus enum value
 	LoadBalancerTlsCertificateRenewalStatusPendingAutoRenewal = "PENDING_AUTO_RENEWAL"
@@ -28320,6 +32744,16 @@ const (
 	// LoadBalancerTlsCertificateRenewalStatusFailed is a LoadBalancerTlsCertificateRenewalStatus enum value
 	LoadBalancerTlsCertificateRenewalStatusFailed = "FAILED"
 )
+
+// LoadBalancerTlsCertificateRenewalStatus_Values returns all elements of the LoadBalancerTlsCertificateRenewalStatus enum
+func LoadBalancerTlsCertificateRenewalStatus_Values() []string {
+	return []string{
+		LoadBalancerTlsCertificateRenewalStatusPendingAutoRenewal,
+		LoadBalancerTlsCertificateRenewalStatusPendingValidation,
+		LoadBalancerTlsCertificateRenewalStatusSuccess,
+		LoadBalancerTlsCertificateRenewalStatusFailed,
+	}
+}
 
 const (
 	// LoadBalancerTlsCertificateRevocationReasonUnspecified is a LoadBalancerTlsCertificateRevocationReason enum value
@@ -28353,6 +32787,22 @@ const (
 	LoadBalancerTlsCertificateRevocationReasonAACompromise = "A_A_COMPROMISE"
 )
 
+// LoadBalancerTlsCertificateRevocationReason_Values returns all elements of the LoadBalancerTlsCertificateRevocationReason enum
+func LoadBalancerTlsCertificateRevocationReason_Values() []string {
+	return []string{
+		LoadBalancerTlsCertificateRevocationReasonUnspecified,
+		LoadBalancerTlsCertificateRevocationReasonKeyCompromise,
+		LoadBalancerTlsCertificateRevocationReasonCaCompromise,
+		LoadBalancerTlsCertificateRevocationReasonAffiliationChanged,
+		LoadBalancerTlsCertificateRevocationReasonSuperceded,
+		LoadBalancerTlsCertificateRevocationReasonCessationOfOperation,
+		LoadBalancerTlsCertificateRevocationReasonCertificateHold,
+		LoadBalancerTlsCertificateRevocationReasonRemoveFromCrl,
+		LoadBalancerTlsCertificateRevocationReasonPrivilegeWithdrawn,
+		LoadBalancerTlsCertificateRevocationReasonAACompromise,
+	}
+}
+
 const (
 	// LoadBalancerTlsCertificateStatusPendingValidation is a LoadBalancerTlsCertificateStatus enum value
 	LoadBalancerTlsCertificateStatusPendingValidation = "PENDING_VALIDATION"
@@ -28378,6 +32828,20 @@ const (
 	// LoadBalancerTlsCertificateStatusUnknown is a LoadBalancerTlsCertificateStatus enum value
 	LoadBalancerTlsCertificateStatusUnknown = "UNKNOWN"
 )
+
+// LoadBalancerTlsCertificateStatus_Values returns all elements of the LoadBalancerTlsCertificateStatus enum
+func LoadBalancerTlsCertificateStatus_Values() []string {
+	return []string{
+		LoadBalancerTlsCertificateStatusPendingValidation,
+		LoadBalancerTlsCertificateStatusIssued,
+		LoadBalancerTlsCertificateStatusInactive,
+		LoadBalancerTlsCertificateStatusExpired,
+		LoadBalancerTlsCertificateStatusValidationTimedOut,
+		LoadBalancerTlsCertificateStatusRevoked,
+		LoadBalancerTlsCertificateStatusFailed,
+		LoadBalancerTlsCertificateStatusUnknown,
+	}
+}
 
 const (
 	// MetricNameCpuutilization is a MetricName enum value
@@ -28448,7 +32912,44 @@ const (
 
 	// MetricNameNetworkTransmitThroughput is a MetricName enum value
 	MetricNameNetworkTransmitThroughput = "NetworkTransmitThroughput"
+
+	// MetricNameBurstCapacityTime is a MetricName enum value
+	MetricNameBurstCapacityTime = "BurstCapacityTime"
+
+	// MetricNameBurstCapacityPercentage is a MetricName enum value
+	MetricNameBurstCapacityPercentage = "BurstCapacityPercentage"
 )
+
+// MetricName_Values returns all elements of the MetricName enum
+func MetricName_Values() []string {
+	return []string{
+		MetricNameCpuutilization,
+		MetricNameNetworkIn,
+		MetricNameNetworkOut,
+		MetricNameStatusCheckFailed,
+		MetricNameStatusCheckFailedInstance,
+		MetricNameStatusCheckFailedSystem,
+		MetricNameClientTlsnegotiationErrorCount,
+		MetricNameHealthyHostCount,
+		MetricNameUnhealthyHostCount,
+		MetricNameHttpcodeLb4xxCount,
+		MetricNameHttpcodeLb5xxCount,
+		MetricNameHttpcodeInstance2xxCount,
+		MetricNameHttpcodeInstance3xxCount,
+		MetricNameHttpcodeInstance4xxCount,
+		MetricNameHttpcodeInstance5xxCount,
+		MetricNameInstanceResponseTime,
+		MetricNameRejectedConnectionCount,
+		MetricNameRequestCount,
+		MetricNameDatabaseConnections,
+		MetricNameDiskQueueDepth,
+		MetricNameFreeStorageSpace,
+		MetricNameNetworkReceiveThroughput,
+		MetricNameNetworkTransmitThroughput,
+		MetricNameBurstCapacityTime,
+		MetricNameBurstCapacityPercentage,
+	}
+}
 
 const (
 	// MetricStatisticMinimum is a MetricStatistic enum value
@@ -28466,6 +32967,17 @@ const (
 	// MetricStatisticSampleCount is a MetricStatistic enum value
 	MetricStatisticSampleCount = "SampleCount"
 )
+
+// MetricStatistic_Values returns all elements of the MetricStatistic enum
+func MetricStatistic_Values() []string {
+	return []string{
+		MetricStatisticMinimum,
+		MetricStatisticMaximum,
+		MetricStatisticSum,
+		MetricStatisticAverage,
+		MetricStatisticSampleCount,
+	}
+}
 
 const (
 	// MetricUnitSeconds is a MetricUnit enum value
@@ -28550,6 +33062,39 @@ const (
 	MetricUnitNone = "None"
 )
 
+// MetricUnit_Values returns all elements of the MetricUnit enum
+func MetricUnit_Values() []string {
+	return []string{
+		MetricUnitSeconds,
+		MetricUnitMicroseconds,
+		MetricUnitMilliseconds,
+		MetricUnitBytes,
+		MetricUnitKilobytes,
+		MetricUnitMegabytes,
+		MetricUnitGigabytes,
+		MetricUnitTerabytes,
+		MetricUnitBits,
+		MetricUnitKilobits,
+		MetricUnitMegabits,
+		MetricUnitGigabits,
+		MetricUnitTerabits,
+		MetricUnitPercent,
+		MetricUnitCount,
+		MetricUnitBytesSecond,
+		MetricUnitKilobytesSecond,
+		MetricUnitMegabytesSecond,
+		MetricUnitGigabytesSecond,
+		MetricUnitTerabytesSecond,
+		MetricUnitBitsSecond,
+		MetricUnitKilobitsSecond,
+		MetricUnitMegabitsSecond,
+		MetricUnitGigabitsSecond,
+		MetricUnitTerabitsSecond,
+		MetricUnitCountSecond,
+		MetricUnitNone,
+	}
+}
+
 const (
 	// NetworkProtocolTcp is a NetworkProtocol enum value
 	NetworkProtocolTcp = "tcp"
@@ -28563,6 +33108,16 @@ const (
 	// NetworkProtocolIcmp is a NetworkProtocol enum value
 	NetworkProtocolIcmp = "icmp"
 )
+
+// NetworkProtocol_Values returns all elements of the NetworkProtocol enum
+func NetworkProtocol_Values() []string {
+	return []string{
+		NetworkProtocolTcp,
+		NetworkProtocolAll,
+		NetworkProtocolUdp,
+		NetworkProtocolIcmp,
+	}
+}
 
 const (
 	// OperationStatusNotStarted is a OperationStatus enum value
@@ -28580,6 +33135,17 @@ const (
 	// OperationStatusSucceeded is a OperationStatus enum value
 	OperationStatusSucceeded = "Succeeded"
 )
+
+// OperationStatus_Values returns all elements of the OperationStatus enum
+func OperationStatus_Values() []string {
+	return []string{
+		OperationStatusNotStarted,
+		OperationStatusStarted,
+		OperationStatusFailed,
+		OperationStatusCompleted,
+		OperationStatusSucceeded,
+	}
+}
 
 const (
 	// OperationTypeDeleteKnownHostKeys is a OperationType enum value
@@ -28746,7 +33312,120 @@ const (
 
 	// OperationTypeDeleteContactMethod is a OperationType enum value
 	OperationTypeDeleteContactMethod = "DeleteContactMethod"
+
+	// OperationTypeCreateDistribution is a OperationType enum value
+	OperationTypeCreateDistribution = "CreateDistribution"
+
+	// OperationTypeUpdateDistribution is a OperationType enum value
+	OperationTypeUpdateDistribution = "UpdateDistribution"
+
+	// OperationTypeDeleteDistribution is a OperationType enum value
+	OperationTypeDeleteDistribution = "DeleteDistribution"
+
+	// OperationTypeResetDistributionCache is a OperationType enum value
+	OperationTypeResetDistributionCache = "ResetDistributionCache"
+
+	// OperationTypeAttachCertificateToDistribution is a OperationType enum value
+	OperationTypeAttachCertificateToDistribution = "AttachCertificateToDistribution"
+
+	// OperationTypeDetachCertificateFromDistribution is a OperationType enum value
+	OperationTypeDetachCertificateFromDistribution = "DetachCertificateFromDistribution"
+
+	// OperationTypeUpdateDistributionBundle is a OperationType enum value
+	OperationTypeUpdateDistributionBundle = "UpdateDistributionBundle"
+
+	// OperationTypeCreateCertificate is a OperationType enum value
+	OperationTypeCreateCertificate = "CreateCertificate"
+
+	// OperationTypeDeleteCertificate is a OperationType enum value
+	OperationTypeDeleteCertificate = "DeleteCertificate"
 )
+
+// OperationType_Values returns all elements of the OperationType enum
+func OperationType_Values() []string {
+	return []string{
+		OperationTypeDeleteKnownHostKeys,
+		OperationTypeDeleteInstance,
+		OperationTypeCreateInstance,
+		OperationTypeStopInstance,
+		OperationTypeStartInstance,
+		OperationTypeRebootInstance,
+		OperationTypeOpenInstancePublicPorts,
+		OperationTypePutInstancePublicPorts,
+		OperationTypeCloseInstancePublicPorts,
+		OperationTypeAllocateStaticIp,
+		OperationTypeReleaseStaticIp,
+		OperationTypeAttachStaticIp,
+		OperationTypeDetachStaticIp,
+		OperationTypeUpdateDomainEntry,
+		OperationTypeDeleteDomainEntry,
+		OperationTypeCreateDomain,
+		OperationTypeDeleteDomain,
+		OperationTypeCreateInstanceSnapshot,
+		OperationTypeDeleteInstanceSnapshot,
+		OperationTypeCreateInstancesFromSnapshot,
+		OperationTypeCreateLoadBalancer,
+		OperationTypeDeleteLoadBalancer,
+		OperationTypeAttachInstancesToLoadBalancer,
+		OperationTypeDetachInstancesFromLoadBalancer,
+		OperationTypeUpdateLoadBalancerAttribute,
+		OperationTypeCreateLoadBalancerTlsCertificate,
+		OperationTypeDeleteLoadBalancerTlsCertificate,
+		OperationTypeAttachLoadBalancerTlsCertificate,
+		OperationTypeCreateDisk,
+		OperationTypeDeleteDisk,
+		OperationTypeAttachDisk,
+		OperationTypeDetachDisk,
+		OperationTypeCreateDiskSnapshot,
+		OperationTypeDeleteDiskSnapshot,
+		OperationTypeCreateDiskFromSnapshot,
+		OperationTypeCreateRelationalDatabase,
+		OperationTypeUpdateRelationalDatabase,
+		OperationTypeDeleteRelationalDatabase,
+		OperationTypeCreateRelationalDatabaseFromSnapshot,
+		OperationTypeCreateRelationalDatabaseSnapshot,
+		OperationTypeDeleteRelationalDatabaseSnapshot,
+		OperationTypeUpdateRelationalDatabaseParameters,
+		OperationTypeStartRelationalDatabase,
+		OperationTypeRebootRelationalDatabase,
+		OperationTypeStopRelationalDatabase,
+		OperationTypeEnableAddOn,
+		OperationTypeDisableAddOn,
+		OperationTypePutAlarm,
+		OperationTypeGetAlarms,
+		OperationTypeDeleteAlarm,
+		OperationTypeTestAlarm,
+		OperationTypeCreateContactMethod,
+		OperationTypeGetContactMethods,
+		OperationTypeSendContactMethodVerification,
+		OperationTypeDeleteContactMethod,
+		OperationTypeCreateDistribution,
+		OperationTypeUpdateDistribution,
+		OperationTypeDeleteDistribution,
+		OperationTypeResetDistributionCache,
+		OperationTypeAttachCertificateToDistribution,
+		OperationTypeDetachCertificateFromDistribution,
+		OperationTypeUpdateDistributionBundle,
+		OperationTypeCreateCertificate,
+		OperationTypeDeleteCertificate,
+	}
+}
+
+const (
+	// OriginProtocolPolicyEnumHttpOnly is a OriginProtocolPolicyEnum enum value
+	OriginProtocolPolicyEnumHttpOnly = "http-only"
+
+	// OriginProtocolPolicyEnumHttpsOnly is a OriginProtocolPolicyEnum enum value
+	OriginProtocolPolicyEnumHttpsOnly = "https-only"
+)
+
+// OriginProtocolPolicyEnum_Values returns all elements of the OriginProtocolPolicyEnum enum
+func OriginProtocolPolicyEnum_Values() []string {
+	return []string{
+		OriginProtocolPolicyEnumHttpOnly,
+		OriginProtocolPolicyEnumHttpsOnly,
+	}
+}
 
 const (
 	// PortAccessTypePublic is a PortAccessType enum value
@@ -28755,6 +33434,14 @@ const (
 	// PortAccessTypePrivate is a PortAccessType enum value
 	PortAccessTypePrivate = "Private"
 )
+
+// PortAccessType_Values returns all elements of the PortAccessType enum
+func PortAccessType_Values() []string {
+	return []string{
+		PortAccessTypePublic,
+		PortAccessTypePrivate,
+	}
+}
 
 const (
 	// PortInfoSourceTypeDefault is a PortInfoSourceType enum value
@@ -28770,6 +33457,16 @@ const (
 	PortInfoSourceTypeClosed = "CLOSED"
 )
 
+// PortInfoSourceType_Values returns all elements of the PortInfoSourceType enum
+func PortInfoSourceType_Values() []string {
+	return []string{
+		PortInfoSourceTypeDefault,
+		PortInfoSourceTypeInstance,
+		PortInfoSourceTypeNone,
+		PortInfoSourceTypeClosed,
+	}
+}
+
 const (
 	// PortStateOpen is a PortState enum value
 	PortStateOpen = "open"
@@ -28777,6 +33474,14 @@ const (
 	// PortStateClosed is a PortState enum value
 	PortStateClosed = "closed"
 )
+
+// PortState_Values returns all elements of the PortState enum
+func PortState_Values() []string {
+	return []string{
+		PortStateOpen,
+		PortStateClosed,
+	}
+}
 
 const (
 	// RecordStateStarted is a RecordState enum value
@@ -28788,6 +33493,15 @@ const (
 	// RecordStateFailed is a RecordState enum value
 	RecordStateFailed = "Failed"
 )
+
+// RecordState_Values returns all elements of the RecordState enum
+func RecordState_Values() []string {
+	return []string{
+		RecordStateStarted,
+		RecordStateSucceeded,
+		RecordStateFailed,
+	}
+}
 
 const (
 	// RegionNameUsEast1 is a RegionName enum value
@@ -28833,10 +33547,37 @@ const (
 	RegionNameApNortheast2 = "ap-northeast-2"
 )
 
+// RegionName_Values returns all elements of the RegionName enum
+func RegionName_Values() []string {
+	return []string{
+		RegionNameUsEast1,
+		RegionNameUsEast2,
+		RegionNameUsWest1,
+		RegionNameUsWest2,
+		RegionNameEuWest1,
+		RegionNameEuWest2,
+		RegionNameEuWest3,
+		RegionNameEuCentral1,
+		RegionNameCaCentral1,
+		RegionNameApSouth1,
+		RegionNameApSoutheast1,
+		RegionNameApSoutheast2,
+		RegionNameApNortheast1,
+		RegionNameApNortheast2,
+	}
+}
+
 const (
 	// RelationalDatabaseEngineMysql is a RelationalDatabaseEngine enum value
 	RelationalDatabaseEngineMysql = "mysql"
 )
+
+// RelationalDatabaseEngine_Values returns all elements of the RelationalDatabaseEngine enum
+func RelationalDatabaseEngine_Values() []string {
+	return []string{
+		RelationalDatabaseEngineMysql,
+	}
+}
 
 const (
 	// RelationalDatabaseMetricNameCpuutilization is a RelationalDatabaseMetricName enum value
@@ -28858,6 +33599,18 @@ const (
 	RelationalDatabaseMetricNameNetworkTransmitThroughput = "NetworkTransmitThroughput"
 )
 
+// RelationalDatabaseMetricName_Values returns all elements of the RelationalDatabaseMetricName enum
+func RelationalDatabaseMetricName_Values() []string {
+	return []string{
+		RelationalDatabaseMetricNameCpuutilization,
+		RelationalDatabaseMetricNameDatabaseConnections,
+		RelationalDatabaseMetricNameDiskQueueDepth,
+		RelationalDatabaseMetricNameFreeStorageSpace,
+		RelationalDatabaseMetricNameNetworkReceiveThroughput,
+		RelationalDatabaseMetricNameNetworkTransmitThroughput,
+	}
+}
+
 const (
 	// RelationalDatabasePasswordVersionCurrent is a RelationalDatabasePasswordVersion enum value
 	RelationalDatabasePasswordVersionCurrent = "CURRENT"
@@ -28868,6 +33621,39 @@ const (
 	// RelationalDatabasePasswordVersionPending is a RelationalDatabasePasswordVersion enum value
 	RelationalDatabasePasswordVersionPending = "PENDING"
 )
+
+// RelationalDatabasePasswordVersion_Values returns all elements of the RelationalDatabasePasswordVersion enum
+func RelationalDatabasePasswordVersion_Values() []string {
+	return []string{
+		RelationalDatabasePasswordVersionCurrent,
+		RelationalDatabasePasswordVersionPrevious,
+		RelationalDatabasePasswordVersionPending,
+	}
+}
+
+const (
+	// RenewalStatusPendingAutoRenewal is a RenewalStatus enum value
+	RenewalStatusPendingAutoRenewal = "PendingAutoRenewal"
+
+	// RenewalStatusPendingValidation is a RenewalStatus enum value
+	RenewalStatusPendingValidation = "PendingValidation"
+
+	// RenewalStatusSuccess is a RenewalStatus enum value
+	RenewalStatusSuccess = "Success"
+
+	// RenewalStatusFailed is a RenewalStatus enum value
+	RenewalStatusFailed = "Failed"
+)
+
+// RenewalStatus_Values returns all elements of the RenewalStatus enum
+func RenewalStatus_Values() []string {
+	return []string{
+		RenewalStatusPendingAutoRenewal,
+		RenewalStatusPendingValidation,
+		RenewalStatusSuccess,
+		RenewalStatusFailed,
+	}
+}
 
 const (
 	// ResourceTypeInstance is a ResourceType enum value
@@ -28917,7 +33703,37 @@ const (
 
 	// ResourceTypeContactMethod is a ResourceType enum value
 	ResourceTypeContactMethod = "ContactMethod"
+
+	// ResourceTypeDistribution is a ResourceType enum value
+	ResourceTypeDistribution = "Distribution"
+
+	// ResourceTypeCertificate is a ResourceType enum value
+	ResourceTypeCertificate = "Certificate"
 )
+
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeInstance,
+		ResourceTypeStaticIp,
+		ResourceTypeKeyPair,
+		ResourceTypeInstanceSnapshot,
+		ResourceTypeDomain,
+		ResourceTypePeeredVpc,
+		ResourceTypeLoadBalancer,
+		ResourceTypeLoadBalancerTlsCertificate,
+		ResourceTypeDisk,
+		ResourceTypeDiskSnapshot,
+		ResourceTypeRelationalDatabase,
+		ResourceTypeRelationalDatabaseSnapshot,
+		ResourceTypeExportSnapshotRecord,
+		ResourceTypeCloudFormationStackRecord,
+		ResourceTypeAlarm,
+		ResourceTypeContactMethod,
+		ResourceTypeDistribution,
+		ResourceTypeCertificate,
+	}
+}
 
 const (
 	// TreatMissingDataBreaching is a TreatMissingData enum value
@@ -28932,3 +33748,13 @@ const (
 	// TreatMissingDataMissing is a TreatMissingData enum value
 	TreatMissingDataMissing = "missing"
 )
+
+// TreatMissingData_Values returns all elements of the TreatMissingData enum
+func TreatMissingData_Values() []string {
+	return []string{
+		TreatMissingDataBreaching,
+		TreatMissingDataNotBreaching,
+		TreatMissingDataIgnore,
+		TreatMissingDataMissing,
+	}
+}

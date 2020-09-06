@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kafka"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -166,7 +166,7 @@ func resourceAwsMskCluster() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
-										Default:  kafka.ClientBrokerTlsPlaintext,
+										Default:  kafka.ClientBrokerTls,
 										ValidateFunc: validation.StringInSlice([]string{
 											kafka.ClientBrokerPlaintext,
 											kafka.ClientBrokerTlsPlaintext,
@@ -537,7 +537,7 @@ func resourceAwsMskClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("enhanced_monitoring") || d.HasChange("open_monitoring") || d.HasChange("logging_info") {
+	if d.HasChanges("enhanced_monitoring", "open_monitoring", "logging_info") {
 		input := &kafka.UpdateMonitoringInput{
 			ClusterArn:         aws.String(d.Id()),
 			CurrentVersion:     aws.String(d.Get("current_version").(string)),

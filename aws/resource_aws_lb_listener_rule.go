@@ -12,10 +12,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsLbbListenerRule() *schema.Resource {
@@ -337,31 +336,18 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 			"condition": {
 				Type:     schema.TypeSet,
 				Required: true,
-				Set:      lbListenerRuleConditionSetHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"field": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"host-header",
-								"path-pattern",
-							}, true),
-							Deprecated: "use 'host_header' or 'path_pattern' attribute instead",
-						},
 						"host_header": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							Computed: true, // Deprecated: remove Computed
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"values": {
-										Type: schema.TypeSet,
-										// Deprecated: Change Optional & Computed to Required in next major version of the provider
-										Optional: true,
-										Computed: true,
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.StringLenBetween(1, 128),
@@ -416,14 +402,12 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							Computed: true, // Deprecated: remove Computed
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"values": {
-										Type: schema.TypeSet,
-										// Deprecated: Change Optional & Computed to Required in next major version of the provider
-										Optional: true,
-										Computed: true,
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.StringLenBetween(1, 128),
@@ -448,7 +432,6 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 									},
 								},
 							},
-							Set: lbListenerRuleConditionQueryStringHash,
 						},
 						"source_ip": {
 							Type:     schema.TypeList,
@@ -468,108 +451,11 @@ func resourceAwsLbbListenerRule() *schema.Resource {
 								},
 							},
 						},
-						"values": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringLenBetween(1, 128),
-							},
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "use 'host_header' or 'path_pattern' attribute instead",
-						},
 					},
 				},
 			},
 		},
 	}
-}
-
-/* DEPRECATED Backwards compatibility: This primarily exists to set a hash that handles the values to host_header or path_pattern migration.
-Can probably be removed on the next major version of the provider.
-*/
-func lbListenerRuleConditionSetHash(v interface{}) int {
-	if v == nil {
-		return 0
-	}
-
-	var field string
-	var buf strings.Builder
-
-	m := v.(map[string]interface{})
-
-	if hostHeader, ok := m["host_header"].([]interface{}); ok && len(hostHeader) > 0 {
-		if hostHeader[0] != nil {
-			field = "host-header"
-			values := hostHeader[0].(map[string]interface{})["values"].(*schema.Set)
-			for _, l := range values.List() {
-				fmt.Fprint(&buf, l, "-")
-			}
-		}
-	} else if m["field"].(string) == "host-header" {
-		// Backwards compatibility
-		field = "host-header"
-		for _, l := range m["values"].([]interface{}) {
-			fmt.Fprint(&buf, l, "-")
-		}
-	}
-
-	if httpHeader, ok := m["http_header"].([]interface{}); ok && len(httpHeader) > 0 && httpHeader[0] != nil {
-		field = "http-header"
-		httpHeaderMap := httpHeader[0].(map[string]interface{})
-		fmt.Fprint(&buf, httpHeaderMap["http_header_name"].(string), ":")
-		httpHeaderValues := httpHeaderMap["values"].(*schema.Set)
-		for _, l := range httpHeaderValues.List() {
-			fmt.Fprint(&buf, l, "-")
-		}
-	}
-
-	if httpRequestMethod, ok := m["http_request_method"].([]interface{}); ok && len(httpRequestMethod) > 0 && httpRequestMethod[0] != nil {
-		field = "http-request-method"
-		values := httpRequestMethod[0].(map[string]interface{})["values"].(*schema.Set)
-		for _, l := range values.List() {
-			fmt.Fprint(&buf, l, "-")
-		}
-	}
-
-	if pathPattern, ok := m["path_pattern"].([]interface{}); ok && len(pathPattern) > 0 {
-		if pathPattern[0] != nil {
-			field = "path-pattern"
-			values := pathPattern[0].(map[string]interface{})["values"].(*schema.Set)
-			for _, l := range values.List() {
-				fmt.Fprint(&buf, l, "-")
-			}
-		}
-	} else if m["field"].(string) == "path-pattern" {
-		// Backwards compatibility
-		field = "path-pattern"
-		for _, l := range m["values"].([]interface{}) {
-			fmt.Fprint(&buf, l, "-")
-		}
-	}
-
-	if queryString, ok := m["query_string"].(*schema.Set); ok && queryString.Len() > 0 {
-		field = "query-string"
-		for _, l := range queryString.List() {
-			fmt.Fprint(&buf, lbListenerRuleConditionQueryStringHash(l), "-")
-		}
-	}
-
-	if sourceIp, ok := m["source_ip"].([]interface{}); ok && len(sourceIp) > 0 && sourceIp[0] != nil {
-		field = "source-ip"
-		values := sourceIp[0].(map[string]interface{})["values"].(*schema.Set)
-		for _, l := range values.List() {
-			fmt.Fprint(&buf, l, "-")
-		}
-	}
-
-	return hashcode.String(fmt.Sprintf("%s-%s", field, buf.String()))
-}
-
-func lbListenerRuleConditionQueryStringHash(v interface{}) int {
-	m := v.(map[string]interface{})
-	return hashcode.String(fmt.Sprintf("%s-%s", m["key"], m["value"]))
 }
 
 func suppressIfActionTypeNot(t string) schema.SchemaDiffSuppressFunc {
@@ -942,11 +828,7 @@ func resourceAwsLbListenerRuleRead(d *schema.ResourceData, meta interface{}) err
 	for i, condition := range rule.Conditions {
 		conditionMap := make(map[string]interface{})
 
-		// Deprecated: remove in next major version of provider
-		conditionMap["field"] = aws.StringValue(condition.Field)
-		conditionMap["values"] = aws.StringValueSlice(condition.Values)
-
-		switch conditionMap["field"] {
+		switch aws.StringValue(condition.Field) {
 		case "host-header":
 			conditionMap["host_header"] = []interface{}{
 				map[string]interface{}{
@@ -984,7 +866,7 @@ func resourceAwsLbListenerRuleRead(d *schema.ResourceData, meta interface{}) err
 					"value": aws.StringValue(value.Value),
 				}
 			}
-			conditionMap["query_string"] = schema.NewSet(lbListenerRuleConditionQueryStringHash, values)
+			conditionMap["query_string"] = values
 
 		case "source-ip":
 			conditionMap["source_ip"] = []interface{}{
@@ -1335,41 +1217,13 @@ func lbListenerRuleConditions(conditions []interface{}) ([]*elbv2.RuleCondition,
 			}
 		}
 
-		// Deprecated backwards compatibility
-		// This code is also hit during an update when the condition has not been modified. Issues: GH-11232 and GH-11362
-		if cmField, ok := conditionMap["field"].(string); ok && (cmField == "host-header" || cmField == "path-pattern") {
-			// When the condition is not being updated Terraform feeds in the existing state which has host header and
-			// path pattern set in both locations with identical values.
-			if field == cmField {
-				values := schema.NewSet(schema.HashString, conditionMap["values"].([]interface{}))
-				var values2 *schema.Set
-				if cmField == "host-header" {
-					values2 = conditionMap["host_header"].([]interface{})[0].(map[string]interface{})["values"].(*schema.Set)
-				} else {
-					values2 = conditionMap["path_pattern"].([]interface{})[0].(map[string]interface{})["values"].(*schema.Set)
-				}
-				if !values2.Equal(values) {
-					attrs += 1
-				}
-			} else {
-				field = cmField
-				attrs += 1
-				values := conditionMap["values"].([]interface{})
-				if len(values) == 0 {
-					return nil, errors.New("Both field and values must be set in a condition block")
-				}
-				elbConditions[i].Values = expandStringList(values)
-			}
-		}
-
 		// FIXME Rework this and use ConflictsWith when it finally works with collections:
 		// https://github.com/hashicorp/terraform/issues/13016
 		// Still need to ensure that one of the condition attributes is set.
 		if attrs == 0 {
 			return nil, errors.New("One of host_header, http_header, http_request_method, path_pattern, query_string or source_ip must be set in a condition block")
 		} else if attrs > 1 {
-			// Deprecated: remove `field` from message
-			return nil, errors.New("Only one of field, host_header, http_header, http_request_method, path_pattern, query_string or source_ip can be set in a condition block")
+			return nil, errors.New("Only one of host_header, http_header, http_request_method, path_pattern, query_string or source_ip can be set in a condition block")
 		}
 
 		elbConditions[i].Field = aws.String(field)

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsPrefixList_basic(t *testing.T) {
@@ -79,7 +79,7 @@ data "aws_prefix_list" "s3_by_id" {
 }
 
 data "aws_prefix_list" "s3_by_name" {
- name = "com.amazonaws.us-west-2.s3"
+  name = "com.amazonaws.us-west-2.s3"
 }
 `
 

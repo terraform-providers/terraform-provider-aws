@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsGlueCatalogDatabase() *schema.Resource {
@@ -22,6 +23,10 @@ func resourceAwsGlueCatalogDatabase() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"catalog_id": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -51,7 +56,7 @@ func resourceAwsGlueCatalogDatabase() *schema.Resource {
 }
 
 func resourceAwsGlueCatalogDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 	catalogID := createAwsGlueCatalogID(d, meta.(*AWSClient).accountid)
 	name := d.Get("name").(string)
 
@@ -62,7 +67,7 @@ func resourceAwsGlueCatalogDatabaseCreate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	_, err := glueconn.CreateDatabase(input)
+	_, err := conn.CreateDatabase(input)
 	if err != nil {
 		return fmt.Errorf("Error creating Catalog Database: %s", err)
 	}
@@ -73,7 +78,7 @@ func resourceAwsGlueCatalogDatabaseCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsGlueCatalogDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, name, err := readAwsGlueCatalogID(d.Id())
 	if err != nil {
@@ -107,8 +112,8 @@ func resourceAwsGlueCatalogDatabaseUpdate(d *schema.ResourceData, meta interface
 
 	dbUpdateInput.DatabaseInput = dbInput
 
-	if d.HasChange("description") || d.HasChange("location_uri") || d.HasChange("parameters") {
-		if _, err := glueconn.UpdateDatabase(dbUpdateInput); err != nil {
+	if d.HasChanges("description", "location_uri", "parameters") {
+		if _, err := conn.UpdateDatabase(dbUpdateInput); err != nil {
 			return err
 		}
 	}
@@ -117,7 +122,7 @@ func resourceAwsGlueCatalogDatabaseUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, name, err := readAwsGlueCatalogID(d.Id())
 	if err != nil {
@@ -129,7 +134,7 @@ func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}
 		Name:      aws.String(name),
 	}
 
-	out, err := glueconn.GetDatabase(input)
+	out, err := conn.GetDatabase(input)
 	if err != nil {
 
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
@@ -140,6 +145,15 @@ func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}
 
 		return fmt.Errorf("Error reading Glue Catalog Database: %s", err.Error())
 	}
+
+	databaseArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "glue",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("database/%s", aws.StringValue(out.Database.Name)),
+	}.String()
+	d.Set("arn", databaseArn)
 
 	d.Set("name", out.Database.Name)
 	d.Set("catalog_id", catalogID)
@@ -158,14 +172,14 @@ func resourceAwsGlueCatalogDatabaseRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsGlueCatalogDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 	catalogID, name, err := readAwsGlueCatalogID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Glue Catalog Database: %s:%s", catalogID, name)
-	_, err = glueconn.DeleteDatabase(&glue.DeleteDatabaseInput{
+	_, err = conn.DeleteDatabase(&glue.DeleteDatabaseInput{
 		Name: aws.String(name),
 	})
 	if err != nil {

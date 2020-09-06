@@ -7,11 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSsmAssociation() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsSsmAssociationCreate,
 		Read:   resourceAwsSsmAssociationRead,
@@ -217,7 +218,6 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("association_name", association.AssociationName)
 	d.Set("instance_id", association.InstanceId)
 	d.Set("name", association.Name)
-	d.Set("parameters", association.Parameters)
 	d.Set("association_id", association.AssociationId)
 	d.Set("schedule_expression", association.ScheduleExpression)
 	d.Set("document_version", association.DocumentVersion)
@@ -225,6 +225,10 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("max_concurrency", association.MaxConcurrency)
 	d.Set("max_errors", association.MaxErrors)
 	d.Set("automation_target_parameter_name", association.AutomationTargetParameterName)
+
+	if err := d.Set("parameters", flattenAwsSsmParameters(association.Parameters)); err != nil {
+		return err
+	}
 
 	if err := d.Set("targets", flattenAwsSsmTargets(association.Targets)); err != nil {
 		return fmt.Errorf("Error setting targets error: %#v", err)

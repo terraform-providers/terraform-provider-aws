@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -139,7 +139,7 @@ func resourceAwsDbParameterGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if len(describeResp.DBParameterGroups) != 1 ||
-		*describeResp.DBParameterGroups[0].DBParameterGroupName != d.Id() {
+		aws.StringValue(describeResp.DBParameterGroups[0].DBParameterGroupName) != d.Id() {
 		return fmt.Errorf("Unable to find Parameter Group: %#v", describeResp.DBParameterGroups)
 	}
 
@@ -189,15 +189,12 @@ func resourceAwsDbParameterGroupRead(d *schema.ResourceData, meta interface{}) e
 		// _and_ the "system"/"engine-default" Source parameters _that appear in the
 		// config_ in the state, or the user gets a perpetual diff. See
 		// terraform-providers/terraform-provider-aws#593 for more context and details.
-		confParams, err := expandParameters(configParams.List())
-		if err != nil {
-			return err
-		}
+		confParams := expandParameters(configParams.List())
 		for _, param := range parameters {
 			if param.Source == nil || param.ParameterName == nil {
 				continue
 			}
-			if *param.Source == "user" {
+			if aws.StringValue(param.Source) == "user" {
 				userParams = append(userParams, param)
 				continue
 			}
@@ -206,13 +203,13 @@ func resourceAwsDbParameterGroupRead(d *schema.ResourceData, meta interface{}) e
 				if cp.ParameterName == nil {
 					continue
 				}
-				if *cp.ParameterName == *param.ParameterName {
+				if aws.StringValue(cp.ParameterName) == aws.StringValue(param.ParameterName) {
 					userParams = append(userParams, param)
 					break
 				}
 			}
 			if !paramFound {
-				log.Printf("[DEBUG] Not persisting %s to state, as its source is %q and it isn't in the config", *param.ParameterName, *param.Source)
+				log.Printf("[DEBUG] Not persisting %s to state, as its source is %q and it isn't in the config", aws.StringValue(param.ParameterName), aws.StringValue(param.Source))
 			}
 		}
 	}
@@ -254,10 +251,7 @@ func resourceAwsDbParameterGroupUpdate(d *schema.ResourceData, meta interface{})
 		ns := n.(*schema.Set)
 
 		// Expand the "parameter" set to aws-sdk-go compat []rds.Parameter
-		parameters, err := expandParameters(ns.Difference(os).List())
-		if err != nil {
-			return err
-		}
+		parameters := expandParameters(ns.Difference(os).List())
 
 		if len(parameters) > 0 {
 			// We can only modify 20 parameters at a time, so walk them until
@@ -276,17 +270,31 @@ func resourceAwsDbParameterGroupUpdate(d *schema.ResourceData, meta interface{})
 				}
 
 				log.Printf("[DEBUG] Modify DB Parameter Group: %s", modifyOpts)
-				_, err = rdsconn.ModifyDBParameterGroup(&modifyOpts)
+				_, err := rdsconn.ModifyDBParameterGroup(&modifyOpts)
 				if err != nil {
 					return fmt.Errorf("Error modifying DB Parameter Group: %s", err)
 				}
 			}
 		}
 
+		toRemove := map[string]*rds.Parameter{}
+
+		for _, p := range expandParameters(os.List()) {
+			if p.ParameterName != nil {
+				toRemove[*p.ParameterName] = p
+			}
+		}
+
+		for _, p := range expandParameters(ns.List()) {
+			if p.ParameterName != nil {
+				delete(toRemove, *p.ParameterName)
+			}
+		}
+
 		// Reset parameters that have been removed
-		resetParameters, err := expandParameters(os.Difference(ns).List())
-		if err != nil {
-			return err
+		var resetParameters []*rds.Parameter
+		for _, v := range toRemove {
+			resetParameters = append(resetParameters, v)
 		}
 		if len(resetParameters) > 0 {
 			maxParams := 20
@@ -306,7 +314,7 @@ func resourceAwsDbParameterGroupUpdate(d *schema.ResourceData, meta interface{})
 				}
 
 				log.Printf("[DEBUG] Reset DB Parameter Group: %s", resetOpts)
-				_, err = rdsconn.ResetDBParameterGroup(&resetOpts)
+				_, err := rdsconn.ResetDBParameterGroup(&resetOpts)
 				if err != nil {
 					return fmt.Errorf("Error resetting DB Parameter Group: %s", err)
 				}

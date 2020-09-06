@@ -3,15 +3,15 @@ package checkers
 import (
 	"go/ast"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "rangeValCopy"
 	info.Tags = []string{"performance"}
-	info.Params = lintpack.CheckerParams{
+	info.Params = linter.CheckerParams{
 		"sizeThreshold": {
 			Value: 128,
 			Usage: "size in bytes that makes the warning trigger",
@@ -35,7 +35,7 @@ for i := range xs {
 	// Loop body.
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		c := &rangeValCopyChecker{ctx: ctx}
 		c.sizeThreshold = int64(info.Params.Int("sizeThreshold"))
 		c.skipTestFuncs = info.Params.Bool("skipTestFuncs")
@@ -45,7 +45,7 @@ for i := range xs {
 
 type rangeValCopyChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 
 	sizeThreshold int64
 	skipTestFuncs bool

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/transfer"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSTransferUser_basic(t *testing.T) {
@@ -187,7 +187,6 @@ func testAccCheckAWSTransferUserExists(n string, res *transfer.DescribedUser) re
 }
 
 func testAccCheckAWSTransferUserDisappears(serverConf *transfer.DescribedServer, userConf *transfer.DescribedUser) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).transferconn
 
@@ -248,45 +247,45 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": {
-				"Service": "transfer.amazonaws.com"
-			},
-			"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Sid": "AllowFullAccesstoS3",
-			"Effect": "Allow",
-			"Action": [
-				"s3:*"
-			],
-			"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id = "${aws_transfer_server.foo.id}"
+  server_id = aws_transfer_server.foo.id
   user_name = "tftestuser"
-  role      = "${aws_iam_role.foo.arn}"
+  role      = aws_iam_role.foo.arn
 }
 `, rName, rName)
 }
@@ -302,9 +301,9 @@ resource "aws_transfer_server" "foo" {
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id = "${aws_transfer_server.foo.id}"
+  server_id = aws_transfer_server.foo.id
   user_name = "%s"
-  role      = "${aws_iam_role.foo.arn}"
+  role      = aws_iam_role.foo.arn
 }
 
 resource "aws_iam_role" "foo" {
@@ -312,16 +311,16 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
@@ -343,37 +342,37 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Sid": "AllowFullAccesstoS3",
-		"Effect": "Allow",
-		"Action": [
-			"s3:*"
-		],
-		"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
@@ -422,10 +421,10 @@ data "aws_iam_policy_document" "foo" {
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id      = "${aws_transfer_server.foo.id}"
+  server_id      = aws_transfer_server.foo.id
   user_name      = "tftestuser"
-  role           = "${aws_iam_role.foo.arn}"
-  policy         = "${data.aws_iam_policy_document.foo.json}"
+  role           = aws_iam_role.foo.arn
+  policy         = data.aws_iam_policy_document.foo.json
   home_directory = "/home/tftestuser"
 
   tags = {
@@ -452,37 +451,37 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Sid": "AllowFullAccesstoS3",
-		"Effect": "Allow",
-		"Action": [
-			"s3:*"
-		],
-		"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
@@ -529,10 +528,10 @@ data "aws_iam_policy_document" "foo" {
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id      = "${aws_transfer_server.foo.id}"
+  server_id      = aws_transfer_server.foo.id
   user_name      = "tftestuser"
-  role           = "${aws_iam_role.foo.arn}"
-  policy         = "${data.aws_iam_policy_document.foo.json}"
+  role           = aws_iam_role.foo.arn
+  policy         = data.aws_iam_policy_document.foo.json
   home_directory = "/test"
 
   tags = {
@@ -558,37 +557,37 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Sid": "AllowFullAccesstoS3",
-		"Effect": "Allow",
-		"Action": [
-			"s3:*"
-		],
-		"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
@@ -637,10 +636,10 @@ data "aws_iam_policy_document" "foo" {
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id      = "${aws_transfer_server.foo.id}"
+  server_id      = aws_transfer_server.foo.id
   user_name      = "tftestuser2"
-  role           = "${aws_iam_role.foo.arn}"
-  policy         = "${data.aws_iam_policy_document.foo.json}"
+  role           = aws_iam_role.foo.arn
+  policy         = data.aws_iam_policy_document.foo.json
   home_directory = "/home/tftestuser2"
 
   tags = {

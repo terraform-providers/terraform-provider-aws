@@ -44,13 +44,13 @@ EOF
 resource "aws_lambda_function" "test_lambda" {
   filename      = "lambda_function_payload.zip"
   function_name = "lambda_function_name"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.test"
 
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
   # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  source_code_hash = "${filebase64sha256("lambda_function_payload.zip")}"
+  source_code_hash = filebase64sha256("lambda_function_payload.zip")
 
   runtime = "nodejs12.x"
 
@@ -73,7 +73,69 @@ resource "aws_lambda_layer_version" "example" {
 
 resource "aws_lambda_function" "example" {
   # ... other configuration ...
-  layers = ["${aws_lambda_layer_version.example.arn}"]
+  layers = [aws_lambda_layer_version.example.arn]
+}
+```
+
+### Lambda File Systems
+
+Lambda File Systems allow you to connect an Amazon Elastic File System (EFS) file system to a Lambda function to share data across function invocations, access existing data including large files, and save function state.
+
+```hcl
+# A lambda function connected to an EFS file system
+resource "aws_lambda_function" "example" {
+  # ... other configuration ...
+
+  file_system_config {
+    # EFS file system access point ARN
+    arn = aws_efs_access_point.access_point_for_lambda.arn
+
+    # Local mount path inside the lambda function. Must start with '/mnt/'.
+    local_mount_path = "/mnt/efs"
+  }
+
+  vpc_config {
+    # Every subnet should be able to reach an EFS mount target in the same Availability Zone. Cross-AZ mounts are not permitted.
+    subnet_ids         = [aws_subnet.subnet_for_lambda.id]
+    security_group_ids = [aws_security_group.sg_for_lambda.id]
+  }
+
+  # Explicitly declare dependency on EFS mount target.
+  # When creating or updating Lambda functions, mount target must be in 'available' lifecycle state.
+  depends_on = [aws_efs_mount_target.alpha]
+}
+
+# EFS file system
+resource "aws_efs_file_system" "efs_for_lambda" {
+  tags = {
+    Name = "efs_for_lambda"
+  }
+}
+
+# Mount target connects the file system to the subnet
+resource "aws_efs_mount_target" "alpha" {
+  file_system_id  = aws_efs_file_system.efs_for_lambda.id
+  subnet_id       = aws_subnet.subnet_for_lambda.id
+  security_groups = [aws_security_group.sg_for_lambda.id]
+}
+
+# EFS access point used by lambda file system
+resource "aws_efs_access_point" "access_point_for_lambda" {
+  file_system_id = aws_efs_file_system.efs_for_lambda.id
+
+  root_directory {
+    path = "/lambda"
+    creation_info {
+      owner_gid   = 1000
+      owner_uid   = 1000
+      permissions = "777"
+    }
+  }
+
+  posix_user {
+    gid = 1000
+    uid = 1000
+  }
 }
 ```
 
@@ -83,15 +145,19 @@ For more information about CloudWatch Logs for Lambda, see the [Lambda User Guid
 
 ```hcl
 resource "aws_lambda_function" "test_lambda" {
-  function_name = "${var.lambda_function_name}"
+  function_name = "lambda_function_name"
+
   # ... other configuration ...
-  depends_on = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.example"]
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_logs,
+    aws_cloudwatch_log_group.example,
+  ]
 }
 
 # This is to optionally manage the CloudWatch Log Group for the Lambda Function.
 # If skipping this resource configuration, also add "logs:CreateLogGroup" to the IAM policy below.
 resource "aws_cloudwatch_log_group" "example" {
-  name              = "/aws/lambda/${var.lambda_function_name}"
+  name              = "/aws/lambda/${aws_lambda_function.test_lambda.function_name}"
   retention_in_days = 14
 }
 
@@ -120,8 +186,8 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = "${aws_iam_role.iam_for_lambda.name}"
-  policy_arn = "${aws_iam_policy.lambda_logging.arn}"
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
 }
 ```
 
@@ -160,6 +226,7 @@ large files efficiently.
 * `kms_key_arn` - (Optional) Amazon Resource Name (ARN) of the AWS Key Management Service (KMS) key that is used to encrypt environment variables. If this configuration is not provided when environment variables are in use, AWS Lambda uses a default service key. If this configuration is provided when environment variables are not in use, the AWS Lambda API does not save this configuration and Terraform will show a perpetual difference of adding the key. To fix the perpetual difference, remove this configuration.
 * `source_code_hash` - (Optional) Used to trigger updates. Must be set to a base64-encoded SHA256 hash of the package file specified with either `filename` or `s3_key`. The usual way to set this is `filebase64sha256("file.zip")` (Terraform 0.11.12 and later) or `base64sha256(file("file.zip"))` (Terraform 0.11.11 and earlier), where "file.zip" is the local filename of the lambda function source archive.
 * `tags` - (Optional) A map of tags to assign to the object.
+* `file_system_config` - (Optional) The connection settings for an EFS file system. Fields documented below. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets much be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
 
 **dead_letter_config** is a child block with a single argument:
 
@@ -187,6 +254,12 @@ For **environment** the following attributes are supported:
 
 * `variables` - (Optional) A map that defines environment variables for the Lambda function.
 
+**file_system_config** is a child block with two arguments:
+
+* `arn` - (Required) The Amazon Resource Name (ARN) of the Amazon EFS Access Point that provides access to the file system.
+* `local_mount_path` - (Required) The path where the function can access the file system, starting with /mnt/.
+
+
 ## Attributes Reference
 
 * `arn` - The Amazon Resource Name (ARN) identifying your Lambda Function.
@@ -210,6 +283,7 @@ For **environment** the following attributes are supported:
 [9]: https://docs.aws.amazon.com/lambda/latest/dg/concurrent-executions.html
 [10]: https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html
 [11]: https://learn.hashicorp.com/terraform/aws/lambda-api-gateway
+[12]: https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html
 
 ## Timeouts
 

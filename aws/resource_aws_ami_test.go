@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAMI_basic(t *testing.T) {
@@ -26,12 +25,16 @@ func TestAccAWSAMI_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_basic(rName, 8),
+				Config: testAccAmiConfigBasic(rName, 8),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAmiExists(resourceName, &ami),
 					resource.TestCheckResourceAttr(resourceName, "ena_support", "true"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`image/ami-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "root_device_name", "/dev/sda1"),
+					resource.TestCheckResourceAttr(resourceName, "virtualization_type", "hvm"),
 					resource.TestMatchResourceAttr(resourceName, "root_snapshot_id", regexp.MustCompile("^snap-")),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -41,6 +44,44 @@ func TestAccAWSAMI_basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"manage_ebs_snapshots",
 				},
+			},
+		},
+	})
+}
+
+func TestAccAWSAMI_description(t *testing.T) {
+	var ami ec2.Image
+	resourceName := "aws_ami.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	desc := acctest.RandomWithPrefix("desc")
+	descUpdated := acctest.RandomWithPrefix("desc-updated")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAmiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAmiConfigDesc(rName, desc, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "description", desc),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"manage_ebs_snapshots",
+				},
+			},
+			{
+				Config: testAccAmiConfigDesc(rName, descUpdated, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAmiExists(resourceName, &ami),
+					resource.TestCheckResourceAttr(resourceName, "description", descUpdated),
+				),
 			},
 		},
 	})
@@ -57,10 +98,10 @@ func TestAccAWSAMI_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_basic(rName, 8),
+				Config: testAccAmiConfigBasic(rName, 8),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAmiExists(resourceName, &ami),
-					testAccCheckAmiDisappears(&ami),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsAmi(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -135,7 +176,7 @@ func TestAccAWSAMI_snapshotSize(t *testing.T) {
 		CheckDestroy: testAccCheckAmiDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAmiConfig_basic(rName, 20),
+				Config: testAccAmiConfigBasic(rName, 20),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAmiExists(resourceName, &ami),
 					testAccCheckAmiBlockDevice(&ami, &bd, "/dev/sda1"),
@@ -186,20 +227,6 @@ func testAccCheckAmiDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAmiDisappears(image *ec2.Image) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		input := &ec2.DeregisterImageInput{
-			ImageId: image.ImageId,
-		}
-
-		_, err := conn.DeregisterImage(input)
-
-		return err
-	}
-}
-
 func testAccCheckAmiExists(n string, ami *ec2.Image) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -222,8 +249,7 @@ func testAccCheckAmiExists(n string, ami *ec2.Image) resource.TestCheckFunc {
 			resp, err = conn.DescribeImages(opts)
 			if err != nil {
 				// This can be just eventual consistency
-				awsErr, ok := err.(awserr.Error)
-				if ok && awsErr.Code() == "InvalidAMIID.NotFound" {
+				if isAWSErr(err, "InvalidAMIID.NotFound", "") {
 					return resource.RetryableError(err)
 				}
 
@@ -301,7 +327,7 @@ func testAccCheckAmiEbsBlockDevice(bd *ec2.BlockDeviceMapping, ed *ec2.EbsBlockD
 	}
 }
 
-func testAccAmiConfig_base(rName string, size int) string {
+func testAccAmiConfigBase(rName string, size int) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
@@ -312,8 +338,8 @@ data "aws_availability_zones" "available" {
   }
 }
 
-resource "aws_ebs_volume" "foo" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+resource "aws_ebs_volume" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = %d
 
   tags = {
@@ -321,8 +347,8 @@ resource "aws_ebs_volume" "foo" {
   }
 }
 
-resource "aws_ebs_snapshot" "foo" {
-  volume_id = "${aws_ebs_volume.foo.id}"
+resource "aws_ebs_snapshot" "test" {
+  volume_id = aws_ebs_volume.test.id
 
   tags = {
     Name = "%[2]s"
@@ -332,8 +358,8 @@ resource "aws_ebs_snapshot" "foo" {
 `, size, rName)
 }
 
-func testAccAmiConfig_basic(rName string, size int) string {
-	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
+func testAccAmiConfigBasic(rName string, size int) string {
+	return testAccAmiConfigBase(rName, size) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   ena_support         = true
   name                = %[1]q
@@ -342,14 +368,31 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.foo.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 `, rName)
 }
 
+func testAccAmiConfigDesc(rName, desc string, size int) string {
+	return testAccAmiConfigBase(rName, size) + fmt.Sprintf(`
+resource "aws_ami" "test" {
+  ena_support         = true
+  name                = %[1]q
+  root_device_name    = "/dev/sda1"
+  virtualization_type = "hvm"
+  description         = %[2]q
+
+  ebs_block_device {
+    device_name = "/dev/sda1"
+    snapshot_id = aws_ebs_snapshot.test.id
+  }
+}
+`, rName, desc)
+}
+
 func testAccAmiConfigTags1(rName, tagKey1, tagValue1 string, size int) string {
-	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
+	return testAccAmiConfigBase(rName, size) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   ena_support         = true
   name                = %[1]q
@@ -358,7 +401,7 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.foo.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 
   tags = {
@@ -369,7 +412,7 @@ resource "aws_ami" "test" {
 }
 
 func testAccAmiConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string, size int) string {
-	return testAccAmiConfig_base(rName, size) + fmt.Sprintf(`
+	return testAccAmiConfigBase(rName, size) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   ena_support         = true
   name                = %[1]q
@@ -378,7 +421,7 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.foo.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 
   tags = {

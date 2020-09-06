@@ -4,28 +4,28 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astequal"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "equalFold"
 	info.Tags = []string{"performance", "experimental"}
 	info.Summary = "Detects unoptimal strings/bytes case-insensitive comparison"
 	info.Before = `strings.ToLower(x) == strings.ToLower(y)`
 	info.After = `strings.EqualFold(x, y)`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&equalFoldChecker{ctx: ctx})
 	})
 }
 
 type equalFoldChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *equalFoldChecker) VisitExpr(e ast.Expr) {

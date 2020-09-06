@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -265,27 +265,29 @@ resource "aws_config_configuration_aggregator" "example" {
   name = %[1]q
 
   account_aggregation_source {
-    account_ids = ["${data.aws_caller_identity.current.account_id}"]
+    account_ids = [data.aws_caller_identity.current.account_id]
     regions     = ["us-west-2"]
   }
 }
 
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current" {
+}
 `, rName)
 }
 
 func testAccAWSConfigConfigurationAggregatorConfig_organization(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_organizations_organization" "test" {}
+resource "aws_organizations_organization" "test" {
+}
 
 resource "aws_config_configuration_aggregator" "example" {
-  depends_on = ["aws_iam_role_policy_attachment.example"]
+  depends_on = [aws_iam_role_policy_attachment.example]
 
   name = %[1]q
 
   organization_aggregation_source {
     all_regions = true
-    role_arn    = "${aws_iam_role.example.arn}"
+    role_arn    = aws_iam_role.example.arn
   }
 }
 
@@ -310,7 +312,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "example" {
-  role       = "${aws_iam_role.example.name}"
+  role       = aws_iam_role.example.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
 `, rName)
@@ -322,14 +324,14 @@ resource "aws_config_configuration_aggregator" "example" {
   name = %[1]q
 
   account_aggregation_source {
-    account_ids = ["${data.aws_caller_identity.current.account_id}"]
+    account_ids = [data.aws_caller_identity.current.account_id]
     regions     = ["us-west-2"]
   }
 
   tags = {
-	Name  = %[1]q
-	%[2]s = %[3]q
-	%[4]s = %[5]q
+    Name  = %[1]q
+    %[2]s = %[3]q
+    %[4]s = %[5]q
   }
 }
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -14,16 +15,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_instance", &resource.Sweeper{
 		Name: "aws_instance",
 		F:    testSweepInstances,
+		Dependencies: []string{
+			"aws_autoscaling_group",
+			"aws_spot_fleet_request",
+		},
 	})
 }
 
@@ -230,26 +236,40 @@ func TestAccAWSInstance_inEc2Classic(t *testing.T) {
 
 func TestAccAWSInstance_basic(t *testing.T) {
 	var v ec2.Instance
-	var vol *ec2.Volume
 	resourceName := "aws_instance.test"
-	rInt := acctest.RandInt()
 
-	testCheck := func(rInt int) func(*terraform.State) error {
-		return func(*terraform.State) error {
-			if *v.Placement.AvailabilityZone != "us-west-2a" {
-				return fmt.Errorf("bad availability zone: %#v", *v.Placement.AvailabilityZone)
-			}
+	resource.ParallelTest(t, resource.TestCase{
+		// No subnet_id specified requires default VPC with default subnets or EC2-Classic.
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckEc2ClassicOrHasDefaultVpcWithDefaultSubnets(t)
+		},
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigBasic(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`instance/i-[a-z0-9]+`)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Required for EC2-Classic.
+				ImportStateVerifyIgnore: []string{"source_dest_check"},
+			},
+		},
+	})
+}
 
-			if len(v.SecurityGroups) == 0 {
-				return fmt.Errorf("no security groups: %#v", v.SecurityGroups)
-			}
-			if *v.SecurityGroups[0].GroupName != fmt.Sprintf("tf_test_%d", rInt) {
-				return fmt.Errorf("no security groups: %#v", v.SecurityGroups)
-			}
-
-			return nil
-		}
-	}
+func TestAccAWSInstance_atLeastOneOtherEbsVolume(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -257,25 +277,10 @@ func TestAccAWSInstance_basic(t *testing.T) {
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
-			// Create a volume to cover https://github.com/hashicorp/terraform/issues/1249
 			{
-				// Need a resource in this config so the provisioner will be available
-				Config: testAccInstanceConfig_pre(rInt),
-				Check: func(*terraform.State) error {
-					conn := testAccProvider.Meta().(*AWSClient).ec2conn
-					var err error
-					vol, err = conn.CreateVolume(&ec2.CreateVolumeInput{
-						AvailabilityZone: aws.String("us-west-2a"),
-						Size:             aws.Int64(int64(5)),
-					})
-					return err
-				},
-			},
-			{
-				Config: testAccInstanceConfig(rInt),
+				Config: testAccInstanceConfigAtLeastOneOtherEbsVolume(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testCheck(rInt),
 					resource.TestCheckResourceAttr(resourceName, "user_data", "3dc39dda39be1205215e776bad998da361a5955d"),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "0"), // This is an instance store AMI
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
@@ -292,22 +297,12 @@ func TestAccAWSInstance_basic(t *testing.T) {
 			// that the user data hash stuff is working without generating
 			// an incorrect diff.
 			{
-				Config: testAccInstanceConfig(rInt),
+				Config: testAccInstanceConfigAtLeastOneOtherEbsVolume(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					testCheck(rInt),
 					resource.TestCheckResourceAttr(resourceName, "user_data", "3dc39dda39be1205215e776bad998da361a5955d"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
 				),
-			},
-			// Clean up volume created above
-			{
-				Config: testAccInstanceConfig(rInt),
-				Check: func(*terraform.State) error {
-					conn := testAccProvider.Meta().(*AWSClient).ec2conn
-					_, err := conn.DeleteVolume(&ec2.DeleteVolumeInput{VolumeId: vol.VolumeId})
-					return err
-				},
 			},
 		},
 	})
@@ -319,19 +314,35 @@ func TestAccAWSInstance_EbsBlockDevice_KmsKeyArn(t *testing.T) {
 	resourceName := "aws_instance.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigEbsBlockDeviceKmsKeyArn,
+				Config: testAccInstanceConfigEbsBlockDeviceKmsKeyArn(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &instance),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.encrypted", "true"),
-					resource.TestCheckResourceAttrPair(resourceName, "ebs_block_device.2634515331.kms_key_id", kmsKeyResourceName, "arn"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"encrypted": "true",
+					}),
+					tfawsresource.TestCheckTypeSetElemAttrPair(resourceName, "ebs_block_device.*.kms_key_id", kmsKeyResourceName, "arn"),
 				),
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/12667
+func TestAccAWSInstance_EbsBlockDevice_InvalidIopsForVolumeType(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckInstanceConfigEBSBlockDeviceInvalidIops,
+				ExpectError: regexp.MustCompile(`error creating resource: iops attribute not supported for ebs_block_device with volume_type gp2`),
 			},
 		},
 	})
@@ -341,6 +352,7 @@ func TestAccAWSInstance_RootBlockDevice_KmsKeyArn(t *testing.T) {
 	var instance ec2.Instance
 	kmsKeyResourceName := "aws_kms_key.test"
 	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -348,7 +360,7 @@ func TestAccAWSInstance_RootBlockDevice_KmsKeyArn(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigRootBlockDeviceKmsKeyArn,
+				Config: testAccInstanceConfigRootBlockDeviceKmsKeyArn(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &instance),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
@@ -368,7 +380,7 @@ func TestAccAWSInstance_RootBlockDevice_KmsKeyArn(t *testing.T) {
 func TestAccAWSInstance_userDataBase64(t *testing.T) {
 	var v ec2.Instance
 	resourceName := "aws_instance.test"
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:      func() { testAccPreCheck(t) },
@@ -377,7 +389,7 @@ func TestAccAWSInstance_userDataBase64(t *testing.T) {
 		CheckDestroy:  testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigWithUserDataBase64(rInt),
+				Config: testAccInstanceConfigWithUserDataBase64(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "user_data_base64", "aGVsbG8gd29ybGQ="),
@@ -399,7 +411,6 @@ func TestAccAWSInstance_GP2IopsDevice(t *testing.T) {
 
 	testCheck := func() resource.TestCheckFunc {
 		return func(*terraform.State) error {
-
 			// Map out the block devices by name, which should be unique.
 			blockDevices := make(map[string]*ec2.InstanceBlockDeviceMapping)
 			for _, blockDevice := range v.BlockDeviceMappings {
@@ -407,8 +418,8 @@ func TestAccAWSInstance_GP2IopsDevice(t *testing.T) {
 			}
 
 			// Check if the root block device exists.
-			if _, ok := blockDevices["/dev/sda1"]; !ok {
-				return fmt.Errorf("block device doesn't exist: /dev/sda1")
+			if _, ok := blockDevices["/dev/xvda"]; !ok {
+				return fmt.Errorf("block device doesn't exist: /dev/xvda")
 			}
 
 			return nil
@@ -423,7 +434,7 @@ func TestAccAWSInstance_GP2IopsDevice(t *testing.T) {
 		CheckDestroy:    testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceGP2IopsDevice,
+				Config: testAccInstanceGP2IopsDevice(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
@@ -442,30 +453,18 @@ func TestAccAWSInstance_GP2IopsDevice(t *testing.T) {
 	})
 }
 
+// TestAccAWSInstance_GP2WithIopsValue updated in v3.0.0
+// to account for apply-time validation of the root_block_device.iops attribute for supported volume types
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/pull/14310
 func TestAccAWSInstance_GP2WithIopsValue(t *testing.T) {
-	var v ec2.Instance
-	resourceName := "aws_instance.test"
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
-		IDRefreshName:   resourceName,
-		IDRefreshIgnore: []string{"ephemeral_block_device", "user_data"},
-		Providers:       testAccProviders,
-		CheckDestroy:    testAccCheckInstanceDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceGP2WithIopsValue,
-				Check:  testAccCheckInstanceExists(resourceName, &v),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config:             testAccInstanceGP2WithIopsValue,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
+				Config:      testAccInstanceGP2WithIopsValue(),
+				ExpectError: regexp.MustCompile(`error creating resource: iops attribute not supported for root_block_device with volume_type gp2`),
 			},
 		},
 	})
@@ -477,7 +476,6 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 
 	testCheck := func() resource.TestCheckFunc {
 		return func(*terraform.State) error {
-
 			// Map out the block devices by name, which should be unique.
 			blockDevices := make(map[string]*ec2.InstanceBlockDeviceMapping)
 			for _, blockDevice := range v.BlockDeviceMappings {
@@ -485,8 +483,8 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 			}
 
 			// Check if the root block device exists.
-			if _, ok := blockDevices["/dev/sda1"]; !ok {
-				return fmt.Errorf("block device doesn't exist: /dev/sda1")
+			if _, ok := blockDevices["/dev/xvda"]; !ok {
+				return fmt.Errorf("block device doesn't exist: /dev/xvda")
 			}
 
 			// Check if the secondary block device exists.
@@ -511,12 +509,11 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 	rootVolumeSize := "11"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		IDRefreshName:       resourceName,
-		IDRefreshIgnore:     []string{"ephemeral_block_device"},
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:        func() { testAccPreCheck(t) },
+		IDRefreshName:   resourceName,
+		IDRefreshIgnore: []string{"ephemeral_block_device"},
+		Providers:       testAccProviders,
+		CheckDestroy:    testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEc2InstanceConfigBlockDevices(rootVolumeSize),
@@ -527,22 +524,36 @@ func TestAccAWSInstance_blockDevices(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", "gp2"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.device_name", "/dev/sdb"),
-					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2576023345.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.device_name", "/dev/sdc"),
-					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2554893574.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_type", "io1"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.iops", "100"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.device_name", "/dev/sdd"),
-					resource.TestMatchResourceAttr(resourceName, "ebs_block_device.2634515331.volume_id", regexp.MustCompile("vol-[a-z0-9]+")),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.encrypted", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"device_name": "/dev/sdb",
+						"volume_size": "9",
+						"volume_type": "gp2",
+					}),
+					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]*regexp.Regexp{
+						"volume_id": regexp.MustCompile("vol-[a-z0-9]+"),
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"device_name": "/dev/sdc",
+						"volume_size": "10",
+						"volume_type": "io1",
+						"iops":        "100",
+					}),
+					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]*regexp.Regexp{
+						"volume_id": regexp.MustCompile("vol-[a-z0-9]+"),
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"device_name": "/dev/sdd",
+						"encrypted":   "true",
+						"volume_size": "12",
+					}),
+					tfawsresource.TestMatchTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]*regexp.Regexp{
+						"volume_id": regexp.MustCompile("vol-[a-z0-9]+"),
+					}),
 					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.1692014856.device_name", "/dev/sde"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.1692014856.virtual_name", "ephemeral0"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ephemeral_block_device.*", map[string]string{
+						"device_name":  "/dev/sde",
+						"virtual_name": "ephemeral0",
+					}),
 					testCheck(),
 				),
 			},
@@ -567,23 +578,11 @@ func TestAccAWSInstance_rootInstanceStore(t *testing.T) {
 		CheckDestroy:  testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-					resource "aws_instance" "test" {
-						# us-west-2
-						# Amazon Linux HVM Instance Store 64-bit (2016.09.0)
-						# https://aws.amazon.com/amazon-linux-ami
-						ami = "ami-44c36524"
-
-						# Only certain instance types support ephemeral root instance stores.
-						# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
-						instance_type = "m3.medium"
-					}`,
+				Config: testAccInstanceConfigRootInstanceStore(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttr(resourceName, "ami", "ami-44c36524"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_optimized", "false"),
-					resource.TestCheckResourceAttr(resourceName, "instance_type", "m3.medium"),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "0"),
 				),
 			},
@@ -602,7 +601,6 @@ func TestAccAWSInstance_noAMIEphemeralDevices(t *testing.T) {
 
 	testCheck := func() resource.TestCheckFunc {
 		return func(*terraform.State) error {
-
 			// Map out the block devices by name, which should be unique.
 			blockDevices := make(map[string]*ec2.InstanceBlockDeviceMapping)
 			for _, blockDevice := range v.BlockDeviceMappings {
@@ -628,48 +626,30 @@ func TestAccAWSInstance_noAMIEphemeralDevices(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		IDRefreshName:       resourceName,
-		IDRefreshIgnore:     []string{"ephemeral_block_device"},
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:        func() { testAccPreCheck(t) },
+		IDRefreshName:   resourceName,
+		IDRefreshIgnore: []string{"ephemeral_block_device"},
+		Providers:       testAccProviders,
+		CheckDestroy:    testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-					resource "aws_instance" "test" {
-						# us-west-2
-						ami = "ami-01f05461"  // This AMI (Ubuntu) contains two ephemerals
-
-						instance_type = "c3.large"
-
-						root_block_device {
-							volume_type = "gp2"
-							volume_size = 11
-						}
-						ephemeral_block_device {
-							device_name = "/dev/sdb"
-							no_device = true
-						}
-						ephemeral_block_device {
-							device_name = "/dev/sdc"
-							no_device = true
-						}
-					}`,
+				Config: testAccInstanceConfigNoAMIEphemeralDevices(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
-					resource.TestCheckResourceAttr(resourceName, "ami", "ami-01f05461"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_optimized", "false"),
-					resource.TestCheckResourceAttr(resourceName, "instance_type", "c3.large"),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", "11"),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", "gp2"),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.172787947.device_name", "/dev/sdb"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.172787947.no_device", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.3336996981.device_name", "/dev/sdc"),
-					resource.TestCheckResourceAttr(resourceName, "ephemeral_block_device.3336996981.no_device", "true"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ephemeral_block_device.*", map[string]string{
+						"device_name": "/dev/sdb",
+						"no_device":   "true",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ephemeral_block_device.*", map[string]string{
+						"device_name": "/dev/sdc",
+						"no_device":   "true",
+					}),
 					testCheck(),
 				),
 			},
@@ -820,30 +800,21 @@ func TestAccAWSInstance_vpc(t *testing.T) {
 
 func TestAccAWSInstance_outpost(t *testing.T) {
 	var v ec2.Instance
+	outpostDataSourceName := "data.aws_outposts_outpost.test"
 	resourceName := "aws_instance.test"
 
-	outpostArn := os.Getenv("AWS_OUTPOST_ARN")
-	if outpostArn == "" {
-		t.Skip(
-			"Environment variable AWS_OUTPOST_ARN is not set. " +
-				"This environment variable must be set to the ARN of " +
-				"a deployed Outpost to enable this test.")
-	}
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:        func() { testAccPreCheck(t) },
+		PreCheck:        func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"associate_public_ip_address"},
 		Providers:       testAccProviders,
 		CheckDestroy:    testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigOutpost(outpostArn),
+				Config: testAccInstanceConfigOutpost(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(
-						resourceName, &v),
-					resource.TestCheckResourceAttr(
-						resourceName, "outpost_arn", outpostArn),
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(resourceName, "outpost_arn", outpostDataSourceName, "arn"),
 				),
 			},
 			{
@@ -960,7 +931,7 @@ func TestAccAWSInstance_multipleRegions(t *testing.T) {
 	var providers []*schema.Provider
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t); testAccPartitionPreCheck(t, "aws") },
 		ProviderFactories: testAccProviderFactories(&providers),
 		CheckDestroy:      testAccCheckWithProviders(testAccCheckInstanceDestroyWithProvider, &providers),
 		Steps: []resource.TestStep{
@@ -1077,7 +1048,7 @@ func TestAccAWSInstance_tags(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckInstanceConfigTags,
+				Config: testAccCheckInstanceConfigTags(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -1090,7 +1061,7 @@ func TestAccAWSInstance_tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccCheckInstanceConfigTagsUpdate,
+				Config: testAccCheckInstanceConfigTagsUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -1111,7 +1082,7 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckInstanceConfigNoVolumeTags,
+				Config: testAccCheckInstanceConfigNoVolumeTags(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckNoResourceAttr(resourceName, "volume_tags"),
@@ -1124,7 +1095,7 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"ephemeral_block_device"},
 			},
 			{
-				Config: testAccCheckInstanceConfigWithVolumeTags,
+				Config: testAccCheckInstanceConfigWithVolumeTags(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "volume_tags.%", "1"),
@@ -1132,7 +1103,7 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckInstanceConfigWithVolumeTagsUpdate,
+				Config: testAccCheckInstanceConfigWithVolumeTagsUpdate(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "volume_tags.%", "2"),
@@ -1141,7 +1112,7 @@ func TestAccAWSInstance_volumeTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckInstanceConfigNoVolumeTags,
+				Config: testAccCheckInstanceConfigNoVolumeTags(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 					resource.TestCheckNoResourceAttr(resourceName, "volume_tags"),
@@ -1161,7 +1132,7 @@ func TestAccAWSInstance_volumeTagsComputed(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckInstanceConfigWithAttachedVolume,
+				Config: testAccCheckInstanceConfigWithAttachedVolume(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &v),
 				),
@@ -1424,10 +1395,10 @@ func TestAccAWSInstance_keyPairCheck(t *testing.T) {
 func TestAccAWSInstance_rootBlockDeviceMismatch(t *testing.T) {
 	var v ec2.Instance
 	resourceName := "aws_instance.test"
-	rName := fmt.Sprintf("tf-testacc-instance-%s", acctest.RandStringFromCharSet(12, acctest.CharSetAlphaNum))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccRegionPreCheck(t, "us-west-2") },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
@@ -1495,6 +1466,7 @@ func TestAccAWSInstance_changeInstanceType(t *testing.T) {
 	var before ec2.Instance
 	var after ec2.Instance
 	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -1502,7 +1474,7 @@ func TestAccAWSInstance_changeInstanceType(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfigWithSmallInstanceType,
+				Config: testAccInstanceConfigWithSmallInstanceType(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &before),
 				),
@@ -1513,7 +1485,7 @@ func TestAccAWSInstance_changeInstanceType(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccInstanceConfigUpdateInstanceType,
+				Config: testAccInstanceConfigUpdateInstanceType(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &after),
 					testAccCheckInstanceNotRecreated(t, &before, &after),
@@ -1627,7 +1599,7 @@ func TestAccAWSInstance_EbsRootDevice_ModifyType(t *testing.T) {
 	})
 }
 
-func TestAccAWSInstance_EbsRootDevice_ModifyIOPS(t *testing.T) {
+func TestAccAWSInstance_EbsRootDevice_ModifyIOPS_Io1(t *testing.T) {
 	var original ec2.Instance
 	var updated ec2.Instance
 	resourceName := "aws_instance.test"
@@ -1635,6 +1607,48 @@ func TestAccAWSInstance_EbsRootDevice_ModifyIOPS(t *testing.T) {
 	volumeSize := "30"
 	deleteOnTermination := "true"
 	volumeType := "io1"
+
+	originalIOPS := "100"
+	updatedIOPS := "200"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEc2InstanceRootBlockDeviceWithIOPS(volumeSize, deleteOnTermination, volumeType, originalIOPS),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &original),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", originalIOPS),
+				),
+			},
+			{
+				Config: testAccAwsEc2InstanceRootBlockDeviceWithIOPS(volumeSize, deleteOnTermination, volumeType, updatedIOPS),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &updated),
+					testAccCheckInstanceNotRecreated(t, &original, &updated),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", volumeSize),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", deleteOnTermination),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_type", volumeType),
+					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.iops", updatedIOPS),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSInstance_EbsRootDevice_ModifyIOPS_Io2(t *testing.T) {
+	var original ec2.Instance
+	var updated ec2.Instance
+	resourceName := "aws_instance.test"
+
+	volumeSize := "30"
+	deleteOnTermination := "true"
+	volumeType := "io2"
 
 	originalIOPS := "100"
 	updatedIOPS := "200"
@@ -1764,19 +1778,24 @@ func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifySize(t *testing
 	updatedRootVolumeSize := "14"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(originalRootVolumeSize, deleteOnTermination),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", originalRootVolumeSize),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "9",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "10",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "12",
+					}),
 				),
 			},
 			{
@@ -1785,9 +1804,15 @@ func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifySize(t *testing
 					testAccCheckInstanceExists(resourceName, &after),
 					testAccCheckInstanceNotRecreated(t, &before, &after),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", updatedRootVolumeSize),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "9",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "10",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "12",
+					}),
 				),
 			},
 		},
@@ -1805,10 +1830,9 @@ func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifyDeleteOnTermina
 	updatedDeleteOnTermination := "true"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(rootVolumeSize, originalDeleteOnTermination),
@@ -1816,9 +1840,15 @@ func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifyDeleteOnTermina
 					testAccCheckInstanceExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", originalDeleteOnTermination),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "9",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "10",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "12",
+					}),
 				),
 			},
 			{
@@ -1828,9 +1858,15 @@ func TestAccAWSInstance_EbsRootDevice_MultipleBlockDevices_ModifyDeleteOnTermina
 					testAccCheckInstanceNotRecreated(t, &before, &after),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.volume_size", rootVolumeSize),
 					resource.TestCheckResourceAttr(resourceName, "root_block_device.0.delete_on_termination", updatedDeleteOnTermination),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "9"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2634515331.volume_size", "12"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "9",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "10",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"volume_size": "12",
+					}),
 				),
 			},
 		},
@@ -1844,34 +1880,39 @@ func TestAccAWSInstance_EbsRootDevice_MultipleDynamicEBSBlockDevices(t *testing.
 	resourceName := "aws_instance.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckInstanceDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEc2InstanceConfigDynamicEBSBlockDevices,
+				Config: testAccAwsEc2InstanceConfigDynamicEBSBlockDevices(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists(resourceName, &instance),
 					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.delete_on_termination", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.device_name", "/dev/sdc"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.encrypted", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.iops", "100"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2554893574.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.delete_on_termination", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.device_name", "/dev/sdb"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.encrypted", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.iops", "100"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2576023345.volume_type", "gp2"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.delete_on_termination", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.device_name", "/dev/sda"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.encrypted", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.iops", "100"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.volume_size", "10"),
-					resource.TestCheckResourceAttr(resourceName, "ebs_block_device.2613854568.volume_type", "gp2"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"delete_on_termination": "true",
+						"device_name":           "/dev/sdc",
+						"encrypted":             "false",
+						"iops":                  "100",
+						"volume_size":           "10",
+						"volume_type":           "gp2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"delete_on_termination": "true",
+						"device_name":           "/dev/sdb",
+						"encrypted":             "false",
+						"iops":                  "100",
+						"volume_size":           "10",
+						"volume_type":           "gp2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ebs_block_device.*", map[string]string{
+						"delete_on_termination": "true",
+						"device_name":           "/dev/sda",
+						"encrypted":             "false",
+						"iops":                  "100",
+						"volume_size":           "10",
+						"volume_type":           "gp2",
+					}),
 				),
 			},
 			{
@@ -2014,6 +2055,196 @@ func TestAccAWSInstance_addSecurityGroupNetworkInterface(t *testing.T) {
 					testAccCheckInstanceExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "vpc_security_group_ids.#", "2"),
 				),
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7063
+func TestAccAWSInstance_NewNetworkInterface_PublicIPAndSecondaryPrivateIPs(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigPublicAndPrivateSecondaryIPs(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "associate_public_ip_address", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigPublicAndPrivateSecondaryIPs(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "associate_public_ip_address", "false"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip", ""),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7063
+func TestAccAWSInstance_NewNetworkInterface_EmptyPrivateIPAndSecondaryPrivateIPs(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	secondaryIPs := fmt.Sprintf("%q, %q", "10.1.1.42", "10.1.1.43")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, "", secondaryIPs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7063
+func TestAccAWSInstance_NewNetworkInterface_EmptyPrivateIPAndSecondaryPrivateIPsUpdate(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	secondaryIP := fmt.Sprintf("%q", "10.1.1.42")
+	secondaryIPs := fmt.Sprintf("%s, %q", secondaryIP, "10.1.1.43")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, "", secondaryIPs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, "", ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "0"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, "", secondaryIP),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7063
+func TestAccAWSInstance_NewNetworkInterface_PrivateIPAndSecondaryPrivateIPs(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	privateIP := "10.1.1.42"
+	secondaryIPs := fmt.Sprintf("%q, %q", "10.1.1.43", "10.1.1.44")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, privateIP, secondaryIPs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "private_ip", privateIP),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7063
+func TestAccAWSInstance_NewNetworkInterface_PrivateIPAndSecondaryPrivateIPsUpdate(t *testing.T) {
+	var v ec2.Instance
+	resourceName := "aws_instance.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	privateIP := "10.1.1.42"
+	secondaryIP := fmt.Sprintf("%q", "10.1.1.43")
+	secondaryIPs := fmt.Sprintf("%s, %q", secondaryIP, "10.1.1.44")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, privateIP, secondaryIPs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "private_ip", privateIP),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "2"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, privateIP, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip"),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "0"),
+				),
+			},
+			{
+				Config: testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, privateIP, secondaryIP),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckInstanceExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "private_ip", privateIP),
+					resource.TestCheckResourceAttr(resourceName, "secondary_private_ips.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -2751,8 +2982,7 @@ func TestAccAWSInstance_creditSpecification_unlimitedCpuCredits_t2Tot3Taint(t *t
 }
 
 func TestAccAWSInstance_disappears(t *testing.T) {
-	var conf ec2.Instance
-	rInt := acctest.RandInt()
+	var v ec2.Instance
 	resourceName := "aws_instance.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -2761,10 +2991,10 @@ func TestAccAWSInstance_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInstanceConfig(rInt),
+				Config: testAccInstanceConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckInstanceExists(resourceName, &conf),
-					testAccCheckInstanceDisappears(&conf),
+					testAccCheckInstanceExists(resourceName, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsInstance(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -2874,11 +3104,7 @@ func TestAccAWSInstance_metadataOptions(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		// No subnet_id specified requires default VPC or EC2-Classic.
-		PreCheck: func() {
-			testAccPreCheck(t)
-			testAccPreCheckHasDefaultVpcOrEc2Classic(t)
-		},
+		PreCheck:      func() { testAccPreCheck(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckInstanceDestroy,
@@ -2995,22 +3221,6 @@ func testAccCheckInstanceExistsWithProvider(n string, i *ec2.Instance, providerF
 	}
 }
 
-func testAccCheckInstanceDisappears(conf *ec2.Instance) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		params := &ec2.TerminateInstancesInput{
-			InstanceIds: []*string{conf.InstanceId},
-		}
-
-		if _, err := conn.TerminateInstances(params); err != nil {
-			return err
-		}
-
-		return waitForInstanceDeletion(conn, *conf.InstanceId, 10*time.Minute)
-	}
-}
-
 func testAccCheckStopInstance(instance *ec2.Instance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
@@ -3090,19 +3300,42 @@ func driftTags(instance *ec2.Instance) resource.TestCheckFunc {
 	}
 }
 
-func testAccInstanceConfigInDefaultVpcBySgName(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
-data "aws_availability_zones" "current" {
-  # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+func testAccAvailableAZsNoOptInDefaultExcludeConfig() string {
+	// Exclude usw2-az4 (us-west-2d) as it has limited instance types.
+	return testAccAvailableAZsNoOptInExcludeConfig("usw2-az4", "usgw1-az2")
+}
+
+func testAccAvailableAZsNoOptInExcludeConfig(excludeZoneIds ...string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  exclude_zone_ids = ["%[1]v"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
     values = ["opt-in-not-required"]
   }
 }
+`, strings.Join(excludeZoneIds, "\", \""))
+}
 
+func testAccAvailableAZsNoOptInConfig() string {
+	return `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+`
+}
+
+func testAccInstanceConfigInDefaultVpcBySgName(rName string) string {
+	return testAccAvailableAZsNoOptInDefaultExcludeConfig() +
+		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
+		fmt.Sprintf(`
 data "aws_vpc" "default" {
   default = true
 }
@@ -3110,31 +3343,22 @@ data "aws_vpc" "default" {
 resource "aws_security_group" "test" {
   name        = %[1]q
   description = %[1]q
-  vpc_id      = "${data.aws_vpc.default.id}"
+  vpc_id      = data.aws_vpc.default.id
 }
 
 resource "aws_instance" "test" {
-  ami               = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami               = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type     = "t2.micro"
-  security_groups   = ["${aws_security_group.test.name}"]
-  availability_zone = "${data.aws_availability_zones.current.names[0]}"
+  security_groups   = [aws_security_group.test.name]
+  availability_zone = data.aws_availability_zones.available.names[0]
 }
 `, rName)
 }
 
 func testAccInstanceConfigInDefaultVpcBySgId(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
-data "aws_availability_zones" "current" {
-  # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInDefaultExcludeConfig() +
+		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
+		fmt.Sprintf(`
 data "aws_vpc" "default" {
   default = true
 }
@@ -3142,38 +3366,22 @@ data "aws_vpc" "default" {
 resource "aws_security_group" "test" {
   name        = %[1]q
   description = %[1]q
-  vpc_id      = "${data.aws_vpc.default.id}"
+  vpc_id      = data.aws_vpc.default.id
 }
 
 resource "aws_instance" "test" {
-  ami                    = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type          = "t2.micro"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  availability_zone      = "${data.aws_availability_zones.current.names[0]}"
+  vpc_security_group_ids = [aws_security_group.test.id]
+  availability_zone      = data.aws_availability_zones.available.names[0]
 }
 `, rName)
 }
 
 func testAccInstanceConfigInEc2Classic(rInt int) string {
-	return fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 provider "aws" {
   region = "us-east-1"
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/ubuntu-trusty-14.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["paravirtual"]
-  }
-
-  owners = ["099720109477"] # Canonical
 }
 
 resource "aws_security_group" "sg" {
@@ -3182,144 +3390,187 @@ resource "aws_security_group" "sg" {
 }
 
 resource "aws_instance" "test" {
-  ami             = "${data.aws_ami.ubuntu.id}"
+  ami             = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type   = "m3.medium"
-  security_groups = ["${aws_security_group.sg.name}"]
+  security_groups = [aws_security_group.sg.name]
 }
-`, rInt)
-}
-
-func testAccInstanceConfig_pre(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_security_group" "tf_test_test" {
-  name        = "tf_test_%d"
-  description = "test"
-
-  ingress {
-    protocol    = "icmp"
-    from_port   = -1
-    to_port     = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-`, rInt)
+`, rInt))
 }
 
-func testAccInstanceConfig(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_security_group" "tf_test_test" {
-  name        = "tf_test_%d"
-  description = "test"
+func testAccInstanceConfigBasic() string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-classic-platform.html#ec2-classic-instance-types
+		testAccAvailableEc2InstanceTypeForRegion("t1.micro", "m1.small", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  # Explicitly no tags so as to test creation without tags.
+}
+`))
+}
 
-  ingress {
-    protocol    = "icmp"
-    from_port   = -1
-    to_port     = -1
-    cidr_blocks = ["0.0.0.0/0"]
+func testAccInstanceConfigAtLeastOneOtherEbsVolume(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig(), testAccAwsInstanceVpcConfig(rName, false), fmt.Sprintf(`
+# Ensure that there is at least 1 EBS volume in the current region.
+# See https://github.com/hashicorp/terraform/issues/1249.
+resource "aws_ebs_volume" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 5
+
+  tags = {
+    Name = %[1]q
   }
 }
 
 resource "aws_instance" "test" {
-  # us-west-2
-  ami               = "ami-4fccb37f"
-  availability_zone = "us-west-2a"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-instance-store.id
+  instance_type = "m1.small"
+  subnet_id     = aws_subnet.test.id
+  user_data     = "foo:-with-character's"
 
-  instance_type   = "m1.small"
-  security_groups = ["${aws_security_group.tf_test_test.name}"]
-  user_data       = "foo:-with-character's"
-}
-`, rInt)
-}
-
-func testAccInstanceConfigWithUserDataBase64(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_security_group" "tf_test_test" {
-  name        = "tf_test_%d"
-  description = "test"
-
-  ingress {
-    protocol    = "icmp"
-    from_port   = -1
-    to_port     = -1
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = %[1]q
   }
+
+  depends_on = [aws_ebs_volume.test]
+}
+`, rName))
 }
 
+func testAccInstanceConfigWithUserDataBase64(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), testAccAwsInstanceVpcConfig(rName, false), fmt.Sprintf(`
 resource "aws_instance" "test" {
-  # us-west-2
-  ami               = "ami-4fccb37f"
-  availability_zone = "us-west-2a"
+  ami       = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  subnet_id = aws_subnet.test.id
 
   instance_type    = "m1.small"
-  security_groups  = ["${aws_security_group.tf_test_test.name}"]
-  user_data_base64 = "${base64encode("hello world")}"
+  user_data_base64 = base64encode("hello world")
 }
-`, rInt)
+`))
 }
 
-const testAccInstanceConfigWithSmallInstanceType = `
+func testAccInstanceConfigWithSmallInstanceType(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), testAccAwsInstanceVpcConfig(rName, false), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	# us-west-2
-	ami = "ami-55a7ea65"
-	availability_zone = "us-west-2a"
+  ami       = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  subnet_id = aws_subnet.test.id
 
-	instance_type = "m3.medium"
+  instance_type = "m3.medium"
 
-	tags = {
-	    Name = "tf-acctest"
-	}
+  tags = {
+    Name = "tf-acctest"
+  }
 }
-`
+`))
+}
 
-const testAccInstanceConfigUpdateInstanceType = `
+func testAccInstanceConfigUpdateInstanceType(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), testAccAwsInstanceVpcConfig(rName, false), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	# us-west-2
-	ami = "ami-55a7ea65"
-	availability_zone = "us-west-2a"
+  ami       = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  subnet_id = aws_subnet.test.id
 
-	instance_type = "m3.large"
+  instance_type = "m3.large"
 
-	tags = {
-	    Name = "tf-acctest"
-	}
+  tags = {
+    Name = "tf-acctest"
+  }
 }
-`
+`))
+}
 
-const testAccInstanceGP2IopsDevice = `
+func testAccInstanceGP2IopsDevice() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	# us-west-2
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
-	# In order to attach an encrypted volume to an instance you need to have an
-	# m3.medium or larger. See "Supported Instance Types" in:
-	# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
-	instance_type = "m3.medium"
+  # In order to attach an encrypted volume to an instance you need to have an
+  # m3.medium or larger. See "Supported Instance Types" in:
+  # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
-	}
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+  }
 }
-`
+`))
+}
 
-const testAccInstanceGP2WithIopsValue = `
+func testAccInstanceGP2WithIopsValue() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	# us-west-2
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
-	# In order to attach an encrypted volume to an instance you need to have an
-	# m3.medium or larger. See "Supported Instance Types" in:
-	# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
-	instance_type = "m3.medium"
+  # In order to attach an encrypted volume to an instance you need to have an
+  # m3.medium or larger. See "Supported Instance Types" in:
+  # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
-        # configured explicitly
-		iops        = 10
-	}
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+    # configured explicitly
+    iops = 10
+  }
 }
-`
+`))
+}
+
+func testAccInstanceConfigRootInstanceStore() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig(), fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami = data.aws_ami.amzn-ami-minimal-hvm-instance-store.id
+
+  # Only certain instance types support ephemeral root instance stores.
+  # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html
+  instance_type = "m3.medium"
+}
+`))
+}
+
+func testAccInstanceConfigNoAMIEphemeralDevices() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig(), fmt.Sprintf(`
+# This AMI has 2 ephemeral block devices.
+data "aws_ami" "test" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-eoan-19.10-amd64-server-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+}
+
+resource "aws_instance" "test" {
+  ami = data.aws_ami.test.id
+
+  instance_type = "c3.large"
+
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+  }
+
+  ephemeral_block_device {
+    device_name = "/dev/sdb"
+    no_device   = true
+  }
+
+  ephemeral_block_device {
+    device_name = "/dev/sdc"
+    no_device   = true
+  }
+}
+`))
+}
 
 func testAccAwsEc2InstanceEbsRootDeviceBasic() string {
 	return composeConfig(testAccAwsEc2InstanceAmiWithEbsRootVolume, `
@@ -3365,10 +3616,12 @@ data "aws_ami" "ami" {
     name   = "name"
     values = ["amzn2-ami-*"]
   }
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
   }
+
   filter {
     name   = "architecture"
     values = ["x86_64"]
@@ -3384,115 +3637,108 @@ func testAccAwsEc2InstanceConfigBlockDevicesWithDeleteOnTerminate(size, delete s
 	if delete == "" {
 		delete = "null"
 	}
-	return fmt.Sprintf(`
+
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	# us-west-2
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
-	# In order to attach an encrypted volume to an instance you need to have an
-	# m3.medium or larger. See "Supported Instance Types" in:
-	# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
-	instance_type = "m3.medium"
+  # In order to attach an encrypted volume to an instance you need to have an
+  # m3.medium or larger. See "Supported Instance Types" in:
+  # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type           = "gp2"
-		volume_size           = %[1]s
-		delete_on_termination = %[2]s
-	}
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = %[1]s
+    delete_on_termination = %[2]s
+  }
 
-	ebs_block_device {
-		device_name = "/dev/sdb"
-		volume_size = 9
-	}
+  ebs_block_device {
+    device_name = "/dev/sdb"
+    volume_size = 9
+  }
 
-	ebs_block_device {
-		device_name = "/dev/sdc"
-		volume_size = 10
-		volume_type = "io1"
-		iops = 100
-	}
+  ebs_block_device {
+    device_name = "/dev/sdc"
+    volume_size = 10
+    volume_type = "io1"
+    iops        = 100
+  }
 
-	# Encrypted ebs block device
-	ebs_block_device {
-		device_name = "/dev/sdd"
-		volume_size = 12
-		encrypted   = true
-	}
+  # Encrypted ebs block device
 
-	ephemeral_block_device {
-		device_name = "/dev/sde"
-		virtual_name = "ephemeral0"
-	}
+  ebs_block_device {
+    device_name = "/dev/sdd"
+    volume_size = 12
+    encrypted   = true
+  }
+
+  ephemeral_block_device {
+    device_name  = "/dev/sde"
+    virtual_name = "ephemeral0"
+  }
 }
-`, size, delete)
+`, size, delete))
 }
 
 func testAccInstanceConfigSourceDestEnable(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m1.small"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfigSourceDestDisable(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami               = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami               = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type     = "m1.small"
-  subnet_id         = "${aws_subnet.test.id}"
+  subnet_id         = aws_subnet.test.id
   source_dest_check = false
 }
-`)
+`
 }
 
 func testAccInstanceConfigDisableAPITermination(rName string, val bool) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                     = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                     = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type           = "m1.small"
-  subnet_id               = "${aws_subnet.test.id}"
+  subnet_id               = aws_subnet.test.id
   disable_api_termination = %[1]t
 }
 `, val)
 }
 
 func testAccInstanceConfigVPC(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "m1.small"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
   tenancy                     = "dedicated"
   # pre-encoded base64 data
-  user_data                   = "3dc39dda39be1205215e776bad998da361a5955d"
+  user_data = "3dc39dda39be1205215e776bad998da361a5955d"
 }
-`)
-}
-
-func testAccInstanceConfigOutpost(outpostArn string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceOutpostConfig(outpostArn) + fmt.Sprintf(`
-resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
-  instance_type               = "m5.large"
-  subnet_id                   = "${aws_subnet.test.id}"
-
-  root_block_device {
-    volume_type = "gp2"
-    volume_size = 8
-  }
-}
-`)
+`
 }
 
-func testAccAwsInstanceOutpostConfig(outpostArn string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "current" {
-  # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
-  blacklisted_zone_ids = ["usw2-az4"]
+func testAccInstanceConfigOutpost() string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_outposts_outpost_instance_types" "test" {
+  arn = data.aws_outposts_outpost.test.arn
 }
 
 resource "aws_vpc" "test" {
@@ -3500,12 +3746,23 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  cidr_block              = "10.1.1.0/24"
-  vpc_id                  = "${aws_vpc.test.id}"
-  availability_zone       = "${data.aws_availability_zones.current.names[0]}"
-  outpost_arn             = "%s"
+  availability_zone = data.aws_outposts_outpost.test.availability_zone
+  cidr_block        = "10.1.1.0/24"
+  outpost_arn       = data.aws_outposts_outpost.test.arn
+  vpc_id            = aws_vpc.test.id
 }
-`, outpostArn)
+
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = tolist(data.aws_outposts_outpost_instance_types.test.instance_types)[0]
+  subnet_id     = aws_subnet.test.id
+
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 8
+  }
+}
+`)
 }
 
 func testAccInstanceConfigPlacementGroup(rName string) string {
@@ -3517,11 +3774,11 @@ resource "aws_placement_group" "test" {
 
 # Limitations: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#concepts-placement-groups
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "c3.large"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
-  placement_group             = "${aws_placement_group.test.name}"
+  placement_group             = aws_placement_group.test.name
 
   # pre-encoded base64 data
   user_data = "3dc39dda39be1205215e776bad998da361a5955d"
@@ -3532,9 +3789,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigIpv6ErrorConfig(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcIpv6Config(rName) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type      = "t2.micro"
-  subnet_id          = "${aws_subnet.test.id}"
+  subnet_id          = aws_subnet.test.id
   ipv6_addresses     = ["2600:1f14:bb2:e501::10"]
   ipv6_address_count = 1
 
@@ -3548,9 +3805,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigIpv6Support(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcIpv6Config(rName) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type      = "t2.micro"
-  subnet_id          = "${aws_subnet.test.id}"
+  subnet_id          = aws_subnet.test.id
   ipv6_address_count = 1
 
   tags = {
@@ -3563,9 +3820,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigIpv6SupportWithIpv4(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcIpv6Config(rName) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
   ipv6_address_count          = 1
 
@@ -3577,48 +3834,49 @@ resource "aws_instance" "test" {
 }
 
 const testAccInstanceConfigMultipleRegions = `
-provider "aws" {
-	alias = "west"
-	region = "us-west-2"
+provider "awswest" {
+  region = "us-west-2"
 }
 
-provider "aws" {
-	alias = "east"
-	region = "us-east-1"
+provider "awseast" {
+  region = "us-east-1"
 }
 resource "aws_instance" "test" {
-	# us-west-2
-	provider = "aws.west"
-	ami = "ami-4fccb37f"
-	instance_type = "m1.small"
+  # us-west-2
+  provider      = "awswest"
+  ami           = "ami-4fccb37f"
+  instance_type = "m1.small"
 }
 
 resource "aws_instance" "test2" {
-	# us-east-1
-	provider = "aws.east"
-	ami = "ami-8c6ea9e4"
-	instance_type = "m1.small"
+  # us-east-1
+  provider      = "awseast"
+  ami           = "ami-8c6ea9e4"
+  instance_type = "m1.small"
 }
 `
 
-const testAccCheckInstanceConfigTags = `
+func testAccCheckInstanceConfigTags() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	ami = "ami-4fccb37f"
-	instance_type = "m1.small"
-	tags = {
-		test = "test2"
-	}
-}
-`
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
 
-const testAccInstanceConfigEbsBlockDeviceKmsKeyArn = `
+  tags = {
+    test = "test2"
+  }
+}
+`))
+}
+
+func testAccInstanceConfigEbsBlockDeviceKmsKeyArn() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 }
 
 resource "aws_instance" "test" {
-  # us-west-2
-  ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
   # In order to attach an encrypted volume to an instance you need to have an
   # m3.medium or larger. See "Supported Instance Types" in:
@@ -3631,80 +3889,41 @@ resource "aws_instance" "test" {
   }
 
   # Encrypted ebs block device
+
   ebs_block_device {
     device_name = "/dev/sdd"
     encrypted   = true
-    kms_key_id  = "${aws_kms_key.test.arn}"
+    kms_key_id  = aws_kms_key.test.arn
     volume_size = 12
   }
 }
-`
-
-const testAccInstanceConfigRootBlockDeviceKmsKeyArn = `
-resource "aws_vpc" "test" {
-  cidr_block = "10.1.0.0/16"
-
-  tags = {
-    Name = "terraform-testacc-instance-source-dest-enable"
-  }
+`))
 }
 
-resource "aws_subnet" "test" {
-  cidr_block = "10.1.1.0/24"
-  vpc_id = "${aws_vpc.test.id}"
-  availability_zone = "us-west-2a"
-
-  tags = {
-    Name = "tf-acc-instance-source-dest-enable"
-  }
-}
-
+func testAccInstanceConfigRootBlockDeviceKmsKeyArn(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), testAccAwsInstanceVpcConfig(rName, false), fmt.Sprintf(`
 resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 }
 
 resource "aws_instance" "test" {
-  ami           = "ami-08692d171e3cf02d6"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t3.nano"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   root_block_device {
     delete_on_termination = true
     encrypted             = true
-    kms_key_id            = "${aws_kms_key.test.arn}"
+    kms_key_id            = aws_kms_key.test.arn
   }
 }
-`
-
-const testAccCheckInstanceConfigWithAttachedVolume = `
-data "aws_ami" "debian_jessie_latest" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["debian-jessie-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  owners = ["379101102735"] # Debian
+`))
 }
 
+func testAccCheckInstanceConfigWithAttachedVolume() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.debian_jessie_latest.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.medium"
 
   root_block_device {
@@ -3714,12 +3933,12 @@ resource "aws_instance" "test" {
   }
 
   tags = {
-    Name    = "test-terraform"
+    Name = "test-terraform"
   }
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = "10"
   type              = "gp2"
 
@@ -3730,141 +3949,192 @@ resource "aws_ebs_volume" "test" {
 
 resource "aws_volume_attachment" "test" {
   device_name = "/dev/xvdg"
-  volume_id   = "${aws_ebs_volume.test.id}"
-  instance_id = "${aws_instance.test.id}"
+  volume_id   = aws_ebs_volume.test.id
+  instance_id = aws_instance.test.id
 }
-`
+`))
+}
 
-const testAccCheckInstanceConfigNoVolumeTags = `
+func testAccCheckInstanceConfigNoVolumeTags() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
-	instance_type = "m3.medium"
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
-	}
-	ebs_block_device {
-		device_name = "/dev/sdb"
-		volume_size = 9
-	}
-	ebs_block_device {
-		device_name = "/dev/sdc"
-		volume_size = 10
-		volume_type = "io1"
-		iops = 100
-	}
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+  }
 
-	ebs_block_device {
-		device_name = "/dev/sdd"
-		volume_size = 12
-		encrypted = true
-	}
+  ebs_block_device {
+    device_name = "/dev/sdb"
+    volume_size = 9
+  }
 
-	ephemeral_block_device {
-		device_name = "/dev/sde"
-		virtual_name = "ephemeral0"
-	}
+  ebs_block_device {
+    device_name = "/dev/sdc"
+    volume_size = 10
+    volume_type = "io1"
+    iops        = 100
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdd"
+    volume_size = 12
+    encrypted   = true
+  }
+
+  ephemeral_block_device {
+    device_name  = "/dev/sde"
+    virtual_name = "ephemeral0"
+  }
 }
-`
+`))
+}
 
-const testAccCheckInstanceConfigWithVolumeTags = `
+var testAccCheckInstanceConfigEBSBlockDeviceInvalidIops = composeConfig(testAccAwsEc2InstanceAmiWithEbsRootVolume,
+	`
 resource "aws_instance" "test" {
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.ami.id
 
-	instance_type = "m3.medium"
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
-	}
-	ebs_block_device {
-		device_name = "/dev/sdb"
-		volume_size = 9
-	}
-	ebs_block_device {
-		device_name = "/dev/sdc"
-		volume_size = 10
-		volume_type = "io1"
-		iops = 100
-	}
-
-	ebs_block_device {
-		device_name = "/dev/sdd"
-		volume_size = 12
-		encrypted = true
-	}
-
-	ephemeral_block_device {
-		device_name = "/dev/sde"
-		virtual_name = "ephemeral0"
-	}
-
-	volume_tags = {
-		Name = "acceptance-test-volume-tag"
-	}
+  ebs_block_device {
+    device_name = "/dev/sdc"
+    volume_size = 10
+    volume_type = "gp2"
+    iops        = 100
+  }
 }
-`
+`)
 
-const testAccCheckInstanceConfigWithVolumeTagsUpdate = `
+func testAccCheckInstanceConfigWithVolumeTags() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	ami = "ami-55a7ea65"
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
 
-	instance_type = "m3.medium"
+  instance_type = "m3.medium"
 
-	root_block_device {
-		volume_type = "gp2"
-		volume_size = 11
-	}
-	ebs_block_device {
-		device_name = "/dev/sdb"
-		volume_size = 9
-	}
-	ebs_block_device {
-		device_name = "/dev/sdc"
-		volume_size = 10
-		volume_type = "io1"
-		iops = 100
-	}
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+  }
 
-	ebs_block_device {
-		device_name = "/dev/sdd"
-		volume_size = 12
-		encrypted = true
-	}
+  ebs_block_device {
+    device_name = "/dev/sdb"
+    volume_size = 9
+  }
 
-	ephemeral_block_device {
-		device_name = "/dev/sde"
-		virtual_name = "ephemeral0"
-	}
+  ebs_block_device {
+    device_name = "/dev/sdc"
+    volume_size = 10
+    volume_type = "io1"
+    iops        = 100
+  }
 
-	volume_tags = {
-		Name = "acceptance-test-volume-tag"
-		Environment = "dev"
-	}
+  ebs_block_device {
+    device_name = "/dev/sdd"
+    volume_size = 12
+    encrypted   = true
+  }
+
+  ephemeral_block_device {
+    device_name  = "/dev/sde"
+    virtual_name = "ephemeral0"
+  }
+
+  volume_tags = {
+    Name = "acceptance-test-volume-tag"
+  }
 }
-`
+`))
+}
 
-const testAccCheckInstanceConfigTagsUpdate = `
+func testAccCheckInstanceConfigWithVolumeTagsUpdate() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_instance" "test" {
-	ami = "ami-4fccb37f"
-	instance_type = "m1.small"
-	tags = {
-		test2 = "test3"
-	}
+  ami = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+
+  instance_type = "m3.medium"
+
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 11
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdb"
+    volume_size = 9
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdc"
+    volume_size = 10
+    volume_type = "io1"
+    iops        = 100
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdd"
+    volume_size = 12
+    encrypted   = true
+  }
+
+  ephemeral_block_device {
+    device_name  = "/dev/sde"
+    virtual_name = "ephemeral0"
+  }
+
+  volume_tags = {
+    Name        = "acceptance-test-volume-tag"
+    Environment = "dev"
+  }
 }
-`
+`))
+}
+
+func testAccCheckInstanceConfigTagsUpdate() string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+
+  tags = {
+    test2 = "test3"
+  }
+}
+`))
+}
 
 func testAccInstanceConfigWithoutInstanceProfile(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
 resource "aws_iam_role" "test" {
-  name               = %[1]q
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"ec2.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}"
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    }
+  ]
+}
+EOF
+
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m1.small"
 
   tags = {
@@ -3877,19 +4147,38 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigWithInstanceProfile(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
 resource "aws_iam_role" "test" {
-  name               = %[1]q
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":[\"ec2.amazonaws.com\"]},\"Action\":[\"sts:AssumeRole\"]}]}"
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": [
+          "ec2.amazonaws.com"
+        ]
+      },
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    }
+  ]
+}
+EOF
+
 }
 
 resource "aws_iam_instance_profile" "test" {
-  name  = %[1]q
-  roles = ["${aws_iam_role.test.name}"]
+  name = %[1]q
+  role = aws_iam_role.test.name
 }
 
 resource "aws_instance" "test" {
-  ami                  = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                  = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type        = "m1.small"
-  iam_instance_profile = "${aws_iam_instance_profile.test.name}"
+  iam_instance_profile = aws_iam_instance_profile.test.name
 
   tags = {
     Name = %[1]q
@@ -3899,101 +4188,101 @@ resource "aws_instance" "test" {
 }
 
 func testAccInstanceConfigPrivateIP(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
   private_ip    = "10.1.1.42"
 }
-`)
+`
 }
 
 func testAccInstanceConfigEmptyPrivateIP(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
   private_ip    = ""
 }
-`)
+`
 }
 
 func testAccInstanceConfigAssociatePublicIPAndPrivateIP(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
   private_ip                  = "10.1.1.42"
 }
-`)
+`
 }
 
 func testAccInstanceNetworkInstanceSecurityGroups(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
 		testAccAwsInstanceVpcConfig(rName, false) +
 		testAccAwsInstanceVpcSecurityGroupConfig(rName) +
-		fmt.Sprintf(`
+		`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t1.micro"
-  vpc_security_group_ids      = ["${aws_security_group.test.id}"]
-  subnet_id                   = "${aws_subnet.test.id}"
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
-  depends_on                  = ["aws_internet_gateway.test"]
+  depends_on                  = [aws_internet_gateway.test]
 }
 
 resource "aws_eip" "test" {
-  instance   = "${aws_instance.test.id}"
+  instance   = aws_instance.test.id
   vpc        = true
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 }
-`)
+`
 }
 
 func testAccInstanceNetworkInstanceVPCSecurityGroupIDs(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
 		testAccAwsInstanceVpcConfig(rName, false) +
 		testAccAwsInstanceVpcSecurityGroupConfig(rName) +
-		fmt.Sprintf(`
+		`
 resource "aws_instance" "test" {
-  ami                    = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type          = "t1.micro"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
-  depends_on             = ["aws_internet_gateway.test"]
+  vpc_security_group_ids = [aws_security_group.test.id]
+  subnet_id              = aws_subnet.test.id
+  depends_on             = [aws_internet_gateway.test]
 }
 
 resource "aws_eip" "test" {
-  instance   = "${aws_instance.test.id}"
+  instance   = aws_instance.test.id
   vpc        = true
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 }
-`)
+`
 }
 
 func testAccInstanceNetworkInstanceVPCRemoveSecurityGroupIDs(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() +
 		testAccAwsInstanceVpcConfig(rName, false) +
 		testAccAwsInstanceVpcSecurityGroupConfig(rName) +
-		fmt.Sprintf(`
+		`
 resource "aws_instance" "test" {
-  ami                    = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type          = "t1.micro"
   vpc_security_group_ids = []
-  subnet_id              = "${aws_subnet.test.id}"
-  depends_on             = ["aws_internet_gateway.test"]
+  subnet_id              = aws_subnet.test.id
+  depends_on             = [aws_internet_gateway.test]
 }
 
 resource "aws_eip" "test" {
-  instance   = "${aws_instance.test.id}"
+  instance   = aws_instance.test.id
   vpc        = true
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 }
-`)
+`
 }
 
 func testAccInstanceConfigKeyPair(rName string) string {
@@ -4004,9 +4293,9 @@ resource "aws_key_pair" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t1.micro"
-  key_name      = "${aws_key_pair.test.key_name}"
+  key_name      = aws_key_pair.test.key_name
 
   tags = {
     Name = %[1]q
@@ -4016,44 +4305,44 @@ resource "aws_instance" "test" {
 }
 
 func testAccInstanceConfigRootBlockDeviceMismatch(rName string) string {
-	return testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  // This is an AMI with RootDeviceName: "/dev/sda1"; actual root: "/dev/sda"
+  # This is an AMI in us-west-2 with RootDeviceName: "/dev/sda1"; actual root: "/dev/sda"
   ami           = "ami-ef5b69df"
   instance_type = "t1.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   root_block_device {
     volume_size = 13
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfigForceNewAndTagsDrift(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.nano"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfigForceNewAndTagsDrift_Update(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfigPrimaryNetworkInterface(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_network_interface" "test" {
-  subnet_id   = "${aws_subnet.test.id}"
+  subnet_id   = aws_subnet.test.id
   private_ips = ["10.1.1.42"]
 
   tags = {
@@ -4062,11 +4351,11 @@ resource "aws_network_interface" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = "${aws_network_interface.test.id}"
+    network_interface_id = aws_network_interface.test.id
     device_index         = 0
   }
 }
@@ -4076,7 +4365,7 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigPrimaryNetworkInterfaceSourceDestCheck(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_network_interface" "test" {
-  subnet_id         = "${aws_subnet.test.id}"
+  subnet_id         = aws_subnet.test.id
   private_ips       = ["10.1.1.42"]
   source_dest_check = false
 
@@ -4086,11 +4375,11 @@ resource "aws_network_interface" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = "${aws_network_interface.test.id}"
+    network_interface_id = aws_network_interface.test.id
     device_index         = 0
   }
 }
@@ -4100,7 +4389,7 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigAddSecondaryNetworkInterfaceBefore(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_network_interface" "primary" {
-  subnet_id   = "${aws_subnet.test.id}"
+  subnet_id   = aws_subnet.test.id
   private_ips = ["10.1.1.42"]
 
   tags = {
@@ -4109,7 +4398,7 @@ resource "aws_network_interface" "primary" {
 }
 
 resource "aws_network_interface" "secondary" {
-  subnet_id   = "${aws_subnet.test.id}"
+  subnet_id   = aws_subnet.test.id
   private_ips = ["10.1.1.43"]
 
   tags = {
@@ -4118,11 +4407,11 @@ resource "aws_network_interface" "secondary" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = "${aws_network_interface.primary.id}"
+    network_interface_id = aws_network_interface.primary.id
     device_index         = 0
   }
 }
@@ -4132,7 +4421,7 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigAddSecondaryNetworkInterfaceAfter(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_network_interface" "primary" {
-  subnet_id   = "${aws_subnet.test.id}"
+  subnet_id   = aws_subnet.test.id
   private_ips = ["10.1.1.42"]
 
   tags = {
@@ -4142,7 +4431,7 @@ resource "aws_network_interface" "primary" {
 
 // Attach previously created network interface, observe no state diff on instance resource
 resource "aws_network_interface" "secondary" {
-  subnet_id   = "${aws_subnet.test.id}"
+  subnet_id   = aws_subnet.test.id
   private_ips = ["10.1.1.43"]
 
   tags = {
@@ -4150,17 +4439,17 @@ resource "aws_network_interface" "secondary" {
   }
 
   attachment {
-    instance     = "${aws_instance.test.id}"
+    instance     = aws_instance.test.id
     device_index = 1
   }
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = "${aws_network_interface.primary.id}"
+    network_interface_id = aws_network_interface.primary.id
     device_index         = 0
   }
 }
@@ -4171,8 +4460,8 @@ func testAccInstanceConfigAddSecurityGroupBefore(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_subnet" "test2" {
   cidr_block        = "10.1.2.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.current.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = %[1]q
@@ -4180,26 +4469,26 @@ resource "aws_subnet" "test2" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
   description = "%[1]s_1"
   name        = "%[1]s_1"
 }
 
 resource "aws_security_group" "test2" {
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
   description = "%[1]s_2"
   name        = "%[1]s_2"
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   associate_public_ip_address = false
 
   vpc_security_group_ids = [
-    "${aws_security_group.test.id}",
+    aws_security_group.test.id,
   ]
 
   tags = {
@@ -4208,12 +4497,12 @@ resource "aws_instance" "test" {
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id       = "${aws_subnet.test.id}"
+  subnet_id       = aws_subnet.test.id
   private_ips     = ["10.1.1.42"]
-  security_groups = ["${aws_security_group.test.id}"]
+  security_groups = [aws_security_group.test.id]
 
   attachment {
-    instance     = "${aws_instance.test.id}"
+    instance     = aws_instance.test.id
     device_index = 1
   }
 
@@ -4228,8 +4517,8 @@ func testAccInstanceConfigAddSecurityGroupAfter(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_subnet" "test2" {
   cidr_block        = "10.1.2.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.current.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = %[1]q
@@ -4237,27 +4526,27 @@ resource "aws_subnet" "test2" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
   description = "%[1]s_1"
   name        = "%[1]s_1"
 }
 
 resource "aws_security_group" "test2" {
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
   description = "%[1]s_2"
   name        = "%[1]s_2"
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   associate_public_ip_address = false
 
   vpc_security_group_ids = [
-    "${aws_security_group.test.id}",
-    "${aws_security_group.test2.id}",
+    aws_security_group.test.id,
+    aws_security_group.test2.id,
   ]
 
   tags = {
@@ -4266,12 +4555,12 @@ resource "aws_instance" "test" {
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id       = "${aws_subnet.test.id}"
+  subnet_id       = aws_subnet.test.id
   private_ips     = ["10.1.1.42"]
-  security_groups = ["${aws_security_group.test.id}"]
+  security_groups = [aws_security_group.test.id]
 
   attachment {
-    instance     = "${aws_instance.test.id}"
+    instance     = aws_instance.test.id
     device_index = 1
   }
 
@@ -4282,12 +4571,67 @@ resource "aws_network_interface" "test" {
 `, rName)
 }
 
+func testAccInstanceConfigPublicAndPrivateSecondaryIPs(rName string, isPublic bool) string {
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  vpc_id      = aws_vpc.test.id
+  description = "%[1]s"
+  name        = "%[1]s"
+}
+
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "t3.small"
+  subnet_id     = aws_subnet.test.id
+
+  associate_public_ip_address = %[2]t
+
+  secondary_private_ips = ["10.1.1.42", "10.1.1.43"]
+
+  vpc_security_group_ids = [
+    aws_security_group.test.id
+  ]
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName, isPublic)
+}
+
+func testAccInstanceConfigPrivateIPAndSecondaryIPs(rName, privateIP, secondaryIPs string) string {
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+resource "aws_security_group" "test" {
+  vpc_id      = aws_vpc.test.id
+  description = "%[1]s"
+  name        = "%[1]s"
+}
+
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "t3.small"
+  subnet_id     = aws_subnet.test.id
+
+  private_ip            = "%[2]s"
+  secondary_private_ips = [%[3]s]
+
+  vpc_security_group_ids = [
+    aws_security_group.test.id
+  ]
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName, privateIP, secondaryIPs)
+}
+
 func testAccInstanceConfig_associatePublic_defaultPrivate(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   tags = {
     Name = %[1]q
@@ -4299,9 +4643,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfig_associatePublic_defaultPublic(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, true) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   tags = {
     Name = %[1]q
@@ -4313,9 +4657,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfig_associatePublic_explicitPublic(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, true) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
 
   tags = {
@@ -4328,9 +4672,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfig_associatePublic_explicitPrivate(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, true) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = false
 
   tags = {
@@ -4343,9 +4687,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfig_associatePublic_overridePublic(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = true
 
   tags = {
@@ -4358,9 +4702,9 @@ resource "aws_instance" "test" {
 func testAccInstanceConfig_associatePublic_overridePrivate(rName string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, true) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami                         = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami                         = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "t2.micro"
-  subnet_id                   = "${aws_subnet.test.id}"
+  subnet_id                   = aws_subnet.test.id
   associate_public_ip_address = false
 
   tags = {
@@ -4378,9 +4722,9 @@ resource "aws_key_pair" "test" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.win2016core-ami.id}"
+  ami           = data.aws_ami.win2016core-ami.id
   instance_type = "t2.medium"
-  key_name      = "${aws_key_pair.test.key_name}"
+  key_name      = aws_key_pair.test.key_name
 
   get_password_data = %[2]t
 }
@@ -4388,124 +4732,123 @@ resource "aws_instance" "test" {
 }
 
 func testAccInstanceConfig_CreditSpecification_Empty_NonBurstable(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m5.large"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {}
 }
-`)
+`
 }
 
 func testAccInstanceConfig_CreditSpecification_Unspecified_NonBurstable(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m5.large"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_unspecified(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_unspecified_t3(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t3.micro"
-  subnet_id     = "${aws_subnet.test.id}"
-
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_standardCpuCredits(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {
     cpu_credits = "standard"
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_standardCpuCredits_t3(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t3.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {
     cpu_credits = "standard"
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_unlimitedCpuCredits(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {
     cpu_credits = "unlimited"
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_unlimitedCpuCredits_t3(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t3.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {
     cpu_credits = "unlimited"
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_isNotAppliedToNonBurstable(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "m1.small"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {
     cpu_credits = "standard"
   }
 }
-`)
+`
 }
 
 func testAccInstanceConfig_creditSpecification_unknownCpuCredits(rName, instanceType string) string {
 	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = %[1]q
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 
   credit_specification {}
 }
@@ -4513,31 +4856,31 @@ resource "aws_instance" "test" {
 }
 
 func testAccInstanceConfig_UserData_Unspecified(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccInstanceConfig_UserData_EmptyString(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + testAccAwsInstanceVpcConfig(rName, false) + `
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
+  ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = "t2.micro"
-  subnet_id     = "${aws_subnet.test.id}"
+  subnet_id     = aws_subnet.test.id
   user_data     = ""
 }
-`)
+`
 }
 
 // testAccLatestAmazonLinuxHvmEbsAmiConfig returns the configuration for a data source that
 // describes the latest Amazon Linux AMI using HVM virtualization and an EBS root device.
 // The data source is named 'amzn-ami-minimal-hvm-ebs'.
 func testAccLatestAmazonLinuxHvmEbsAmiConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
   most_recent = true
   owners      = ["amazon"]
@@ -4552,16 +4895,37 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     values = ["ebs"]
   }
 }
-`)
+`
+}
+
+// testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig returns the configuration for a data source that
+// describes the latest Amazon Linux AMI using HVM virtualization and an instance store root device.
+// The data source is named 'amzn-ami-minimal-hvm-instance-store'.
+func testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig() string {
+	return `
+data "aws_ami" "amzn-ami-minimal-hvm-instance-store" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-minimal-hvm-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["instance-store"]
+  }
+}
+`
 }
 
 // testAccLatestAmazonLinuxPvEbsAmiConfig returns the configuration for a data source that
 // describes the latest Amazon Linux AMI using PV virtualization and an EBS root device.
 // The data source is named 'amzn-ami-minimal-pv-ebs'.
-/*
 func testAccLatestAmazonLinuxPvEbsAmiConfig() string {
 	return fmt.Sprintf(`
-data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
+data "aws_ami" "amzn-ami-minimal-pv-ebs" {
   most_recent = true
   owners      = ["amazon"]
 
@@ -4577,13 +4941,12 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
 }
 `)
 }
-*/
 
 // testAccLatestWindowsServer2016CoreAmiConfig returns the configuration for a data source that
 // describes the latest Microsoft Windows Server 2016 Core AMI.
 // The data source is named 'win2016core-ami'.
 func testAccLatestWindowsServer2016CoreAmiConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ami" "win2016core-ami" {
   most_recent = true
   owners      = ["amazon"]
@@ -4593,26 +4956,15 @@ data "aws_ami" "win2016core-ami" {
     values = ["Windows_Server-2016-English-Core-Base-*"]
   }
 }
-`)
+`
 }
 
 // testAccAwsInstanceVpcConfig returns the configuration for tests that create
-//   1) a VPC with IPv6 support
-//   2) a subnet in the VPC
+//   1) a VPC without IPv6 support
+//   2) a subnet in the VPC that optionally assigns public IP addresses to ENIs
 // The resources are named 'test'.
 func testAccAwsInstanceVpcConfig(rName string, mapPublicIpOnLaunch bool) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "current" {
-  # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -4623,15 +4975,37 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block              = "10.1.1.0/24"
-  vpc_id                  = "${aws_vpc.test.id}"
-  availability_zone       = "${data.aws_availability_zones.current.names[0]}"
+  vpc_id                  = aws_vpc.test.id
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = %[2]t
 
   tags = {
     Name = %[1]q
   }
 }
-`, rName, mapPublicIpOnLaunch)
+`, rName, mapPublicIpOnLaunch))
+}
+
+func testAccAwsInstanceVpcConfigBasic(rName string) string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.0.0/24"
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+`, rName))
 }
 
 // testAccAwsInstanceVpcSecurityGroupConfig returns the configuration for tests that create
@@ -4641,7 +5015,7 @@ resource "aws_subnet" "test" {
 func testAccAwsInstanceVpcSecurityGroupConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -4651,7 +5025,7 @@ resource "aws_internet_gateway" "test" {
 resource "aws_security_group" "test" {
   name        = %[1]q
   description = "test"
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
 
   ingress {
     protocol    = "icmp"
@@ -4669,21 +5043,10 @@ resource "aws_security_group" "test" {
 
 // testAccAwsInstanceVpcIpv6Config returns the configuration for tests that create
 //   1) a VPC with IPv6 support
-//   2) a subnet in the VPC
+//   2) a subnet in the VPC with an assigned IPv6 CIDR block
 // The resources are named 'test'.
 func testAccAwsInstanceVpcIpv6Config(rName string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "current" {
-  # Exclude usw2-az4 (us-west-2d) as it has limited instance types.
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -4696,15 +5059,15 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block        = "10.1.1.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.current.names[0]}"
-  ipv6_cidr_block   = "${cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
+  ipv6_cidr_block   = cidrsubnet(aws_vpc.test.ipv6_cidr_block, 8, 1)
 
   tags = {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccInstanceConfigHibernation(hibernation bool) string {
@@ -4759,11 +5122,13 @@ resource "aws_instance" "test" {
 func testAccInstanceConfigMetadataOptions(rName string) string {
 	return composeConfig(
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAwsInstanceVpcConfig(rName, false),
 		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
 		fmt.Sprintf(`
 resource "aws_instance" "test" {
   ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  subnet_id     = aws_subnet.test.id
 
   tags = {
     Name = %[1]q
@@ -4783,11 +5148,13 @@ data "aws_instance" "test" {
 func testAccInstanceConfigMetadataOptionsUpdated(rName string) string {
 	return composeConfig(
 		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAwsInstanceVpcConfig(rName, false),
 		testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
 		fmt.Sprintf(`
 resource "aws_instance" "test" {
   ami           = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type = data.aws_ec2_instance_type_offering.available.instance_type
+  subnet_id     = aws_subnet.test.id
 
   tags = {
     Name = %[1]q
@@ -4800,6 +5167,26 @@ resource "aws_instance" "test" {
   }
 }
 `, rName))
+}
+
+func testAccAwsEc2InstanceConfigDynamicEBSBlockDevices() string {
+	return composeConfig(testAccLatestAmazonLinuxPvEbsAmiConfig(), `
+resource "aws_instance" "test" {
+  ami           = data.aws_ami.amzn-ami-minimal-pv-ebs.id
+  instance_type = "m3.medium"
+
+  dynamic "ebs_block_device" {
+    for_each = ["a", "b", "c"]
+    iterator = device
+
+    content {
+      device_name = format("/dev/sd%s", device.value)
+      volume_size = "10"
+      volume_type = "gp2"
+    }
+  }
+}
+`)
 }
 
 // testAccAvailableEc2InstanceTypeForRegion returns the configuration for a data source that describes
@@ -4818,19 +5205,32 @@ data "aws_ec2_instance_type_offering" "available" {
 `, strings.Join(preferredInstanceTypes, "\", \""))
 }
 
-const testAccAwsEc2InstanceConfigDynamicEBSBlockDevices = `
-resource "aws_instance" "test" {
-  ami           = "ami-55a7ea65"
-  instance_type = "m3.medium"
+// testAccAvailableEc2InstanceTypeForAvailabilityZone returns the configuration for a data source that describes
+// the first available EC2 instance type offering in the specified availability zone from a list of preferred instance types.
+// The first argument is either an Availability Zone name or Terraform configuration reference to one, e.g.
+//   * data.aws_availability_zones.available.names[0]
+//   * aws_subnet.test.availability_zone
+//   * us-west-2a
+// The data source is named 'available'.
+func testAccAvailableEc2InstanceTypeForAvailabilityZone(availabilityZoneName string, preferredInstanceTypes ...string) string {
+	if !strings.Contains(availabilityZoneName, ".") {
+		availabilityZoneName = strconv.Quote(availabilityZoneName)
+	}
 
-  dynamic "ebs_block_device" {
-    for_each = ["a", "b", "c"]
-    iterator = device
-    content {
-      device_name = format("/dev/sd%s", device.value)
-      volume_size = "10"
-      volume_type = "gp2"
-    }
+	return fmt.Sprintf(`
+data "aws_ec2_instance_type_offering" "available" {
+  filter {
+    name   = "instance-type"
+    values = ["%[2]v"]
   }
+
+  filter {
+    name   = "location"
+    values = [%[1]s]
+  }
+
+  location_type            = "availability-zone"
+  preferred_instance_types = ["%[2]v"]
 }
-`
+`, availabilityZoneName, strings.Join(preferredInstanceTypes, "\", \""))
+}

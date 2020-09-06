@@ -35,6 +35,41 @@ behavior "deprecated_import_commenter" "hashicorp_terraform" {
   EOF
 }
 
+behavior "deprecated_import_commenter" "sdkv1" {
+  import_regexp = "github.com/hashicorp/terraform-plugin-sdk/(helper/(acctest|customdiff|logging|resource|schema|structure|validation)|terraform)"
+  marker_label  = "terraform-plugin-sdk-v1"
+
+  message = <<-EOF
+    Hello, and thank you for your contribution!
+
+    This project recently upgraded to [V2 of the Terraform Plugin SDK](https://www.terraform.io/docs/extend/guides/v2-upgrade-guide.html)
+
+    This pull request appears to include at least one V1 import path of the SDK (`${var.import_path}`). Please import the V2 path `github.com/hashicorp/terraform-plugin-sdk/v2/helper/PACKAGE`
+
+    To resolve this situation without losing any existing work, you may be able to Git rebase your branch against the current master branch (example below); replacing any remaining old import paths with the newer ones.
+
+    ```console
+    $ git fetch --all
+    $ git rebase origin/master
+    ```
+
+    Another option is to create a new branch from the current master with the same code changes (replacing the import paths), submit a new pull request, and close this existing pull request.
+
+    We apologize for this inconvenience and appreciate your effort. Thank you for contributing and helping make the Terraform AWS Provider better for everyone.
+  EOF
+}
+
+behavior "deprecated_import_commenter" "sdkv1_deprecated" {
+  import_regexp = "github.com/hashicorp/terraform-plugin-sdk/helper/(hashcode|mutexkv|encryption)"
+  marker_label  = "terraform-plugin-sdk-v1"
+
+  message = <<-EOF
+    Hello, and thank you for your contribution!
+    This pull request appears to include the Go import path `${var.import_path}`, which was deprecated after upgrading to [V2 of the Terraform Plugin SDK](https://www.terraform.io/docs/extend/guides/v2-upgrade-guide.html).
+    You may use a now internalized version of the package found in `github.com/terraform-providers/terraform-provider-aws/aws/internal/PACKAGE`.
+  EOF
+}
+
 behavior "opened_pull_request_labeler" "triage" {
   labels             = ["needs-triage"]
   skip_collaborators = true
@@ -154,6 +189,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/cloudwatchlogs" = [
       "aws_cloudwatch_log_",
     ],
+    "service/codeartifact" = [
+      "aws_codeartifact_",
+    ],
     "service/codebuild" = [
       "aws_codebuild_",
     ],
@@ -247,7 +285,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
       "aws_eks_",
     ],
     "service/elastic-transcoder" = [
-      "aws_elastic_transcoder_",
+      "aws_elastictranscoder_",
     ],
     "service/elasticache" = [
       "aws_elasticache_",
@@ -395,6 +433,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/organizations" = [
       "aws_organizations_",
     ],
+    "service/outposts" = [
+      "aws_outposts_",
+    ],
     "service/personalize" = [
       "aws_personalize_",
     ],
@@ -425,6 +466,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/resourcegroups" = [
       "aws_resourcegroups_",
+    ],
+    "service/resourcegroupstaggingapi" = [
+      "aws_resourcegroupstaggingapi_",
     ],
     "service/robomaker" = [
       "aws_robomaker_",
@@ -561,6 +605,10 @@ behavior "pull_request_path_labeler" "service_labels" {
       "website/**/partition*",
       "website/**/region*"
     ]
+    "dependencies" = [
+      ".github/dependabot.yml",
+      "renovate.json",
+    ]
     "documentation" = [
       "docs/**/*",
       "*.md",
@@ -576,7 +624,6 @@ behavior "pull_request_path_labeler" "service_labels" {
       ".gometalinter.json",
       ".markdownlinkcheck.json",
       ".markdownlint.yml",
-      ".travis.yml",
       "staticcheck.conf"
     ]
     # label services
@@ -703,6 +750,10 @@ behavior "pull_request_path_labeler" "service_labels" {
     "service/cloudwatchlogs" = [
       "**/*_cloudwatch_log_*",
       "**/cloudwatch_log_*"
+    ]
+    "service/codeartifact" = [
+      "**/*_codeartifact_*",
+      "**/codeartifact_*"
     ]
     "service/codebuild" = [
       "**/*_codebuild_*",
@@ -1071,6 +1122,10 @@ behavior "pull_request_path_labeler" "service_labels" {
       "**/*_organizations_*",
       "**/organizations_*"
     ]
+    "service/outposts" = [
+      "**/*_outposts_*",
+      "**/outposts_*"
+    ]
     "service/pinpoint" = [
       "**/*_pinpoint_*",
       "**/pinpoint_*"
@@ -1108,6 +1163,10 @@ behavior "pull_request_path_labeler" "service_labels" {
     "service/resourcegroups" = [
       "**/*_resourcegroups_*",
       "**/resourcegroups_*"
+    ]
+    "service/resourcegroupstaggingapi" = [
+      "**/*_resourcegroupstaggingapi_*",
+      "**/resourcegroupstaggingapi_*"
     ]
     "service/robomaker" = [
       "**/*_robomaker_*",

@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestDiffStringMaps(t *testing.T) {
@@ -172,49 +172,49 @@ func TestExpandIPPerms(t *testing.T) {
 	exp := expected[0]
 	perm := perms[0]
 
-	if *exp.FromPort != *perm.FromPort {
+	if aws.Int64Value(exp.FromPort) != aws.Int64Value(perm.FromPort) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.FromPort,
-			*exp.FromPort)
+			aws.Int64Value(perm.FromPort),
+			aws.Int64Value(exp.FromPort))
 	}
 
-	if *exp.IpRanges[0].CidrIp != *perm.IpRanges[0].CidrIp {
+	if aws.StringValue(exp.IpRanges[0].CidrIp) != aws.StringValue(perm.IpRanges[0].CidrIp) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.IpRanges[0].CidrIp,
-			*exp.IpRanges[0].CidrIp)
+			aws.StringValue(perm.IpRanges[0].CidrIp),
+			aws.StringValue(exp.IpRanges[0].CidrIp))
 	}
 
-	if *exp.UserIdGroupPairs[0].UserId != *perm.UserIdGroupPairs[0].UserId {
+	if aws.StringValue(exp.UserIdGroupPairs[0].UserId) != aws.StringValue(perm.UserIdGroupPairs[0].UserId) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].UserId,
-			*exp.UserIdGroupPairs[0].UserId)
+			aws.StringValue(perm.UserIdGroupPairs[0].UserId),
+			aws.StringValue(exp.UserIdGroupPairs[0].UserId))
 	}
 
-	if *exp.UserIdGroupPairs[0].GroupId != *perm.UserIdGroupPairs[0].GroupId {
+	if aws.StringValue(exp.UserIdGroupPairs[0].GroupId) != aws.StringValue(perm.UserIdGroupPairs[0].GroupId) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].GroupId,
-			*exp.UserIdGroupPairs[0].GroupId)
+			aws.StringValue(perm.UserIdGroupPairs[0].GroupId),
+			aws.StringValue(exp.UserIdGroupPairs[0].GroupId))
 	}
 
-	if *exp.UserIdGroupPairs[1].GroupId != *perm.UserIdGroupPairs[1].GroupId {
+	if aws.StringValue(exp.UserIdGroupPairs[1].GroupId) != aws.StringValue(perm.UserIdGroupPairs[1].GroupId) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[1].GroupId,
-			*exp.UserIdGroupPairs[1].GroupId)
+			aws.StringValue(perm.UserIdGroupPairs[1].GroupId),
+			aws.StringValue(exp.UserIdGroupPairs[1].GroupId))
 	}
 
 	exp = expected[1]
 	perm = perms[1]
 
-	if *exp.UserIdGroupPairs[0].GroupId != *perm.UserIdGroupPairs[0].GroupId {
+	if aws.StringValue(exp.UserIdGroupPairs[0].GroupId) != aws.StringValue(perm.UserIdGroupPairs[0].GroupId) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].GroupId,
-			*exp.UserIdGroupPairs[0].GroupId)
+			aws.StringValue(perm.UserIdGroupPairs[0].GroupId),
+			aws.StringValue(exp.UserIdGroupPairs[0].GroupId))
 	}
 }
 
@@ -264,25 +264,25 @@ func TestExpandIPPerms_NegOneProtocol(t *testing.T) {
 	exp := expected[0]
 	perm := perms[0]
 
-	if *exp.FromPort != *perm.FromPort {
+	if aws.Int64Value(exp.FromPort) != aws.Int64Value(perm.FromPort) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.FromPort,
-			*exp.FromPort)
+			aws.Int64Value(perm.FromPort),
+			aws.Int64Value(exp.FromPort))
 	}
 
-	if *exp.IpRanges[0].CidrIp != *perm.IpRanges[0].CidrIp {
+	if aws.StringValue(exp.IpRanges[0].CidrIp) != aws.StringValue(perm.IpRanges[0].CidrIp) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.IpRanges[0].CidrIp,
-			*exp.IpRanges[0].CidrIp)
+			aws.StringValue(perm.IpRanges[0].CidrIp),
+			aws.StringValue(exp.IpRanges[0].CidrIp))
 	}
 
-	if *exp.UserIdGroupPairs[0].UserId != *perm.UserIdGroupPairs[0].UserId {
+	if aws.StringValue(exp.UserIdGroupPairs[0].UserId) != aws.StringValue(perm.UserIdGroupPairs[0].UserId) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].UserId,
-			*exp.UserIdGroupPairs[0].UserId)
+			aws.StringValue(perm.UserIdGroupPairs[0].UserId),
+			aws.StringValue(exp.UserIdGroupPairs[0].UserId))
 	}
 
 	// Now test the error case. This *should* error when either from_port
@@ -369,42 +369,42 @@ func TestExpandIPPerms_nonVPC(t *testing.T) {
 	exp := expected[0]
 	perm := perms[0]
 
-	if *exp.FromPort != *perm.FromPort {
+	if aws.Int64Value(exp.FromPort) != aws.Int64Value(perm.FromPort) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.FromPort,
-			*exp.FromPort)
+			aws.Int64Value(perm.FromPort),
+			aws.Int64Value(exp.FromPort))
 	}
 
-	if *exp.IpRanges[0].CidrIp != *perm.IpRanges[0].CidrIp {
+	if aws.StringValue(exp.IpRanges[0].CidrIp) != aws.StringValue(perm.IpRanges[0].CidrIp) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.IpRanges[0].CidrIp,
-			*exp.IpRanges[0].CidrIp)
+			aws.StringValue(perm.IpRanges[0].CidrIp),
+			aws.StringValue(exp.IpRanges[0].CidrIp))
 	}
 
-	if *exp.UserIdGroupPairs[0].GroupName != *perm.UserIdGroupPairs[0].GroupName {
+	if aws.StringValue(exp.UserIdGroupPairs[0].GroupName) != aws.StringValue(perm.UserIdGroupPairs[0].GroupName) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].GroupName,
-			*exp.UserIdGroupPairs[0].GroupName)
+			aws.StringValue(perm.UserIdGroupPairs[0].GroupName),
+			aws.StringValue(exp.UserIdGroupPairs[0].GroupName))
 	}
 
-	if *exp.UserIdGroupPairs[1].GroupName != *perm.UserIdGroupPairs[1].GroupName {
+	if aws.StringValue(exp.UserIdGroupPairs[1].GroupName) != aws.StringValue(perm.UserIdGroupPairs[1].GroupName) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[1].GroupName,
-			*exp.UserIdGroupPairs[1].GroupName)
+			aws.StringValue(perm.UserIdGroupPairs[1].GroupName),
+			aws.StringValue(exp.UserIdGroupPairs[1].GroupName))
 	}
 
 	exp = expected[1]
 	perm = perms[1]
 
-	if *exp.UserIdGroupPairs[0].GroupName != *perm.UserIdGroupPairs[0].GroupName {
+	if aws.StringValue(exp.UserIdGroupPairs[0].GroupName) != aws.StringValue(perm.UserIdGroupPairs[0].GroupName) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			*perm.UserIdGroupPairs[0].GroupName,
-			*exp.UserIdGroupPairs[0].GroupName)
+			aws.StringValue(perm.UserIdGroupPairs[0].GroupName),
+			aws.StringValue(exp.UserIdGroupPairs[0].GroupName))
 	}
 }
 
@@ -566,10 +566,7 @@ func TestExpandParameters(t *testing.T) {
 			"apply_method": "immediate",
 		},
 	}
-	parameters, err := expandParameters(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	parameters := expandParameters(expanded)
 
 	expected := &rds.Parameter{
 		ParameterName:  aws.String("character_set_client"),
@@ -592,10 +589,7 @@ func TestExpandRedshiftParameters(t *testing.T) {
 			"value": "utf8",
 		},
 	}
-	parameters, err := expandRedshiftParameters(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	parameters := expandRedshiftParameters(expanded)
 
 	expected := &redshift.Parameter{
 		ParameterName:  aws.String("character_set_client"),
@@ -618,10 +612,7 @@ func TestExpandElasticacheParameters(t *testing.T) {
 			"apply_method": "immediate",
 		},
 	}
-	parameters, err := expandElastiCacheParameters(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	parameters := expandElastiCacheParameters(expanded)
 
 	expected := &elasticache.ParameterNameValue{
 		ParameterName:  aws.String("activerehashing"),
@@ -830,12 +821,12 @@ func TestExpandPrivateIPAddresses(t *testing.T) {
 		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
 	}
 
-	if *result[0].PrivateIpAddress != "192.168.0.1" || !*result[0].Primary {
-		t.Fatalf("expected ip to be 192.168.0.1 and Primary, but got %v, %t", *result[0].PrivateIpAddress, *result[0].Primary)
+	if aws.StringValue(result[0].PrivateIpAddress) != "192.168.0.1" || !aws.BoolValue(result[0].Primary) {
+		t.Fatalf("expected ip to be 192.168.0.1 and Primary, but got %v, %t", aws.StringValue(result[0].PrivateIpAddress), aws.BoolValue(result[0].Primary))
 	}
 
-	if *result[1].PrivateIpAddress != "192.168.0.2" || *result[1].Primary {
-		t.Fatalf("expected ip to be 192.168.0.2 and not Primary, but got %v, %t", *result[1].PrivateIpAddress, *result[1].Primary)
+	if aws.StringValue(result[1].PrivateIpAddress) != "192.168.0.2" || aws.BoolValue(result[1].Primary) {
+		t.Fatalf("expected ip to be 192.168.0.2 and not Primary, but got %v, %t", aws.StringValue(result[1].PrivateIpAddress), aws.BoolValue(result[1].Primary))
 	}
 }
 
@@ -1159,10 +1150,7 @@ func TestExpandPolicyAttributes(t *testing.T) {
 			"value": "true",
 		},
 	}
-	attributes, err := expandPolicyAttributes(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	attributes := expandPolicyAttributes(expanded)
 
 	if len(attributes) != 3 {
 		t.Fatalf("expected number of attributes to be 3, but got %d", len(attributes))
@@ -1188,10 +1176,7 @@ func TestExpandPolicyAttributes_invalid(t *testing.T) {
 			"value": "true",
 		},
 	}
-	attributes, err := expandPolicyAttributes(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	attributes := expandPolicyAttributes(expanded)
 
 	expected := &elb.PolicyAttribute{
 		AttributeName:  aws.String("Protocol-TLSv1.2"),
@@ -1209,10 +1194,7 @@ func TestExpandPolicyAttributes_invalid(t *testing.T) {
 func TestExpandPolicyAttributes_empty(t *testing.T) {
 	var expanded []interface{}
 
-	attributes, err := expandPolicyAttributes(expanded)
-	if err != nil {
-		t.Fatalf("bad: %#v", err)
-	}
+	attributes := expandPolicyAttributes(expanded)
 
 	if len(attributes) != 0 {
 		t.Fatalf("expected number of attributes to be 0, but got %d", len(attributes))
@@ -1284,12 +1266,12 @@ abc:
 	}
 }
 
-func TestNormalizeCloudFormationTemplate(t *testing.T) {
+func TestNormalizeJsonOrYamlString(t *testing.T) {
 	var err error
 	var actual string
 
 	validNormalizedJson := `{"abc":"1"}`
-	actual, err = normalizeCloudFormationTemplate(validNormalizedJson)
+	actual, err = normalizeJsonOrYamlString(validNormalizedJson)
 	if err != nil {
 		t.Fatalf("Expected not to throw an error while parsing template, but got: %s", err)
 	}
@@ -1299,7 +1281,7 @@ func TestNormalizeCloudFormationTemplate(t *testing.T) {
 
 	validNormalizedYaml := `abc: 1
 `
-	actual, err = normalizeCloudFormationTemplate(validNormalizedYaml)
+	actual, err = normalizeJsonOrYamlString(validNormalizedYaml)
 	if err != nil {
 		t.Fatalf("Expected not to throw an error while parsing template, but got: %s", err)
 	}
@@ -1629,57 +1611,10 @@ const testExampleXML_from_msdn_flawed = `
 </purchaseOrder>
 `
 
-func TestExpandRdsClusterScalingConfiguration_serverless(t *testing.T) {
-	type testCase struct {
-		EngineMode string
-		Input      []interface{}
-		Expected   *rds.ScalingConfiguration
-	}
-	cases := []testCase{
-		{
-			EngineMode: "serverless",
-			Input: []interface{}{
-				map[string]interface{}{
-					"auto_pause":               false,
-					"max_capacity":             32,
-					"min_capacity":             4,
-					"seconds_until_auto_pause": 600,
-					"timeout_action":           "ForceApplyCapacityChange",
-				},
-			},
-			Expected: &rds.ScalingConfiguration{
-				AutoPause:             aws.Bool(false),
-				MaxCapacity:           aws.Int64(32),
-				MinCapacity:           aws.Int64(4),
-				SecondsUntilAutoPause: aws.Int64(600),
-				TimeoutAction:         aws.String("ForceApplyCapacityChange"),
-			},
-		},
-		{
-			EngineMode: "serverless",
-			Input:      []interface{}{},
-			Expected: &rds.ScalingConfiguration{
-				MinCapacity: aws.Int64(2),
-			},
-		},
-		{
-			EngineMode: "serverless",
-			Input: []interface{}{
-				nil,
-			},
-			Expected: &rds.ScalingConfiguration{
-				MinCapacity: aws.Int64(2),
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		output := expandRdsClusterScalingConfiguration(tc.Input, tc.EngineMode)
-		if !reflect.DeepEqual(output, tc.Expected) {
-			t.Errorf("EngineMode: %s\nExpected: %v,\nGot: %v", tc.EngineMode, tc.Expected, output)
-		}
-	}
-}
+// TestExpandRdsClusterScalingConfiguration_serverless removed in v3.0.0
+// as all engine_modes are treated equal when expanding scaling_configuration
+// and an override of min_capacity is no longer needed
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11698
 
 func TestExpandRdsClusterScalingConfiguration_basic(t *testing.T) {
 	type testCase struct {
@@ -1691,7 +1626,7 @@ func TestExpandRdsClusterScalingConfiguration_basic(t *testing.T) {
 
 	// RDS Cluster Scaling Configuration is only valid for serverless, but we're relying on AWS errors.
 	// If Terraform adds whole-resource validation, we can do our own validation at plan time.
-	for _, engineMode := range []string{"global", "multimaster", "parallelquery", "provisioned"} {
+	for _, engineMode := range []string{"global", "multimaster", "parallelquery", "provisioned", "serverless"} {
 		cases = append(cases, []testCase{
 			{
 				EngineMode: engineMode,
@@ -1721,7 +1656,7 @@ func TestExpandRdsClusterScalingConfiguration_basic(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		output := expandRdsClusterScalingConfiguration(tc.Input, tc.EngineMode)
+		output := expandRdsClusterScalingConfiguration(tc.Input)
 		if tc.ExpectNil != (output == nil) {
 			t.Errorf("EngineMode %q: Expected nil: %t, Got: %v", tc.EngineMode, tc.ExpectNil, output)
 		}

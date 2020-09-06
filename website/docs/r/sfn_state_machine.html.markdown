@@ -17,7 +17,7 @@ Provides a Step Function State Machine resource
 
 resource "aws_sfn_state_machine" "sfn_state_machine" {
   name     = "my-state-machine"
-  role_arn = "${aws_iam_role.iam_for_sfn.arn}"
+  role_arn = aws_iam_role.iam_for_sfn.arn
 
   definition = <<EOF
 {
@@ -51,6 +51,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ARN of the state machine.
 * `creation_date` - The date the state machine was created.
 * `status` - The current status of the state machine. Either "ACTIVE" or "DELETING".
+* `arn` - The ARN of the state machine.
 
 ## Import
 

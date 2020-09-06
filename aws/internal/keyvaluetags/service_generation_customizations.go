@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/appstream"
 	"github.com/aws/aws-sdk-go/service/appsync"
 	"github.com/aws/aws-sdk-go/service/athena"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
@@ -92,11 +93,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
+	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/securityhub"
+	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -108,7 +111,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
 	"github.com/aws/aws-sdk-go/service/wafv2"
+	"github.com/aws/aws-sdk-go/service/worklink"
 	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/aws/aws-sdk-go/service/xray"
 )
 
 // ServiceClientType determines the service client Go type.
@@ -138,6 +143,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(appsync.New)
 	case "athena":
 		funcType = reflect.TypeOf(athena.New)
+	case "autoscaling":
+		funcType = reflect.TypeOf(autoscaling.New)
 	case "backup":
 		funcType = reflect.TypeOf(backup.New)
 	case "cloud9":
@@ -290,6 +297,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(redshift.New)
 	case "resourcegroups":
 		funcType = reflect.TypeOf(resourcegroups.New)
+	case "resourcegroupstaggingapi":
+		funcType = reflect.TypeOf(resourcegroupstaggingapi.New)
 	case "route53":
 		funcType = reflect.TypeOf(route53.New)
 	case "route53resolver":
@@ -300,6 +309,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(secretsmanager.New)
 	case "securityhub":
 		funcType = reflect.TypeOf(securityhub.New)
+	case "servicediscovery":
+		funcType = reflect.TypeOf(servicediscovery.New)
 	case "sfn":
 		funcType = reflect.TypeOf(sfn.New)
 	case "sns":
@@ -322,8 +333,12 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(wafregional.New)
 	case "wafv2":
 		funcType = reflect.TypeOf(wafv2.New)
+	case "worklink":
+		funcType = reflect.TypeOf(worklink.New)
 	case "workspaces":
 		funcType = reflect.TypeOf(workspaces.New)
+	case "xray":
+		funcType = reflect.TypeOf(xray.New)
 	default:
 		panic(fmt.Sprintf("unrecognized ServiceClientType: %s", serviceName))
 	}
@@ -340,6 +355,8 @@ func ServiceListTagsFunction(serviceName string) string {
 		return "ListTags"
 	case "apigatewayv2":
 		return "GetTags"
+	case "autoscaling":
+		return "DescribeTags"
 	case "backup":
 		return "ListTags"
 	case "cloudhsmv2":
@@ -354,6 +371,8 @@ func ServiceListTagsFunction(serviceName string) string {
 		return "DescribeTags"
 	case "dynamodb":
 		return "ListTagsOfResource"
+	case "ec2":
+		return "DescribeTags"
 	case "efs":
 		return "DescribeTags"
 	case "elasticsearchservice":
@@ -395,6 +414,19 @@ func ServiceListTagsFunction(serviceName string) string {
 	}
 }
 
+// ServiceListTagsInputFilterIdentifierName determines the service list tag filter identifier field.
+// This causes the implementation to use the Filters field with the Input struct.
+func ServiceListTagsInputFilterIdentifierName(serviceName string) string {
+	switch serviceName {
+	case "autoscaling":
+		return "auto-scaling-group"
+	case "ec2":
+		return "resource-id"
+	default:
+		return ""
+	}
+}
+
 // ServiceListTagsInputIdentifierField determines the service list tag identifier field.
 func ServiceListTagsInputIdentifierField(serviceName string) string {
 	switch serviceName {
@@ -422,18 +454,6 @@ func ServiceListTagsInputIdentifierRequiresSlice(serviceName string) string {
 		return "yes"
 	case "elbv2":
 		return "yes"
-	default:
-		return ""
-	}
-}
-
-// ServiceListTagsInputResourceTypeField determines the service list tagging resource type field.
-func ServiceListTagsInputResourceTypeField(serviceName string) string {
-	switch serviceName {
-	case "route53":
-		return "ResourceType"
-	case "ssm":
-		return "ResourceType"
 	default:
 		return ""
 	}
@@ -528,6 +548,8 @@ func ServiceTagFunction(serviceName string) string {
 		return "AddTagsToCertificate"
 	case "acmpca":
 		return "TagCertificateAuthority"
+	case "autoscaling":
+		return "CreateOrUpdateTags"
 	case "cloudtrail":
 		return "AddTags"
 	case "cloudwatchlogs":
@@ -692,6 +714,8 @@ func ServiceTagInputIdentifierField(serviceName string) string {
 		return "ResourceId"
 	case "secretsmanager":
 		return "SecretId"
+	case "servicediscovery":
+		return "ResourceARN"
 	case "sqs":
 		return "QueueUrl"
 	case "ssm":
@@ -708,6 +732,8 @@ func ServiceTagInputIdentifierField(serviceName string) string {
 		return "ResourceARN"
 	case "workspaces":
 		return "ResourceId"
+	case "xray":
+		return "ResourceARN"
 	default:
 		return "ResourceArn"
 	}
@@ -763,18 +789,6 @@ func ServiceTagInputCustomValue(serviceName string) string {
 	}
 }
 
-// ServiceTagInputResourceTypeField determines the service tagging resource type field.
-func ServiceTagInputResourceTypeField(serviceName string) string {
-	switch serviceName {
-	case "route53":
-		return "ResourceType"
-	case "ssm":
-		return "ResourceType"
-	default:
-		return ""
-	}
-}
-
 func ServiceTagPackage(serviceName string) string {
 	switch serviceName {
 	case "wafregional":
@@ -794,6 +808,20 @@ func ServiceTagKeyType(serviceName string) string {
 	}
 }
 
+// ServiceTagResourceTypeField determines the service tagging resource type field.
+func ServiceTagResourceTypeField(serviceName string) string {
+	switch serviceName {
+	case "autoscaling":
+		return "ResourceType"
+	case "route53":
+		return "ResourceType"
+	case "ssm":
+		return "ResourceType"
+	default:
+		return ""
+	}
+}
+
 // ServiceTagType determines the service tagging tag type.
 func ServiceTagType(serviceName string) string {
 	switch serviceName {
@@ -807,6 +835,40 @@ func ServiceTagType(serviceName string) string {
 		return "ResourceTag"
 	default:
 		return "Tag"
+	}
+}
+
+// ServiceTagType2 determines if the service tagging has a second tag type.
+// The two types must be equivalent.
+func ServiceTagType2(serviceName string) string {
+	switch serviceName {
+	case "autoscaling":
+		return "TagDescription"
+	case "ec2":
+		return "TagDescription"
+	default:
+		return ""
+	}
+}
+
+// ServiceTagTypeAdditionalBoolFields returns the names of additional boolean fields in the type.
+func ServiceTagTypeAdditionalBoolFields(serviceName string) []string {
+	switch serviceName {
+	case "autoscaling":
+		return []string{"PropagateAtLaunch"}
+	default:
+		return nil
+	}
+}
+
+// ServiceTagTypeIdentifierField determines the type self-contained identifier field.
+// Use ServiceTagResourceTypeField if the type also self-contains resource type.
+func ServiceTagTypeIdentifierField(serviceName string) string {
+	switch serviceName {
+	case "autoscaling":
+		return "ResourceId"
+	default:
+		return ""
 	}
 }
 
@@ -837,6 +899,8 @@ func ServiceUntagFunction(serviceName string) string {
 		return "RemoveTagsFromCertificate"
 	case "acmpca":
 		return "UntagCertificateAuthority"
+	case "autoscaling":
+		return "DeleteTags"
 	case "cloudtrail":
 		return "RemoveTags"
 	case "cloudwatchlogs":
@@ -907,6 +971,8 @@ func ServiceUntagInputRequiresTagType(serviceName string) string {
 		return "yes"
 	case "acmpca":
 		return "yes"
+	case "autoscaling":
+		return "yes"
 	case "cloudtrail":
 		return "yes"
 	case "ec2":
@@ -932,6 +998,8 @@ func ServiceUntagInputTagsField(serviceName string) string {
 	case "acm":
 		return "Tags"
 	case "acmpca":
+		return "Tags"
+	case "autoscaling":
 		return "Tags"
 	case "backup":
 		return "TagKeyList"

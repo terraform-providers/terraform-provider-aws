@@ -16,8 +16,8 @@ Provides a static IP address attachment - relationship between a Lightsail stati
 
 ```hcl
 resource "aws_lightsail_static_ip_attachment" "test" {
-  static_ip_name = "${aws_lightsail_static_ip.test.id}"
-  instance_name  = "${aws_lightsail_instance.test.id}"
+  static_ip_name = aws_lightsail_static_ip.test.id
+  instance_name  = aws_lightsail_instance.test.id
 }
 
 resource "aws_lightsail_static_ip" "test" {

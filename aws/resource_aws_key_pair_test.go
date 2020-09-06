@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -72,6 +72,7 @@ func TestAccAWSKeyPair_basic(t *testing.T) {
 				Config: testAccAWSKeyPairConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ec2", fmt.Sprintf("key-pair/%s", rName)),
 					testAccCheckAWSKeyPairFingerprint(&keyPair, fingerprint),
 					resource.TestCheckResourceAttr(resourceName, "fingerprint", fingerprint),
 					resource.TestCheckResourceAttr(resourceName, "key_name", rName),
@@ -202,7 +203,7 @@ func TestAccAWSKeyPair_disappears(t *testing.T) {
 				Config: testAccAWSKeyPairConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKeyPairExists(resourceName, &keyPair),
-					testAccCheckAWSKeyPairDisappears(&keyPair),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsKeyPair(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -235,21 +236,6 @@ func testAccCheckAWSKeyPairDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckAWSKeyPairDisappears(keyPair *ec2.KeyPairInfo) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		req := &ec2.DeleteKeyPairInput{
-			KeyName: keyPair.KeyName,
-		}
-		if _, err := conn.DeleteKeyPair(req); err != nil {
-			return err
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckAWSKeyPairFingerprint(conf *ec2.KeyPairInfo, expectedFingerprint string) resource.TestCheckFunc {
@@ -290,7 +276,7 @@ func testAccCheckAWSKeyPairExists(n string, res *ec2.KeyPairInfo) resource.TestC
 			return err
 		}
 		if len(resp.KeyPairs) != 1 ||
-			*resp.KeyPairs[0].KeyName != rs.Primary.ID {
+			aws.StringValue(resp.KeyPairs[0].KeyName) != rs.Primary.ID {
 			return fmt.Errorf("KeyPair not found")
 		}
 
@@ -344,7 +330,7 @@ resource "aws_key_pair" "test" {
 
 const testAccCheckAWSKeyPairPrefixNameConfig = `
 resource "aws_key_pair" "test" {
-  key_name_prefix   = "baz-"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
+  key_name_prefix = "baz-"
+  public_key      = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 phodgson@thoughtworks.com"
 }
 `

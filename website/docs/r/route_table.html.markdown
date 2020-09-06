@@ -33,16 +33,16 @@ the separate resource.
 
 ```hcl
 resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
   route {
     cidr_block = "10.0.1.0/24"
-    gateway_id = "${aws_internet_gateway.main.id}"
+    gateway_id = aws_internet_gateway.main.id
   }
 
   route {
     ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = "${aws_egress_only_internet_gateway.foo.id}"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.foo.id
   }
 
   tags = {
@@ -73,6 +73,7 @@ One of the following target arguments must be supplied:
 * `gateway_id` - (Optional) Identifier of a VPC internet gateway or a virtual private gateway.
 * `instance_id` - (Optional) Identifier of an EC2 instance.
 * `nat_gateway_id` - (Optional) Identifier of a VPC NAT gateway.
+* `local_gateway_id` - (Optional) Identifier of a Outpost local gateway.
 * `network_interface_id` - (Optional) Identifier of an EC2 network interface.
 * `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.

@@ -18,7 +18,7 @@ variable "vpc_id" {}
 data "aws_internet_gateway" "default" {
   filter {
     name   = "attachment.vpc-id"
-    values = ["${var.vpc_id}"]
+    values = [var.vpc_id]
   }
 }
 ```
@@ -46,6 +46,8 @@ which take the following arguments:
   An Internet Gateway will be selected if any one of the given values matches.
 
 ## Attributes Reference
+
+* `arn` - The ARN of the Internet Gateway.
 
 All of the argument attributes except `filter` block are also exported as
 result attributes. This data source will complete the data by populating

@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -336,7 +336,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-nfs"
@@ -344,7 +344,7 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-nfs"
@@ -352,11 +352,11 @@ resource "aws_internet_gateway" "test" {
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
 
   tags = {
@@ -365,12 +365,12 @@ resource "aws_route_table" "test" {
 }
 
 resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test.id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -392,15 +392,15 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_instance" "test" {
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 
-  ami                         = "${data.aws_ami.aws-thinstaller.id}"
+  ami                         = data.aws_ami.aws-thinstaller.id
   associate_public_ip_address = true
 
   # Default instance type from sync.sh
   instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
+  vpc_security_group_ids = [aws_security_group.test.id]
+  subnet_id              = aws_subnet.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-nfs"
@@ -408,36 +408,36 @@ resource "aws_instance" "test" {
 }
 
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test.public_ip}"
+  ip_address = aws_instance.test.public_ip
   name       = %q
 }
 `, rName)
 }
 
 func testAccAWSDataSyncLocationNfsConfig(rName string) string {
-	return testAccAWSDataSyncLocationNfsConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSDataSyncLocationNfsConfigBase(rName) + `
 resource "aws_datasync_location_nfs" "test" {
   server_hostname = "example.com"
   subdirectory    = "/"
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.test.arn}"]
+    agent_arns = [aws_datasync_agent.test.arn]
   }
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationNfsConfigAgentArnsMultiple(rName string) string {
 	return testAccAWSDataSyncLocationNfsConfigBase(rName) + fmt.Sprintf(`
 resource "aws_instance" "test2" {
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 
-  ami                         = "${data.aws_ami.aws-thinstaller.id}"
+  ami                         = data.aws_ami.aws-thinstaller.id
   associate_public_ip_address = true
   # Default instance type from sync.sh
   instance_type               = "c5.2xlarge"
-  vpc_security_group_ids      = ["${aws_security_group.test.id}"]
-  subnet_id                   = "${aws_subnet.test.id}"
+  vpc_security_group_ids      = [aws_security_group.test.id]
+  subnet_id                   = aws_subnet.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-nfs"
@@ -445,7 +445,7 @@ resource "aws_instance" "test2" {
 }
 
 resource "aws_datasync_agent" "test2" {
-  ip_address = "${aws_instance.test2.public_ip}"
+  ip_address = aws_instance.test2.public_ip
   name       = "%s2"
 }
 
@@ -455,8 +455,8 @@ resource "aws_datasync_location_nfs" "test" {
 
   on_prem_config {
     agent_arns = [
-      "${aws_datasync_agent.test.arn}",
-      "${aws_datasync_agent.test2.arn}",
+      aws_datasync_agent.test.arn,
+      aws_datasync_agent.test2.arn,
     ]
   }
 }
@@ -470,7 +470,7 @@ resource "aws_datasync_location_nfs" "test" {
   subdirectory    = %q
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.test.arn}"]
+    agent_arns = [aws_datasync_agent.test.arn]
   }
 }
 `, subdirectory)
@@ -483,7 +483,7 @@ resource "aws_datasync_location_nfs" "test" {
   subdirectory    = "/"
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.test.arn}"]
+    agent_arns = [aws_datasync_agent.test.arn]
   }
 
   tags = {
@@ -500,7 +500,7 @@ resource "aws_datasync_location_nfs" "test" {
   subdirectory    = "/"
 
   on_prem_config {
-    agent_arns = ["${aws_datasync_agent.test.arn}"]
+    agent_arns = [aws_datasync_agent.test.arn]
   }
 
   tags = {

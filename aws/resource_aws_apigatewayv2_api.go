@@ -3,12 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -101,6 +102,12 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 128),
 			},
+			"body": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppressEquivalentJsonOrYamlDiffs,
+				ValidateFunc:     validateStringIsJsonOrYaml,
+			},
 			"protocol_type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -133,6 +140,64 @@ func resourceAwsApiGatewayV2Api() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceAwsAPIGatewayV2ImportOpenAPI(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).apigatewayv2conn
+
+	if body, ok := d.GetOk("body"); ok {
+		revertReq := &apigatewayv2.UpdateApiInput{
+			ApiId:       aws.String(d.Id()),
+			Name:        aws.String(d.Get("name").(string)),
+			Description: aws.String(d.Get("description").(string)),
+			Version:     aws.String(d.Get("version").(string)),
+		}
+
+		log.Printf("[DEBUG] Updating API Gateway from OpenAPI spec %s", d.Id())
+		importReq := &apigatewayv2.ReimportApiInput{
+			ApiId: aws.String(d.Id()),
+			Body:  aws.String(body.(string)),
+		}
+
+		_, err := conn.ReimportApi(importReq)
+
+		if err != nil {
+			return fmt.Errorf("error importing API Gateway v2 API (%s) OpenAPI specification: %s", d.Id(), err)
+		}
+
+		tags := d.Get("tags")
+		corsConfiguration := d.Get("cors_configuration")
+
+		if err := resourceAwsApiGatewayV2ApiRead(d, meta); err != nil {
+			return err
+		}
+
+		if !reflect.DeepEqual(corsConfiguration, d.Get("cors_configuration")) {
+			if len(corsConfiguration.([]interface{})) == 0 {
+				log.Printf("[DEBUG] Deleting CORS configuration for API Gateway v2 API (%s)", d.Id())
+				_, err := conn.DeleteCorsConfiguration(&apigatewayv2.DeleteCorsConfigurationInput{
+					ApiId: aws.String(d.Id()),
+				})
+				if err != nil {
+					return fmt.Errorf("error deleting CORS configuration for API Gateway v2 API (%s): %s", d.Id(), err)
+				}
+			} else {
+				revertReq.CorsConfiguration = expandApiGateway2CorsConfiguration(corsConfiguration.([]interface{}))
+			}
+		}
+
+		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), d.Get("tags"), tags); err != nil {
+			return fmt.Errorf("error updating API Gateway v2 API (%s) tags: %s", d.Id(), err)
+		}
+
+		log.Printf("[DEBUG] Reverting API Gateway v2 API: %s", revertReq)
+		_, err = conn.UpdateApi(revertReq)
+		if err != nil {
+			return fmt.Errorf("error updating API Gateway v2 API (%s): %s", d.Id(), err)
+		}
+	}
+
+	return nil
 }
 
 func resourceAwsApiGatewayV2ApiCreate(d *schema.ResourceData, meta interface{}) error {
@@ -176,6 +241,11 @@ func resourceAwsApiGatewayV2ApiCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(aws.StringValue(resp.ApiId))
+
+	err = resourceAwsAPIGatewayV2ImportOpenAPI(d, meta)
+	if err != nil {
+		return err
+	}
 
 	return resourceAwsApiGatewayV2ApiRead(d, meta)
 }
@@ -283,6 +353,13 @@ func resourceAwsApiGatewayV2ApiUpdate(d *schema.ResourceData, meta interface{}) 
 		o, n := d.GetChange("tags")
 		if err := keyvaluetags.Apigatewayv2UpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating API Gateway v2 API (%s) tags: %s", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("body") {
+		err := resourceAwsAPIGatewayV2ImportOpenAPI(d, meta)
+		if err != nil {
+			return err
 		}
 	}
 

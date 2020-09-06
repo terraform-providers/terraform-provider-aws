@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -309,28 +309,28 @@ resource "aws_s3_bucket" "test" {
 }
 
 func testAccAWSDataSyncLocationS3Config(rName string) string {
-	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSDataSyncLocationS3ConfigBase(rName) + `
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   depends_on = [aws_iam_role_policy.test]
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationS3ConfigTags1(rName, key1, value1 string) string {
 	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   tags = {
@@ -345,11 +345,11 @@ resource "aws_datasync_location_s3" "test" {
 func testAccAWSDataSyncLocationS3ConfigTags2(rName, key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncLocationS3ConfigBase(rName) + fmt.Sprintf(`
 resource "aws_datasync_location_s3" "test" {
-  s3_bucket_arn = "${aws_s3_bucket.test.arn}"
+  s3_bucket_arn = aws_s3_bucket.test.arn
   subdirectory  = "/test"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.test.arn}"
+    bucket_access_role_arn = aws_iam_role.test.arn
   }
 
   tags = {

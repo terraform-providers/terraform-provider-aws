@@ -7,9 +7,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/waiter"
 )
 
 func resourceAwsEcsCapacityProvider() *schema.Resource {
@@ -159,6 +160,12 @@ func resourceAwsEcsCapacityProviderRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
+	if aws.StringValue(provider.Status) == ecs.CapacityProviderStatusInactive {
+		log.Printf("[WARN] ECS Capacity Provider (%s) is INACTIVE, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	d.Set("arn", provider.CapacityProviderArn)
 	d.Set("name", provider.Name)
 
@@ -188,8 +195,22 @@ func resourceAwsEcsCapacityProviderUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsEcsCapacityProviderDelete(d *schema.ResourceData, meta interface{}) error {
-	// Reference: https://github.com/aws/containers-roadmap/issues/632
-	log.Printf("[WARN] delete is not yet implemented for ECS capacity providers")
+	conn := meta.(*AWSClient).ecsconn
+
+	input := &ecs.DeleteCapacityProviderInput{
+		CapacityProvider: aws.String(d.Id()),
+	}
+
+	_, err := conn.DeleteCapacityProvider(input)
+
+	if err != nil {
+		return fmt.Errorf("error deleting ECS Capacity Provider (%s): %w", d.Id(), err)
+	}
+
+	if _, err := waiter.CapacityProviderInactive(conn, d.Id()); err != nil {
+		return fmt.Errorf("error waiting for ECS Capacity Provider (%s) to delete: %w", d.Id(), err)
+	}
+
 	return nil
 }
 

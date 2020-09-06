@@ -13,6 +13,92 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
+const opAcceptInboundCrossClusterSearchConnection = "AcceptInboundCrossClusterSearchConnection"
+
+// AcceptInboundCrossClusterSearchConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the AcceptInboundCrossClusterSearchConnection operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AcceptInboundCrossClusterSearchConnection for more information on using the AcceptInboundCrossClusterSearchConnection
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AcceptInboundCrossClusterSearchConnectionRequest method.
+//    req, resp := client.AcceptInboundCrossClusterSearchConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) AcceptInboundCrossClusterSearchConnectionRequest(input *AcceptInboundCrossClusterSearchConnectionInput) (req *request.Request, output *AcceptInboundCrossClusterSearchConnectionOutput) {
+	op := &request.Operation{
+		Name:       opAcceptInboundCrossClusterSearchConnection,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/2015-01-01/es/ccs/inboundConnection/{ConnectionId}/accept",
+	}
+
+	if input == nil {
+		input = &AcceptInboundCrossClusterSearchConnectionInput{}
+	}
+
+	output = &AcceptInboundCrossClusterSearchConnectionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AcceptInboundCrossClusterSearchConnection API operation for Amazon Elasticsearch Service.
+//
+// Allows the destination domain owner to accept an inbound cross-cluster search
+// connection request.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation AcceptInboundCrossClusterSearchConnection for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   An exception for accessing or deleting a resource that does not exist. Gives
+//   http status code of 400.
+//
+//   * LimitExceededException
+//   An exception for trying to create more than allowed resources or sub-resources.
+//   Gives http status code of 409.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) AcceptInboundCrossClusterSearchConnection(input *AcceptInboundCrossClusterSearchConnectionInput) (*AcceptInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.AcceptInboundCrossClusterSearchConnectionRequest(input)
+	return out, req.Send()
+}
+
+// AcceptInboundCrossClusterSearchConnectionWithContext is the same as AcceptInboundCrossClusterSearchConnection with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AcceptInboundCrossClusterSearchConnection for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) AcceptInboundCrossClusterSearchConnectionWithContext(ctx aws.Context, input *AcceptInboundCrossClusterSearchConnectionInput, opts ...request.Option) (*AcceptInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.AcceptInboundCrossClusterSearchConnectionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opAddTags = "AddTags"
 
 // AddTagsRequest generates a "aws/request.Request" representing the
@@ -396,6 +482,97 @@ func (c *ElasticsearchService) CreateElasticsearchDomainWithContext(ctx aws.Cont
 	return out, req.Send()
 }
 
+const opCreateOutboundCrossClusterSearchConnection = "CreateOutboundCrossClusterSearchConnection"
+
+// CreateOutboundCrossClusterSearchConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateOutboundCrossClusterSearchConnection operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateOutboundCrossClusterSearchConnection for more information on using the CreateOutboundCrossClusterSearchConnection
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateOutboundCrossClusterSearchConnectionRequest method.
+//    req, resp := client.CreateOutboundCrossClusterSearchConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) CreateOutboundCrossClusterSearchConnectionRequest(input *CreateOutboundCrossClusterSearchConnectionInput) (req *request.Request, output *CreateOutboundCrossClusterSearchConnectionOutput) {
+	op := &request.Operation{
+		Name:       opCreateOutboundCrossClusterSearchConnection,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2015-01-01/es/ccs/outboundConnection",
+	}
+
+	if input == nil {
+		input = &CreateOutboundCrossClusterSearchConnectionInput{}
+	}
+
+	output = &CreateOutboundCrossClusterSearchConnectionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateOutboundCrossClusterSearchConnection API operation for Amazon Elasticsearch Service.
+//
+// Creates a new cross-cluster search connection from a source domain to a destination
+// domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation CreateOutboundCrossClusterSearchConnection for usage and error information.
+//
+// Returned Error Types:
+//   * LimitExceededException
+//   An exception for trying to create more than allowed resources or sub-resources.
+//   Gives http status code of 409.
+//
+//   * InternalException
+//   The request processing has failed because of an unknown error, exception
+//   or failure (the failure is internal to the service) . Gives http status code
+//   of 500.
+//
+//   * ResourceAlreadyExistsException
+//   An exception for creating a resource that already exists. Gives http status
+//   code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) CreateOutboundCrossClusterSearchConnection(input *CreateOutboundCrossClusterSearchConnectionInput) (*CreateOutboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.CreateOutboundCrossClusterSearchConnectionRequest(input)
+	return out, req.Send()
+}
+
+// CreateOutboundCrossClusterSearchConnectionWithContext is the same as CreateOutboundCrossClusterSearchConnection with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateOutboundCrossClusterSearchConnection for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) CreateOutboundCrossClusterSearchConnectionWithContext(ctx aws.Context, input *CreateOutboundCrossClusterSearchConnectionInput, opts ...request.Option) (*CreateOutboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.CreateOutboundCrossClusterSearchConnectionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreatePackage = "CreatePackage"
 
 // CreatePackageRequest generates a "aws/request.Request" representing the
@@ -672,6 +849,170 @@ func (c *ElasticsearchService) DeleteElasticsearchServiceRole(input *DeleteElast
 // for more information on using Contexts.
 func (c *ElasticsearchService) DeleteElasticsearchServiceRoleWithContext(ctx aws.Context, input *DeleteElasticsearchServiceRoleInput, opts ...request.Option) (*DeleteElasticsearchServiceRoleOutput, error) {
 	req, out := c.DeleteElasticsearchServiceRoleRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteInboundCrossClusterSearchConnection = "DeleteInboundCrossClusterSearchConnection"
+
+// DeleteInboundCrossClusterSearchConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteInboundCrossClusterSearchConnection operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteInboundCrossClusterSearchConnection for more information on using the DeleteInboundCrossClusterSearchConnection
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteInboundCrossClusterSearchConnectionRequest method.
+//    req, resp := client.DeleteInboundCrossClusterSearchConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) DeleteInboundCrossClusterSearchConnectionRequest(input *DeleteInboundCrossClusterSearchConnectionInput) (req *request.Request, output *DeleteInboundCrossClusterSearchConnectionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteInboundCrossClusterSearchConnection,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2015-01-01/es/ccs/inboundConnection/{ConnectionId}",
+	}
+
+	if input == nil {
+		input = &DeleteInboundCrossClusterSearchConnectionInput{}
+	}
+
+	output = &DeleteInboundCrossClusterSearchConnectionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteInboundCrossClusterSearchConnection API operation for Amazon Elasticsearch Service.
+//
+// Allows the destination domain owner to delete an existing inbound cross-cluster
+// search connection.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation DeleteInboundCrossClusterSearchConnection for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   An exception for accessing or deleting a resource that does not exist. Gives
+//   http status code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) DeleteInboundCrossClusterSearchConnection(input *DeleteInboundCrossClusterSearchConnectionInput) (*DeleteInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.DeleteInboundCrossClusterSearchConnectionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteInboundCrossClusterSearchConnectionWithContext is the same as DeleteInboundCrossClusterSearchConnection with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteInboundCrossClusterSearchConnection for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DeleteInboundCrossClusterSearchConnectionWithContext(ctx aws.Context, input *DeleteInboundCrossClusterSearchConnectionInput, opts ...request.Option) (*DeleteInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.DeleteInboundCrossClusterSearchConnectionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteOutboundCrossClusterSearchConnection = "DeleteOutboundCrossClusterSearchConnection"
+
+// DeleteOutboundCrossClusterSearchConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteOutboundCrossClusterSearchConnection operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteOutboundCrossClusterSearchConnection for more information on using the DeleteOutboundCrossClusterSearchConnection
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteOutboundCrossClusterSearchConnectionRequest method.
+//    req, resp := client.DeleteOutboundCrossClusterSearchConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) DeleteOutboundCrossClusterSearchConnectionRequest(input *DeleteOutboundCrossClusterSearchConnectionInput) (req *request.Request, output *DeleteOutboundCrossClusterSearchConnectionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteOutboundCrossClusterSearchConnection,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/2015-01-01/es/ccs/outboundConnection/{ConnectionId}",
+	}
+
+	if input == nil {
+		input = &DeleteOutboundCrossClusterSearchConnectionInput{}
+	}
+
+	output = &DeleteOutboundCrossClusterSearchConnectionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteOutboundCrossClusterSearchConnection API operation for Amazon Elasticsearch Service.
+//
+// Allows the source domain owner to delete an existing outbound cross-cluster
+// search connection.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation DeleteOutboundCrossClusterSearchConnection for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   An exception for accessing or deleting a resource that does not exist. Gives
+//   http status code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) DeleteOutboundCrossClusterSearchConnection(input *DeleteOutboundCrossClusterSearchConnectionInput) (*DeleteOutboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.DeleteOutboundCrossClusterSearchConnectionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteOutboundCrossClusterSearchConnectionWithContext is the same as DeleteOutboundCrossClusterSearchConnection with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteOutboundCrossClusterSearchConnection for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DeleteOutboundCrossClusterSearchConnectionWithContext(ctx aws.Context, input *DeleteOutboundCrossClusterSearchConnectionInput, opts ...request.Option) (*DeleteOutboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.DeleteOutboundCrossClusterSearchConnectionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1138,6 +1479,285 @@ func (c *ElasticsearchService) DescribeElasticsearchInstanceTypeLimitsWithContex
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opDescribeInboundCrossClusterSearchConnections = "DescribeInboundCrossClusterSearchConnections"
+
+// DescribeInboundCrossClusterSearchConnectionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeInboundCrossClusterSearchConnections operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeInboundCrossClusterSearchConnections for more information on using the DescribeInboundCrossClusterSearchConnections
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeInboundCrossClusterSearchConnectionsRequest method.
+//    req, resp := client.DescribeInboundCrossClusterSearchConnectionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) DescribeInboundCrossClusterSearchConnectionsRequest(input *DescribeInboundCrossClusterSearchConnectionsInput) (req *request.Request, output *DescribeInboundCrossClusterSearchConnectionsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeInboundCrossClusterSearchConnections,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2015-01-01/es/ccs/inboundConnection/search",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &DescribeInboundCrossClusterSearchConnectionsInput{}
+	}
+
+	output = &DescribeInboundCrossClusterSearchConnectionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeInboundCrossClusterSearchConnections API operation for Amazon Elasticsearch Service.
+//
+// Lists all the inbound cross-cluster search connections for a destination
+// domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation DescribeInboundCrossClusterSearchConnections for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidPaginationTokenException
+//   The request processing has failed because of invalid pagination token provided
+//   by customer. Returns an HTTP status code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) DescribeInboundCrossClusterSearchConnections(input *DescribeInboundCrossClusterSearchConnectionsInput) (*DescribeInboundCrossClusterSearchConnectionsOutput, error) {
+	req, out := c.DescribeInboundCrossClusterSearchConnectionsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeInboundCrossClusterSearchConnectionsWithContext is the same as DescribeInboundCrossClusterSearchConnections with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeInboundCrossClusterSearchConnections for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DescribeInboundCrossClusterSearchConnectionsWithContext(ctx aws.Context, input *DescribeInboundCrossClusterSearchConnectionsInput, opts ...request.Option) (*DescribeInboundCrossClusterSearchConnectionsOutput, error) {
+	req, out := c.DescribeInboundCrossClusterSearchConnectionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// DescribeInboundCrossClusterSearchConnectionsPages iterates over the pages of a DescribeInboundCrossClusterSearchConnections operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeInboundCrossClusterSearchConnections method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeInboundCrossClusterSearchConnections operation.
+//    pageNum := 0
+//    err := client.DescribeInboundCrossClusterSearchConnectionsPages(params,
+//        func(page *elasticsearchservice.DescribeInboundCrossClusterSearchConnectionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ElasticsearchService) DescribeInboundCrossClusterSearchConnectionsPages(input *DescribeInboundCrossClusterSearchConnectionsInput, fn func(*DescribeInboundCrossClusterSearchConnectionsOutput, bool) bool) error {
+	return c.DescribeInboundCrossClusterSearchConnectionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeInboundCrossClusterSearchConnectionsPagesWithContext same as DescribeInboundCrossClusterSearchConnectionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DescribeInboundCrossClusterSearchConnectionsPagesWithContext(ctx aws.Context, input *DescribeInboundCrossClusterSearchConnectionsInput, fn func(*DescribeInboundCrossClusterSearchConnectionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeInboundCrossClusterSearchConnectionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeInboundCrossClusterSearchConnectionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeInboundCrossClusterSearchConnectionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opDescribeOutboundCrossClusterSearchConnections = "DescribeOutboundCrossClusterSearchConnections"
+
+// DescribeOutboundCrossClusterSearchConnectionsRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeOutboundCrossClusterSearchConnections operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeOutboundCrossClusterSearchConnections for more information on using the DescribeOutboundCrossClusterSearchConnections
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeOutboundCrossClusterSearchConnectionsRequest method.
+//    req, resp := client.DescribeOutboundCrossClusterSearchConnectionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) DescribeOutboundCrossClusterSearchConnectionsRequest(input *DescribeOutboundCrossClusterSearchConnectionsInput) (req *request.Request, output *DescribeOutboundCrossClusterSearchConnectionsOutput) {
+	op := &request.Operation{
+		Name:       opDescribeOutboundCrossClusterSearchConnections,
+		HTTPMethod: "POST",
+		HTTPPath:   "/2015-01-01/es/ccs/outboundConnection/search",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &DescribeOutboundCrossClusterSearchConnectionsInput{}
+	}
+
+	output = &DescribeOutboundCrossClusterSearchConnectionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeOutboundCrossClusterSearchConnections API operation for Amazon Elasticsearch Service.
+//
+// Lists all the outbound cross-cluster search connections for a source domain.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation DescribeOutboundCrossClusterSearchConnections for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidPaginationTokenException
+//   The request processing has failed because of invalid pagination token provided
+//   by customer. Returns an HTTP status code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) DescribeOutboundCrossClusterSearchConnections(input *DescribeOutboundCrossClusterSearchConnectionsInput) (*DescribeOutboundCrossClusterSearchConnectionsOutput, error) {
+	req, out := c.DescribeOutboundCrossClusterSearchConnectionsRequest(input)
+	return out, req.Send()
+}
+
+// DescribeOutboundCrossClusterSearchConnectionsWithContext is the same as DescribeOutboundCrossClusterSearchConnections with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeOutboundCrossClusterSearchConnections for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DescribeOutboundCrossClusterSearchConnectionsWithContext(ctx aws.Context, input *DescribeOutboundCrossClusterSearchConnectionsInput, opts ...request.Option) (*DescribeOutboundCrossClusterSearchConnectionsOutput, error) {
+	req, out := c.DescribeOutboundCrossClusterSearchConnectionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// DescribeOutboundCrossClusterSearchConnectionsPages iterates over the pages of a DescribeOutboundCrossClusterSearchConnections operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeOutboundCrossClusterSearchConnections method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeOutboundCrossClusterSearchConnections operation.
+//    pageNum := 0
+//    err := client.DescribeOutboundCrossClusterSearchConnectionsPages(params,
+//        func(page *elasticsearchservice.DescribeOutboundCrossClusterSearchConnectionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *ElasticsearchService) DescribeOutboundCrossClusterSearchConnectionsPages(input *DescribeOutboundCrossClusterSearchConnectionsInput, fn func(*DescribeOutboundCrossClusterSearchConnectionsOutput, bool) bool) error {
+	return c.DescribeOutboundCrossClusterSearchConnectionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeOutboundCrossClusterSearchConnectionsPagesWithContext same as DescribeOutboundCrossClusterSearchConnectionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) DescribeOutboundCrossClusterSearchConnectionsPagesWithContext(ctx aws.Context, input *DescribeOutboundCrossClusterSearchConnectionsInput, fn func(*DescribeOutboundCrossClusterSearchConnectionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeOutboundCrossClusterSearchConnectionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeOutboundCrossClusterSearchConnectionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeOutboundCrossClusterSearchConnectionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opDescribePackages = "DescribePackages"
@@ -2890,6 +3510,88 @@ func (c *ElasticsearchService) PurchaseReservedElasticsearchInstanceOfferingWith
 	return out, req.Send()
 }
 
+const opRejectInboundCrossClusterSearchConnection = "RejectInboundCrossClusterSearchConnection"
+
+// RejectInboundCrossClusterSearchConnectionRequest generates a "aws/request.Request" representing the
+// client's request for the RejectInboundCrossClusterSearchConnection operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RejectInboundCrossClusterSearchConnection for more information on using the RejectInboundCrossClusterSearchConnection
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RejectInboundCrossClusterSearchConnectionRequest method.
+//    req, resp := client.RejectInboundCrossClusterSearchConnectionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *ElasticsearchService) RejectInboundCrossClusterSearchConnectionRequest(input *RejectInboundCrossClusterSearchConnectionInput) (req *request.Request, output *RejectInboundCrossClusterSearchConnectionOutput) {
+	op := &request.Operation{
+		Name:       opRejectInboundCrossClusterSearchConnection,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/2015-01-01/es/ccs/inboundConnection/{ConnectionId}/reject",
+	}
+
+	if input == nil {
+		input = &RejectInboundCrossClusterSearchConnectionInput{}
+	}
+
+	output = &RejectInboundCrossClusterSearchConnectionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RejectInboundCrossClusterSearchConnection API operation for Amazon Elasticsearch Service.
+//
+// Allows the destination domain owner to reject an inbound cross-cluster search
+// connection request.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Elasticsearch Service's
+// API operation RejectInboundCrossClusterSearchConnection for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   An exception for accessing or deleting a resource that does not exist. Gives
+//   http status code of 400.
+//
+//   * DisabledOperationException
+//   An error occured because the client wanted to access a not supported operation.
+//   Gives http status code of 409.
+//
+func (c *ElasticsearchService) RejectInboundCrossClusterSearchConnection(input *RejectInboundCrossClusterSearchConnectionInput) (*RejectInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.RejectInboundCrossClusterSearchConnectionRequest(input)
+	return out, req.Send()
+}
+
+// RejectInboundCrossClusterSearchConnectionWithContext is the same as RejectInboundCrossClusterSearchConnection with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RejectInboundCrossClusterSearchConnection for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ElasticsearchService) RejectInboundCrossClusterSearchConnectionWithContext(ctx aws.Context, input *RejectInboundCrossClusterSearchConnectionInput, opts ...request.Option) (*RejectInboundCrossClusterSearchConnectionOutput, error) {
+	req, out := c.RejectInboundCrossClusterSearchConnectionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opRemoveTags = "RemoveTags"
 
 // RemoveTagsRequest generates a "aws/request.Request" representing the
@@ -3259,6 +3961,74 @@ func (c *ElasticsearchService) UpgradeElasticsearchDomainWithContext(ctx aws.Con
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// Container for the parameters to the AcceptInboundCrossClusterSearchConnection
+// operation.
+type AcceptInboundCrossClusterSearchConnectionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The id of the inbound connection that you want to accept.
+	//
+	// CrossClusterSearchConnectionId is a required field
+	CrossClusterSearchConnectionId *string `location:"uri" locationName:"ConnectionId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AcceptInboundCrossClusterSearchConnectionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptInboundCrossClusterSearchConnectionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AcceptInboundCrossClusterSearchConnectionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AcceptInboundCrossClusterSearchConnectionInput"}
+	if s.CrossClusterSearchConnectionId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CrossClusterSearchConnectionId"))
+	}
+	if s.CrossClusterSearchConnectionId != nil && len(*s.CrossClusterSearchConnectionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CrossClusterSearchConnectionId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *AcceptInboundCrossClusterSearchConnectionInput) SetCrossClusterSearchConnectionId(v string) *AcceptInboundCrossClusterSearchConnectionInput {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// The result of a AcceptInboundCrossClusterSearchConnection operation. Contains
+// details of accepted inbound connection.
+type AcceptInboundCrossClusterSearchConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the InboundCrossClusterSearchConnection of accepted inbound connection.
+	CrossClusterSearchConnection *InboundCrossClusterSearchConnection `type:"structure"`
+}
+
+// String returns the string representation
+func (s AcceptInboundCrossClusterSearchConnectionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AcceptInboundCrossClusterSearchConnectionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnection sets the CrossClusterSearchConnection field's value.
+func (s *AcceptInboundCrossClusterSearchConnectionOutput) SetCrossClusterSearchConnection(v *InboundCrossClusterSearchConnection) *AcceptInboundCrossClusterSearchConnectionOutput {
+	s.CrossClusterSearchConnection = v
+	return s
 }
 
 // An error occurred because user does not have permissions to access the resource.
@@ -4282,6 +5052,148 @@ func (s *CreateElasticsearchDomainOutput) SetDomainStatus(v *ElasticsearchDomain
 	return s
 }
 
+// Container for the parameters to the CreateOutboundCrossClusterSearchConnection
+// operation.
+type CreateOutboundCrossClusterSearchConnectionInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the connection alias that will be used by the customer for this
+	// connection.
+	//
+	// ConnectionAlias is a required field
+	ConnectionAlias *string `type:"string" required:"true"`
+
+	// Specifies the DomainInformation for the destination Elasticsearch domain.
+	//
+	// DestinationDomainInfo is a required field
+	DestinationDomainInfo *DomainInformation `type:"structure" required:"true"`
+
+	// Specifies the DomainInformation for the source Elasticsearch domain.
+	//
+	// SourceDomainInfo is a required field
+	SourceDomainInfo *DomainInformation `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateOutboundCrossClusterSearchConnectionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateOutboundCrossClusterSearchConnectionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateOutboundCrossClusterSearchConnectionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateOutboundCrossClusterSearchConnectionInput"}
+	if s.ConnectionAlias == nil {
+		invalidParams.Add(request.NewErrParamRequired("ConnectionAlias"))
+	}
+	if s.DestinationDomainInfo == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationDomainInfo"))
+	}
+	if s.SourceDomainInfo == nil {
+		invalidParams.Add(request.NewErrParamRequired("SourceDomainInfo"))
+	}
+	if s.DestinationDomainInfo != nil {
+		if err := s.DestinationDomainInfo.Validate(); err != nil {
+			invalidParams.AddNested("DestinationDomainInfo", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SourceDomainInfo != nil {
+		if err := s.SourceDomainInfo.Validate(); err != nil {
+			invalidParams.AddNested("SourceDomainInfo", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetConnectionAlias sets the ConnectionAlias field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionInput) SetConnectionAlias(v string) *CreateOutboundCrossClusterSearchConnectionInput {
+	s.ConnectionAlias = &v
+	return s
+}
+
+// SetDestinationDomainInfo sets the DestinationDomainInfo field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionInput) SetDestinationDomainInfo(v *DomainInformation) *CreateOutboundCrossClusterSearchConnectionInput {
+	s.DestinationDomainInfo = v
+	return s
+}
+
+// SetSourceDomainInfo sets the SourceDomainInfo field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionInput) SetSourceDomainInfo(v *DomainInformation) *CreateOutboundCrossClusterSearchConnectionInput {
+	s.SourceDomainInfo = v
+	return s
+}
+
+// The result of a CreateOutboundCrossClusterSearchConnection request. Contains
+// the details of the newly created cross-cluster search connection.
+type CreateOutboundCrossClusterSearchConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the connection alias provided during the create connection request.
+	ConnectionAlias *string `type:"string"`
+
+	// Specifies the OutboundCrossClusterSearchConnectionStatus for the newly created
+	// connection.
+	ConnectionStatus *OutboundCrossClusterSearchConnectionStatus `type:"structure"`
+
+	// Unique id for the created outbound connection, which is used for subsequent
+	// operations on connection.
+	CrossClusterSearchConnectionId *string `type:"string"`
+
+	// Specifies the DomainInformation for the destination Elasticsearch domain.
+	DestinationDomainInfo *DomainInformation `type:"structure"`
+
+	// Specifies the DomainInformation for the source Elasticsearch domain.
+	SourceDomainInfo *DomainInformation `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateOutboundCrossClusterSearchConnectionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateOutboundCrossClusterSearchConnectionOutput) GoString() string {
+	return s.String()
+}
+
+// SetConnectionAlias sets the ConnectionAlias field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionOutput) SetConnectionAlias(v string) *CreateOutboundCrossClusterSearchConnectionOutput {
+	s.ConnectionAlias = &v
+	return s
+}
+
+// SetConnectionStatus sets the ConnectionStatus field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionOutput) SetConnectionStatus(v *OutboundCrossClusterSearchConnectionStatus) *CreateOutboundCrossClusterSearchConnectionOutput {
+	s.ConnectionStatus = v
+	return s
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionOutput) SetCrossClusterSearchConnectionId(v string) *CreateOutboundCrossClusterSearchConnectionOutput {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// SetDestinationDomainInfo sets the DestinationDomainInfo field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionOutput) SetDestinationDomainInfo(v *DomainInformation) *CreateOutboundCrossClusterSearchConnectionOutput {
+	s.DestinationDomainInfo = v
+	return s
+}
+
+// SetSourceDomainInfo sets the SourceDomainInfo field's value.
+func (s *CreateOutboundCrossClusterSearchConnectionOutput) SetSourceDomainInfo(v *DomainInformation) *CreateOutboundCrossClusterSearchConnectionOutput {
+	s.SourceDomainInfo = v
+	return s
+}
+
 // Container for request parameters to CreatePackage operation.
 type CreatePackageInput struct {
 	_ struct{} `type:"structure"`
@@ -4485,6 +5397,142 @@ func (s DeleteElasticsearchServiceRoleOutput) String() string {
 // GoString returns the string representation
 func (s DeleteElasticsearchServiceRoleOutput) GoString() string {
 	return s.String()
+}
+
+// Container for the parameters to the DeleteInboundCrossClusterSearchConnection
+// operation.
+type DeleteInboundCrossClusterSearchConnectionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The id of the inbound connection that you want to permanently delete.
+	//
+	// CrossClusterSearchConnectionId is a required field
+	CrossClusterSearchConnectionId *string `location:"uri" locationName:"ConnectionId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteInboundCrossClusterSearchConnectionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteInboundCrossClusterSearchConnectionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteInboundCrossClusterSearchConnectionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteInboundCrossClusterSearchConnectionInput"}
+	if s.CrossClusterSearchConnectionId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CrossClusterSearchConnectionId"))
+	}
+	if s.CrossClusterSearchConnectionId != nil && len(*s.CrossClusterSearchConnectionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CrossClusterSearchConnectionId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *DeleteInboundCrossClusterSearchConnectionInput) SetCrossClusterSearchConnectionId(v string) *DeleteInboundCrossClusterSearchConnectionInput {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// The result of a DeleteInboundCrossClusterSearchConnection operation. Contains
+// details of deleted inbound connection.
+type DeleteInboundCrossClusterSearchConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the InboundCrossClusterSearchConnection of deleted inbound connection.
+	CrossClusterSearchConnection *InboundCrossClusterSearchConnection `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteInboundCrossClusterSearchConnectionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteInboundCrossClusterSearchConnectionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnection sets the CrossClusterSearchConnection field's value.
+func (s *DeleteInboundCrossClusterSearchConnectionOutput) SetCrossClusterSearchConnection(v *InboundCrossClusterSearchConnection) *DeleteInboundCrossClusterSearchConnectionOutput {
+	s.CrossClusterSearchConnection = v
+	return s
+}
+
+// Container for the parameters to the DeleteOutboundCrossClusterSearchConnection
+// operation.
+type DeleteOutboundCrossClusterSearchConnectionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The id of the outbound connection that you want to permanently delete.
+	//
+	// CrossClusterSearchConnectionId is a required field
+	CrossClusterSearchConnectionId *string `location:"uri" locationName:"ConnectionId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteOutboundCrossClusterSearchConnectionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteOutboundCrossClusterSearchConnectionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteOutboundCrossClusterSearchConnectionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteOutboundCrossClusterSearchConnectionInput"}
+	if s.CrossClusterSearchConnectionId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CrossClusterSearchConnectionId"))
+	}
+	if s.CrossClusterSearchConnectionId != nil && len(*s.CrossClusterSearchConnectionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CrossClusterSearchConnectionId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *DeleteOutboundCrossClusterSearchConnectionInput) SetCrossClusterSearchConnectionId(v string) *DeleteOutboundCrossClusterSearchConnectionInput {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// The result of a DeleteOutboundCrossClusterSearchConnection operation. Contains
+// details of deleted outbound connection.
+type DeleteOutboundCrossClusterSearchConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the OutboundCrossClusterSearchConnection of deleted outbound connection.
+	CrossClusterSearchConnection *OutboundCrossClusterSearchConnection `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteOutboundCrossClusterSearchConnectionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteOutboundCrossClusterSearchConnectionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnection sets the CrossClusterSearchConnection field's value.
+func (s *DeleteOutboundCrossClusterSearchConnectionOutput) SetCrossClusterSearchConnection(v *OutboundCrossClusterSearchConnection) *DeleteOutboundCrossClusterSearchConnectionOutput {
+	s.CrossClusterSearchConnection = v
+	return s
 }
 
 // Container for request parameters to DeletePackage operation.
@@ -4863,6 +5911,228 @@ func (s DescribeElasticsearchInstanceTypeLimitsOutput) GoString() string {
 // SetLimitsByRole sets the LimitsByRole field's value.
 func (s *DescribeElasticsearchInstanceTypeLimitsOutput) SetLimitsByRole(v map[string]*Limits) *DescribeElasticsearchInstanceTypeLimitsOutput {
 	s.LimitsByRole = v
+	return s
+}
+
+// Container for the parameters to the DescribeInboundCrossClusterSearchConnections
+// operation.
+type DescribeInboundCrossClusterSearchConnectionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of filters used to match properties for inbound cross-cluster search
+	// connection. Available Filter names for this operation are:
+	//    * cross-cluster-search-connection-id
+	//
+	//    * source-domain-info.domain-name
+	//
+	//    * source-domain-info.owner-id
+	//
+	//    * source-domain-info.region
+	//
+	//    * destination-domain-info.domain-name
+	Filters []*Filter `type:"list"`
+
+	// Set this value to limit the number of results returned. If not specified,
+	// defaults to 100.
+	MaxResults *int64 `type:"integer"`
+
+	// NextToken is sent in case the earlier API call results contain the NextToken.
+	// It is used for pagination.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeInboundCrossClusterSearchConnectionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeInboundCrossClusterSearchConnectionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeInboundCrossClusterSearchConnectionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeInboundCrossClusterSearchConnectionsInput"}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *DescribeInboundCrossClusterSearchConnectionsInput) SetFilters(v []*Filter) *DescribeInboundCrossClusterSearchConnectionsInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeInboundCrossClusterSearchConnectionsInput) SetMaxResults(v int64) *DescribeInboundCrossClusterSearchConnectionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeInboundCrossClusterSearchConnectionsInput) SetNextToken(v string) *DescribeInboundCrossClusterSearchConnectionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// The result of a DescribeInboundCrossClusterSearchConnections request. Contains
+// the list of connections matching the filter criteria.
+type DescribeInboundCrossClusterSearchConnectionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Consists of list of InboundCrossClusterSearchConnection matching the specified
+	// filter criteria.
+	CrossClusterSearchConnections []*InboundCrossClusterSearchConnection `type:"list"`
+
+	// If more results are available and NextToken is present, make the next request
+	// to the same API with the received NextToken to paginate the remaining results.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeInboundCrossClusterSearchConnectionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeInboundCrossClusterSearchConnectionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnections sets the CrossClusterSearchConnections field's value.
+func (s *DescribeInboundCrossClusterSearchConnectionsOutput) SetCrossClusterSearchConnections(v []*InboundCrossClusterSearchConnection) *DescribeInboundCrossClusterSearchConnectionsOutput {
+	s.CrossClusterSearchConnections = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeInboundCrossClusterSearchConnectionsOutput) SetNextToken(v string) *DescribeInboundCrossClusterSearchConnectionsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// Container for the parameters to the DescribeOutboundCrossClusterSearchConnections
+// operation.
+type DescribeOutboundCrossClusterSearchConnectionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of filters used to match properties for outbound cross-cluster search
+	// connection. Available Filter names for this operation are:
+	//    * cross-cluster-search-connection-id
+	//
+	//    * destination-domain-info.domain-name
+	//
+	//    * destination-domain-info.owner-id
+	//
+	//    * destination-domain-info.region
+	//
+	//    * source-domain-info.domain-name
+	Filters []*Filter `type:"list"`
+
+	// Set this value to limit the number of results returned. If not specified,
+	// defaults to 100.
+	MaxResults *int64 `type:"integer"`
+
+	// NextToken is sent in case the earlier API call results contain the NextToken.
+	// It is used for pagination.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeOutboundCrossClusterSearchConnectionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeOutboundCrossClusterSearchConnectionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeOutboundCrossClusterSearchConnectionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeOutboundCrossClusterSearchConnectionsInput"}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *DescribeOutboundCrossClusterSearchConnectionsInput) SetFilters(v []*Filter) *DescribeOutboundCrossClusterSearchConnectionsInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeOutboundCrossClusterSearchConnectionsInput) SetMaxResults(v int64) *DescribeOutboundCrossClusterSearchConnectionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeOutboundCrossClusterSearchConnectionsInput) SetNextToken(v string) *DescribeOutboundCrossClusterSearchConnectionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// The result of a DescribeOutboundCrossClusterSearchConnections request. Contains
+// the list of connections matching the filter criteria.
+type DescribeOutboundCrossClusterSearchConnectionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Consists of list of OutboundCrossClusterSearchConnection matching the specified
+	// filter criteria.
+	CrossClusterSearchConnections []*OutboundCrossClusterSearchConnection `type:"list"`
+
+	// If more results are available and NextToken is present, make the next request
+	// to the same API with the received NextToken to paginate the remaining results.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeOutboundCrossClusterSearchConnectionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeOutboundCrossClusterSearchConnectionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnections sets the CrossClusterSearchConnections field's value.
+func (s *DescribeOutboundCrossClusterSearchConnectionsOutput) SetCrossClusterSearchConnections(v []*OutboundCrossClusterSearchConnection) *DescribeOutboundCrossClusterSearchConnectionsOutput {
+	s.CrossClusterSearchConnections = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeOutboundCrossClusterSearchConnectionsOutput) SetNextToken(v string) *DescribeOutboundCrossClusterSearchConnectionsOutput {
+	s.NextToken = &v
 	return s
 }
 
@@ -5369,6 +6639,69 @@ func (s DomainInfo) GoString() string {
 // SetDomainName sets the DomainName field's value.
 func (s *DomainInfo) SetDomainName(v string) *DomainInfo {
 	s.DomainName = &v
+	return s
+}
+
+type DomainInformation struct {
+	_ struct{} `type:"structure"`
+
+	// The name of an Elasticsearch domain. Domain names are unique across the domains
+	// owned by an account within an AWS region. Domain names start with a letter
+	// or number and can contain the following characters: a-z (lowercase), 0-9,
+	// and - (hyphen).
+	//
+	// DomainName is a required field
+	DomainName *string `min:"3" type:"string" required:"true"`
+
+	OwnerId *string `min:"12" type:"string"`
+
+	Region *string `type:"string"`
+}
+
+// String returns the string representation
+func (s DomainInformation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DomainInformation) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DomainInformation) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DomainInformation"}
+	if s.DomainName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DomainName"))
+	}
+	if s.DomainName != nil && len(*s.DomainName) < 3 {
+		invalidParams.Add(request.NewErrParamMinLen("DomainName", 3))
+	}
+	if s.OwnerId != nil && len(*s.OwnerId) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("OwnerId", 12))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDomainName sets the DomainName field's value.
+func (s *DomainInformation) SetDomainName(v string) *DomainInformation {
+	s.DomainName = &v
+	return s
+}
+
+// SetOwnerId sets the OwnerId field's value.
+func (s *DomainInformation) SetOwnerId(v string) *DomainInformation {
+	s.OwnerId = &v
+	return s
+}
+
+// SetRegion sets the Region field's value.
+func (s *DomainInformation) SetRegion(v string) *DomainInformation {
+	s.Region = &v
 	return s
 }
 
@@ -6237,6 +7570,58 @@ func (s *ErrorDetails) SetErrorType(v string) *ErrorDetails {
 	return s
 }
 
+// A filter used to limit results when describing inbound or outbound cross-cluster
+// search connections. Multiple values can be specified per filter. A cross-cluster
+// search connection must match at least one of the specified values for it
+// to be returned from an operation.
+type Filter struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the name of the filter.
+	Name *string `min:"1" type:"string"`
+
+	// Contains one or more values for the filter.
+	Values []*string `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s Filter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Filter) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Filter) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Filter"}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Values != nil && len(s.Values) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Values", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *Filter) SetName(v string) *Filter {
+	s.Name = &v
+	return s
+}
+
+// SetValues sets the Values field's value.
+func (s *Filter) SetValues(v []*string) *Filter {
+	s.Values = v
+	return s
+}
+
 // Container for request parameters to GetCompatibleElasticsearchVersions operation.
 type GetCompatibleElasticsearchVersionsInput struct {
 	_ struct{} `type:"structure"`
@@ -6504,6 +7889,105 @@ func (s *GetUpgradeStatusOutput) SetUpgradeStep(v string) *GetUpgradeStatusOutpu
 	return s
 }
 
+// Specifies details of an inbound connection.
+type InboundCrossClusterSearchConnection struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the InboundCrossClusterSearchConnectionStatus for the outbound
+	// connection.
+	ConnectionStatus *InboundCrossClusterSearchConnectionStatus `type:"structure"`
+
+	// Specifies the connection id for the inbound cross-cluster search connection.
+	CrossClusterSearchConnectionId *string `type:"string"`
+
+	// Specifies the DomainInformation for the destination Elasticsearch domain.
+	DestinationDomainInfo *DomainInformation `type:"structure"`
+
+	// Specifies the DomainInformation for the source Elasticsearch domain.
+	SourceDomainInfo *DomainInformation `type:"structure"`
+}
+
+// String returns the string representation
+func (s InboundCrossClusterSearchConnection) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InboundCrossClusterSearchConnection) GoString() string {
+	return s.String()
+}
+
+// SetConnectionStatus sets the ConnectionStatus field's value.
+func (s *InboundCrossClusterSearchConnection) SetConnectionStatus(v *InboundCrossClusterSearchConnectionStatus) *InboundCrossClusterSearchConnection {
+	s.ConnectionStatus = v
+	return s
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *InboundCrossClusterSearchConnection) SetCrossClusterSearchConnectionId(v string) *InboundCrossClusterSearchConnection {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// SetDestinationDomainInfo sets the DestinationDomainInfo field's value.
+func (s *InboundCrossClusterSearchConnection) SetDestinationDomainInfo(v *DomainInformation) *InboundCrossClusterSearchConnection {
+	s.DestinationDomainInfo = v
+	return s
+}
+
+// SetSourceDomainInfo sets the SourceDomainInfo field's value.
+func (s *InboundCrossClusterSearchConnection) SetSourceDomainInfo(v *DomainInformation) *InboundCrossClusterSearchConnection {
+	s.SourceDomainInfo = v
+	return s
+}
+
+// Specifies the coonection status of an inbound cross-cluster search connection.
+type InboundCrossClusterSearchConnectionStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies verbose information for the inbound connection status.
+	Message *string `type:"string"`
+
+	// The state code for inbound connection. This can be one of the following:
+	//
+	//    * PENDING_ACCEPTANCE: Inbound connection is not yet accepted by destination
+	//    domain owner.
+	//
+	//    * APPROVED: Inbound connection is pending acceptance by destination domain
+	//    owner.
+	//
+	//    * REJECTING: Inbound connection rejection is in process.
+	//
+	//    * REJECTED: Inbound connection is rejected.
+	//
+	//    * DELETING: Inbound connection deletion is in progress.
+	//
+	//    * DELETED: Inbound connection is deleted and cannot be used further.
+	StatusCode *string `type:"string" enum:"InboundCrossClusterSearchConnectionStatusCode"`
+}
+
+// String returns the string representation
+func (s InboundCrossClusterSearchConnectionStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InboundCrossClusterSearchConnectionStatus) GoString() string {
+	return s.String()
+}
+
+// SetMessage sets the Message field's value.
+func (s *InboundCrossClusterSearchConnectionStatus) SetMessage(v string) *InboundCrossClusterSearchConnectionStatus {
+	s.Message = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *InboundCrossClusterSearchConnectionStatus) SetStatusCode(v string) *InboundCrossClusterSearchConnectionStatus {
+	s.StatusCode = &v
+	return s
+}
+
 // InstanceCountLimits represents the limits on number of instances that be
 // created in Amazon Elasticsearch for given InstanceType.
 type InstanceCountLimits struct {
@@ -6619,6 +8103,63 @@ func (s *InternalException) StatusCode() int {
 
 // RequestID returns the service's response RequestID for request.
 func (s *InternalException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The request processing has failed because of invalid pagination token provided
+// by customer. Returns an HTTP status code of 400.
+type InvalidPaginationTokenException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidPaginationTokenException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidPaginationTokenException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidPaginationTokenException(v protocol.ResponseMetadata) error {
+	return &InvalidPaginationTokenException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidPaginationTokenException) Code() string {
+	return "InvalidPaginationTokenException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidPaginationTokenException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidPaginationTokenException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidPaginationTokenException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidPaginationTokenException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidPaginationTokenException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
@@ -7529,6 +9070,118 @@ func (s *OptionStatus) SetUpdateVersion(v int64) *OptionStatus {
 	return s
 }
 
+// Specifies details of an outbound connection.
+type OutboundCrossClusterSearchConnection struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the connection alias for the outbound cross-cluster search connection.
+	ConnectionAlias *string `type:"string"`
+
+	// Specifies the OutboundCrossClusterSearchConnectionStatus for the outbound
+	// connection.
+	ConnectionStatus *OutboundCrossClusterSearchConnectionStatus `type:"structure"`
+
+	// Specifies the connection id for the outbound cross-cluster search connection.
+	CrossClusterSearchConnectionId *string `type:"string"`
+
+	// Specifies the DomainInformation for the destination Elasticsearch domain.
+	DestinationDomainInfo *DomainInformation `type:"structure"`
+
+	// Specifies the DomainInformation for the source Elasticsearch domain.
+	SourceDomainInfo *DomainInformation `type:"structure"`
+}
+
+// String returns the string representation
+func (s OutboundCrossClusterSearchConnection) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OutboundCrossClusterSearchConnection) GoString() string {
+	return s.String()
+}
+
+// SetConnectionAlias sets the ConnectionAlias field's value.
+func (s *OutboundCrossClusterSearchConnection) SetConnectionAlias(v string) *OutboundCrossClusterSearchConnection {
+	s.ConnectionAlias = &v
+	return s
+}
+
+// SetConnectionStatus sets the ConnectionStatus field's value.
+func (s *OutboundCrossClusterSearchConnection) SetConnectionStatus(v *OutboundCrossClusterSearchConnectionStatus) *OutboundCrossClusterSearchConnection {
+	s.ConnectionStatus = v
+	return s
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *OutboundCrossClusterSearchConnection) SetCrossClusterSearchConnectionId(v string) *OutboundCrossClusterSearchConnection {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// SetDestinationDomainInfo sets the DestinationDomainInfo field's value.
+func (s *OutboundCrossClusterSearchConnection) SetDestinationDomainInfo(v *DomainInformation) *OutboundCrossClusterSearchConnection {
+	s.DestinationDomainInfo = v
+	return s
+}
+
+// SetSourceDomainInfo sets the SourceDomainInfo field's value.
+func (s *OutboundCrossClusterSearchConnection) SetSourceDomainInfo(v *DomainInformation) *OutboundCrossClusterSearchConnection {
+	s.SourceDomainInfo = v
+	return s
+}
+
+// Specifies the connection status of an outbound cross-cluster search connection.
+type OutboundCrossClusterSearchConnectionStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies verbose information for the outbound connection status.
+	Message *string `type:"string"`
+
+	// The state code for outbound connection. This can be one of the following:
+	//
+	//    * VALIDATING: The outbound connection request is being validated.
+	//
+	//    * VALIDATION_FAILED: Validation failed for the connection request.
+	//
+	//    * PENDING_ACCEPTANCE: Outbound connection request is validated and is
+	//    not yet accepted by destination domain owner.
+	//
+	//    * PROVISIONING: Outbound connection request is in process.
+	//
+	//    * ACTIVE: Outbound connection is active and ready to use.
+	//
+	//    * REJECTED: Outbound connection request is rejected by destination domain
+	//    owner.
+	//
+	//    * DELETING: Outbound connection deletion is in progress.
+	//
+	//    * DELETED: Outbound connection is deleted and cannot be used further.
+	StatusCode *string `type:"string" enum:"OutboundCrossClusterSearchConnectionStatusCode"`
+}
+
+// String returns the string representation
+func (s OutboundCrossClusterSearchConnectionStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s OutboundCrossClusterSearchConnectionStatus) GoString() string {
+	return s.String()
+}
+
+// SetMessage sets the Message field's value.
+func (s *OutboundCrossClusterSearchConnectionStatus) SetMessage(v string) *OutboundCrossClusterSearchConnectionStatus {
+	s.Message = &v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *OutboundCrossClusterSearchConnectionStatus) SetStatusCode(v string) *OutboundCrossClusterSearchConnectionStatus {
+	s.StatusCode = &v
+	return s
+}
+
 // Basic information about a package.
 type PackageDetails struct {
 	_ struct{} `type:"structure"`
@@ -7786,6 +9439,74 @@ func (s *RecurringCharge) SetRecurringChargeAmount(v float64) *RecurringCharge {
 // SetRecurringChargeFrequency sets the RecurringChargeFrequency field's value.
 func (s *RecurringCharge) SetRecurringChargeFrequency(v string) *RecurringCharge {
 	s.RecurringChargeFrequency = &v
+	return s
+}
+
+// Container for the parameters to the RejectInboundCrossClusterSearchConnection
+// operation.
+type RejectInboundCrossClusterSearchConnectionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The id of the inbound connection that you want to reject.
+	//
+	// CrossClusterSearchConnectionId is a required field
+	CrossClusterSearchConnectionId *string `location:"uri" locationName:"ConnectionId" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s RejectInboundCrossClusterSearchConnectionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RejectInboundCrossClusterSearchConnectionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RejectInboundCrossClusterSearchConnectionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RejectInboundCrossClusterSearchConnectionInput"}
+	if s.CrossClusterSearchConnectionId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CrossClusterSearchConnectionId"))
+	}
+	if s.CrossClusterSearchConnectionId != nil && len(*s.CrossClusterSearchConnectionId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CrossClusterSearchConnectionId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCrossClusterSearchConnectionId sets the CrossClusterSearchConnectionId field's value.
+func (s *RejectInboundCrossClusterSearchConnectionInput) SetCrossClusterSearchConnectionId(v string) *RejectInboundCrossClusterSearchConnectionInput {
+	s.CrossClusterSearchConnectionId = &v
+	return s
+}
+
+// The result of a RejectInboundCrossClusterSearchConnection operation. Contains
+// details of rejected inbound connection.
+type RejectInboundCrossClusterSearchConnectionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the InboundCrossClusterSearchConnection of rejected inbound connection.
+	CrossClusterSearchConnection *InboundCrossClusterSearchConnection `type:"structure"`
+}
+
+// String returns the string representation
+func (s RejectInboundCrossClusterSearchConnectionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RejectInboundCrossClusterSearchConnectionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCrossClusterSearchConnection sets the CrossClusterSearchConnection field's value.
+func (s *RejectInboundCrossClusterSearchConnectionOutput) SetCrossClusterSearchConnection(v *InboundCrossClusterSearchConnection) *RejectInboundCrossClusterSearchConnectionOutput {
+	s.CrossClusterSearchConnection = v
 	return s
 }
 
@@ -9222,6 +10943,17 @@ const (
 	DeploymentStatusEligible = "ELIGIBLE"
 )
 
+// DeploymentStatus_Values returns all elements of the DeploymentStatus enum
+func DeploymentStatus_Values() []string {
+	return []string{
+		DeploymentStatusPendingUpdate,
+		DeploymentStatusInProgress,
+		DeploymentStatusCompleted,
+		DeploymentStatusNotEligible,
+		DeploymentStatusEligible,
+	}
+}
+
 const (
 	// DescribePackagesFilterNamePackageId is a DescribePackagesFilterName enum value
 	DescribePackagesFilterNamePackageId = "PackageID"
@@ -9232,6 +10964,15 @@ const (
 	// DescribePackagesFilterNamePackageStatus is a DescribePackagesFilterName enum value
 	DescribePackagesFilterNamePackageStatus = "PackageStatus"
 )
+
+// DescribePackagesFilterName_Values returns all elements of the DescribePackagesFilterName enum
+func DescribePackagesFilterName_Values() []string {
+	return []string{
+		DescribePackagesFilterNamePackageId,
+		DescribePackagesFilterNamePackageName,
+		DescribePackagesFilterNamePackageStatus,
+	}
+}
 
 const (
 	// DomainPackageStatusAssociating is a DomainPackageStatus enum value
@@ -9249,6 +10990,17 @@ const (
 	// DomainPackageStatusDissociationFailed is a DomainPackageStatus enum value
 	DomainPackageStatusDissociationFailed = "DISSOCIATION_FAILED"
 )
+
+// DomainPackageStatus_Values returns all elements of the DomainPackageStatus enum
+func DomainPackageStatus_Values() []string {
+	return []string{
+		DomainPackageStatusAssociating,
+		DomainPackageStatusAssociationFailed,
+		DomainPackageStatusActive,
+		DomainPackageStatusDissociating,
+		DomainPackageStatusDissociationFailed,
+	}
+}
 
 const (
 	// ESPartitionInstanceTypeM3MediumElasticsearch is a ESPartitionInstanceType enum value
@@ -9426,6 +11178,70 @@ const (
 	ESPartitionInstanceTypeI316xlargeElasticsearch = "i3.16xlarge.elasticsearch"
 )
 
+// ESPartitionInstanceType_Values returns all elements of the ESPartitionInstanceType enum
+func ESPartitionInstanceType_Values() []string {
+	return []string{
+		ESPartitionInstanceTypeM3MediumElasticsearch,
+		ESPartitionInstanceTypeM3LargeElasticsearch,
+		ESPartitionInstanceTypeM3XlargeElasticsearch,
+		ESPartitionInstanceTypeM32xlargeElasticsearch,
+		ESPartitionInstanceTypeM4LargeElasticsearch,
+		ESPartitionInstanceTypeM4XlargeElasticsearch,
+		ESPartitionInstanceTypeM42xlargeElasticsearch,
+		ESPartitionInstanceTypeM44xlargeElasticsearch,
+		ESPartitionInstanceTypeM410xlargeElasticsearch,
+		ESPartitionInstanceTypeM5LargeElasticsearch,
+		ESPartitionInstanceTypeM5XlargeElasticsearch,
+		ESPartitionInstanceTypeM52xlargeElasticsearch,
+		ESPartitionInstanceTypeM54xlargeElasticsearch,
+		ESPartitionInstanceTypeM512xlargeElasticsearch,
+		ESPartitionInstanceTypeR5LargeElasticsearch,
+		ESPartitionInstanceTypeR5XlargeElasticsearch,
+		ESPartitionInstanceTypeR52xlargeElasticsearch,
+		ESPartitionInstanceTypeR54xlargeElasticsearch,
+		ESPartitionInstanceTypeR512xlargeElasticsearch,
+		ESPartitionInstanceTypeC5LargeElasticsearch,
+		ESPartitionInstanceTypeC5XlargeElasticsearch,
+		ESPartitionInstanceTypeC52xlargeElasticsearch,
+		ESPartitionInstanceTypeC54xlargeElasticsearch,
+		ESPartitionInstanceTypeC59xlargeElasticsearch,
+		ESPartitionInstanceTypeC518xlargeElasticsearch,
+		ESPartitionInstanceTypeUltrawarm1MediumElasticsearch,
+		ESPartitionInstanceTypeUltrawarm1LargeElasticsearch,
+		ESPartitionInstanceTypeT2MicroElasticsearch,
+		ESPartitionInstanceTypeT2SmallElasticsearch,
+		ESPartitionInstanceTypeT2MediumElasticsearch,
+		ESPartitionInstanceTypeR3LargeElasticsearch,
+		ESPartitionInstanceTypeR3XlargeElasticsearch,
+		ESPartitionInstanceTypeR32xlargeElasticsearch,
+		ESPartitionInstanceTypeR34xlargeElasticsearch,
+		ESPartitionInstanceTypeR38xlargeElasticsearch,
+		ESPartitionInstanceTypeI2XlargeElasticsearch,
+		ESPartitionInstanceTypeI22xlargeElasticsearch,
+		ESPartitionInstanceTypeD2XlargeElasticsearch,
+		ESPartitionInstanceTypeD22xlargeElasticsearch,
+		ESPartitionInstanceTypeD24xlargeElasticsearch,
+		ESPartitionInstanceTypeD28xlargeElasticsearch,
+		ESPartitionInstanceTypeC4LargeElasticsearch,
+		ESPartitionInstanceTypeC4XlargeElasticsearch,
+		ESPartitionInstanceTypeC42xlargeElasticsearch,
+		ESPartitionInstanceTypeC44xlargeElasticsearch,
+		ESPartitionInstanceTypeC48xlargeElasticsearch,
+		ESPartitionInstanceTypeR4LargeElasticsearch,
+		ESPartitionInstanceTypeR4XlargeElasticsearch,
+		ESPartitionInstanceTypeR42xlargeElasticsearch,
+		ESPartitionInstanceTypeR44xlargeElasticsearch,
+		ESPartitionInstanceTypeR48xlargeElasticsearch,
+		ESPartitionInstanceTypeR416xlargeElasticsearch,
+		ESPartitionInstanceTypeI3LargeElasticsearch,
+		ESPartitionInstanceTypeI3XlargeElasticsearch,
+		ESPartitionInstanceTypeI32xlargeElasticsearch,
+		ESPartitionInstanceTypeI34xlargeElasticsearch,
+		ESPartitionInstanceTypeI38xlargeElasticsearch,
+		ESPartitionInstanceTypeI316xlargeElasticsearch,
+	}
+}
+
 const (
 	// ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch is a ESWarmPartitionInstanceType enum value
 	ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch = "ultrawarm1.medium.elasticsearch"
@@ -9433,6 +11249,46 @@ const (
 	// ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch is a ESWarmPartitionInstanceType enum value
 	ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch = "ultrawarm1.large.elasticsearch"
 )
+
+// ESWarmPartitionInstanceType_Values returns all elements of the ESWarmPartitionInstanceType enum
+func ESWarmPartitionInstanceType_Values() []string {
+	return []string{
+		ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch,
+		ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch,
+	}
+}
+
+const (
+	// InboundCrossClusterSearchConnectionStatusCodePendingAcceptance is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodePendingAcceptance = "PENDING_ACCEPTANCE"
+
+	// InboundCrossClusterSearchConnectionStatusCodeApproved is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodeApproved = "APPROVED"
+
+	// InboundCrossClusterSearchConnectionStatusCodeRejecting is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodeRejecting = "REJECTING"
+
+	// InboundCrossClusterSearchConnectionStatusCodeRejected is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodeRejected = "REJECTED"
+
+	// InboundCrossClusterSearchConnectionStatusCodeDeleting is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodeDeleting = "DELETING"
+
+	// InboundCrossClusterSearchConnectionStatusCodeDeleted is a InboundCrossClusterSearchConnectionStatusCode enum value
+	InboundCrossClusterSearchConnectionStatusCodeDeleted = "DELETED"
+)
+
+// InboundCrossClusterSearchConnectionStatusCode_Values returns all elements of the InboundCrossClusterSearchConnectionStatusCode enum
+func InboundCrossClusterSearchConnectionStatusCode_Values() []string {
+	return []string{
+		InboundCrossClusterSearchConnectionStatusCodePendingAcceptance,
+		InboundCrossClusterSearchConnectionStatusCodeApproved,
+		InboundCrossClusterSearchConnectionStatusCodeRejecting,
+		InboundCrossClusterSearchConnectionStatusCodeRejected,
+		InboundCrossClusterSearchConnectionStatusCodeDeleting,
+		InboundCrossClusterSearchConnectionStatusCodeDeleted,
+	}
+}
 
 // Type of Log File, it can be one of the following:
 //    * INDEX_SLOW_LOGS: Index slow logs contain insert requests that took more
@@ -9455,6 +11311,15 @@ const (
 	LogTypeEsApplicationLogs = "ES_APPLICATION_LOGS"
 )
 
+// LogType_Values returns all elements of the LogType enum
+func LogType_Values() []string {
+	return []string{
+		LogTypeIndexSlowLogs,
+		LogTypeSearchSlowLogs,
+		LogTypeEsApplicationLogs,
+	}
+}
+
 // The state of a requested change. One of the following:
 //
 //    * Processing: The request change is still in-process.
@@ -9471,6 +11336,55 @@ const (
 	// OptionStateActive is a OptionState enum value
 	OptionStateActive = "Active"
 )
+
+// OptionState_Values returns all elements of the OptionState enum
+func OptionState_Values() []string {
+	return []string{
+		OptionStateRequiresIndexDocuments,
+		OptionStateProcessing,
+		OptionStateActive,
+	}
+}
+
+const (
+	// OutboundCrossClusterSearchConnectionStatusCodePendingAcceptance is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodePendingAcceptance = "PENDING_ACCEPTANCE"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeValidating is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeValidating = "VALIDATING"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeValidationFailed is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeValidationFailed = "VALIDATION_FAILED"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeProvisioning is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeProvisioning = "PROVISIONING"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeActive is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeActive = "ACTIVE"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeRejected is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeRejected = "REJECTED"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeDeleting is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeDeleting = "DELETING"
+
+	// OutboundCrossClusterSearchConnectionStatusCodeDeleted is a OutboundCrossClusterSearchConnectionStatusCode enum value
+	OutboundCrossClusterSearchConnectionStatusCodeDeleted = "DELETED"
+)
+
+// OutboundCrossClusterSearchConnectionStatusCode_Values returns all elements of the OutboundCrossClusterSearchConnectionStatusCode enum
+func OutboundCrossClusterSearchConnectionStatusCode_Values() []string {
+	return []string{
+		OutboundCrossClusterSearchConnectionStatusCodePendingAcceptance,
+		OutboundCrossClusterSearchConnectionStatusCodeValidating,
+		OutboundCrossClusterSearchConnectionStatusCodeValidationFailed,
+		OutboundCrossClusterSearchConnectionStatusCodeProvisioning,
+		OutboundCrossClusterSearchConnectionStatusCodeActive,
+		OutboundCrossClusterSearchConnectionStatusCodeRejected,
+		OutboundCrossClusterSearchConnectionStatusCodeDeleting,
+		OutboundCrossClusterSearchConnectionStatusCodeDeleted,
+	}
+}
 
 const (
 	// PackageStatusCopying is a PackageStatus enum value
@@ -9498,10 +11412,31 @@ const (
 	PackageStatusDeleteFailed = "DELETE_FAILED"
 )
 
+// PackageStatus_Values returns all elements of the PackageStatus enum
+func PackageStatus_Values() []string {
+	return []string{
+		PackageStatusCopying,
+		PackageStatusCopyFailed,
+		PackageStatusValidating,
+		PackageStatusValidationFailed,
+		PackageStatusAvailable,
+		PackageStatusDeleting,
+		PackageStatusDeleted,
+		PackageStatusDeleteFailed,
+	}
+}
+
 const (
 	// PackageTypeTxtDictionary is a PackageType enum value
 	PackageTypeTxtDictionary = "TXT-DICTIONARY"
 )
+
+// PackageType_Values returns all elements of the PackageType enum
+func PackageType_Values() []string {
+	return []string{
+		PackageTypeTxtDictionary,
+	}
+}
 
 const (
 	// ReservedElasticsearchInstancePaymentOptionAllUpfront is a ReservedElasticsearchInstancePaymentOption enum value
@@ -9514,6 +11449,15 @@ const (
 	ReservedElasticsearchInstancePaymentOptionNoUpfront = "NO_UPFRONT"
 )
 
+// ReservedElasticsearchInstancePaymentOption_Values returns all elements of the ReservedElasticsearchInstancePaymentOption enum
+func ReservedElasticsearchInstancePaymentOption_Values() []string {
+	return []string{
+		ReservedElasticsearchInstancePaymentOptionAllUpfront,
+		ReservedElasticsearchInstancePaymentOptionPartialUpfront,
+		ReservedElasticsearchInstancePaymentOptionNoUpfront,
+	}
+}
+
 const (
 	// TLSSecurityPolicyPolicyMinTls10201907 is a TLSSecurityPolicy enum value
 	TLSSecurityPolicyPolicyMinTls10201907 = "Policy-Min-TLS-1-0-2019-07"
@@ -9521,6 +11465,14 @@ const (
 	// TLSSecurityPolicyPolicyMinTls12201907 is a TLSSecurityPolicy enum value
 	TLSSecurityPolicyPolicyMinTls12201907 = "Policy-Min-TLS-1-2-2019-07"
 )
+
+// TLSSecurityPolicy_Values returns all elements of the TLSSecurityPolicy enum
+func TLSSecurityPolicy_Values() []string {
+	return []string{
+		TLSSecurityPolicyPolicyMinTls10201907,
+		TLSSecurityPolicyPolicyMinTls12201907,
+	}
+}
 
 const (
 	// UpgradeStatusInProgress is a UpgradeStatus enum value
@@ -9536,6 +11488,16 @@ const (
 	UpgradeStatusFailed = "FAILED"
 )
 
+// UpgradeStatus_Values returns all elements of the UpgradeStatus enum
+func UpgradeStatus_Values() []string {
+	return []string{
+		UpgradeStatusInProgress,
+		UpgradeStatusSucceeded,
+		UpgradeStatusSucceededWithIssues,
+		UpgradeStatusFailed,
+	}
+}
+
 const (
 	// UpgradeStepPreUpgradeCheck is a UpgradeStep enum value
 	UpgradeStepPreUpgradeCheck = "PRE_UPGRADE_CHECK"
@@ -9546,6 +11508,15 @@ const (
 	// UpgradeStepUpgrade is a UpgradeStep enum value
 	UpgradeStepUpgrade = "UPGRADE"
 )
+
+// UpgradeStep_Values returns all elements of the UpgradeStep enum
+func UpgradeStep_Values() []string {
+	return []string{
+		UpgradeStepPreUpgradeCheck,
+		UpgradeStepSnapshot,
+		UpgradeStepUpgrade,
+	}
+}
 
 // The type of EBS volume, standard, gp2, or io1. See Configuring EBS-based
 // Storage (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-ebs)for
@@ -9560,3 +11531,12 @@ const (
 	// VolumeTypeIo1 is a VolumeType enum value
 	VolumeTypeIo1 = "io1"
 )
+
+// VolumeType_Values returns all elements of the VolumeType enum
+func VolumeType_Values() []string {
+	return []string{
+		VolumeTypeStandard,
+		VolumeTypeGp2,
+		VolumeTypeIo1,
+	}
+}

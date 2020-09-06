@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsLambdaLayerVersion() *schema.Resource {
@@ -28,7 +28,7 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 			"compatible_runtime": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ValidateFunc:  validation.StringInSlice(validLambdaRuntimes, false),
+				ValidateFunc:  validation.StringInSlice(lambda.Runtime_Values(), false),
 				ConflictsWith: []string{"version"},
 			},
 			"compatible_runtimes": {

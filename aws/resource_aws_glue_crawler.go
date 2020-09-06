@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -81,23 +81,16 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"delete_behavior": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  glue.DeleteBehaviorDeprecateInDatabase,
-							ValidateFunc: validation.StringInSlice([]string{
-								glue.DeleteBehaviorDeleteFromDatabase,
-								glue.DeleteBehaviorDeprecateInDatabase,
-								glue.DeleteBehaviorLog,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      glue.DeleteBehaviorDeprecateInDatabase,
+							ValidateFunc: validation.StringInSlice(glue.DeleteBehavior_Values(), false),
 						},
 						"update_behavior": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  glue.UpdateBehaviorUpdateInDatabase,
-							ValidateFunc: validation.StringInSlice([]string{
-								glue.UpdateBehaviorLog,
-								glue.UpdateBehaviorUpdateInDatabase,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      glue.UpdateBehaviorUpdateInDatabase,
+							ValidateFunc: validation.StringInSlice(glue.UpdateBehavior_Values(), false),
 						},
 					},
 				},
@@ -291,9 +284,13 @@ func updateCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.Updat
 	if description, ok := d.GetOk("description"); ok {
 		crawlerInput.Description = aws.String(description.(string))
 	}
+
 	if schedule, ok := d.GetOk("schedule"); ok {
 		crawlerInput.Schedule = aws.String(schedule.(string))
+	} else {
+		crawlerInput.Schedule = aws.String("")
 	}
+
 	if classifiers, ok := d.GetOk("classifiers"); ok {
 		crawlerInput.Classifiers = expandStringList(classifiers.([]interface{}))
 	}
@@ -457,18 +454,9 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 	glueConn := meta.(*AWSClient).glueconn
 	name := d.Get("name").(string)
 
-	if d.HasChange("catalog_target") ||
-		d.HasChange("classifiers") ||
-		d.HasChange("configuration") ||
-		d.HasChange("description") ||
-		d.HasChange("dynamodb_target") ||
-		d.HasChange("jdbc_target") ||
-		d.HasChange("role") ||
-		d.HasChange("s3_target") ||
-		d.HasChange("schedule") ||
-		d.HasChange("schema_change_policy") ||
-		d.HasChange("security_configuration") ||
-		d.HasChange("table_prefix") {
+	if d.HasChanges(
+		"catalog_target", "classifiers", "configuration", "description", "dynamodb_target", "jdbc_target", "role",
+		"s3_target", "schedule", "schema_change_policy", "security_configuration", "table_prefix") {
 		updateCrawlerInput, err := updateCrawlerInput(name, d)
 		if err != nil {
 			return err

@@ -4,8 +4,8 @@
 // requests to AWS Transfer Family.
 //
 // AWS Transfer Family is a fully managed service that enables the transfer
-// of files over the the File Transfer Protocol (FTP), File Transfer Protocol
-// over SSL (FTPS), or Secure Shell (SSH) File Transfer Protocol (SFTP) directly
+// of files over the File Transfer Protocol (FTP), File Transfer Protocol over
+// SSL (FTPS), or Secure Shell (SSH) File Transfer Protocol (SFTP) directly
 // into and out of Amazon Simple Storage Service (Amazon S3). AWS helps you
 // seamlessly migrate your file transfer workflows to AWS Transfer Family by
 // integrating with existing authentication systems, and providing DNS routing
