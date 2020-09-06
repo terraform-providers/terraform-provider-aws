@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 	"time"
 )
@@ -170,9 +170,14 @@ func resourceAwsRedshiftScheduledActionRead(d *schema.ResourceData, meta interfa
 
 	d.Set("name", scheduledAction.ScheduledActionName)
 	d.Set("description", scheduledAction.ScheduledActionDescription)
-	d.Set("active", scheduledAction.State)
 	d.Set("schedule", scheduledAction.Schedule)
 	d.Set("iam_role", scheduledAction.IamRole)
+
+	if aws.StringValue(scheduledAction.State) == redshift.ScheduledActionStateActive {
+		d.Set("active", true)
+	} else {
+		d.Set("active", false)
+	}
 
 	if scheduledAction.StartTime != nil {
 		d.Set("start_time", aws.TimeValue(scheduledAction.StartTime).Format(time.RFC3339))
