@@ -99,7 +99,7 @@ The following arguments are supported:
 * `start_time` - (Optional) The start time in UTC when the schedule is active, in UTC RFC3339 format(for example, YYYY-MM-DDTHH:MM:SSZ).
 * `end_time` - (Optional) The end time in UTC when the schedule is active, in UTC RFC3339 format(for example, YYYY-MM-DDTHH:MM:SSZ).
 * `schedule` - (Required) The schedule of action. The schedule is defined format of "at expression" or "cron expression", for example `at(2016-03-04T17:27:00)` or `cron(0 10 ? * MON *)`. See [Scheduled Action](https://docs.aws.amazon.com/redshift/latest/APIReference/API_ScheduledAction.html) for more information.
-* `iam_role` - (Required) The IAM role to assume to run the scheduled action. 
+* `iam_role` - (Required) The IAM role to assume to run the scheduled action.
 * `target_action` - (Required) Target action, documented below.
 
 ### Nested Blocks
