@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSOpsworksInstance_basic(t *testing.T) {
@@ -220,26 +220,26 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
   ]
 
   instance_type = "t2.micro"
@@ -248,7 +248,6 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }
 
@@ -277,26 +276,26 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
   ]
 
   instance_type = "t2.micro"
@@ -305,7 +304,6 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }
 
@@ -334,27 +332,27 @@ resource "aws_security_group" "tf-ops-acc-php" {
 }
 
 resource "aws_opsworks_static_web_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-web.id}",
+    aws_security_group.tf-ops-acc-web.id,
   ]
 }
 
 resource "aws_opsworks_php_app_layer" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   custom_security_group_ids = [
-    "${aws_security_group.tf-ops-acc-php.id}",
+    aws_security_group.tf-ops-acc-php.id,
   ]
 }
 
 resource "aws_opsworks_instance" "tf-acc" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   layer_ids = [
-    "${aws_opsworks_static_web_layer.tf-acc.id}",
-    "${aws_opsworks_php_app_layer.tf-acc.id}",
+    aws_opsworks_static_web_layer.tf-acc.id,
+    aws_opsworks_php_app_layer.tf-acc.id,
   ]
 
   instance_type = "t2.small"
@@ -368,6 +366,5 @@ resource "aws_opsworks_instance" "tf-acc" {
 }
 
 %s
-
 `, name, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }

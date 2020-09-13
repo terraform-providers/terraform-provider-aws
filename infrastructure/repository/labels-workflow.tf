@@ -4,6 +4,7 @@ variable "workflow_labels" {
     "hacktoberfest"                  = "2c0fad",
     "needs-triage"                   = "e236d7",
     "terraform-plugin-sdk-migration" = "fad8c7",
+    "terraform-plugin-sdk-v1"        = "fad8c7",
   }
   description = "Name-color mapping of workflow issues"
   type        = map(string)

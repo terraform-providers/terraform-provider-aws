@@ -1,6 +1,6 @@
 # AWSR002
 
-The AWSR002 analyzer reports when a [(schema.ResourceData).Set()](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/schema?tab=doc#ResourceData.Set) call with the `tags` key is missing a call to `(keyvaluetags.KeyValueTags).IgnoreConfig()` in the value, which ensures any provider level ignore tags configuration is applied.
+The AWSR002 analyzer reports when a [(schema.ResourceData).Set()](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema?tab=doc#ResourceData.Set) call with the `tags` key is missing a call to `(keyvaluetags.KeyValueTags).IgnoreConfig()` in the value, which ensures any provider level ignore tags configuration is applied.
 
 ## Flagged Code
 

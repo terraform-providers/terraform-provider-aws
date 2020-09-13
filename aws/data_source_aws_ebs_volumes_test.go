@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsEbsVolumes(t *testing.T) {
+func TestAccDataSourceAwsEbsVolumes_basic(t *testing.T) {
 	rInt := acctest.RandIntRange(0, 256)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,18 +45,14 @@ data "aws_ebs_volumes" "subject_under_test" {
 }
 
 func testAccDataSourceAwsEbsVolumeIDsConfig(rInt int) string {
-	return fmt.Sprintf(`
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
 data "aws_region" "current" {}
-
-data "aws_availability_zones" "azs" {
-  state = "available"
-}
 
 resource "aws_ebs_volume" "volume" {
   count = 2
 
-  availability_zone = data.aws_availability_zones.azs.names[0]
-  size = 1
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 1
 
   tags = {
     TestIdentifierSet = "testAccDataSourceAwsEbsVolumes-%d"

@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayMethodResponse_basic(t *testing.T) {
@@ -50,6 +50,28 @@ func TestAccAWSAPIGatewayMethodResponse_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateIdFunc: testAccAWSAPIGatewayMethodResponseImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayMethodResponse_disappears(t *testing.T) {
+	var conf apigateway.MethodResponse
+	rName := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+	resourceName := "aws_api_gateway_method_response.error"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayMethodResponseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayMethodResponseConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayMethodResponseExists(resourceName, &conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayMethodResponse(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -179,15 +201,15 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id = "${aws_api_gateway_rest_api.test.root_resource_id}"
-  path_part = "test"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
+  path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "GET"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
+  http_method   = "GET"
   authorization = "NONE"
 
   request_models = {
@@ -196,9 +218,9 @@ resource "aws_api_gateway_method" "test" {
 }
 
 resource "aws_api_gateway_method_response" "error" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   status_code = "400"
 
   response_models = {
@@ -219,15 +241,15 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id = "${aws_api_gateway_rest_api.test.root_resource_id}"
-  path_part = "test"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
+  path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "GET"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
+  http_method   = "GET"
   authorization = "NONE"
 
   request_models = {
@@ -236,9 +258,9 @@ resource "aws_api_gateway_method" "test" {
 }
 
 resource "aws_api_gateway_method_response" "error" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   status_code = "400"
 
   response_models = {

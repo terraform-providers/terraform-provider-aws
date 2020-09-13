@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -51,15 +51,21 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cidr_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validateIpv4CIDRNetworkAddress,
+							),
 						},
 
 						"ipv6_cidr_block": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsCIDR,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validateIpv6CIDRNetworkAddress,
+							),
 						},
 
 						"egress_only_gateway_id": {

@@ -534,7 +534,9 @@ func (c *Personalize) CreateDatasetImportJobRequest(input *CreateDatasetImportJo
 // Creates a job that imports training data from your data source (an Amazon
 // S3 bucket) to an Amazon Personalize dataset. To allow Amazon Personalize
 // to import the training data, you must specify an AWS Identity and Access
-// Management (IAM) role that has permission to read from the data source.
+// Management (IAM) role that has permission to read from the data source, as
+// Amazon Personalize makes a copy of your data and processes it in an internal
+// AWS system.
 //
 // The dataset import job replaces any previous data in the dataset.
 //
@@ -772,7 +774,7 @@ func (c *Personalize) CreateFilterRequest(input *CreateFilterInput) (req *reques
 // CreateFilter API operation for Amazon Personalize.
 //
 // Creates a recommendation filter. For more information, see Using Filters
-// with Amazon Personalize.
+// with Amazon Personalize (https://docs.aws.amazon.com/personalize/latest/dg/filters.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1134,6 +1136,9 @@ func (c *Personalize) CreateSolutionVersionRequest(input *CreateSolutionVersionI
 //
 //   * ResourceNotFoundException
 //   Could not find the specified resource.
+//
+//   * LimitExceededException
+//   The limit on the number of requests per second has been exceeded.
 //
 //   * ResourceInUseException
 //   The specified resource is in use.
@@ -1578,6 +1583,9 @@ func (c *Personalize) DeleteFilterRequest(input *DeleteFilterInput) (req *reques
 //
 //   * ResourceNotFoundException
 //   Could not find the specified resource.
+//
+//   * ResourceInUseException
+//   The specified resource is in use.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/personalize-2018-05-22/DeleteFilter
 func (c *Personalize) DeleteFilter(input *DeleteFilterInput) (*DeleteFilterOutput, error) {
@@ -4767,6 +4775,10 @@ type BatchInferenceJob struct {
 	// The Amazon Resource Name (ARN) of the batch inference job.
 	BatchInferenceJobArn *string `locationName:"batchInferenceJobArn" type:"string"`
 
+	// A string to string map of the configuration details of a batch inference
+	// job.
+	BatchInferenceJobConfig *BatchInferenceJobConfig `locationName:"batchInferenceJobConfig" type:"structure"`
+
 	// The time at which the batch inference job was created.
 	CreationDateTime *time.Time `locationName:"creationDateTime" type:"timestamp"`
 
@@ -4828,6 +4840,12 @@ func (s BatchInferenceJob) GoString() string {
 // SetBatchInferenceJobArn sets the BatchInferenceJobArn field's value.
 func (s *BatchInferenceJob) SetBatchInferenceJobArn(v string) *BatchInferenceJob {
 	s.BatchInferenceJobArn = &v
+	return s
+}
+
+// SetBatchInferenceJobConfig sets the BatchInferenceJobConfig field's value.
+func (s *BatchInferenceJob) SetBatchInferenceJobConfig(v *BatchInferenceJobConfig) *BatchInferenceJob {
+	s.BatchInferenceJobConfig = v
 	return s
 }
 
@@ -4894,6 +4912,31 @@ func (s *BatchInferenceJob) SetSolutionVersionArn(v string) *BatchInferenceJob {
 // SetStatus sets the Status field's value.
 func (s *BatchInferenceJob) SetStatus(v string) *BatchInferenceJob {
 	s.Status = &v
+	return s
+}
+
+// The configuration details of a batch inference job.
+type BatchInferenceJobConfig struct {
+	_ struct{} `type:"structure"`
+
+	// A string to string map specifying the inference hyperparameters you wish
+	// to use for hyperparameter optimization. See customizing-solution-config-hpo.
+	ItemExplorationConfig map[string]*string `locationName:"itemExplorationConfig" type:"map"`
+}
+
+// String returns the string representation
+func (s BatchInferenceJobConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchInferenceJobConfig) GoString() string {
+	return s.String()
+}
+
+// SetItemExplorationConfig sets the ItemExplorationConfig field's value.
+func (s *BatchInferenceJobConfig) SetItemExplorationConfig(v map[string]*string) *BatchInferenceJobConfig {
+	s.ItemExplorationConfig = v
 	return s
 }
 
@@ -5083,6 +5126,9 @@ type Campaign struct {
 	// The Amazon Resource Name (ARN) of the campaign.
 	CampaignArn *string `locationName:"campaignArn" type:"string"`
 
+	// The configuration details of a campaign.
+	CampaignConfig *CampaignConfig `locationName:"campaignConfig" type:"structure"`
+
 	// The date and time (in Unix format) that the campaign was created.
 	CreationDateTime *time.Time `locationName:"creationDateTime" type:"timestamp"`
 
@@ -5132,6 +5178,12 @@ func (s *Campaign) SetCampaignArn(v string) *Campaign {
 	return s
 }
 
+// SetCampaignConfig sets the CampaignConfig field's value.
+func (s *Campaign) SetCampaignConfig(v *CampaignConfig) *Campaign {
+	s.CampaignConfig = v
+	return s
+}
+
 // SetCreationDateTime sets the CreationDateTime field's value.
 func (s *Campaign) SetCreationDateTime(v time.Time) *Campaign {
 	s.CreationDateTime = &v
@@ -5177,6 +5229,31 @@ func (s *Campaign) SetSolutionVersionArn(v string) *Campaign {
 // SetStatus sets the Status field's value.
 func (s *Campaign) SetStatus(v string) *Campaign {
 	s.Status = &v
+	return s
+}
+
+// The configuration details of a campaign.
+type CampaignConfig struct {
+	_ struct{} `type:"structure"`
+
+	// A string to string map specifying the inference hyperparameters you wish
+	// to use for hyperparameter optimization. See customizing-solution-config-hpo.
+	ItemExplorationConfig map[string]*string `locationName:"itemExplorationConfig" type:"map"`
+}
+
+// String returns the string representation
+func (s CampaignConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CampaignConfig) GoString() string {
+	return s.String()
+}
+
+// SetItemExplorationConfig sets the ItemExplorationConfig field's value.
+func (s *CampaignConfig) SetItemExplorationConfig(v map[string]*string) *CampaignConfig {
+	s.ItemExplorationConfig = v
 	return s
 }
 
@@ -5261,6 +5338,9 @@ func (s *CampaignSummary) SetStatus(v string) *CampaignSummary {
 type CampaignUpdateSummary struct {
 	_ struct{} `type:"structure"`
 
+	// The configuration details of a campaign.
+	CampaignConfig *CampaignConfig `locationName:"campaignConfig" type:"structure"`
+
 	// The date and time (in Unix time) that the campaign update was created.
 	CreationDateTime *time.Time `locationName:"creationDateTime" type:"timestamp"`
 
@@ -5295,6 +5375,12 @@ func (s CampaignUpdateSummary) String() string {
 // GoString returns the string representation
 func (s CampaignUpdateSummary) GoString() string {
 	return s.String()
+}
+
+// SetCampaignConfig sets the CampaignConfig field's value.
+func (s *CampaignUpdateSummary) SetCampaignConfig(v *CampaignConfig) *CampaignUpdateSummary {
+	s.CampaignConfig = v
+	return s
 }
 
 // SetCreationDateTime sets the CreationDateTime field's value.
@@ -5427,6 +5513,9 @@ func (s *ContinuousHyperParameterRange) SetName(v string) *ContinuousHyperParame
 type CreateBatchInferenceJobInput struct {
 	_ struct{} `type:"structure"`
 
+	// The configuration details of a batch inference job.
+	BatchInferenceJobConfig *BatchInferenceJobConfig `locationName:"batchInferenceJobConfig" type:"structure"`
+
 	// The ARN of the filter to apply to the batch inference job. For more information
 	// on using filters, see Using Filters with Amazon Personalize.
 	FilterArn *string `locationName:"filterArn" type:"string"`
@@ -5511,6 +5600,12 @@ func (s *CreateBatchInferenceJobInput) Validate() error {
 	return nil
 }
 
+// SetBatchInferenceJobConfig sets the BatchInferenceJobConfig field's value.
+func (s *CreateBatchInferenceJobInput) SetBatchInferenceJobConfig(v *BatchInferenceJobConfig) *CreateBatchInferenceJobInput {
+	s.BatchInferenceJobConfig = v
+	return s
+}
+
 // SetFilterArn sets the FilterArn field's value.
 func (s *CreateBatchInferenceJobInput) SetFilterArn(v string) *CreateBatchInferenceJobInput {
 	s.FilterArn = &v
@@ -5579,6 +5674,9 @@ func (s *CreateBatchInferenceJobOutput) SetBatchInferenceJobArn(v string) *Creat
 type CreateCampaignInput struct {
 	_ struct{} `type:"structure"`
 
+	// The configuration details of a campaign.
+	CampaignConfig *CampaignConfig `locationName:"campaignConfig" type:"structure"`
+
 	// Specifies the requested minimum provisioned transactions (recommendations)
 	// per second that Amazon Personalize will support.
 	//
@@ -5630,6 +5728,12 @@ func (s *CreateCampaignInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCampaignConfig sets the CampaignConfig field's value.
+func (s *CreateCampaignInput) SetCampaignConfig(v *CampaignConfig) *CreateCampaignInput {
+	s.CampaignConfig = v
+	return s
 }
 
 // SetMinProvisionedTPS sets the MinProvisionedTPS field's value.
@@ -6083,7 +6187,7 @@ type CreateFilterInput struct {
 	//
 	// Where "EVENT_TYPE" is the type of event to filter out. To filter out all
 	// items with any interactions history, set "*" as the EVENT_TYPE. For more
-	// information, see Using Filters with Amazon Personalize.
+	// information, see Using Filters with Amazon Personalize (https://docs.aws.amazon.com/personalize/latest/dg/filters.html).
 	//
 	// FilterExpression is a required field
 	FilterExpression *string `locationName:"filterExpression" min:"1" type:"string" required:"true" sensitive:"true"`
@@ -8773,7 +8877,7 @@ type Filter struct {
 	// EXCLUDE itemId WHERE INTERACTIONS.event_type in ("EVENT_TYPE")
 	//
 	// Where "EVENT_TYPE" is the type of event to filter out. For more information,
-	// see Using Filters with Amazon Personalize.
+	// see Using Filters with Amazon Personalize (https://docs.aws.amazon.com/personalize/latest/dg/filters.html).
 	FilterExpression *string `locationName:"filterExpression" min:"1" type:"string" sensitive:"true"`
 
 	// The time at which the filter was last updated.
@@ -11317,6 +11421,9 @@ type UpdateCampaignInput struct {
 	// CampaignArn is a required field
 	CampaignArn *string `locationName:"campaignArn" type:"string" required:"true"`
 
+	// The configuration details of a campaign.
+	CampaignConfig *CampaignConfig `locationName:"campaignConfig" type:"structure"`
+
 	// Specifies the requested minimum provisioned transactions (recommendations)
 	// per second that Amazon Personalize will support.
 	MinProvisionedTPS *int64 `locationName:"minProvisionedTPS" min:"1" type:"integer"`
@@ -11354,6 +11461,12 @@ func (s *UpdateCampaignInput) Validate() error {
 // SetCampaignArn sets the CampaignArn field's value.
 func (s *UpdateCampaignInput) SetCampaignArn(v string) *UpdateCampaignInput {
 	s.CampaignArn = &v
+	return s
+}
+
+// SetCampaignConfig sets the CampaignConfig field's value.
+func (s *UpdateCampaignInput) SetCampaignConfig(v *CampaignConfig) *UpdateCampaignInput {
+	s.CampaignConfig = v
 	return s
 }
 
@@ -11397,6 +11510,13 @@ const (
 	RecipeProviderService = "SERVICE"
 )
 
+// RecipeProvider_Values returns all elements of the RecipeProvider enum
+func RecipeProvider_Values() []string {
+	return []string{
+		RecipeProviderService,
+	}
+}
+
 const (
 	// TrainingModeFull is a TrainingMode enum value
 	TrainingModeFull = "FULL"
@@ -11404,3 +11524,11 @@ const (
 	// TrainingModeUpdate is a TrainingMode enum value
 	TrainingModeUpdate = "UPDATE"
 )
+
+// TrainingMode_Values returns all elements of the TrainingMode enum
+func TrainingMode_Values() []string {
+	return []string{
+		TrainingModeFull,
+		TrainingModeUpdate,
+	}
+}

@@ -2443,6 +2443,17 @@ const (
 	ChangeStatusFailed = "FAILED"
 )
 
+// ChangeStatus_Values returns all elements of the ChangeStatus enum
+func ChangeStatus_Values() []string {
+	return []string{
+		ChangeStatusPreparing,
+		ChangeStatusApplying,
+		ChangeStatusSucceeded,
+		ChangeStatusCancelled,
+		ChangeStatusFailed,
+	}
+}
+
 const (
 	// SortOrderAscending is a SortOrder enum value
 	SortOrderAscending = "ASCENDING"
@@ -2450,3 +2461,11 @@ const (
 	// SortOrderDescending is a SortOrder enum value
 	SortOrderDescending = "DESCENDING"
 )
+
+// SortOrder_Values returns all elements of the SortOrder enum
+func SortOrder_Values() []string {
+	return []string{
+		SortOrderAscending,
+		SortOrderDescending,
+	}
+}

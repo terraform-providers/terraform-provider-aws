@@ -9,12 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/worklink"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSWorkLinkFleet_Basic(t *testing.T) {
+func TestAccAWSWorkLinkFleet_basic(t *testing.T) {
 	suffix := acctest.RandStringFromCharSet(20, acctest.CharSetAlpha)
 	resourceName := "aws_worklink_fleet.test"
 
@@ -406,7 +406,7 @@ resource "aws_vpc" "test" {
 resource "aws_security_group" "test" {
   name        = "tf_test_foo"
   description = "foo"
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
 
   ingress {
     protocol  = "icmp"
@@ -419,9 +419,9 @@ resource "aws_security_group" "test" {
 resource "aws_subnet" "test" {
   count = 2
 
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
-  cidr_block        = "${cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)}"
-  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = %q
@@ -438,9 +438,9 @@ resource "aws_worklink_fleet" "test" {
   name = "tf-worklink-fleet-%s"
 
   network {
-    vpc_id             = "${aws_vpc.test.id}"
-    subnet_ids         = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
-    security_group_ids = ["${aws_security_group.test.id}"]
+    vpc_id             = aws_vpc.test.id
+    subnet_ids         = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+    security_group_ids = [aws_security_group.test.id]
   }
 }
 `, testAccAWSWorkLinkFleetConfigNetwork_Base(r, cidrBlock), r)
@@ -449,14 +449,14 @@ resource "aws_worklink_fleet" "test" {
 func testAccAWSWorkLinkFleetConfigAuditStreamArn(r string) string {
 	return fmt.Sprintf(`
 resource "aws_kinesis_stream" "test_stream" {
-  name        = "%s_kinesis_test"
+  name        = "AmazonWorkLink-%s_kinesis_test"
   shard_count = 1
 }
 
 resource "aws_worklink_fleet" "test" {
   name = "tf-worklink-fleet-%s"
 
-  audit_stream_arn = "${aws_kinesis_stream.test_stream.arn}"
+  audit_stream_arn = aws_kinesis_stream.test_stream.arn
 }
 `, r, r)
 }
@@ -466,7 +466,7 @@ func testAccAWSWorkLinkFleetConfigDeviceCaCertificate(r string, fName string) st
 resource "aws_worklink_fleet" "test" {
   name = "tf-worklink-fleet-%s"
 
-  device_ca_certificate = "${file("%s")}"
+  device_ca_certificate = file("%s")
 }
 `, r, fName)
 }
@@ -478,7 +478,7 @@ resource "aws_worklink_fleet" "test" {
 
   identity_provider {
     type          = "SAML"
-    saml_metadata = "${file("%s")}"
+    saml_metadata = file("%s")
   }
 }
 `, r, fName)

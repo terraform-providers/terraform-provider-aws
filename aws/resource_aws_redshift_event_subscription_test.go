@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -345,7 +345,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   source_type   = "cluster"
   severity      = "INFO"
 
@@ -371,7 +371,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   enabled       = false
   source_type   = "cluster-snapshot"
   severity      = "INFO"
@@ -401,10 +401,10 @@ resource "aws_redshift_parameter_group" "bar" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-with-ids-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   source_type   = "cluster-parameter-group"
   severity      = "INFO"
-  source_ids    = ["${aws_redshift_parameter_group.bar.id}"]
+  source_ids    = [aws_redshift_parameter_group.bar.id]
 
   event_categories = [
     "configuration",
@@ -437,10 +437,10 @@ resource "aws_redshift_parameter_group" "foo" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-with-ids-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   source_type   = "cluster-parameter-group"
   severity      = "INFO"
-  source_ids    = ["${aws_redshift_parameter_group.bar.id}", "${aws_redshift_parameter_group.foo.id}"]
+  source_ids    = [aws_redshift_parameter_group.bar.id, aws_redshift_parameter_group.foo.id]
 
   event_categories = [
     "configuration",
@@ -461,7 +461,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   source_type   = "cluster"
   severity      = "INFO"
 
@@ -484,7 +484,7 @@ resource "aws_sns_topic" "aws_sns_topic" {
 
 resource "aws_redshift_event_subscription" "bar" {
   name          = "tf-acc-test-redshift-event-subs-%d"
-  sns_topic_arn = "${aws_sns_topic.aws_sns_topic.arn}"
+  sns_topic_arn = aws_sns_topic.aws_sns_topic.arn
   source_type   = "cluster"
   severity      = "INFO"
 
@@ -496,8 +496,8 @@ resource "aws_redshift_event_subscription" "bar" {
   ]
 
   tags = {
-		Name = "name"
-		Test = "%s"
+    Name = "name"
+    Test = "%s"
   }
 }
 `, rInt, rInt, rString)

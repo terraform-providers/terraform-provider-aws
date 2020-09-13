@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudWatchMetricAlarm_basic(t *testing.T) {
@@ -651,6 +651,7 @@ resource "aws_cloudwatch_metric_alarm" "test" {
   metric_query {
     id          = "m1"
     return_data = "true"
+
     metric {
       metric_name = "CPUUtilization"
       namespace   = "AWS/EC2"
@@ -779,37 +780,10 @@ resource "aws_cloudwatch_metric_alarm" "test" {
 // EC2 Automate requires a valid EC2 instance
 // ValidationError: Invalid use of EC2 'Recover' action. i-abc123 is not a valid EC2 instance.
 func testAccAWSCloudWatchMetricAlarmConfigAlarmActionsEC2Automate(rName, action string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn-ami-minimal-hvm-*"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-}
-
-data "aws_ec2_instance_type_offering" "available" {
-  filter {
-    name   = "instance-type"
-    values = ["t3.micro", "t2.micro"]
-  }
-
-  filter {
-    name   = "location"
-    values = [aws_subnet.test.availability_zone]
-  }
-
-  location_type            = "availability-zone"
-  preferred_instance_types = ["t3.micro", "t2.micro"]
-}
-
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 data "aws_partition" "current" {}
 
 data "aws_region" "current" {}
@@ -858,7 +832,7 @@ resource "aws_cloudwatch_metric_alarm" "test" {
     InstanceId = aws_instance.test.id
   }
 }
-`, rName, action)
+`, rName, action))
 }
 
 func testAccAWSCloudWatchMetricAlarmConfigAlarmActionsSNSTopic(rName string) string {
@@ -868,7 +842,7 @@ resource "aws_sns_topic" "test" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "test" {
-  alarm_actions       = ["${aws_sns_topic.test.arn}"]
+  alarm_actions       = [aws_sns_topic.test.arn]
   alarm_description   = "Status checks have failed for system"
   alarm_name          = %q
   comparison_operator = "GreaterThanThreshold"
@@ -889,11 +863,14 @@ resource "aws_cloudwatch_metric_alarm" "test" {
 
 func testAccAWSCloudWatchMetricAlarmConfigAlarmActionsSWFAction(rName string) string {
 	return fmt.Sprintf(`
-data "aws_caller_identity" "current" {}
+data "aws_caller_identity" "current" {
+}
 
-data "aws_partition" "current" {}
+data "aws_partition" "current" {
+}
 
-data "aws_region" "current" {}
+data "aws_region" "current" {
+}
 
 resource "aws_cloudwatch_metric_alarm" "test" {
   alarm_actions       = ["arn:${data.aws_partition.current.partition}:swf:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:action/actions/AWS_EC2.InstanceId.Reboot/1.0"]

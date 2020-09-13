@@ -6982,6 +6982,14 @@ const (
 	ResourceOwnerOtherAccounts = "OTHER-ACCOUNTS"
 )
 
+// ResourceOwner_Values returns all elements of the ResourceOwner enum
+func ResourceOwner_Values() []string {
+	return []string{
+		ResourceOwnerSelf,
+		ResourceOwnerOtherAccounts,
+	}
+}
+
 const (
 	// ResourceShareAssociationStatusAssociating is a ResourceShareAssociationStatus enum value
 	ResourceShareAssociationStatusAssociating = "ASSOCIATING"
@@ -6999,6 +7007,17 @@ const (
 	ResourceShareAssociationStatusDisassociated = "DISASSOCIATED"
 )
 
+// ResourceShareAssociationStatus_Values returns all elements of the ResourceShareAssociationStatus enum
+func ResourceShareAssociationStatus_Values() []string {
+	return []string{
+		ResourceShareAssociationStatusAssociating,
+		ResourceShareAssociationStatusAssociated,
+		ResourceShareAssociationStatusFailed,
+		ResourceShareAssociationStatusDisassociating,
+		ResourceShareAssociationStatusDisassociated,
+	}
+}
+
 const (
 	// ResourceShareAssociationTypePrincipal is a ResourceShareAssociationType enum value
 	ResourceShareAssociationTypePrincipal = "PRINCIPAL"
@@ -7006,6 +7025,14 @@ const (
 	// ResourceShareAssociationTypeResource is a ResourceShareAssociationType enum value
 	ResourceShareAssociationTypeResource = "RESOURCE"
 )
+
+// ResourceShareAssociationType_Values returns all elements of the ResourceShareAssociationType enum
+func ResourceShareAssociationType_Values() []string {
+	return []string{
+		ResourceShareAssociationTypePrincipal,
+		ResourceShareAssociationTypeResource,
+	}
+}
 
 const (
 	// ResourceShareFeatureSetCreatedFromPolicy is a ResourceShareFeatureSet enum value
@@ -7017,6 +7044,15 @@ const (
 	// ResourceShareFeatureSetStandard is a ResourceShareFeatureSet enum value
 	ResourceShareFeatureSetStandard = "STANDARD"
 )
+
+// ResourceShareFeatureSet_Values returns all elements of the ResourceShareFeatureSet enum
+func ResourceShareFeatureSet_Values() []string {
+	return []string{
+		ResourceShareFeatureSetCreatedFromPolicy,
+		ResourceShareFeatureSetPromotingToStandard,
+		ResourceShareFeatureSetStandard,
+	}
+}
 
 const (
 	// ResourceShareInvitationStatusPending is a ResourceShareInvitationStatus enum value
@@ -7031,6 +7067,16 @@ const (
 	// ResourceShareInvitationStatusExpired is a ResourceShareInvitationStatus enum value
 	ResourceShareInvitationStatusExpired = "EXPIRED"
 )
+
+// ResourceShareInvitationStatus_Values returns all elements of the ResourceShareInvitationStatus enum
+func ResourceShareInvitationStatus_Values() []string {
+	return []string{
+		ResourceShareInvitationStatusPending,
+		ResourceShareInvitationStatusAccepted,
+		ResourceShareInvitationStatusRejected,
+		ResourceShareInvitationStatusExpired,
+	}
+}
 
 const (
 	// ResourceShareStatusPending is a ResourceShareStatus enum value
@@ -7049,6 +7095,17 @@ const (
 	ResourceShareStatusDeleted = "DELETED"
 )
 
+// ResourceShareStatus_Values returns all elements of the ResourceShareStatus enum
+func ResourceShareStatus_Values() []string {
+	return []string{
+		ResourceShareStatusPending,
+		ResourceShareStatusActive,
+		ResourceShareStatusFailed,
+		ResourceShareStatusDeleting,
+		ResourceShareStatusDeleted,
+	}
+}
+
 const (
 	// ResourceStatusAvailable is a ResourceStatus enum value
 	ResourceStatusAvailable = "AVAILABLE"
@@ -7065,3 +7122,14 @@ const (
 	// ResourceStatusPending is a ResourceStatus enum value
 	ResourceStatusPending = "PENDING"
 )
+
+// ResourceStatus_Values returns all elements of the ResourceStatus enum
+func ResourceStatus_Values() []string {
+	return []string{
+		ResourceStatusAvailable,
+		ResourceStatusZonalResourceInaccessible,
+		ResourceStatusLimitExceeded,
+		ResourceStatusUnavailable,
+		ResourceStatusPending,
+	}
+}

@@ -8195,6 +8195,18 @@ const (
 	ApplicationStatusUpdating = "UPDATING"
 )
 
+// ApplicationStatus_Values returns all elements of the ApplicationStatus enum
+func ApplicationStatus_Values() []string {
+	return []string{
+		ApplicationStatusDeleting,
+		ApplicationStatusStarting,
+		ApplicationStatusStopping,
+		ApplicationStatusReady,
+		ApplicationStatusRunning,
+		ApplicationStatusUpdating,
+	}
+}
+
 const (
 	// InputStartingPositionNow is a InputStartingPosition enum value
 	InputStartingPositionNow = "NOW"
@@ -8206,6 +8218,15 @@ const (
 	InputStartingPositionLastStoppedPoint = "LAST_STOPPED_POINT"
 )
 
+// InputStartingPosition_Values returns all elements of the InputStartingPosition enum
+func InputStartingPosition_Values() []string {
+	return []string{
+		InputStartingPositionNow,
+		InputStartingPositionTrimHorizon,
+		InputStartingPositionLastStoppedPoint,
+	}
+}
+
 const (
 	// RecordFormatTypeJson is a RecordFormatType enum value
 	RecordFormatTypeJson = "JSON"
@@ -8213,3 +8234,11 @@ const (
 	// RecordFormatTypeCsv is a RecordFormatType enum value
 	RecordFormatTypeCsv = "CSV"
 )
+
+// RecordFormatType_Values returns all elements of the RecordFormatType enum
+func RecordFormatType_Values() []string {
+	return []string{
+		RecordFormatTypeJson,
+		RecordFormatTypeCsv,
+	}
+}

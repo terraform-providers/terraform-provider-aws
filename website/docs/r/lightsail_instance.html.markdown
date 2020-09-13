@@ -43,7 +43,7 @@ instance (see list below)
 * `key_pair_name` - (Optional) The name of your key pair. Created in the
 Lightsail console (cannot use `aws_key_pair` at this time)
 * `user_data` - (Optional) launch script to configure server with additional user data
-* `tags` - (Optional) A map of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource. To create a key-only tag, use an empty string as the value.
 
 ## Availability Zones
 Lightsail currently supports the following Availability Zones (e.g. `us-east-1a`):

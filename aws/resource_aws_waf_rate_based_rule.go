@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -52,7 +52,7 @@ func resourceAwsWafRateBasedRule() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateWafPredicatesType(),
+							ValidateFunc: validation.StringInSlice(waf.PredicateType_Values(), false),
 						},
 					},
 				},
@@ -171,7 +171,7 @@ func resourceAwsWafRateBasedRuleRead(d *schema.ResourceData, meta interface{}) e
 func resourceAwsWafRateBasedRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).wafconn
 
-	if d.HasChange("predicates") {
+	if d.HasChanges("predicates", "rate_limit") {
 		o, n := d.GetChange("predicates")
 		oldP, newP := o.(*schema.Set).List(), n.(*schema.Set).List()
 		rateLimit := d.Get("rate_limit")

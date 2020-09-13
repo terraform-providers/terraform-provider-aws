@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccAwsGuardDutyThreatintelset_basic(t *testing.T) {
@@ -168,13 +168,13 @@ resource "aws_s3_bucket" "test" {
 resource "aws_s3_bucket_object" "test" {
   acl     = "public-read"
   content = "10.0.0.0/8\n"
-  bucket  = "${aws_s3_bucket.test.id}"
+  bucket  = aws_s3_bucket.test.id
   key     = "%s"
 }
 
 resource "aws_guardduty_threatintelset" "test" {
   name        = "%s"
-  detector_id = "${aws_guardduty_detector.test.id}"
+  detector_id = aws_guardduty_detector.test.id
   format      = "TXT"
   location    = "https://s3.amazonaws.com/${aws_s3_bucket_object.test.bucket}/${aws_s3_bucket_object.test.key}"
   activate    = %t

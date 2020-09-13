@@ -65,6 +65,7 @@ Kinesis Data Analytics v2 (SQL and Java Applications)
 Kinesis Firehose
 Kinesis Video
 Lambda
+Lex
 License Manager
 Lightsail
 MQ
@@ -85,6 +86,7 @@ RAM
 RDS
 Redshift
 Resource Groups
+Resource Groups Tagging API
 Route53 Domains
 Route53 Resolver
 Route53

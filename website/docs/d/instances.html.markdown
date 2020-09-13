@@ -38,8 +38,8 @@ data "aws_instances" "test" {
 }
 
 resource "aws_eip" "test" {
-  count    = "${length(data.aws_instances.test.ids)}"
-  instance = "${data.aws_instances.test.ids[count.index]}"
+  count    = length(data.aws_instances.test.ids)
+  instance = data.aws_instances.test.ids[count.index]
 }
 ```
 

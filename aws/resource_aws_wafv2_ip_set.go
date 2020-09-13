@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -50,8 +50,7 @@ func resourceAwsWafv2IPSet() *schema.Resource {
 						for _, ov := range oldAddresses {
 							hasAddress := false
 							for _, nv := range newAddresses {
-								// isIpv6CidrsEquals works for both IPv4 and IPv6
-								if isIpv6CidrsEquals(ov.(string), nv.(string)) {
+								if cidrBlocksEqual(ov.(string), nv.(string)) {
 									hasAddress = true
 									break
 								}

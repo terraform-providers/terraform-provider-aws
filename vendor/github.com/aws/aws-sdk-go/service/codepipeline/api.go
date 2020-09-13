@@ -12747,6 +12747,18 @@ const (
 	ActionCategoryApproval = "Approval"
 )
 
+// ActionCategory_Values returns all elements of the ActionCategory enum
+func ActionCategory_Values() []string {
+	return []string{
+		ActionCategorySource,
+		ActionCategoryBuild,
+		ActionCategoryDeploy,
+		ActionCategoryTest,
+		ActionCategoryInvoke,
+		ActionCategoryApproval,
+	}
+}
+
 const (
 	// ActionConfigurationPropertyTypeString is a ActionConfigurationPropertyType enum value
 	ActionConfigurationPropertyTypeString = "String"
@@ -12757,6 +12769,15 @@ const (
 	// ActionConfigurationPropertyTypeBoolean is a ActionConfigurationPropertyType enum value
 	ActionConfigurationPropertyTypeBoolean = "Boolean"
 )
+
+// ActionConfigurationPropertyType_Values returns all elements of the ActionConfigurationPropertyType enum
+func ActionConfigurationPropertyType_Values() []string {
+	return []string{
+		ActionConfigurationPropertyTypeString,
+		ActionConfigurationPropertyTypeNumber,
+		ActionConfigurationPropertyTypeBoolean,
+	}
+}
 
 const (
 	// ActionExecutionStatusInProgress is a ActionExecutionStatus enum value
@@ -12772,6 +12793,16 @@ const (
 	ActionExecutionStatusFailed = "Failed"
 )
 
+// ActionExecutionStatus_Values returns all elements of the ActionExecutionStatus enum
+func ActionExecutionStatus_Values() []string {
+	return []string{
+		ActionExecutionStatusInProgress,
+		ActionExecutionStatusAbandoned,
+		ActionExecutionStatusSucceeded,
+		ActionExecutionStatusFailed,
+	}
+}
+
 const (
 	// ActionOwnerAws is a ActionOwner enum value
 	ActionOwnerAws = "AWS"
@@ -12783,6 +12814,15 @@ const (
 	ActionOwnerCustom = "Custom"
 )
 
+// ActionOwner_Values returns all elements of the ActionOwner enum
+func ActionOwner_Values() []string {
+	return []string{
+		ActionOwnerAws,
+		ActionOwnerThirdParty,
+		ActionOwnerCustom,
+	}
+}
+
 const (
 	// ApprovalStatusApproved is a ApprovalStatus enum value
 	ApprovalStatusApproved = "Approved"
@@ -12791,25 +12831,61 @@ const (
 	ApprovalStatusRejected = "Rejected"
 )
 
+// ApprovalStatus_Values returns all elements of the ApprovalStatus enum
+func ApprovalStatus_Values() []string {
+	return []string{
+		ApprovalStatusApproved,
+		ApprovalStatusRejected,
+	}
+}
+
 const (
 	// ArtifactLocationTypeS3 is a ArtifactLocationType enum value
 	ArtifactLocationTypeS3 = "S3"
 )
+
+// ArtifactLocationType_Values returns all elements of the ArtifactLocationType enum
+func ArtifactLocationType_Values() []string {
+	return []string{
+		ArtifactLocationTypeS3,
+	}
+}
 
 const (
 	// ArtifactStoreTypeS3 is a ArtifactStoreType enum value
 	ArtifactStoreTypeS3 = "S3"
 )
 
+// ArtifactStoreType_Values returns all elements of the ArtifactStoreType enum
+func ArtifactStoreType_Values() []string {
+	return []string{
+		ArtifactStoreTypeS3,
+	}
+}
+
 const (
 	// BlockerTypeSchedule is a BlockerType enum value
 	BlockerTypeSchedule = "Schedule"
 )
 
+// BlockerType_Values returns all elements of the BlockerType enum
+func BlockerType_Values() []string {
+	return []string{
+		BlockerTypeSchedule,
+	}
+}
+
 const (
 	// EncryptionKeyTypeKms is a EncryptionKeyType enum value
 	EncryptionKeyTypeKms = "KMS"
 )
+
+// EncryptionKeyType_Values returns all elements of the EncryptionKeyType enum
+func EncryptionKeyType_Values() []string {
+	return []string{
+		EncryptionKeyTypeKms,
+	}
+}
 
 const (
 	// FailureTypeJobFailed is a FailureType enum value
@@ -12830,6 +12906,18 @@ const (
 	// FailureTypeSystemUnavailable is a FailureType enum value
 	FailureTypeSystemUnavailable = "SystemUnavailable"
 )
+
+// FailureType_Values returns all elements of the FailureType enum
+func FailureType_Values() []string {
+	return []string{
+		FailureTypeJobFailed,
+		FailureTypeConfigurationError,
+		FailureTypePermissionError,
+		FailureTypeRevisionOutOfSync,
+		FailureTypeRevisionUnavailable,
+		FailureTypeSystemUnavailable,
+	}
+}
 
 const (
 	// JobStatusCreated is a JobStatus enum value
@@ -12854,6 +12942,19 @@ const (
 	JobStatusFailed = "Failed"
 )
 
+// JobStatus_Values returns all elements of the JobStatus enum
+func JobStatus_Values() []string {
+	return []string{
+		JobStatusCreated,
+		JobStatusQueued,
+		JobStatusDispatched,
+		JobStatusInProgress,
+		JobStatusTimedOut,
+		JobStatusSucceeded,
+		JobStatusFailed,
+	}
+}
+
 const (
 	// PipelineExecutionStatusInProgress is a PipelineExecutionStatus enum value
 	PipelineExecutionStatusInProgress = "InProgress"
@@ -12874,6 +12975,18 @@ const (
 	PipelineExecutionStatusFailed = "Failed"
 )
 
+// PipelineExecutionStatus_Values returns all elements of the PipelineExecutionStatus enum
+func PipelineExecutionStatus_Values() []string {
+	return []string{
+		PipelineExecutionStatusInProgress,
+		PipelineExecutionStatusStopped,
+		PipelineExecutionStatusStopping,
+		PipelineExecutionStatusSucceeded,
+		PipelineExecutionStatusSuperseded,
+		PipelineExecutionStatusFailed,
+	}
+}
+
 const (
 	// StageExecutionStatusInProgress is a StageExecutionStatus enum value
 	StageExecutionStatusInProgress = "InProgress"
@@ -12891,10 +13004,28 @@ const (
 	StageExecutionStatusSucceeded = "Succeeded"
 )
 
+// StageExecutionStatus_Values returns all elements of the StageExecutionStatus enum
+func StageExecutionStatus_Values() []string {
+	return []string{
+		StageExecutionStatusInProgress,
+		StageExecutionStatusFailed,
+		StageExecutionStatusStopped,
+		StageExecutionStatusStopping,
+		StageExecutionStatusSucceeded,
+	}
+}
+
 const (
 	// StageRetryModeFailedActions is a StageRetryMode enum value
 	StageRetryModeFailedActions = "FAILED_ACTIONS"
 )
+
+// StageRetryMode_Values returns all elements of the StageRetryMode enum
+func StageRetryMode_Values() []string {
+	return []string{
+		StageRetryModeFailedActions,
+	}
+}
 
 const (
 	// StageTransitionTypeInbound is a StageTransitionType enum value
@@ -12903,6 +13034,14 @@ const (
 	// StageTransitionTypeOutbound is a StageTransitionType enum value
 	StageTransitionTypeOutbound = "Outbound"
 )
+
+// StageTransitionType_Values returns all elements of the StageTransitionType enum
+func StageTransitionType_Values() []string {
+	return []string{
+		StageTransitionTypeInbound,
+		StageTransitionTypeOutbound,
+	}
+}
 
 const (
 	// TriggerTypeCreatePipeline is a TriggerType enum value
@@ -12924,6 +13063,18 @@ const (
 	TriggerTypePutActionRevision = "PutActionRevision"
 )
 
+// TriggerType_Values returns all elements of the TriggerType enum
+func TriggerType_Values() []string {
+	return []string{
+		TriggerTypeCreatePipeline,
+		TriggerTypeStartPipelineExecution,
+		TriggerTypePollForSourceChanges,
+		TriggerTypeWebhook,
+		TriggerTypeCloudWatchEvent,
+		TriggerTypePutActionRevision,
+	}
+}
+
 const (
 	// WebhookAuthenticationTypeGithubHmac is a WebhookAuthenticationType enum value
 	WebhookAuthenticationTypeGithubHmac = "GITHUB_HMAC"
@@ -12934,3 +13085,12 @@ const (
 	// WebhookAuthenticationTypeUnauthenticated is a WebhookAuthenticationType enum value
 	WebhookAuthenticationTypeUnauthenticated = "UNAUTHENTICATED"
 )
+
+// WebhookAuthenticationType_Values returns all elements of the WebhookAuthenticationType enum
+func WebhookAuthenticationType_Values() []string {
+	return []string{
+		WebhookAuthenticationTypeGithubHmac,
+		WebhookAuthenticationTypeIp,
+		WebhookAuthenticationTypeUnauthenticated,
+	}
+}

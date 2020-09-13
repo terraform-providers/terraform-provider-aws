@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -87,6 +87,18 @@ func resourceAwsStorageGatewayCachedIscsiVolume() *schema.Resource {
 				ForceNew: true,
 			},
 			"tags": tagsSchema(),
+			"kms_encrypted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+			"kms_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArn,
+				RequiredWith: []string{"kms_encrypted"},
+			},
 		},
 	}
 }
@@ -109,6 +121,14 @@ func resourceAwsStorageGatewayCachedIscsiVolumeCreate(d *schema.ResourceData, me
 
 	if v, ok := d.GetOk("source_volume_arn"); ok {
 		input.SourceVolumeARN = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("kms_key"); ok {
+		input.KMSKey = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("kms_encrypted"); ok {
+		input.KMSEncrypted = aws.Bool(v.(bool))
 	}
 
 	log.Printf("[DEBUG] Creating Storage Gateway cached iSCSI volume: %s", input)
@@ -147,7 +167,7 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 	output, err := conn.DescribeCachediSCSIVolumes(input)
 
 	if err != nil {
-		if isAWSErr(err, storagegateway.ErrorCodeVolumeNotFound, "") {
+		if isAWSErr(err, storagegateway.ErrorCodeVolumeNotFound, "") || isAWSErr(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified volume was not found") {
 			log.Printf("[WARN] Storage Gateway cached iSCSI volume %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -169,6 +189,12 @@ func resourceAwsStorageGatewayCachedIscsiVolumeRead(d *schema.ResourceData, meta
 	d.Set("volume_arn", arn)
 	d.Set("volume_id", aws.StringValue(volume.VolumeId))
 	d.Set("volume_size_in_bytes", int(aws.Int64Value(volume.VolumeSizeInBytes)))
+	d.Set("kms_key", volume.KMSKey)
+	if volume.KMSKey != nil {
+		d.Set("kms_encrypted", true)
+	} else {
+		d.Set("kms_encrypted", false)
+	}
 
 	tags, err := keyvaluetags.StoragegatewayListTags(conn, arn)
 	if err != nil {

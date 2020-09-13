@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSOpsworksApplication_basic(t *testing.T) {
@@ -19,10 +20,9 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 	resourceName := "aws_opsworks_application.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAwsOpsworksApplicationDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOpsworksApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAwsOpsworksApplicationCreate(rName),
@@ -35,9 +35,11 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "ssl_configuration"),
 					resource.TestCheckNoResourceAttr(resourceName, "domains"),
 					resource.TestCheckNoResourceAttr(resourceName, "app_source"),
-					resource.TestCheckResourceAttr(resourceName, "environment.3077298702.key", "key1"),
-					resource.TestCheckResourceAttr(resourceName, "environment.3077298702.value", "value1"),
-					resource.TestCheckNoResourceAttr(resourceName, "environment.3077298702.secret"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+						"key":    "key1",
+						"value":  "value1",
+						"secret": "",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "document_root", "foo"),
 				),
 			},
@@ -45,6 +47,7 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// TODO: TypeSet check ImportStateVerifyIgnore with hash keys
 				ImportStateVerifyIgnore: []string{"environment.3077298702.key", "environment.#",
 					"environment.3077298702.secure", "environment.3077298702.value"},
 			},
@@ -66,12 +69,16 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.type", "git"),
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.url", "https://github.com/aws/example.git"),
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.username", ""),
-					resource.TestCheckResourceAttr(resourceName, "environment.2107898637.key", "key2"),
-					resource.TestCheckResourceAttr(resourceName, "environment.2107898637.value", "value2"),
-					resource.TestCheckResourceAttr(resourceName, "environment.2107898637.secure", "true"),
-					resource.TestCheckResourceAttr(resourceName, "environment.3077298702.key", "key1"),
-					resource.TestCheckResourceAttr(resourceName, "environment.3077298702.value", "value1"),
-					resource.TestCheckNoResourceAttr(resourceName, "environment.3077298702.secret"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+						"key":    "key2",
+						"value":  "value2",
+						"secure": "true",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+						"key":    "key1",
+						"value":  "value1",
+						"secret": "",
+					}),
 					resource.TestCheckResourceAttr(resourceName, "document_root", "root"),
 					resource.TestCheckResourceAttr(resourceName, "auto_bundle_on_deploy", "true"),
 					resource.TestCheckResourceAttr(resourceName, "rails_env", "staging"),
@@ -259,7 +266,7 @@ resource "aws_opsworks_application" "test" {
   document_root = "foo"
   enable_ssl    = false
   name          = %q
-  stack_id      = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id      = aws_opsworks_stack.tf-acc.id
   type          = "other"
 
   app_source {
@@ -285,7 +292,7 @@ resource "aws_opsworks_application" "test" {
   enable_ssl            = true
   name                  = %q
   rails_env             = "staging"
-  stack_id              = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id              = aws_opsworks_stack.tf-acc.id
   type                  = "rails"
 
   ssl_configuration {
@@ -306,6 +313,7 @@ iIbYXlwkPYAArDPv3wT5AkAwp4vym+YKmDqh6gseKfRDuJqRiW9yD5A8VGr/w88k
 5rkuduVGP7tK3uIp00Its3aEyKF8mLGWYszVGeeLxAMH
 -----END RSA PRIVATE KEY-----
 EOS
+
     certificate = <<EOS
 -----BEGIN CERTIFICATE-----
 MIIBkDCB+gIJALoScFD0sJq3MA0GCSqGSIb3DQEBBQUAMA0xCzAJBgNVBAYTAkRF
@@ -319,12 +327,13 @@ OZWPlwiUJbNIpK+04Bg2vd5m/NMMrvi75RfmyeMtSfq/NrIX2Q3+nyWI7DLq7yZI
 V/YEvOqdAiy5NEWBztHx8HvB9G4=
 -----END CERTIFICATE-----
 EOS
+
   }
 
   app_source {
-    type = "git"
+    type     = "git"
     revision = "master"
-    url = "https://github.com/aws/example.git"
+    url      = "https://github.com/aws/example.git"
   }
 
   environment {

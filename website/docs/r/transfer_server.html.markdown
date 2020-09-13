@@ -12,7 +12,17 @@ Provides a AWS Transfer Server resource.
 
 
 ```hcl
-resource "aws_iam_role" "foo" {
+resource "aws_transfer_server" "example" {
+  identity_provider_type = "SERVICE_MANAGED"
+  logging_role           = aws_iam_role.example.arn
+
+  tags = {
+    NAME = "tf-acc-test-transfer-server"
+    ENV  = "test"
+  }
+}
+
+resource "aws_iam_role" "example" {
   name = "tf-test-transfer-server-iam-role"
 
   assume_role_policy = <<EOF
@@ -31,9 +41,9 @@ resource "aws_iam_role" "foo" {
 EOF
 }
 
-resource "aws_iam_role_policy" "foo" {
-  name = "tf-test-transfer-server-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+resource "aws_iam_role_policy" "example" {
+  name = "tf-test-transfer-server-iam-policy"
+  role = aws_iam_role.example.id
 
   policy = <<POLICY
 {
@@ -50,16 +60,6 @@ resource "aws_iam_role_policy" "foo" {
 	]
 }
 POLICY
-}
-
-resource "aws_transfer_server" "foo" {
-  identity_provider_type = "SERVICE_MANAGED"
-  logging_role           = "${aws_iam_role.foo.arn}"
-
-  tags = {
-    NAME = "tf-acc-test-transfer-server"
-    ENV  = "test"
-  }
 }
 ```
 

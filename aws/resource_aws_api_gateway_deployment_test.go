@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayDeployment_basic(t *testing.T) {
@@ -58,7 +58,7 @@ func TestAccAWSAPIGatewayDeployment_disappears_RestApi(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayDeploymentExists(resourceName, &deployment),
 					testAccCheckAWSAPIGatewayRestAPIExists(restApiResourceName, &restApi),
-					testAccCheckAWSAPIGatewayRestAPIDisappears(&restApi),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayRestApi(), restApiResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -356,29 +356,29 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_method_response" "error" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   status_code = "400"
 }
 
 resource "aws_api_gateway_integration" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
 
   type                    = "HTTP"
   uri                     = "%s"
@@ -386,10 +386,10 @@ resource "aws_api_gateway_integration" "test" {
 }
 
 resource "aws_api_gateway_integration_response" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_integration.test.http_method}"
-  status_code = "${aws_api_gateway_method_response.error.status_code}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_integration.test.http_method
+  status_code = aws_api_gateway_method_response.error.status_code
 }
 `, uri)
 }
@@ -418,30 +418,30 @@ resource "aws_api_gateway_deployment" "test" {
 func testAccAWSAPIGatewayDeploymentConfigDescription(description string) string {
 	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + fmt.Sprintf(`
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
   description = %q
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 `, description)
 }
 
 func testAccAWSAPIGatewayDeploymentConfigRequired() string {
-	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + fmt.Sprintf(`
+	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + `
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayDeploymentConfigStageDescription(stageDescription string) string {
 	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + fmt.Sprintf(`
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
-  rest_api_id       = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id       = aws_api_gateway_rest_api.test.id
   stage_description = %q
   stage_name        = "tf-acc-test"
 }
@@ -451,9 +451,9 @@ resource "aws_api_gateway_deployment" "test" {
 func testAccAWSAPIGatewayDeploymentConfigStageName(stageName string) string {
 	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + fmt.Sprintf(`
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = %q
 }
 `, stageName)
@@ -462,9 +462,9 @@ resource "aws_api_gateway_deployment" "test" {
 func testAccAWSAPIGatewayDeploymentConfigVariables(key1, value1 string) string {
 	return testAccAWSAPIGatewayDeploymentConfigBase("http://example.com") + fmt.Sprintf(`
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
 
   variables = {
     %q = %q

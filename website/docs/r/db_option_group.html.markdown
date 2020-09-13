@@ -38,7 +38,7 @@ resource "aws_db_option_group" "example" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = "${aws_iam_role.example.arn}"
+      value = aws_iam_role.example.arn
     }
   }
 

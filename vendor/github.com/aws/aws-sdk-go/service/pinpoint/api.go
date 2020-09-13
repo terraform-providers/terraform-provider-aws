@@ -28780,7 +28780,8 @@ type SMSMessage struct {
 	// your dedicated number.
 	Keyword *string `type:"string"`
 
-	// The URL of an image or video to display in the SMS message.
+	// The URL of an image or video to display in the SMS message. This field is
+	// reserved for future use.
 	MediaUrl *string `type:"string"`
 
 	// The SMS message type. Valid values are TRANSACTIONAL (for messages that are
@@ -34960,6 +34961,15 @@ const (
 	ActionUrl = "URL"
 )
 
+// Action_Values returns all elements of the Action enum
+func Action_Values() []string {
+	return []string{
+		ActionOpenApp,
+		ActionDeepLink,
+		ActionUrl,
+	}
+}
+
 const (
 	// AttributeTypeInclusive is a AttributeType enum value
 	AttributeTypeInclusive = "INCLUSIVE"
@@ -34967,6 +34977,14 @@ const (
 	// AttributeTypeExclusive is a AttributeType enum value
 	AttributeTypeExclusive = "EXCLUSIVE"
 )
+
+// AttributeType_Values returns all elements of the AttributeType enum
+func AttributeType_Values() []string {
+	return []string{
+		AttributeTypeInclusive,
+		AttributeTypeExclusive,
+	}
+}
 
 const (
 	// CampaignStatusScheduled is a CampaignStatus enum value
@@ -34987,6 +35005,18 @@ const (
 	// CampaignStatusDeleted is a CampaignStatus enum value
 	CampaignStatusDeleted = "DELETED"
 )
+
+// CampaignStatus_Values returns all elements of the CampaignStatus enum
+func CampaignStatus_Values() []string {
+	return []string{
+		CampaignStatusScheduled,
+		CampaignStatusExecuting,
+		CampaignStatusPendingNextRun,
+		CampaignStatusCompleted,
+		CampaignStatusPaused,
+		CampaignStatusDeleted,
+	}
+}
 
 const (
 	// ChannelTypePush is a ChannelType enum value
@@ -35026,6 +35056,24 @@ const (
 	ChannelTypeCustom = "CUSTOM"
 )
 
+// ChannelType_Values returns all elements of the ChannelType enum
+func ChannelType_Values() []string {
+	return []string{
+		ChannelTypePush,
+		ChannelTypeGcm,
+		ChannelTypeApns,
+		ChannelTypeApnsSandbox,
+		ChannelTypeApnsVoip,
+		ChannelTypeApnsVoipSandbox,
+		ChannelTypeAdm,
+		ChannelTypeSms,
+		ChannelTypeVoice,
+		ChannelTypeEmail,
+		ChannelTypeBaidu,
+		ChannelTypeCustom,
+	}
+}
+
 const (
 	// DeliveryStatusSuccessful is a DeliveryStatus enum value
 	DeliveryStatusSuccessful = "SUCCESSFUL"
@@ -35049,6 +35097,19 @@ const (
 	DeliveryStatusDuplicate = "DUPLICATE"
 )
 
+// DeliveryStatus_Values returns all elements of the DeliveryStatus enum
+func DeliveryStatus_Values() []string {
+	return []string{
+		DeliveryStatusSuccessful,
+		DeliveryStatusThrottled,
+		DeliveryStatusTemporaryFailure,
+		DeliveryStatusPermanentFailure,
+		DeliveryStatusUnknownFailure,
+		DeliveryStatusOptOut,
+		DeliveryStatusDuplicate,
+	}
+}
+
 const (
 	// DimensionTypeInclusive is a DimensionType enum value
 	DimensionTypeInclusive = "INCLUSIVE"
@@ -35056,6 +35117,14 @@ const (
 	// DimensionTypeExclusive is a DimensionType enum value
 	DimensionTypeExclusive = "EXCLUSIVE"
 )
+
+// DimensionType_Values returns all elements of the DimensionType enum
+func DimensionType_Values() []string {
+	return []string{
+		DimensionTypeInclusive,
+		DimensionTypeExclusive,
+	}
+}
 
 const (
 	// DurationHr24 is a Duration enum value
@@ -35070,6 +35139,16 @@ const (
 	// DurationDay30 is a Duration enum value
 	DurationDay30 = "DAY_30"
 )
+
+// Duration_Values returns all elements of the Duration enum
+func Duration_Values() []string {
+	return []string{
+		DurationHr24,
+		DurationDay7,
+		DurationDay14,
+		DurationDay30,
+	}
+}
 
 const (
 	// EndpointTypesElementPush is a EndpointTypesElement enum value
@@ -35109,6 +35188,24 @@ const (
 	EndpointTypesElementCustom = "CUSTOM"
 )
 
+// EndpointTypesElement_Values returns all elements of the EndpointTypesElement enum
+func EndpointTypesElement_Values() []string {
+	return []string{
+		EndpointTypesElementPush,
+		EndpointTypesElementGcm,
+		EndpointTypesElementApns,
+		EndpointTypesElementApnsSandbox,
+		EndpointTypesElementApnsVoip,
+		EndpointTypesElementApnsVoipSandbox,
+		EndpointTypesElementAdm,
+		EndpointTypesElementSms,
+		EndpointTypesElementVoice,
+		EndpointTypesElementEmail,
+		EndpointTypesElementBaidu,
+		EndpointTypesElementCustom,
+	}
+}
+
 const (
 	// FilterTypeSystem is a FilterType enum value
 	FilterTypeSystem = "SYSTEM"
@@ -35117,6 +35214,14 @@ const (
 	FilterTypeEndpoint = "ENDPOINT"
 )
 
+// FilterType_Values returns all elements of the FilterType enum
+func FilterType_Values() []string {
+	return []string{
+		FilterTypeSystem,
+		FilterTypeEndpoint,
+	}
+}
+
 const (
 	// FormatCsv is a Format enum value
 	FormatCsv = "CSV"
@@ -35124,6 +35229,14 @@ const (
 	// FormatJson is a Format enum value
 	FormatJson = "JSON"
 )
+
+// Format_Values returns all elements of the Format enum
+func Format_Values() []string {
+	return []string{
+		FormatCsv,
+		FormatJson,
+	}
+}
 
 const (
 	// FrequencyOnce is a Frequency enum value
@@ -35145,6 +35258,18 @@ const (
 	FrequencyEvent = "EVENT"
 )
 
+// Frequency_Values returns all elements of the Frequency enum
+func Frequency_Values() []string {
+	return []string{
+		FrequencyOnce,
+		FrequencyHourly,
+		FrequencyDaily,
+		FrequencyWeekly,
+		FrequencyMonthly,
+		FrequencyEvent,
+	}
+}
+
 const (
 	// IncludeAll is a Include enum value
 	IncludeAll = "ALL"
@@ -35155,6 +35280,15 @@ const (
 	// IncludeNone is a Include enum value
 	IncludeNone = "NONE"
 )
+
+// Include_Values returns all elements of the Include enum
+func Include_Values() []string {
+	return []string{
+		IncludeAll,
+		IncludeAny,
+		IncludeNone,
+	}
+}
 
 const (
 	// JobStatusCreated is a JobStatus enum value
@@ -35185,6 +35319,21 @@ const (
 	JobStatusFailed = "FAILED"
 )
 
+// JobStatus_Values returns all elements of the JobStatus enum
+func JobStatus_Values() []string {
+	return []string{
+		JobStatusCreated,
+		JobStatusPreparingForInitialization,
+		JobStatusInitializing,
+		JobStatusProcessing,
+		JobStatusPendingJob,
+		JobStatusCompleting,
+		JobStatusCompleted,
+		JobStatusFailing,
+		JobStatusFailed,
+	}
+}
+
 const (
 	// MessageTypeTransactional is a MessageType enum value
 	MessageTypeTransactional = "TRANSACTIONAL"
@@ -35192,6 +35341,14 @@ const (
 	// MessageTypePromotional is a MessageType enum value
 	MessageTypePromotional = "PROMOTIONAL"
 )
+
+// MessageType_Values returns all elements of the MessageType enum
+func MessageType_Values() []string {
+	return []string{
+		MessageTypeTransactional,
+		MessageTypePromotional,
+	}
+}
 
 const (
 	// ModeDelivery is a Mode enum value
@@ -35201,6 +35358,14 @@ const (
 	ModeFilter = "FILTER"
 )
 
+// Mode_Values returns all elements of the Mode enum
+func Mode_Values() []string {
+	return []string{
+		ModeDelivery,
+		ModeFilter,
+	}
+}
+
 const (
 	// OperatorAll is a Operator enum value
 	OperatorAll = "ALL"
@@ -35208,6 +35373,14 @@ const (
 	// OperatorAny is a Operator enum value
 	OperatorAny = "ANY"
 )
+
+// Operator_Values returns all elements of the Operator enum
+func Operator_Values() []string {
+	return []string{
+		OperatorAll,
+		OperatorAny,
+	}
+}
 
 const (
 	// RecencyTypeActive is a RecencyType enum value
@@ -35217,6 +35390,14 @@ const (
 	RecencyTypeInactive = "INACTIVE"
 )
 
+// RecencyType_Values returns all elements of the RecencyType enum
+func RecencyType_Values() []string {
+	return []string{
+		RecencyTypeActive,
+		RecencyTypeInactive,
+	}
+}
+
 const (
 	// SegmentTypeDimensional is a SegmentType enum value
 	SegmentTypeDimensional = "DIMENSIONAL"
@@ -35224,6 +35405,14 @@ const (
 	// SegmentTypeImport is a SegmentType enum value
 	SegmentTypeImport = "IMPORT"
 )
+
+// SegmentType_Values returns all elements of the SegmentType enum
+func SegmentType_Values() []string {
+	return []string{
+		SegmentTypeDimensional,
+		SegmentTypeImport,
+	}
+}
 
 const (
 	// SourceTypeAll is a SourceType enum value
@@ -35235,6 +35424,15 @@ const (
 	// SourceTypeNone is a SourceType enum value
 	SourceTypeNone = "NONE"
 )
+
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeAll,
+		SourceTypeAny,
+		SourceTypeNone,
+	}
+}
 
 const (
 	// StateDraft is a State enum value
@@ -35253,6 +35451,17 @@ const (
 	StateClosed = "CLOSED"
 )
 
+// State_Values returns all elements of the State enum
+func State_Values() []string {
+	return []string{
+		StateDraft,
+		StateActive,
+		StateCompleted,
+		StateCancelled,
+		StateClosed,
+	}
+}
+
 const (
 	// TemplateTypeEmail is a TemplateType enum value
 	TemplateTypeEmail = "EMAIL"
@@ -35267,6 +35476,16 @@ const (
 	TemplateTypePush = "PUSH"
 )
 
+// TemplateType_Values returns all elements of the TemplateType enum
+func TemplateType_Values() []string {
+	return []string{
+		TemplateTypeEmail,
+		TemplateTypeSms,
+		TemplateTypeVoice,
+		TemplateTypePush,
+	}
+}
+
 const (
 	// TypeAll is a Type enum value
 	TypeAll = "ALL"
@@ -35277,3 +35496,12 @@ const (
 	// TypeNone is a Type enum value
 	TypeNone = "NONE"
 )
+
+// Type_Values returns all elements of the Type enum
+func Type_Values() []string {
+	return []string{
+		TypeAll,
+		TypeAny,
+		TypeNone,
+	}
+}

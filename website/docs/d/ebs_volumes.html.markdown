@@ -26,13 +26,13 @@ data "aws_ebs_volumes" "example" {
 data "aws_ebs_volume" "example" {
   for_each = data.aws_ebs_volumes.example.ids
   filter {
-    name = "volume-id"
+    name   = "volume-id"
     values = [each.value]
   }
 }
 
 output "availability_zone_to_volume_id" {
-  value = {for s in data.aws_ebs_volume.example : s.id => s.availability_zone}
+  value = { for s in data.aws_ebs_volume.example : s.id => s.availability_zone }
 }
 ```
 

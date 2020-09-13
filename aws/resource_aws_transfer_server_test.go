@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/transfer"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -279,7 +279,6 @@ func testAccCheckAWSTransferServerExists(n string, res *transfer.DescribedServer
 }
 
 func testAccCheckAWSTransferServerDisappears(conf *transfer.DescribedServer) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).transferconn
 
@@ -377,51 +376,50 @@ resource "aws_transfer_server" "foo" {}
 `
 
 func testAccAWSTransferServerConfig_basicUpdate(rName string) string {
-
 	return fmt.Sprintf(`
 resource "aws_iam_role" "foo" {
   name = "tf-test-transfer-server-iam-role-%s"
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-server-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Sid": "AllowFullAccesstoCloudWatchLogs",
-		"Effect": "Allow",
-		"Action": [
-			"logs:*"
-		],
-		"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoCloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
 
 resource "aws_transfer_server" "foo" {
   identity_provider_type = "SERVICE_MANAGED"
-  logging_role           = "${aws_iam_role.foo.arn}"
+  logging_role           = aws_iam_role.foo.arn
 
   tags = {
     NAME = "tf-acc-test-transfer-server"
@@ -432,36 +430,35 @@ resource "aws_transfer_server" "foo" {
 }
 
 func testAccAWSTransferServerConfig_apigateway(rName string) string {
-
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
   name = "test"
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_method_response" "error" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   status_code = "400"
 }
 
 resource "aws_api_gateway_integration" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
 
   type                    = "HTTP"
   uri                     = "https://www.google.de"
@@ -469,16 +466,16 @@ resource "aws_api_gateway_integration" "test" {
 }
 
 resource "aws_api_gateway_integration_response" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_integration.test.http_method}"
-  status_code = "${aws_api_gateway_method_response.error.status_code}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_integration.test.http_method
+  status_code = aws_api_gateway_method_response.error.status_code
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on = ["aws_api_gateway_integration.test"]
+  depends_on = [aws_api_gateway_integration.test]
 
-  rest_api_id       = "${aws_api_gateway_rest_api.test.id}"
+  rest_api_id       = aws_api_gateway_rest_api.test.id
   stage_name        = "test"
   description       = "%s"
   stage_description = "%s"
@@ -493,37 +490,37 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Effect": "Allow",
-		"Principal": {
-			"Service": "transfer.amazonaws.com"
-		},
-		"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-server-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-		"Sid": "AllowFullAccesstoCloudWatchLogs",
-		"Effect": "Allow",
-		"Action": [
-			"logs:*"
-		],
-		"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoCloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
@@ -531,8 +528,8 @@ POLICY
 resource "aws_transfer_server" "foo" {
   identity_provider_type = "API_GATEWAY"
   url                    = "https://${aws_api_gateway_rest_api.test.id}.execute-api.us-west-2.amazonaws.com${aws_api_gateway_resource.test.path}"
-  invocation_role        = "${aws_iam_role.foo.arn}"
-  logging_role           = "${aws_iam_role.foo.arn}"
+  invocation_role        = aws_iam_role.foo.arn
+  logging_role           = aws_iam_role.foo.arn
 
   tags = {
     NAME = "tf-acc-test-transfer-server"
@@ -554,37 +551,37 @@ resource "aws_iam_role" "foo" {
 
   assume_role_policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Principal": {
-				"Service": "transfer.amazonaws.com"
-			},
-			"Action": "sts:AssumeRole"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "transfer.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
 }
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy-%s"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Sid": "AllowFullAccesstoS3",
-			"Effect": "Allow",
-			"Action": [
-				"s3:*"
-			],
-			"Resource": "*"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowFullAccesstoS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 POLICY
 }
@@ -596,69 +593,70 @@ const testAccAWSTransferServerConfig_VpcEndPoint = `
 data "aws_region" "current" {}
 
 resource "aws_vpc" "test" {
-	cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16"
 
-	tags = {
-		Name = "terraform-testacc-default-route-table-vpc-endpoint"
-	}
+  tags = {
+    Name = "terraform-testacc-default-route-table-vpc-endpoint"
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
-	vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
-	tags = {
-		Name = "test"
-	}
+  tags = {
+    Name = "test"
+  }
 }
 
 resource "aws_security_group" "sg" {
-	name 		= "allow-transfer-server"
-	description = "Allow TLS inbound traffic"
-	vpc_id 		= "${aws_vpc.test.id}"
-	ingress {
-		from_port       = 0
-		to_port         = 0
-		protocol        = "-1"
-		self 			= true
-	}
+  name        = "allow-transfer-server"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.test.id
+
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
+  }
 }
 
 resource "aws_vpc_endpoint" "transfer" {
-	vpc_id = "${aws_vpc.test.id}"
-	vpc_endpoint_type = "Interface"
-	service_name = "com.amazonaws.${data.aws_region.current.name}.transfer.server"
+  vpc_id            = aws_vpc.test.id
+  vpc_endpoint_type = "Interface"
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.transfer.server"
 
-	security_group_ids = [
-		"${aws_security_group.sg.id}",
-	]
+  security_group_ids = [
+    aws_security_group.sg.id,
+  ]
 }
 
 resource "aws_default_route_table" "foo" {
-	default_route_table_id = "${aws_vpc.test.default_route_table_id}"
+  default_route_table_id = aws_vpc.test.default_route_table_id
 
-	tags = {
-		Name = "test"
-	}
+  tags = {
+    Name = "test"
+  }
 
-	route {
-		cidr_block = "0.0.0.0/0"
-		gateway_id = "${aws_internet_gateway.igw.id}"
-	}
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
 }
 
-
 resource "aws_transfer_server" "default" {
-	endpoint_type = "VPC_ENDPOINT"
-	endpoint_details {
-		vpc_endpoint_id = "${aws_vpc_endpoint.transfer.id}"
-	}
+  endpoint_type = "VPC_ENDPOINT"
+
+  endpoint_details {
+    vpc_endpoint_id = aws_vpc_endpoint.transfer.id
+  }
 }
 `
 
 func testAccAWSTransferServerConfig_hostKey(hostKey string) string {
 	return fmt.Sprintf(`
 resource "aws_transfer_server" "default" {
-  host_key	= "${file("%s")}"
+  host_key = file("%s")
 }
 `, hostKey)
 }

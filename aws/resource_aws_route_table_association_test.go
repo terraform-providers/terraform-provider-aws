@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSRouteTableAssociation_Subnet_basic(t *testing.T) {
@@ -330,183 +330,203 @@ func testAccAWSRouteTabAssocImportStateIdFunc(resourceName string) resource.Impo
 
 const testAccRouteTableAssociationSubnetConfig = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = "${aws_route_table.foo.id}"
-	subnet_id      = "${aws_subnet.foo.id}"
+  route_table_id = aws_route_table.foo.id
+  subnet_id      = aws_subnet.foo.id
 }
 `
 
 const testAccRouteTableAssociationSubnetConfig_ChangeRouteTable = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
-	tags = {
-		Name = "tf-acc-route-update-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-update-table-assoc"
+  }
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = "${aws_route_table.bar.id}"
-	subnet_id      = "${aws_subnet.foo.id}"
+  route_table_id = aws_route_table.bar.id
+  subnet_id      = aws_subnet.foo.id
 }
 `
 
 const testAccRouteTableAssociationSubnetConfig_ChangeSubnet = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block = "10.0.0.0/8"
-		gateway_id = "${aws_internet_gateway.foo.id}"
-	}
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block = "10.0.0.0/8"
+    gateway_id = aws_internet_gateway.foo.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_subnet" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	cidr_block = "10.1.2.0/24"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.2.0/24"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = "${aws_route_table.foo.id}"
-	subnet_id      = "${aws_subnet.bar.id}"
+  route_table_id = aws_route_table.foo.id
+  subnet_id      = aws_subnet.bar.id
 }
 `
 
 const testAccRouteTableAssociationGatewayConfig = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block           = aws_subnet.foo.cidr_block
-		network_interface_id = aws_network_interface.appliance.id
-	}
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block           = aws_subnet.foo.cidr_block
+    network_interface_id = aws_network_interface.appliance.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_subnet" "appliance" {
-	vpc_id     = aws_vpc.foo.id
-	cidr_block = "10.1.2.0/24"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.2.0/24"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_network_interface" "appliance" {
-	subnet_id = aws_subnet.appliance.id
+  subnet_id = aws_subnet.appliance.id
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = aws_route_table.foo.id
-	gateway_id     = aws_internet_gateway.foo.id
+  route_table_id = aws_route_table.foo.id
+  gateway_id     = aws_internet_gateway.foo.id
 }
 `
 
 const testAccRouteTableAssociationGatewayConfig_ChangeRouteTable = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block           = aws_subnet.foo.cidr_block
-		network_interface_id = aws_network_interface.appliance.id
-	}
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block           = aws_subnet.foo.cidr_block
+    network_interface_id = aws_network_interface.appliance.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_subnet" "appliance" {
-	vpc_id     = aws_vpc.foo.id
-	cidr_block = "10.1.2.0/24"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.2.0/24"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_network_interface" "appliance" {
-	subnet_id = aws_subnet.appliance.id
+  subnet_id = aws_subnet.appliance.id
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = aws_route_table.bar.id
-	gateway_id     = aws_internet_gateway.foo.id
+  route_table_id = aws_route_table.bar.id
+  gateway_id     = aws_internet_gateway.foo.id
 }
 `
 
 const testAccRouteTableAssociationGatewayConfig_ChangeGateway = testAccRouteTableAssociatonCommonVpcConfig + `
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	route {
-		cidr_block           = aws_subnet.foo.cidr_block
-		network_interface_id = aws_network_interface.appliance.id
-	}
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  route {
+    cidr_block           = aws_subnet.foo.cidr_block
+    network_interface_id = aws_network_interface.appliance.id
+  }
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_subnet" "appliance" {
-	vpc_id     = aws_vpc.foo.id
-	cidr_block = "10.1.2.0/24"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.2.0/24"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_network_interface" "appliance" {
-	subnet_id = aws_subnet.appliance.id
+  subnet_id = aws_subnet.appliance.id
 }
 
 resource "aws_vpn_gateway" "bar" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_route_table_association" "foo" {
-	route_table_id = aws_route_table.foo.id
-	gateway_id     = aws_vpn_gateway.bar.id
+  route_table_id = aws_route_table.foo.id
+  gateway_id     = aws_vpn_gateway.bar.id
 }
 `
 
 const testAccRouteTableAssociatonCommonVpcConfig = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_subnet" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	cidr_block = "10.1.1.0/24"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id     = aws_vpc.foo.id
+  cidr_block = "10.1.1.0/24"
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 
 resource "aws_internet_gateway" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
-	tags = {
-		Name = "tf-acc-route-table-assoc"
-	}
+  vpc_id = aws_vpc.foo.id
+
+  tags = {
+    Name = "tf-acc-route-table-assoc"
+  }
 }
 `

@@ -6,19 +6,19 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "regexpPattern"
 	info.Tags = []string{"diagnostic", "experimental"}
 	info.Summary = "Detects suspicious regexp patterns"
 	info.Before = "regexp.MustCompile(`google.com|yandex.ru`)"
 	info.After = "regexp.MustCompile(`google\\.com|yandex\\.ru`)"
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		domains := []string{
 			"com",
 			"org",
@@ -39,7 +39,7 @@ func init() {
 
 type regexpPatternChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 
 	domainRE *regexp.Regexp
 }

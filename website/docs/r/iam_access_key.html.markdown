@@ -14,7 +14,7 @@ Provides an IAM access key. This is a set of credentials that allow API requests
 
 ```hcl
 resource "aws_iam_access_key" "lb" {
-  user    = "${aws_iam_user.lb.name}"
+  user    = aws_iam_user.lb.name
   pgp_key = "keybase:some_person_that_exists"
 }
 
@@ -25,7 +25,7 @@ resource "aws_iam_user" "lb" {
 
 resource "aws_iam_user_policy" "lb_ro" {
   name = "test"
-  user = "${aws_iam_user.lb.name}"
+  user = aws_iam_user.lb.name
 
   policy = <<EOF
 {
@@ -44,7 +44,7 @@ EOF
 }
 
 output "secret" {
-  value = "${aws_iam_access_key.lb.encrypted_secret}"
+  value = aws_iam_access_key.lb.encrypted_secret
 }
 ```
 
@@ -90,8 +90,6 @@ the use of the secret key in automation.
 * `encrypted_secret` - The encrypted secret, base64 encoded, if `pgp_key` was specified.
 ~> **NOTE:** The encrypted secret may be decrypted using the command line,
    for example: `terraform output encrypted_secret | base64 --decode | keybase pgp decrypt`.
-* `ses_smtp_password` - **DEPRECATED** The secret access key converted into an SES SMTP
-  password by applying AWS's SigV2 conversion algorithm
 * `ses_smtp_password_v4` - The secret access key converted into an SES SMTP
   password by applying [AWS's documented Sigv4 conversion
   algorithm](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert).

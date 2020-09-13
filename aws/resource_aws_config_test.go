@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAccAWSConfig(t *testing.T) {
+func TestAccAWSConfig_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Config": {
 			"basic":            testAccConfigConfigRule_basic,

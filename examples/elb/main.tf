@@ -1,6 +1,9 @@
-# Specify the provider and access details
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 resource "aws_vpc" "default" {
@@ -13,7 +16,7 @@ resource "aws_vpc" "default" {
 }
 
 resource "aws_subnet" "tf_test_subnet" {
-  vpc_id                  = "${aws_vpc.default.id}"
+  vpc_id                  = aws_vpc.default.id
   cidr_block              = "10.0.0.0/24"
   map_public_ip_on_launch = true
 
@@ -23,7 +26,7 @@ resource "aws_subnet" "tf_test_subnet" {
 }
 
 resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
   tags = {
     Name = "tf_test_ig"
@@ -31,11 +34,11 @@ resource "aws_internet_gateway" "gw" {
 }
 
 resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
+    gateway_id = aws_internet_gateway.gw.id
   }
 
   tags = {
@@ -44,8 +47,8 @@ resource "aws_route_table" "r" {
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = "${aws_subnet.tf_test_subnet.id}"
-  route_table_id = "${aws_route_table.r.id}"
+  subnet_id      = aws_subnet.tf_test_subnet.id
+  route_table_id = aws_route_table.r.id
 }
 
 # Our default security group to access
@@ -53,7 +56,7 @@ resource "aws_route_table_association" "a" {
 resource "aws_security_group" "default" {
   name        = "instance_sg"
   description = "Used in the terraform"
-  vpc_id      = "${aws_vpc.default.id}"
+  vpc_id      = aws_vpc.default.id
 
   # SSH access from anywhere
   ingress {
@@ -86,7 +89,7 @@ resource "aws_security_group" "elb" {
   name        = "elb_sg"
   description = "Used in the terraform"
 
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = aws_vpc.default.id
 
   # HTTP access from anywhere
   ingress {
@@ -105,16 +108,16 @@ resource "aws_security_group" "elb" {
   }
 
   # ensure the VPC has an Internet gateway or this step will fail
-  depends_on = ["aws_internet_gateway.gw"]
+  depends_on = [aws_internet_gateway.gw]
 }
 
 resource "aws_elb" "web" {
   name = "example-elb"
 
   # The same availability zone as our instance
-  subnets = ["${aws_subnet.tf_test_subnet.id}"]
+  subnets = [aws_subnet.tf_test_subnet.id]
 
-  security_groups = ["${aws_security_group.elb.id}"]
+  security_groups = [aws_security_group.elb.id]
 
   listener {
     instance_port     = 80
@@ -133,7 +136,7 @@ resource "aws_elb" "web" {
 
   # The instance is registered automatically
 
-  instances                   = ["${aws_instance.web.id}"]
+  instances                   = [aws_instance.web.id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
@@ -142,7 +145,7 @@ resource "aws_elb" "web" {
 
 resource "aws_lb_cookie_stickiness_policy" "default" {
   name                     = "lbpolicy"
-  load_balancer            = "${aws_elb.web.id}"
+  load_balancer            = aws_elb.web.id
   lb_port                  = 80
   cookie_expiration_period = 600
 }
@@ -152,19 +155,19 @@ resource "aws_instance" "web" {
 
   # Lookup the correct AMI based on the region
   # we specified
-  ami = "${lookup(var.aws_amis, var.aws_region)}"
+  ami = var.aws_amis[var.aws_region]
 
   # The name of our SSH keypair you've created and downloaded
   # from the AWS console.
   #
   # https://console.aws.amazon.com/ec2/v2/home?region=us-west-2#KeyPairs:
   #
-  key_name = "${var.key_name}"
+  key_name = var.key_name
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
-  subnet_id              = "${aws_subnet.tf_test_subnet.id}"
-  user_data              = "${file("userdata.sh")}"
+  vpc_security_group_ids = [aws_security_group.default.id]
+  subnet_id              = aws_subnet.tf_test_subnet.id
+  user_data              = file("userdata.sh")
 
   #Instance tags
 

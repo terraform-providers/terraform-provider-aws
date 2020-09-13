@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -108,7 +108,10 @@ func TestAccAWSCloudWatchLogGroup_basic(t *testing.T) {
 				Config: testAccAWSCloudWatchLogGroupConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudWatchLogGroupExists(resourceName, &lg),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "logs", fmt.Sprintf("log-group:foo-bar-%d", rInt)),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("foo-bar-%d", rInt)),
 					resource.TestCheckResourceAttr(resourceName, "retention_in_days", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -558,14 +561,14 @@ POLICY
 
 resource "aws_cloudwatch_log_group" "test" {
   name       = "foo-bar-%d"
-  kms_key_id = "${aws_kms_key.foo.arn}"
+  kms_key_id = aws_kms_key.foo.arn
 }
 `, rInt, rInt)
 }
 
 const testAccAWSCloudWatchLogGroup_namePrefix = `
 resource "aws_cloudwatch_log_group" "test" {
-    name_prefix = "tf-test-"
+  name_prefix = "tf-test-"
 }
 `
 

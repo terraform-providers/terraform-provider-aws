@@ -502,6 +502,99 @@ func (c *Transfer) DeleteUserWithContext(ctx aws.Context, input *DeleteUserInput
 	return out, req.Send()
 }
 
+const opDescribeSecurityPolicy = "DescribeSecurityPolicy"
+
+// DescribeSecurityPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeSecurityPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeSecurityPolicy for more information on using the DescribeSecurityPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeSecurityPolicyRequest method.
+//    req, resp := client.DescribeSecurityPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/DescribeSecurityPolicy
+func (c *Transfer) DescribeSecurityPolicyRequest(input *DescribeSecurityPolicyInput) (req *request.Request, output *DescribeSecurityPolicyOutput) {
+	op := &request.Operation{
+		Name:       opDescribeSecurityPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DescribeSecurityPolicyInput{}
+	}
+
+	output = &DescribeSecurityPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeSecurityPolicy API operation for AWS Transfer Family.
+//
+// Describes the security policy that is attached to your file transfer protocol-enabled
+// server. The response contains a description of the security policy's properties.
+// For more information about security policies, see Working with security policies
+// (https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Transfer Family's
+// API operation DescribeSecurityPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceUnavailableException
+//   The request has failed because the AWS Transfer Family service is not available.
+//
+//   * InternalServiceError
+//   This exception is thrown when an error occurs in the AWS Transfer Family
+//   service.
+//
+//   * InvalidRequestException
+//   This exception is thrown when the client submits a malformed request.
+//
+//   * ResourceNotFoundException
+//   This exception is thrown when a resource is not found by the AWS Transfer
+//   Family service.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/DescribeSecurityPolicy
+func (c *Transfer) DescribeSecurityPolicy(input *DescribeSecurityPolicyInput) (*DescribeSecurityPolicyOutput, error) {
+	req, out := c.DescribeSecurityPolicyRequest(input)
+	return out, req.Send()
+}
+
+// DescribeSecurityPolicyWithContext is the same as DescribeSecurityPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeSecurityPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Transfer) DescribeSecurityPolicyWithContext(ctx aws.Context, input *DescribeSecurityPolicyInput, opts ...request.Option) (*DescribeSecurityPolicyOutput, error) {
+	req, out := c.DescribeSecurityPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeServer = "DescribeServer"
 
 // DescribeServerRequest generates a "aws/request.Request" representing the
@@ -791,6 +884,154 @@ func (c *Transfer) ImportSshPublicKeyWithContext(ctx aws.Context, input *ImportS
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opListSecurityPolicies = "ListSecurityPolicies"
+
+// ListSecurityPoliciesRequest generates a "aws/request.Request" representing the
+// client's request for the ListSecurityPolicies operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListSecurityPolicies for more information on using the ListSecurityPolicies
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListSecurityPoliciesRequest method.
+//    req, resp := client.ListSecurityPoliciesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/ListSecurityPolicies
+func (c *Transfer) ListSecurityPoliciesRequest(input *ListSecurityPoliciesInput) (req *request.Request, output *ListSecurityPoliciesOutput) {
+	op := &request.Operation{
+		Name:       opListSecurityPolicies,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListSecurityPoliciesInput{}
+	}
+
+	output = &ListSecurityPoliciesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListSecurityPolicies API operation for AWS Transfer Family.
+//
+// Lists the security policies that are attached to your file transfer protocol-enabled
+// servers.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Transfer Family's
+// API operation ListSecurityPolicies for usage and error information.
+//
+// Returned Error Types:
+//   * ServiceUnavailableException
+//   The request has failed because the AWS Transfer Family service is not available.
+//
+//   * InternalServiceError
+//   This exception is thrown when an error occurs in the AWS Transfer Family
+//   service.
+//
+//   * InvalidNextTokenException
+//   The NextToken parameter that was passed is invalid.
+//
+//   * InvalidRequestException
+//   This exception is thrown when the client submits a malformed request.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/transfer-2018-11-05/ListSecurityPolicies
+func (c *Transfer) ListSecurityPolicies(input *ListSecurityPoliciesInput) (*ListSecurityPoliciesOutput, error) {
+	req, out := c.ListSecurityPoliciesRequest(input)
+	return out, req.Send()
+}
+
+// ListSecurityPoliciesWithContext is the same as ListSecurityPolicies with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListSecurityPolicies for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Transfer) ListSecurityPoliciesWithContext(ctx aws.Context, input *ListSecurityPoliciesInput, opts ...request.Option) (*ListSecurityPoliciesOutput, error) {
+	req, out := c.ListSecurityPoliciesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListSecurityPoliciesPages iterates over the pages of a ListSecurityPolicies operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListSecurityPolicies method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListSecurityPolicies operation.
+//    pageNum := 0
+//    err := client.ListSecurityPoliciesPages(params,
+//        func(page *transfer.ListSecurityPoliciesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Transfer) ListSecurityPoliciesPages(input *ListSecurityPoliciesInput, fn func(*ListSecurityPoliciesOutput, bool) bool) error {
+	return c.ListSecurityPoliciesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListSecurityPoliciesPagesWithContext same as ListSecurityPoliciesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Transfer) ListSecurityPoliciesPagesWithContext(ctx aws.Context, input *ListSecurityPoliciesInput, fn func(*ListSecurityPoliciesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListSecurityPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListSecurityPoliciesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListSecurityPoliciesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListServers = "ListServers"
@@ -2151,8 +2392,8 @@ type CreateServerInput struct {
 	//    * FTP (File Transfer Protocol): Unencrypted file transfer
 	//
 	// If you select FTPS, you must choose a certificate stored in AWS Certificate
-	// Manager (ACM) which will be used to identify your server when clients connect
-	// to it over FTPS.
+	// Manager (ACM) which will be used to identify your file transfer protocol-enabled
+	// server when clients connect to it over FTPS.
 	//
 	// If Protocol includes either FTP or FTPS, then the EndpointType must be VPC
 	// and the IdentityProviderType must be API_GATEWAY.
@@ -2162,6 +2403,9 @@ type CreateServerInput struct {
 	// If Protocol is set only to SFTP, the EndpointType can be set to PUBLIC and
 	// the IdentityProviderType can be set to SERVICE_MANAGED.
 	Protocols []*string `min:"1" type:"list"`
+
+	// Specifies the name of the security policy that is attached to the server.
+	SecurityPolicyName *string `type:"string"`
 
 	// Key-value pairs that can be used to group and search for file transfer protocol-enabled
 	// servers.
@@ -2265,6 +2509,12 @@ func (s *CreateServerInput) SetProtocols(v []*string) *CreateServerInput {
 	return s
 }
 
+// SetSecurityPolicyName sets the SecurityPolicyName field's value.
+func (s *CreateServerInput) SetSecurityPolicyName(v string) *CreateServerInput {
+	s.SecurityPolicyName = &v
+	return s
+}
+
 // SetTags sets the Tags field's value.
 func (s *CreateServerInput) SetTags(v []*Tag) *CreateServerInput {
 	s.Tags = v
@@ -2321,7 +2571,7 @@ type CreateUserInput struct {
 	// you can set Entry to '/' and set Target to the HomeDirectory parameter value.
 	//
 	// If the target of a logical directory entry does not exist in Amazon S3, the
-	// entry will be ignored. As a workaround, you can use the Amazon S3 api to
+	// entry will be ignored. As a workaround, you can use the Amazon S3 API to
 	// create 0 byte objects as place holders for your directory. If using the CLI,
 	// use the s3api call instead of s3 so you can use the put-object operation.
 	// For example, you use the following: aws s3api put-object --bucket bucketname
@@ -2378,9 +2628,10 @@ type CreateUserInput struct {
 
 	// A unique string that identifies a user and is associated with a file transfer
 	// protocol-enabled server as specified by the ServerId. This user name must
-	// be a minimum of 3 and a maximum of 32 characters long. The following are
-	// valid characters: a-z, A-Z, 0-9, underscore, and hyphen. The user name can't
-	// start with a hyphen.
+	// be a minimum of 3 and a maximum of 100 characters long. The following are
+	// valid characters: a-z, A-Z, 0-9, underscore '_', hyphen '-', period '.',
+	// and at sign '@'. The user name can't start with a hyphen, period, and at
+	// sign.
 	//
 	// UserName is a required field
 	UserName *string `min:"3" type:"string" required:"true"`
@@ -2762,6 +3013,69 @@ func (s DeleteUserOutput) GoString() string {
 	return s.String()
 }
 
+type DescribeSecurityPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the name of the security policy that is attached to the server.
+	//
+	// SecurityPolicyName is a required field
+	SecurityPolicyName *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeSecurityPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSecurityPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeSecurityPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeSecurityPolicyInput"}
+	if s.SecurityPolicyName == nil {
+		invalidParams.Add(request.NewErrParamRequired("SecurityPolicyName"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetSecurityPolicyName sets the SecurityPolicyName field's value.
+func (s *DescribeSecurityPolicyInput) SetSecurityPolicyName(v string) *DescribeSecurityPolicyInput {
+	s.SecurityPolicyName = &v
+	return s
+}
+
+type DescribeSecurityPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array containing the properties of the security policy.
+	//
+	// SecurityPolicy is a required field
+	SecurityPolicy *DescribedSecurityPolicy `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeSecurityPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeSecurityPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetSecurityPolicy sets the SecurityPolicy field's value.
+func (s *DescribeSecurityPolicyOutput) SetSecurityPolicy(v *DescribedSecurityPolicy) *DescribeSecurityPolicyOutput {
+	s.SecurityPolicy = v
+	return s
+}
+
 type DescribeServerInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2929,17 +3243,90 @@ func (s *DescribeUserOutput) SetUser(v *DescribedUser) *DescribeUserOutput {
 	return s
 }
 
+// Describes the properties of a security policy that was specified. For more
+// information about security policies, see Working with security policies (https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html).
+type DescribedSecurityPolicy struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies whether this policy enables Federal Information Processing Standards
+	// (FIPS).
+	Fips *bool `type:"boolean"`
+
+	// Specifies the name of the security policy that is attached to the server.
+	//
+	// SecurityPolicyName is a required field
+	SecurityPolicyName *string `type:"string" required:"true"`
+
+	// Specifies the enabled Secure Shell (SSH) cipher encryption algorithms in
+	// the security policy that is attached to the server.
+	SshCiphers []*string `type:"list"`
+
+	// Specifies the enabled SSH key exchange (KEX) encryption algorithms in the
+	// security policy that is attached to the server.
+	SshKexs []*string `type:"list"`
+
+	// Specifies the enabled SSH message authentication code (MAC) encryption algorithms
+	// in the security policy that is attached to the server.
+	SshMacs []*string `type:"list"`
+
+	// Specifies the enabled Transport Layer Security (TLS) cipher encryption algorithms
+	// in the security policy that is attached to the server.
+	TlsCiphers []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s DescribedSecurityPolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribedSecurityPolicy) GoString() string {
+	return s.String()
+}
+
+// SetFips sets the Fips field's value.
+func (s *DescribedSecurityPolicy) SetFips(v bool) *DescribedSecurityPolicy {
+	s.Fips = &v
+	return s
+}
+
+// SetSecurityPolicyName sets the SecurityPolicyName field's value.
+func (s *DescribedSecurityPolicy) SetSecurityPolicyName(v string) *DescribedSecurityPolicy {
+	s.SecurityPolicyName = &v
+	return s
+}
+
+// SetSshCiphers sets the SshCiphers field's value.
+func (s *DescribedSecurityPolicy) SetSshCiphers(v []*string) *DescribedSecurityPolicy {
+	s.SshCiphers = v
+	return s
+}
+
+// SetSshKexs sets the SshKexs field's value.
+func (s *DescribedSecurityPolicy) SetSshKexs(v []*string) *DescribedSecurityPolicy {
+	s.SshKexs = v
+	return s
+}
+
+// SetSshMacs sets the SshMacs field's value.
+func (s *DescribedSecurityPolicy) SetSshMacs(v []*string) *DescribedSecurityPolicy {
+	s.SshMacs = v
+	return s
+}
+
+// SetTlsCiphers sets the TlsCiphers field's value.
+func (s *DescribedSecurityPolicy) SetTlsCiphers(v []*string) *DescribedSecurityPolicy {
+	s.TlsCiphers = v
+	return s
+}
+
 // Describes the properties of a file transfer protocol-enabled server that
-// was specified. Information returned includes the following: the server Amazon
-// Resource Name (ARN), the certificate ARN (if the FTPS protocol was selected),
-// the endpoint type and details, the authentication configuration and type,
-// the logging role, the file transfer protocol or protocols, the server ID
-// and state, and assigned tags or metadata.
+// was specified.
 type DescribedServer struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies the unique Amazon Resource Name (ARN) for a file transfer protocol-enabled
-	// server to be described.
+	// Specifies the unique Amazon Resource Name (ARN) of the file transfer protocol-enabled
+	// server.
 	//
 	// Arn is a required field
 	Arn *string `min:"20" type:"string" required:"true"`
@@ -2991,6 +3378,9 @@ type DescribedServer struct {
 	//
 	//    * FTP (File Transfer Protocol): Unencrypted file transfer
 	Protocols []*string `min:"1" type:"list"`
+
+	// Specifies the name of the security policy that is attached to the server.
+	SecurityPolicyName *string `type:"string"`
 
 	// Specifies the unique system-assigned identifier for a file transfer protocol-enabled
 	// server that you instantiate.
@@ -3080,6 +3470,12 @@ func (s *DescribedServer) SetProtocols(v []*string) *DescribedServer {
 	return s
 }
 
+// SetSecurityPolicyName sets the SecurityPolicyName field's value.
+func (s *DescribedServer) SetSecurityPolicyName(v string) *DescribedServer {
+	s.SecurityPolicyName = &v
+	return s
+}
+
 // SetServerId sets the ServerId field's value.
 func (s *DescribedServer) SetServerId(v string) *DescribedServer {
 	s.ServerId = &v
@@ -3104,7 +3500,7 @@ func (s *DescribedServer) SetUserCount(v int64) *DescribedServer {
 	return s
 }
 
-// Returns properties of the user that you want to describe.
+// Describes the properties of a user that was specified.
 type DescribedUser struct {
 	_ struct{} `type:"structure"`
 
@@ -3309,7 +3705,7 @@ func (s *EndpointDetails) SetVpcId(v string) *EndpointDetails {
 	return s
 }
 
-// Represents an object that contains entries and a targets for HomeDirectoryMappings.
+// Represents an object that contains entries and targets for HomeDirectoryMappings.
 type HomeDirectoryMapEntry struct {
 	_ struct{} `type:"structure"`
 
@@ -3704,6 +4100,94 @@ func (s *InvalidRequestException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+type ListSecurityPoliciesInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the number of security policies to return as a response to the
+	// ListSecurityPolicies query.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// When additional results are obtained from the ListSecurityPolicies command,
+	// a NextToken parameter is returned in the output. You can then pass the NextToken
+	// parameter in a subsequent command to continue listing additional security
+	// policies.
+	NextToken *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ListSecurityPoliciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSecurityPoliciesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListSecurityPoliciesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListSecurityPoliciesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListSecurityPoliciesInput) SetMaxResults(v int64) *ListSecurityPoliciesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSecurityPoliciesInput) SetNextToken(v string) *ListSecurityPoliciesInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListSecurityPoliciesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// When you can get additional results from the ListSecurityPolicies operation,
+	// a NextToken parameter is returned in the output. In a following command,
+	// you can pass in the NextToken parameter to continue listing security policies.
+	NextToken *string `min:"1" type:"string"`
+
+	// An array of security policies that were listed.
+	//
+	// SecurityPolicyNames is a required field
+	SecurityPolicyNames []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ListSecurityPoliciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListSecurityPoliciesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListSecurityPoliciesOutput) SetNextToken(v string) *ListSecurityPoliciesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSecurityPolicyNames sets the SecurityPolicyNames field's value.
+func (s *ListSecurityPoliciesOutput) SetSecurityPolicyNames(v []*string) *ListSecurityPoliciesOutput {
+	s.SecurityPolicyNames = v
+	return s
+}
+
 type ListServersInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3711,7 +4195,7 @@ type ListServersInput struct {
 	// as a response to the ListServers query.
 	MaxResults *int64 `min:"1" type:"integer"`
 
-	// When additional results are obtained from theListServers command, a NextToken
+	// When additional results are obtained from the ListServers command, a NextToken
 	// parameter is returned in the output. You can then pass the NextToken parameter
 	// in a subsequent command to continue listing additional file transfer protocol-enabled
 	// servers.
@@ -5073,6 +5557,9 @@ type UpdateServerInput struct {
 	// the IdentityProviderType can be set to SERVICE_MANAGED.
 	Protocols []*string `min:"1" type:"list"`
 
+	// Specifies the name of the security policy that is attached to the server.
+	SecurityPolicyName *string `type:"string"`
+
 	// A system-assigned unique identifier for a file transfer protocol-enabled
 	// server instance that the user account is assigned to.
 	//
@@ -5161,6 +5648,12 @@ func (s *UpdateServerInput) SetProtocols(v []*string) *UpdateServerInput {
 	return s
 }
 
+// SetSecurityPolicyName sets the SecurityPolicyName field's value.
+func (s *UpdateServerInput) SetSecurityPolicyName(v string) *UpdateServerInput {
+	s.SecurityPolicyName = &v
+	return s
+}
+
 // SetServerId sets the ServerId field's value.
 func (s *UpdateServerInput) SetServerId(v string) *UpdateServerInput {
 	s.ServerId = &v
@@ -5218,7 +5711,7 @@ type UpdateUserInput struct {
 	// you can set Entry to '/' and set Target to the HomeDirectory parameter value.
 	//
 	// If the target of a logical directory entry does not exist in Amazon S3, the
-	// entry will be ignored. As a workaround, you can use the Amazon S3 api to
+	// entry will be ignored. As a workaround, you can use the Amazon S3 API to
 	// create 0 byte objects as place holders for your directory. If using the CLI,
 	// use the s3api call instead of s3 so you can use the put-object operation.
 	// For example, you use the following: aws s3api put-object --bucket bucketname
@@ -5264,11 +5757,11 @@ type UpdateUserInput struct {
 	ServerId *string `min:"19" type:"string" required:"true"`
 
 	// A unique string that identifies a user and is associated with a file transfer
-	// protocol-enabled server as specified by the ServerId. This is the string
-	// that will be used by your user when they log in to your server. This user
-	// name is a minimum of 3 and a maximum of 32 characters long. The following
-	// are valid characters: a-z, A-Z, 0-9, underscore, and hyphen. The user name
-	// can't start with a hyphen.
+	// protocol-enabled server as specified by the ServerId. This user name must
+	// be a minimum of 3 and a maximum of 100 characters long. The following are
+	// valid characters: a-z, A-Z, 0-9, underscore '_', hyphen '-', period '.',
+	// and at sign '@'. The user name can't start with a hyphen, period, and at
+	// sign.
 	//
 	// UserName is a required field
 	UserName *string `min:"3" type:"string" required:"true"`
@@ -5415,6 +5908,15 @@ const (
 	EndpointTypeVpcEndpoint = "VPC_ENDPOINT"
 )
 
+// EndpointType_Values returns all elements of the EndpointType enum
+func EndpointType_Values() []string {
+	return []string{
+		EndpointTypePublic,
+		EndpointTypeVpc,
+		EndpointTypeVpcEndpoint,
+	}
+}
+
 const (
 	// HomeDirectoryTypePath is a HomeDirectoryType enum value
 	HomeDirectoryTypePath = "PATH"
@@ -5422,6 +5924,14 @@ const (
 	// HomeDirectoryTypeLogical is a HomeDirectoryType enum value
 	HomeDirectoryTypeLogical = "LOGICAL"
 )
+
+// HomeDirectoryType_Values returns all elements of the HomeDirectoryType enum
+func HomeDirectoryType_Values() []string {
+	return []string{
+		HomeDirectoryTypePath,
+		HomeDirectoryTypeLogical,
+	}
+}
 
 // Returns information related to the type of user authentication that is in
 // use for a file transfer protocol-enabled server's users. For SERVICE_MANAGED
@@ -5437,6 +5947,14 @@ const (
 	IdentityProviderTypeApiGateway = "API_GATEWAY"
 )
 
+// IdentityProviderType_Values returns all elements of the IdentityProviderType enum
+func IdentityProviderType_Values() []string {
+	return []string{
+		IdentityProviderTypeServiceManaged,
+		IdentityProviderTypeApiGateway,
+	}
+}
+
 const (
 	// ProtocolSftp is a Protocol enum value
 	ProtocolSftp = "SFTP"
@@ -5447,6 +5965,15 @@ const (
 	// ProtocolFtps is a Protocol enum value
 	ProtocolFtps = "FTPS"
 )
+
+// Protocol_Values returns all elements of the Protocol enum
+func Protocol_Values() []string {
+	return []string{
+		ProtocolSftp,
+		ProtocolFtp,
+		ProtocolFtps,
+	}
+}
 
 // Describes the condition of a file transfer protocol-enabled server with respect
 // to its ability to perform file operations. There are six possible states:
@@ -5477,3 +6004,15 @@ const (
 	// StateStopFailed is a State enum value
 	StateStopFailed = "STOP_FAILED"
 )
+
+// State_Values returns all elements of the State enum
+func State_Values() []string {
+	return []string{
+		StateOffline,
+		StateOnline,
+		StateStarting,
+		StateStopping,
+		StateStartFailed,
+		StateStopFailed,
+	}
+}

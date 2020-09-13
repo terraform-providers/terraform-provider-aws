@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -147,7 +147,7 @@ func TestAccAWSEksNodeGroup_disappears(t *testing.T) {
 }
 
 func TestAccAWSEksNodeGroup_AmiType(t *testing.T) {
-	var nodeGroup1 eks.Nodegroup
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_eks_node_group.test"
 
@@ -167,6 +167,13 @@ func TestAccAWSEksNodeGroup_AmiType(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigAmiType(rName, eks.AMITypesAl2Arm64),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "ami_type", eks.AMITypesAl2Arm64),
+				),
 			},
 		},
 	})
@@ -302,8 +309,123 @@ func TestAccAWSEksNodeGroup_Labels(t *testing.T) {
 	})
 }
 
-func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
+func TestAccAWSEksNodeGroup_LaunchTemplate_Id(t *testing.T) {
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	launchTemplateResourceName1 := "aws_launch_template.test1"
+	launchTemplateResourceName2 := "aws_launch_template.test2"
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateId1(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.id", launchTemplateResourceName1, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateId2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.id", launchTemplateResourceName2, "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEksNodeGroup_LaunchTemplate_Name(t *testing.T) {
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	launchTemplateResourceName1 := "aws_launch_template.test1"
+	launchTemplateResourceName2 := "aws_launch_template.test2"
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateName1(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.name", launchTemplateResourceName1, "name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateName2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.name", launchTemplateResourceName2, "name"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEksNodeGroup_LaunchTemplate_Version(t *testing.T) {
 	var nodeGroup1 eks.Nodegroup
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	launchTemplateResourceName := "aws_launch_template.test"
+	resourceName := "aws_eks_node_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateVersion1(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEksNodeGroupConfigLaunchTemplateVersion2(rName),
+				// This API error is incorrect and will need to be rectified by the service team.
+				ExpectError: regexp.MustCompile(`User data was not in the MIME multipart format`),
+				// Check: resource.ComposeTestCheckFunc(
+				// 	testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+				// 	testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
+				// 	resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+				// 	resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
+				// ),
+			},
+		},
+	})
+}
+
+func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	ssmParameterDataSourceName := "data.aws_ssm_parameter.test"
 	resourceName := "aws_eks_node_group.test"
@@ -328,7 +450,8 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 			{
 				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.16"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttrPair(resourceName, "release_version", ssmParameterDataSourceName, "value"),
 				),
 			},
@@ -419,6 +542,7 @@ func TestAccAWSEksNodeGroup_ScalingConfig_DesiredSize(t *testing.T) {
 				Config: testAccAWSEksNodeGroupConfigScalingConfigSizes(rName, 1, 2, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "1"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "2"),
@@ -458,6 +582,7 @@ func TestAccAWSEksNodeGroup_ScalingConfig_MaxSize(t *testing.T) {
 				Config: testAccAWSEksNodeGroupConfigScalingConfigSizes(rName, 1, 1, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "1"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "1"),
@@ -497,6 +622,7 @@ func TestAccAWSEksNodeGroup_ScalingConfig_MinSize(t *testing.T) {
 				Config: testAccAWSEksNodeGroupConfigScalingConfigSizes(rName, 2, 2, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.desired_size", "2"),
 					resource.TestCheckResourceAttr(resourceName, "scaling_config.0.max_size", "2"),
@@ -534,6 +660,7 @@ func TestAccAWSEksNodeGroup_Tags(t *testing.T) {
 				Config: testAccAWSEksNodeGroupConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
@@ -543,6 +670,7 @@ func TestAccAWSEksNodeGroup_Tags(t *testing.T) {
 				Config: testAccAWSEksNodeGroupConfigTags1(rName, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup3),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup2, &nodeGroup3),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
@@ -552,7 +680,7 @@ func TestAccAWSEksNodeGroup_Tags(t *testing.T) {
 }
 
 func TestAccAWSEksNodeGroup_Version(t *testing.T) {
-	var nodeGroup1 eks.Nodegroup
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_eks_node_group.test"
 
@@ -576,7 +704,8 @@ func TestAccAWSEksNodeGroup_Version(t *testing.T) {
 			{
 				Config: testAccAWSEksNodeGroupConfigVersion(rName, "1.16"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
 					resource.TestCheckResourceAttr(resourceName, "version", "1.16"),
 				),
 			},
@@ -686,6 +815,26 @@ func testAccCheckAWSEksNodeGroupDisappears(nodeGroup *eks.Nodegroup) resource.Te
 	}
 }
 
+func testAccCheckAWSEksNodeGroupNotRecreated(i, j *eks.Nodegroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.TimeValue(i.CreatedAt) != aws.TimeValue(j.CreatedAt) {
+			return fmt.Errorf("EKS Node Group (%s) was recreated", aws.StringValue(j.NodegroupName))
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckAWSEksNodeGroupRecreated(i, j *eks.Nodegroup) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.TimeValue(i.CreatedAt) == aws.TimeValue(j.CreatedAt) {
+			return fmt.Errorf("EKS Node Group (%s) was not recreated", aws.StringValue(j.NodegroupName))
+		}
+
+		return nil
+	}
+}
+
 func testAccAWSEksNodeGroupConfigBaseIamAndVpc(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
@@ -719,11 +868,6 @@ resource "aws_iam_role" "cluster" {
 
 resource "aws_iam_role_policy_attachment" "cluster-AmazonEKSClusterPolicy" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cluster.name
-}
-
-resource "aws_iam_role_policy_attachment" "cluster-AmazonEKSServicePolicy" {
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKSServicePolicy"
   role       = aws_iam_role.cluster.name
 }
 
@@ -835,7 +979,6 @@ resource "aws_eks_cluster" "test" {
 
   depends_on = [
     "aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy",
-    "aws_iam_role_policy_attachment.cluster-AmazonEKSServicePolicy",
     "aws_main_route_table_association.test",
   ]
 }
@@ -857,7 +1000,6 @@ resource "aws_eks_cluster" "test" {
 
   depends_on = [
     "aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy",
-    "aws_iam_role_policy_attachment.cluster-AmazonEKSServicePolicy",
     "aws_main_route_table_association.test",
   ]
 }
@@ -1037,6 +1179,282 @@ resource "aws_eks_node_group" "test" {
   ]
 }
 `, rName, labelKey1, labelValue1, labelKey2, labelValue2)
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateId1(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test1" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-1"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_launch_template" "test2" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-2"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    id      = aws_launch_template.test1.id
+    version = aws_launch_template.test1.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateId2(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test1" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-1"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_launch_template" "test2" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-2"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    id      = aws_launch_template.test2.id
+    version = aws_launch_template.test2.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateName1(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test1" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-1"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_launch_template" "test2" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-2"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    name    = aws_launch_template.test1.name
+    version = aws_launch_template.test1.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateName2(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test1" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-1"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_launch_template" "test2" {
+  image_id      = data.aws_ssm_parameter.test.value
+  instance_type = "t3.medium"
+  name          = "%[1]s-2"
+  user_data     = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    name    = aws_launch_template.test2.name
+    version = aws_launch_template.test2.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateVersion1(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test" {
+  image_id               = data.aws_ssm_parameter.test.value
+  instance_type          = "t3.medium"
+  name                   = %[1]q
+  update_default_version = true
+  user_data              = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    name    = aws_launch_template.test.name
+    version = aws_launch_template.test.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
+}
+
+func testAccAWSEksNodeGroupConfigLaunchTemplateVersion2(rName string) string {
+	return composeConfig(
+		testAccAWSEksNodeGroupConfigBase(rName),
+		fmt.Sprintf(`
+data "aws_ssm_parameter" "test" {
+  name = "/aws/service/eks/optimized-ami/${aws_eks_cluster.test.version}/amazon-linux-2/recommended/image_id"
+}
+
+resource "aws_launch_template" "test" {
+  image_id               = data.aws_ssm_parameter.test.value
+  instance_type          = "t3.large"
+  name                   = %[1]q
+  update_default_version = true
+  user_data              = base64encode(templatefile("testdata/service/eks/node-group-launch-template-user-data.sh.tmpl", {cluster_name = aws_eks_cluster.test.name}))
+}
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  launch_template {
+    name    = aws_launch_template.test.name
+    version = aws_launch_template.test.default_version
+  }
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
+`, rName))
 }
 
 func testAccAWSEksNodeGroupConfigReleaseVersion(rName string, version string) string {

@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestParseStorageGatewayVolumeGatewayARNAndTargetNameFromARN(t *testing.T) {
@@ -68,7 +68,7 @@ func TestParseStorageGatewayVolumeGatewayARNAndTargetNameFromARN(t *testing.T) {
 	}
 }
 
-func TestAccAWSStorageGatewayCachedIscsiVolume_Basic(t *testing.T) {
+func TestAccAWSStorageGatewayCachedIscsiVolume_basic(t *testing.T) {
 	var cachedIscsiVolume storagegateway.CachediSCSIVolume
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_storagegateway_cached_iscsi_volume.test"
@@ -94,6 +94,35 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_Basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "volume_id", regexp.MustCompile(`^vol-.+$`)),
 					testAccMatchResourceAttrRegionalARN(resourceName, "volume_arn", "storagegateway", regexp.MustCompile(`gateway/sgw-.+/volume/vol-.`)),
 					resource.TestCheckResourceAttr(resourceName, "volume_size_in_bytes", "5368709120"),
+					resource.TestCheckResourceAttr(resourceName, "kms_encrypted", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayCachedIscsiVolume_kms(t *testing.T) {
+	var cachedIscsiVolume storagegateway.CachediSCSIVolume
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_cached_iscsi_volume.test"
+	keyResourceName := "aws_kms_key.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayCachedIscsiVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfigKMSEncrypted(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &cachedIscsiVolume),
+					resource.TestCheckResourceAttr(resourceName, "kms_encrypted", "true"),
+					resource.TestCheckResourceAttrPair(resourceName, "kms_key", keyResourceName, "arn"),
 				),
 			},
 			{
@@ -190,7 +219,7 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_SnapshotId(t *testing.T) {
 }
 
 func TestAccAWSStorageGatewayCachedIscsiVolume_SourceVolumeArn(t *testing.T) {
-	t.Skip("This test can cause Storage Gateway 2.0.10.0 to enter an irrecoverable state during volume deletion.")
+	TestAccSkip(t, "This test can cause Storage Gateway 2.0.10.0 to enter an irrecoverable state during volume deletion.")
 	var cachedIscsiVolume storagegateway.CachediSCSIVolume
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_storagegateway_cached_iscsi_volume.test"
@@ -222,6 +251,28 @@ func TestAccAWSStorageGatewayCachedIscsiVolume_SourceVolumeArn(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"source_volume_arn"},
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayCachedIscsiVolume_disappears(t *testing.T) {
+	var storedIscsiVolume storagegateway.CachediSCSIVolume
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_cached_iscsi_volume.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayCachedIscsiVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayCachedIscsiVolumeConfig_Basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayCachedIscsiVolumeExists(resourceName, &storedIscsiVolume),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsStorageGatewayCachedIscsiVolume(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -323,6 +374,7 @@ resource "aws_storagegateway_cache" "test" {
   # Step 0 error: After applying this step, the plan was not empty:
   #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
   # We expect this data source value to change due to how Storage Gateway works.
+
   lifecycle {
     ignore_changes = ["disk_id"]
   }
@@ -346,15 +398,49 @@ resource "aws_storagegateway_cached_iscsi_volume" "test" {
 `, rName))
 }
 
+func testAccAWSStorageGatewayCachedIscsiVolumeConfigKMSEncrypted(rName string) string {
+	return testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName) + fmt.Sprintf(`
+ resource "aws_kms_key" "test" {
+     description = "Terraform acc test %[1]s"
+     policy = <<POLICY
+ {
+   "Version": "2012-10-17",
+   "Id": "kms-tf-1",
+   "Statement": [
+     {
+       "Sid": "Enable IAM User Permissions",
+       "Effect": "Allow",
+       "Principal": {
+         "AWS": "*"
+       },
+       "Action": "kms:*",
+       "Resource": "*"
+     }
+   ]
+ }
+ POLICY
+}
+
+resource "aws_storagegateway_cached_iscsi_volume" "test" {
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  target_name          = %[1]q
+  volume_size_in_bytes = 5368709120
+  kms_encrypted        = true
+  kms_key              = aws_kms_key.test.arn
+}
+`, rName)
+}
+
 func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return composeConfig(
 		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
 		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
- gateway_arn          = aws_storagegateway_cache.test.gateway_arn
- network_interface_id = aws_instance.test.private_ip
- target_name          = %[1]q
- volume_size_in_bytes = 5368709120
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  target_name          = %[1]q
+  volume_size_in_bytes = 5368709120
 
   tags = {
     %[2]q = %[3]q
@@ -368,10 +454,10 @@ func testAccAWSStorageGatewayCachedIscsiVolumeConfigTags2(rName, tagKey1, tagVal
 		testAccAWSStorageGatewayCachedIscsiVolumeConfigBase(rName),
 		fmt.Sprintf(`
 resource "aws_storagegateway_cached_iscsi_volume" "test" {
- gateway_arn          = aws_storagegateway_cache.test.gateway_arn
- network_interface_id = aws_instance.test.private_ip
- target_name          = %[1]q
- volume_size_in_bytes = 5368709120
+  gateway_arn          = aws_storagegateway_cache.test.gateway_arn
+  network_interface_id = aws_instance.test.private_ip
+  target_name          = %[1]q
+  volume_size_in_bytes = 5368709120
 
   tags = {
     %[2]q = %[3]q

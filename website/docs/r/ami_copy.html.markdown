@@ -62,6 +62,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the AMI.
 * `id` - The ID of the created AMI.
 
 This resource also exports a full set of attributes corresponding to the arguments of the

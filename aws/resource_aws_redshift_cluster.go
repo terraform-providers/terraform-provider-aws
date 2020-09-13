@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -301,27 +301,6 @@ func resourceAwsRedshiftCluster() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"enable_logging": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `enable` argument instead",
-			},
-
-			"bucket_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `bucket_name` argument instead",
-			},
-
-			"s3_key_prefix": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				Removed:  "Use `logging` configuration block `s3_key_prefix` argument instead",
 			},
 
 			"snapshot_identifier": {
@@ -931,7 +910,10 @@ func deleteAwsRedshiftCluster(opts *redshift.DeleteClusterInput, conn *redshift.
 			return resource.RetryableError(err)
 		}
 
-		return resource.NonRetryableError(err)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 	if isResourceTimeoutError(err) {
 		_, err = conn.DeleteCluster(opts)

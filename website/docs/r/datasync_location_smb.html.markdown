@@ -22,7 +22,7 @@ resource "aws_datasync_location_smb" "example" {
   user     = "Guest"
   password = "ANotGreatPassword"
 
-  agent_arns = ["${aws_datasync_agent.example.arn}"]
+  agent_arns = [aws_datasync_agent.example.arn]
 }
 ```
 

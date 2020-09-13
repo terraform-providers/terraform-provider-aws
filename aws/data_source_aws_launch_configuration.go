@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLaunchConfiguration() *schema.Resource {
@@ -102,6 +102,11 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 
 						"device_name": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"no_device": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 

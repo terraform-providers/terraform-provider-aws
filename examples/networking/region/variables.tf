@@ -5,7 +5,7 @@ variable "region" {
 variable "base_cidr_block" {}
 
 provider "aws" {
-  region = "${var.region}"
+  region = var.region
 }
 
 variable "region_numbers" {

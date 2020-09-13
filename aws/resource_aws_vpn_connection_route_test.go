@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpnConnectionRoute_basic(t *testing.T) {
@@ -142,15 +142,15 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "vpn_connection" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = true
 }
 
 resource "aws_vpn_connection_route" "foo" {
   destination_cidr_block = "172.168.10.0/24"
-  vpn_connection_id      = "${aws_vpn_connection.vpn_connection.id}"
+  vpn_connection_id      = aws_vpn_connection.vpn_connection.id
 }
 `, rBgpAsn)
 }
@@ -171,15 +171,15 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "vpn_connection" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = true
 }
 
 resource "aws_vpn_connection_route" "foo" {
   destination_cidr_block = "172.168.20.0/24"
-  vpn_connection_id      = "${aws_vpn_connection.vpn_connection.id}"
+  vpn_connection_id      = aws_vpn_connection.vpn_connection.id
 }
 `, rBgpAsn)
 }

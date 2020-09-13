@@ -7206,6 +7206,15 @@ const (
 	ColumnNullableUnknown = "UNKNOWN"
 )
 
+// ColumnNullable_Values returns all elements of the ColumnNullable enum
+func ColumnNullable_Values() []string {
+	return []string{
+		ColumnNullableNotNull,
+		ColumnNullableNullable,
+		ColumnNullableUnknown,
+	}
+}
+
 const (
 	// DataCatalogTypeLambda is a DataCatalogType enum value
 	DataCatalogTypeLambda = "LAMBDA"
@@ -7217,6 +7226,15 @@ const (
 	DataCatalogTypeHive = "HIVE"
 )
 
+// DataCatalogType_Values returns all elements of the DataCatalogType enum
+func DataCatalogType_Values() []string {
+	return []string{
+		DataCatalogTypeLambda,
+		DataCatalogTypeGlue,
+		DataCatalogTypeHive,
+	}
+}
+
 const (
 	// EncryptionOptionSseS3 is a EncryptionOption enum value
 	EncryptionOptionSseS3 = "SSE_S3"
@@ -7227,6 +7245,15 @@ const (
 	// EncryptionOptionCseKms is a EncryptionOption enum value
 	EncryptionOptionCseKms = "CSE_KMS"
 )
+
+// EncryptionOption_Values returns all elements of the EncryptionOption enum
+func EncryptionOption_Values() []string {
+	return []string{
+		EncryptionOptionSseS3,
+		EncryptionOptionSseKms,
+		EncryptionOptionCseKms,
+	}
+}
 
 const (
 	// QueryExecutionStateQueued is a QueryExecutionState enum value
@@ -7245,6 +7272,17 @@ const (
 	QueryExecutionStateCancelled = "CANCELLED"
 )
 
+// QueryExecutionState_Values returns all elements of the QueryExecutionState enum
+func QueryExecutionState_Values() []string {
+	return []string{
+		QueryExecutionStateQueued,
+		QueryExecutionStateRunning,
+		QueryExecutionStateSucceeded,
+		QueryExecutionStateFailed,
+		QueryExecutionStateCancelled,
+	}
+}
+
 const (
 	// StatementTypeDdl is a StatementType enum value
 	StatementTypeDdl = "DDL"
@@ -7256,12 +7294,28 @@ const (
 	StatementTypeUtility = "UTILITY"
 )
 
+// StatementType_Values returns all elements of the StatementType enum
+func StatementType_Values() []string {
+	return []string{
+		StatementTypeDdl,
+		StatementTypeDml,
+		StatementTypeUtility,
+	}
+}
+
 // The reason for the query throttling, for example, when it exceeds the concurrent
 // query limit.
 const (
 	// ThrottleReasonConcurrentQueryLimitExceeded is a ThrottleReason enum value
 	ThrottleReasonConcurrentQueryLimitExceeded = "CONCURRENT_QUERY_LIMIT_EXCEEDED"
 )
+
+// ThrottleReason_Values returns all elements of the ThrottleReason enum
+func ThrottleReason_Values() []string {
+	return []string{
+		ThrottleReasonConcurrentQueryLimitExceeded,
+	}
+}
 
 const (
 	// WorkGroupStateEnabled is a WorkGroupState enum value
@@ -7270,3 +7324,11 @@ const (
 	// WorkGroupStateDisabled is a WorkGroupState enum value
 	WorkGroupStateDisabled = "DISABLED"
 )
+
+// WorkGroupState_Values returns all elements of the WorkGroupState enum
+func WorkGroupState_Values() []string {
+	return []string{
+		WorkGroupStateEnabled,
+		WorkGroupStateDisabled,
+	}
+}

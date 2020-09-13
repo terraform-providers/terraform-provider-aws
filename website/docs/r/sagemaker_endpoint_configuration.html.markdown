@@ -21,12 +21,12 @@ resource "aws_sagemaker_endpoint_configuration" "ec" {
 
   production_variants {
     variant_name           = "variant-1"
-    model_name             = "${aws_sagemaker_model.m.name}"
+    model_name             = aws_sagemaker_model.m.name
     initial_instance_count = 1
     instance_type          = "ml.t2.medium"
   }
 
-  tags {
+  tags = {
     Name = "foo"
   }
 }

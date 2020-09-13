@@ -16,10 +16,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/configservice"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
@@ -725,20 +725,112 @@ func validatePolicyStatementId(v interface{}, k string) (ws []string, errors []e
 // validateCIDRNetworkAddress ensures that the string value is a valid CIDR that
 // represents a network address - it adds an error otherwise
 func validateCIDRNetworkAddress(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	_, ipnet, err := net.ParseCIDR(value)
-	if err != nil {
-		errors = append(errors, fmt.Errorf(
-			"%q must contain a valid CIDR, got error parsing: %s", k, err))
+	if err := validateCIDRBlock(v.(string)); err != nil {
+		errors = append(errors, err)
 		return
 	}
 
-	if ipnet == nil || value != ipnet.String() {
-		errors = append(errors, fmt.Errorf(
-			"%q must contain a valid network CIDR, got %q", k, value))
+	return
+}
+
+// validateIpv4CIDRNetworkAddress ensures that the string value is a valid IPv4 CIDR that
+// represents a network address - it adds an error otherwise
+func validateIpv4CIDRNetworkAddress(v interface{}, k string) (ws []string, errors []error) {
+	if err := validateIpv4CIDRBlock(v.(string)); err != nil {
+		errors = append(errors, err)
+		return
 	}
 
 	return
+}
+
+// validateIpv6CIDRNetworkAddress ensures that the string value is a valid IPv6 CIDR that
+// represents a network address - it adds an error otherwise
+func validateIpv6CIDRNetworkAddress(v interface{}, k string) (ws []string, errors []error) {
+	if err := validateIpv6CIDRBlock(v.(string)); err != nil {
+		errors = append(errors, err)
+		return
+	}
+
+	return
+}
+
+// validateCIDRBlock validates that the specified CIDR block is valid:
+// - The CIDR block parses to an IP address and network
+// - The CIDR block is the CIDR block for the network
+func validateCIDRBlock(cidr string) error {
+	_, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return fmt.Errorf("%q is not a valid CIDR block: %w", cidr, err)
+	}
+
+	if !cidrBlocksEqual(cidr, ipnet.String()) {
+		return fmt.Errorf("%q is not a valid CIDR block; did you mean %q?", cidr, ipnet)
+	}
+
+	return nil
+}
+
+// validateIpv4CIDRBlock validates that the specified CIDR block is valid:
+// - The CIDR block parses to an IP address and network
+// - The IP address is an IPv4 address
+// - The CIDR block is the CIDR block for the network
+func validateIpv4CIDRBlock(cidr string) error {
+	ip, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return fmt.Errorf("%q is not a valid CIDR block: %w", cidr, err)
+	}
+
+	ipv4 := ip.To4()
+	if ipv4 == nil {
+		return fmt.Errorf("%q is not a valid IPv4 CIDR block", cidr)
+	}
+
+	if !cidrBlocksEqual(cidr, ipnet.String()) {
+		return fmt.Errorf("%q is not a valid IPv4 CIDR block; did you mean %q?", cidr, ipnet)
+	}
+
+	return nil
+}
+
+// validateIpv6CIDRBlock validates that the specified CIDR block is valid:
+// - The CIDR block parses to an IP address and network
+// - The IP address is an IPv6 address
+// - The CIDR block is the CIDR block for the network
+func validateIpv6CIDRBlock(cidr string) error {
+	ip, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return fmt.Errorf("%q is not a valid CIDR block: %w", cidr, err)
+	}
+
+	ipv4 := ip.To4()
+	if ipv4 != nil {
+		return fmt.Errorf("%q is not a valid IPv6 CIDR block", cidr)
+	}
+
+	if !cidrBlocksEqual(cidr, ipnet.String()) {
+		return fmt.Errorf("%q is not a valid IPv6 CIDR block; did you mean %q?", cidr, ipnet)
+	}
+
+	return nil
+}
+
+// cidrBlocksEqual returns whether or not two CIDR blocks are equal:
+// - Both CIDR blocks parse to an IP address and network
+// - The string representation of the IP addresses are equal
+// - The string representation of the networks are equal
+// This function is especially useful for IPv6 CIDR blocks which have multiple valid representations.
+func cidrBlocksEqual(cidr1, cidr2 string) bool {
+	ip1, ipnet1, err := net.ParseCIDR(cidr1)
+	if err != nil {
+		return false
+	}
+	ip2, ipnet2, err := net.ParseCIDR(cidr2)
+	if err != nil {
+		return false
+	}
+
+	return ip2.String() == ip1.String() && ipnet2.String() == ipnet1.String()
 }
 
 func validateHTTPMethod() schema.SchemaValidateFunc {
@@ -884,7 +976,7 @@ func validateIAMPolicyJson(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
-func validateCloudFormationTemplate(v interface{}, k string) (ws []string, errors []error) {
+func validateStringIsJsonOrYaml(v interface{}, k string) (ws []string, errors []error) {
 	if looksLikeJsonString(v) {
 		if _, err := structure.NormalizeJsonString(v); err != nil {
 			errors = append(errors, fmt.Errorf("%q contains an invalid JSON: %s", k, err))
@@ -1762,21 +1854,6 @@ func validateWafPredicatesType() schema.SchemaValidateFunc {
 	}, false)
 }
 
-func validateIamRoleDescription(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	if len(value) > 1000 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 1000 characters", k))
-	}
-
-	if !regexp.MustCompile(`[\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}]*`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			`Only alphanumeric & accented characters allowed in %q: %q (Must satisfy regular expression pattern: [\p{L}\p{M}\p{Z}\p{S}\p{N}\p{P}]*)`,
-			k, value))
-	}
-	return
-}
-
 func validateAwsSSMName(v interface{}, k string) (ws []string, errors []error) {
 	// http://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateDocument.html#EC2-CreateDocument-request-Name
 	value := v.(string)
@@ -2034,6 +2111,21 @@ func validateAmazonSideAsn(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
+func validate4ByteAsn(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	asn, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%q (%q) must be a 64-bit integer", k, v))
+		return
+	}
+
+	if asn < 0 || asn > 4294967295 {
+		errors = append(errors, fmt.Errorf("%q (%q) must be in the range 0 to 4294967295", k, v))
+	}
+	return
+}
+
 func validateIotThingTypeName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`[a-zA-Z0-9:_-]+`).MatchString(value) {
@@ -2247,27 +2339,6 @@ func validateCloudFrontPublicKeyNamePrefix(v interface{}, k string) (ws []string
 	return
 }
 
-func validateServiceDiscoveryHttpNamespaceName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[0-9A-Za-z_-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters, underscores and hyphens allowed in %q", k))
-	}
-	if !regexp.MustCompile(`^[a-zA-Z]`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"first character of %q must be a letter", k))
-	}
-	if !regexp.MustCompile(`[a-zA-Z]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"last character of %q must be a letter", k))
-	}
-	if len(value) > 1024 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be greater than 1024 characters", k))
-	}
-	return
-}
-
 func validateLbTargetGroupName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if len(value) > 32 {
@@ -2371,3 +2442,8 @@ func validateRoute53ResolverName(v interface{}, k string) (ws []string, errors [
 
 	return
 }
+
+var validateServiceDiscoveryNamespaceName = validation.All(
+	validation.StringLenBetween(1, 1024),
+	validation.StringMatch(regexp.MustCompile(`^[0-9A-Za-z._-]+$`), ""),
+)

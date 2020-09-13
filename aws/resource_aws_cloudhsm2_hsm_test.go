@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudHsmV2Hsm_basic(t *testing.T) {
@@ -39,7 +39,7 @@ func testAccAWSCloudHsmV2Hsm() string {
 	return fmt.Sprintf(`
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
 data "aws_availability_zones" "available" {
@@ -61,10 +61,10 @@ resource "aws_vpc" "cloudhsm_v2_test_vpc" {
 
 resource "aws_subnet" "cloudhsm_v2_test_subnets" {
   count                   = 2
-  vpc_id                  = "${aws_vpc.cloudhsm_v2_test_vpc.id}"
-  cidr_block              = "${element(var.subnets, count.index)}"
+  vpc_id                  = aws_vpc.cloudhsm_v2_test_vpc.id
+  cidr_block              = element(var.subnets, count.index)
   map_public_ip_on_launch = false
-  availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
     Name = "tf-acc-aws_cloudhsm_v2_hsm-resource-basic"
@@ -73,7 +73,7 @@ resource "aws_subnet" "cloudhsm_v2_test_subnets" {
 
 resource "aws_cloudhsm_v2_cluster" "cloudhsm_v2_cluster" {
   hsm_type   = "hsm1.medium"
-  subnet_ids = ["${aws_subnet.cloudhsm_v2_test_subnets.*.id[0]}", "${aws_subnet.cloudhsm_v2_test_subnets.*.id[1]}"]
+  subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets[0].id, aws_subnet.cloudhsm_v2_test_subnets[1].id]
 
   tags = {
     Name = "tf-acc-aws_cloudhsm_v2_hsm-resource-basic-%d"
@@ -81,8 +81,8 @@ resource "aws_cloudhsm_v2_cluster" "cloudhsm_v2_cluster" {
 }
 
 resource "aws_cloudhsm_v2_hsm" "hsm" {
-  subnet_id  = "${aws_subnet.cloudhsm_v2_test_subnets.0.id}"
-  cluster_id = "${aws_cloudhsm_v2_cluster.cloudhsm_v2_cluster.cluster_id}"
+  subnet_id  = aws_subnet.cloudhsm_v2_test_subnets[0].id
+  cluster_id = aws_cloudhsm_v2_cluster.cloudhsm_v2_cluster.cluster_id
 }
 `, acctest.RandInt())
 }

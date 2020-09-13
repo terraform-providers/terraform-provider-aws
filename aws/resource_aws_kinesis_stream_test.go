@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -611,7 +611,7 @@ resource "aws_kinesis_stream" "test" {
   name            = "terraform-kinesis-test-%d"
   shard_count     = 2
   encryption_type = "KMS"
-  kms_key_id      = "${aws_kms_key.foo.id}"
+  kms_key_id      = aws_kms_key.foo.id
 
   tags = {
     Name = "tf-test"
@@ -767,20 +767,20 @@ func testAccKinesisStreamUpdateKmsKeyId(rInt int, key int) string {
 	return fmt.Sprintf(`
 
 resource "aws_kms_key" "key1" {
-	description             = "KMS key 1"
-	deletion_window_in_days = 10
+  description             = "KMS key 1"
+  deletion_window_in_days = 10
 }
 
 resource "aws_kms_key" "key2" {
-	description             = "KMS key 2"
-	deletion_window_in_days = 10
+  description             = "KMS key 2"
+  deletion_window_in_days = 10
 }
 
 resource "aws_kinesis_stream" "test" {
-	name = "test_stream-%d"
-	shard_count = 1
-	encryption_type = "KMS"
-	kms_key_id = aws_kms_key.key%d.id
+  name            = "test_stream-%d"
+  shard_count     = 1
+  encryption_type = "KMS"
+  kms_key_id      = aws_kms_key.key%d.id
 }
 `, rInt, key)
 }

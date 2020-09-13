@@ -4859,6 +4859,9 @@ type AmiDistributionConfiguration struct {
 	// The description of the distribution configuration.
 	Description *string `locationName:"description" min:"1" type:"string"`
 
+	// The KMS key identifier used to encrypt the distributed image.
+	KmsKeyId *string `locationName:"kmsKeyId" min:"1" type:"string"`
+
 	// Launch permissions can be used to configure which AWS accounts can use the
 	// AMI to launch instances.
 	LaunchPermission *LaunchPermissionConfiguration `locationName:"launchPermission" type:"structure"`
@@ -4886,6 +4889,9 @@ func (s *AmiDistributionConfiguration) Validate() error {
 	if s.Description != nil && len(*s.Description) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Description", 1))
 	}
+	if s.KmsKeyId != nil && len(*s.KmsKeyId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("KmsKeyId", 1))
+	}
 	if s.Name != nil && len(*s.Name) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
 	}
@@ -4905,6 +4911,12 @@ func (s *AmiDistributionConfiguration) SetAmiTags(v map[string]*string) *AmiDist
 // SetDescription sets the Description field's value.
 func (s *AmiDistributionConfiguration) SetDescription(v string) *AmiDistributionConfiguration {
 	s.Description = &v
+	return s
+}
+
+// SetKmsKeyId sets the KmsKeyId field's value.
+func (s *AmiDistributionConfiguration) SetKmsKeyId(v string) *AmiDistributionConfiguration {
+	s.KmsKeyId = &v
 	return s
 }
 
@@ -9877,7 +9889,9 @@ func (s *InvalidVersionNumberException) RequestID() string {
 // Describes the configuration for a launch permission. The launch permission
 // modification request is sent to the EC2 ModifyImageAttribute (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyImageAttribute.html)
 // API on behalf of the user for each Region they have selected to distribute
-// the AMI.
+// the AMI. To make an AMI public, set the launch permission authorized accounts
+// to all. See the examples for making an AMI public at EC2 ModifyImageAttribute
+// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyImageAttribute.html).
 type LaunchPermissionConfiguration struct {
 	_ struct{} `type:"structure"`
 
@@ -10147,6 +10161,8 @@ type ListDistributionConfigurationsInput struct {
 	_ struct{} `type:"structure"`
 
 	// The filters.
+	//
+	//    * name - The name of this distribution configuration.
 	Filters []*Filter `locationName:"filters" min:"1" type:"list"`
 
 	// The maximum items to return in a request.
@@ -12662,6 +12678,13 @@ const (
 	ComponentFormatShell = "SHELL"
 )
 
+// ComponentFormat_Values returns all elements of the ComponentFormat enum
+func ComponentFormat_Values() []string {
+	return []string{
+		ComponentFormatShell,
+	}
+}
+
 const (
 	// ComponentTypeBuild is a ComponentType enum value
 	ComponentTypeBuild = "BUILD"
@@ -12669,6 +12692,14 @@ const (
 	// ComponentTypeTest is a ComponentType enum value
 	ComponentTypeTest = "TEST"
 )
+
+// ComponentType_Values returns all elements of the ComponentType enum
+func ComponentType_Values() []string {
+	return []string{
+		ComponentTypeBuild,
+		ComponentTypeTest,
+	}
+}
 
 const (
 	// EbsVolumeTypeStandard is a EbsVolumeType enum value
@@ -12686,6 +12717,17 @@ const (
 	// EbsVolumeTypeSt1 is a EbsVolumeType enum value
 	EbsVolumeTypeSt1 = "st1"
 )
+
+// EbsVolumeType_Values returns all elements of the EbsVolumeType enum
+func EbsVolumeType_Values() []string {
+	return []string{
+		EbsVolumeTypeStandard,
+		EbsVolumeTypeIo1,
+		EbsVolumeTypeGp2,
+		EbsVolumeTypeSc1,
+		EbsVolumeTypeSt1,
+	}
+}
 
 const (
 	// ImageStatusPending is a ImageStatus enum value
@@ -12722,6 +12764,23 @@ const (
 	ImageStatusDeleted = "DELETED"
 )
 
+// ImageStatus_Values returns all elements of the ImageStatus enum
+func ImageStatus_Values() []string {
+	return []string{
+		ImageStatusPending,
+		ImageStatusCreating,
+		ImageStatusBuilding,
+		ImageStatusTesting,
+		ImageStatusDistributing,
+		ImageStatusIntegrating,
+		ImageStatusAvailable,
+		ImageStatusCancelled,
+		ImageStatusFailed,
+		ImageStatusDeprecated,
+		ImageStatusDeleted,
+	}
+}
+
 const (
 	// OwnershipSelf is a Ownership enum value
 	OwnershipSelf = "Self"
@@ -12733,6 +12792,15 @@ const (
 	OwnershipAmazon = "Amazon"
 )
 
+// Ownership_Values returns all elements of the Ownership enum
+func Ownership_Values() []string {
+	return []string{
+		OwnershipSelf,
+		OwnershipShared,
+		OwnershipAmazon,
+	}
+}
+
 const (
 	// PipelineExecutionStartConditionExpressionMatchOnly is a PipelineExecutionStartCondition enum value
 	PipelineExecutionStartConditionExpressionMatchOnly = "EXPRESSION_MATCH_ONLY"
@@ -12740,6 +12808,14 @@ const (
 	// PipelineExecutionStartConditionExpressionMatchAndDependencyUpdatesAvailable is a PipelineExecutionStartCondition enum value
 	PipelineExecutionStartConditionExpressionMatchAndDependencyUpdatesAvailable = "EXPRESSION_MATCH_AND_DEPENDENCY_UPDATES_AVAILABLE"
 )
+
+// PipelineExecutionStartCondition_Values returns all elements of the PipelineExecutionStartCondition enum
+func PipelineExecutionStartCondition_Values() []string {
+	return []string{
+		PipelineExecutionStartConditionExpressionMatchOnly,
+		PipelineExecutionStartConditionExpressionMatchAndDependencyUpdatesAvailable,
+	}
+}
 
 const (
 	// PipelineStatusDisabled is a PipelineStatus enum value
@@ -12749,6 +12825,14 @@ const (
 	PipelineStatusEnabled = "ENABLED"
 )
 
+// PipelineStatus_Values returns all elements of the PipelineStatus enum
+func PipelineStatus_Values() []string {
+	return []string{
+		PipelineStatusDisabled,
+		PipelineStatusEnabled,
+	}
+}
+
 const (
 	// PlatformWindows is a Platform enum value
 	PlatformWindows = "Windows"
@@ -12756,3 +12840,11 @@ const (
 	// PlatformLinux is a Platform enum value
 	PlatformLinux = "Linux"
 )
+
+// Platform_Values returns all elements of the Platform enum
+func Platform_Values() []string {
+	return []string{
+		PlatformWindows,
+		PlatformLinux,
+	}
+}

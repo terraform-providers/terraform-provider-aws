@@ -16953,6 +16953,14 @@ const (
 	ApplyMethodPendingReboot = "pending-reboot"
 )
 
+// ApplyMethod_Values returns all elements of the ApplyMethod enum
+func ApplyMethod_Values() []string {
+	return []string{
+		ApplyMethodImmediate,
+		ApplyMethodPendingReboot,
+	}
+}
+
 const (
 	// SourceTypeDbInstance is a SourceType enum value
 	SourceTypeDbInstance = "db-instance"
@@ -16972,3 +16980,15 @@ const (
 	// SourceTypeDbClusterSnapshot is a SourceType enum value
 	SourceTypeDbClusterSnapshot = "db-cluster-snapshot"
 )
+
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeDbInstance,
+		SourceTypeDbParameterGroup,
+		SourceTypeDbSecurityGroup,
+		SourceTypeDbSnapshot,
+		SourceTypeDbCluster,
+		SourceTypeDbClusterSnapshot,
+	}
+}

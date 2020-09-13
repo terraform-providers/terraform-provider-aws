@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
@@ -15,10 +16,9 @@ func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
 	resourceName := "aws_eks_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSEksClusterDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEks(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEksClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEksClusterDataSourceConfig_Basic(rName),
@@ -28,8 +28,8 @@ func TestAccAWSEksClusterDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "certificate_authority.0.data", dataSourceResourceName, "certificate_authority.0.data"),
 					resource.TestCheckResourceAttrPair(resourceName, "created_at", dataSourceResourceName, "created_at"),
 					resource.TestCheckResourceAttr(dataSourceResourceName, "enabled_cluster_log_types.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceResourceName, "enabled_cluster_log_types.2902841359", "api"),
-					resource.TestCheckResourceAttr(dataSourceResourceName, "enabled_cluster_log_types.2451111801", "audit"),
+					tfawsresource.TestCheckTypeSetElemAttr(dataSourceResourceName, "enabled_cluster_log_types.*", "api"),
+					tfawsresource.TestCheckTypeSetElemAttr(dataSourceResourceName, "enabled_cluster_log_types.*", "audit"),
 					resource.TestCheckResourceAttrPair(resourceName, "endpoint", dataSourceResourceName, "endpoint"),
 					resource.TestCheckResourceAttrPair(resourceName, "identity.#", dataSourceResourceName, "identity.#"),
 					resource.TestCheckResourceAttrPair(resourceName, "identity.0.oidc.#", dataSourceResourceName, "identity.0.oidc.#"),
@@ -58,7 +58,7 @@ func testAccAWSEksClusterDataSourceConfig_Basic(rName string) string {
 %[1]s
 
 data "aws_eks_cluster" "test" {
-  name = "${aws_eks_cluster.test.name}"
+  name = aws_eks_cluster.test.name
 }
 `, testAccAWSEksClusterConfig_Logging(rName, []string{"api", "audit"}))
 }

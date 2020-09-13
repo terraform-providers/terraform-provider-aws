@@ -10,10 +10,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -29,10 +29,14 @@ func resourceAwsRoute53Zone() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppressRoute53ZoneNameWithTrailingDot,
+				// AWS Provider 3.0.0 - trailing period removed from name
+				// returned from API, no longer requiring custom DiffSuppressFunc;
+				// instead a StateFunc allows input to be provided
+				// with or without the trailing period
+				Type:      schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
+				StateFunc: trimTrailingPeriod,
 			},
 
 			"comment": {
@@ -61,22 +65,6 @@ func resourceAwsRoute53Zone() *schema.Resource {
 					},
 				},
 				Set: route53HostedZoneVPCHash,
-			},
-
-			"vpc_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				Removed:  "use 'vpc' configuration block instead",
-			},
-
-			"vpc_region": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Computed: true,
-				Removed:  "use 'vpc' configuration block instead",
 			},
 
 			"zone_id": {
@@ -195,7 +183,9 @@ func resourceAwsRoute53ZoneRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("comment", "")
 	d.Set("delegation_set_id", "")
-	d.Set("name", output.HostedZone.Name)
+	// To be consistent with other AWS services (e.g. ACM) that do not accept a trailing period,
+	// we remove the suffix from the Hosted Zone Name returned from the API
+	d.Set("name", trimTrailingPeriod(aws.StringValue(output.HostedZone.Name)))
 	d.Set("zone_id", cleanZoneID(aws.StringValue(output.HostedZone.Id)))
 
 	var nameServers []string
@@ -403,6 +393,28 @@ func cleanChangeID(ID string) string {
 // cleanZoneID is used to remove the leading /hostedzone/
 func cleanZoneID(ID string) string {
 	return strings.TrimPrefix(ID, "/hostedzone/")
+}
+
+// trimTrailingPeriod is used to remove the trailing period
+// of "name" or "domain name" attributes often returned from
+// the Route53 API or provided as user input.
+// The single dot (".") domain name is returned as-is.
+func trimTrailingPeriod(v interface{}) string {
+	var str string
+	switch value := v.(type) {
+	case *string:
+		str = aws.StringValue(value)
+	case string:
+		str = value
+	default:
+		return ""
+	}
+
+	if str == "." {
+		return str
+	}
+
+	return strings.TrimSuffix(str, ".")
 }
 
 func getNameServers(zoneId string, zoneName string, r53 *route53.Route53) ([]string, error) {

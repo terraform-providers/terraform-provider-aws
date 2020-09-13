@@ -16,11 +16,11 @@ Provides a Route53 record resource.
 
 ```hcl
 resource "aws_route53_record" "www" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www.example.com"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_eip.lb.public_ip}"]
+  records = [aws_eip.lb.public_ip]
 }
 ```
 
@@ -29,7 +29,7 @@ Other routing policies are configured similarly. See [AWS Route53 Developer Guid
 
 ```hcl
 resource "aws_route53_record" "www-dev" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
@@ -43,7 +43,7 @@ resource "aws_route53_record" "www-dev" {
 }
 
 resource "aws_route53_record" "www-live" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
@@ -78,13 +78,13 @@ resource "aws_elb" "main" {
 }
 
 resource "aws_route53_record" "www" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "example.com"
   type    = "A"
 
   alias {
-    name                   = "${aws_elb.main.dns_name}"
-    zone_id                = "${aws_elb.main.zone_id}"
+    name                   = aws_elb.main.dns_name
+    zone_id                = aws_elb.main.zone_id
     evaluate_target_health = true
   }
 }
@@ -104,13 +104,13 @@ resource "aws_route53_record" "example" {
   name            = "test.example.com"
   ttl             = 30
   type            = "NS"
-  zone_id         = "${aws_route53_zone.example.zone_id}"
+  zone_id         = aws_route53_zone.example.zone_id
 
   records = [
-    "${aws_route53_zone.example.name_servers.0}",
-    "${aws_route53_zone.example.name_servers.1}",
-    "${aws_route53_zone.example.name_servers.2}",
-    "${aws_route53_zone.example.name_servers.3}",
+    aws_route53_zone.example.name_servers[0],
+    aws_route53_zone.example.name_servers[1],
+    aws_route53_zone.example.name_servers[2],
+    aws_route53_zone.example.name_servers[3],
   ]
 }
 ```

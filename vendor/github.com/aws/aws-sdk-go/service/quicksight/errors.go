@@ -21,8 +21,8 @@ const (
 	// ErrCodeConcurrentUpdatingException for service response error code
 	// "ConcurrentUpdatingException".
 	//
-	// A resource is already in a state that indicates an action is happening that
-	// must complete before a new update can be applied.
+	// A resource is already in a state that indicates an operation is happening
+	// that must complete before a new update can be applied.
 	ErrCodeConcurrentUpdatingException = "ConcurrentUpdatingException"
 
 	// ErrCodeConflictException for service response error code

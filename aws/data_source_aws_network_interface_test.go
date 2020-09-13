@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsNetworkInterface_basic(t *testing.T) {
@@ -54,8 +54,8 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-eni-data-source-basic"
@@ -64,17 +64,17 @@ resource "aws_subnet" "test" {
 
 resource "aws_security_group" "test" {
   name   = "tf-sg-%s"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id       = "${aws_subnet.test.id}"
+  subnet_id       = aws_subnet.test.id
   private_ips     = ["10.0.0.50"]
-  security_groups = ["${aws_security_group.test.id}"]
+  security_groups = [aws_security_group.test.id]
 }
 
 data "aws_network_interface" "test" {
-  id = "${aws_network_interface.test.id}"
+  id = aws_network_interface.test.id
 }
 `, rName)
 }
@@ -117,8 +117,8 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  vpc_id            = "${aws_vpc.test.id}"
+  availability_zone = data.aws_availability_zones.available.names[0]
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-eni-data-source-filters"
@@ -127,19 +127,19 @@ resource "aws_subnet" "test" {
 
 resource "aws_security_group" "test" {
   name   = "tf-sg-%s"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id       = "${aws_subnet.test.id}"
+  subnet_id       = aws_subnet.test.id
   private_ips     = ["10.0.0.60"]
-  security_groups = ["${aws_security_group.test.id}"]
+  security_groups = [aws_security_group.test.id]
 }
 
 data "aws_network_interface" "test" {
   filter {
     name   = "network-interface-id"
-    values = ["${aws_network_interface.test.id}"]
+    values = [aws_network_interface.test.id]
   }
 }
 `, rName)

@@ -1,0 +1,90 @@
+name: Acceptance Test Linting
+on:
+  push:
+    branches:
+      - master
+      - 'release/**'
+  pull_request:
+    paths:
+      - .github/workflows/acctest-terraform-lint.yml
+      - aws/core_acceptance_test.go
+      - aws/data_source_aws_*_test.go
+      - aws/resource_aws_[a-d]*_test.go
+
+env:
+  GO_VERSION: "1.14"
+  GO111MODULE: on
+  TFLINT_VERSION: "v0.20.0" # Not yet available
+
+jobs:
+  terrafmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: |
+          # go get github.com/katbyte/terrafmt
+          git clone --branch tracking-main --single-branch https://github.com/gdavison/terrafmt terrafmt
+          cd terrafmt
+          go install
+      # - run: terrafmt diff ./aws --check --pattern '*_test.go' --quiet --fmtcompat
+      - run: |
+          find ./aws -type f \( \
+            -name 'core_acceptance_test.go' \
+            -o -name 'data_source_aws_*_test.go' \
+            -o -name 'resource_aws_a*_test.go' \
+            -o -name 'resource_aws_b*_test.go' \
+            -o -name 'resource_aws_c*_test.go' \
+            -o -name 'resource_aws_d*_test.go' \
+            \) \
+            | sort -u \
+            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
+            | grep -v resource_aws_dynamodb_table_test.go \
+            | xargs -I {} terrafmt diff --check --quiet --fmtcompat {}
+
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: |
+          # go get github.com/katbyte/terrafmt
+          git clone --branch tracking-main --single-branch https://github.com/gdavison/terrafmt terrafmt
+          cd terrafmt
+          go install
+      # - run: curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+      - run: |
+          git clone --no-checkout https://github.com/terraform-linters/tflint tflint
+          cd tflint
+          git checkout --recurse-submodules 5a002e926848899d4bfbb006f95c39285a5e9afa
+          go install
+      - run: |
+          find ./aws -type f \( \
+            -name 'core_acceptance_test.go' \
+            -o -name 'data_source_aws_*_test.go' \
+            -o -name 'resource_aws_a*_test.go' \
+            -o -name 'resource_aws_b*_test.go' \
+            -o -name 'resource_aws_c*_test.go' \
+            -o -name 'resource_aws_d*_test.go' \
+            \) \
+            | sort -u \
+            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
+            | grep -v resource_aws_dynamodb_table_test.go \
+            | ./scripts/validate-terraform.sh
+          

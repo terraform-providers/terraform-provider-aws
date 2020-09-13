@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ecs/waiter"
 )
 
@@ -379,11 +379,11 @@ resource "aws_autoscaling_group" "test" {
 func testAccAWSEcsCapacityProviderConfig(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName)
 }
@@ -391,18 +391,18 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigManagedScaling(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
 
-		managed_scaling {
-			maximum_scaling_step_size = 10
-			minimum_scaling_step_size = 2
-			status = "ENABLED"
-			target_capacity = 50
-		}
-	}
+    managed_scaling {
+      maximum_scaling_step_size = 10
+      minimum_scaling_step_size = 2
+      status                    = "ENABLED"
+      target_capacity           = 50
+    }
+  }
 }
 `, rName)
 }
@@ -410,16 +410,16 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigManagedScalingPartial(rName string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
 
-		managed_scaling {
-			minimum_scaling_step_size = 2
-			status = "ENABLED"
-		}
-	}
+    managed_scaling {
+      minimum_scaling_step_size = 2
+      status                    = "ENABLED"
+    }
+  }
 }
 `, rName)
 }
@@ -427,15 +427,15 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigTags1(rName, tag1Key, tag1Value string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	tags = {
-		%q = %q,
-	}
+  tags = {
+    %q = %q,
+  }
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName, tag1Key, tag1Value)
 }
@@ -443,16 +443,16 @@ resource "aws_ecs_capacity_provider" "test" {
 func testAccAWSEcsCapacityProviderConfigTags2(rName, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return testAccAWSEcsCapacityProviderConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ecs_capacity_provider" "test" {
-	name = %q
+  name = %q
 
-	tags = {
-		%q = %q,
-		%q = %q,
-	}
+  tags = {
+    %q = %q,
+    %q = %q,
+  }
 
-	auto_scaling_group_provider {
-		auto_scaling_group_arn = aws_autoscaling_group.test.arn
-	}
+  auto_scaling_group_provider {
+    auto_scaling_group_arn = aws_autoscaling_group.test.arn
+  }
 }
 `, rName, tag1Key, tag1Value, tag2Key, tag2Value)
 }

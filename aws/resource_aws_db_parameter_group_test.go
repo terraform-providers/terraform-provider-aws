@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
@@ -173,10 +173,9 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 	groupName := fmt.Sprintf("parameter-group-test-terraform-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSDBParameterGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createAwsDbParameterGroupsExceedDefaultAwsLimit(groupName),
@@ -186,88 +185,170 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", groupName),
 					resource.TestCheckResourceAttr(resourceName, "family", "mysql5.6"),
 					resource.TestCheckResourceAttr(resourceName, "description", "RDS default parameter group: Exceed default AWS parameter group limit of twenty"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.name", "character_set_server"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.name", "character_set_client"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1680942586.name", "collation_server"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1680942586.value", "utf8_general_ci"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2450940716.name", "collation_connection"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2450940716.value", "utf8_general_ci"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.242489837.name", "join_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.242489837.value", "16777216"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2026669454.name", "key_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2026669454.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2705275319.name", "max_connections"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2705275319.value", "3200"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3512697936.name", "max_heap_table_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3512697936.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.780730667.name", "performance_schema"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.780730667.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2020346918.name", "performance_schema_users_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2020346918.value", "1048576"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1460834103.name", "query_cache_limit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1460834103.value", "2097152"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.484865451.name", "query_cache_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.484865451.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.255276438.name", "sort_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.255276438.value", "16777216"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2981725119.name", "table_open_cache"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2981725119.value", "4096"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2703661820.name", "tmp_table_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2703661820.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2386583229.name", "binlog_cache_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2386583229.value", "131072"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.4012389720.name", "innodb_flush_log_at_trx_commit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.4012389720.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2688783017.name", "innodb_open_files"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2688783017.value", "4000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.782983977.name", "innodb_read_io_threads"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.782983977.value", "64"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2809980413.name", "innodb_thread_concurrency"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2809980413.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3599115250.name", "innodb_write_io_threads"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3599115250.value", "64"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2557156277.name", "character_set_connection"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2557156277.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2475346812.name", "character_set_database"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2475346812.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1986528518.name", "character_set_filesystem"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1986528518.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1708034931.name", "character_set_results"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1708034931.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1937131004.name", "event_scheduler"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1937131004.value", "ON"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3437079877.name", "innodb_buffer_pool_dump_at_shutdown"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3437079877.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1092112861.name", "innodb_file_format"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1092112861.value", "barracuda"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.615571931.name", "innodb_io_capacity"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.615571931.value", "2000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1065962799.name", "innodb_io_capacity_max"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1065962799.value", "3000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1411161182.name", "innodb_lock_wait_timeout"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1411161182.value", "120"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3133315879.name", "innodb_max_dirty_pages_pct"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3133315879.value", "90"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.950177639.name", "log_bin_trust_function_creators"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.950177639.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.591700516.name", "log_warnings"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.591700516.value", "2"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1918306725.name", "log_output"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1918306725.value", "FILE"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.386204433.name", "max_allowed_packet"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.386204433.value", "1073741824"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1700901269.name", "max_connect_errors"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1700901269.value", "100"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2839701698.name", "query_cache_min_res_unit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2839701698.value", "512"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.427634017.name", "slow_query_log"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.427634017.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.881816039.name", "sync_binlog"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.881816039.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.748684209.name", "tx_isolation"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.748684209.value", "REPEATABLE-READ"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_server",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_client",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "collation_server",
+						"value": "utf8_general_ci",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "collation_connection",
+						"value": "utf8_general_ci",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "join_buffer_size",
+						"value": "16777216",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "key_buffer_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connections",
+						"value": "3200",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_heap_table_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "performance_schema",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "performance_schema_users_size",
+						"value": "1048576",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_limit",
+						"value": "2097152",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "sort_buffer_size",
+						"value": "16777216",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "table_open_cache",
+						"value": "4096",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "tmp_table_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "binlog_cache_size",
+						"value": "131072",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_flush_log_at_trx_commit",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_open_files",
+						"value": "4000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_read_io_threads",
+						"value": "64",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_thread_concurrency",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_write_io_threads",
+						"value": "64",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_connection",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_database",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_filesystem",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_results",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "event_scheduler",
+						"value": "ON",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_buffer_pool_dump_at_shutdown",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_file_format",
+						"value": "barracuda",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_io_capacity",
+						"value": "2000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_io_capacity_max",
+						"value": "3000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_lock_wait_timeout",
+						"value": "120",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_max_dirty_pages_pct",
+						"value": "90",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_bin_trust_function_creators",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_warnings",
+						"value": "2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_output",
+						"value": "FILE",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_allowed_packet",
+						"value": "1073741824",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connect_errors",
+						"value": "100",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_min_res_unit",
+						"value": "512",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "slow_query_log",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "sync_binlog",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "tx_isolation",
+						"value": "REPEATABLE-READ",
+					}),
 				),
 			},
 			{
@@ -283,88 +364,170 @@ func TestAccAWSDBParameterGroup_limit(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", groupName),
 					resource.TestCheckResourceAttr(resourceName, "family", "mysql5.6"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Updated RDS default parameter group: Exceed default AWS parameter group limit of twenty"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.name", "character_set_server"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.name", "character_set_client"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1680942586.name", "collation_server"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1680942586.value", "utf8_general_ci"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2450940716.name", "collation_connection"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2450940716.value", "utf8_general_ci"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.242489837.name", "join_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.242489837.value", "16777216"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2026669454.name", "key_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2026669454.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2705275319.name", "max_connections"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2705275319.value", "3200"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3512697936.name", "max_heap_table_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3512697936.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.780730667.name", "performance_schema"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.780730667.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2020346918.name", "performance_schema_users_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2020346918.value", "1048576"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1460834103.name", "query_cache_limit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1460834103.value", "2097152"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.484865451.name", "query_cache_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.484865451.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.255276438.name", "sort_buffer_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.255276438.value", "16777216"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2981725119.name", "table_open_cache"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2981725119.value", "4096"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2703661820.name", "tmp_table_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2703661820.value", "67108864"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2386583229.name", "binlog_cache_size"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2386583229.value", "131072"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.4012389720.name", "innodb_flush_log_at_trx_commit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.4012389720.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2688783017.name", "innodb_open_files"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2688783017.value", "4000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.782983977.name", "innodb_read_io_threads"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.782983977.value", "64"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2809980413.name", "innodb_thread_concurrency"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2809980413.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3599115250.name", "innodb_write_io_threads"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3599115250.value", "64"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2557156277.name", "character_set_connection"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2557156277.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2475346812.name", "character_set_database"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2475346812.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1986528518.name", "character_set_filesystem"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1986528518.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1708034931.name", "character_set_results"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1708034931.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1937131004.name", "event_scheduler"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1937131004.value", "ON"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3437079877.name", "innodb_buffer_pool_dump_at_shutdown"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3437079877.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1092112861.name", "innodb_file_format"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1092112861.value", "barracuda"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.615571931.name", "innodb_io_capacity"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.615571931.value", "2000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1065962799.name", "innodb_io_capacity_max"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1065962799.value", "3000"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1411161182.name", "innodb_lock_wait_timeout"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1411161182.value", "120"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3133315879.name", "innodb_max_dirty_pages_pct"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.3133315879.value", "90"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.950177639.name", "log_bin_trust_function_creators"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.950177639.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.591700516.name", "log_warnings"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.591700516.value", "2"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1918306725.name", "log_output"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1918306725.value", "FILE"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.386204433.name", "max_allowed_packet"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.386204433.value", "1073741824"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1700901269.name", "max_connect_errors"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.1700901269.value", "100"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2839701698.name", "query_cache_min_res_unit"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2839701698.value", "512"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.427634017.name", "slow_query_log"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.427634017.value", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.881816039.name", "sync_binlog"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.881816039.value", "0"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.748684209.name", "tx_isolation"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.748684209.value", "REPEATABLE-READ"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_server",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_client",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "collation_server",
+						"value": "utf8_general_ci",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "collation_connection",
+						"value": "utf8_general_ci",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "join_buffer_size",
+						"value": "16777216",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "key_buffer_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connections",
+						"value": "3200",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_heap_table_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "performance_schema",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "performance_schema_users_size",
+						"value": "1048576",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_limit",
+						"value": "2097152",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "sort_buffer_size",
+						"value": "16777216",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "table_open_cache",
+						"value": "4096",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "tmp_table_size",
+						"value": "67108864",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "binlog_cache_size",
+						"value": "131072",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_flush_log_at_trx_commit",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_open_files",
+						"value": "4000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_read_io_threads",
+						"value": "64",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_thread_concurrency",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_write_io_threads",
+						"value": "64",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_connection",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_database",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_filesystem",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_results",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "event_scheduler",
+						"value": "ON",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_buffer_pool_dump_at_shutdown",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_file_format",
+						"value": "barracuda",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_io_capacity",
+						"value": "2000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_io_capacity_max",
+						"value": "3000",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_lock_wait_timeout",
+						"value": "120",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "innodb_max_dirty_pages_pct",
+						"value": "90",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_bin_trust_function_creators",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_warnings",
+						"value": "2",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "log_output",
+						"value": "FILE",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_allowed_packet",
+						"value": "1073741824",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "max_connect_errors",
+						"value": "100",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "query_cache_min_res_unit",
+						"value": "512",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "slow_query_log",
+						"value": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "sync_binlog",
+						"value": "0",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "tx_isolation",
+						"value": "REPEATABLE-READ",
+					}),
 				),
 			},
 		},
@@ -436,10 +599,9 @@ func TestAccAWSDBParameterGroup_withApplyMethod(t *testing.T) {
 	groupName := fmt.Sprintf("parameter-group-test-terraform-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSDBParameterGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDBParameterGroupConfigWithApplyMethod(groupName),
@@ -449,12 +611,16 @@ func TestAccAWSDBParameterGroup_withApplyMethod(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", groupName),
 					resource.TestCheckResourceAttr(resourceName, "family", "mysql5.6"),
 					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.name", "character_set_server"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2421266705.apply_method", "immediate"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.name", "character_set_client"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.value", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.2478663599.apply_method", "pending-reboot"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":         "character_set_server",
+						"value":        "utf8",
+						"apply_method": "immediate",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":         "character_set_client",
+						"value":        "utf8",
+						"apply_method": "pending-reboot",
+					}),
 				),
 			},
 			{
@@ -517,6 +683,65 @@ func TestAccAWSDBParameterGroup_MatchDefault(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"parameter"},
+			},
+		},
+	})
+}
+
+func TestAccAWSDBParameterGroup_updateParameters(t *testing.T) {
+	var v rds.DBParameterGroup
+	resourceName := "aws_db_parameter_group.test"
+	groupName := fmt.Sprintf("parameter-group-test-terraform-%d", acctest.RandInt())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSDBParameterGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSDBParameterGroupUpdateParametersInitialConfig(groupName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBParameterGroupExists(resourceName, &v),
+					testAccCheckAWSDBParameterGroupAttributes(&v, groupName),
+					resource.TestCheckResourceAttr(resourceName, "name", groupName),
+					resource.TestCheckResourceAttr(resourceName, "family", "mysql5.6"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_results",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_server",
+						"value": "utf8",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_client",
+						"value": "utf8",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSDBParameterGroupUpdateParametersUpdatedConfig(groupName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSDBParameterGroupExists(resourceName, &v),
+					testAccCheckAWSDBParameterGroupAttributes(&v, groupName),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_results",
+						"value": "ascii",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_server",
+						"value": "ascii",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"name":  "character_set_client",
+						"value": "utf8",
+					}),
+				),
 			},
 		},
 	})
@@ -710,8 +935,8 @@ resource "aws_db_parameter_group" "test" {
 func testAccAWSDBParameterGroupAddParametersConfig(n string) string {
 	return fmt.Sprintf(`
 resource "aws_db_parameter_group" "test" {
-  name        = "%s"
-  family      = "mysql5.6"
+  name   = "%s"
+  family = "mysql5.6"
 
   parameter {
     name  = "character_set_server"
@@ -1206,25 +1431,73 @@ resource "aws_db_parameter_group" "test" {
 `, n)
 }
 
+func testAccAWSDBParameterGroupUpdateParametersInitialConfig(n string) string {
+	return fmt.Sprintf(`
+resource "aws_db_parameter_group" "test" {
+  name   = "%s"
+  family = "mysql5.6"
+
+  parameter {
+    name  = "character_set_server"
+    value = "utf8"
+  }
+
+  parameter {
+    name  = "character_set_client"
+    value = "utf8"
+  }
+
+  parameter {
+    name  = "character_set_results"
+    value = "utf8"
+  }
+}
+`, n)
+}
+
+func testAccAWSDBParameterGroupUpdateParametersUpdatedConfig(n string) string {
+	return fmt.Sprintf(`
+resource "aws_db_parameter_group" "test" {
+  name   = "%s"
+  family = "mysql5.6"
+
+  parameter {
+    name  = "character_set_server"
+    value = "ascii"
+  }
+
+  parameter {
+    name  = "character_set_client"
+    value = "utf8"
+  }
+
+  parameter {
+    name  = "character_set_results"
+    value = "ascii"
+  }
+}
+`, n)
+}
+
 const testAccDBParameterGroupConfig_namePrefix = `
 resource "aws_db_parameter_group" "test" {
-	name_prefix = "tf-test-"
-	family = "mysql5.6"
+  name_prefix = "tf-test-"
+  family      = "mysql5.6"
 
-	parameter {
-		name = "sync_binlog"
-		value = 0
-	}
+  parameter {
+    name  = "sync_binlog"
+    value = 0
+  }
 }
 `
 
 const testAccDBParameterGroupConfig_generatedName = `
 resource "aws_db_parameter_group" "test" {
-	family = "mysql5.6"
+  family = "mysql5.6"
 
-	parameter {
-		name = "sync_binlog"
-		value = 0
-	}
+  parameter {
+    name  = "sync_binlog"
+    value = 0
+  }
 }
 `

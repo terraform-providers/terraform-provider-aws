@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -46,10 +46,6 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 						"destination_arn": {
 							Type:     schema.TypeString,
 							Required: true,
-							StateFunc: func(arn interface{}) string {
-								// arns coming from a TF reference to a log group contain a trailing `:*` which is not valid
-								return strings.TrimSuffix(arn.(string), ":*")
-							},
 						},
 						"format": {
 							Type:     schema.TypeString,
@@ -296,7 +292,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 	waitForCache := false
 	if d.HasChange("cache_cluster_enabled") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/cacheClusterEnabled"),
 			Value: aws.String(fmt.Sprintf("%t", d.Get("cache_cluster_enabled").(bool))),
 		})
@@ -304,7 +300,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	if d.HasChange("cache_cluster_size") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/cacheClusterSize"),
 			Value: aws.String(d.Get("cache_cluster_size").(string)),
 		})
@@ -312,35 +308,35 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	if d.HasChange("client_certificate_id") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/clientCertificateId"),
 			Value: aws.String(d.Get("client_certificate_id").(string)),
 		})
 	}
 	if d.HasChange("deployment_id") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/deploymentId"),
 			Value: aws.String(d.Get("deployment_id").(string)),
 		})
 	}
 	if d.HasChange("description") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/description"),
 			Value: aws.String(d.Get("description").(string)),
 		})
 	}
 	if d.HasChange("xray_tracing_enabled") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/tracingEnabled"),
 			Value: aws.String(fmt.Sprintf("%t", d.Get("xray_tracing_enabled").(bool))),
 		})
 	}
 	if d.HasChange("documentation_version") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/documentationVersion"),
 			Value: aws.String(d.Get("documentation_version").(string)),
 		})
@@ -356,18 +352,17 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		if len(accessLogSettings) == 1 {
 			operations = append(operations,
 				&apigateway.PatchOperation{
-					Op:   aws.String("replace"),
-					Path: aws.String("/accessLogSettings/destinationArn"),
-					// arns coming from a TF reference to a log group contain a trailing `:*` which is not valid
-					Value: aws.String(strings.TrimSuffix(d.Get("access_log_settings.0.destination_arn").(string), ":*")),
+					Op:    aws.String(apigateway.OpReplace),
+					Path:  aws.String("/accessLogSettings/destinationArn"),
+					Value: aws.String(d.Get("access_log_settings.0.destination_arn").(string)),
 				}, &apigateway.PatchOperation{
-					Op:    aws.String("replace"),
+					Op:    aws.String(apigateway.OpReplace),
 					Path:  aws.String("/accessLogSettings/format"),
 					Value: aws.String(d.Get("access_log_settings.0.format").(string)),
 				})
 		} else if len(accessLogSettings) == 0 {
 			operations = append(operations, &apigateway.PatchOperation{
-				Op:   aws.String("remove"),
+				Op:   aws.String(apigateway.OpRemove),
 				Path: aws.String("/accessLogSettings"),
 			})
 		}
@@ -418,7 +413,7 @@ func diffVariablesOps(oldVars, newVars map[string]interface{}) []*apigateway.Pat
 	for k := range oldVars {
 		if _, ok := newVars[k]; !ok {
 			ops = append(ops, &apigateway.PatchOperation{
-				Op:   aws.String("remove"),
+				Op:   aws.String(apigateway.OpRemove),
 				Path: aws.String(prefix + k),
 			})
 		}
@@ -434,7 +429,7 @@ func diffVariablesOps(oldVars, newVars map[string]interface{}) []*apigateway.Pat
 			}
 		}
 		ops = append(ops, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String(prefix + k),
 			Value: aws.String(newValue),
 		})

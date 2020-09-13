@@ -3,24 +3,25 @@ package color
 import (
 	"fmt"
 	"io"
+	"log"
 	"regexp"
 	"strings"
 )
 
 // output colored text like use html tag. (not support windows cmd)
 const (
-	// Regex to match color tags
-	// golang 不支持反向引用.  即不支持使用 \1 引用第一个匹配 ([a-z=;]+)
+	// MatchExpr regex to match color tags
+	// Notice: golang 不支持反向引用.  即不支持使用 \1 引用第一个匹配 ([a-z=;]+)
 	// MatchExpr = `<([a-z=;]+)>(.*?)<\/\1>`
 	// 所以调整一下 统一使用 `</>` 来结束标签，例如 "<info>some text</>"
 	// 支持自定义颜色属性的tag "<fg=white;bg=blue;op=bold>content</>"
 	// (?s:...) s - 让 "." 匹配换行
 	MatchExpr = `<([a-zA-Z_=,;]+)>(?s:(.*?))<\/>`
 
-	// Regex to match color attributes
+	// AttrExpr regex to match color attributes
 	AttrExpr = `(fg|bg|op)[\s]*=[\s]*([a-zA-Z,]+);?`
 
-	// Regex used for removing color tags
+	// StripExpr regex used for removing color tags
 	// StripExpr = `<[\/]?[a-zA-Z=;]+>`
 	// 随着上面的做一些调整
 	StripExpr = `<[\/]?[a-zA-Z_=,;]*>`
@@ -111,42 +112,84 @@ var colorTags = map[string]string{
  * print methods(will auto parse color tags)
  *************************************************************/
 
-// Print messages
+// Print render color tag and print messages
 func Print(a ...interface{}) {
-	fmt.Print(Render(a...))
+	Fprint(output, a...)
 }
 
 // Printf format and print messages
 func Printf(format string, a ...interface{}) {
-	fmt.Print(ReplaceTag(fmt.Sprintf(format, a...)))
+	Fprintf(output, format, a...)
 }
 
 // Println messages with new line
 func Println(a ...interface{}) {
-	fmt.Println(Render(a...))
+	Fprintln(output, a...)
 }
 
 // Fprint print rendered messages to writer
+// Notice: will ignore print error
 func Fprint(w io.Writer, a ...interface{}) {
-	fmt.Fprint(w, Render(a...))
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			_, _ = fmt.Fprint(w, Render(a...))
+		})
+	} else {
+		_, _ = fmt.Fprint(w, Render(a...))
+	}
 }
 
-// Fprintf print format and rendered messages to writer
-func Fprintf(w io.Writer, format string, a ...interface{}) (int, error) {
-	return fmt.Fprint(w, ReplaceTag(fmt.Sprintf(format, a...)))
+// Fprintf print format and rendered messages to writer.
+// Notice: will ignore print error
+func Fprintf(w io.Writer, format string, a ...interface{}) {
+	str := fmt.Sprintf(format, a...)
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			_, _ = fmt.Fprint(w, ReplaceTag(str))
+		})
+	} else {
+		_, _ = fmt.Fprint(w, ReplaceTag(str))
+	}
 }
 
 // Fprintln print rendered messages line to writer
-func Fprintln(w io.Writer, a ...interface{}) (int, error) {
-	return fmt.Fprintln(w, Render(a...))
+// Notice: will ignore print error
+func Fprintln(w io.Writer, a ...interface{}) {
+	str := formatArgsForPrintln(a)
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			_, _ = fmt.Fprintln(w, ReplaceTag(str))
+		})
+	} else {
+		_, _ = fmt.Fprintln(w, ReplaceTag(str))
+	}
 }
 
-// Render return rendered string
+// Lprint passes colored messages to a log.Logger for printing.
+// Notice: should be goroutine safe
+func Lprint(l *log.Logger, a ...interface{}) {
+	if isLikeInCmd {
+		renderColorCodeOnCmd(func() {
+			l.Print(Render(a...))
+		})
+	} else {
+		l.Print(Render(a...))
+	}
+}
+
+// Render parse color tags, return rendered string.
+// Usage:
+//	text := Render("<info>hello</> <cyan>world</>!")
+//	fmt.Println(text)
 func Render(a ...interface{}) string {
+	if len(a) == 0 {
+		return ""
+	}
+
 	return ReplaceTag(fmt.Sprint(a...))
 }
 
-// Sprint return rendered string
+// Sprint parse color tags, return rendered string
 func Sprint(args ...interface{}) string {
 	return Render(args...)
 }
@@ -191,14 +234,14 @@ func ReplaceTag(str string) string {
 
 		// custom color in tag: "<fg=white;bg=blue;op=bold>content</>"
 		if code := ParseCodeFromAttr(tag); len(code) > 0 {
-			now := RenderCode(code, content)
+			now := RenderString(code, content)
 			str = strings.Replace(str, full, now, 1)
 			continue
 		}
 
 		// use defined tag: "<tag>content</>"
 		if code := GetTagCode(tag); len(code) > 0 {
-			now := RenderCode(code, content)
+			now := RenderString(code, content)
 			// old := WrapTag(content, tag) is equals to var 'full'
 			str = strings.Replace(str, full, now, 1)
 		}
@@ -313,27 +356,31 @@ func IsDefinedTag(name string) bool {
  *************************************************************/
 
 // Tag value is a defined style name
+// Usage:
+// 	Tag("info").Println("message")
 type Tag string
 
 // Print messages
 func (tg Tag) Print(a ...interface{}) {
 	name := string(tg)
-	if stl := GetStyle(name); !stl.IsEmpty() {
-		stl.Print(a...)
-		return
-	}
+	str := fmt.Sprint(a...)
 
-	fmt.Print(RenderCode(GetTagCode(name), a...))
+	if stl := GetStyle(name); !stl.IsEmpty() {
+		stl.Print(str)
+	} else {
+		doPrintV2(GetTagCode(name), str)
+	}
 }
 
 // Printf format and print messages
-func (tg Tag) Printf(format string, args ...interface{}) {
+func (tg Tag) Printf(format string, a ...interface{}) {
 	name := string(tg)
-	msg := fmt.Sprintf(format, args...)
+	str := fmt.Sprintf(format, a...)
+
 	if stl := GetStyle(name); !stl.IsEmpty() {
-		stl.Print(msg)
+		stl.Print(str)
 	} else {
-		fmt.Print(RenderString(GetTagCode(name), msg))
+		doPrintV2(GetTagCode(name), str)
 	}
 }
 
@@ -343,7 +390,7 @@ func (tg Tag) Println(a ...interface{}) {
 	if stl := GetStyle(name); !stl.IsEmpty() {
 		stl.Println(a...)
 	} else {
-		fmt.Println(RenderCode(GetTagCode(name), a...))
+		doPrintlnV2(GetTagCode(name), a)
 	}
 }
 
@@ -359,6 +406,8 @@ func (tg Tag) Sprint(a ...interface{}) string {
 
 // Sprintf format and render messages
 func (tg Tag) Sprintf(format string, a ...interface{}) string {
-	name := string(tg)
-	return RenderString(GetTagCode(name), fmt.Sprintf(format, a...))
+	tag := string(tg)
+	str := fmt.Sprintf(format, a...)
+
+	return RenderString(GetTagCode(tag), str)
 }

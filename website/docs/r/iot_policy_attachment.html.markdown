@@ -33,13 +33,13 @@ EOF
 }
 
 resource "aws_iot_certificate" "cert" {
-  csr    = "${file("csr.pem")}"
+  csr    = file("csr.pem")
   active = true
 }
 
 resource "aws_iot_policy_attachment" "att" {
-  policy = "${aws_iot_policy.pubsub.name}"
-  target = "${aws_iot_certificate.cert.arn}"
+  policy = aws_iot_policy.pubsub.name
+  target = aws_iot_certificate.cert.arn
 }
 ```
 

@@ -6991,6 +6991,16 @@ const (
 	CustomerGatewayAssociationStateDeleted = "DELETED"
 )
 
+// CustomerGatewayAssociationState_Values returns all elements of the CustomerGatewayAssociationState enum
+func CustomerGatewayAssociationState_Values() []string {
+	return []string{
+		CustomerGatewayAssociationStatePending,
+		CustomerGatewayAssociationStateAvailable,
+		CustomerGatewayAssociationStateDeleting,
+		CustomerGatewayAssociationStateDeleted,
+	}
+}
+
 const (
 	// DeviceStatePending is a DeviceState enum value
 	DeviceStatePending = "PENDING"
@@ -7004,6 +7014,16 @@ const (
 	// DeviceStateUpdating is a DeviceState enum value
 	DeviceStateUpdating = "UPDATING"
 )
+
+// DeviceState_Values returns all elements of the DeviceState enum
+func DeviceState_Values() []string {
+	return []string{
+		DeviceStatePending,
+		DeviceStateAvailable,
+		DeviceStateDeleting,
+		DeviceStateUpdating,
+	}
+}
 
 const (
 	// GlobalNetworkStatePending is a GlobalNetworkState enum value
@@ -7019,6 +7039,16 @@ const (
 	GlobalNetworkStateUpdating = "UPDATING"
 )
 
+// GlobalNetworkState_Values returns all elements of the GlobalNetworkState enum
+func GlobalNetworkState_Values() []string {
+	return []string{
+		GlobalNetworkStatePending,
+		GlobalNetworkStateAvailable,
+		GlobalNetworkStateDeleting,
+		GlobalNetworkStateUpdating,
+	}
+}
+
 const (
 	// LinkAssociationStatePending is a LinkAssociationState enum value
 	LinkAssociationStatePending = "PENDING"
@@ -7032,6 +7062,16 @@ const (
 	// LinkAssociationStateDeleted is a LinkAssociationState enum value
 	LinkAssociationStateDeleted = "DELETED"
 )
+
+// LinkAssociationState_Values returns all elements of the LinkAssociationState enum
+func LinkAssociationState_Values() []string {
+	return []string{
+		LinkAssociationStatePending,
+		LinkAssociationStateAvailable,
+		LinkAssociationStateDeleting,
+		LinkAssociationStateDeleted,
+	}
+}
 
 const (
 	// LinkStatePending is a LinkState enum value
@@ -7047,6 +7087,16 @@ const (
 	LinkStateUpdating = "UPDATING"
 )
 
+// LinkState_Values returns all elements of the LinkState enum
+func LinkState_Values() []string {
+	return []string{
+		LinkStatePending,
+		LinkStateAvailable,
+		LinkStateDeleting,
+		LinkStateUpdating,
+	}
+}
+
 const (
 	// SiteStatePending is a SiteState enum value
 	SiteStatePending = "PENDING"
@@ -7060,6 +7110,16 @@ const (
 	// SiteStateUpdating is a SiteState enum value
 	SiteStateUpdating = "UPDATING"
 )
+
+// SiteState_Values returns all elements of the SiteState enum
+func SiteState_Values() []string {
+	return []string{
+		SiteStatePending,
+		SiteStateAvailable,
+		SiteStateDeleting,
+		SiteStateUpdating,
+	}
+}
 
 const (
 	// TransitGatewayRegistrationStatePending is a TransitGatewayRegistrationState enum value
@@ -7078,6 +7138,17 @@ const (
 	TransitGatewayRegistrationStateFailed = "FAILED"
 )
 
+// TransitGatewayRegistrationState_Values returns all elements of the TransitGatewayRegistrationState enum
+func TransitGatewayRegistrationState_Values() []string {
+	return []string{
+		TransitGatewayRegistrationStatePending,
+		TransitGatewayRegistrationStateAvailable,
+		TransitGatewayRegistrationStateDeleting,
+		TransitGatewayRegistrationStateDeleted,
+		TransitGatewayRegistrationStateFailed,
+	}
+}
+
 const (
 	// ValidationExceptionReasonUnknownOperation is a ValidationExceptionReason enum value
 	ValidationExceptionReasonUnknownOperation = "UnknownOperation"
@@ -7091,3 +7162,13 @@ const (
 	// ValidationExceptionReasonOther is a ValidationExceptionReason enum value
 	ValidationExceptionReasonOther = "Other"
 )
+
+// ValidationExceptionReason_Values returns all elements of the ValidationExceptionReason enum
+func ValidationExceptionReason_Values() []string {
+	return []string{
+		ValidationExceptionReasonUnknownOperation,
+		ValidationExceptionReasonCannotParse,
+		ValidationExceptionReasonFieldValidationFailed,
+		ValidationExceptionReasonOther,
+	}
+}

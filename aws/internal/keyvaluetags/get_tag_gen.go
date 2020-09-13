@@ -4,11 +4,42 @@ package keyvaluetags
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 )
+
+// AutoscalingGetTag fetches an individual autoscaling service tag for a resource.
+// Returns whether the key exists, the key value, and any errors.
+// This function will optimise the handling over AutoscalingListTags, if possible.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func AutoscalingGetTag(conn *autoscaling.AutoScaling, identifier string, resourceType string, key string) (bool, *TagData, error) {
+	input := &autoscaling.DescribeTagsInput{
+		Filters: []*autoscaling.Filter{
+			{
+				Name:   aws.String("auto-scaling-group"),
+				Values: []*string{aws.String(identifier)},
+			},
+			{
+				Name:   aws.String("key"),
+				Values: []*string{aws.String(key)},
+			},
+		},
+	}
+
+	output, err := conn.DescribeTags(input)
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	listTags := AutoscalingKeyValueTags(output.Tags, identifier, resourceType)
+
+	return listTags.KeyExists(key), listTags.KeyTagData(key), nil
+}
 
 // DynamodbGetTag fetches an individual dynamodb service tag for a resource.
 // Returns whether the key exists, the key value, and any errors.

@@ -7,18 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
-
-var validAppsyncAuthTypes = []string{
-	appsync.AuthenticationTypeApiKey,
-	appsync.AuthenticationTypeAwsIam,
-	appsync.AuthenticationTypeAmazonCognitoUserPools,
-	appsync.AuthenticationTypeOpenidConnect,
-}
 
 func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 	return &schema.Resource{
@@ -40,7 +33,7 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 						"authentication_type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice(validAppsyncAuthTypes, false),
+							ValidateFunc: validation.StringInSlice(appsync.AuthenticationType_Values(), false),
 						},
 						"openid_connect_config": {
 							Type:     schema.TypeList,
@@ -95,7 +88,7 @@ func resourceAwsAppsyncGraphqlApi() *schema.Resource {
 			"authentication_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(validAppsyncAuthTypes, false),
+				ValidateFunc: validation.StringInSlice(appsync.AuthenticationType_Values(), false),
 			},
 			"schema": {
 				Type:     schema.TypeString,

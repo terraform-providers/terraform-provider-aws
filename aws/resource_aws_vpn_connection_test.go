@@ -5,15 +5,13 @@ import (
 	"log"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -90,6 +88,8 @@ func TestAccAWSVpnConnection_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccAwsVpnConnectionExists(resourceName, &vpn),
 					resource.TestCheckResourceAttr(resourceName, "transit_gateway_attachment_id", ""),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`vpn-connection/vpn-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -150,7 +150,6 @@ func TestAccAWSVpnConnection_tunnelOptions(t *testing.T) {
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccAwsVpnConnectionDestroy,
 		Steps: []resource.TestStep{
-
 			// Checking CIDR blocks
 			{
 				Config:      testAccAwsVpnConnectionConfigSingleTunnelOptions(rBgpAsn, "12345678", "not-a-cidr"),
@@ -258,6 +257,51 @@ func TestAccAWSVpnConnection_withoutStaticRoutes(t *testing.T) {
 	})
 }
 
+func TestAccAWSVpnConnection_tags(t *testing.T) {
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_vpn_connection.test"
+	var vpn ec2.VpnConnection
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccAwsVpnConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsVpnConnectionConfigTags1(rBgpAsn, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsVpnConnectionConfigTags2(rBgpAsn, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccAwsVpnConnectionConfigTags1(rBgpAsn, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAwsVpnConnectionExists(resourceName, &vpn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSVpnConnection_disappears(t *testing.T) {
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_vpn_connection.test"
@@ -272,50 +316,12 @@ func TestAccAWSVpnConnection_disappears(t *testing.T) {
 				Config: testAccAwsVpnConnectionConfig(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAwsVpnConnectionExists(resourceName, &vpn),
-					testAccAWSVpnConnectionDisappears(&vpn),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsVpnConnection(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
-}
-
-func testAccAWSVpnConnectionDisappears(connection *ec2.VpnConnection) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-
-		_, err := conn.DeleteVpnConnection(&ec2.DeleteVpnConnectionInput{
-			VpnConnectionId: connection.VpnConnectionId,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		return resource.Retry(40*time.Minute, func() *resource.RetryError {
-			opts := &ec2.DescribeVpnConnectionsInput{
-				VpnConnectionIds: []*string{connection.VpnConnectionId},
-			}
-			resp, err := conn.DescribeVpnConnections(opts)
-			if err != nil {
-				cgw, ok := err.(awserr.Error)
-				if ok && cgw.Code() == "InvalidVpnConnectionID.NotFound" {
-					return nil
-				}
-				if ok && cgw.Code() == "IncorrectState" {
-					return resource.RetryableError(fmt.Errorf(
-						"Waiting for VPN Connection to be in the correct state: %v", connection.VpnConnectionId))
-				}
-				return resource.NonRetryableError(
-					fmt.Errorf("Error retrieving VPN Connection: %s", err))
-			}
-			if *resp.VpnConnections[0].State == "deleted" {
-				return nil
-			}
-			return resource.RetryableError(fmt.Errorf(
-				"Waiting for VPN Connection: %v", connection.VpnConnectionId))
-		})
-	}
 }
 
 func testAccAwsVpnConnectionDestroy(s *terraform.State) error {
@@ -455,8 +461,8 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "test" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = true
 }
@@ -483,8 +489,8 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "test" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = false
 }
@@ -510,8 +516,8 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "test" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = false
 
@@ -536,9 +542,9 @@ resource "aws_customer_gateway" "test" {
 }
 
 resource "aws_vpn_connection" "test" {
-  customer_gateway_id = "${aws_customer_gateway.test.id}"
-  transit_gateway_id  = "${aws_ec2_transit_gateway.test.id}"
-  type                = "${aws_customer_gateway.test.type}"
+  customer_gateway_id = aws_customer_gateway.test.id
+  transit_gateway_id  = aws_ec2_transit_gateway.test.id
+  type                = aws_customer_gateway.test.type
 }
 `, rBgpAsn)
 }
@@ -562,8 +568,8 @@ resource "aws_customer_gateway" "customer_gateway" {
 }
 
 resource "aws_vpn_connection" "test" {
-  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
-  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
   type                = "ipsec.1"
   static_routes_only  = false
 
@@ -574,6 +580,69 @@ resource "aws_vpn_connection" "test" {
   tunnel2_preshared_key = "%s"
 }
 `, rBgpAsn, tunnelCidr, psk, tunnelCidr2, psk2)
+}
+
+func testAccAwsVpnConnectionConfigTags1(rBgpAsn int, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_vpn_gateway" "vpn_gateway" {
+  tags = {
+    Name = "vpn_gateway"
+  }
+}
+
+resource "aws_customer_gateway" "customer_gateway" {
+  bgp_asn    = %d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "main-customer-gateway"
+  }
+}
+
+resource "aws_vpn_connection" "test" {
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rBgpAsn, tagKey1, tagValue1)
+}
+
+func testAccAwsVpnConnectionConfigTags2(rBgpAsn int, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_vpn_gateway" "vpn_gateway" {
+  tags = {
+    Name = "vpn_gateway"
+  }
+}
+
+resource "aws_customer_gateway" "customer_gateway" {
+  bgp_asn    = %d
+  ip_address = "178.0.0.1"
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "main-customer-gateway"
+  }
+}
+
+resource "aws_vpn_connection" "test" {
+  vpn_gateway_id      = aws_vpn_gateway.vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.customer_gateway.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rBgpAsn, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
 // Test our VPN tunnel config XML parsing

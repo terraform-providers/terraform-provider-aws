@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -9,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsDxHostedPublicVirtualInterface() *schema.Resource {
@@ -208,7 +209,7 @@ func resourceAwsDxHostedPublicVirtualInterfaceImport(d *schema.ResourceData, met
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceAwsDxHostedPublicVirtualInterfaceCustomizeDiff(diff *schema.ResourceDiff, meta interface{}) error {
+func resourceAwsDxHostedPublicVirtualInterfaceCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	if diff.Id() == "" {
 		// New resource.
 		if addressFamily := diff.Get("address_family").(string); addressFamily == directconnect.AddressFamilyIpv4 {

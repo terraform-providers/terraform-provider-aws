@@ -387,6 +387,8 @@ func (c *Lambda) CreateEventSourceMappingRequest(input *CreateEventSourceMapping
 //
 //    * Using AWS Lambda with Amazon SQS (https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
 //
+//    * Using AWS Lambda with Amazon MSK (https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html)
+//
 // The following error handling options are only available for stream sources
 // (DynamoDB and Kinesis):
 //
@@ -397,10 +399,11 @@ func (c *Lambda) CreateEventSourceMappingRequest(input *CreateEventSourceMapping
 //    Amazon SNS topic.
 //
 //    * MaximumRecordAgeInSeconds - Discard records older than the specified
-//    age.
+//    age. Default -1 (infinite). Minimum 60. Maximum 604800.
 //
 //    * MaximumRetryAttempts - Discard records after the specified number of
-//    retries.
+//    retries. Default -1 (infinite). Minimum 0. Maximum 10000. When infinite,
+//    failed records will be retried until the record expires.
 //
 //    * ParallelizationFactor - Process multiple batches from each shard concurrently.
 //
@@ -4902,10 +4905,11 @@ func (c *Lambda) UpdateEventSourceMappingRequest(input *UpdateEventSourceMapping
 //    Amazon SNS topic.
 //
 //    * MaximumRecordAgeInSeconds - Discard records older than the specified
-//    age.
+//    age. Default -1 (infinite). Minimum 60. Maximum 604800.
 //
 //    * MaximumRetryAttempts - Discard records after the specified number of
-//    retries.
+//    retries. Default -1 (infinite). Minimum 0. Maximum 10000. When infinite,
+//    failed records will be retried until the record expires.
 //
 //    * ParallelizationFactor - Process multiple batches from each shard concurrently.
 //
@@ -5964,6 +5968,8 @@ type CreateEventSourceMappingInput struct {
 	//    * Amazon DynamoDB Streams - Default 100. Max 1,000.
 	//
 	//    * Amazon Simple Queue Service - Default 10. Max 10.
+	//
+	//    * Amazon Managed Streaming for Apache Kafka - Default 100. Max 10,000.
 	BatchSize *int64 `min:"1" type:"integer"`
 
 	// (Streams) If the function returns an error, split the batch in two and retry.
@@ -5973,7 +5979,8 @@ type CreateEventSourceMappingInput struct {
 	// records.
 	DestinationConfig *DestinationConfig `type:"structure"`
 
-	// Disables the event source mapping to pause polling and invocation.
+	// If true, the event source mapping is active. Set to false to pause polling
+	// and invocation.
 	Enabled *bool `type:"boolean"`
 
 	// The Amazon Resource Name (ARN) of the event source.
@@ -5983,6 +5990,8 @@ type CreateEventSourceMappingInput struct {
 	//    * Amazon DynamoDB Streams - The ARN of the stream.
 	//
 	//    * Amazon Simple Queue Service - The ARN of the queue.
+	//
+	//    * Amazon Managed Streaming for Apache Kafka - The ARN of the cluster.
 	//
 	// EventSourceArn is a required field
 	EventSourceArn *string `type:"string" required:"true"`
@@ -6009,24 +6018,28 @@ type CreateEventSourceMappingInput struct {
 	// function, in seconds.
 	MaximumBatchingWindowInSeconds *int64 `type:"integer"`
 
-	// (Streams) The maximum age of a record that Lambda sends to a function for
-	// processing.
-	MaximumRecordAgeInSeconds *int64 `min:"60" type:"integer"`
+	// (Streams) Discard records older than the specified age. The default value
+	// is infinite (-1).
+	MaximumRecordAgeInSeconds *int64 `type:"integer"`
 
-	// (Streams) The maximum number of times to retry when the function returns
-	// an error.
+	// (Streams) Discard records after the specified number of retries. The default
+	// value is infinite (-1). When set to infinite (-1), failed records will be
+	// retried until the record expires.
 	MaximumRetryAttempts *int64 `type:"integer"`
 
 	// (Streams) The number of batches to process from each shard concurrently.
 	ParallelizationFactor *int64 `min:"1" type:"integer"`
 
 	// The position in a stream from which to start reading. Required for Amazon
-	// Kinesis and Amazon DynamoDB Streams sources. AT_TIMESTAMP is only supported
-	// for Amazon Kinesis streams.
+	// Kinesis, Amazon DynamoDB, and Amazon MSK Streams sources. AT_TIMESTAMP is
+	// only supported for Amazon Kinesis streams.
 	StartingPosition *string `type:"string" enum:"EventSourcePosition"`
 
 	// With StartingPosition set to AT_TIMESTAMP, the time from which to start reading.
 	StartingPositionTimestamp *time.Time `type:"timestamp"`
+
+	// (MSK) The name of the Kafka topic.
+	Topics []*string `min:"1" type:"list"`
 }
 
 // String returns the string representation
@@ -6054,11 +6067,17 @@ func (s *CreateEventSourceMappingInput) Validate() error {
 	if s.FunctionName != nil && len(*s.FunctionName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("FunctionName", 1))
 	}
-	if s.MaximumRecordAgeInSeconds != nil && *s.MaximumRecordAgeInSeconds < 60 {
-		invalidParams.Add(request.NewErrParamMinValue("MaximumRecordAgeInSeconds", 60))
+	if s.MaximumRecordAgeInSeconds != nil && *s.MaximumRecordAgeInSeconds < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaximumRecordAgeInSeconds", -1))
+	}
+	if s.MaximumRetryAttempts != nil && *s.MaximumRetryAttempts < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaximumRetryAttempts", -1))
 	}
 	if s.ParallelizationFactor != nil && *s.ParallelizationFactor < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("ParallelizationFactor", 1))
+	}
+	if s.Topics != nil && len(s.Topics) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Topics", 1))
 	}
 
 	if invalidParams.Len() > 0 {
@@ -6136,6 +6155,12 @@ func (s *CreateEventSourceMappingInput) SetStartingPosition(v string) *CreateEve
 // SetStartingPositionTimestamp sets the StartingPositionTimestamp field's value.
 func (s *CreateEventSourceMappingInput) SetStartingPositionTimestamp(v time.Time) *CreateEventSourceMappingInput {
 	s.StartingPositionTimestamp = &v
+	return s
+}
+
+// SetTopics sets the Topics field's value.
+func (s *CreateEventSourceMappingInput) SetTopics(v []*string) *CreateEventSourceMappingInput {
+	s.Topics = v
 	return s
 }
 
@@ -7550,7 +7575,7 @@ type EventSourceMappingConfiguration struct {
 
 	// (Streams) The maximum age of a record that Lambda sends to a function for
 	// processing.
-	MaximumRecordAgeInSeconds *int64 `min:"60" type:"integer"`
+	MaximumRecordAgeInSeconds *int64 `type:"integer"`
 
 	// (Streams) The maximum number of times to retry when the function returns
 	// an error.
@@ -7566,6 +7591,9 @@ type EventSourceMappingConfiguration struct {
 	// Indicates whether the last change to the event source mapping was made by
 	// a user, or by the Lambda service.
 	StateTransitionReason *string `type:"string"`
+
+	// (MSK) The name of the Kafka topic.
+	Topics []*string `min:"1" type:"list"`
 
 	// The identifier of the event source mapping.
 	UUID *string `type:"string"`
@@ -7656,6 +7684,12 @@ func (s *EventSourceMappingConfiguration) SetState(v string) *EventSourceMapping
 // SetStateTransitionReason sets the StateTransitionReason field's value.
 func (s *EventSourceMappingConfiguration) SetStateTransitionReason(v string) *EventSourceMappingConfiguration {
 	s.StateTransitionReason = &v
+	return s
+}
+
+// SetTopics sets the Topics field's value.
+func (s *EventSourceMappingConfiguration) SetTopics(v []*string) *EventSourceMappingConfiguration {
+	s.Topics = v
 	return s
 }
 
@@ -10549,6 +10583,8 @@ type ListEventSourceMappingsInput struct {
 	//    * Amazon DynamoDB Streams - The ARN of the stream.
 	//
 	//    * Amazon Simple Queue Service - The ARN of the queue.
+	//
+	//    * Amazon Managed Streaming for Apache Kafka - The ARN of the cluster.
 	EventSourceArn *string `location:"querystring" locationName:"EventSourceArn" type:"string"`
 
 	// The name of the Lambda function.
@@ -13370,6 +13406,8 @@ type UpdateEventSourceMappingInput struct {
 	//    * Amazon DynamoDB Streams - Default 100. Max 1,000.
 	//
 	//    * Amazon Simple Queue Service - Default 10. Max 10.
+	//
+	//    * Amazon Managed Streaming for Apache Kafka - Default 100. Max 10,000.
 	BatchSize *int64 `min:"1" type:"integer"`
 
 	// (Streams) If the function returns an error, split the batch in two and retry.
@@ -13379,7 +13417,8 @@ type UpdateEventSourceMappingInput struct {
 	// records.
 	DestinationConfig *DestinationConfig `type:"structure"`
 
-	// Disables the event source mapping to pause polling and invocation.
+	// If true, the event source mapping is active. Set to false to pause polling
+	// and invocation.
 	Enabled *bool `type:"boolean"`
 
 	// The name of the Lambda function.
@@ -13402,12 +13441,13 @@ type UpdateEventSourceMappingInput struct {
 	// function, in seconds.
 	MaximumBatchingWindowInSeconds *int64 `type:"integer"`
 
-	// (Streams) The maximum age of a record that Lambda sends to a function for
-	// processing.
-	MaximumRecordAgeInSeconds *int64 `min:"60" type:"integer"`
+	// (Streams) Discard records older than the specified age. The default value
+	// is infinite (-1).
+	MaximumRecordAgeInSeconds *int64 `type:"integer"`
 
-	// (Streams) The maximum number of times to retry when the function returns
-	// an error.
+	// (Streams) Discard records after the specified number of retries. The default
+	// value is infinite (-1). When set to infinite (-1), failed records will be
+	// retried until the record expires.
 	MaximumRetryAttempts *int64 `type:"integer"`
 
 	// (Streams) The number of batches to process from each shard concurrently.
@@ -13438,8 +13478,11 @@ func (s *UpdateEventSourceMappingInput) Validate() error {
 	if s.FunctionName != nil && len(*s.FunctionName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("FunctionName", 1))
 	}
-	if s.MaximumRecordAgeInSeconds != nil && *s.MaximumRecordAgeInSeconds < 60 {
-		invalidParams.Add(request.NewErrParamMinValue("MaximumRecordAgeInSeconds", 60))
+	if s.MaximumRecordAgeInSeconds != nil && *s.MaximumRecordAgeInSeconds < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaximumRecordAgeInSeconds", -1))
+	}
+	if s.MaximumRetryAttempts != nil && *s.MaximumRetryAttempts < -1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaximumRetryAttempts", -1))
 	}
 	if s.ParallelizationFactor != nil && *s.ParallelizationFactor < 1 {
 		invalidParams.Add(request.NewErrParamMinValue("ParallelizationFactor", 1))
@@ -14122,10 +14165,26 @@ const (
 	EventSourcePositionAtTimestamp = "AT_TIMESTAMP"
 )
 
+// EventSourcePosition_Values returns all elements of the EventSourcePosition enum
+func EventSourcePosition_Values() []string {
+	return []string{
+		EventSourcePositionTrimHorizon,
+		EventSourcePositionLatest,
+		EventSourcePositionAtTimestamp,
+	}
+}
+
 const (
 	// FunctionVersionAll is a FunctionVersion enum value
 	FunctionVersionAll = "ALL"
 )
+
+// FunctionVersion_Values returns all elements of the FunctionVersion enum
+func FunctionVersion_Values() []string {
+	return []string{
+		FunctionVersionAll,
+	}
+}
 
 const (
 	// InvocationTypeEvent is a InvocationType enum value
@@ -14138,6 +14197,15 @@ const (
 	InvocationTypeDryRun = "DryRun"
 )
 
+// InvocationType_Values returns all elements of the InvocationType enum
+func InvocationType_Values() []string {
+	return []string{
+		InvocationTypeEvent,
+		InvocationTypeRequestResponse,
+		InvocationTypeDryRun,
+	}
+}
+
 const (
 	// LastUpdateStatusSuccessful is a LastUpdateStatus enum value
 	LastUpdateStatusSuccessful = "Successful"
@@ -14148,6 +14216,15 @@ const (
 	// LastUpdateStatusInProgress is a LastUpdateStatus enum value
 	LastUpdateStatusInProgress = "InProgress"
 )
+
+// LastUpdateStatus_Values returns all elements of the LastUpdateStatus enum
+func LastUpdateStatus_Values() []string {
+	return []string{
+		LastUpdateStatusSuccessful,
+		LastUpdateStatusFailed,
+		LastUpdateStatusInProgress,
+	}
+}
 
 const (
 	// LastUpdateStatusReasonCodeEniLimitExceeded is a LastUpdateStatusReasonCode enum value
@@ -14172,6 +14249,19 @@ const (
 	LastUpdateStatusReasonCodeInvalidSecurityGroup = "InvalidSecurityGroup"
 )
 
+// LastUpdateStatusReasonCode_Values returns all elements of the LastUpdateStatusReasonCode enum
+func LastUpdateStatusReasonCode_Values() []string {
+	return []string{
+		LastUpdateStatusReasonCodeEniLimitExceeded,
+		LastUpdateStatusReasonCodeInsufficientRolePermissions,
+		LastUpdateStatusReasonCodeInvalidConfiguration,
+		LastUpdateStatusReasonCodeInternalError,
+		LastUpdateStatusReasonCodeSubnetOutOfIpaddresses,
+		LastUpdateStatusReasonCodeInvalidSubnet,
+		LastUpdateStatusReasonCodeInvalidSecurityGroup,
+	}
+}
+
 const (
 	// LogTypeNone is a LogType enum value
 	LogTypeNone = "None"
@@ -14179,6 +14269,14 @@ const (
 	// LogTypeTail is a LogType enum value
 	LogTypeTail = "Tail"
 )
+
+// LogType_Values returns all elements of the LogType enum
+func LogType_Values() []string {
+	return []string{
+		LogTypeNone,
+		LogTypeTail,
+	}
+}
 
 const (
 	// ProvisionedConcurrencyStatusEnumInProgress is a ProvisionedConcurrencyStatusEnum enum value
@@ -14190,6 +14288,15 @@ const (
 	// ProvisionedConcurrencyStatusEnumFailed is a ProvisionedConcurrencyStatusEnum enum value
 	ProvisionedConcurrencyStatusEnumFailed = "FAILED"
 )
+
+// ProvisionedConcurrencyStatusEnum_Values returns all elements of the ProvisionedConcurrencyStatusEnum enum
+func ProvisionedConcurrencyStatusEnum_Values() []string {
+	return []string{
+		ProvisionedConcurrencyStatusEnumInProgress,
+		ProvisionedConcurrencyStatusEnumReady,
+		ProvisionedConcurrencyStatusEnumFailed,
+	}
+}
 
 const (
 	// RuntimeNodejs is a Runtime enum value
@@ -14212,6 +14319,9 @@ const (
 
 	// RuntimeJava8 is a Runtime enum value
 	RuntimeJava8 = "java8"
+
+	// RuntimeJava8Al2 is a Runtime enum value
+	RuntimeJava8Al2 = "java8.al2"
 
 	// RuntimeJava11 is a Runtime enum value
 	RuntimeJava11 = "java11"
@@ -14254,7 +14364,39 @@ const (
 
 	// RuntimeProvided is a Runtime enum value
 	RuntimeProvided = "provided"
+
+	// RuntimeProvidedAl2 is a Runtime enum value
+	RuntimeProvidedAl2 = "provided.al2"
 )
+
+// Runtime_Values returns all elements of the Runtime enum
+func Runtime_Values() []string {
+	return []string{
+		RuntimeNodejs,
+		RuntimeNodejs43,
+		RuntimeNodejs610,
+		RuntimeNodejs810,
+		RuntimeNodejs10X,
+		RuntimeNodejs12X,
+		RuntimeJava8,
+		RuntimeJava8Al2,
+		RuntimeJava11,
+		RuntimePython27,
+		RuntimePython36,
+		RuntimePython37,
+		RuntimePython38,
+		RuntimeDotnetcore10,
+		RuntimeDotnetcore20,
+		RuntimeDotnetcore21,
+		RuntimeDotnetcore31,
+		RuntimeNodejs43Edge,
+		RuntimeGo1X,
+		RuntimeRuby25,
+		RuntimeRuby27,
+		RuntimeProvided,
+		RuntimeProvidedAl2,
+	}
+}
 
 const (
 	// StatePending is a State enum value
@@ -14269,6 +14411,16 @@ const (
 	// StateFailed is a State enum value
 	StateFailed = "Failed"
 )
+
+// State_Values returns all elements of the State enum
+func State_Values() []string {
+	return []string{
+		StatePending,
+		StateActive,
+		StateInactive,
+		StateFailed,
+	}
+}
 
 const (
 	// StateReasonCodeIdle is a StateReasonCode enum value
@@ -14302,6 +14454,22 @@ const (
 	StateReasonCodeInvalidSecurityGroup = "InvalidSecurityGroup"
 )
 
+// StateReasonCode_Values returns all elements of the StateReasonCode enum
+func StateReasonCode_Values() []string {
+	return []string{
+		StateReasonCodeIdle,
+		StateReasonCodeCreating,
+		StateReasonCodeRestoring,
+		StateReasonCodeEniLimitExceeded,
+		StateReasonCodeInsufficientRolePermissions,
+		StateReasonCodeInvalidConfiguration,
+		StateReasonCodeInternalError,
+		StateReasonCodeSubnetOutOfIpaddresses,
+		StateReasonCodeInvalidSubnet,
+		StateReasonCodeInvalidSecurityGroup,
+	}
+}
+
 const (
 	// ThrottleReasonConcurrentInvocationLimitExceeded is a ThrottleReason enum value
 	ThrottleReasonConcurrentInvocationLimitExceeded = "ConcurrentInvocationLimitExceeded"
@@ -14319,6 +14487,17 @@ const (
 	ThrottleReasonCallerRateLimitExceeded = "CallerRateLimitExceeded"
 )
 
+// ThrottleReason_Values returns all elements of the ThrottleReason enum
+func ThrottleReason_Values() []string {
+	return []string{
+		ThrottleReasonConcurrentInvocationLimitExceeded,
+		ThrottleReasonFunctionInvocationRateLimitExceeded,
+		ThrottleReasonReservedFunctionConcurrentInvocationLimitExceeded,
+		ThrottleReasonReservedFunctionInvocationRateLimitExceeded,
+		ThrottleReasonCallerRateLimitExceeded,
+	}
+}
+
 const (
 	// TracingModeActive is a TracingMode enum value
 	TracingModeActive = "Active"
@@ -14326,3 +14505,11 @@ const (
 	// TracingModePassThrough is a TracingMode enum value
 	TracingModePassThrough = "PassThrough"
 )
+
+// TracingMode_Values returns all elements of the TracingMode enum
+func TracingMode_Values() []string {
+	return []string{
+		TracingModeActive,
+		TracingModePassThrough,
+	}
+}

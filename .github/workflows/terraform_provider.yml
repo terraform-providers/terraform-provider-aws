@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - master
+      - 'release/**'
   pull_request:
     paths:
       - .github/workflows/terraform_provider.yml
       - .golangci.yml
+      - .goreleaser.yml
+      - .semgrep.yml
       - aws/**
       - awsproviderlint/**
       - docs/index.md
@@ -224,6 +227,40 @@ jobs:
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: golangci-lint run ./aws/...
+    - run: golangci-lint run ./awsproviderlint/...
+
+  goreleaser:
+    needs: [go_mod_download]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - name: goreleaser check
+        continue-on-error: true
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: check
+      - name: goreleaser build
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: build --snapshot --timeout 1h
+
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+       fetch-depth: 0
+    - name: semgrep
+      uses: returntocorp/semgrep-action@v1
 
   tfproviderdocs:
     needs: [terraform_providers_schema]

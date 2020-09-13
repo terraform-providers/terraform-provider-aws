@@ -7,10 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acmpca"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/acmpca/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/acmpca/waiter"
 )
 
 func resourceAwsAcmpcaCertificateAuthority() *schema.Resource {
@@ -306,20 +308,8 @@ func resourceAwsAcmpcaCertificateAuthorityCreate(d *schema.ResourceData, meta in
 
 	d.SetId(aws.StringValue(output.CertificateAuthorityArn))
 
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{
-			"",
-			acmpca.CertificateAuthorityStatusCreating,
-		},
-		Target: []string{
-			acmpca.CertificateAuthorityStatusActive,
-			acmpca.CertificateAuthorityStatusPendingCertificate,
-		},
-		Refresh: acmpcaCertificateAuthorityRefreshFunc(conn, d.Id()),
-		Timeout: d.Timeout(schema.TimeoutCreate),
-	}
+	_, err = waiter.CertificateAuthorityCreated(conn, d.Id(), d.Timeout(schema.TimeoutCreate))
 
-	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("error waiting for ACMPCA Certificate Authority %q to be active or pending certificate: %s", d.Id(), err)
 	}
@@ -331,28 +321,23 @@ func resourceAwsAcmpcaCertificateAuthorityRead(d *schema.ResourceData, meta inte
 	conn := meta.(*AWSClient).acmpcaconn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	describeCertificateAuthorityInput := &acmpca.DescribeCertificateAuthorityInput{
-		CertificateAuthorityArn: aws.String(d.Id()),
-	}
+	certificateAuthority, err := finder.CertificateAuthorityByARN(conn, d.Id())
 
-	log.Printf("[DEBUG] Reading ACMPCA Certificate Authority: %s", describeCertificateAuthorityInput)
-
-	describeCertificateAuthorityOutput, err := conn.DescribeCertificateAuthority(describeCertificateAuthorityInput)
-	if err != nil {
-		if isAWSErr(err, acmpca.ErrCodeResourceNotFoundException, "") {
-			log.Printf("[WARN] ACMPCA Certificate Authority %q not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error reading ACMPCA Certificate Authority: %s", err)
-	}
-
-	if describeCertificateAuthorityOutput.CertificateAuthority == nil {
+	if isAWSErr(err, acmpca.ErrCodeResourceNotFoundException, "") {
 		log.Printf("[WARN] ACMPCA Certificate Authority %q not found - removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
-	certificateAuthority := describeCertificateAuthorityOutput.CertificateAuthority
+
+	if err != nil {
+		return fmt.Errorf("error reading ACMPCA Certificate Authority: %s", err)
+	}
+
+	if certificateAuthority == nil || aws.StringValue(certificateAuthority.Status) == acmpca.CertificateAuthorityStatusDeleted {
+		log.Printf("[WARN] ACMPCA Certificate Authority %q not found - removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
 
 	d.Set("arn", certificateAuthority.Arn)
 
@@ -496,29 +481,6 @@ func resourceAwsAcmpcaCertificateAuthorityDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func acmpcaCertificateAuthorityRefreshFunc(conn *acmpca.ACMPCA, certificateAuthorityArn string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		input := &acmpca.DescribeCertificateAuthorityInput{
-			CertificateAuthorityArn: aws.String(certificateAuthorityArn),
-		}
-
-		log.Printf("[DEBUG] Reading ACMPCA Certificate Authority: %s", input)
-		output, err := conn.DescribeCertificateAuthority(input)
-		if err != nil {
-			if isAWSErr(err, acmpca.ErrCodeResourceNotFoundException, "") {
-				return nil, "", nil
-			}
-			return nil, "", err
-		}
-
-		if output == nil || output.CertificateAuthority == nil {
-			return nil, "", nil
-		}
-
-		return output.CertificateAuthority, aws.StringValue(output.CertificateAuthority.Status), nil
-	}
 }
 
 func expandAcmpcaASN1Subject(l []interface{}) *acmpca.ASN1Subject {

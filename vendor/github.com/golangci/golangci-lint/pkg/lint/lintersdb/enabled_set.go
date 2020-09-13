@@ -1,7 +1,9 @@
 package lintersdb
 
 import (
+	"os"
 	"sort"
+	"strings"
 
 	"github.com/golangci/golangci-lint/pkg/config"
 	"github.com/golangci/golangci-lint/pkg/golinters/goanalysis"
@@ -28,6 +30,7 @@ func NewEnabledSet(m *Manager, v *Validator, log logutils.Log, cfg *config.Confi
 }
 
 func (es EnabledSet) build(lcfg *config.Linters, enabledByDefaultLinters []*linter.Config) map[string]*linter.Config {
+	es.debugf("Linters config: %#v", lcfg)
 	resultLintersSet := map[string]*linter.Config{}
 	switch {
 	case len(lcfg.Presets) != 0:
@@ -76,21 +79,43 @@ func (es EnabledSet) build(lcfg *config.Linters, enabledByDefaultLinters []*lint
 	return resultLintersSet
 }
 
-func (es EnabledSet) Get(optimize bool) ([]*linter.Config, error) {
+func (es EnabledSet) GetEnabledLintersMap() (map[string]*linter.Config, error) {
+	if err := es.v.validateEnabledDisabledLintersConfig(&es.cfg.Linters); err != nil {
+		return nil, err
+	}
+
+	enabledLinters := es.build(&es.cfg.Linters, es.m.GetAllEnabledByDefaultLinters())
+	if os.Getenv("GL_TEST_RUN") == "1" {
+		es.verbosePrintLintersStatus(enabledLinters)
+	}
+	return enabledLinters, nil
+}
+
+// GetOptimizedLinters returns enabled linters after optimization (merging) of multiple linters
+// into a fewer number of linters. E.g. some go/analysis linters can be optimized into
+// one metalinter for data reuse and speed up.
+func (es EnabledSet) GetOptimizedLinters() ([]*linter.Config, error) {
 	if err := es.v.validateEnabledDisabledLintersConfig(&es.cfg.Linters); err != nil {
 		return nil, err
 	}
 
 	resultLintersSet := es.build(&es.cfg.Linters, es.m.GetAllEnabledByDefaultLinters())
 	es.verbosePrintLintersStatus(resultLintersSet)
-	if optimize {
-		es.combineGoAnalysisLinters(resultLintersSet)
-	}
+	es.combineGoAnalysisLinters(resultLintersSet)
 
 	var resultLinters []*linter.Config
 	for _, lc := range resultLintersSet {
 		resultLinters = append(resultLinters, lc)
 	}
+
+	// Make order of execution of linters (go/analysis metalinter and unused) stable.
+	sort.Slice(resultLinters, func(i, j int) bool {
+		a, b := resultLinters[i], resultLinters[j]
+		if a.DoesChangeTypes != b.DoesChangeTypes {
+			return b.DoesChangeTypes // move type-changing linters to the end to optimize speed
+		}
+		return strings.Compare(a.Name(), b.Name()) < 0
+	})
 
 	return resultLinters, nil
 }
@@ -122,6 +147,10 @@ func (es EnabledSet) combineGoAnalysisLinters(linters map[string]*linter.Config)
 		delete(linters, lnt.Name())
 	}
 
+	// Make order of execution of go/analysis analyzers stable.
+	sort.Slice(goanalysisLinters, func(i, j int) bool {
+		return strings.Compare(goanalysisLinters[i].Name(), goanalysisLinters[j].Name()) <= 0
+	})
 	ml := goanalysis.NewMetaLinter(goanalysisLinters)
 
 	var presets []string

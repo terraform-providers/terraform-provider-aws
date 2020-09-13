@@ -5,7 +5,7 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 // goStdlib contains `go list std` command output list.
@@ -247,7 +247,7 @@ func isExampleTestFunc(fn *ast.FuncDecl) bool {
 }
 
 // isUnitTestFunc reports whether FuncDecl declares testing function.
-func isUnitTestFunc(ctx *lintpack.CheckerContext, fn *ast.FuncDecl) bool {
+func isUnitTestFunc(ctx *linter.CheckerContext, fn *ast.FuncDecl) bool {
 	if !strings.HasPrefix(fn.Name.Name, "Test") {
 		return false
 	}

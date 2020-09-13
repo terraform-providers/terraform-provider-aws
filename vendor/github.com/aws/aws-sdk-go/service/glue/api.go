@@ -2595,6 +2595,190 @@ func (c *Glue) DeleteClassifierWithContext(ctx aws.Context, input *DeleteClassif
 	return out, req.Send()
 }
 
+const opDeleteColumnStatisticsForPartition = "DeleteColumnStatisticsForPartition"
+
+// DeleteColumnStatisticsForPartitionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteColumnStatisticsForPartition operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteColumnStatisticsForPartition for more information on using the DeleteColumnStatisticsForPartition
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteColumnStatisticsForPartitionRequest method.
+//    req, resp := client.DeleteColumnStatisticsForPartitionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteColumnStatisticsForPartition
+func (c *Glue) DeleteColumnStatisticsForPartitionRequest(input *DeleteColumnStatisticsForPartitionInput) (req *request.Request, output *DeleteColumnStatisticsForPartitionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteColumnStatisticsForPartition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteColumnStatisticsForPartitionInput{}
+	}
+
+	output = &DeleteColumnStatisticsForPartitionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteColumnStatisticsForPartition API operation for AWS Glue.
+//
+// Delete the partition column statistics of a column.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation DeleteColumnStatisticsForPartition for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteColumnStatisticsForPartition
+func (c *Glue) DeleteColumnStatisticsForPartition(input *DeleteColumnStatisticsForPartitionInput) (*DeleteColumnStatisticsForPartitionOutput, error) {
+	req, out := c.DeleteColumnStatisticsForPartitionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteColumnStatisticsForPartitionWithContext is the same as DeleteColumnStatisticsForPartition with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteColumnStatisticsForPartition for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) DeleteColumnStatisticsForPartitionWithContext(ctx aws.Context, input *DeleteColumnStatisticsForPartitionInput, opts ...request.Option) (*DeleteColumnStatisticsForPartitionOutput, error) {
+	req, out := c.DeleteColumnStatisticsForPartitionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteColumnStatisticsForTable = "DeleteColumnStatisticsForTable"
+
+// DeleteColumnStatisticsForTableRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteColumnStatisticsForTable operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteColumnStatisticsForTable for more information on using the DeleteColumnStatisticsForTable
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteColumnStatisticsForTableRequest method.
+//    req, resp := client.DeleteColumnStatisticsForTableRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteColumnStatisticsForTable
+func (c *Glue) DeleteColumnStatisticsForTableRequest(input *DeleteColumnStatisticsForTableInput) (req *request.Request, output *DeleteColumnStatisticsForTableOutput) {
+	op := &request.Operation{
+		Name:       opDeleteColumnStatisticsForTable,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteColumnStatisticsForTableInput{}
+	}
+
+	output = &DeleteColumnStatisticsForTableOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteColumnStatisticsForTable API operation for AWS Glue.
+//
+// Retrieves table statistics of columns.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation DeleteColumnStatisticsForTable for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/DeleteColumnStatisticsForTable
+func (c *Glue) DeleteColumnStatisticsForTable(input *DeleteColumnStatisticsForTableInput) (*DeleteColumnStatisticsForTableOutput, error) {
+	req, out := c.DeleteColumnStatisticsForTableRequest(input)
+	return out, req.Send()
+}
+
+// DeleteColumnStatisticsForTableWithContext is the same as DeleteColumnStatisticsForTable with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteColumnStatisticsForTable for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) DeleteColumnStatisticsForTableWithContext(ctx aws.Context, input *DeleteColumnStatisticsForTableInput, opts ...request.Option) (*DeleteColumnStatisticsForTableOutput, error) {
+	req, out := c.DeleteColumnStatisticsForTableRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteConnection = "DeleteConnection"
 
 // DeleteConnectionRequest generates a "aws/request.Request" representing the
@@ -4158,6 +4342,188 @@ func (c *Glue) GetClassifiersPagesWithContext(ctx aws.Context, input *GetClassif
 	}
 
 	return p.Err()
+}
+
+const opGetColumnStatisticsForPartition = "GetColumnStatisticsForPartition"
+
+// GetColumnStatisticsForPartitionRequest generates a "aws/request.Request" representing the
+// client's request for the GetColumnStatisticsForPartition operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetColumnStatisticsForPartition for more information on using the GetColumnStatisticsForPartition
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetColumnStatisticsForPartitionRequest method.
+//    req, resp := client.GetColumnStatisticsForPartitionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetColumnStatisticsForPartition
+func (c *Glue) GetColumnStatisticsForPartitionRequest(input *GetColumnStatisticsForPartitionInput) (req *request.Request, output *GetColumnStatisticsForPartitionOutput) {
+	op := &request.Operation{
+		Name:       opGetColumnStatisticsForPartition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetColumnStatisticsForPartitionInput{}
+	}
+
+	output = &GetColumnStatisticsForPartitionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetColumnStatisticsForPartition API operation for AWS Glue.
+//
+// Retrieves partition statistics of columns.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation GetColumnStatisticsForPartition for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetColumnStatisticsForPartition
+func (c *Glue) GetColumnStatisticsForPartition(input *GetColumnStatisticsForPartitionInput) (*GetColumnStatisticsForPartitionOutput, error) {
+	req, out := c.GetColumnStatisticsForPartitionRequest(input)
+	return out, req.Send()
+}
+
+// GetColumnStatisticsForPartitionWithContext is the same as GetColumnStatisticsForPartition with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetColumnStatisticsForPartition for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetColumnStatisticsForPartitionWithContext(ctx aws.Context, input *GetColumnStatisticsForPartitionInput, opts ...request.Option) (*GetColumnStatisticsForPartitionOutput, error) {
+	req, out := c.GetColumnStatisticsForPartitionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetColumnStatisticsForTable = "GetColumnStatisticsForTable"
+
+// GetColumnStatisticsForTableRequest generates a "aws/request.Request" representing the
+// client's request for the GetColumnStatisticsForTable operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetColumnStatisticsForTable for more information on using the GetColumnStatisticsForTable
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetColumnStatisticsForTableRequest method.
+//    req, resp := client.GetColumnStatisticsForTableRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetColumnStatisticsForTable
+func (c *Glue) GetColumnStatisticsForTableRequest(input *GetColumnStatisticsForTableInput) (req *request.Request, output *GetColumnStatisticsForTableOutput) {
+	op := &request.Operation{
+		Name:       opGetColumnStatisticsForTable,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetColumnStatisticsForTableInput{}
+	}
+
+	output = &GetColumnStatisticsForTableOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetColumnStatisticsForTable API operation for AWS Glue.
+//
+// Retrieves table statistics of columns.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation GetColumnStatisticsForTable for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetColumnStatisticsForTable
+func (c *Glue) GetColumnStatisticsForTable(input *GetColumnStatisticsForTableInput) (*GetColumnStatisticsForTableOutput, error) {
+	req, out := c.GetColumnStatisticsForTableRequest(input)
+	return out, req.Send()
+}
+
+// GetColumnStatisticsForTableWithContext is the same as GetColumnStatisticsForTable with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetColumnStatisticsForTable for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetColumnStatisticsForTableWithContext(ctx aws.Context, input *GetColumnStatisticsForTableInput, opts ...request.Option) (*GetColumnStatisticsForTableOutput, error) {
+	req, out := c.GetColumnStatisticsForTableRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
 }
 
 const opGetConnection = "GetConnection"
@@ -6626,6 +6992,155 @@ func (c *Glue) GetPartitionWithContext(ctx aws.Context, input *GetPartitionInput
 	return out, req.Send()
 }
 
+const opGetPartitionIndexes = "GetPartitionIndexes"
+
+// GetPartitionIndexesRequest generates a "aws/request.Request" representing the
+// client's request for the GetPartitionIndexes operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetPartitionIndexes for more information on using the GetPartitionIndexes
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetPartitionIndexesRequest method.
+//    req, resp := client.GetPartitionIndexesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetPartitionIndexes
+func (c *Glue) GetPartitionIndexesRequest(input *GetPartitionIndexesInput) (req *request.Request, output *GetPartitionIndexesOutput) {
+	op := &request.Operation{
+		Name:       opGetPartitionIndexes,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &GetPartitionIndexesInput{}
+	}
+
+	output = &GetPartitionIndexesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetPartitionIndexes API operation for AWS Glue.
+//
+// Retrieves the partition indexes associated with a table.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation GetPartitionIndexes for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * ConflictException
+//   The CreatePartitions API was called on a table that has indexes enabled.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetPartitionIndexes
+func (c *Glue) GetPartitionIndexes(input *GetPartitionIndexesInput) (*GetPartitionIndexesOutput, error) {
+	req, out := c.GetPartitionIndexesRequest(input)
+	return out, req.Send()
+}
+
+// GetPartitionIndexesWithContext is the same as GetPartitionIndexes with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetPartitionIndexes for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetPartitionIndexesWithContext(ctx aws.Context, input *GetPartitionIndexesInput, opts ...request.Option) (*GetPartitionIndexesOutput, error) {
+	req, out := c.GetPartitionIndexesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// GetPartitionIndexesPages iterates over the pages of a GetPartitionIndexes operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See GetPartitionIndexes method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a GetPartitionIndexes operation.
+//    pageNum := 0
+//    err := client.GetPartitionIndexesPages(params,
+//        func(page *glue.GetPartitionIndexesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Glue) GetPartitionIndexesPages(input *GetPartitionIndexesInput, fn func(*GetPartitionIndexesOutput, bool) bool) error {
+	return c.GetPartitionIndexesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// GetPartitionIndexesPagesWithContext same as GetPartitionIndexesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetPartitionIndexesPagesWithContext(ctx aws.Context, input *GetPartitionIndexesInput, fn func(*GetPartitionIndexesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *GetPartitionIndexesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.GetPartitionIndexesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*GetPartitionIndexesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opGetPartitions = "GetPartitions"
 
 // GetPartitionsRequest generates a "aws/request.Request" representing the
@@ -6855,6 +7370,100 @@ func (c *Glue) GetPlan(input *GetPlanInput) (*GetPlanOutput, error) {
 // for more information on using Contexts.
 func (c *Glue) GetPlanWithContext(ctx aws.Context, input *GetPlanInput, opts ...request.Option) (*GetPlanOutput, error) {
 	req, out := c.GetPlanRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetResourcePolicies = "GetResourcePolicies"
+
+// GetResourcePoliciesRequest generates a "aws/request.Request" representing the
+// client's request for the GetResourcePolicies operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetResourcePolicies for more information on using the GetResourcePolicies
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetResourcePoliciesRequest method.
+//    req, resp := client.GetResourcePoliciesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetResourcePolicies
+func (c *Glue) GetResourcePoliciesRequest(input *GetResourcePoliciesInput) (req *request.Request, output *GetResourcePoliciesOutput) {
+	op := &request.Operation{
+		Name:       opGetResourcePolicies,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetResourcePoliciesInput{}
+	}
+
+	output = &GetResourcePoliciesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetResourcePolicies API operation for AWS Glue.
+//
+// Retrieves the security configurations for the resource policies set on individual
+// resources, and also the account-level policy.
+//
+// This operation also returns the Data Catalog resource policy. However, if
+// you enabled metadata encryption in Data Catalog settings, and you do not
+// have permission on the AWS KMS key, the operation can't return the Data Catalog
+// resource policy.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation GetResourcePolicies for usage and error information.
+//
+// Returned Error Types:
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/GetResourcePolicies
+func (c *Glue) GetResourcePolicies(input *GetResourcePoliciesInput) (*GetResourcePoliciesOutput, error) {
+	req, out := c.GetResourcePoliciesRequest(input)
+	return out, req.Send()
+}
+
+// GetResourcePoliciesWithContext is the same as GetResourcePolicies with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetResourcePolicies for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) GetResourcePoliciesWithContext(ctx aws.Context, input *GetResourcePoliciesInput, opts ...request.Option) (*GetResourcePoliciesOutput, error) {
+	req, out := c.GetResourcePoliciesRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -9977,6 +10586,102 @@ func (c *Glue) ResetJobBookmarkWithContext(ctx aws.Context, input *ResetJobBookm
 	return out, req.Send()
 }
 
+const opResumeWorkflowRun = "ResumeWorkflowRun"
+
+// ResumeWorkflowRunRequest generates a "aws/request.Request" representing the
+// client's request for the ResumeWorkflowRun operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResumeWorkflowRun for more information on using the ResumeWorkflowRun
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResumeWorkflowRunRequest method.
+//    req, resp := client.ResumeWorkflowRunRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/ResumeWorkflowRun
+func (c *Glue) ResumeWorkflowRunRequest(input *ResumeWorkflowRunInput) (req *request.Request, output *ResumeWorkflowRunOutput) {
+	op := &request.Operation{
+		Name:       opResumeWorkflowRun,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ResumeWorkflowRunInput{}
+	}
+
+	output = &ResumeWorkflowRunOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ResumeWorkflowRun API operation for AWS Glue.
+//
+// Restarts selected nodes of a previous partially completed workflow run and
+// resumes the workflow run. The selected nodes and all nodes that are downstream
+// from the selected nodes are run.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation ResumeWorkflowRun for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * ConcurrentRunsExceededException
+//   Too many jobs are being run concurrently.
+//
+//   * IllegalWorkflowStateException
+//   The workflow is in an invalid state to perform a requested operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/ResumeWorkflowRun
+func (c *Glue) ResumeWorkflowRun(input *ResumeWorkflowRunInput) (*ResumeWorkflowRunOutput, error) {
+	req, out := c.ResumeWorkflowRunRequest(input)
+	return out, req.Send()
+}
+
+// ResumeWorkflowRunWithContext is the same as ResumeWorkflowRun with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResumeWorkflowRun for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) ResumeWorkflowRunWithContext(ctx aws.Context, input *ResumeWorkflowRunInput, opts ...request.Option) (*ResumeWorkflowRunOutput, error) {
+	req, out := c.ResumeWorkflowRunRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opSearchTables = "SearchTables"
 
 // SearchTablesRequest generates a "aws/request.Request" representing the
@@ -11636,6 +12341,188 @@ func (c *Glue) UpdateClassifier(input *UpdateClassifierInput) (*UpdateClassifier
 // for more information on using Contexts.
 func (c *Glue) UpdateClassifierWithContext(ctx aws.Context, input *UpdateClassifierInput, opts ...request.Option) (*UpdateClassifierOutput, error) {
 	req, out := c.UpdateClassifierRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateColumnStatisticsForPartition = "UpdateColumnStatisticsForPartition"
+
+// UpdateColumnStatisticsForPartitionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateColumnStatisticsForPartition operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateColumnStatisticsForPartition for more information on using the UpdateColumnStatisticsForPartition
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateColumnStatisticsForPartitionRequest method.
+//    req, resp := client.UpdateColumnStatisticsForPartitionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateColumnStatisticsForPartition
+func (c *Glue) UpdateColumnStatisticsForPartitionRequest(input *UpdateColumnStatisticsForPartitionInput) (req *request.Request, output *UpdateColumnStatisticsForPartitionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateColumnStatisticsForPartition,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateColumnStatisticsForPartitionInput{}
+	}
+
+	output = &UpdateColumnStatisticsForPartitionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateColumnStatisticsForPartition API operation for AWS Glue.
+//
+// Creates or updates partition statistics of columns.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation UpdateColumnStatisticsForPartition for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateColumnStatisticsForPartition
+func (c *Glue) UpdateColumnStatisticsForPartition(input *UpdateColumnStatisticsForPartitionInput) (*UpdateColumnStatisticsForPartitionOutput, error) {
+	req, out := c.UpdateColumnStatisticsForPartitionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateColumnStatisticsForPartitionWithContext is the same as UpdateColumnStatisticsForPartition with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateColumnStatisticsForPartition for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) UpdateColumnStatisticsForPartitionWithContext(ctx aws.Context, input *UpdateColumnStatisticsForPartitionInput, opts ...request.Option) (*UpdateColumnStatisticsForPartitionOutput, error) {
+	req, out := c.UpdateColumnStatisticsForPartitionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateColumnStatisticsForTable = "UpdateColumnStatisticsForTable"
+
+// UpdateColumnStatisticsForTableRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateColumnStatisticsForTable operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateColumnStatisticsForTable for more information on using the UpdateColumnStatisticsForTable
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateColumnStatisticsForTableRequest method.
+//    req, resp := client.UpdateColumnStatisticsForTableRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateColumnStatisticsForTable
+func (c *Glue) UpdateColumnStatisticsForTableRequest(input *UpdateColumnStatisticsForTableInput) (req *request.Request, output *UpdateColumnStatisticsForTableOutput) {
+	op := &request.Operation{
+		Name:       opUpdateColumnStatisticsForTable,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateColumnStatisticsForTableInput{}
+	}
+
+	output = &UpdateColumnStatisticsForTableOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateColumnStatisticsForTable API operation for AWS Glue.
+//
+// Creates or updates table statistics of columns.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Glue's
+// API operation UpdateColumnStatisticsForTable for usage and error information.
+//
+// Returned Error Types:
+//   * EntityNotFoundException
+//   A specified entity does not exist
+//
+//   * InvalidInputException
+//   The input provided was not valid.
+//
+//   * InternalServiceException
+//   An internal service error occurred.
+//
+//   * OperationTimeoutException
+//   The operation timed out.
+//
+//   * EncryptionException
+//   An encryption operation failed.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/glue-2017-03-31/UpdateColumnStatisticsForTable
+func (c *Glue) UpdateColumnStatisticsForTable(input *UpdateColumnStatisticsForTableInput) (*UpdateColumnStatisticsForTableOutput, error) {
+	req, out := c.UpdateColumnStatisticsForTableRequest(input)
+	return out, req.Send()
+}
+
+// UpdateColumnStatisticsForTableWithContext is the same as UpdateColumnStatisticsForTable with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateColumnStatisticsForTable for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Glue) UpdateColumnStatisticsForTableWithContext(ctx aws.Context, input *UpdateColumnStatisticsForTableInput, opts ...request.Option) (*UpdateColumnStatisticsForTableOutput, error) {
+	req, out := c.UpdateColumnStatisticsForTableRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -14165,6 +15052,140 @@ func (s *BatchStopJobRunSuccessfulSubmission) SetJobRunId(v string) *BatchStopJo
 	return s
 }
 
+// Defines a binary column statistics data.
+type BinaryColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Average length of the column.
+	//
+	// AverageLength is a required field
+	AverageLength *float64 `type:"double" required:"true"`
+
+	// Maximum length of the column.
+	//
+	// MaximumLength is a required field
+	MaximumLength *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s BinaryColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BinaryColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BinaryColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BinaryColumnStatisticsData"}
+	if s.AverageLength == nil {
+		invalidParams.Add(request.NewErrParamRequired("AverageLength"))
+	}
+	if s.MaximumLength == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaximumLength"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAverageLength sets the AverageLength field's value.
+func (s *BinaryColumnStatisticsData) SetAverageLength(v float64) *BinaryColumnStatisticsData {
+	s.AverageLength = &v
+	return s
+}
+
+// SetMaximumLength sets the MaximumLength field's value.
+func (s *BinaryColumnStatisticsData) SetMaximumLength(v int64) *BinaryColumnStatisticsData {
+	s.MaximumLength = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *BinaryColumnStatisticsData) SetNumberOfNulls(v int64) *BinaryColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
+// Defines a boolean column statistics.
+type BooleanColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Number of false value.
+	//
+	// NumberOfFalses is a required field
+	NumberOfFalses *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+
+	// Number of true value.
+	//
+	// NumberOfTrues is a required field
+	NumberOfTrues *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s BooleanColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BooleanColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BooleanColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BooleanColumnStatisticsData"}
+	if s.NumberOfFalses == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfFalses"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+	if s.NumberOfTrues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfTrues"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetNumberOfFalses sets the NumberOfFalses field's value.
+func (s *BooleanColumnStatisticsData) SetNumberOfFalses(v int64) *BooleanColumnStatisticsData {
+	s.NumberOfFalses = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *BooleanColumnStatisticsData) SetNumberOfNulls(v int64) *BooleanColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
+// SetNumberOfTrues sets the NumberOfTrues field's value.
+func (s *BooleanColumnStatisticsData) SetNumberOfTrues(v int64) *BooleanColumnStatisticsData {
+	s.NumberOfTrues = &v
+	return s
+}
+
 type CancelMLTaskRunInput struct {
 	_ struct{} `type:"structure"`
 
@@ -14804,6 +15825,298 @@ func (s *Column) SetType(v string) *Column {
 	return s
 }
 
+// Defines a column containing error.
+type ColumnError struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the column.
+	ColumnName *string `min:"1" type:"string"`
+
+	// The error message occurred during operation.
+	Error *ErrorDetail `type:"structure"`
+}
+
+// String returns the string representation
+func (s ColumnError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ColumnError) GoString() string {
+	return s.String()
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *ColumnError) SetColumnName(v string) *ColumnError {
+	s.ColumnName = &v
+	return s
+}
+
+// SetError sets the Error field's value.
+func (s *ColumnError) SetError(v *ErrorDetail) *ColumnError {
+	s.Error = v
+	return s
+}
+
+// Defines a column statistics.
+type ColumnStatistics struct {
+	_ struct{} `type:"structure"`
+
+	// The analyzed time of the column statistics.
+	//
+	// AnalyzedTime is a required field
+	AnalyzedTime *time.Time `type:"timestamp" required:"true"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `min:"1" type:"string" required:"true"`
+
+	// The type of the column.
+	//
+	// ColumnType is a required field
+	ColumnType *string `type:"string" required:"true"`
+
+	// The statistics of the column.
+	//
+	// StatisticsData is a required field
+	StatisticsData *ColumnStatisticsData `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s ColumnStatistics) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ColumnStatistics) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ColumnStatistics) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ColumnStatistics"}
+	if s.AnalyzedTime == nil {
+		invalidParams.Add(request.NewErrParamRequired("AnalyzedTime"))
+	}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.ColumnName != nil && len(*s.ColumnName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ColumnName", 1))
+	}
+	if s.ColumnType == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnType"))
+	}
+	if s.StatisticsData == nil {
+		invalidParams.Add(request.NewErrParamRequired("StatisticsData"))
+	}
+	if s.StatisticsData != nil {
+		if err := s.StatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("StatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAnalyzedTime sets the AnalyzedTime field's value.
+func (s *ColumnStatistics) SetAnalyzedTime(v time.Time) *ColumnStatistics {
+	s.AnalyzedTime = &v
+	return s
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *ColumnStatistics) SetColumnName(v string) *ColumnStatistics {
+	s.ColumnName = &v
+	return s
+}
+
+// SetColumnType sets the ColumnType field's value.
+func (s *ColumnStatistics) SetColumnType(v string) *ColumnStatistics {
+	s.ColumnType = &v
+	return s
+}
+
+// SetStatisticsData sets the StatisticsData field's value.
+func (s *ColumnStatistics) SetStatisticsData(v *ColumnStatisticsData) *ColumnStatistics {
+	s.StatisticsData = v
+	return s
+}
+
+// Defines a column statistics data.
+type ColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Binary Column Statistics Data.
+	BinaryColumnStatisticsData *BinaryColumnStatisticsData `type:"structure"`
+
+	// Boolean Column Statistics Data.
+	BooleanColumnStatisticsData *BooleanColumnStatisticsData `type:"structure"`
+
+	// Date Column Statistics Data.
+	DateColumnStatisticsData *DateColumnStatisticsData `type:"structure"`
+
+	// Decimal Column Statistics Data.
+	DecimalColumnStatisticsData *DecimalColumnStatisticsData `type:"structure"`
+
+	// Double Column Statistics Data.
+	DoubleColumnStatisticsData *DoubleColumnStatisticsData `type:"structure"`
+
+	// Long Column Statistics Data.
+	LongColumnStatisticsData *LongColumnStatisticsData `type:"structure"`
+
+	// String Column Statistics Data.
+	StringColumnStatisticsData *StringColumnStatisticsData `type:"structure"`
+
+	// The name of the column.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true" enum:"ColumnStatisticsType"`
+}
+
+// String returns the string representation
+func (s ColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ColumnStatisticsData"}
+	if s.Type == nil {
+		invalidParams.Add(request.NewErrParamRequired("Type"))
+	}
+	if s.BinaryColumnStatisticsData != nil {
+		if err := s.BinaryColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("BinaryColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.BooleanColumnStatisticsData != nil {
+		if err := s.BooleanColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("BooleanColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DateColumnStatisticsData != nil {
+		if err := s.DateColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("DateColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DecimalColumnStatisticsData != nil {
+		if err := s.DecimalColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("DecimalColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.DoubleColumnStatisticsData != nil {
+		if err := s.DoubleColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("DoubleColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.LongColumnStatisticsData != nil {
+		if err := s.LongColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("LongColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.StringColumnStatisticsData != nil {
+		if err := s.StringColumnStatisticsData.Validate(); err != nil {
+			invalidParams.AddNested("StringColumnStatisticsData", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBinaryColumnStatisticsData sets the BinaryColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetBinaryColumnStatisticsData(v *BinaryColumnStatisticsData) *ColumnStatisticsData {
+	s.BinaryColumnStatisticsData = v
+	return s
+}
+
+// SetBooleanColumnStatisticsData sets the BooleanColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetBooleanColumnStatisticsData(v *BooleanColumnStatisticsData) *ColumnStatisticsData {
+	s.BooleanColumnStatisticsData = v
+	return s
+}
+
+// SetDateColumnStatisticsData sets the DateColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetDateColumnStatisticsData(v *DateColumnStatisticsData) *ColumnStatisticsData {
+	s.DateColumnStatisticsData = v
+	return s
+}
+
+// SetDecimalColumnStatisticsData sets the DecimalColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetDecimalColumnStatisticsData(v *DecimalColumnStatisticsData) *ColumnStatisticsData {
+	s.DecimalColumnStatisticsData = v
+	return s
+}
+
+// SetDoubleColumnStatisticsData sets the DoubleColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetDoubleColumnStatisticsData(v *DoubleColumnStatisticsData) *ColumnStatisticsData {
+	s.DoubleColumnStatisticsData = v
+	return s
+}
+
+// SetLongColumnStatisticsData sets the LongColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetLongColumnStatisticsData(v *LongColumnStatisticsData) *ColumnStatisticsData {
+	s.LongColumnStatisticsData = v
+	return s
+}
+
+// SetStringColumnStatisticsData sets the StringColumnStatisticsData field's value.
+func (s *ColumnStatisticsData) SetStringColumnStatisticsData(v *StringColumnStatisticsData) *ColumnStatisticsData {
+	s.StringColumnStatisticsData = v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ColumnStatisticsData) SetType(v string) *ColumnStatisticsData {
+	s.Type = &v
+	return s
+}
+
+// Defines a column containing error.
+type ColumnStatisticsError struct {
+	_ struct{} `type:"structure"`
+
+	// The ColumnStatistics of the column.
+	ColumnStatistics *ColumnStatistics `type:"structure"`
+
+	// The error message occurred during operation.
+	Error *ErrorDetail `type:"structure"`
+}
+
+// String returns the string representation
+func (s ColumnStatisticsError) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ColumnStatisticsError) GoString() string {
+	return s.String()
+}
+
+// SetColumnStatistics sets the ColumnStatistics field's value.
+func (s *ColumnStatisticsError) SetColumnStatistics(v *ColumnStatistics) *ColumnStatisticsError {
+	s.ColumnStatistics = v
+	return s
+}
+
+// SetError sets the Error field's value.
+func (s *ColumnStatisticsError) SetError(v *ErrorDetail) *ColumnStatisticsError {
+	s.Error = v
+	return s
+}
+
 // Two processes are trying to modify a resource simultaneously.
 type ConcurrentModificationException struct {
 	_            struct{}                  `type:"structure"`
@@ -15054,6 +16367,63 @@ func (s *ConditionCheckFailureException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The CreatePartitions API was called on a table that has indexes enabled.
+type ConflictException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	// A message describing the problem.
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s ConflictException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ConflictException) GoString() string {
+	return s.String()
+}
+
+func newErrorConflictException(v protocol.ResponseMetadata) error {
+	return &ConflictException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ConflictException) Code() string {
+	return "ConflictException"
+}
+
+// Message returns the exception's message.
+func (s *ConflictException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ConflictException) OrigErr() error {
+	return nil
+}
+
+func (s *ConflictException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ConflictException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ConflictException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // The confusion matrix shows you what your transform is predicting accurately
 // and what types of errors it is making.
 //
@@ -15180,8 +16550,7 @@ type Connection struct {
 	//    to which a Kafka client will connect to and bootstrap itself.
 	ConnectionProperties map[string]*string `type:"map"`
 
-	// The type of the connection. Currently, only JDBC is supported; SFTP is not
-	// supported.
+	// The type of the connection. Currently, SFTP is not supported.
 	ConnectionType *string `type:"string" enum:"ConnectionType"`
 
 	// The time that this connection definition was created.
@@ -17179,9 +18548,10 @@ type CreateJobInput struct {
 	//    * When you specify a Python shell job (JobCommand.Name="pythonshell"),
 	//    you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.
 	//
-	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl"),
-	//    you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job
-	//    type cannot have a fractional DPU allocation.
+	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl")
+	//    or Apache Spark streaming ETL job (JobCommand.Name="gluestreaming"), you
+	//    can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type
+	//    cannot have a fractional DPU allocation.
 	MaxCapacity *float64 `type:"double"`
 
 	// The maximum number of times to retry this job if it fails.
@@ -18056,6 +19426,10 @@ type CreateTableInput struct {
 	// DatabaseName is a required field
 	DatabaseName *string `min:"1" type:"string" required:"true"`
 
+	// A list of partition indexes, PartitionIndex structures, to create in the
+	// table.
+	PartitionIndexes []*PartitionIndex `type:"list"`
+
 	// The TableInput object that defines the metadata table to create in the catalog.
 	//
 	// TableInput is a required field
@@ -18087,6 +19461,16 @@ func (s *CreateTableInput) Validate() error {
 	if s.TableInput == nil {
 		invalidParams.Add(request.NewErrParamRequired("TableInput"))
 	}
+	if s.PartitionIndexes != nil {
+		for i, v := range s.PartitionIndexes {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "PartitionIndexes", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 	if s.TableInput != nil {
 		if err := s.TableInput.Validate(); err != nil {
 			invalidParams.AddNested("TableInput", err.(request.ErrInvalidParams))
@@ -18108,6 +19492,12 @@ func (s *CreateTableInput) SetCatalogId(v string) *CreateTableInput {
 // SetDatabaseName sets the DatabaseName field's value.
 func (s *CreateTableInput) SetDatabaseName(v string) *CreateTableInput {
 	s.DatabaseName = &v
+	return s
+}
+
+// SetPartitionIndexes sets the PartitionIndexes field's value.
+func (s *CreateTableInput) SetPartitionIndexes(v []*PartitionIndex) *CreateTableInput {
+	s.PartitionIndexes = v
 	return s
 }
 
@@ -18402,6 +19792,12 @@ type CreateWorkflowInput struct {
 	// A description of the workflow.
 	Description *string `type:"string"`
 
+	// You can use this parameter to prevent unwanted multiple updates to data,
+	// to control costs, or in some cases, to prevent exceeding the maximum number
+	// of concurrent runs of any of the component jobs. If you leave this parameter
+	// blank, there is no limit to the number of concurrent workflow runs.
+	MaxConcurrentRuns *int64 `type:"integer"`
+
 	// The name to be assigned to the workflow. It should be unique within your
 	// account.
 	//
@@ -18447,6 +19843,12 @@ func (s *CreateWorkflowInput) SetDefaultRunProperties(v map[string]*string) *Cre
 // SetDescription sets the Description field's value.
 func (s *CreateWorkflowInput) SetDescription(v string) *CreateWorkflowInput {
 	s.Description = &v
+	return s
+}
+
+// SetMaxConcurrentRuns sets the MaxConcurrentRuns field's value.
+func (s *CreateWorkflowInput) SetMaxConcurrentRuns(v int64) *CreateWorkflowInput {
+	s.MaxConcurrentRuns = &v
 	return s
 }
 
@@ -18761,6 +20163,9 @@ func (s *DataLakePrincipal) SetDataLakePrincipalIdentifier(v string) *DataLakePr
 type Database struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of the Data Catalog in which the database resides.
+	CatalogId *string `min:"1" type:"string"`
+
 	// Creates a set of default permissions on the table for principals.
 	CreateTableDefaultPermissions []*PrincipalPermissions `type:"list"`
 
@@ -18781,6 +20186,10 @@ type Database struct {
 
 	// These key-value pairs define parameters and properties of the database.
 	Parameters map[string]*string `type:"map"`
+
+	// A DatabaseIdentifier structure that describes a target database for resource
+	// linking.
+	TargetDatabase *DatabaseIdentifier `type:"structure"`
 }
 
 // String returns the string representation
@@ -18791,6 +20200,12 @@ func (s Database) String() string {
 // GoString returns the string representation
 func (s Database) GoString() string {
 	return s.String()
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *Database) SetCatalogId(v string) *Database {
+	s.CatalogId = &v
+	return s
 }
 
 // SetCreateTableDefaultPermissions sets the CreateTableDefaultPermissions field's value.
@@ -18829,6 +20244,61 @@ func (s *Database) SetParameters(v map[string]*string) *Database {
 	return s
 }
 
+// SetTargetDatabase sets the TargetDatabase field's value.
+func (s *Database) SetTargetDatabase(v *DatabaseIdentifier) *Database {
+	s.TargetDatabase = v
+	return s
+}
+
+// A structure that describes a target database for resource linking.
+type DatabaseIdentifier struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog in which the database resides.
+	CatalogId *string `min:"1" type:"string"`
+
+	// The name of the catalog database.
+	DatabaseName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DatabaseIdentifier) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DatabaseIdentifier) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DatabaseIdentifier) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DatabaseIdentifier"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *DatabaseIdentifier) SetCatalogId(v string) *DatabaseIdentifier {
+	s.CatalogId = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *DatabaseIdentifier) SetDatabaseName(v string) *DatabaseIdentifier {
+	s.DatabaseName = &v
+	return s
+}
+
 // The structure used to create or update a database.
 type DatabaseInput struct {
 	_ struct{} `type:"structure"`
@@ -18852,6 +20322,10 @@ type DatabaseInput struct {
 	//
 	// These key-value pairs define parameters and properties of the database.
 	Parameters map[string]*string `type:"map"`
+
+	// A DatabaseIdentifier structure that describes a target database for resource
+	// linking.
+	TargetDatabase *DatabaseIdentifier `type:"structure"`
 }
 
 // String returns the string representation
@@ -18884,6 +20358,11 @@ func (s *DatabaseInput) Validate() error {
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CreateTableDefaultPermissions", i), err.(request.ErrInvalidParams))
 			}
+		}
+	}
+	if s.TargetDatabase != nil {
+		if err := s.TargetDatabase.Validate(); err != nil {
+			invalidParams.AddNested("TargetDatabase", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -18920,6 +20399,219 @@ func (s *DatabaseInput) SetName(v string) *DatabaseInput {
 // SetParameters sets the Parameters field's value.
 func (s *DatabaseInput) SetParameters(v map[string]*string) *DatabaseInput {
 	s.Parameters = v
+	return s
+}
+
+// SetTargetDatabase sets the TargetDatabase field's value.
+func (s *DatabaseInput) SetTargetDatabase(v *DatabaseIdentifier) *DatabaseInput {
+	s.TargetDatabase = v
+	return s
+}
+
+// Defines a date column statistics data.
+type DateColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Maximum value of the column.
+	MaximumValue *time.Time `type:"timestamp"`
+
+	// Minimum value of the column.
+	MinimumValue *time.Time `type:"timestamp"`
+
+	// Number of distinct values.
+	//
+	// NumberOfDistinctValues is a required field
+	NumberOfDistinctValues *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s DateColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DateColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DateColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DateColumnStatisticsData"}
+	if s.NumberOfDistinctValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfDistinctValues"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaximumValue sets the MaximumValue field's value.
+func (s *DateColumnStatisticsData) SetMaximumValue(v time.Time) *DateColumnStatisticsData {
+	s.MaximumValue = &v
+	return s
+}
+
+// SetMinimumValue sets the MinimumValue field's value.
+func (s *DateColumnStatisticsData) SetMinimumValue(v time.Time) *DateColumnStatisticsData {
+	s.MinimumValue = &v
+	return s
+}
+
+// SetNumberOfDistinctValues sets the NumberOfDistinctValues field's value.
+func (s *DateColumnStatisticsData) SetNumberOfDistinctValues(v int64) *DateColumnStatisticsData {
+	s.NumberOfDistinctValues = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *DateColumnStatisticsData) SetNumberOfNulls(v int64) *DateColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
+// Defines a decimal column statistics data.
+type DecimalColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Maximum value of the column.
+	MaximumValue *DecimalNumber `type:"structure"`
+
+	// Minimum value of the column.
+	MinimumValue *DecimalNumber `type:"structure"`
+
+	// Number of distinct values.
+	//
+	// NumberOfDistinctValues is a required field
+	NumberOfDistinctValues *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s DecimalColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DecimalColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DecimalColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DecimalColumnStatisticsData"}
+	if s.NumberOfDistinctValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfDistinctValues"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+	if s.MaximumValue != nil {
+		if err := s.MaximumValue.Validate(); err != nil {
+			invalidParams.AddNested("MaximumValue", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.MinimumValue != nil {
+		if err := s.MinimumValue.Validate(); err != nil {
+			invalidParams.AddNested("MinimumValue", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaximumValue sets the MaximumValue field's value.
+func (s *DecimalColumnStatisticsData) SetMaximumValue(v *DecimalNumber) *DecimalColumnStatisticsData {
+	s.MaximumValue = v
+	return s
+}
+
+// SetMinimumValue sets the MinimumValue field's value.
+func (s *DecimalColumnStatisticsData) SetMinimumValue(v *DecimalNumber) *DecimalColumnStatisticsData {
+	s.MinimumValue = v
+	return s
+}
+
+// SetNumberOfDistinctValues sets the NumberOfDistinctValues field's value.
+func (s *DecimalColumnStatisticsData) SetNumberOfDistinctValues(v int64) *DecimalColumnStatisticsData {
+	s.NumberOfDistinctValues = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *DecimalColumnStatisticsData) SetNumberOfNulls(v int64) *DecimalColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
+// Contains a numeric value in decimal format.
+type DecimalNumber struct {
+	_ struct{} `type:"structure"`
+
+	// The scale that determines where the decimal point falls in the unscaled value.
+	//
+	// Scale is a required field
+	Scale *int64 `type:"integer" required:"true"`
+
+	// The unscaled numeric value.
+	//
+	// UnscaledValue is automatically base64 encoded/decoded by the SDK.
+	//
+	// UnscaledValue is a required field
+	UnscaledValue []byte `type:"blob" required:"true"`
+}
+
+// String returns the string representation
+func (s DecimalNumber) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DecimalNumber) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DecimalNumber) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DecimalNumber"}
+	if s.Scale == nil {
+		invalidParams.Add(request.NewErrParamRequired("Scale"))
+	}
+	if s.UnscaledValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("UnscaledValue"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetScale sets the Scale field's value.
+func (s *DecimalNumber) SetScale(v int64) *DecimalNumber {
+	s.Scale = &v
+	return s
+}
+
+// SetUnscaledValue sets the UnscaledValue field's value.
+func (s *DecimalNumber) SetUnscaledValue(v []byte) *DecimalNumber {
+	s.UnscaledValue = v
 	return s
 }
 
@@ -18975,6 +20667,224 @@ func (s DeleteClassifierOutput) String() string {
 
 // GoString returns the string representation
 func (s DeleteClassifierOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteColumnStatisticsForPartitionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// Name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// A list of partition values identifying the partition.
+	//
+	// PartitionValues is a required field
+	PartitionValues []*string `type:"list" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteColumnStatisticsForPartitionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteColumnStatisticsForPartitionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteColumnStatisticsForPartitionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteColumnStatisticsForPartitionInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.ColumnName != nil && len(*s.ColumnName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ColumnName", 1))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.PartitionValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("PartitionValues"))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *DeleteColumnStatisticsForPartitionInput) SetCatalogId(v string) *DeleteColumnStatisticsForPartitionInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *DeleteColumnStatisticsForPartitionInput) SetColumnName(v string) *DeleteColumnStatisticsForPartitionInput {
+	s.ColumnName = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *DeleteColumnStatisticsForPartitionInput) SetDatabaseName(v string) *DeleteColumnStatisticsForPartitionInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetPartitionValues sets the PartitionValues field's value.
+func (s *DeleteColumnStatisticsForPartitionInput) SetPartitionValues(v []*string) *DeleteColumnStatisticsForPartitionInput {
+	s.PartitionValues = v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *DeleteColumnStatisticsForPartitionInput) SetTableName(v string) *DeleteColumnStatisticsForPartitionInput {
+	s.TableName = &v
+	return s
+}
+
+type DeleteColumnStatisticsForPartitionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteColumnStatisticsForPartitionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteColumnStatisticsForPartitionOutput) GoString() string {
+	return s.String()
+}
+
+type DeleteColumnStatisticsForTableInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// The name of the column.
+	//
+	// ColumnName is a required field
+	ColumnName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteColumnStatisticsForTableInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteColumnStatisticsForTableInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteColumnStatisticsForTableInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteColumnStatisticsForTableInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnName"))
+	}
+	if s.ColumnName != nil && len(*s.ColumnName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ColumnName", 1))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *DeleteColumnStatisticsForTableInput) SetCatalogId(v string) *DeleteColumnStatisticsForTableInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnName sets the ColumnName field's value.
+func (s *DeleteColumnStatisticsForTableInput) SetColumnName(v string) *DeleteColumnStatisticsForTableInput {
+	s.ColumnName = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *DeleteColumnStatisticsForTableInput) SetDatabaseName(v string) *DeleteColumnStatisticsForTableInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *DeleteColumnStatisticsForTableInput) SetTableName(v string) *DeleteColumnStatisticsForTableInput {
+	s.TableName = &v
+	return s
+}
+
+type DeleteColumnStatisticsForTableOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteColumnStatisticsForTableOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteColumnStatisticsForTableOutput) GoString() string {
 	return s.String()
 }
 
@@ -19454,6 +21364,9 @@ type DeleteResourcePolicyInput struct {
 
 	// The hash value returned when this policy was set.
 	PolicyHashCondition *string `min:"1" type:"string"`
+
+	// The ARN of the AWS Glue resource for the resource policy to be deleted.
+	ResourceArn *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -19472,6 +21385,9 @@ func (s *DeleteResourcePolicyInput) Validate() error {
 	if s.PolicyHashCondition != nil && len(*s.PolicyHashCondition) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("PolicyHashCondition", 1))
 	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -19482,6 +21398,12 @@ func (s *DeleteResourcePolicyInput) Validate() error {
 // SetPolicyHashCondition sets the PolicyHashCondition field's value.
 func (s *DeleteResourcePolicyInput) SetPolicyHashCondition(v string) *DeleteResourcePolicyInput {
 	s.PolicyHashCondition = &v
+	return s
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *DeleteResourcePolicyInput) SetResourceArn(v string) *DeleteResourcePolicyInput {
+	s.ResourceArn = &v
 	return s
 }
 
@@ -20307,6 +22229,77 @@ func (s *DevEndpointCustomLibraries) SetExtraPythonLibsS3Path(v string) *DevEndp
 	return s
 }
 
+// Defines a double column statistics data.
+type DoubleColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Maximum value of the column.
+	MaximumValue *float64 `type:"double"`
+
+	// Minimum value of the column.
+	MinimumValue *float64 `type:"double"`
+
+	// Number of distinct values.
+	//
+	// NumberOfDistinctValues is a required field
+	NumberOfDistinctValues *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s DoubleColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DoubleColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DoubleColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DoubleColumnStatisticsData"}
+	if s.NumberOfDistinctValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfDistinctValues"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaximumValue sets the MaximumValue field's value.
+func (s *DoubleColumnStatisticsData) SetMaximumValue(v float64) *DoubleColumnStatisticsData {
+	s.MaximumValue = &v
+	return s
+}
+
+// SetMinimumValue sets the MinimumValue field's value.
+func (s *DoubleColumnStatisticsData) SetMinimumValue(v float64) *DoubleColumnStatisticsData {
+	s.MinimumValue = &v
+	return s
+}
+
+// SetNumberOfDistinctValues sets the NumberOfDistinctValues field's value.
+func (s *DoubleColumnStatisticsData) SetNumberOfDistinctValues(v int64) *DoubleColumnStatisticsData {
+	s.NumberOfDistinctValues = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *DoubleColumnStatisticsData) SetNumberOfNulls(v int64) *DoubleColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
 // Specifies an Amazon DynamoDB table to crawl.
 type DynamoDBTarget struct {
 	_ struct{} `type:"structure"`
@@ -20363,7 +22356,7 @@ func (s *DynamoDBTarget) SetScanRate(v float64) *DynamoDBTarget {
 }
 
 // An edge represents a directed connection between two AWS Glue components
-// which are part of the workflow the edge belongs to.
+// that are part of the workflow the edge belongs to.
 type Edge struct {
 	_ struct{} `type:"structure"`
 
@@ -21149,6 +23142,254 @@ func (s *GetClassifiersOutput) SetNextToken(v string) *GetClassifiersOutput {
 	return s
 }
 
+type GetColumnStatisticsForPartitionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// A list of the column names.
+	//
+	// ColumnNames is a required field
+	ColumnNames []*string `type:"list" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// A list of partition values identifying the partition.
+	//
+	// PartitionValues is a required field
+	PartitionValues []*string `type:"list" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetColumnStatisticsForPartitionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetColumnStatisticsForPartitionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetColumnStatisticsForPartitionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetColumnStatisticsForPartitionInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnNames == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnNames"))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.PartitionValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("PartitionValues"))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *GetColumnStatisticsForPartitionInput) SetCatalogId(v string) *GetColumnStatisticsForPartitionInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnNames sets the ColumnNames field's value.
+func (s *GetColumnStatisticsForPartitionInput) SetColumnNames(v []*string) *GetColumnStatisticsForPartitionInput {
+	s.ColumnNames = v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *GetColumnStatisticsForPartitionInput) SetDatabaseName(v string) *GetColumnStatisticsForPartitionInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetPartitionValues sets the PartitionValues field's value.
+func (s *GetColumnStatisticsForPartitionInput) SetPartitionValues(v []*string) *GetColumnStatisticsForPartitionInput {
+	s.PartitionValues = v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *GetColumnStatisticsForPartitionInput) SetTableName(v string) *GetColumnStatisticsForPartitionInput {
+	s.TableName = &v
+	return s
+}
+
+type GetColumnStatisticsForPartitionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// List of ColumnStatistics that failed to be retrieved.
+	ColumnStatisticsList []*ColumnStatistics `type:"list"`
+
+	// Error occurred during retrieving column statistics data.
+	Errors []*ColumnError `type:"list"`
+}
+
+// String returns the string representation
+func (s GetColumnStatisticsForPartitionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetColumnStatisticsForPartitionOutput) GoString() string {
+	return s.String()
+}
+
+// SetColumnStatisticsList sets the ColumnStatisticsList field's value.
+func (s *GetColumnStatisticsForPartitionOutput) SetColumnStatisticsList(v []*ColumnStatistics) *GetColumnStatisticsForPartitionOutput {
+	s.ColumnStatisticsList = v
+	return s
+}
+
+// SetErrors sets the Errors field's value.
+func (s *GetColumnStatisticsForPartitionOutput) SetErrors(v []*ColumnError) *GetColumnStatisticsForPartitionOutput {
+	s.Errors = v
+	return s
+}
+
+type GetColumnStatisticsForTableInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// A list of the column names.
+	//
+	// ColumnNames is a required field
+	ColumnNames []*string `type:"list" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetColumnStatisticsForTableInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetColumnStatisticsForTableInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetColumnStatisticsForTableInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetColumnStatisticsForTableInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnNames == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnNames"))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *GetColumnStatisticsForTableInput) SetCatalogId(v string) *GetColumnStatisticsForTableInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnNames sets the ColumnNames field's value.
+func (s *GetColumnStatisticsForTableInput) SetColumnNames(v []*string) *GetColumnStatisticsForTableInput {
+	s.ColumnNames = v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *GetColumnStatisticsForTableInput) SetDatabaseName(v string) *GetColumnStatisticsForTableInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *GetColumnStatisticsForTableInput) SetTableName(v string) *GetColumnStatisticsForTableInput {
+	s.TableName = &v
+	return s
+}
+
+type GetColumnStatisticsForTableOutput struct {
+	_ struct{} `type:"structure"`
+
+	// List of ColumnStatistics that failed to be retrieved.
+	ColumnStatisticsList []*ColumnStatistics `type:"list"`
+
+	// List of ColumnStatistics that failed to be retrieved.
+	Errors []*ColumnError `type:"list"`
+}
+
+// String returns the string representation
+func (s GetColumnStatisticsForTableOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetColumnStatisticsForTableOutput) GoString() string {
+	return s.String()
+}
+
+// SetColumnStatisticsList sets the ColumnStatisticsList field's value.
+func (s *GetColumnStatisticsForTableOutput) SetColumnStatisticsList(v []*ColumnStatistics) *GetColumnStatisticsForTableOutput {
+	s.ColumnStatisticsList = v
+	return s
+}
+
+// SetErrors sets the Errors field's value.
+func (s *GetColumnStatisticsForTableOutput) SetErrors(v []*ColumnError) *GetColumnStatisticsForTableOutput {
+	s.Errors = v
+	return s
+}
+
 type GetConnectionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -21244,8 +23485,7 @@ func (s *GetConnectionOutput) SetConnection(v *Connection) *GetConnectionOutput 
 type GetConnectionsFilter struct {
 	_ struct{} `type:"structure"`
 
-	// The type of connections to return. Currently, only JDBC is supported; SFTP
-	// is not supported.
+	// The type of connections to return. Currently, SFTP is not supported.
 	ConnectionType *string `type:"string" enum:"ConnectionType"`
 
 	// A criteria string that must match the criteria recorded in the connection
@@ -21767,6 +24007,15 @@ type GetDatabasesInput struct {
 
 	// A continuation token, if this is a continuation call.
 	NextToken *string `type:"string"`
+
+	// Allows you to specify that you want to list the databases shared with your
+	// account. The allowable values are FOREIGN or ALL.
+	//
+	//    * If set to FOREIGN, will list the databases shared with your account.
+	//
+	//    * If set to ALL, will list the databases shared with your account, as
+	//    well as the databases in yor local account.
+	ResourceShareType *string `type:"string" enum:"ResourceShareType"`
 }
 
 // String returns the string representation
@@ -21810,6 +24059,12 @@ func (s *GetDatabasesInput) SetMaxResults(v int64) *GetDatabasesInput {
 // SetNextToken sets the NextToken field's value.
 func (s *GetDatabasesInput) SetNextToken(v string) *GetDatabasesInput {
 	s.NextToken = &v
+	return s
+}
+
+// SetResourceShareType sets the ResourceShareType field's value.
+func (s *GetDatabasesInput) SetResourceShareType(v string) *GetDatabasesInput {
+	s.ResourceShareType = &v
 	return s
 }
 
@@ -23172,6 +25427,119 @@ func (s *GetMappingOutput) SetMapping(v []*MappingEntry) *GetMappingOutput {
 	return s
 }
 
+type GetPartitionIndexesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The catalog ID where the table resides.
+	CatalogId *string `min:"1" type:"string"`
+
+	// Specifies the name of a database from which you want to retrieve partition
+	// indexes.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// A continuation token, included if this is a continuation call.
+	NextToken *string `type:"string"`
+
+	// Specifies the name of a table for which you want to retrieve the partition
+	// indexes.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetPartitionIndexesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetPartitionIndexesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetPartitionIndexesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetPartitionIndexesInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *GetPartitionIndexesInput) SetCatalogId(v string) *GetPartitionIndexesInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *GetPartitionIndexesInput) SetDatabaseName(v string) *GetPartitionIndexesInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetPartitionIndexesInput) SetNextToken(v string) *GetPartitionIndexesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *GetPartitionIndexesInput) SetTableName(v string) *GetPartitionIndexesInput {
+	s.TableName = &v
+	return s
+}
+
+type GetPartitionIndexesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A continuation token, present if the current list segment is not the last.
+	NextToken *string `type:"string"`
+
+	// A list of index descriptors.
+	PartitionIndexDescriptorList []*PartitionIndexDescriptor `type:"list"`
+}
+
+// String returns the string representation
+func (s GetPartitionIndexesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetPartitionIndexesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetPartitionIndexesOutput) SetNextToken(v string) *GetPartitionIndexesOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetPartitionIndexDescriptorList sets the PartitionIndexDescriptorList field's value.
+func (s *GetPartitionIndexesOutput) SetPartitionIndexDescriptorList(v []*PartitionIndexDescriptor) *GetPartitionIndexesOutput {
+	s.PartitionIndexDescriptorList = v
+	return s
+}
+
 type GetPartitionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -23643,8 +26011,92 @@ func (s *GetPlanOutput) SetScalaCode(v string) *GetPlanOutput {
 	return s
 }
 
+type GetResourcePoliciesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum size of a list to return.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// A continuation token, if this is a continuation request.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s GetResourcePoliciesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResourcePoliciesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResourcePoliciesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResourcePoliciesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *GetResourcePoliciesInput) SetMaxResults(v int64) *GetResourcePoliciesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetResourcePoliciesInput) SetNextToken(v string) *GetResourcePoliciesInput {
+	s.NextToken = &v
+	return s
+}
+
+type GetResourcePoliciesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the individual resource policies and the account-level resource
+	// policy.
+	GetResourcePoliciesResponseList []*GluePolicy `type:"list"`
+
+	// A continuation token, if the returned list does not contain the last resource
+	// policy available.
+	NextToken *string `type:"string"`
+}
+
+// String returns the string representation
+func (s GetResourcePoliciesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResourcePoliciesOutput) GoString() string {
+	return s.String()
+}
+
+// SetGetResourcePoliciesResponseList sets the GetResourcePoliciesResponseList field's value.
+func (s *GetResourcePoliciesOutput) SetGetResourcePoliciesResponseList(v []*GluePolicy) *GetResourcePoliciesOutput {
+	s.GetResourcePoliciesResponseList = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetResourcePoliciesOutput) SetNextToken(v string) *GetResourcePoliciesOutput {
+	s.NextToken = &v
+	return s
+}
+
 type GetResourcePolicyInput struct {
 	_ struct{} `type:"structure"`
+
+	// The ARN of the AWS Glue resource for the resource policy to be retrieved.
+	// For more information about AWS Glue resource ARNs, see the AWS Glue ARN string
+	// pattern (https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-common.html#aws-glue-api-regex-aws-glue-arn-id)
+	ResourceArn *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -23655,6 +26107,25 @@ func (s GetResourcePolicyInput) String() string {
 // GoString returns the string representation
 func (s GetResourcePolicyInput) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResourcePolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResourcePolicyInput"}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *GetResourcePolicyInput) SetResourceArn(v string) *GetResourcePolicyInput {
+	s.ResourceArn = &v
+	return s
 }
 
 type GetResourcePolicyOutput struct {
@@ -25079,6 +27550,57 @@ func (s *GetWorkflowRunsOutput) SetRuns(v []*WorkflowRun) *GetWorkflowRunsOutput
 	return s
 }
 
+// A structure for returning a resource policy.
+type GluePolicy struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time at which the policy was created.
+	CreateTime *time.Time `type:"timestamp"`
+
+	// Contains the hash value associated with this policy.
+	PolicyHash *string `min:"1" type:"string"`
+
+	// Contains the requested policy document, in JSON format.
+	PolicyInJson *string `min:"2" type:"string"`
+
+	// The date and time at which the policy was last updated.
+	UpdateTime *time.Time `type:"timestamp"`
+}
+
+// String returns the string representation
+func (s GluePolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GluePolicy) GoString() string {
+	return s.String()
+}
+
+// SetCreateTime sets the CreateTime field's value.
+func (s *GluePolicy) SetCreateTime(v time.Time) *GluePolicy {
+	s.CreateTime = &v
+	return s
+}
+
+// SetPolicyHash sets the PolicyHash field's value.
+func (s *GluePolicy) SetPolicyHash(v string) *GluePolicy {
+	s.PolicyHash = &v
+	return s
+}
+
+// SetPolicyInJson sets the PolicyInJson field's value.
+func (s *GluePolicy) SetPolicyInJson(v string) *GluePolicy {
+	s.PolicyInJson = &v
+	return s
+}
+
+// SetUpdateTime sets the UpdateTime field's value.
+func (s *GluePolicy) SetUpdateTime(v time.Time) *GluePolicy {
+	s.UpdateTime = &v
+	return s
+}
+
 // A classifier that uses grok patterns.
 type GrokClassifier struct {
 	_ struct{} `type:"structure"`
@@ -25592,14 +28114,16 @@ type Job struct {
 	// Do not set Max Capacity if using WorkerType and NumberOfWorkers.
 	//
 	// The value that can be allocated for MaxCapacity depends on whether you are
-	// running a Python shell job or an Apache Spark ETL job:
+	// running a Python shell job, an Apache Spark ETL job, or an Apache Spark streaming
+	// ETL job:
 	//
 	//    * When you specify a Python shell job (JobCommand.Name="pythonshell"),
 	//    you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.
 	//
-	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl"),
-	//    you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job
-	//    type cannot have a fractional DPU allocation.
+	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl")
+	//    or Apache Spark streaming ETL job (JobCommand.Name="gluestreaming"), you
+	//    can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type
+	//    cannot have a fractional DPU allocation.
 	MaxCapacity *float64 `type:"double"`
 
 	// The maximum number of times to retry this job after a JobRun fails.
@@ -25895,7 +28419,8 @@ type JobCommand struct {
 	_ struct{} `type:"structure"`
 
 	// The name of the job command. For an Apache Spark ETL job, this must be glueetl.
-	// For a Python shell job, it must be pythonshell.
+	// For a Python shell job, it must be pythonshell. For an Apache Spark streaming
+	// ETL job, this must be gluestreaming.
 	Name *string `type:"string"`
 
 	// The Python version being used to execute a Python shell job. Allowed values
@@ -26307,9 +28832,10 @@ type JobUpdate struct {
 	//    * When you specify a Python shell job (JobCommand.Name="pythonshell"),
 	//    you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.
 	//
-	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl"),
-	//    you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job
-	//    type cannot have a fractional DPU allocation.
+	//    * When you specify an Apache Spark ETL job (JobCommand.Name="glueetl")
+	//    or Apache Spark streaming ETL job (JobCommand.Name="gluestreaming"), you
+	//    can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type
+	//    cannot have a fractional DPU allocation.
 	MaxCapacity *float64 `type:"double"`
 
 	// The maximum number of times to retry this job if it fails.
@@ -26555,6 +29081,43 @@ func (s *JsonClassifier) SetName(v string) *JsonClassifier {
 // SetVersion sets the Version field's value.
 func (s *JsonClassifier) SetVersion(v int64) *JsonClassifier {
 	s.Version = &v
+	return s
+}
+
+// A partition key pair consisting of a name and a type.
+type KeySchemaElement struct {
+	_ struct{} `type:"structure"`
+
+	// The name of a partition key.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// The type of a partition key.
+	//
+	// Type is a required field
+	Type *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s KeySchemaElement) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s KeySchemaElement) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *KeySchemaElement) SetName(v string) *KeySchemaElement {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *KeySchemaElement) SetType(v string) *KeySchemaElement {
+	s.Type = &v
 	return s
 }
 
@@ -27294,6 +29857,77 @@ func (s *Location) SetS3(v []*CodeGenNodeArg) *Location {
 	return s
 }
 
+// Defines a long column statistics data.
+type LongColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Maximum value of the column.
+	MaximumValue *int64 `type:"long"`
+
+	// Minimum value of the column.
+	MinimumValue *int64 `type:"long"`
+
+	// Number of distinct values.
+	//
+	// NumberOfDistinctValues is a required field
+	NumberOfDistinctValues *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s LongColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s LongColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *LongColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "LongColumnStatisticsData"}
+	if s.NumberOfDistinctValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfDistinctValues"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaximumValue sets the MaximumValue field's value.
+func (s *LongColumnStatisticsData) SetMaximumValue(v int64) *LongColumnStatisticsData {
+	s.MaximumValue = &v
+	return s
+}
+
+// SetMinimumValue sets the MinimumValue field's value.
+func (s *LongColumnStatisticsData) SetMinimumValue(v int64) *LongColumnStatisticsData {
+	s.MinimumValue = &v
+	return s
+}
+
+// SetNumberOfDistinctValues sets the NumberOfDistinctValues field's value.
+func (s *LongColumnStatisticsData) SetNumberOfDistinctValues(v int64) *LongColumnStatisticsData {
+	s.NumberOfDistinctValues = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *LongColumnStatisticsData) SetNumberOfNulls(v int64) *LongColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
 // A structure for a machine learning transform.
 type MLTransform struct {
 	_ struct{} `type:"structure"`
@@ -27725,8 +30359,8 @@ func (s *NoScheduleException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// A node represents an AWS Glue component like Trigger, Job etc. which is part
-// of a workflow.
+// A node represents an AWS Glue component such as a trigger, or job, etc.,
+// that is part of a workflow.
 type Node struct {
 	_ struct{} `type:"structure"`
 
@@ -27951,6 +30585,9 @@ func (s *Order) SetSortOrder(v int64) *Order {
 type Partition struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of the Data Catalog in which the partition resides.
+	CatalogId *string `min:"1" type:"string"`
+
 	// The time at which the partition was created.
 	CreationTime *time.Time `type:"timestamp"`
 
@@ -27984,6 +30621,12 @@ func (s Partition) String() string {
 // GoString returns the string representation
 func (s Partition) GoString() string {
 	return s.String()
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *Partition) SetCatalogId(v string) *Partition {
+	s.CatalogId = &v
+	return s
 }
 
 // SetCreationTime sets the CreationTime field's value.
@@ -28064,6 +30707,114 @@ func (s *PartitionError) SetErrorDetail(v *ErrorDetail) *PartitionError {
 // SetPartitionValues sets the PartitionValues field's value.
 func (s *PartitionError) SetPartitionValues(v []*string) *PartitionError {
 	s.PartitionValues = v
+	return s
+}
+
+// A structure for a partition index.
+type PartitionIndex struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the partition index.
+	//
+	// IndexName is a required field
+	IndexName *string `min:"1" type:"string" required:"true"`
+
+	// The keys for the partition index.
+	//
+	// Keys is a required field
+	Keys []*string `min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s PartitionIndex) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PartitionIndex) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PartitionIndex) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PartitionIndex"}
+	if s.IndexName == nil {
+		invalidParams.Add(request.NewErrParamRequired("IndexName"))
+	}
+	if s.IndexName != nil && len(*s.IndexName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("IndexName", 1))
+	}
+	if s.Keys == nil {
+		invalidParams.Add(request.NewErrParamRequired("Keys"))
+	}
+	if s.Keys != nil && len(s.Keys) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Keys", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIndexName sets the IndexName field's value.
+func (s *PartitionIndex) SetIndexName(v string) *PartitionIndex {
+	s.IndexName = &v
+	return s
+}
+
+// SetKeys sets the Keys field's value.
+func (s *PartitionIndex) SetKeys(v []*string) *PartitionIndex {
+	s.Keys = v
+	return s
+}
+
+// A descriptor for a partition index in a table.
+type PartitionIndexDescriptor struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the partition index.
+	//
+	// IndexName is a required field
+	IndexName *string `min:"1" type:"string" required:"true"`
+
+	// The status of the partition index.
+	//
+	// IndexStatus is a required field
+	IndexStatus *string `type:"string" required:"true" enum:"PartitionIndexStatus"`
+
+	// A list of one or more keys, as KeySchemaElement structures, for the partition
+	// index.
+	//
+	// Keys is a required field
+	Keys []*KeySchemaElement `min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s PartitionIndexDescriptor) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PartitionIndexDescriptor) GoString() string {
+	return s.String()
+}
+
+// SetIndexName sets the IndexName field's value.
+func (s *PartitionIndexDescriptor) SetIndexName(v string) *PartitionIndexDescriptor {
+	s.IndexName = &v
+	return s
+}
+
+// SetIndexStatus sets the IndexStatus field's value.
+func (s *PartitionIndexDescriptor) SetIndexStatus(v string) *PartitionIndexDescriptor {
+	s.IndexStatus = &v
+	return s
+}
+
+// SetKeys sets the Keys field's value.
+func (s *PartitionIndexDescriptor) SetKeys(v []*KeySchemaElement) *PartitionIndexDescriptor {
+	s.Keys = v
 	return s
 }
 
@@ -28498,6 +31249,15 @@ func (s PutDataCatalogEncryptionSettingsOutput) GoString() string {
 type PutResourcePolicyInput struct {
 	_ struct{} `type:"structure"`
 
+	// Allows you to specify if you want to use both resource-level and account/catalog-level
+	// resource policies. A resource-level policy is a policy attached to an individual
+	// resource such as a database or a table.
+	//
+	// The default value of NO indicates that resource-level policies cannot co-exist
+	// with an account-level policy. A value of YES means the use of both resource-level
+	// and account/catalog-level resource policies is allowed.
+	EnableHybrid *string `type:"string" enum:"EnableHybridValues"`
+
 	// A value of MUST_EXIST is used to update a policy. A value of NOT_EXIST is
 	// used to create a new policy. If a value of NONE or a null value is used,
 	// the call will not depend on the existence of a policy.
@@ -28512,6 +31272,11 @@ type PutResourcePolicyInput struct {
 	//
 	// PolicyInJson is a required field
 	PolicyInJson *string `min:"2" type:"string" required:"true"`
+
+	// The ARN of the AWS Glue resource for the resource policy to be set. For more
+	// information about AWS Glue resource ARNs, see the AWS Glue ARN string pattern
+	// (https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-common.html#aws-glue-api-regex-aws-glue-arn-id)
+	ResourceArn *string `min:"1" type:"string"`
 }
 
 // String returns the string representation
@@ -28536,11 +31301,20 @@ func (s *PutResourcePolicyInput) Validate() error {
 	if s.PolicyInJson != nil && len(*s.PolicyInJson) < 2 {
 		invalidParams.Add(request.NewErrParamMinLen("PolicyInJson", 2))
 	}
+	if s.ResourceArn != nil && len(*s.ResourceArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceArn", 1))
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetEnableHybrid sets the EnableHybrid field's value.
+func (s *PutResourcePolicyInput) SetEnableHybrid(v string) *PutResourcePolicyInput {
+	s.EnableHybrid = &v
+	return s
 }
 
 // SetPolicyExistsCondition sets the PolicyExistsCondition field's value.
@@ -28558,6 +31332,12 @@ func (s *PutResourcePolicyInput) SetPolicyHashCondition(v string) *PutResourcePo
 // SetPolicyInJson sets the PolicyInJson field's value.
 func (s *PutResourcePolicyInput) SetPolicyInJson(v string) *PutResourcePolicyInput {
 	s.PolicyInJson = &v
+	return s
+}
+
+// SetResourceArn sets the ResourceArn field's value.
+func (s *PutResourcePolicyInput) SetResourceArn(v string) *PutResourcePolicyInput {
+	s.ResourceArn = &v
 	return s
 }
 
@@ -28844,6 +31624,112 @@ func (s *ResourceUri) SetUri(v string) *ResourceUri {
 	return s
 }
 
+type ResumeWorkflowRunInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the workflow to resume.
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// A list of the node IDs for the nodes you want to restart. The nodes that
+	// are to be restarted must have a run attempt in the original run.
+	//
+	// NodeIds is a required field
+	NodeIds []*string `type:"list" required:"true"`
+
+	// The ID of the workflow run to resume.
+	//
+	// RunId is a required field
+	RunId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResumeWorkflowRunInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeWorkflowRunInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResumeWorkflowRunInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResumeWorkflowRunInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.NodeIds == nil {
+		invalidParams.Add(request.NewErrParamRequired("NodeIds"))
+	}
+	if s.RunId == nil {
+		invalidParams.Add(request.NewErrParamRequired("RunId"))
+	}
+	if s.RunId != nil && len(*s.RunId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RunId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetName sets the Name field's value.
+func (s *ResumeWorkflowRunInput) SetName(v string) *ResumeWorkflowRunInput {
+	s.Name = &v
+	return s
+}
+
+// SetNodeIds sets the NodeIds field's value.
+func (s *ResumeWorkflowRunInput) SetNodeIds(v []*string) *ResumeWorkflowRunInput {
+	s.NodeIds = v
+	return s
+}
+
+// SetRunId sets the RunId field's value.
+func (s *ResumeWorkflowRunInput) SetRunId(v string) *ResumeWorkflowRunInput {
+	s.RunId = &v
+	return s
+}
+
+type ResumeWorkflowRunOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the node IDs for the nodes that were actually restarted.
+	NodeIds []*string `type:"list"`
+
+	// The new ID assigned to the resumed workflow run. Each resume of a workflow
+	// run will have a new run ID.
+	RunId *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ResumeWorkflowRunOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResumeWorkflowRunOutput) GoString() string {
+	return s.String()
+}
+
+// SetNodeIds sets the NodeIds field's value.
+func (s *ResumeWorkflowRunOutput) SetNodeIds(v []*string) *ResumeWorkflowRunOutput {
+	s.NodeIds = v
+	return s
+}
+
+// SetRunId sets the RunId field's value.
+func (s *ResumeWorkflowRunOutput) SetRunId(v string) *ResumeWorkflowRunOutput {
+	s.RunId = &v
+	return s
+}
+
 // Specifies how Amazon Simple Storage Service (Amazon S3) data should be encrypted.
 type S3Encryption struct {
 	_ struct{} `type:"structure"`
@@ -28881,6 +31767,10 @@ func (s *S3Encryption) SetS3EncryptionMode(v string) *S3Encryption {
 type S3Target struct {
 	_ struct{} `type:"structure"`
 
+	// The name of a connection which allows a job or crawler to access data in
+	// Amazon S3 within an Amazon Virtual Private Cloud environment (Amazon VPC).
+	ConnectionName *string `type:"string"`
+
 	// A list of glob patterns used to exclude from the crawl. For more information,
 	// see Catalog Tables with a Crawler (https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html).
 	Exclusions []*string `type:"list"`
@@ -28897,6 +31787,12 @@ func (s S3Target) String() string {
 // GoString returns the string representation
 func (s S3Target) GoString() string {
 	return s.String()
+}
+
+// SetConnectionName sets the ConnectionName field's value.
+func (s *S3Target) SetConnectionName(v string) *S3Target {
+	s.ConnectionName = &v
+	return s
 }
 
 // SetExclusions sets the Exclusions field's value.
@@ -29202,11 +32098,20 @@ func (s *SchemaColumn) SetName(v string) *SchemaColumn {
 type SearchTablesInput struct {
 	_ struct{} `type:"structure"`
 
-	// A unique identifier, consisting of account_id/datalake.
+	// A unique identifier, consisting of account_id .
 	CatalogId *string `min:"1" type:"string"`
 
 	// A list of key-value pairs, and a comparator used to filter the search results.
 	// Returns all entities matching the predicate.
+	//
+	// The Comparator member of the PropertyPredicate struct is used only for time
+	// fields, and can be omitted for other field types. Also, when comparing string
+	// values, such as when Key=Name, a fuzzy match algorithm is used. The Key field
+	// (for example, the value of the Name field) is split on certain punctuation
+	// characters, for example, -, :, #, etc. into tokens. Then each token is exact-match
+	// compared with the Value member of PropertyPredicate. For example, if Key=Name
+	// and Value=link, tables named customer-link and xx-link-yy are returned, but
+	// xxlinkyy is not returned.
 	Filters []*PropertyPredicate `type:"list"`
 
 	// The maximum number of tables to return in a single response.
@@ -29214,6 +32119,15 @@ type SearchTablesInput struct {
 
 	// A continuation token, included if this is a continuation call.
 	NextToken *string `type:"string"`
+
+	// Allows you to specify that you want to search the tables shared with your
+	// account. The allowable values are FOREIGN or ALL.
+	//
+	//    * If set to FOREIGN, will search the tables shared with your account.
+	//
+	//    * If set to ALL, will search the tables shared with your account, as well
+	//    as the tables in yor local account.
+	ResourceShareType *string `type:"string" enum:"ResourceShareType"`
 
 	// A string used for a text search.
 	//
@@ -29272,6 +32186,12 @@ func (s *SearchTablesInput) SetMaxResults(v int64) *SearchTablesInput {
 // SetNextToken sets the NextToken field's value.
 func (s *SearchTablesInput) SetNextToken(v string) *SearchTablesInput {
 	s.NextToken = &v
+	return s
+}
+
+// SetResourceShareType sets the ResourceShareType field's value.
+func (s *SearchTablesInput) SetResourceShareType(v string) *SearchTablesInput {
+	s.ResourceShareType = &v
 	return s
 }
 
@@ -30723,6 +33643,87 @@ func (s *StorageDescriptor) SetStoredAsSubDirectories(v bool) *StorageDescriptor
 	return s
 }
 
+// Defines a string column statistics data.
+type StringColumnStatisticsData struct {
+	_ struct{} `type:"structure"`
+
+	// Average value of the column.
+	//
+	// AverageLength is a required field
+	AverageLength *float64 `type:"double" required:"true"`
+
+	// Maximum value of the column.
+	//
+	// MaximumLength is a required field
+	MaximumLength *int64 `type:"long" required:"true"`
+
+	// Number of distinct values.
+	//
+	// NumberOfDistinctValues is a required field
+	NumberOfDistinctValues *int64 `type:"long" required:"true"`
+
+	// Number of nulls.
+	//
+	// NumberOfNulls is a required field
+	NumberOfNulls *int64 `type:"long" required:"true"`
+}
+
+// String returns the string representation
+func (s StringColumnStatisticsData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StringColumnStatisticsData) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StringColumnStatisticsData) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StringColumnStatisticsData"}
+	if s.AverageLength == nil {
+		invalidParams.Add(request.NewErrParamRequired("AverageLength"))
+	}
+	if s.MaximumLength == nil {
+		invalidParams.Add(request.NewErrParamRequired("MaximumLength"))
+	}
+	if s.NumberOfDistinctValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfDistinctValues"))
+	}
+	if s.NumberOfNulls == nil {
+		invalidParams.Add(request.NewErrParamRequired("NumberOfNulls"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAverageLength sets the AverageLength field's value.
+func (s *StringColumnStatisticsData) SetAverageLength(v float64) *StringColumnStatisticsData {
+	s.AverageLength = &v
+	return s
+}
+
+// SetMaximumLength sets the MaximumLength field's value.
+func (s *StringColumnStatisticsData) SetMaximumLength(v int64) *StringColumnStatisticsData {
+	s.MaximumLength = &v
+	return s
+}
+
+// SetNumberOfDistinctValues sets the NumberOfDistinctValues field's value.
+func (s *StringColumnStatisticsData) SetNumberOfDistinctValues(v int64) *StringColumnStatisticsData {
+	s.NumberOfDistinctValues = &v
+	return s
+}
+
+// SetNumberOfNulls sets the NumberOfNulls field's value.
+func (s *StringColumnStatisticsData) SetNumberOfNulls(v int64) *StringColumnStatisticsData {
+	s.NumberOfNulls = &v
+	return s
+}
+
 // The database and table in the AWS Glue Data Catalog that is used for input
 // or output data.
 type Table struct {
@@ -30811,6 +33812,9 @@ func (s *Table) SetTableName(v string) *Table {
 type TableData struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of the Data Catalog in which the table resides.
+	CatalogId *string `min:"1" type:"string"`
+
 	// The time when the table definition was created in the Data Catalog.
 	CreateTime *time.Time `type:"timestamp"`
 
@@ -30865,6 +33869,9 @@ type TableData struct {
 	// The type of this table (EXTERNAL_TABLE, VIRTUAL_VIEW, etc.).
 	TableType *string `type:"string"`
 
+	// A TableIdentifier structure that describes a target table for resource linking.
+	TargetTable *TableIdentifier `type:"structure"`
+
 	// The last time that the table was updated.
 	UpdateTime *time.Time `type:"timestamp"`
 
@@ -30883,6 +33890,12 @@ func (s TableData) String() string {
 // GoString returns the string representation
 func (s TableData) GoString() string {
 	return s.String()
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *TableData) SetCatalogId(v string) *TableData {
+	s.CatalogId = &v
+	return s
 }
 
 // SetCreateTime sets the CreateTime field's value.
@@ -30969,6 +33982,12 @@ func (s *TableData) SetTableType(v string) *TableData {
 	return s
 }
 
+// SetTargetTable sets the TargetTable field's value.
+func (s *TableData) SetTargetTable(v *TableIdentifier) *TableData {
+	s.TargetTable = v
+	return s
+}
+
 // SetUpdateTime sets the UpdateTime field's value.
 func (s *TableData) SetUpdateTime(v time.Time) *TableData {
 	s.UpdateTime = &v
@@ -31020,6 +34039,67 @@ func (s *TableError) SetTableName(v string) *TableError {
 	return s
 }
 
+// A structure that describes a target table for resource linking.
+type TableIdentifier struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog in which the table resides.
+	CatalogId *string `min:"1" type:"string"`
+
+	// The name of the catalog database that contains the target table.
+	DatabaseName *string `min:"1" type:"string"`
+
+	// The name of the target table.
+	Name *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s TableIdentifier) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TableIdentifier) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TableIdentifier) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TableIdentifier"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *TableIdentifier) SetCatalogId(v string) *TableIdentifier {
+	s.CatalogId = &v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *TableIdentifier) SetDatabaseName(v string) *TableIdentifier {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *TableIdentifier) SetName(v string) *TableIdentifier {
+	s.Name = &v
+	return s
+}
+
 // A structure used to define a table.
 type TableInput struct {
 	_ struct{} `type:"structure"`
@@ -31065,6 +34145,9 @@ type TableInput struct {
 	// The type of this table (EXTERNAL_TABLE, VIRTUAL_VIEW, etc.).
 	TableType *string `type:"string"`
 
+	// A TableIdentifier structure that describes a target table for resource linking.
+	TargetTable *TableIdentifier `type:"structure"`
+
 	// If the table is a view, the expanded text of the view; otherwise null.
 	ViewExpandedText *string `type:"string"`
 
@@ -31107,6 +34190,11 @@ func (s *TableInput) Validate() error {
 	if s.StorageDescriptor != nil {
 		if err := s.StorageDescriptor.Validate(); err != nil {
 			invalidParams.AddNested("StorageDescriptor", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.TargetTable != nil {
+		if err := s.TargetTable.Validate(); err != nil {
+			invalidParams.AddNested("TargetTable", err.(request.ErrInvalidParams))
 		}
 	}
 
@@ -31173,6 +34261,12 @@ func (s *TableInput) SetStorageDescriptor(v *StorageDescriptor) *TableInput {
 // SetTableType sets the TableType field's value.
 func (s *TableInput) SetTableType(v string) *TableInput {
 	s.TableType = &v
+	return s
+}
+
+// SetTargetTable sets the TargetTable field's value.
+func (s *TableInput) SetTargetTable(v *TableIdentifier) *TableInput {
+	s.TargetTable = v
 	return s
 }
 
@@ -32231,6 +35325,256 @@ func (s UpdateClassifierOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateColumnStatisticsForPartitionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// A list of the column statistics.
+	//
+	// ColumnStatisticsList is a required field
+	ColumnStatisticsList []*ColumnStatistics `type:"list" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// A list of partition values identifying the partition.
+	//
+	// PartitionValues is a required field
+	PartitionValues []*string `type:"list" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateColumnStatisticsForPartitionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateColumnStatisticsForPartitionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateColumnStatisticsForPartitionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateColumnStatisticsForPartitionInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnStatisticsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnStatisticsList"))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.PartitionValues == nil {
+		invalidParams.Add(request.NewErrParamRequired("PartitionValues"))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+	if s.ColumnStatisticsList != nil {
+		for i, v := range s.ColumnStatisticsList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ColumnStatisticsList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *UpdateColumnStatisticsForPartitionInput) SetCatalogId(v string) *UpdateColumnStatisticsForPartitionInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnStatisticsList sets the ColumnStatisticsList field's value.
+func (s *UpdateColumnStatisticsForPartitionInput) SetColumnStatisticsList(v []*ColumnStatistics) *UpdateColumnStatisticsForPartitionInput {
+	s.ColumnStatisticsList = v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *UpdateColumnStatisticsForPartitionInput) SetDatabaseName(v string) *UpdateColumnStatisticsForPartitionInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetPartitionValues sets the PartitionValues field's value.
+func (s *UpdateColumnStatisticsForPartitionInput) SetPartitionValues(v []*string) *UpdateColumnStatisticsForPartitionInput {
+	s.PartitionValues = v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *UpdateColumnStatisticsForPartitionInput) SetTableName(v string) *UpdateColumnStatisticsForPartitionInput {
+	s.TableName = &v
+	return s
+}
+
+type UpdateColumnStatisticsForPartitionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Error occurred during updating column statistics data.
+	Errors []*ColumnStatisticsError `type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateColumnStatisticsForPartitionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateColumnStatisticsForPartitionOutput) GoString() string {
+	return s.String()
+}
+
+// SetErrors sets the Errors field's value.
+func (s *UpdateColumnStatisticsForPartitionOutput) SetErrors(v []*ColumnStatisticsError) *UpdateColumnStatisticsForPartitionOutput {
+	s.Errors = v
+	return s
+}
+
+type UpdateColumnStatisticsForTableInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Data Catalog where the partitions in question reside. If none
+	// is supplied, the AWS account ID is used by default.
+	CatalogId *string `min:"1" type:"string"`
+
+	// A list of the column statistics.
+	//
+	// ColumnStatisticsList is a required field
+	ColumnStatisticsList []*ColumnStatistics `type:"list" required:"true"`
+
+	// The name of the catalog database where the partitions reside.
+	//
+	// DatabaseName is a required field
+	DatabaseName *string `min:"1" type:"string" required:"true"`
+
+	// The name of the partitions' table.
+	//
+	// TableName is a required field
+	TableName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateColumnStatisticsForTableInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateColumnStatisticsForTableInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateColumnStatisticsForTableInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateColumnStatisticsForTableInput"}
+	if s.CatalogId != nil && len(*s.CatalogId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CatalogId", 1))
+	}
+	if s.ColumnStatisticsList == nil {
+		invalidParams.Add(request.NewErrParamRequired("ColumnStatisticsList"))
+	}
+	if s.DatabaseName == nil {
+		invalidParams.Add(request.NewErrParamRequired("DatabaseName"))
+	}
+	if s.DatabaseName != nil && len(*s.DatabaseName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DatabaseName", 1))
+	}
+	if s.TableName == nil {
+		invalidParams.Add(request.NewErrParamRequired("TableName"))
+	}
+	if s.TableName != nil && len(*s.TableName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("TableName", 1))
+	}
+	if s.ColumnStatisticsList != nil {
+		for i, v := range s.ColumnStatisticsList {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "ColumnStatisticsList", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *UpdateColumnStatisticsForTableInput) SetCatalogId(v string) *UpdateColumnStatisticsForTableInput {
+	s.CatalogId = &v
+	return s
+}
+
+// SetColumnStatisticsList sets the ColumnStatisticsList field's value.
+func (s *UpdateColumnStatisticsForTableInput) SetColumnStatisticsList(v []*ColumnStatistics) *UpdateColumnStatisticsForTableInput {
+	s.ColumnStatisticsList = v
+	return s
+}
+
+// SetDatabaseName sets the DatabaseName field's value.
+func (s *UpdateColumnStatisticsForTableInput) SetDatabaseName(v string) *UpdateColumnStatisticsForTableInput {
+	s.DatabaseName = &v
+	return s
+}
+
+// SetTableName sets the TableName field's value.
+func (s *UpdateColumnStatisticsForTableInput) SetTableName(v string) *UpdateColumnStatisticsForTableInput {
+	s.TableName = &v
+	return s
+}
+
+type UpdateColumnStatisticsForTableOutput struct {
+	_ struct{} `type:"structure"`
+
+	// List of ColumnStatisticsErrors.
+	Errors []*ColumnStatisticsError `type:"list"`
+}
+
+// String returns the string representation
+func (s UpdateColumnStatisticsForTableOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateColumnStatisticsForTableOutput) GoString() string {
+	return s.String()
+}
+
+// SetErrors sets the Errors field's value.
+func (s *UpdateColumnStatisticsForTableOutput) SetErrors(v []*ColumnStatisticsError) *UpdateColumnStatisticsForTableOutput {
+	s.Errors = v
+	return s
+}
+
 type UpdateConnectionInput struct {
 	_ struct{} `type:"structure"`
 
@@ -33283,10 +36627,13 @@ type UpdatePartitionInput struct {
 
 	// The new partition object to update the partition to.
 	//
+	// The Values property can't be changed. If you want to change the partition
+	// key values for a partition, delete and recreate the partition.
+	//
 	// PartitionInput is a required field
 	PartitionInput *PartitionInput `type:"structure" required:"true"`
 
-	// A list of the values defining the partition.
+	// List of partition key values that define the partition to update.
 	//
 	// PartitionValueList is a required field
 	PartitionValueList []*string `type:"list" required:"true"`
@@ -33682,6 +37029,12 @@ type UpdateWorkflowInput struct {
 	// The description of the workflow.
 	Description *string `type:"string"`
 
+	// You can use this parameter to prevent unwanted multiple updates to data,
+	// to control costs, or in some cases, to prevent exceeding the maximum number
+	// of concurrent runs of any of the component jobs. If you leave this parameter
+	// blank, there is no limit to the number of concurrent workflow runs.
+	MaxConcurrentRuns *int64 `type:"integer"`
+
 	// Name of the workflow to be updated.
 	//
 	// Name is a required field
@@ -33723,6 +37076,12 @@ func (s *UpdateWorkflowInput) SetDefaultRunProperties(v map[string]*string) *Upd
 // SetDescription sets the Description field's value.
 func (s *UpdateWorkflowInput) SetDescription(v string) *UpdateWorkflowInput {
 	s.Description = &v
+	return s
+}
+
+// SetMaxConcurrentRuns sets the MaxConcurrentRuns field's value.
+func (s *UpdateWorkflowInput) SetMaxConcurrentRuns(v int64) *UpdateWorkflowInput {
+	s.MaxConcurrentRuns = &v
 	return s
 }
 
@@ -33823,13 +37182,16 @@ func (s *UpdateXMLClassifierRequest) SetRowTag(v string) *UpdateXMLClassifierReq
 type UserDefinedFunction struct {
 	_ struct{} `type:"structure"`
 
+	// The ID of the Data Catalog in which the function resides.
+	CatalogId *string `min:"1" type:"string"`
+
 	// The Java class that contains the function code.
 	ClassName *string `min:"1" type:"string"`
 
 	// The time at which the function was created.
 	CreateTime *time.Time `type:"timestamp"`
 
-	// The name of the database where the function resides.
+	// The name of the catalog database that contains the function.
 	DatabaseName *string `min:"1" type:"string"`
 
 	// The name of the function.
@@ -33853,6 +37215,12 @@ func (s UserDefinedFunction) String() string {
 // GoString returns the string representation
 func (s UserDefinedFunction) GoString() string {
 	return s.String()
+}
+
+// SetCatalogId sets the CatalogId field's value.
+func (s *UserDefinedFunction) SetCatalogId(v string) *UserDefinedFunction {
+	s.CatalogId = &v
+	return s
 }
 
 // SetClassName sets the ClassName field's value.
@@ -34124,6 +37492,12 @@ type Workflow struct {
 	// The information about the last execution of the workflow.
 	LastRun *WorkflowRun `type:"structure"`
 
+	// You can use this parameter to prevent unwanted multiple updates to data,
+	// to control costs, or in some cases, to prevent exceeding the maximum number
+	// of concurrent runs of any of the component jobs. If you leave this parameter
+	// blank, there is no limit to the number of concurrent workflow runs.
+	MaxConcurrentRuns *int64 `type:"integer"`
+
 	// The name of the workflow representing the flow.
 	Name *string `min:"1" type:"string"`
 }
@@ -34171,6 +37545,12 @@ func (s *Workflow) SetLastModifiedOn(v time.Time) *Workflow {
 // SetLastRun sets the LastRun field's value.
 func (s *Workflow) SetLastRun(v *WorkflowRun) *Workflow {
 	s.LastRun = v
+	return s
+}
+
+// SetMaxConcurrentRuns sets the MaxConcurrentRuns field's value.
+func (s *Workflow) SetMaxConcurrentRuns(v int64) *Workflow {
+	s.MaxConcurrentRuns = &v
 	return s
 }
 
@@ -34224,12 +37604,20 @@ type WorkflowRun struct {
 	// The date and time when the workflow run completed.
 	CompletedOn *time.Time `type:"timestamp"`
 
+	// This error message describes any error that may have occurred in starting
+	// the workflow run. Currently the only error message is "Concurrent runs exceeded
+	// for workflow: foo."
+	ErrorMessage *string `type:"string"`
+
 	// The graph representing all the AWS Glue components that belong to the workflow
 	// as nodes and directed connections between them as edges.
 	Graph *WorkflowGraph `type:"structure"`
 
-	// Name of the workflow which was executed.
+	// Name of the workflow that was executed.
 	Name *string `min:"1" type:"string"`
+
+	// The ID of the previous workflow run.
+	PreviousRunId *string `min:"1" type:"string"`
 
 	// The date and time when the workflow run was started.
 	StartedOn *time.Time `type:"timestamp"`
@@ -34263,6 +37651,12 @@ func (s *WorkflowRun) SetCompletedOn(v time.Time) *WorkflowRun {
 	return s
 }
 
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *WorkflowRun) SetErrorMessage(v string) *WorkflowRun {
+	s.ErrorMessage = &v
+	return s
+}
+
 // SetGraph sets the Graph field's value.
 func (s *WorkflowRun) SetGraph(v *WorkflowGraph) *WorkflowRun {
 	s.Graph = v
@@ -34272,6 +37666,12 @@ func (s *WorkflowRun) SetGraph(v *WorkflowGraph) *WorkflowRun {
 // SetName sets the Name field's value.
 func (s *WorkflowRun) SetName(v string) *WorkflowRun {
 	s.Name = &v
+	return s
+}
+
+// SetPreviousRunId sets the PreviousRunId field's value.
+func (s *WorkflowRun) SetPreviousRunId(v string) *WorkflowRun {
+	s.PreviousRunId = &v
 	return s
 }
 
@@ -34309,19 +37709,19 @@ func (s *WorkflowRun) SetWorkflowRunProperties(v map[string]*string) *WorkflowRu
 type WorkflowRunStatistics struct {
 	_ struct{} `type:"structure"`
 
-	// Total number of Actions which have failed.
+	// Total number of Actions that have failed.
 	FailedActions *int64 `type:"integer"`
 
 	// Total number Actions in running state.
 	RunningActions *int64 `type:"integer"`
 
-	// Total number of Actions which have stopped.
+	// Total number of Actions that have stopped.
 	StoppedActions *int64 `type:"integer"`
 
-	// Total number of Actions which have succeeded.
+	// Total number of Actions that have succeeded.
 	SucceededActions *int64 `type:"integer"`
 
-	// Total number of Actions which timed out.
+	// Total number of Actions that timed out.
 	TimeoutActions *int64 `type:"integer"`
 
 	// Total number of Actions in the workflow run.
@@ -34459,6 +37859,14 @@ const (
 	CatalogEncryptionModeSseKms = "SSE-KMS"
 )
 
+// CatalogEncryptionMode_Values returns all elements of the CatalogEncryptionMode enum
+func CatalogEncryptionMode_Values() []string {
+	return []string{
+		CatalogEncryptionModeDisabled,
+		CatalogEncryptionModeSseKms,
+	}
+}
+
 const (
 	// CloudWatchEncryptionModeDisabled is a CloudWatchEncryptionMode enum value
 	CloudWatchEncryptionModeDisabled = "DISABLED"
@@ -34466,6 +37874,50 @@ const (
 	// CloudWatchEncryptionModeSseKms is a CloudWatchEncryptionMode enum value
 	CloudWatchEncryptionModeSseKms = "SSE-KMS"
 )
+
+// CloudWatchEncryptionMode_Values returns all elements of the CloudWatchEncryptionMode enum
+func CloudWatchEncryptionMode_Values() []string {
+	return []string{
+		CloudWatchEncryptionModeDisabled,
+		CloudWatchEncryptionModeSseKms,
+	}
+}
+
+const (
+	// ColumnStatisticsTypeBoolean is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeBoolean = "BOOLEAN"
+
+	// ColumnStatisticsTypeDate is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeDate = "DATE"
+
+	// ColumnStatisticsTypeDecimal is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeDecimal = "DECIMAL"
+
+	// ColumnStatisticsTypeDouble is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeDouble = "DOUBLE"
+
+	// ColumnStatisticsTypeLong is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeLong = "LONG"
+
+	// ColumnStatisticsTypeString is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeString = "STRING"
+
+	// ColumnStatisticsTypeBinary is a ColumnStatisticsType enum value
+	ColumnStatisticsTypeBinary = "BINARY"
+)
+
+// ColumnStatisticsType_Values returns all elements of the ColumnStatisticsType enum
+func ColumnStatisticsType_Values() []string {
+	return []string{
+		ColumnStatisticsTypeBoolean,
+		ColumnStatisticsTypeDate,
+		ColumnStatisticsTypeDecimal,
+		ColumnStatisticsTypeDouble,
+		ColumnStatisticsTypeLong,
+		ColumnStatisticsTypeString,
+		ColumnStatisticsTypeBinary,
+	}
+}
 
 const (
 	// ComparatorEquals is a Comparator enum value
@@ -34483,6 +37935,17 @@ const (
 	// ComparatorLessThanEquals is a Comparator enum value
 	ComparatorLessThanEquals = "LESS_THAN_EQUALS"
 )
+
+// Comparator_Values returns all elements of the Comparator enum
+func Comparator_Values() []string {
+	return []string{
+		ComparatorEquals,
+		ComparatorGreaterThan,
+		ComparatorLessThan,
+		ComparatorGreaterThanEquals,
+		ComparatorLessThanEquals,
+	}
+}
 
 const (
 	// ConnectionPropertyKeyHost is a ConnectionPropertyKey enum value
@@ -34538,7 +38001,43 @@ const (
 
 	// ConnectionPropertyKeyKafkaBootstrapServers is a ConnectionPropertyKey enum value
 	ConnectionPropertyKeyKafkaBootstrapServers = "KAFKA_BOOTSTRAP_SERVERS"
+
+	// ConnectionPropertyKeyKafkaSslEnabled is a ConnectionPropertyKey enum value
+	ConnectionPropertyKeyKafkaSslEnabled = "KAFKA_SSL_ENABLED"
+
+	// ConnectionPropertyKeyKafkaCustomCert is a ConnectionPropertyKey enum value
+	ConnectionPropertyKeyKafkaCustomCert = "KAFKA_CUSTOM_CERT"
+
+	// ConnectionPropertyKeyKafkaSkipCustomCertValidation is a ConnectionPropertyKey enum value
+	ConnectionPropertyKeyKafkaSkipCustomCertValidation = "KAFKA_SKIP_CUSTOM_CERT_VALIDATION"
 )
+
+// ConnectionPropertyKey_Values returns all elements of the ConnectionPropertyKey enum
+func ConnectionPropertyKey_Values() []string {
+	return []string{
+		ConnectionPropertyKeyHost,
+		ConnectionPropertyKeyPort,
+		ConnectionPropertyKeyUsername,
+		ConnectionPropertyKeyPassword,
+		ConnectionPropertyKeyEncryptedPassword,
+		ConnectionPropertyKeyJdbcDriverJarUri,
+		ConnectionPropertyKeyJdbcDriverClassName,
+		ConnectionPropertyKeyJdbcEngine,
+		ConnectionPropertyKeyJdbcEngineVersion,
+		ConnectionPropertyKeyConfigFiles,
+		ConnectionPropertyKeyInstanceId,
+		ConnectionPropertyKeyJdbcConnectionUrl,
+		ConnectionPropertyKeyJdbcEnforceSsl,
+		ConnectionPropertyKeyCustomJdbcCert,
+		ConnectionPropertyKeySkipCustomJdbcCertValidation,
+		ConnectionPropertyKeyCustomJdbcCertString,
+		ConnectionPropertyKeyConnectionUrl,
+		ConnectionPropertyKeyKafkaBootstrapServers,
+		ConnectionPropertyKeyKafkaSslEnabled,
+		ConnectionPropertyKeyKafkaCustomCert,
+		ConnectionPropertyKeyKafkaSkipCustomCertValidation,
+	}
+}
 
 const (
 	// ConnectionTypeJdbc is a ConnectionType enum value
@@ -34552,7 +38051,21 @@ const (
 
 	// ConnectionTypeKafka is a ConnectionType enum value
 	ConnectionTypeKafka = "KAFKA"
+
+	// ConnectionTypeNetwork is a ConnectionType enum value
+	ConnectionTypeNetwork = "NETWORK"
 )
+
+// ConnectionType_Values returns all elements of the ConnectionType enum
+func ConnectionType_Values() []string {
+	return []string{
+		ConnectionTypeJdbc,
+		ConnectionTypeSftp,
+		ConnectionTypeMongodb,
+		ConnectionTypeKafka,
+		ConnectionTypeNetwork,
+	}
+}
 
 const (
 	// CrawlStateRunning is a CrawlState enum value
@@ -34571,6 +38084,17 @@ const (
 	CrawlStateFailed = "FAILED"
 )
 
+// CrawlState_Values returns all elements of the CrawlState enum
+func CrawlState_Values() []string {
+	return []string{
+		CrawlStateRunning,
+		CrawlStateCancelling,
+		CrawlStateCancelled,
+		CrawlStateSucceeded,
+		CrawlStateFailed,
+	}
+}
+
 const (
 	// CrawlerStateReady is a CrawlerState enum value
 	CrawlerStateReady = "READY"
@@ -34581,6 +38105,15 @@ const (
 	// CrawlerStateStopping is a CrawlerState enum value
 	CrawlerStateStopping = "STOPPING"
 )
+
+// CrawlerState_Values returns all elements of the CrawlerState enum
+func CrawlerState_Values() []string {
+	return []string{
+		CrawlerStateReady,
+		CrawlerStateRunning,
+		CrawlerStateStopping,
+	}
+}
 
 const (
 	// CsvHeaderOptionUnknown is a CsvHeaderOption enum value
@@ -34593,6 +38126,15 @@ const (
 	CsvHeaderOptionAbsent = "ABSENT"
 )
 
+// CsvHeaderOption_Values returns all elements of the CsvHeaderOption enum
+func CsvHeaderOption_Values() []string {
+	return []string{
+		CsvHeaderOptionUnknown,
+		CsvHeaderOptionPresent,
+		CsvHeaderOptionAbsent,
+	}
+}
+
 const (
 	// DeleteBehaviorLog is a DeleteBehavior enum value
 	DeleteBehaviorLog = "LOG"
@@ -34603,6 +38145,31 @@ const (
 	// DeleteBehaviorDeprecateInDatabase is a DeleteBehavior enum value
 	DeleteBehaviorDeprecateInDatabase = "DEPRECATE_IN_DATABASE"
 )
+
+// DeleteBehavior_Values returns all elements of the DeleteBehavior enum
+func DeleteBehavior_Values() []string {
+	return []string{
+		DeleteBehaviorLog,
+		DeleteBehaviorDeleteFromDatabase,
+		DeleteBehaviorDeprecateInDatabase,
+	}
+}
+
+const (
+	// EnableHybridValuesTrue is a EnableHybridValues enum value
+	EnableHybridValuesTrue = "TRUE"
+
+	// EnableHybridValuesFalse is a EnableHybridValues enum value
+	EnableHybridValuesFalse = "FALSE"
+)
+
+// EnableHybridValues_Values returns all elements of the EnableHybridValues enum
+func EnableHybridValues_Values() []string {
+	return []string{
+		EnableHybridValuesTrue,
+		EnableHybridValuesFalse,
+	}
+}
 
 const (
 	// ExistConditionMustExist is a ExistCondition enum value
@@ -34615,6 +38182,15 @@ const (
 	ExistConditionNone = "NONE"
 )
 
+// ExistCondition_Values returns all elements of the ExistCondition enum
+func ExistCondition_Values() []string {
+	return []string{
+		ExistConditionMustExist,
+		ExistConditionNotExist,
+		ExistConditionNone,
+	}
+}
+
 const (
 	// JobBookmarksEncryptionModeDisabled is a JobBookmarksEncryptionMode enum value
 	JobBookmarksEncryptionModeDisabled = "DISABLED"
@@ -34622,6 +38198,14 @@ const (
 	// JobBookmarksEncryptionModeCseKms is a JobBookmarksEncryptionMode enum value
 	JobBookmarksEncryptionModeCseKms = "CSE-KMS"
 )
+
+// JobBookmarksEncryptionMode_Values returns all elements of the JobBookmarksEncryptionMode enum
+func JobBookmarksEncryptionMode_Values() []string {
+	return []string{
+		JobBookmarksEncryptionModeDisabled,
+		JobBookmarksEncryptionModeCseKms,
+	}
+}
 
 const (
 	// JobRunStateStarting is a JobRunState enum value
@@ -34646,6 +38230,19 @@ const (
 	JobRunStateTimeout = "TIMEOUT"
 )
 
+// JobRunState_Values returns all elements of the JobRunState enum
+func JobRunState_Values() []string {
+	return []string{
+		JobRunStateStarting,
+		JobRunStateRunning,
+		JobRunStateStopping,
+		JobRunStateStopped,
+		JobRunStateSucceeded,
+		JobRunStateFailed,
+		JobRunStateTimeout,
+	}
+}
+
 const (
 	// LanguagePython is a Language enum value
 	LanguagePython = "PYTHON"
@@ -34653,6 +38250,14 @@ const (
 	// LanguageScala is a Language enum value
 	LanguageScala = "SCALA"
 )
+
+// Language_Values returns all elements of the Language enum
+func Language_Values() []string {
+	return []string{
+		LanguagePython,
+		LanguageScala,
+	}
+}
 
 const (
 	// LastCrawlStatusSucceeded is a LastCrawlStatus enum value
@@ -34665,6 +38270,15 @@ const (
 	LastCrawlStatusFailed = "FAILED"
 )
 
+// LastCrawlStatus_Values returns all elements of the LastCrawlStatus enum
+func LastCrawlStatus_Values() []string {
+	return []string{
+		LastCrawlStatusSucceeded,
+		LastCrawlStatusCancelled,
+		LastCrawlStatusFailed,
+	}
+}
+
 const (
 	// LogicalAnd is a Logical enum value
 	LogicalAnd = "AND"
@@ -34673,10 +38287,25 @@ const (
 	LogicalAny = "ANY"
 )
 
+// Logical_Values returns all elements of the Logical enum
+func Logical_Values() []string {
+	return []string{
+		LogicalAnd,
+		LogicalAny,
+	}
+}
+
 const (
 	// LogicalOperatorEquals is a LogicalOperator enum value
 	LogicalOperatorEquals = "EQUALS"
 )
+
+// LogicalOperator_Values returns all elements of the LogicalOperator enum
+func LogicalOperator_Values() []string {
+	return []string{
+		LogicalOperatorEquals,
+	}
+}
 
 const (
 	// NodeTypeCrawler is a NodeType enum value
@@ -34688,6 +38317,27 @@ const (
 	// NodeTypeTrigger is a NodeType enum value
 	NodeTypeTrigger = "TRIGGER"
 )
+
+// NodeType_Values returns all elements of the NodeType enum
+func NodeType_Values() []string {
+	return []string{
+		NodeTypeCrawler,
+		NodeTypeJob,
+		NodeTypeTrigger,
+	}
+}
+
+const (
+	// PartitionIndexStatusActive is a PartitionIndexStatus enum value
+	PartitionIndexStatusActive = "ACTIVE"
+)
+
+// PartitionIndexStatus_Values returns all elements of the PartitionIndexStatus enum
+func PartitionIndexStatus_Values() []string {
+	return []string{
+		PartitionIndexStatusActive,
+	}
+}
 
 const (
 	// PermissionAll is a Permission enum value
@@ -34718,6 +38368,21 @@ const (
 	PermissionDataLocationAccess = "DATA_LOCATION_ACCESS"
 )
 
+// Permission_Values returns all elements of the Permission enum
+func Permission_Values() []string {
+	return []string{
+		PermissionAll,
+		PermissionSelect,
+		PermissionAlter,
+		PermissionDrop,
+		PermissionDelete,
+		PermissionInsert,
+		PermissionCreateDatabase,
+		PermissionCreateTable,
+		PermissionDataLocationAccess,
+	}
+}
+
 const (
 	// PrincipalTypeUser is a PrincipalType enum value
 	PrincipalTypeUser = "USER"
@@ -34728,6 +38393,31 @@ const (
 	// PrincipalTypeGroup is a PrincipalType enum value
 	PrincipalTypeGroup = "GROUP"
 )
+
+// PrincipalType_Values returns all elements of the PrincipalType enum
+func PrincipalType_Values() []string {
+	return []string{
+		PrincipalTypeUser,
+		PrincipalTypeRole,
+		PrincipalTypeGroup,
+	}
+}
+
+const (
+	// ResourceShareTypeForeign is a ResourceShareType enum value
+	ResourceShareTypeForeign = "FOREIGN"
+
+	// ResourceShareTypeAll is a ResourceShareType enum value
+	ResourceShareTypeAll = "ALL"
+)
+
+// ResourceShareType_Values returns all elements of the ResourceShareType enum
+func ResourceShareType_Values() []string {
+	return []string{
+		ResourceShareTypeForeign,
+		ResourceShareTypeAll,
+	}
+}
 
 const (
 	// ResourceTypeJar is a ResourceType enum value
@@ -34740,6 +38430,15 @@ const (
 	ResourceTypeArchive = "ARCHIVE"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeJar,
+		ResourceTypeFile,
+		ResourceTypeArchive,
+	}
+}
+
 const (
 	// S3EncryptionModeDisabled is a S3EncryptionMode enum value
 	S3EncryptionModeDisabled = "DISABLED"
@@ -34750,6 +38449,15 @@ const (
 	// S3EncryptionModeSseS3 is a S3EncryptionMode enum value
 	S3EncryptionModeSseS3 = "SSE-S3"
 )
+
+// S3EncryptionMode_Values returns all elements of the S3EncryptionMode enum
+func S3EncryptionMode_Values() []string {
+	return []string{
+		S3EncryptionModeDisabled,
+		S3EncryptionModeSseKms,
+		S3EncryptionModeSseS3,
+	}
+}
 
 const (
 	// ScheduleStateScheduled is a ScheduleState enum value
@@ -34762,6 +38470,15 @@ const (
 	ScheduleStateTransitioning = "TRANSITIONING"
 )
 
+// ScheduleState_Values returns all elements of the ScheduleState enum
+func ScheduleState_Values() []string {
+	return []string{
+		ScheduleStateScheduled,
+		ScheduleStateNotScheduled,
+		ScheduleStateTransitioning,
+	}
+}
+
 const (
 	// SortAsc is a Sort enum value
 	SortAsc = "ASC"
@@ -34770,6 +38487,14 @@ const (
 	SortDesc = "DESC"
 )
 
+// Sort_Values returns all elements of the Sort enum
+func Sort_Values() []string {
+	return []string{
+		SortAsc,
+		SortDesc,
+	}
+}
+
 const (
 	// SortDirectionTypeDescending is a SortDirectionType enum value
 	SortDirectionTypeDescending = "DESCENDING"
@@ -34777,6 +38502,14 @@ const (
 	// SortDirectionTypeAscending is a SortDirectionType enum value
 	SortDirectionTypeAscending = "ASCENDING"
 )
+
+// SortDirectionType_Values returns all elements of the SortDirectionType enum
+func SortDirectionType_Values() []string {
+	return []string{
+		SortDirectionTypeDescending,
+		SortDirectionTypeAscending,
+	}
+}
 
 const (
 	// TaskRunSortColumnTypeTaskRunType is a TaskRunSortColumnType enum value
@@ -34788,6 +38521,15 @@ const (
 	// TaskRunSortColumnTypeStarted is a TaskRunSortColumnType enum value
 	TaskRunSortColumnTypeStarted = "STARTED"
 )
+
+// TaskRunSortColumnType_Values returns all elements of the TaskRunSortColumnType enum
+func TaskRunSortColumnType_Values() []string {
+	return []string{
+		TaskRunSortColumnTypeTaskRunType,
+		TaskRunSortColumnTypeStatus,
+		TaskRunSortColumnTypeStarted,
+	}
+}
 
 const (
 	// TaskStatusTypeStarting is a TaskStatusType enum value
@@ -34812,6 +38554,19 @@ const (
 	TaskStatusTypeTimeout = "TIMEOUT"
 )
 
+// TaskStatusType_Values returns all elements of the TaskStatusType enum
+func TaskStatusType_Values() []string {
+	return []string{
+		TaskStatusTypeStarting,
+		TaskStatusTypeRunning,
+		TaskStatusTypeStopping,
+		TaskStatusTypeStopped,
+		TaskStatusTypeSucceeded,
+		TaskStatusTypeFailed,
+		TaskStatusTypeTimeout,
+	}
+}
+
 const (
 	// TaskTypeEvaluation is a TaskType enum value
 	TaskTypeEvaluation = "EVALUATION"
@@ -34828,6 +38583,17 @@ const (
 	// TaskTypeFindMatches is a TaskType enum value
 	TaskTypeFindMatches = "FIND_MATCHES"
 )
+
+// TaskType_Values returns all elements of the TaskType enum
+func TaskType_Values() []string {
+	return []string{
+		TaskTypeEvaluation,
+		TaskTypeLabelingSetGeneration,
+		TaskTypeImportLabels,
+		TaskTypeExportLabels,
+		TaskTypeFindMatches,
+	}
+}
 
 const (
 	// TransformSortColumnTypeName is a TransformSortColumnType enum value
@@ -34846,6 +38612,17 @@ const (
 	TransformSortColumnTypeLastModified = "LAST_MODIFIED"
 )
 
+// TransformSortColumnType_Values returns all elements of the TransformSortColumnType enum
+func TransformSortColumnType_Values() []string {
+	return []string{
+		TransformSortColumnTypeName,
+		TransformSortColumnTypeTransformType,
+		TransformSortColumnTypeStatus,
+		TransformSortColumnTypeCreated,
+		TransformSortColumnTypeLastModified,
+	}
+}
+
 const (
 	// TransformStatusTypeNotReady is a TransformStatusType enum value
 	TransformStatusTypeNotReady = "NOT_READY"
@@ -34857,10 +38634,26 @@ const (
 	TransformStatusTypeDeleting = "DELETING"
 )
 
+// TransformStatusType_Values returns all elements of the TransformStatusType enum
+func TransformStatusType_Values() []string {
+	return []string{
+		TransformStatusTypeNotReady,
+		TransformStatusTypeReady,
+		TransformStatusTypeDeleting,
+	}
+}
+
 const (
 	// TransformTypeFindMatches is a TransformType enum value
 	TransformTypeFindMatches = "FIND_MATCHES"
 )
+
+// TransformType_Values returns all elements of the TransformType enum
+func TransformType_Values() []string {
+	return []string{
+		TransformTypeFindMatches,
+	}
+}
 
 const (
 	// TriggerStateCreating is a TriggerState enum value
@@ -34888,6 +38681,20 @@ const (
 	TriggerStateUpdating = "UPDATING"
 )
 
+// TriggerState_Values returns all elements of the TriggerState enum
+func TriggerState_Values() []string {
+	return []string{
+		TriggerStateCreating,
+		TriggerStateCreated,
+		TriggerStateActivating,
+		TriggerStateActivated,
+		TriggerStateDeactivating,
+		TriggerStateDeactivated,
+		TriggerStateDeleting,
+		TriggerStateUpdating,
+	}
+}
+
 const (
 	// TriggerTypeScheduled is a TriggerType enum value
 	TriggerTypeScheduled = "SCHEDULED"
@@ -34899,6 +38706,15 @@ const (
 	TriggerTypeOnDemand = "ON_DEMAND"
 )
 
+// TriggerType_Values returns all elements of the TriggerType enum
+func TriggerType_Values() []string {
+	return []string{
+		TriggerTypeScheduled,
+		TriggerTypeConditional,
+		TriggerTypeOnDemand,
+	}
+}
+
 const (
 	// UpdateBehaviorLog is a UpdateBehavior enum value
 	UpdateBehaviorLog = "LOG"
@@ -34906,6 +38722,14 @@ const (
 	// UpdateBehaviorUpdateInDatabase is a UpdateBehavior enum value
 	UpdateBehaviorUpdateInDatabase = "UPDATE_IN_DATABASE"
 )
+
+// UpdateBehavior_Values returns all elements of the UpdateBehavior enum
+func UpdateBehavior_Values() []string {
+	return []string{
+		UpdateBehaviorLog,
+		UpdateBehaviorUpdateInDatabase,
+	}
+}
 
 const (
 	// WorkerTypeStandard is a WorkerType enum value
@@ -34917,6 +38741,15 @@ const (
 	// WorkerTypeG2x is a WorkerType enum value
 	WorkerTypeG2x = "G.2X"
 )
+
+// WorkerType_Values returns all elements of the WorkerType enum
+func WorkerType_Values() []string {
+	return []string{
+		WorkerTypeStandard,
+		WorkerTypeG1x,
+		WorkerTypeG2x,
+	}
+}
 
 const (
 	// WorkflowRunStatusRunning is a WorkflowRunStatus enum value
@@ -34930,4 +38763,18 @@ const (
 
 	// WorkflowRunStatusStopped is a WorkflowRunStatus enum value
 	WorkflowRunStatusStopped = "STOPPED"
+
+	// WorkflowRunStatusError is a WorkflowRunStatus enum value
+	WorkflowRunStatusError = "ERROR"
 )
+
+// WorkflowRunStatus_Values returns all elements of the WorkflowRunStatus enum
+func WorkflowRunStatus_Values() []string {
+	return []string{
+		WorkflowRunStatusRunning,
+		WorkflowRunStatusCompleted,
+		WorkflowRunStatusStopping,
+		WorkflowRunStatusStopped,
+		WorkflowRunStatusError,
+	}
+}

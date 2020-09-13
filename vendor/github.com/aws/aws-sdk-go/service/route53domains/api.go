@@ -6814,6 +6814,17 @@ const (
 	ContactTypeReseller = "RESELLER"
 )
 
+// ContactType_Values returns all elements of the ContactType enum
+func ContactType_Values() []string {
+	return []string{
+		ContactTypePerson,
+		ContactTypeCompany,
+		ContactTypeAssociation,
+		ContactTypePublicBody,
+		ContactTypeReseller,
+	}
+}
+
 const (
 	// CountryCodeAd is a CountryCode enum value
 	CountryCodeAd = "AD"
@@ -7503,6 +7514,241 @@ const (
 	CountryCodeZw = "ZW"
 )
 
+// CountryCode_Values returns all elements of the CountryCode enum
+func CountryCode_Values() []string {
+	return []string{
+		CountryCodeAd,
+		CountryCodeAe,
+		CountryCodeAf,
+		CountryCodeAg,
+		CountryCodeAi,
+		CountryCodeAl,
+		CountryCodeAm,
+		CountryCodeAn,
+		CountryCodeAo,
+		CountryCodeAq,
+		CountryCodeAr,
+		CountryCodeAs,
+		CountryCodeAt,
+		CountryCodeAu,
+		CountryCodeAw,
+		CountryCodeAz,
+		CountryCodeBa,
+		CountryCodeBb,
+		CountryCodeBd,
+		CountryCodeBe,
+		CountryCodeBf,
+		CountryCodeBg,
+		CountryCodeBh,
+		CountryCodeBi,
+		CountryCodeBj,
+		CountryCodeBl,
+		CountryCodeBm,
+		CountryCodeBn,
+		CountryCodeBo,
+		CountryCodeBr,
+		CountryCodeBs,
+		CountryCodeBt,
+		CountryCodeBw,
+		CountryCodeBy,
+		CountryCodeBz,
+		CountryCodeCa,
+		CountryCodeCc,
+		CountryCodeCd,
+		CountryCodeCf,
+		CountryCodeCg,
+		CountryCodeCh,
+		CountryCodeCi,
+		CountryCodeCk,
+		CountryCodeCl,
+		CountryCodeCm,
+		CountryCodeCn,
+		CountryCodeCo,
+		CountryCodeCr,
+		CountryCodeCu,
+		CountryCodeCv,
+		CountryCodeCx,
+		CountryCodeCy,
+		CountryCodeCz,
+		CountryCodeDe,
+		CountryCodeDj,
+		CountryCodeDk,
+		CountryCodeDm,
+		CountryCodeDo,
+		CountryCodeDz,
+		CountryCodeEc,
+		CountryCodeEe,
+		CountryCodeEg,
+		CountryCodeEr,
+		CountryCodeEs,
+		CountryCodeEt,
+		CountryCodeFi,
+		CountryCodeFj,
+		CountryCodeFk,
+		CountryCodeFm,
+		CountryCodeFo,
+		CountryCodeFr,
+		CountryCodeGa,
+		CountryCodeGb,
+		CountryCodeGd,
+		CountryCodeGe,
+		CountryCodeGh,
+		CountryCodeGi,
+		CountryCodeGl,
+		CountryCodeGm,
+		CountryCodeGn,
+		CountryCodeGq,
+		CountryCodeGr,
+		CountryCodeGt,
+		CountryCodeGu,
+		CountryCodeGw,
+		CountryCodeGy,
+		CountryCodeHk,
+		CountryCodeHn,
+		CountryCodeHr,
+		CountryCodeHt,
+		CountryCodeHu,
+		CountryCodeId,
+		CountryCodeIe,
+		CountryCodeIl,
+		CountryCodeIm,
+		CountryCodeIn,
+		CountryCodeIq,
+		CountryCodeIr,
+		CountryCodeIs,
+		CountryCodeIt,
+		CountryCodeJm,
+		CountryCodeJo,
+		CountryCodeJp,
+		CountryCodeKe,
+		CountryCodeKg,
+		CountryCodeKh,
+		CountryCodeKi,
+		CountryCodeKm,
+		CountryCodeKn,
+		CountryCodeKp,
+		CountryCodeKr,
+		CountryCodeKw,
+		CountryCodeKy,
+		CountryCodeKz,
+		CountryCodeLa,
+		CountryCodeLb,
+		CountryCodeLc,
+		CountryCodeLi,
+		CountryCodeLk,
+		CountryCodeLr,
+		CountryCodeLs,
+		CountryCodeLt,
+		CountryCodeLu,
+		CountryCodeLv,
+		CountryCodeLy,
+		CountryCodeMa,
+		CountryCodeMc,
+		CountryCodeMd,
+		CountryCodeMe,
+		CountryCodeMf,
+		CountryCodeMg,
+		CountryCodeMh,
+		CountryCodeMk,
+		CountryCodeMl,
+		CountryCodeMm,
+		CountryCodeMn,
+		CountryCodeMo,
+		CountryCodeMp,
+		CountryCodeMr,
+		CountryCodeMs,
+		CountryCodeMt,
+		CountryCodeMu,
+		CountryCodeMv,
+		CountryCodeMw,
+		CountryCodeMx,
+		CountryCodeMy,
+		CountryCodeMz,
+		CountryCodeNa,
+		CountryCodeNc,
+		CountryCodeNe,
+		CountryCodeNg,
+		CountryCodeNi,
+		CountryCodeNl,
+		CountryCodeNo,
+		CountryCodeNp,
+		CountryCodeNr,
+		CountryCodeNu,
+		CountryCodeNz,
+		CountryCodeOm,
+		CountryCodePa,
+		CountryCodePe,
+		CountryCodePf,
+		CountryCodePg,
+		CountryCodePh,
+		CountryCodePk,
+		CountryCodePl,
+		CountryCodePm,
+		CountryCodePn,
+		CountryCodePr,
+		CountryCodePt,
+		CountryCodePw,
+		CountryCodePy,
+		CountryCodeQa,
+		CountryCodeRo,
+		CountryCodeRs,
+		CountryCodeRu,
+		CountryCodeRw,
+		CountryCodeSa,
+		CountryCodeSb,
+		CountryCodeSc,
+		CountryCodeSd,
+		CountryCodeSe,
+		CountryCodeSg,
+		CountryCodeSh,
+		CountryCodeSi,
+		CountryCodeSk,
+		CountryCodeSl,
+		CountryCodeSm,
+		CountryCodeSn,
+		CountryCodeSo,
+		CountryCodeSr,
+		CountryCodeSt,
+		CountryCodeSv,
+		CountryCodeSy,
+		CountryCodeSz,
+		CountryCodeTc,
+		CountryCodeTd,
+		CountryCodeTg,
+		CountryCodeTh,
+		CountryCodeTj,
+		CountryCodeTk,
+		CountryCodeTl,
+		CountryCodeTm,
+		CountryCodeTn,
+		CountryCodeTo,
+		CountryCodeTr,
+		CountryCodeTt,
+		CountryCodeTv,
+		CountryCodeTw,
+		CountryCodeTz,
+		CountryCodeUa,
+		CountryCodeUg,
+		CountryCodeUs,
+		CountryCodeUy,
+		CountryCodeUz,
+		CountryCodeVa,
+		CountryCodeVc,
+		CountryCodeVe,
+		CountryCodeVg,
+		CountryCodeVi,
+		CountryCodeVn,
+		CountryCodeVu,
+		CountryCodeWf,
+		CountryCodeWs,
+		CountryCodeYe,
+		CountryCodeYt,
+		CountryCodeZa,
+		CountryCodeZm,
+		CountryCodeZw,
+	}
+}
+
 const (
 	// DomainAvailabilityAvailable is a DomainAvailability enum value
 	DomainAvailabilityAvailable = "AVAILABLE"
@@ -7528,6 +7774,20 @@ const (
 	// DomainAvailabilityDontKnow is a DomainAvailability enum value
 	DomainAvailabilityDontKnow = "DONT_KNOW"
 )
+
+// DomainAvailability_Values returns all elements of the DomainAvailability enum
+func DomainAvailability_Values() []string {
+	return []string{
+		DomainAvailabilityAvailable,
+		DomainAvailabilityAvailableReserved,
+		DomainAvailabilityAvailablePreorder,
+		DomainAvailabilityUnavailable,
+		DomainAvailabilityUnavailablePremium,
+		DomainAvailabilityUnavailableRestricted,
+		DomainAvailabilityReserved,
+		DomainAvailabilityDontKnow,
+	}
+}
 
 const (
 	// ExtraParamNameDunsNumber is a ExtraParamName enum value
@@ -7618,6 +7878,41 @@ const (
 	ExtraParamNameUkCompanyNumber = "UK_COMPANY_NUMBER"
 )
 
+// ExtraParamName_Values returns all elements of the ExtraParamName enum
+func ExtraParamName_Values() []string {
+	return []string{
+		ExtraParamNameDunsNumber,
+		ExtraParamNameBrandNumber,
+		ExtraParamNameBirthDepartment,
+		ExtraParamNameBirthDateInYyyyMmDd,
+		ExtraParamNameBirthCountry,
+		ExtraParamNameBirthCity,
+		ExtraParamNameDocumentNumber,
+		ExtraParamNameAuIdNumber,
+		ExtraParamNameAuIdType,
+		ExtraParamNameCaLegalType,
+		ExtraParamNameCaBusinessEntityType,
+		ExtraParamNameCaLegalRepresentative,
+		ExtraParamNameCaLegalRepresentativeCapacity,
+		ExtraParamNameEsIdentification,
+		ExtraParamNameEsIdentificationType,
+		ExtraParamNameEsLegalForm,
+		ExtraParamNameFiBusinessNumber,
+		ExtraParamNameFiIdNumber,
+		ExtraParamNameFiNationality,
+		ExtraParamNameFiOrganizationType,
+		ExtraParamNameItNationality,
+		ExtraParamNameItPin,
+		ExtraParamNameItRegistrantEntityType,
+		ExtraParamNameRuPassportData,
+		ExtraParamNameSeIdNumber,
+		ExtraParamNameSgIdNumber,
+		ExtraParamNameVatNumber,
+		ExtraParamNameUkContactType,
+		ExtraParamNameUkCompanyNumber,
+	}
+}
+
 const (
 	// OperationStatusSubmitted is a OperationStatus enum value
 	OperationStatusSubmitted = "SUBMITTED"
@@ -7634,6 +7929,17 @@ const (
 	// OperationStatusFailed is a OperationStatus enum value
 	OperationStatusFailed = "FAILED"
 )
+
+// OperationStatus_Values returns all elements of the OperationStatus enum
+func OperationStatus_Values() []string {
+	return []string{
+		OperationStatusSubmitted,
+		OperationStatusInProgress,
+		OperationStatusError,
+		OperationStatusSuccessful,
+		OperationStatusFailed,
+	}
+}
 
 const (
 	// OperationTypeRegisterDomain is a OperationType enum value
@@ -7691,6 +7997,30 @@ const (
 	OperationTypeInternalTransferInDomain = "INTERNAL_TRANSFER_IN_DOMAIN"
 )
 
+// OperationType_Values returns all elements of the OperationType enum
+func OperationType_Values() []string {
+	return []string{
+		OperationTypeRegisterDomain,
+		OperationTypeDeleteDomain,
+		OperationTypeTransferInDomain,
+		OperationTypeUpdateDomainContact,
+		OperationTypeUpdateNameserver,
+		OperationTypeChangePrivacyProtection,
+		OperationTypeDomainLock,
+		OperationTypeEnableAutorenew,
+		OperationTypeDisableAutorenew,
+		OperationTypeAddDnssec,
+		OperationTypeRemoveDnssec,
+		OperationTypeExpireDomain,
+		OperationTypeTransferOutDomain,
+		OperationTypeChangeDomainOwner,
+		OperationTypeRenewDomain,
+		OperationTypePushDomain,
+		OperationTypeInternalTransferOutDomain,
+		OperationTypeInternalTransferInDomain,
+	}
+}
+
 const (
 	// ReachabilityStatusPending is a ReachabilityStatus enum value
 	ReachabilityStatusPending = "PENDING"
@@ -7701,6 +8031,15 @@ const (
 	// ReachabilityStatusExpired is a ReachabilityStatus enum value
 	ReachabilityStatusExpired = "EXPIRED"
 )
+
+// ReachabilityStatus_Values returns all elements of the ReachabilityStatus enum
+func ReachabilityStatus_Values() []string {
+	return []string{
+		ReachabilityStatusPending,
+		ReachabilityStatusDone,
+		ReachabilityStatusExpired,
+	}
+}
 
 // Whether the domain name can be transferred to Route 53.
 //
@@ -7729,3 +8068,12 @@ const (
 	// TransferableDontKnow is a Transferable enum value
 	TransferableDontKnow = "DONT_KNOW"
 )
+
+// Transferable_Values returns all elements of the Transferable enum
+func Transferable_Values() []string {
+	return []string{
+		TransferableTransferable,
+		TransferableUntransferable,
+		TransferableDontKnow,
+	}
+}

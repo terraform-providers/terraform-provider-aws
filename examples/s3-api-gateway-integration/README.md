@@ -8,9 +8,6 @@ This example demonstrates how to create an S3 Proxy using AWS API Gateway. It ta
 
 Only three variables are required to run this example. They can be provided by ```cp terraform.template.tfvars terraform.tfvars```, modifying ```terraform.tfvars``` with your variables, and running ```terraform apply```. Alternatively, the variables can be provided as flags by running:
 ```
-terraform apply \
-    -var="aws_access_key=yourawsaccesskey" \
-    -var="aws_secret_key=yourawssecretkey" \
-    -var="aws_region=us-east-1"
+terraform apply -var="aws_region=us-west-2"
 ```
 

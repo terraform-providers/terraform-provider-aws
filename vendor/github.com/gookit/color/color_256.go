@@ -41,12 +41,15 @@ const (
 //
 // 颜色值使用10进制和16进制都可 0x98 = 152
 //
-// 颜色有两位uint8组成,
+// 颜色有两位uint8组成:
 // 	0: color value
 // 	1: color type, Fg=0 Bg=1
 // 	>1: unset value
+// example:
 // 	fg color: [152, 0]
 //  bg color: [152, 1]
+//
+// NOTICE: now support 256 color on windows CMD, PowerShell
 type Color256 [2]uint8
 
 // Bit8 create a color256
@@ -68,17 +71,17 @@ func C256(val uint8, isBg ...bool) Color256 {
 
 // Print print message
 func (c Color256) Print(a ...interface{}) {
-	fmt.Print(RenderCode(c.String(), a...))
+	doPrintV2(c.String(), fmt.Sprint(a...))
 }
 
 // Printf format and print message
 func (c Color256) Printf(format string, a ...interface{}) {
-	fmt.Print(RenderString(c.String(), fmt.Sprintf(format, a...)))
+	doPrintV2(c.String(), fmt.Sprintf(format, a...))
 }
 
 // Println print message with newline
 func (c Color256) Println(a ...interface{}) {
-	fmt.Println(RenderCode(c.String(), a...))
+	doPrintlnV2(c.String(), a)
 }
 
 // Sprint returns rendered message
@@ -172,27 +175,32 @@ func (s *Style256) SetFg(fgVal uint8) *Style256 {
 
 // Print print message
 func (s *Style256) Print(a ...interface{}) {
-	fmt.Print(RenderCode(s.String(), a...))
+	doPrintV2(s.String(), fmt.Sprint(a...))
 }
 
 // Printf format and print message
 func (s *Style256) Printf(format string, a ...interface{}) {
-	fmt.Print(RenderString(s.String(), fmt.Sprintf(format, a...)))
+	doPrintV2(s.String(), fmt.Sprintf(format, a...))
 }
 
 // Println print message with newline
 func (s *Style256) Println(a ...interface{}) {
-	fmt.Println(RenderCode(s.String(), a...))
+	doPrintlnV2(s.String(), a)
 }
 
 // Sprint returns rendered message
 func (s *Style256) Sprint(a ...interface{}) string {
-	return RenderCode(s.String(), a...)
+	return RenderCode(s.Code(), a...)
 }
 
 // Sprintf returns format and rendered message
 func (s *Style256) Sprintf(format string, a ...interface{}) string {
-	return RenderString(s.String(), fmt.Sprintf(format, a...))
+	return RenderString(s.Code(), fmt.Sprintf(format, a...))
+}
+
+// Code convert to color code string
+func (s *Style256) Code() string {
+	return s.String()
 }
 
 // String convert to color code string

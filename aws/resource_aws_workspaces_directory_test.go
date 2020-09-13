@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -406,8 +406,8 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "primary" {
-  vpc_id               = "${aws_vpc.main.id}"
-  availability_zone_id = "${local.workspaces_az_ids[0]}"
+  vpc_id               = aws_vpc.main.id
+  availability_zone_id = local.workspaces_az_ids[0]
   cidr_block           = "10.0.1.0/24"
 
   tags = {
@@ -416,8 +416,8 @@ resource "aws_subnet" "primary" {
 }
 
 resource "aws_subnet" "secondary" {
-  vpc_id               = "${aws_vpc.main.id}"
-  availability_zone_id = "${local.workspaces_az_ids[1]}"
+  vpc_id               = aws_vpc.main.id
+  availability_zone_id = local.workspaces_az_ids[1]
   cidr_block           = "10.0.2.0/24"
 
   tags = {
@@ -431,8 +431,8 @@ resource "aws_directory_service_directory" "main" {
   password = "#S1ncerely"
 
   vpc_settings {
-    vpc_id     = "${aws_vpc.main.id}"
-    subnet_ids = ["${aws_subnet.primary.id}", "${aws_subnet.secondary.id}"]
+    vpc_id     = aws_vpc.main.id
+    subnet_ids = [aws_subnet.primary.id, aws_subnet.secondary.id]
   }
 
   tags = {
@@ -443,21 +443,21 @@ resource "aws_directory_service_directory" "main" {
 }
 
 func testAccWorkspacesDirectoryConfigA(rName string) string {
-	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + `
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 }
 
 data "aws_iam_role" "workspaces-default" {
   name = "workspaces_DefaultRole"
 }
-`)
+`
 }
 
 func testAccWorkspacesDirectoryConfigB(rName string) string {
-	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + `
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 
   self_service_permissions {
     change_compute_type  = false
@@ -467,35 +467,35 @@ resource "aws_workspaces_directory" "main" {
     switch_running_mode  = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesDirectoryConfigC(rName string) string {
-	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + `
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 
   self_service_permissions {
     change_compute_type = true
     switch_running_mode = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesDirectoryConfig_subnetIds(rName string) string {
-	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + `
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
-  subnet_ids = ["${aws_subnet.primary.id}","${aws_subnet.secondary.id}"]
+  directory_id = aws_directory_service_directory.main.id
+  subnet_ids   = [aws_subnet.primary.id, aws_subnet.secondary.id]
 }
-`)
+`
 }
 
 func testAccWorkspacesDirectoryConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 
   tags = {
     %[1]q = %[2]q
@@ -507,7 +507,7 @@ resource "aws_workspaces_directory" "main" {
 func testAccWorkspacesDirectoryConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName) + fmt.Sprintf(`
 resource "aws_workspaces_directory" "main" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 
   tags = {
     %[1]q = %[2]q

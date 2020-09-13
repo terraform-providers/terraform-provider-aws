@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	awsbase "github.com/hashicorp/aws-sdk-go-base"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 )
 
 // Custom S3 tag service update functions using the same format as generated code.
@@ -24,7 +24,7 @@ func S3BucketListTags(conn *s3.S3, identifier string) (KeyValueTags, error) {
 	// S3 API Reference (https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
 	// lists the special error as NoSuchTagSetError, however the existing logic used NoSuchTagSet
 	// and the AWS Go SDK has neither as a constant.
-	if awsbase.IsAWSErr(err, "NoSuchTagSet", "") {
+	if tfawserr.ErrCodeEquals(err, "NoSuchTagSet") {
 		return New(nil), nil
 	}
 

@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -274,10 +274,11 @@ data "aws_ami" "aws_thinstaller" {
 
 data "aws_ami" "aws_datasync" {
   most_recent = true
-	# I do not know why, but only in us-west-2 
-	# does the datasync ami _not_ have the amazon-alias.
-	# Reverting to amazon-owner id.
-  owners      = ["633936118553"]
+
+  # I do not know why, but only in us-west-2 
+  # does the datasync ami _not_ have the amazon-alias.
+  # Reverting to amazon-owner id.
+  owners = ["633936118553"]
 
   filter {
     name   = "name"
@@ -295,7 +296,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-smb"
@@ -303,7 +304,7 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-smb"
@@ -311,11 +312,11 @@ resource "aws_internet_gateway" "test" {
 }
 
 resource "aws_route_table" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.test.id}"
+    gateway_id = aws_internet_gateway.test.id
   }
 
   tags = {
@@ -324,8 +325,8 @@ resource "aws_route_table" "test" {
 }
 
 resource "aws_route_table_association" "test" {
-  subnet_id      = "${aws_subnet.test.id}"
-  route_table_id = "${aws_route_table.test.id}"
+  subnet_id      = aws_subnet.test.id
+  route_table_id = aws_route_table.test.id
 }
 
 resource "aws_iam_role" "test" {
@@ -347,7 +348,7 @@ POLICY
 }
 
 resource "aws_iam_role_policy" "test" {
-  role = "${aws_iam_role.test.name}"
+  role = aws_iam_role.test.name
 
   policy = <<POLICY
 {
@@ -377,7 +378,7 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   egress {
     from_port   = 0
@@ -398,16 +399,15 @@ resource "aws_security_group" "test" {
   }
 }
 
-
 resource "aws_instance" "test_gateway" {
-	depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 
-  ami                         = "${data.aws_ami.aws_thinstaller.id}"
+  ami                         = data.aws_ami.aws_thinstaller.id
   associate_public_ip_address = true
 
   instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
+  vpc_security_group_ids = [aws_security_group.test.id]
+  subnet_id              = aws_subnet.test.id
 
   ebs_block_device {
     device_name = "/dev/sdf"
@@ -420,7 +420,7 @@ resource "aws_instance" "test_gateway" {
 }
 
 resource "aws_storagegateway_gateway" "test" {
-  gateway_ip_address = "${aws_instance.test_gateway.public_ip}"
+  gateway_ip_address = aws_instance.test_gateway.public_ip
   gateway_name       = "datasyncsmb-%s"
   gateway_timezone   = "GMT"
   gateway_type       = "FILE_S3"
@@ -429,48 +429,48 @@ resource "aws_storagegateway_gateway" "test" {
 
 data "aws_storagegateway_local_disk" "test" {
   disk_path   = "/dev/nvme1n1"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_cache" "test" {
   # ACCEPTANCE TESTING WORKAROUND:
-	# (Shamelessly stolen from:
-	# https://github.com/terraform-providers/terraform-provider-aws/
-	# blob/1647a5ba13c5abaf5cf65ecdeb7c5fdf0107e56f/aws
-	# /resource_aws_storagegateway_cache_test.go#L219 )
+  # (Shamelessly stolen from:
+  # https://github.com/terraform-providers/terraform-provider-aws/
+  # blob/1647a5ba13c5abaf5cf65ecdeb7c5fdf0107e56f/aws
+  # /resource_aws_storagegateway_cache_test.go#L219 )
   # Data sources are not refreshed before plan after apply in TestStep
   # Step 0 error: After applying this step, the plan was not empty:
   #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
   # We expect this data source value to change due to how Storage Gateway works.
   lifecycle {
-    ignore_changes = ["disk_id"]
+    ignore_changes = [disk_id]
   }
 
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_id     = data.aws_storagegateway_local_disk.test.id
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_smb_file_share" "test" {
   # Use GuestAccess to simplify testing
   authentication = "GuestAccess"
-  gateway_arn    = "${aws_storagegateway_gateway.test.arn}"
-  location_arn   = "${aws_s3_bucket.test.arn}"
-  role_arn       = "${aws_iam_role.test.arn}"
+  gateway_arn    = aws_storagegateway_gateway.test.arn
+  location_arn   = aws_s3_bucket.test.arn
+  role_arn       = aws_iam_role.test.arn
 
-	# I'm not super sure why this depends_on sadness is required in
-	# the test framework but not the binary so... yolo!
-	depends_on = ["aws_storagegateway_cache.test"]
+  # I'm not super sure why this depends_on sadness is required in
+  # the test framework but not the binary so... yolo!
+  depends_on = [aws_storagegateway_cache.test]
 }
 
 resource "aws_instance" "test_datasync" {
-  depends_on = ["aws_internet_gateway.test"]
+  depends_on = [aws_internet_gateway.test]
 
-  ami                         = "${data.aws_ami.aws_datasync.id}"
+  ami                         = data.aws_ami.aws_datasync.id
   associate_public_ip_address = true
 
   instance_type          = "c5.large"
-  vpc_security_group_ids = ["${aws_security_group.test.id}"]
-  subnet_id              = "${aws_subnet.test.id}"
+  vpc_security_group_ids = [aws_security_group.test.id]
+  subnet_id              = aws_subnet.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-smb"
@@ -478,34 +478,32 @@ resource "aws_instance" "test_datasync" {
 }
 
 resource "aws_datasync_agent" "test" {
-  ip_address = "${aws_instance.test_datasync.public_ip}"
+  ip_address = aws_instance.test_datasync.public_ip
   name       = "datasyncsmb-%s"
 }
 `, gatewayUid, gatewayUid)
 }
 
 func testAccAWSDataSyncLocationSmbConfig() string {
-	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
+	return testAccAWSDataSyncLocationSmbConfigBase() + `
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test_datasync.public_ip
+  subdirectory    = "/${aws_s3_bucket.test.id}/"
+  user            = "Guest"
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationSmbConfigTags1(key1, value1 string) string {
 	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test_datasync.public_ip
+  subdirectory    = "/${aws_s3_bucket.test.id}/"
+  user            = "Guest"
 
   tags = {
     %q = %q
@@ -517,12 +515,11 @@ resource "aws_datasync_location_smb" "test" {
 func testAccAWSDataSyncLocationSmbConfigTags2(key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncLocationSmbConfigBase() + fmt.Sprintf(`
 resource "aws_datasync_location_smb" "test" {
-	user               = "Guest"
-	password           = "ZaphodBeeblebroxPW"
-	subdirectory       = "/${aws_s3_bucket.test.id}/"
-
-	server_hostname  = "${aws_instance.test_datasync.public_ip}"
-	agent_arns       = ["${aws_datasync_agent.test.arn}"]
+  agent_arns      = [aws_datasync_agent.test.arn]
+  password        = "ZaphodBeeblebroxPW"
+  server_hostname = aws_instance.test_datasync.public_ip
+  subdirectory    = "/${aws_s3_bucket.test.id}/"
+  user            = "Guest"
 
   tags = {
     %q = %q

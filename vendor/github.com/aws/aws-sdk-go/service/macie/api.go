@@ -1852,6 +1852,13 @@ const (
 	S3ContinuousClassificationTypeFull = "FULL"
 )
 
+// S3ContinuousClassificationType_Values returns all elements of the S3ContinuousClassificationType enum
+func S3ContinuousClassificationType_Values() []string {
+	return []string{
+		S3ContinuousClassificationTypeFull,
+	}
+}
+
 const (
 	// S3OneTimeClassificationTypeFull is a S3OneTimeClassificationType enum value
 	S3OneTimeClassificationTypeFull = "FULL"
@@ -1859,3 +1866,11 @@ const (
 	// S3OneTimeClassificationTypeNone is a S3OneTimeClassificationType enum value
 	S3OneTimeClassificationTypeNone = "NONE"
 )
+
+// S3OneTimeClassificationType_Values returns all elements of the S3OneTimeClassificationType enum
+func S3OneTimeClassificationType_Values() []string {
+	return []string{
+		S3OneTimeClassificationTypeFull,
+		S3OneTimeClassificationTypeNone,
+	}
+}

@@ -1068,7 +1068,7 @@ func (c *StorageGateway) CreateSMBFileShareRequest(input *CreateSMBFileShareInpu
 //
 // Creates a Server Message Block (SMB) file share on an existing file gateway.
 // In Storage Gateway, a file share is a file system mount point backed by Amazon
-// S3 cloud storage. Storage Gateway expose file shares using an SMB interface.
+// S3 cloud storage. Storage Gateway exposes file shares using an SMB interface.
 // This operation is only supported for file gateways.
 //
 // File gateways require AWS Security Token Service (AWS STS) to be activated
@@ -1168,13 +1168,13 @@ func (c *StorageGateway) CreateSnapshotRequest(input *CreateSnapshotInput) (req 
 // of your data to Amazon Simple Storage (Amazon S3) for durable off-site recovery,
 // as well as import the data to an Amazon Elastic Block Store (EBS) volume
 // in Amazon Elastic Compute Cloud (EC2). You can take snapshots of your gateway
-// volume on a scheduled or ad hoc basis. This API enables you to take ad-hoc
-// snapshot. For more information, see Editing a snapshot schedule (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#SchedulingSnapshot).
+// volume on a scheduled or ad hoc basis. This API enables you to take an ad
+// hoc snapshot. For more information, see Editing a snapshot schedule (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#SchedulingSnapshot).
 //
-// In the CreateSnapshot request you identify the volume by providing its Amazon
+// In the CreateSnapshot request, you identify the volume by providing its Amazon
 // Resource Name (ARN). You must also provide description for the snapshot.
 // When AWS Storage Gateway takes the snapshot of specified volume, the snapshot
-// and description appears in the AWS Storage Gateway Console. In response,
+// and description appears in the AWS Storage Gateway console. In response,
 // AWS Storage Gateway returns you a snapshot ID. You can use this snapshot
 // ID to check the snapshot progress or later use it when you want to create
 // a volume from a snapshot. This operation is only supported in stored and
@@ -1389,8 +1389,8 @@ func (c *StorageGateway) CreateStorediSCSIVolumeRequest(input *CreateStorediSCSI
 // snapshot, or create an empty volume. If you choose to create an empty gateway
 // volume, then any existing data on the disk is erased.
 //
-// In the request you must specify the gateway and the disk information on which
-// you are creating the volume. In response, the gateway creates the volume
+// In the request, you must specify the gateway and the disk information on
+// which you are creating the volume. In response, the gateway creates the volume
 // and returns volume information such as the volume Amazon Resource Name (ARN),
 // its size, and the iSCSI target ARN that initiators can use to connect to
 // the volume target.
@@ -1428,6 +1428,91 @@ func (c *StorageGateway) CreateStorediSCSIVolume(input *CreateStorediSCSIVolumeI
 // for more information on using Contexts.
 func (c *StorageGateway) CreateStorediSCSIVolumeWithContext(ctx aws.Context, input *CreateStorediSCSIVolumeInput, opts ...request.Option) (*CreateStorediSCSIVolumeOutput, error) {
 	req, out := c.CreateStorediSCSIVolumeRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateTapePool = "CreateTapePool"
+
+// CreateTapePoolRequest generates a "aws/request.Request" representing the
+// client's request for the CreateTapePool operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateTapePool for more information on using the CreateTapePool
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateTapePoolRequest method.
+//    req, resp := client.CreateTapePoolRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/CreateTapePool
+func (c *StorageGateway) CreateTapePoolRequest(input *CreateTapePoolInput) (req *request.Request, output *CreateTapePoolOutput) {
+	op := &request.Operation{
+		Name:       opCreateTapePool,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateTapePoolInput{}
+	}
+
+	output = &CreateTapePoolOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateTapePool API operation for AWS Storage Gateway.
+//
+// Creates a new custom tape pool. You can use custom tape pool to enable tape
+// retention lock on tapes that are archived in the custom pool.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation CreateTapePool for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/CreateTapePool
+func (c *StorageGateway) CreateTapePool(input *CreateTapePoolInput) (*CreateTapePoolOutput, error) {
+	req, out := c.CreateTapePoolRequest(input)
+	return out, req.Send()
+}
+
+// CreateTapePoolWithContext is the same as CreateTapePool with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateTapePool for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) CreateTapePoolWithContext(ctx aws.Context, input *CreateTapePoolInput, opts ...request.Option) (*CreateTapePoolOutput, error) {
+	req, out := c.CreateTapePoolRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1478,7 +1563,7 @@ func (c *StorageGateway) CreateTapeWithBarcodeRequest(input *CreateTapeWithBarco
 // CreateTapeWithBarcode API operation for AWS Storage Gateway.
 //
 // Creates a virtual tape by using your own barcode. You write data to the virtual
-// tape and then archive the tape. A barcode is unique and can not be reused
+// tape and then archive the tape. A barcode is unique and cannot be reused
 // if it has already been used on a tape. This applies to barcodes used on deleted
 // tapes. This operation is only supported in the tape gateway type.
 //
@@ -2105,7 +2190,7 @@ func (c *StorageGateway) DeleteSnapshotScheduleRequest(input *DeleteSnapshotSche
 //
 // You can take snapshots of your gateway volumes on a scheduled or ad hoc basis.
 // This API action enables you to delete a snapshot schedule for a volume. For
-// more information, see Backing up your volumes (https://docs.aws.amazon.com/storagegatewaylatest/userguide/backing-up-volumes.html).
+// more information, see Backing up your volumes (https://docs.aws.amazon.com/storagegateway/latest/userguide/backing-up-volumes.html).
 // In the DeleteSnapshotSchedule request, you identify the volume by providing
 // its Amazon Resource Name (ARN). This operation is only supported in stored
 // and cached volume gateway types.
@@ -2317,6 +2402,92 @@ func (c *StorageGateway) DeleteTapeArchive(input *DeleteTapeArchiveInput) (*Dele
 // for more information on using Contexts.
 func (c *StorageGateway) DeleteTapeArchiveWithContext(ctx aws.Context, input *DeleteTapeArchiveInput, opts ...request.Option) (*DeleteTapeArchiveOutput, error) {
 	req, out := c.DeleteTapeArchiveRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteTapePool = "DeleteTapePool"
+
+// DeleteTapePoolRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteTapePool operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteTapePool for more information on using the DeleteTapePool
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteTapePoolRequest method.
+//    req, resp := client.DeleteTapePoolRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/DeleteTapePool
+func (c *StorageGateway) DeleteTapePoolRequest(input *DeleteTapePoolInput) (req *request.Request, output *DeleteTapePoolOutput) {
+	op := &request.Operation{
+		Name:       opDeleteTapePool,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteTapePoolInput{}
+	}
+
+	output = &DeleteTapePoolOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteTapePool API operation for AWS Storage Gateway.
+//
+// Delete a custom tape pool. A custom tape pool can only be deleted if there
+// are no tapes in the pool and if there are no automatic tape creation policies
+// that reference the custom tape pool.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation DeleteTapePool for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/DeleteTapePool
+func (c *StorageGateway) DeleteTapePool(input *DeleteTapePoolInput) (*DeleteTapePoolOutput, error) {
+	req, out := c.DeleteTapePoolRequest(input)
+	return out, req.Send()
+}
+
+// DeleteTapePoolWithContext is the same as DeleteTapePool with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteTapePool for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) DeleteTapePoolWithContext(ctx aws.Context, input *DeleteTapePoolInput, opts ...request.Option) (*DeleteTapePoolOutput, error) {
+	req, out := c.DeleteTapePoolRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2552,7 +2723,7 @@ func (c *StorageGateway) DescribeBandwidthRateLimitRequest(input *DescribeBandwi
 //
 // Returns the bandwidth rate limits of a gateway. By default, these limits
 // are not set, which means no bandwidth rate limiting is in effect. This operation
-// is supported for the stored volume, cached volume and tape gateway types.
+// is supported for the stored volume, cached volume, and tape gateway types.
 //
 // This operation only returns a value for a bandwidth rate limit only if the
 // limit is set. If no limits are set for the gateway, then this operation returns
@@ -5109,6 +5280,98 @@ func (c *StorageGateway) ListTagsForResourcePagesWithContext(ctx aws.Context, in
 	return p.Err()
 }
 
+const opListTapePools = "ListTapePools"
+
+// ListTapePoolsRequest generates a "aws/request.Request" representing the
+// client's request for the ListTapePools operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTapePools for more information on using the ListTapePools
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTapePoolsRequest method.
+//    req, resp := client.ListTapePoolsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/ListTapePools
+func (c *StorageGateway) ListTapePoolsRequest(input *ListTapePoolsInput) (req *request.Request, output *ListTapePoolsOutput) {
+	op := &request.Operation{
+		Name:       opListTapePools,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListTapePoolsInput{}
+	}
+
+	output = &ListTapePoolsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTapePools API operation for AWS Storage Gateway.
+//
+// Lists custom tape pools. You specify custom tape pools to list by specifying
+// one or more custom tape pool Amazon Resource Names (ARNs). If you don't specify
+// a custom tape pool ARN, the operation lists all custom tape pools.
+//
+// This operation supports pagination. You can optionally specify the Limit
+// parameter in the body to limit the number of tape pools in the response.
+// If the number of tape pools returned in the response is truncated, the response
+// includes a Marker element that you can use in your subsequent request to
+// retrieve the next set of tape pools.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Storage Gateway's
+// API operation ListTapePools for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidGatewayRequestException
+//   An exception occurred because an invalid gateway request was issued to the
+//   service. For more information, see the error and message fields.
+//
+//   * InternalServerError
+//   An internal server error has occurred during the request. For more information,
+//   see the error and message fields.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/storagegateway-2013-06-30/ListTapePools
+func (c *StorageGateway) ListTapePools(input *ListTapePoolsInput) (*ListTapePoolsOutput, error) {
+	req, out := c.ListTapePoolsRequest(input)
+	return out, req.Send()
+}
+
+// ListTapePoolsWithContext is the same as ListTapePools with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTapePools for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *StorageGateway) ListTapePoolsWithContext(ctx aws.Context, input *ListTapePoolsInput, opts ...request.Option) (*ListTapePoolsOutput, error) {
+	req, out := c.ListTapePoolsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opListTapes = "ListTapes"
 
 // ListTapesRequest generates a "aws/request.Request" representing the
@@ -5733,7 +5996,7 @@ func (c *StorageGateway) RefreshCacheRequest(input *RefreshCacheInput) (req *req
 // RefreshCache API operation for AWS Storage Gateway.
 //
 // Refreshes the cache for the specified file share. This operation finds objects
-// in the Amazon S3 bucket that were added, removed or replaced since the gateway
+// in the Amazon S3 bucket that were added, removed, or replaced since the gateway
 // last listed the bucket's contents and cached the results. This operation
 // is only supported in the file gateway type. You can subscribe to be notified
 // through an Amazon CloudWatch event when your RefreshCache operation completes.
@@ -6947,7 +7210,7 @@ func (c *StorageGateway) UpdateGatewayInformationRequest(input *UpdateGatewayInf
 // zone. To specify which gateway to update, use the Amazon Resource Name (ARN)
 // of the gateway in your request.
 //
-// For Gateways activated after September 2, 2015, the gateway's ARN contains
+// For gateways activated after September 2, 2015, the gateway's ARN contains
 // the gateway ID rather than the gateway name. However, changing the name of
 // the gateway has no effect on the gateway's ARN.
 //
@@ -7711,7 +7974,7 @@ type ActivateGatewayInput struct {
 	// The value that indicates the type of medium changer to use for tape gateway.
 	// This field is optional.
 	//
-	// Valid Values: STK-L700 | AWS-Gateway-VTL
+	// Valid Values: STK-L700 | AWS-Gateway-VTL | IBM-03584L32-0402
 	MediumChangerType *string `min:"2" type:"string"`
 
 	// A list of up to 50 tags that you can assign to the gateway. Each tag is a
@@ -8223,6 +8486,15 @@ func (s *AddWorkingStorageOutput) SetGatewayARN(v string) *AddWorkingStorageOutp
 type AssignTapePoolInput struct {
 	_ struct{} `type:"structure"`
 
+	// Set permissions to bypass governance retention. If the lock type of the archived
+	// tape is Governance, the tape's archived age is not older than RetentionLockInDays,
+	// and the user does not already have BypassGovernanceRetention, setting this
+	// to TRUE enables the user to bypass the retention lock. This parameter is
+	// set to true by default for calls from the console.
+	//
+	// Valid values: TRUE | FALSE
+	BypassGovernanceRetention *bool `type:"boolean"`
+
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
 	// the pool. When you use your backup application to eject the tape, the tape
@@ -8271,6 +8543,12 @@ func (s *AssignTapePoolInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetBypassGovernanceRetention sets the BypassGovernanceRetention field's value.
+func (s *AssignTapePoolInput) SetBypassGovernanceRetention(v bool) *AssignTapePoolInput {
+	s.BypassGovernanceRetention = &v
+	return s
 }
 
 // SetPoolId sets the PoolId field's value.
@@ -8491,14 +8769,16 @@ func (s *AutomaticTapeCreationPolicyInfo) SetGatewayARN(v string) *AutomaticTape
 }
 
 // An automatic tape creation policy consists of automatic tape creation rules
-// where each rule defines when and how to create new tapes.
+// where each rule defines when and how to create new tapes. For more information
+// about automatic tape creation, see Creating Tapes Automatically (https://docs.aws.amazon.com/storagegateway/latest/userguide/GettingStartedCreateTapes.html#CreateTapesAutomatically).
 type AutomaticTapeCreationRule struct {
 	_ struct{} `type:"structure"`
 
 	// The minimum number of available virtual tapes that the gateway maintains
 	// at all times. If the number of tapes on the gateway goes below this value,
 	// the gateway creates as many new tapes as are needed to have MinimumNumTapes
-	// on the gateway.
+	// on the gateway. For more information about automatic tape creation, see Creating
+	// Tapes Automatically (https://docs.aws.amazon.com/storagegateway/latest/userguide/GettingStartedCreateTapes.html#CreateTapesAutomatically).
 	//
 	// MinimumNumTapes is a required field
 	MinimumNumTapes *int64 `min:"1" type:"integer" required:"true"`
@@ -8527,6 +8807,10 @@ type AutomaticTapeCreationRule struct {
 	//
 	// TapeSizeInBytes is a required field
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
+
+	// Set to true to indicate that tapes are to be archived as write-once-read-many
+	// (WORM). Set to false when WORM is not enabled for tapes.
+	Worm *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -8594,12 +8878,47 @@ func (s *AutomaticTapeCreationRule) SetTapeSizeInBytes(v int64) *AutomaticTapeCr
 	return s
 }
 
+// SetWorm sets the Worm field's value.
+func (s *AutomaticTapeCreationRule) SetWorm(v bool) *AutomaticTapeCreationRule {
+	s.Worm = &v
+	return s
+}
+
+// Lists refresh cache information.
+type CacheAttributes struct {
+	_ struct{} `type:"structure"`
+
+	// Refreshes a file share's cache by using Time To Live (TTL). TTL is the length
+	// of time since the last refresh after which access to the directory would
+	// cause the file gateway to first refresh that directory's contents from the
+	// Amazon S3 bucket. The TTL duration is in seconds.
+	//
+	// Valid Values: 300 to 2,592,000 seconds (5 minutes to 30 days)
+	CacheStaleTimeoutInSeconds *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s CacheAttributes) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CacheAttributes) GoString() string {
+	return s.String()
+}
+
+// SetCacheStaleTimeoutInSeconds sets the CacheStaleTimeoutInSeconds field's value.
+func (s *CacheAttributes) SetCacheStaleTimeoutInSeconds(v int64) *CacheAttributes {
+	s.CacheStaleTimeoutInSeconds = &v
+	return s
+}
+
 // Describes an iSCSI cached volume.
 type CachediSCSIVolume struct {
 	_ struct{} `type:"structure"`
 
 	// The date the volume was created. Volumes created prior to March 28, 2017
-	// don’t have this time stamp.
+	// don’t have this timestamp.
 	CreatedDate *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
@@ -8608,7 +8927,7 @@ type CachediSCSIVolume struct {
 	KMSKey *string `min:"7" type:"string"`
 
 	// If the cached volume was created from a snapshot, this field contains the
-	// snapshot ID used, e.g. snap-78e22663. Otherwise, this field is not included.
+	// snapshot ID used, e.g., snap-78e22663. Otherwise, this field is not included.
 	SourceSnapshotId *string `type:"string"`
 
 	// The name of the iSCSI target used by an initiator to connect to a volume
@@ -8628,7 +8947,7 @@ type CachediSCSIVolume struct {
 	// gateway (https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-volumes.html#attach-detach-volume).
 	VolumeAttachmentStatus *string `min:"3" type:"string"`
 
-	// The unique identifier of the volume, e.g. vol-AE4B946D.
+	// The unique identifier of the volume, e.g., vol-AE4B946D.
 	VolumeId *string `min:"12" type:"string"`
 
 	// Represents the percentage complete if the volume is restoring or bootstrapping
@@ -8934,7 +9253,7 @@ type ChapInfo struct {
 	SecretToAuthenticateInitiator *string `min:"1" type:"string" sensitive:"true"`
 
 	// The secret key that the target must provide to participate in mutual CHAP
-	// with the initiator (e.g. Windows client).
+	// with the initiator (e.g., Windows client).
 	SecretToAuthenticateTarget *string `min:"1" type:"string" sensitive:"true"`
 
 	// The Amazon Resource Name (ARN) of the volume.
@@ -9209,6 +9528,9 @@ func (s *CreateCachediSCSIVolumeOutput) SetVolumeARN(v string) *CreateCachediSCS
 type CreateNFSFileShareInput struct {
 	_ struct{} `type:"structure"`
 
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
 	// The list of clients that are allowed to access the file gateway. The list
 	// must contain either valid IP addresses or valid CIDR blocks.
 	ClientList []*string `min:"1" type:"list"`
@@ -9224,6 +9546,11 @@ type CreateNFSFileShareInput struct {
 	//
 	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
+
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
 
 	// The Amazon Resource Name (ARN) of the file gateway on which you want to create
 	// a file share.
@@ -9249,7 +9576,8 @@ type CreateNFSFileShareInput struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
-	// The ARN of the backed storage used for storing file data.
+	// The ARN of the backend storage used for storing file data. A prefix name
+	// can be added to the S3 bucket name. It must end with a "/".
 	//
 	// LocationARN is a required field
 	LocationARN *string `min:"16" type:"string" required:"true"`
@@ -9332,6 +9660,9 @@ func (s *CreateNFSFileShareInput) Validate() error {
 	if s.DefaultStorageClass != nil && len(*s.DefaultStorageClass) < 5 {
 		invalidParams.Add(request.NewErrParamMinLen("DefaultStorageClass", 5))
 	}
+	if s.FileShareName != nil && len(*s.FileShareName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileShareName", 1))
+	}
 	if s.GatewayARN == nil {
 		invalidParams.Add(request.NewErrParamRequired("GatewayARN"))
 	}
@@ -9378,6 +9709,12 @@ func (s *CreateNFSFileShareInput) Validate() error {
 	return nil
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *CreateNFSFileShareInput) SetCacheAttributes(v *CacheAttributes) *CreateNFSFileShareInput {
+	s.CacheAttributes = v
+	return s
+}
+
 // SetClientList sets the ClientList field's value.
 func (s *CreateNFSFileShareInput) SetClientList(v []*string) *CreateNFSFileShareInput {
 	s.ClientList = v
@@ -9393,6 +9730,12 @@ func (s *CreateNFSFileShareInput) SetClientToken(v string) *CreateNFSFileShareIn
 // SetDefaultStorageClass sets the DefaultStorageClass field's value.
 func (s *CreateNFSFileShareInput) SetDefaultStorageClass(v string) *CreateNFSFileShareInput {
 	s.DefaultStorageClass = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *CreateNFSFileShareInput) SetFileShareName(v string) *CreateNFSFileShareInput {
+	s.FileShareName = &v
 	return s
 }
 
@@ -9496,9 +9839,10 @@ func (s *CreateNFSFileShareOutput) SetFileShareARN(v string) *CreateNFSFileShare
 type CreateSMBFileShareInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of users in the Active Directory that will be granted administrator
+	// A list of users or groups in the Active Directory that will be granted administrator
 	// privileges on the file share. These users can do all file operations as the
-	// super-user.
+	// super-user. Acceptable formats include: DOMAIN\User1, user1, @group1, and
+	// @DOMAIN\group1.
 	//
 	// Use this option very carefully, because any user in this list can do anything
 	// they like on the file share, regardless of file permissions.
@@ -9513,6 +9857,14 @@ type CreateSMBFileShareInput struct {
 	// Valid Values: ActiveDirectory | GuestAccess
 	Authentication *string `min:"5" type:"string"`
 
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
+	// The case of an object name in an Amazon S3 bucket. For ClientSpecified, the
+	// client determines the case sensitivity. For CaseSensitive, the gateway determines
+	// the case sensitivity. The default value is ClientSpecified.
+	CaseSensitivity *string `type:"string" enum:"CaseSensitivity"`
+
 	// A unique string value that you supply that is used by file gateway to ensure
 	// idempotent file share creation.
 	//
@@ -9524,6 +9876,11 @@ type CreateSMBFileShareInput struct {
 	//
 	// Valid Values: S3_STANDARD | S3_INTELLIGENT_TIERING | S3_STANDARD_IA | S3_ONEZONE_IA
 	DefaultStorageClass *string `min:"5" type:"string"`
+
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
 
 	// The ARN of the file gateway on which you want to create a file share.
 	//
@@ -9538,8 +9895,9 @@ type CreateSMBFileShareInput struct {
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
-	// access the file share. A group must be prefixed with the @ character. For
-	// example, @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// access the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
 	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
@@ -9553,7 +9911,8 @@ type CreateSMBFileShareInput struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
-	// The ARN of the backed storage used for storing file data.
+	// The ARN of the backend storage used for storing file data. A prefix name
+	// can be added to the S3 bucket name. It must end with a "/".
 	//
 	// LocationARN is a required field
 	LocationARN *string `min:"16" type:"string" required:"true"`
@@ -9608,8 +9967,9 @@ type CreateSMBFileShareInput struct {
 	Tags []*Tag `type:"list"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example,
-	// @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
 
@@ -9637,6 +9997,9 @@ func (s *CreateSMBFileShareInput) Validate() error {
 	}
 	if s.DefaultStorageClass != nil && len(*s.DefaultStorageClass) < 5 {
 		invalidParams.Add(request.NewErrParamMinLen("DefaultStorageClass", 5))
+	}
+	if s.FileShareName != nil && len(*s.FileShareName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileShareName", 1))
 	}
 	if s.GatewayARN == nil {
 		invalidParams.Add(request.NewErrParamRequired("GatewayARN"))
@@ -9694,6 +10057,18 @@ func (s *CreateSMBFileShareInput) SetAuthentication(v string) *CreateSMBFileShar
 	return s
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *CreateSMBFileShareInput) SetCacheAttributes(v *CacheAttributes) *CreateSMBFileShareInput {
+	s.CacheAttributes = v
+	return s
+}
+
+// SetCaseSensitivity sets the CaseSensitivity field's value.
+func (s *CreateSMBFileShareInput) SetCaseSensitivity(v string) *CreateSMBFileShareInput {
+	s.CaseSensitivity = &v
+	return s
+}
+
 // SetClientToken sets the ClientToken field's value.
 func (s *CreateSMBFileShareInput) SetClientToken(v string) *CreateSMBFileShareInput {
 	s.ClientToken = &v
@@ -9703,6 +10078,12 @@ func (s *CreateSMBFileShareInput) SetClientToken(v string) *CreateSMBFileShareIn
 // SetDefaultStorageClass sets the DefaultStorageClass field's value.
 func (s *CreateSMBFileShareInput) SetDefaultStorageClass(v string) *CreateSMBFileShareInput {
 	s.DefaultStorageClass = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *CreateSMBFileShareInput) SetFileShareName(v string) *CreateSMBFileShareInput {
+	s.FileShareName = &v
 	return s
 }
 
@@ -10299,6 +10680,137 @@ func (s *CreateStorediSCSIVolumeOutput) SetVolumeSizeInBytes(v int64) *CreateSto
 	return s
 }
 
+type CreateTapePoolInput struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the new custom tape pool.
+	//
+	// PoolName is a required field
+	PoolName *string `min:"1" type:"string" required:"true"`
+
+	// Tape retention lock time is set in days. Tape retention lock can be enabled
+	// for up to 100 years (36,500 days).
+	RetentionLockTimeInDays *int64 `type:"integer"`
+
+	// Tape retention lock can be configured in two modes. When configured in governance
+	// mode, AWS accounts with specific IAM permissions are authorized to remove
+	// the tape retention lock from archived virtual tapes. When configured in compliance
+	// mode, the tape retention lock cannot be removed by any user, including the
+	// root AWS account.
+	RetentionLockType *string `type:"string" enum:"RetentionLockType"`
+
+	// The storage class that is associated with the new custom pool. When you use
+	// your backup application to eject the tape, the tape is archived directly
+	// into the storage class (S3 Glacier or S3 Glacier Deep Archive) that corresponds
+	// to the pool.
+	//
+	// StorageClass is a required field
+	StorageClass *string `type:"string" required:"true" enum:"TapeStorageClass"`
+
+	// A list of up to 50 tags that can be assigned to tape pool. Each tag is a
+	// key-value pair.
+	//
+	// Valid characters for key and value are letters, spaces, and numbers representable
+	// in UTF-8 format, and the following special characters: + - = . _ : / @. The
+	// maximum length of a tag's key is 128 characters, and the maximum length for
+	// a tag's value is 256.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s CreateTapePoolInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTapePoolInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateTapePoolInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateTapePoolInput"}
+	if s.PoolName == nil {
+		invalidParams.Add(request.NewErrParamRequired("PoolName"))
+	}
+	if s.PoolName != nil && len(*s.PoolName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PoolName", 1))
+	}
+	if s.StorageClass == nil {
+		invalidParams.Add(request.NewErrParamRequired("StorageClass"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPoolName sets the PoolName field's value.
+func (s *CreateTapePoolInput) SetPoolName(v string) *CreateTapePoolInput {
+	s.PoolName = &v
+	return s
+}
+
+// SetRetentionLockTimeInDays sets the RetentionLockTimeInDays field's value.
+func (s *CreateTapePoolInput) SetRetentionLockTimeInDays(v int64) *CreateTapePoolInput {
+	s.RetentionLockTimeInDays = &v
+	return s
+}
+
+// SetRetentionLockType sets the RetentionLockType field's value.
+func (s *CreateTapePoolInput) SetRetentionLockType(v string) *CreateTapePoolInput {
+	s.RetentionLockType = &v
+	return s
+}
+
+// SetStorageClass sets the StorageClass field's value.
+func (s *CreateTapePoolInput) SetStorageClass(v string) *CreateTapePoolInput {
+	s.StorageClass = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateTapePoolInput) SetTags(v []*Tag) *CreateTapePoolInput {
+	s.Tags = v
+	return s
+}
+
+type CreateTapePoolOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The unique Amazon Resource Name (ARN) that represents the custom tape pool.
+	// Use the ListTapePools operation to return a list of tape pools for your account
+	// and AWS Region.
+	PoolARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s CreateTapePoolOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateTapePoolOutput) GoString() string {
+	return s.String()
+}
+
+// SetPoolARN sets the PoolARN field's value.
+func (s *CreateTapePoolOutput) SetPoolARN(v string) *CreateTapePoolOutput {
+	s.PoolARN = &v
+	return s
+}
+
 // CreateTapeWithBarcodeInput
 type CreateTapeWithBarcodeInput struct {
 	_ struct{} `type:"structure"`
@@ -10353,6 +10865,10 @@ type CreateTapeWithBarcodeInput struct {
 	//
 	// TapeSizeInBytes is a required field
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
+
+	// Set to TRUE if the tape you are creating is to be configured as a write-once-read-many
+	// (WORM) tape.
+	Worm *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -10445,6 +10961,12 @@ func (s *CreateTapeWithBarcodeInput) SetTapeBarcode(v string) *CreateTapeWithBar
 // SetTapeSizeInBytes sets the TapeSizeInBytes field's value.
 func (s *CreateTapeWithBarcodeInput) SetTapeSizeInBytes(v int64) *CreateTapeWithBarcodeInput {
 	s.TapeSizeInBytes = &v
+	return s
+}
+
+// SetWorm sets the Worm field's value.
+func (s *CreateTapeWithBarcodeInput) SetWorm(v bool) *CreateTapeWithBarcodeInput {
+	s.Worm = &v
 	return s
 }
 
@@ -10541,6 +11063,10 @@ type CreateTapesInput struct {
 	//
 	// TapeSizeInBytes is a required field
 	TapeSizeInBytes *int64 `type:"long" required:"true"`
+
+	// Set to TRUE if the tape you are creating is to be configured as a write-once-read-many
+	// (WORM) tape.
+	Worm *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -10660,6 +11186,12 @@ func (s *CreateTapesInput) SetTapeSizeInBytes(v int64) *CreateTapesInput {
 	return s
 }
 
+// SetWorm sets the Worm field's value.
+func (s *CreateTapesInput) SetWorm(v bool) *CreateTapesInput {
+	s.Worm = &v
+	return s
+}
+
 // CreateTapeOutput
 type CreateTapesOutput struct {
 	_ struct{} `type:"structure"`
@@ -10760,7 +11292,7 @@ type DeleteBandwidthRateLimitInput struct {
 	// One of the BandwidthType values that indicates the gateway bandwidth rate
 	// limit to delete.
 	//
-	// Valid Values: Upload | Download | All
+	// Valid Values: UPLOAD | DOWNLOAD | ALL
 	//
 	// BandwidthType is a required field
 	BandwidthType *string `min:"3" type:"string" required:"true"`
@@ -11155,6 +11687,12 @@ func (s *DeleteSnapshotScheduleOutput) SetVolumeARN(v string) *DeleteSnapshotSch
 type DeleteTapeArchiveInput struct {
 	_ struct{} `type:"structure"`
 
+	// Set to TRUE to delete an archived tape that belongs to a custom pool with
+	// tape retention lock. Only archived tapes with tape retention lock set to
+	// governance can be deleted. Archived tapes with tape retention lock set to
+	// compliance can't be deleted.
+	BypassGovernanceRetention *bool `type:"boolean"`
+
 	// The Amazon Resource Name (ARN) of the virtual tape to delete from the virtual
 	// tape shelf (VTS).
 	//
@@ -11186,6 +11724,12 @@ func (s *DeleteTapeArchiveInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetBypassGovernanceRetention sets the BypassGovernanceRetention field's value.
+func (s *DeleteTapeArchiveInput) SetBypassGovernanceRetention(v bool) *DeleteTapeArchiveInput {
+	s.BypassGovernanceRetention = &v
+	return s
 }
 
 // SetTapeARN sets the TapeARN field's value.
@@ -11222,6 +11766,12 @@ func (s *DeleteTapeArchiveOutput) SetTapeARN(v string) *DeleteTapeArchiveOutput 
 // DeleteTapeInput
 type DeleteTapeInput struct {
 	_ struct{} `type:"structure"`
+
+	// Set to TRUE to delete an archived tape that belongs to a custom pool with
+	// tape retention lock. Only archived tapes with tape retention lock set to
+	// governance can be deleted. Archived tapes with tape retention lock set to
+	// compliance can't be deleted.
+	BypassGovernanceRetention *bool `type:"boolean"`
 
 	// The unique Amazon Resource Name (ARN) of the gateway that the virtual tape
 	// to delete is associated with. Use the ListGateways operation to return a
@@ -11268,6 +11818,12 @@ func (s *DeleteTapeInput) Validate() error {
 	return nil
 }
 
+// SetBypassGovernanceRetention sets the BypassGovernanceRetention field's value.
+func (s *DeleteTapeInput) SetBypassGovernanceRetention(v bool) *DeleteTapeInput {
+	s.BypassGovernanceRetention = &v
+	return s
+}
+
 // SetGatewayARN sets the GatewayARN field's value.
 func (s *DeleteTapeInput) SetGatewayARN(v string) *DeleteTapeInput {
 	s.GatewayARN = &v
@@ -11301,6 +11857,70 @@ func (s DeleteTapeOutput) GoString() string {
 // SetTapeARN sets the TapeARN field's value.
 func (s *DeleteTapeOutput) SetTapeARN(v string) *DeleteTapeOutput {
 	s.TapeARN = &v
+	return s
+}
+
+type DeleteTapePoolInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the custom tape pool to delete.
+	//
+	// PoolARN is a required field
+	PoolARN *string `min:"50" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteTapePoolInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTapePoolInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteTapePoolInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteTapePoolInput"}
+	if s.PoolARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("PoolARN"))
+	}
+	if s.PoolARN != nil && len(*s.PoolARN) < 50 {
+		invalidParams.Add(request.NewErrParamMinLen("PoolARN", 50))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPoolARN sets the PoolARN field's value.
+func (s *DeleteTapePoolInput) SetPoolARN(v string) *DeleteTapePoolInput {
+	s.PoolARN = &v
+	return s
+}
+
+type DeleteTapePoolOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the custom tape pool being deleted.
+	PoolARN *string `min:"50" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteTapePoolOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteTapePoolOutput) GoString() string {
+	return s.String()
+}
+
+// SetPoolARN sets the PoolARN field's value.
+func (s *DeleteTapePoolOutput) SetPoolARN(v string) *DeleteTapePoolOutput {
+	s.PoolARN = &v
 	return s
 }
 
@@ -11869,9 +12489,13 @@ func (s *DescribeGatewayInformationInput) SetGatewayARN(v string) *DescribeGatew
 type DescribeGatewayInformationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the Amazon CloudWatch Log Group that is
+	// The Amazon Resource Name (ARN) of the Amazon CloudWatch log group that is
 	// used to monitor events in the gateway.
 	CloudWatchLogGroupARN *string `type:"string"`
+
+	// Date after which this gateway will not receive software updates for new features
+	// and bug fixes.
+	DeprecationDate *string `min:"1" type:"string"`
 
 	// The ID of the Amazon EC2 instance that was used to launch the gateway.
 	Ec2InstanceId *string `type:"string"`
@@ -11922,6 +12546,9 @@ type DescribeGatewayInformationOutput struct {
 	// this field is not returned in the response.
 	NextUpdateAvailabilityDate *string `min:"1" type:"string"`
 
+	// Date after which this gateway will not receive software updates for new features.
+	SoftwareUpdatesEndDate *string `min:"1" type:"string"`
+
 	// A list of up to 50 tags assigned to the gateway, sorted alphabetically by
 	// key name. Each tag is a key-value pair. For a gateway with more than 10 tags
 	// assigned, you can view all tags using the ListTagsForResource API operation.
@@ -11945,6 +12572,12 @@ func (s DescribeGatewayInformationOutput) GoString() string {
 // SetCloudWatchLogGroupARN sets the CloudWatchLogGroupARN field's value.
 func (s *DescribeGatewayInformationOutput) SetCloudWatchLogGroupARN(v string) *DescribeGatewayInformationOutput {
 	s.CloudWatchLogGroupARN = &v
+	return s
+}
+
+// SetDeprecationDate sets the DeprecationDate field's value.
+func (s *DescribeGatewayInformationOutput) SetDeprecationDate(v string) *DescribeGatewayInformationOutput {
+	s.DeprecationDate = &v
 	return s
 }
 
@@ -12023,6 +12656,12 @@ func (s *DescribeGatewayInformationOutput) SetLastSoftwareUpdate(v string) *Desc
 // SetNextUpdateAvailabilityDate sets the NextUpdateAvailabilityDate field's value.
 func (s *DescribeGatewayInformationOutput) SetNextUpdateAvailabilityDate(v string) *DescribeGatewayInformationOutput {
 	s.NextUpdateAvailabilityDate = &v
+	return s
+}
+
+// SetSoftwareUpdatesEndDate sets the SoftwareUpdatesEndDate field's value.
+func (s *DescribeGatewayInformationOutput) SetSoftwareUpdatesEndDate(v string) *DescribeGatewayInformationOutput {
+	s.SoftwareUpdatesEndDate = &v
 	return s
 }
 
@@ -14529,7 +15168,7 @@ type ListTagsForResourceOutput struct {
 	// list of tags.
 	Marker *string `min:"1" type:"string"`
 
-	// he Amazon Resource Name (ARN) of the resource for which you want to list
+	// The Amazon Resource Name (ARN) of the resource for which you want to list
 	// tags.
 	ResourceARN *string `min:"50" type:"string"`
 
@@ -14562,6 +15201,103 @@ func (s *ListTagsForResourceOutput) SetResourceARN(v string) *ListTagsForResourc
 // SetTags sets the Tags field's value.
 func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
 	s.Tags = v
+	return s
+}
+
+type ListTapePoolsInput struct {
+	_ struct{} `type:"structure"`
+
+	// An optional number limit for the tape pools in the list returned by this
+	// call.
+	Limit *int64 `min:"1" type:"integer"`
+
+	// A string that indicates the position at which to begin the returned list
+	// of tape pools.
+	Marker *string `min:"1" type:"string"`
+
+	// The Amazon Resource Name (ARN) of each of the custom tape pools you want
+	// to list. If you don't specify a custom tape pool ARN, the response lists
+	// all custom tape pools.
+	PoolARNs []*string `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTapePoolsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTapePoolsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTapePoolsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTapePoolsInput"}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.Marker != nil && len(*s.Marker) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Marker", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListTapePoolsInput) SetLimit(v int64) *ListTapePoolsInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListTapePoolsInput) SetMarker(v string) *ListTapePoolsInput {
+	s.Marker = &v
+	return s
+}
+
+// SetPoolARNs sets the PoolARNs field's value.
+func (s *ListTapePoolsInput) SetPoolARNs(v []*string) *ListTapePoolsInput {
+	s.PoolARNs = v
+	return s
+}
+
+type ListTapePoolsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A string that indicates the position at which to begin the returned list
+	// of tape pools. Use the marker in your next request to continue pagination
+	// of tape pools. If there are no more tape pools to list, this element does
+	// not appear in the response body.
+	Marker *string `min:"1" type:"string"`
+
+	// An array of PoolInfo objects, where each object describes a single custom
+	// tape pool. If there are no custom tape pools, the PoolInfos is an empty array.
+	PoolInfos []*PoolInfo `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTapePoolsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTapePoolsOutput) GoString() string {
+	return s.String()
+}
+
+// SetMarker sets the Marker field's value.
+func (s *ListTapePoolsOutput) SetMarker(v string) *ListTapePoolsOutput {
+	s.Marker = &v
+	return s
+}
+
+// SetPoolInfos sets the PoolInfos field's value.
+func (s *ListTapePoolsOutput) SetPoolInfos(v []*PoolInfo) *ListTapePoolsOutput {
+	s.PoolInfos = v
 	return s
 }
 
@@ -15020,6 +15756,9 @@ func (s *NFSFileShareDefaults) SetOwnerId(v int64) *NFSFileShareDefaults {
 type NFSFileShareInfo struct {
 	_ struct{} `type:"structure"`
 
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
 	// The list of clients that are allowed to access the file gateway. The list
 	// must contain either valid IP addresses or valid CIDR blocks.
 	ClientList []*string `min:"1" type:"list"`
@@ -15035,6 +15774,11 @@ type NFSFileShareInfo struct {
 
 	// The ID of the file share.
 	FileShareId *string `min:"12" type:"string"`
+
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
 
 	// The status of the file share.
 	//
@@ -15063,7 +15807,8 @@ type NFSFileShareInfo struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
-	// The ARN of the backend storage used for storing file data.
+	// The ARN of the backend storage used for storing file data. A prefix name
+	// can be added to the S3 bucket name. It must end with a "/".
 	LocationARN *string `min:"16" type:"string"`
 
 	// Describes Network File System (NFS) file share default values. Files and
@@ -15129,6 +15874,12 @@ func (s NFSFileShareInfo) GoString() string {
 	return s.String()
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *NFSFileShareInfo) SetCacheAttributes(v *CacheAttributes) *NFSFileShareInfo {
+	s.CacheAttributes = v
+	return s
+}
+
 // SetClientList sets the ClientList field's value.
 func (s *NFSFileShareInfo) SetClientList(v []*string) *NFSFileShareInfo {
 	s.ClientList = v
@@ -15150,6 +15901,12 @@ func (s *NFSFileShareInfo) SetFileShareARN(v string) *NFSFileShareInfo {
 // SetFileShareId sets the FileShareId field's value.
 func (s *NFSFileShareInfo) SetFileShareId(v string) *NFSFileShareInfo {
 	s.FileShareId = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *NFSFileShareInfo) SetFileShareName(v string) *NFSFileShareInfo {
+	s.FileShareName = &v
 	return s
 }
 
@@ -15353,6 +16110,86 @@ func (s *NotifyWhenUploadedOutput) SetFileShareARN(v string) *NotifyWhenUploaded
 // SetNotificationId sets the NotificationId field's value.
 func (s *NotifyWhenUploadedOutput) SetNotificationId(v string) *NotifyWhenUploadedOutput {
 	s.NotificationId = &v
+	return s
+}
+
+// Describes a custom tape pool.
+type PoolInfo struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the custom tape pool. Use the ListTapePools
+	// operation to return a list of custom tape pools for your account and AWS
+	// Region.
+	PoolARN *string `min:"50" type:"string"`
+
+	// The name of the custom tape pool. PoolName can use all ASCII characters,
+	// except '/' and '\'.
+	PoolName *string `min:"1" type:"string"`
+
+	// Status of the custom tape pool. Pool can be ACTIVE or DELETED.
+	PoolStatus *string `type:"string" enum:"PoolStatus"`
+
+	// Tape retention lock time is set in days. Tape retention lock can be enabled
+	// for up to 100 years (36,500 days).
+	RetentionLockTimeInDays *int64 `type:"integer"`
+
+	// Tape retention lock type, which can be configured in two modes. When configured
+	// in governance mode, AWS accounts with specific IAM permissions are authorized
+	// to remove the tape retention lock from archived virtual tapes. When configured
+	// in compliance mode, the tape retention lock cannot be removed by any user,
+	// including the root AWS account.
+	RetentionLockType *string `type:"string" enum:"RetentionLockType"`
+
+	// The storage class that is associated with the custom pool. When you use your
+	// backup application to eject the tape, the tape is archived directly into
+	// the storage class (S3 Glacier or S3 Glacier Deep Archive) that corresponds
+	// to the pool.
+	StorageClass *string `type:"string" enum:"TapeStorageClass"`
+}
+
+// String returns the string representation
+func (s PoolInfo) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PoolInfo) GoString() string {
+	return s.String()
+}
+
+// SetPoolARN sets the PoolARN field's value.
+func (s *PoolInfo) SetPoolARN(v string) *PoolInfo {
+	s.PoolARN = &v
+	return s
+}
+
+// SetPoolName sets the PoolName field's value.
+func (s *PoolInfo) SetPoolName(v string) *PoolInfo {
+	s.PoolName = &v
+	return s
+}
+
+// SetPoolStatus sets the PoolStatus field's value.
+func (s *PoolInfo) SetPoolStatus(v string) *PoolInfo {
+	s.PoolStatus = &v
+	return s
+}
+
+// SetRetentionLockTimeInDays sets the RetentionLockTimeInDays field's value.
+func (s *PoolInfo) SetRetentionLockTimeInDays(v int64) *PoolInfo {
+	s.RetentionLockTimeInDays = &v
+	return s
+}
+
+// SetRetentionLockType sets the RetentionLockType field's value.
+func (s *PoolInfo) SetRetentionLockType(v string) *PoolInfo {
+	s.RetentionLockType = &v
+	return s
+}
+
+// SetStorageClass sets the StorageClass field's value.
+func (s *PoolInfo) SetStorageClass(v string) *PoolInfo {
+	s.StorageClass = &v
 	return s
 }
 
@@ -15796,7 +16633,8 @@ type SMBFileShareInfo struct {
 
 	// A list of users or groups in the Active Directory that have administrator
 	// rights to the file share. A group must be prefixed with the @ character.
-	// For example @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// Acceptable formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1.
+	// Can only be set if Authentication is set to ActiveDirectory.
 	AdminUserList []*string `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the storage used for the audit logs.
@@ -15806,6 +16644,14 @@ type SMBFileShareInfo struct {
 	//
 	// Valid Values: ActiveDirectory | GuestAccess
 	Authentication *string `min:"5" type:"string"`
+
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
+	// The case of an object name in an Amazon S3 bucket. For ClientSpecified, the
+	// client determines the case sensitivity. For CaseSensitive, the gateway determines
+	// the case sensitivity. The default value is ClientSpecified.
+	CaseSensitivity *string `type:"string" enum:"CaseSensitivity"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
 	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
@@ -15818,6 +16664,11 @@ type SMBFileShareInfo struct {
 
 	// The ID of the file share.
 	FileShareId *string `min:"12" type:"string"`
+
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
 
 	// The status of the file share.
 	//
@@ -15836,8 +16687,9 @@ type SMBFileShareInfo struct {
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
-	// access the file share. A group must be prefixed with the @ character. For
-	// example @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// access the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
 	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
@@ -15851,7 +16703,8 @@ type SMBFileShareInfo struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
-	// The ARN of the backend storage used for storing file data.
+	// The ARN of the backend storage used for storing file data. A prefix name
+	// can be added to the S3 bucket name. It must end with a "/".
 	LocationARN *string `min:"16" type:"string"`
 
 	// A value that sets the access control list (ACL) permission for objects in
@@ -15899,8 +16752,9 @@ type SMBFileShareInfo struct {
 	Tags []*Tag `type:"list"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example,
-	// @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
 
@@ -15932,6 +16786,18 @@ func (s *SMBFileShareInfo) SetAuthentication(v string) *SMBFileShareInfo {
 	return s
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *SMBFileShareInfo) SetCacheAttributes(v *CacheAttributes) *SMBFileShareInfo {
+	s.CacheAttributes = v
+	return s
+}
+
+// SetCaseSensitivity sets the CaseSensitivity field's value.
+func (s *SMBFileShareInfo) SetCaseSensitivity(v string) *SMBFileShareInfo {
+	s.CaseSensitivity = &v
+	return s
+}
+
 // SetDefaultStorageClass sets the DefaultStorageClass field's value.
 func (s *SMBFileShareInfo) SetDefaultStorageClass(v string) *SMBFileShareInfo {
 	s.DefaultStorageClass = &v
@@ -15947,6 +16813,12 @@ func (s *SMBFileShareInfo) SetFileShareARN(v string) *SMBFileShareInfo {
 // SetFileShareId sets the FileShareId field's value.
 func (s *SMBFileShareInfo) SetFileShareId(v string) *SMBFileShareInfo {
 	s.FileShareId = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *SMBFileShareInfo) SetFileShareName(v string) *SMBFileShareInfo {
+	s.FileShareName = &v
 	return s
 }
 
@@ -16481,7 +17353,7 @@ type StorediSCSIVolume struct {
 	_ struct{} `type:"structure"`
 
 	// The date the volume was created. Volumes created prior to March 28, 2017
-	// don’t have this time stamp.
+	// don’t have this timestamp.
 	CreatedDate *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of a symmetric customer master key (CMK) used
@@ -16520,7 +17392,7 @@ type StorediSCSIVolume struct {
 	// operation.
 	VolumeDiskId *string `min:"1" type:"string"`
 
-	// The unique identifier of the volume, e.g. vol-AE4B946D.
+	// The unique identifier of the volume, e.g., vol-AE4B946D.
 	VolumeId *string `min:"12" type:"string"`
 
 	// Represents the percentage complete if the volume is restoring or bootstrapping
@@ -16720,6 +17592,9 @@ type Tape struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
+	// The date that the tape enters a custom tape pool.
+	PoolEntryDate *time.Time `type:"timestamp"`
+
 	// The ID of the pool that contains tapes that will be archived. The tapes in
 	// this pool are archived in the S3 storage class that is associated with the
 	// pool. When you use your backup application to eject the tape, the tape is
@@ -16734,6 +17609,9 @@ type Tape struct {
 	//
 	// Range: 0 (not started) to 100 (complete).
 	Progress *float64 `type:"double"`
+
+	// The date that the tape is first archived with tape retention lock enabled.
+	RetentionStartDate *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of the virtual tape.
 	TapeARN *string `min:"50" type:"string"`
@@ -16758,6 +17636,9 @@ type Tape struct {
 	// The virtual tape library (VTL) device that the virtual tape is associated
 	// with.
 	VTLDevice *string `min:"50" type:"string"`
+
+	// If the tape is archived as write-once-read-many (WORM), this value is true.
+	Worm *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -16776,6 +17657,12 @@ func (s *Tape) SetKMSKey(v string) *Tape {
 	return s
 }
 
+// SetPoolEntryDate sets the PoolEntryDate field's value.
+func (s *Tape) SetPoolEntryDate(v time.Time) *Tape {
+	s.PoolEntryDate = &v
+	return s
+}
+
 // SetPoolId sets the PoolId field's value.
 func (s *Tape) SetPoolId(v string) *Tape {
 	s.PoolId = &v
@@ -16785,6 +17672,12 @@ func (s *Tape) SetPoolId(v string) *Tape {
 // SetProgress sets the Progress field's value.
 func (s *Tape) SetProgress(v float64) *Tape {
 	s.Progress = &v
+	return s
+}
+
+// SetRetentionStartDate sets the RetentionStartDate field's value.
+func (s *Tape) SetRetentionStartDate(v time.Time) *Tape {
+	s.RetentionStartDate = &v
 	return s
 }
 
@@ -16830,13 +17723,19 @@ func (s *Tape) SetVTLDevice(v string) *Tape {
 	return s
 }
 
+// SetWorm sets the Worm field's value.
+func (s *Tape) SetWorm(v bool) *Tape {
+	s.Worm = &v
+	return s
+}
+
 // Represents a virtual tape that is archived in the virtual tape shelf (VTS).
 type TapeArchive struct {
 	_ struct{} `type:"structure"`
 
 	// The time that the archiving of the virtual tape was completed.
 	//
-	// The default time stamp format is in the ISO8601 extended YYYY-MM-DD'T'HH:MM:SS'Z'
+	// The default timestamp format is in the ISO8601 extended YYYY-MM-DD'T'HH:MM:SS'Z'
 	// format.
 	CompletionTime *time.Time `type:"timestamp"`
 
@@ -16845,11 +17744,21 @@ type TapeArchive struct {
 	// CMKs. This value can only be set when KMSEncrypted is true. Optional.
 	KMSKey *string `min:"7" type:"string"`
 
+	// The time that the tape entered the custom tape pool.
+	//
+	// The default timestamp format is in the ISO8601 extended YYYY-MM-DD'T'HH:MM:SS'Z'
+	// format.
+	PoolEntryDate *time.Time `type:"timestamp"`
+
 	// The ID of the pool that was used to archive the tape. The tapes in this pool
 	// are archived in the S3 storage class that is associated with the pool.
 	//
 	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
+
+	// If the archived tape is subject to tape retention lock, the date that the
+	// archived tape started being retained.
+	RetentionStartDate *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of the tape gateway that the virtual tape
 	// is being retrieved to.
@@ -16876,6 +17785,9 @@ type TapeArchive struct {
 	//
 	// This value is not available for tapes created prior to May 13, 2015.
 	TapeUsedInBytes *int64 `type:"long"`
+
+	// Set to true if the archived tape is stored as write-once-read-many (WORM).
+	Worm *bool `type:"boolean"`
 }
 
 // String returns the string representation
@@ -16900,9 +17812,21 @@ func (s *TapeArchive) SetKMSKey(v string) *TapeArchive {
 	return s
 }
 
+// SetPoolEntryDate sets the PoolEntryDate field's value.
+func (s *TapeArchive) SetPoolEntryDate(v time.Time) *TapeArchive {
+	s.PoolEntryDate = &v
+	return s
+}
+
 // SetPoolId sets the PoolId field's value.
 func (s *TapeArchive) SetPoolId(v string) *TapeArchive {
 	s.PoolId = &v
+	return s
+}
+
+// SetRetentionStartDate sets the RetentionStartDate field's value.
+func (s *TapeArchive) SetRetentionStartDate(v time.Time) *TapeArchive {
+	s.RetentionStartDate = &v
 	return s
 }
 
@@ -16948,6 +17872,12 @@ func (s *TapeArchive) SetTapeUsedInBytes(v int64) *TapeArchive {
 	return s
 }
 
+// SetWorm sets the Worm field's value.
+func (s *TapeArchive) SetWorm(v bool) *TapeArchive {
+	s.Worm = &v
+	return s
+}
+
 // Describes a virtual tape.
 type TapeInfo struct {
 	_ struct{} `type:"structure"`
@@ -16955,6 +17885,10 @@ type TapeInfo struct {
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
 	// to return a list of gateways for your account and AWS Region.
 	GatewayARN *string `min:"50" type:"string"`
+
+	// The date that the tape entered the custom tape pool with tape retention lock
+	// enabled.
+	PoolEntryDate *time.Time `type:"timestamp"`
 
 	// The ID of the pool that you want to add your tape to for archiving. The tape
 	// in this pool is archived in the S3 storage class that is associated with
@@ -16964,6 +17898,9 @@ type TapeInfo struct {
 	//
 	// Valid Values: GLACIER | DEEP_ARCHIVE
 	PoolId *string `min:"1" type:"string"`
+
+	// The date that the tape became subject to tape retention lock.
+	RetentionStartDate *time.Time `type:"timestamp"`
 
 	// The Amazon Resource Name (ARN) of a virtual tape.
 	TapeARN *string `min:"50" type:"string"`
@@ -16994,9 +17931,21 @@ func (s *TapeInfo) SetGatewayARN(v string) *TapeInfo {
 	return s
 }
 
+// SetPoolEntryDate sets the PoolEntryDate field's value.
+func (s *TapeInfo) SetPoolEntryDate(v time.Time) *TapeInfo {
+	s.PoolEntryDate = &v
+	return s
+}
+
 // SetPoolId sets the PoolId field's value.
 func (s *TapeInfo) SetPoolId(v string) *TapeInfo {
 	s.PoolId = &v
+	return s
+}
+
+// SetRetentionStartDate sets the RetentionStartDate field's value.
+func (s *TapeInfo) SetRetentionStartDate(v time.Time) *TapeInfo {
+	s.RetentionStartDate = &v
 	return s
 }
 
@@ -17034,7 +17983,7 @@ type TapeRecoveryPointInfo struct {
 	// The time when the point-in-time view of the virtual tape was replicated for
 	// later recovery.
 	//
-	// The default time stamp format of the tape recovery point time is in the ISO8601
+	// The default timestamp format of the tape recovery point time is in the ISO8601
 	// extended YYYY-MM-DD'T'HH:MM:SS'Z' format.
 	TapeRecoveryPointTime *time.Time `type:"timestamp"`
 
@@ -17416,7 +18365,7 @@ type UpdateGatewayInformationInput struct {
 	// The Amazon Resource Name (ARN) of the Amazon CloudWatch log group that you
 	// want to use to monitor and log events in the gateway.
 	//
-	// For more information, see What is Amazon CloudWatch logs? (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html).
+	// For more information, see What is Amazon CloudWatch Logs? (https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html)
 	CloudWatchLogGroupARN *string `type:"string"`
 
 	// The Amazon Resource Name (ARN) of the gateway. Use the ListGateways operation
@@ -17730,6 +18679,9 @@ func (s *UpdateMaintenanceStartTimeOutput) SetGatewayARN(v string) *UpdateMainte
 type UpdateNFSFileShareInput struct {
 	_ struct{} `type:"structure"`
 
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
 	// The list of clients that are allowed to access the file gateway. The list
 	// must contain either valid IP addresses or valid CIDR blocks.
 	ClientList []*string `min:"1" type:"list"`
@@ -17744,6 +18696,11 @@ type UpdateNFSFileShareInput struct {
 	//
 	// FileShareARN is a required field
 	FileShareARN *string `min:"50" type:"string" required:"true"`
+
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
 
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
@@ -17826,6 +18783,9 @@ func (s *UpdateNFSFileShareInput) Validate() error {
 	if s.FileShareARN != nil && len(*s.FileShareARN) < 50 {
 		invalidParams.Add(request.NewErrParamMinLen("FileShareARN", 50))
 	}
+	if s.FileShareName != nil && len(*s.FileShareName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileShareName", 1))
+	}
 	if s.KMSKey != nil && len(*s.KMSKey) < 7 {
 		invalidParams.Add(request.NewErrParamMinLen("KMSKey", 7))
 	}
@@ -17844,6 +18804,12 @@ func (s *UpdateNFSFileShareInput) Validate() error {
 	return nil
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *UpdateNFSFileShareInput) SetCacheAttributes(v *CacheAttributes) *UpdateNFSFileShareInput {
+	s.CacheAttributes = v
+	return s
+}
+
 // SetClientList sets the ClientList field's value.
 func (s *UpdateNFSFileShareInput) SetClientList(v []*string) *UpdateNFSFileShareInput {
 	s.ClientList = v
@@ -17859,6 +18825,12 @@ func (s *UpdateNFSFileShareInput) SetDefaultStorageClass(v string) *UpdateNFSFil
 // SetFileShareARN sets the FileShareARN field's value.
 func (s *UpdateNFSFileShareInput) SetFileShareARN(v string) *UpdateNFSFileShareInput {
 	s.FileShareARN = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *UpdateNFSFileShareInput) SetFileShareName(v string) *UpdateNFSFileShareInput {
+	s.FileShareName = &v
 	return s
 }
 
@@ -17938,13 +18910,22 @@ func (s *UpdateNFSFileShareOutput) SetFileShareARN(v string) *UpdateNFSFileShare
 type UpdateSMBFileShareInput struct {
 	_ struct{} `type:"structure"`
 
-	// A list of users in the Active Directory that have administrator rights to
-	// the file share. A group must be prefixed with the @ character. For example,
-	// @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// A list of users or groups in the Active Directory that have administrator
+	// rights to the file share. A group must be prefixed with the @ character.
+	// Acceptable formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1.
+	// Can only be set if Authentication is set to ActiveDirectory.
 	AdminUserList []*string `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the storage used for the audit logs.
 	AuditDestinationARN *string `type:"string"`
+
+	// Refresh cache information.
+	CacheAttributes *CacheAttributes `type:"structure"`
+
+	// The case of an object name in an Amazon S3 bucket. For ClientSpecified, the
+	// client determines the case sensitivity. For CaseSensitive, the gateway determines
+	// the case sensitivity. The default value is ClientSpecified.
+	CaseSensitivity *string `type:"string" enum:"CaseSensitivity"`
 
 	// The default storage class for objects put into an Amazon S3 bucket by the
 	// file gateway. The default value is S3_INTELLIGENT_TIERING. Optional.
@@ -17957,6 +18938,11 @@ type UpdateSMBFileShareInput struct {
 	// FileShareARN is a required field
 	FileShareARN *string `min:"50" type:"string" required:"true"`
 
+	// The name of the file share. Optional.
+	//
+	// FileShareName must be set if an S3 prefix name is set in LocationARN.
+	FileShareName *string `min:"1" type:"string"`
+
 	// A value that enables guessing of the MIME type for uploaded objects based
 	// on file extensions. Set this value to true to enable MIME type guessing,
 	// otherwise set to false. The default value is true.
@@ -17965,8 +18951,9 @@ type UpdateSMBFileShareInput struct {
 	GuessMIMETypeEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are not allowed to
-	// access the file share. A group must be prefixed with the @ character. For
-	// example @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// access the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	InvalidUserList []*string `type:"list"`
 
 	// Set to true to use Amazon S3 server-side encryption with your own AWS KMS
@@ -18015,8 +19002,9 @@ type UpdateSMBFileShareInput struct {
 	SMBACLEnabled *bool `type:"boolean"`
 
 	// A list of users or groups in the Active Directory that are allowed to access
-	// the file share. A group must be prefixed with the @ character. For example,
-	// @group1. Can only be set if Authentication is set to ActiveDirectory.
+	// the file share. A group must be prefixed with the @ character. Acceptable
+	// formats include: DOMAIN\User1, user1, @group1, and @DOMAIN\group1. Can only
+	// be set if Authentication is set to ActiveDirectory.
 	ValidUserList []*string `type:"list"`
 }
 
@@ -18042,6 +19030,9 @@ func (s *UpdateSMBFileShareInput) Validate() error {
 	if s.FileShareARN != nil && len(*s.FileShareARN) < 50 {
 		invalidParams.Add(request.NewErrParamMinLen("FileShareARN", 50))
 	}
+	if s.FileShareName != nil && len(*s.FileShareName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("FileShareName", 1))
+	}
 	if s.KMSKey != nil && len(*s.KMSKey) < 7 {
 		invalidParams.Add(request.NewErrParamMinLen("KMSKey", 7))
 	}
@@ -18064,6 +19055,18 @@ func (s *UpdateSMBFileShareInput) SetAuditDestinationARN(v string) *UpdateSMBFil
 	return s
 }
 
+// SetCacheAttributes sets the CacheAttributes field's value.
+func (s *UpdateSMBFileShareInput) SetCacheAttributes(v *CacheAttributes) *UpdateSMBFileShareInput {
+	s.CacheAttributes = v
+	return s
+}
+
+// SetCaseSensitivity sets the CaseSensitivity field's value.
+func (s *UpdateSMBFileShareInput) SetCaseSensitivity(v string) *UpdateSMBFileShareInput {
+	s.CaseSensitivity = &v
+	return s
+}
+
 // SetDefaultStorageClass sets the DefaultStorageClass field's value.
 func (s *UpdateSMBFileShareInput) SetDefaultStorageClass(v string) *UpdateSMBFileShareInput {
 	s.DefaultStorageClass = &v
@@ -18073,6 +19076,12 @@ func (s *UpdateSMBFileShareInput) SetDefaultStorageClass(v string) *UpdateSMBFil
 // SetFileShareARN sets the FileShareARN field's value.
 func (s *UpdateSMBFileShareInput) SetFileShareARN(v string) *UpdateSMBFileShareInput {
 	s.FileShareARN = &v
+	return s
+}
+
+// SetFileShareName sets the FileShareName field's value.
+func (s *UpdateSMBFileShareInput) SetFileShareName(v string) *UpdateSMBFileShareInput {
+	s.FileShareName = &v
 	return s
 }
 
@@ -18399,7 +19408,7 @@ type UpdateVTLDeviceTypeInput struct {
 
 	// The type of medium changer you want to select.
 	//
-	// Valid Values: STK-L700 | AWS-Gateway-VTL
+	// Valid Values: STK-L700 | AWS-Gateway-VTL | IBM-03584L32-0402
 	//
 	// DeviceType is a required field
 	DeviceType *string `min:"2" type:"string" required:"true"`
@@ -18773,6 +19782,19 @@ const (
 	ActiveDirectoryStatusUnknownError = "UNKNOWN_ERROR"
 )
 
+// ActiveDirectoryStatus_Values returns all elements of the ActiveDirectoryStatus enum
+func ActiveDirectoryStatus_Values() []string {
+	return []string{
+		ActiveDirectoryStatusAccessDenied,
+		ActiveDirectoryStatusDetached,
+		ActiveDirectoryStatusJoined,
+		ActiveDirectoryStatusJoining,
+		ActiveDirectoryStatusNetworkError,
+		ActiveDirectoryStatusTimeout,
+		ActiveDirectoryStatusUnknownError,
+	}
+}
+
 const (
 	// AvailabilityMonitorTestStatusComplete is a AvailabilityMonitorTestStatus enum value
 	AvailabilityMonitorTestStatusComplete = "COMPLETE"
@@ -18783,6 +19805,31 @@ const (
 	// AvailabilityMonitorTestStatusPending is a AvailabilityMonitorTestStatus enum value
 	AvailabilityMonitorTestStatusPending = "PENDING"
 )
+
+// AvailabilityMonitorTestStatus_Values returns all elements of the AvailabilityMonitorTestStatus enum
+func AvailabilityMonitorTestStatus_Values() []string {
+	return []string{
+		AvailabilityMonitorTestStatusComplete,
+		AvailabilityMonitorTestStatusFailed,
+		AvailabilityMonitorTestStatusPending,
+	}
+}
+
+const (
+	// CaseSensitivityClientSpecified is a CaseSensitivity enum value
+	CaseSensitivityClientSpecified = "ClientSpecified"
+
+	// CaseSensitivityCaseSensitive is a CaseSensitivity enum value
+	CaseSensitivityCaseSensitive = "CaseSensitive"
+)
+
+// CaseSensitivity_Values returns all elements of the CaseSensitivity enum
+func CaseSensitivity_Values() []string {
+	return []string{
+		CaseSensitivityClientSpecified,
+		CaseSensitivityCaseSensitive,
+	}
+}
 
 const (
 	// ErrorCodeActivationKeyExpired is a ErrorCode enum value
@@ -18972,6 +20019,74 @@ const (
 	ErrorCodeVolumeNotReady = "VolumeNotReady"
 )
 
+// ErrorCode_Values returns all elements of the ErrorCode enum
+func ErrorCode_Values() []string {
+	return []string{
+		ErrorCodeActivationKeyExpired,
+		ErrorCodeActivationKeyInvalid,
+		ErrorCodeActivationKeyNotFound,
+		ErrorCodeGatewayInternalError,
+		ErrorCodeGatewayNotConnected,
+		ErrorCodeGatewayNotFound,
+		ErrorCodeGatewayProxyNetworkConnectionBusy,
+		ErrorCodeAuthenticationFailure,
+		ErrorCodeBandwidthThrottleScheduleNotFound,
+		ErrorCodeBlocked,
+		ErrorCodeCannotExportSnapshot,
+		ErrorCodeChapCredentialNotFound,
+		ErrorCodeDiskAlreadyAllocated,
+		ErrorCodeDiskDoesNotExist,
+		ErrorCodeDiskSizeGreaterThanVolumeMaxSize,
+		ErrorCodeDiskSizeLessThanVolumeSize,
+		ErrorCodeDiskSizeNotGigAligned,
+		ErrorCodeDuplicateCertificateInfo,
+		ErrorCodeDuplicateSchedule,
+		ErrorCodeEndpointNotFound,
+		ErrorCodeIamnotSupported,
+		ErrorCodeInitiatorInvalid,
+		ErrorCodeInitiatorNotFound,
+		ErrorCodeInternalError,
+		ErrorCodeInvalidGateway,
+		ErrorCodeInvalidEndpoint,
+		ErrorCodeInvalidParameters,
+		ErrorCodeInvalidSchedule,
+		ErrorCodeLocalStorageLimitExceeded,
+		ErrorCodeLunAlreadyAllocated,
+		ErrorCodeLunInvalid,
+		ErrorCodeJoinDomainInProgress,
+		ErrorCodeMaximumContentLengthExceeded,
+		ErrorCodeMaximumTapeCartridgeCountExceeded,
+		ErrorCodeMaximumVolumeCountExceeded,
+		ErrorCodeNetworkConfigurationChanged,
+		ErrorCodeNoDisksAvailable,
+		ErrorCodeNotImplemented,
+		ErrorCodeNotSupported,
+		ErrorCodeOperationAborted,
+		ErrorCodeOutdatedGateway,
+		ErrorCodeParametersNotImplemented,
+		ErrorCodeRegionInvalid,
+		ErrorCodeRequestTimeout,
+		ErrorCodeServiceUnavailable,
+		ErrorCodeSnapshotDeleted,
+		ErrorCodeSnapshotIdInvalid,
+		ErrorCodeSnapshotInProgress,
+		ErrorCodeSnapshotNotFound,
+		ErrorCodeSnapshotScheduleNotFound,
+		ErrorCodeStagingAreaFull,
+		ErrorCodeStorageFailure,
+		ErrorCodeTapeCartridgeNotFound,
+		ErrorCodeTargetAlreadyExists,
+		ErrorCodeTargetInvalid,
+		ErrorCodeTargetNotFound,
+		ErrorCodeUnauthorizedOperation,
+		ErrorCodeVolumeAlreadyExists,
+		ErrorCodeVolumeIdInvalid,
+		ErrorCodeVolumeInUse,
+		ErrorCodeVolumeNotFound,
+		ErrorCodeVolumeNotReady,
+	}
+}
+
 // The type of the file share.
 const (
 	// FileShareTypeNfs is a FileShareType enum value
@@ -18980,6 +20095,14 @@ const (
 	// FileShareTypeSmb is a FileShareType enum value
 	FileShareTypeSmb = "SMB"
 )
+
+// FileShareType_Values returns all elements of the FileShareType enum
+func FileShareType_Values() []string {
+	return []string{
+		FileShareTypeNfs,
+		FileShareTypeSmb,
+	}
+}
 
 const (
 	// HostEnvironmentVmware is a HostEnvironment enum value
@@ -18997,6 +20120,17 @@ const (
 	// HostEnvironmentOther is a HostEnvironment enum value
 	HostEnvironmentOther = "OTHER"
 )
+
+// HostEnvironment_Values returns all elements of the HostEnvironment enum
+func HostEnvironment_Values() []string {
+	return []string{
+		HostEnvironmentVmware,
+		HostEnvironmentHyperV,
+		HostEnvironmentEc2,
+		HostEnvironmentKvm,
+		HostEnvironmentOther,
+	}
+}
 
 // A value that sets the access control list (ACL) permission for objects in
 // the S3 bucket that a file gateway puts objects into. The default value is
@@ -19024,6 +20158,55 @@ const (
 	ObjectACLAwsExecRead = "aws-exec-read"
 )
 
+// ObjectACL_Values returns all elements of the ObjectACL enum
+func ObjectACL_Values() []string {
+	return []string{
+		ObjectACLPrivate,
+		ObjectACLPublicRead,
+		ObjectACLPublicReadWrite,
+		ObjectACLAuthenticatedRead,
+		ObjectACLBucketOwnerRead,
+		ObjectACLBucketOwnerFullControl,
+		ObjectACLAwsExecRead,
+	}
+}
+
+const (
+	// PoolStatusActive is a PoolStatus enum value
+	PoolStatusActive = "ACTIVE"
+
+	// PoolStatusDeleted is a PoolStatus enum value
+	PoolStatusDeleted = "DELETED"
+)
+
+// PoolStatus_Values returns all elements of the PoolStatus enum
+func PoolStatus_Values() []string {
+	return []string{
+		PoolStatusActive,
+		PoolStatusDeleted,
+	}
+}
+
+const (
+	// RetentionLockTypeCompliance is a RetentionLockType enum value
+	RetentionLockTypeCompliance = "COMPLIANCE"
+
+	// RetentionLockTypeGovernance is a RetentionLockType enum value
+	RetentionLockTypeGovernance = "GOVERNANCE"
+
+	// RetentionLockTypeNone is a RetentionLockType enum value
+	RetentionLockTypeNone = "NONE"
+)
+
+// RetentionLockType_Values returns all elements of the RetentionLockType enum
+func RetentionLockType_Values() []string {
+	return []string{
+		RetentionLockTypeCompliance,
+		RetentionLockTypeGovernance,
+		RetentionLockTypeNone,
+	}
+}
+
 const (
 	// SMBSecurityStrategyClientSpecified is a SMBSecurityStrategy enum value
 	SMBSecurityStrategyClientSpecified = "ClientSpecified"
@@ -19034,3 +20217,28 @@ const (
 	// SMBSecurityStrategyMandatoryEncryption is a SMBSecurityStrategy enum value
 	SMBSecurityStrategyMandatoryEncryption = "MandatoryEncryption"
 )
+
+// SMBSecurityStrategy_Values returns all elements of the SMBSecurityStrategy enum
+func SMBSecurityStrategy_Values() []string {
+	return []string{
+		SMBSecurityStrategyClientSpecified,
+		SMBSecurityStrategyMandatorySigning,
+		SMBSecurityStrategyMandatoryEncryption,
+	}
+}
+
+const (
+	// TapeStorageClassDeepArchive is a TapeStorageClass enum value
+	TapeStorageClassDeepArchive = "DEEP_ARCHIVE"
+
+	// TapeStorageClassGlacier is a TapeStorageClass enum value
+	TapeStorageClassGlacier = "GLACIER"
+)
+
+// TapeStorageClass_Values returns all elements of the TapeStorageClass enum
+func TapeStorageClass_Values() []string {
+	return []string{
+		TapeStorageClassDeepArchive,
+		TapeStorageClassGlacier,
+	}
+}

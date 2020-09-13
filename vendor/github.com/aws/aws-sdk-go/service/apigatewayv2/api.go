@@ -4945,6 +4945,91 @@ func (c *ApiGatewayV2) ReimportApiWithContext(ctx aws.Context, input *ReimportAp
 	return out, req.Send()
 }
 
+const opResetAuthorizersCache = "ResetAuthorizersCache"
+
+// ResetAuthorizersCacheRequest generates a "aws/request.Request" representing the
+// client's request for the ResetAuthorizersCache operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ResetAuthorizersCache for more information on using the ResetAuthorizersCache
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ResetAuthorizersCacheRequest method.
+//    req, resp := client.ResetAuthorizersCacheRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/apigatewayv2-2018-11-29/ResetAuthorizersCache
+func (c *ApiGatewayV2) ResetAuthorizersCacheRequest(input *ResetAuthorizersCacheInput) (req *request.Request, output *ResetAuthorizersCacheOutput) {
+	op := &request.Operation{
+		Name:       opResetAuthorizersCache,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v2/apis/{apiId}/stages/{stageName}/cache/authorizers",
+	}
+
+	if input == nil {
+		input = &ResetAuthorizersCacheInput{}
+	}
+
+	output = &ResetAuthorizersCacheOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// ResetAuthorizersCache API operation for AmazonApiGatewayV2.
+//
+// Resets all authorizer cache entries for the specified stage. Supported only
+// for HTTP API Lambda authorizers.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AmazonApiGatewayV2's
+// API operation ResetAuthorizersCache for usage and error information.
+//
+// Returned Error Types:
+//   * NotFoundException
+//   The resource specified in the request was not found. See the message field
+//   for more information.
+//
+//   * TooManyRequestsException
+//   A limit has been exceeded. See the accompanying error message for details.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/apigatewayv2-2018-11-29/ResetAuthorizersCache
+func (c *ApiGatewayV2) ResetAuthorizersCache(input *ResetAuthorizersCacheInput) (*ResetAuthorizersCacheOutput, error) {
+	req, out := c.ResetAuthorizersCacheRequest(input)
+	return out, req.Send()
+}
+
+// ResetAuthorizersCacheWithContext is the same as ResetAuthorizersCache with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ResetAuthorizersCache for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *ApiGatewayV2) ResetAuthorizersCacheWithContext(ctx aws.Context, input *ResetAuthorizersCacheInput, opts ...request.Option) (*ResetAuthorizersCacheOutput, error) {
+	req, out := c.ResetAuthorizersCacheRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opTagResource = "TagResource"
 
 // TagResourceRequest generates a "aws/request.Request" representing the
@@ -6328,6 +6413,11 @@ type Api struct {
 	// to a deployed API stage.
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	// Specifies whether an API is managed by API Gateway. You can't update or delete
+	// a managed API by using API Gateway. A managed API can be deleted only through
+	// the tooling or service that created it.
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The API ID.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -6394,6 +6484,12 @@ func (s Api) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *Api) SetApiEndpoint(v string) *Api {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *Api) SetApiGatewayManaged(v bool) *Api {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -6537,22 +6633,30 @@ type Authorizer struct {
 	// Specifies the required credentials as an IAM role for API Gateway to invoke
 	// the authorizer. To specify an IAM role for API Gateway to assume, use the
 	// role's Amazon Resource Name (ARN). To use resource-based permissions on the
-	// Lambda function, specify null. Supported only for REQUEST authorizers.
+	// Lambda function, don't specify this parameter. Supported only for REQUEST
+	// authorizers.
 	AuthorizerCredentialsArn *string `locationName:"authorizerCredentialsArn" type:"string"`
 
 	// The authorizer identifier.
 	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
-	// Authorizer caching is not currently supported. Don't specify this value for
-	// authorizers.
+	// Specifies the format of the payload sent to an HTTP API Lambda authorizer.
+	// Required for HTTP API Lambda authorizers. Supported values are 1.0 and 2.0.
+	// To learn more, see Working with AWS Lambda authorizers for HTTP APIs (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html).
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
+	// The time to live (TTL) for cached authorizer results, in seconds. If it equals
+	// 0, authorization caching is disabled. If it is greater than 0, API Gateway
+	// caches authorizer responses. The maximum value is 3600, or 1 hour. Supported
+	// only for HTTP API Lambda authorizers.
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	AuthorizerType *string `locationName:"authorizerType" type:"string" enum:"AuthorizerType"`
 
-	// The authorizer's Uniform Resource Identifier (URI). ForREQUEST authorizers,
+	// The authorizer's Uniform Resource Identifier (URI). For REQUEST authorizers,
 	// this must be a well-formed Lambda function URI, for example, arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:{account_id}:function:{lambda_function_name}/invocations.
 	// In general, the URI has this form: arn:aws:apigateway:{region}:lambda:path/{service_api}
 	// , where {region} is the same as the region hosting the Lambda function, path
@@ -6562,23 +6666,32 @@ type Authorizer struct {
 	// only for REQUEST authorizers.
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
 
+	// Specifies whether a Lambda authorizer returns a response in a simple format.
+	// If enabled, the Lambda authorizer can return a boolean value instead of an
+	// IAM policy. Supported only for HTTP APIs. To learn more, see Working with
+	// AWS Lambda authorizers for HTTP APIs (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html)
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
+
 	// The identity source for which authorization is requested.
 	//
 	// For a REQUEST authorizer, this is optional. The value is a set of one or
-	// more mapping expressions of the specified request parameters. Currently,
-	// the identity source can be headers, query string parameters, stage variables,
-	// and context parameters. For example, if an Auth header and a Name query string
-	// parameter are defined as identity sources, this value is route.request.header.Auth,
-	// route.request.querystring.Name. These parameters will be used to perform
-	// runtime validation for Lambda-based authorizers by verifying all of the identity-related
-	// request parameters are present in the request, not null, and non-empty. Only
-	// when this is true does the authorizer invoke the authorizer Lambda function.
-	// Otherwise, it returns a 401 Unauthorized response without calling the Lambda
-	// function.
+	// more mapping expressions of the specified request parameters. The identity
+	// source can be headers, query string parameters, stage variables, and context
+	// parameters. For example, if an Auth header and a Name query string parameter
+	// are defined as identity sources, this value is route.request.header.Auth,
+	// route.request.querystring.Name for WebSocket APIs. For HTTP APIs, use selection
+	// expressions prefixed with $, for example, $request.header.Auth, $request.querystring.Name.
+	// These parameters are used to perform runtime validation for Lambda-based
+	// authorizers by verifying all of the identity-related request parameters are
+	// present in the request, not null, and non-empty. Only when this is true does
+	// the authorizer invoke the authorizer Lambda function. Otherwise, it returns
+	// a 401 Unauthorized response without calling the Lambda function. For HTTP
+	// APIs, identity sources are also used as the cache key when caching is enabled.
+	// To learn more, see Working with AWS Lambda authorizers for HTTP APIs (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html).
 	//
 	// For JWT, a single entry that specifies where to extract the JSON Web Token
 	// (JWT) from inbound requests. Currently only header-based and query parameter-based
-	// selections are supported, for example "$request.header.Authorization".
+	// selections are supported, for example $request.header.Authorization.
 	IdentitySource []*string `locationName:"identitySource" type:"list"`
 
 	// The validation expression does not apply to the REQUEST authorizer.
@@ -6616,6 +6729,12 @@ func (s *Authorizer) SetAuthorizerId(v string) *Authorizer {
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *Authorizer) SetAuthorizerPayloadFormatVersion(v string) *Authorizer {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *Authorizer) SetAuthorizerResultTtlInSeconds(v int64) *Authorizer {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -6631,6 +6750,12 @@ func (s *Authorizer) SetAuthorizerType(v string) *Authorizer {
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *Authorizer) SetAuthorizerUri(v string) *Authorizer {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *Authorizer) SetEnableSimpleResponses(v bool) *Authorizer {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -7157,6 +7282,8 @@ type CreateApiOutput struct {
 
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The identifier.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -7212,6 +7339,12 @@ func (s CreateApiOutput) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *CreateApiOutput) SetApiEndpoint(v string) *CreateApiOutput {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *CreateApiOutput) SetApiGatewayManaged(v bool) *CreateApiOutput {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -7302,18 +7435,23 @@ type CreateAuthorizerInput struct {
 	// Represents an Amazon Resource Name (ARN).
 	AuthorizerCredentialsArn *string `locationName:"authorizerCredentialsArn" type:"string"`
 
+	// A string with a length between [1-64].
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
 	// An integer with a value between [0-3600].
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	//
 	// AuthorizerType is a required field
 	AuthorizerType *string `locationName:"authorizerType" type:"string" required:"true" enum:"AuthorizerType"`
 
 	// A string representation of a URI with a length between [1-2048].
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
 
 	// The identity source for which authorization is requested. For the REQUEST
 	// authorizer, this is required when authorization caching is enabled. The value
@@ -7392,6 +7530,12 @@ func (s *CreateAuthorizerInput) SetAuthorizerCredentialsArn(v string) *CreateAut
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *CreateAuthorizerInput) SetAuthorizerPayloadFormatVersion(v string) *CreateAuthorizerInput {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *CreateAuthorizerInput) SetAuthorizerResultTtlInSeconds(v int64) *CreateAuthorizerInput {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -7407,6 +7551,12 @@ func (s *CreateAuthorizerInput) SetAuthorizerType(v string) *CreateAuthorizerInp
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *CreateAuthorizerInput) SetAuthorizerUri(v string) *CreateAuthorizerInput {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *CreateAuthorizerInput) SetEnableSimpleResponses(v bool) *CreateAuthorizerInput {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -7443,16 +7593,21 @@ type CreateAuthorizerOutput struct {
 	// The identifier.
 	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
+	// A string with a length between [1-64].
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
 	// An integer with a value between [0-3600].
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	AuthorizerType *string `locationName:"authorizerType" type:"string" enum:"AuthorizerType"`
 
 	// A string representation of a URI with a length between [1-2048].
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
 
 	// The identity source for which authorization is requested. For the REQUEST
 	// authorizer, this is required when authorization caching is enabled. The value
@@ -7502,6 +7657,12 @@ func (s *CreateAuthorizerOutput) SetAuthorizerId(v string) *CreateAuthorizerOutp
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *CreateAuthorizerOutput) SetAuthorizerPayloadFormatVersion(v string) *CreateAuthorizerOutput {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *CreateAuthorizerOutput) SetAuthorizerResultTtlInSeconds(v int64) *CreateAuthorizerOutput {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -7517,6 +7678,12 @@ func (s *CreateAuthorizerOutput) SetAuthorizerType(v string) *CreateAuthorizerOu
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *CreateAuthorizerOutput) SetAuthorizerUri(v string) *CreateAuthorizerOutput {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *CreateAuthorizerOutput) SetEnableSimpleResponses(v bool) *CreateAuthorizerOutput {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -7799,6 +7966,9 @@ type CreateIntegrationInput struct {
 	// A string with a length between [1-64].
 	IntegrationMethod *string `locationName:"integrationMethod" type:"string"`
 
+	// A string with a length between [1-128].
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
+
 	// Represents an API method integration type.
 	//
 	// IntegrationType is a required field
@@ -7919,6 +8089,12 @@ func (s *CreateIntegrationInput) SetIntegrationMethod(v string) *CreateIntegrati
 	return s
 }
 
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *CreateIntegrationInput) SetIntegrationSubtype(v string) *CreateIntegrationInput {
+	s.IntegrationSubtype = &v
+	return s
+}
+
 // SetIntegrationType sets the IntegrationType field's value.
 func (s *CreateIntegrationInput) SetIntegrationType(v string) *CreateIntegrationInput {
 	s.IntegrationType = &v
@@ -8004,6 +8180,9 @@ type CreateIntegrationOutput struct {
 	// (https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-apikey-selection-expressions)
 	// for more information.
 	IntegrationResponseSelectionExpression *string `locationName:"integrationResponseSelectionExpression" type:"string"`
+
+	// A string with a length between [1-128].
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
 
 	// Represents an API method integration type.
 	IntegrationType *string `locationName:"integrationType" type:"string" enum:"IntegrationType"`
@@ -8110,6 +8289,12 @@ func (s *CreateIntegrationOutput) SetIntegrationMethod(v string) *CreateIntegrat
 // SetIntegrationResponseSelectionExpression sets the IntegrationResponseSelectionExpression field's value.
 func (s *CreateIntegrationOutput) SetIntegrationResponseSelectionExpression(v string) *CreateIntegrationOutput {
 	s.IntegrationResponseSelectionExpression = &v
+	return s
+}
+
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *CreateIntegrationOutput) SetIntegrationSubtype(v string) *CreateIntegrationOutput {
+	s.IntegrationSubtype = &v
 	return s
 }
 
@@ -8538,8 +8723,9 @@ type CreateRouteInput struct {
 
 	// The authorization type. For WebSocket APIs, valid values are NONE for open
 	// access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-	// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-	// for using JSON Web Tokens.
+	// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+	// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+	// for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier.
@@ -8696,8 +8882,9 @@ type CreateRouteOutput struct {
 
 	// The authorization type. For WebSocket APIs, valid values are NONE for open
 	// access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-	// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-	// for using JSON Web Tokens.
+	// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+	// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+	// for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier.
@@ -11091,6 +11278,8 @@ type GetApiOutput struct {
 
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The identifier.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -11146,6 +11335,12 @@ func (s GetApiOutput) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *GetApiOutput) SetApiEndpoint(v string) *GetApiOutput {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *GetApiOutput) SetApiGatewayManaged(v bool) *GetApiOutput {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -11352,16 +11547,21 @@ type GetAuthorizerOutput struct {
 	// The identifier.
 	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
+	// A string with a length between [1-64].
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
 	// An integer with a value between [0-3600].
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	AuthorizerType *string `locationName:"authorizerType" type:"string" enum:"AuthorizerType"`
 
 	// A string representation of a URI with a length between [1-2048].
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
 
 	// The identity source for which authorization is requested. For the REQUEST
 	// authorizer, this is required when authorization caching is enabled. The value
@@ -11411,6 +11611,12 @@ func (s *GetAuthorizerOutput) SetAuthorizerId(v string) *GetAuthorizerOutput {
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *GetAuthorizerOutput) SetAuthorizerPayloadFormatVersion(v string) *GetAuthorizerOutput {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *GetAuthorizerOutput) SetAuthorizerResultTtlInSeconds(v int64) *GetAuthorizerOutput {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -11426,6 +11632,12 @@ func (s *GetAuthorizerOutput) SetAuthorizerType(v string) *GetAuthorizerOutput {
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *GetAuthorizerOutput) SetAuthorizerUri(v string) *GetAuthorizerOutput {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *GetAuthorizerOutput) SetEnableSimpleResponses(v bool) *GetAuthorizerOutput {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -11985,6 +12197,9 @@ type GetIntegrationOutput struct {
 	// for more information.
 	IntegrationResponseSelectionExpression *string `locationName:"integrationResponseSelectionExpression" type:"string"`
 
+	// A string with a length between [1-128].
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
+
 	// Represents an API method integration type.
 	IntegrationType *string `locationName:"integrationType" type:"string" enum:"IntegrationType"`
 
@@ -12090,6 +12305,12 @@ func (s *GetIntegrationOutput) SetIntegrationMethod(v string) *GetIntegrationOut
 // SetIntegrationResponseSelectionExpression sets the IntegrationResponseSelectionExpression field's value.
 func (s *GetIntegrationOutput) SetIntegrationResponseSelectionExpression(v string) *GetIntegrationOutput {
 	s.IntegrationResponseSelectionExpression = &v
+	return s
+}
+
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *GetIntegrationOutput) SetIntegrationSubtype(v string) *GetIntegrationOutput {
+	s.IntegrationSubtype = &v
 	return s
 }
 
@@ -12839,8 +13060,9 @@ type GetRouteOutput struct {
 
 	// The authorization type. For WebSocket APIs, valid values are NONE for open
 	// access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-	// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-	// for using JSON Web Tokens.
+	// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+	// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+	// for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier.
@@ -13880,6 +14102,8 @@ type ImportApiOutput struct {
 
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The identifier.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -13935,6 +14159,12 @@ func (s ImportApiOutput) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *ImportApiOutput) SetApiEndpoint(v string) *ImportApiOutput {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *ImportApiOutput) SetApiGatewayManaged(v bool) *ImportApiOutput {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -14070,6 +14300,10 @@ type Integration struct {
 	// only for WebSocket APIs. See Integration Response Selection Expressions (https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-integration-response-selection-expressions).
 	IntegrationResponseSelectionExpression *string `locationName:"integrationResponseSelectionExpression" type:"string"`
 
+	// Supported only for HTTP API AWS_PROXY integrations. Specifies the AWS service
+	// action to invoke. To learn more, see Integration subtype reference (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-aws-services-reference.html).
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
+
 	// The integration type of an integration. One of the following:
 	//
 	// AWS: for integrating the route or method request with an AWS service action,
@@ -14078,9 +14312,9 @@ type Integration struct {
 	// AWS service action, this is known as AWS integration. Supported only for
 	// WebSocket APIs.
 	//
-	// AWS_PROXY: for integrating the route or method request with the Lambda function-invoking
-	// action with the client request passed through as-is. This integration is
-	// also referred to as Lambda proxy integration.
+	// AWS_PROXY: for integrating the route or method request with a Lambda function
+	// or other AWS service action. This integration is also referred to as a Lambda
+	// proxy integration.
 	//
 	// HTTP: for integrating the route or method request with an HTTP endpoint.
 	// This integration is also referred to as the HTTP custom integration. Supported
@@ -14128,14 +14362,20 @@ type Integration struct {
 	// HTTP APIs.
 	PayloadFormatVersion *string `locationName:"payloadFormatVersion" type:"string"`
 
-	// A key-value map specifying request parameters that are passed from the method
-	// request to the backend. The key is an integration request parameter name
-	// and the associated value is a method request parameter value or static value
-	// that must be enclosed within single quotes and pre-encoded as required by
-	// the backend. The method request parameter value must match the pattern of
-	// method.request.{location}.{name} , where {location} is querystring, path,
-	// or header; and {name} must be a valid and unique method request parameter
-	// name. Supported only for WebSocket APIs.
+	// For WebSocket APIs, a key-value map specifying request parameters that are
+	// passed from the method request to the backend. The key is an integration
+	// request parameter name and the associated value is a method request parameter
+	// value or static value that must be enclosed within single quotes and pre-encoded
+	// as required by the backend. The method request parameter value must match
+	// the pattern of method.request.{location}.{name} , where {location} is querystring,
+	// path, or header; and {name} must be a valid and unique method request parameter
+	// name.
+	//
+	// For HTTP APIs, request parameters are a key-value map specifying parameters
+	// that are passed to AWS_PROXY integrations with a specified integrationSubtype.
+	// You can provide static values, or map request data, stage variables, or context
+	// variables that are evaluated at runtime. To learn more, see Working with
+	// AWS service integrations for HTTP APIs (https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-aws-services.html).
 	RequestParameters map[string]*string `locationName:"requestParameters" type:"map"`
 
 	// Represents a map of Velocity templates that are applied on the request payload
@@ -14220,6 +14460,12 @@ func (s *Integration) SetIntegrationMethod(v string) *Integration {
 // SetIntegrationResponseSelectionExpression sets the IntegrationResponseSelectionExpression field's value.
 func (s *Integration) SetIntegrationResponseSelectionExpression(v string) *Integration {
 	s.IntegrationResponseSelectionExpression = &v
+	return s
+}
+
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *Integration) SetIntegrationSubtype(v string) *Integration {
+	s.IntegrationSubtype = &v
 	return s
 }
 
@@ -14631,6 +14877,8 @@ type ReimportApiOutput struct {
 
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The identifier.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -14686,6 +14934,12 @@ func (s ReimportApiOutput) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *ReimportApiOutput) SetApiEndpoint(v string) *ReimportApiOutput {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *ReimportApiOutput) SetApiGatewayManaged(v bool) *ReimportApiOutput {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -14767,6 +15021,74 @@ func (s *ReimportApiOutput) SetWarnings(v []*string) *ReimportApiOutput {
 	return s
 }
 
+type ResetAuthorizersCacheInput struct {
+	_ struct{} `type:"structure"`
+
+	// ApiId is a required field
+	ApiId *string `location:"uri" locationName:"apiId" type:"string" required:"true"`
+
+	// StageName is a required field
+	StageName *string `location:"uri" locationName:"stageName" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ResetAuthorizersCacheInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetAuthorizersCacheInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ResetAuthorizersCacheInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ResetAuthorizersCacheInput"}
+	if s.ApiId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ApiId"))
+	}
+	if s.ApiId != nil && len(*s.ApiId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ApiId", 1))
+	}
+	if s.StageName == nil {
+		invalidParams.Add(request.NewErrParamRequired("StageName"))
+	}
+	if s.StageName != nil && len(*s.StageName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("StageName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetApiId sets the ApiId field's value.
+func (s *ResetAuthorizersCacheInput) SetApiId(v string) *ResetAuthorizersCacheInput {
+	s.ApiId = &v
+	return s
+}
+
+// SetStageName sets the StageName field's value.
+func (s *ResetAuthorizersCacheInput) SetStageName(v string) *ResetAuthorizersCacheInput {
+	s.StageName = &v
+	return s
+}
+
+type ResetAuthorizersCacheOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s ResetAuthorizersCacheOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResetAuthorizersCacheOutput) GoString() string {
+	return s.String()
+}
+
 // Represents a route.
 type Route struct {
 	_ struct{} `type:"structure"`
@@ -14792,7 +15114,8 @@ type Route struct {
 	// The authorization type for the route. For WebSocket APIs, valid values are
 	// NONE for open access, AWS_IAM for using AWS IAM permissions, and CUSTOM for
 	// using a Lambda authorizer For HTTP APIs, valid values are NONE for open access,
-	// or JWT for using JSON Web Tokens.
+	// JWT for using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and
+	// CUSTOM for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier of the Authorizer resource to be associated with this route.
@@ -15728,6 +16051,8 @@ type UpdateApiOutput struct {
 
 	ApiEndpoint *string `locationName:"apiEndpoint" type:"string"`
 
+	ApiGatewayManaged *bool `locationName:"apiGatewayManaged" type:"boolean"`
+
 	// The identifier.
 	ApiId *string `locationName:"apiId" type:"string"`
 
@@ -15783,6 +16108,12 @@ func (s UpdateApiOutput) GoString() string {
 // SetApiEndpoint sets the ApiEndpoint field's value.
 func (s *UpdateApiOutput) SetApiEndpoint(v string) *UpdateApiOutput {
 	s.ApiEndpoint = &v
+	return s
+}
+
+// SetApiGatewayManaged sets the ApiGatewayManaged field's value.
+func (s *UpdateApiOutput) SetApiGatewayManaged(v bool) *UpdateApiOutput {
+	s.ApiGatewayManaged = &v
 	return s
 }
 
@@ -15876,16 +16207,21 @@ type UpdateAuthorizerInput struct {
 	// AuthorizerId is a required field
 	AuthorizerId *string `location:"uri" locationName:"authorizerId" type:"string" required:"true"`
 
+	// A string with a length between [1-64].
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
 	// An integer with a value between [0-3600].
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	AuthorizerType *string `locationName:"authorizerType" type:"string" enum:"AuthorizerType"`
 
 	// A string representation of a URI with a length between [1-2048].
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
 
 	// The identity source for which authorization is requested. For the REQUEST
 	// authorizer, this is required when authorization caching is enabled. The value
@@ -15963,6 +16299,12 @@ func (s *UpdateAuthorizerInput) SetAuthorizerId(v string) *UpdateAuthorizerInput
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *UpdateAuthorizerInput) SetAuthorizerPayloadFormatVersion(v string) *UpdateAuthorizerInput {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *UpdateAuthorizerInput) SetAuthorizerResultTtlInSeconds(v int64) *UpdateAuthorizerInput {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -15978,6 +16320,12 @@ func (s *UpdateAuthorizerInput) SetAuthorizerType(v string) *UpdateAuthorizerInp
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *UpdateAuthorizerInput) SetAuthorizerUri(v string) *UpdateAuthorizerInput {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *UpdateAuthorizerInput) SetEnableSimpleResponses(v bool) *UpdateAuthorizerInput {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -16014,16 +16362,21 @@ type UpdateAuthorizerOutput struct {
 	// The identifier.
 	AuthorizerId *string `locationName:"authorizerId" type:"string"`
 
+	// A string with a length between [1-64].
+	AuthorizerPayloadFormatVersion *string `locationName:"authorizerPayloadFormatVersion" type:"string"`
+
 	// An integer with a value between [0-3600].
 	AuthorizerResultTtlInSeconds *int64 `locationName:"authorizerResultTtlInSeconds" type:"integer"`
 
-	// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-	// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-	// Web Tokens.
+	// The authorizer type. Specify REQUEST for a Lambda function using incoming
+	// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+	// HTTP APIs).
 	AuthorizerType *string `locationName:"authorizerType" type:"string" enum:"AuthorizerType"`
 
 	// A string representation of a URI with a length between [1-2048].
 	AuthorizerUri *string `locationName:"authorizerUri" type:"string"`
+
+	EnableSimpleResponses *bool `locationName:"enableSimpleResponses" type:"boolean"`
 
 	// The identity source for which authorization is requested. For the REQUEST
 	// authorizer, this is required when authorization caching is enabled. The value
@@ -16073,6 +16426,12 @@ func (s *UpdateAuthorizerOutput) SetAuthorizerId(v string) *UpdateAuthorizerOutp
 	return s
 }
 
+// SetAuthorizerPayloadFormatVersion sets the AuthorizerPayloadFormatVersion field's value.
+func (s *UpdateAuthorizerOutput) SetAuthorizerPayloadFormatVersion(v string) *UpdateAuthorizerOutput {
+	s.AuthorizerPayloadFormatVersion = &v
+	return s
+}
+
 // SetAuthorizerResultTtlInSeconds sets the AuthorizerResultTtlInSeconds field's value.
 func (s *UpdateAuthorizerOutput) SetAuthorizerResultTtlInSeconds(v int64) *UpdateAuthorizerOutput {
 	s.AuthorizerResultTtlInSeconds = &v
@@ -16088,6 +16447,12 @@ func (s *UpdateAuthorizerOutput) SetAuthorizerType(v string) *UpdateAuthorizerOu
 // SetAuthorizerUri sets the AuthorizerUri field's value.
 func (s *UpdateAuthorizerOutput) SetAuthorizerUri(v string) *UpdateAuthorizerOutput {
 	s.AuthorizerUri = &v
+	return s
+}
+
+// SetEnableSimpleResponses sets the EnableSimpleResponses field's value.
+func (s *UpdateAuthorizerOutput) SetEnableSimpleResponses(v bool) *UpdateAuthorizerOutput {
+	s.EnableSimpleResponses = &v
 	return s
 }
 
@@ -16371,6 +16736,9 @@ type UpdateIntegrationInput struct {
 	// A string with a length between [1-64].
 	IntegrationMethod *string `locationName:"integrationMethod" type:"string"`
 
+	// A string with a length between [1-128].
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
+
 	// Represents an API method integration type.
 	IntegrationType *string `locationName:"integrationType" type:"string" enum:"IntegrationType"`
 
@@ -16498,6 +16866,12 @@ func (s *UpdateIntegrationInput) SetIntegrationMethod(v string) *UpdateIntegrati
 	return s
 }
 
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *UpdateIntegrationInput) SetIntegrationSubtype(v string) *UpdateIntegrationInput {
+	s.IntegrationSubtype = &v
+	return s
+}
+
 // SetIntegrationType sets the IntegrationType field's value.
 func (s *UpdateIntegrationInput) SetIntegrationType(v string) *UpdateIntegrationInput {
 	s.IntegrationType = &v
@@ -16583,6 +16957,9 @@ type UpdateIntegrationOutput struct {
 	// (https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-apikey-selection-expressions)
 	// for more information.
 	IntegrationResponseSelectionExpression *string `locationName:"integrationResponseSelectionExpression" type:"string"`
+
+	// A string with a length between [1-128].
+	IntegrationSubtype *string `locationName:"integrationSubtype" type:"string"`
 
 	// Represents an API method integration type.
 	IntegrationType *string `locationName:"integrationType" type:"string" enum:"IntegrationType"`
@@ -16689,6 +17066,12 @@ func (s *UpdateIntegrationOutput) SetIntegrationMethod(v string) *UpdateIntegrat
 // SetIntegrationResponseSelectionExpression sets the IntegrationResponseSelectionExpression field's value.
 func (s *UpdateIntegrationOutput) SetIntegrationResponseSelectionExpression(v string) *UpdateIntegrationOutput {
 	s.IntegrationResponseSelectionExpression = &v
+	return s
+}
+
+// SetIntegrationSubtype sets the IntegrationSubtype field's value.
+func (s *UpdateIntegrationOutput) SetIntegrationSubtype(v string) *UpdateIntegrationOutput {
+	s.IntegrationSubtype = &v
 	return s
 }
 
@@ -17132,8 +17515,9 @@ type UpdateRouteInput struct {
 
 	// The authorization type. For WebSocket APIs, valid values are NONE for open
 	// access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-	// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-	// for using JSON Web Tokens.
+	// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+	// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+	// for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier.
@@ -17300,8 +17684,9 @@ type UpdateRouteOutput struct {
 
 	// The authorization type. For WebSocket APIs, valid values are NONE for open
 	// access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-	// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-	// for using JSON Web Tokens.
+	// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+	// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+	// for using a Lambda authorizer.
 	AuthorizationType *string `locationName:"authorizationType" type:"string" enum:"AuthorizationType"`
 
 	// The identifier.
@@ -18112,8 +18497,9 @@ func (s *VpcLink) SetVpcLinkVersion(v string) *VpcLink {
 
 // The authorization type. For WebSocket APIs, valid values are NONE for open
 // access, AWS_IAM for using AWS IAM permissions, and CUSTOM for using a Lambda
-// authorizer. For HTTP APIs, valid values are NONE for open access, or JWT
-// for using JSON Web Tokens.
+// authorizer. For HTTP APIs, valid values are NONE for open access, JWT for
+// using JSON Web Tokens, AWS_IAM for using AWS IAM permissions, and CUSTOM
+// for using a Lambda authorizer.
 const (
 	// AuthorizationTypeNone is a AuthorizationType enum value
 	AuthorizationTypeNone = "NONE"
@@ -18128,9 +18514,19 @@ const (
 	AuthorizationTypeJwt = "JWT"
 )
 
-// The authorizer type. For WebSocket APIs, specify REQUEST for a Lambda function
-// using incoming request parameters. For HTTP APIs, specify JWT to use JSON
-// Web Tokens.
+// AuthorizationType_Values returns all elements of the AuthorizationType enum
+func AuthorizationType_Values() []string {
+	return []string{
+		AuthorizationTypeNone,
+		AuthorizationTypeAwsIam,
+		AuthorizationTypeCustom,
+		AuthorizationTypeJwt,
+	}
+}
+
+// The authorizer type. Specify REQUEST for a Lambda function using incoming
+// request parameters. Specify JWT to use JSON Web Tokens (supported only for
+// HTTP APIs).
 const (
 	// AuthorizerTypeRequest is a AuthorizerType enum value
 	AuthorizerTypeRequest = "REQUEST"
@@ -18138,6 +18534,14 @@ const (
 	// AuthorizerTypeJwt is a AuthorizerType enum value
 	AuthorizerTypeJwt = "JWT"
 )
+
+// AuthorizerType_Values returns all elements of the AuthorizerType enum
+func AuthorizerType_Values() []string {
+	return []string{
+		AuthorizerTypeRequest,
+		AuthorizerTypeJwt,
+	}
+}
 
 // Represents a connection type.
 const (
@@ -18148,6 +18552,14 @@ const (
 	ConnectionTypeVpcLink = "VPC_LINK"
 )
 
+// ConnectionType_Values returns all elements of the ConnectionType enum
+func ConnectionType_Values() []string {
+	return []string{
+		ConnectionTypeInternet,
+		ConnectionTypeVpcLink,
+	}
+}
+
 // Specifies how to handle response payload content type conversions. Supported
 // only for WebSocket APIs.
 const (
@@ -18157,6 +18569,14 @@ const (
 	// ContentHandlingStrategyConvertToText is a ContentHandlingStrategy enum value
 	ContentHandlingStrategyConvertToText = "CONVERT_TO_TEXT"
 )
+
+// ContentHandlingStrategy_Values returns all elements of the ContentHandlingStrategy enum
+func ContentHandlingStrategy_Values() []string {
+	return []string{
+		ContentHandlingStrategyConvertToBinary,
+		ContentHandlingStrategyConvertToText,
+	}
+}
 
 // Represents a deployment status.
 const (
@@ -18170,6 +18590,15 @@ const (
 	DeploymentStatusDeployed = "DEPLOYED"
 )
 
+// DeploymentStatus_Values returns all elements of the DeploymentStatus enum
+func DeploymentStatus_Values() []string {
+	return []string{
+		DeploymentStatusPending,
+		DeploymentStatusFailed,
+		DeploymentStatusDeployed,
+	}
+}
+
 // The status of the domain name migration. The valid values are AVAILABLE and
 // UPDATING. If the status is UPDATING, the domain cannot be modified further
 // until the existing operation is complete. If it is AVAILABLE, the domain
@@ -18182,6 +18611,14 @@ const (
 	DomainNameStatusUpdating = "UPDATING"
 )
 
+// DomainNameStatus_Values returns all elements of the DomainNameStatus enum
+func DomainNameStatus_Values() []string {
+	return []string{
+		DomainNameStatusAvailable,
+		DomainNameStatusUpdating,
+	}
+}
+
 // Represents an endpoint type.
 const (
 	// EndpointTypeRegional is a EndpointType enum value
@@ -18190,6 +18627,14 @@ const (
 	// EndpointTypeEdge is a EndpointType enum value
 	EndpointTypeEdge = "EDGE"
 )
+
+// EndpointType_Values returns all elements of the EndpointType enum
+func EndpointType_Values() []string {
+	return []string{
+		EndpointTypeRegional,
+		EndpointTypeEdge,
+	}
+}
 
 // Represents an API method integration type.
 const (
@@ -18209,6 +18654,17 @@ const (
 	IntegrationTypeAwsProxy = "AWS_PROXY"
 )
 
+// IntegrationType_Values returns all elements of the IntegrationType enum
+func IntegrationType_Values() []string {
+	return []string{
+		IntegrationTypeAws,
+		IntegrationTypeHttp,
+		IntegrationTypeMock,
+		IntegrationTypeHttpProxy,
+		IntegrationTypeAwsProxy,
+	}
+}
+
 // The logging level.
 const (
 	// LoggingLevelError is a LoggingLevel enum value
@@ -18220,6 +18676,15 @@ const (
 	// LoggingLevelOff is a LoggingLevel enum value
 	LoggingLevelOff = "OFF"
 )
+
+// LoggingLevel_Values returns all elements of the LoggingLevel enum
+func LoggingLevel_Values() []string {
+	return []string{
+		LoggingLevelError,
+		LoggingLevelInfo,
+		LoggingLevelOff,
+	}
+}
 
 // Represents passthrough behavior for an integration response. Supported only
 // for WebSocket APIs.
@@ -18234,6 +18699,15 @@ const (
 	PassthroughBehaviorWhenNoTemplates = "WHEN_NO_TEMPLATES"
 )
 
+// PassthroughBehavior_Values returns all elements of the PassthroughBehavior enum
+func PassthroughBehavior_Values() []string {
+	return []string{
+		PassthroughBehaviorWhenNoMatch,
+		PassthroughBehaviorNever,
+		PassthroughBehaviorWhenNoTemplates,
+	}
+}
+
 // Represents a protocol type.
 const (
 	// ProtocolTypeWebsocket is a ProtocolType enum value
@@ -18242,6 +18716,14 @@ const (
 	// ProtocolTypeHttp is a ProtocolType enum value
 	ProtocolTypeHttp = "HTTP"
 )
+
+// ProtocolType_Values returns all elements of the ProtocolType enum
+func ProtocolType_Values() []string {
+	return []string{
+		ProtocolTypeWebsocket,
+		ProtocolTypeHttp,
+	}
+}
 
 // The Transport Layer Security (TLS) version of the security policy for this
 // domain name. The valid values are TLS_1_0 and TLS_1_2.
@@ -18252,6 +18734,14 @@ const (
 	// SecurityPolicyTls12 is a SecurityPolicy enum value
 	SecurityPolicyTls12 = "TLS_1_2"
 )
+
+// SecurityPolicy_Values returns all elements of the SecurityPolicy enum
+func SecurityPolicy_Values() []string {
+	return []string{
+		SecurityPolicyTls10,
+		SecurityPolicyTls12,
+	}
+}
 
 // The status of the VPC link.
 const (
@@ -18271,8 +18761,26 @@ const (
 	VpcLinkStatusInactive = "INACTIVE"
 )
 
+// VpcLinkStatus_Values returns all elements of the VpcLinkStatus enum
+func VpcLinkStatus_Values() []string {
+	return []string{
+		VpcLinkStatusPending,
+		VpcLinkStatusAvailable,
+		VpcLinkStatusDeleting,
+		VpcLinkStatusFailed,
+		VpcLinkStatusInactive,
+	}
+}
+
 // The version of the VPC link.
 const (
 	// VpcLinkVersionV2 is a VpcLinkVersion enum value
 	VpcLinkVersionV2 = "V2"
 )
+
+// VpcLinkVersion_Values returns all elements of the VpcLinkVersion enum
+func VpcLinkVersion_Values() []string {
+	return []string{
+		VpcLinkVersionV2,
+	}
+}

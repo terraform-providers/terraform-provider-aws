@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsWorkspaceBundle_basic(t *testing.T) {
@@ -94,8 +94,8 @@ func testAccDataSourceAwsWorkspaceBundleConfig_bundleIDAndOwnerNameConflict(bund
 	return fmt.Sprintf(`
 data "aws_workspaces_bundle" "test" {
   bundle_id = %q
-  owner = %q
-  name  = %q
+  owner     = %q
+  name      = %q
 }
 `, bundleID, owner, name)
 }

@@ -20,11 +20,28 @@ func IsFuncTypeCustomizeDiffFunc(node ast.Node, info *types.Info) bool {
 		return false
 	}
 
+	return isFuncTypeCustomizeDiffFuncV1(funcType, info) || isFuncTypeCustomizeDiffFuncV2(funcType, info)
+}
+
+// IsTypeCustomizeDiffFunc returns if the type is CustomizeDiffFunc from the customdiff package
+func IsTypeCustomizeDiffFunc(t types.Type) bool {
+	switch t := t.(type) {
+	case *types.Named:
+		return IsNamedType(t, TypeNameCustomizeDiffFunc)
+	case *types.Pointer:
+		return IsTypeCustomizeDiffFunc(t.Elem())
+	default:
+		return false
+	}
+}
+
+// isFuncTypeCustomizeDiffFuncV1 returns true if the FuncType matches expected parameters and results types of V1
+func isFuncTypeCustomizeDiffFuncV1(funcType *ast.FuncType, info *types.Info) bool {
 	if !astutils.HasFieldListLength(funcType.Params, 2) {
 		return false
 	}
 
-	if !astutils.IsFieldListTypePackageType(funcType.Params, 0, info, PackagePath, TypeNameResourceDiff) {
+	if !astutils.IsFieldListTypePackageType(funcType.Params, 0, info, PackagePathVersion(1), TypeNameResourceDiff) {
 		return false
 	}
 
@@ -39,16 +56,29 @@ func IsFuncTypeCustomizeDiffFunc(node ast.Node, info *types.Info) bool {
 	return astutils.IsFieldListType(funcType.Results, 0, astutils.IsExprTypeError)
 }
 
-// IsTypeCustomizeDiffFunc returns if the type is CustomizeDiffFunc from the customdiff package
-func IsTypeCustomizeDiffFunc(t types.Type) bool {
-	switch t := t.(type) {
-	case *types.Named:
-		return IsNamedType(t, TypeNameCustomizeDiffFunc)
-	case *types.Pointer:
-		return IsTypeCustomizeDiffFunc(t.Elem())
-	default:
+// isFuncTypeCustomizeDiffFuncV2 returns true if the FuncType matches expected parameters and results types of V2
+func isFuncTypeCustomizeDiffFuncV2(funcType *ast.FuncType, info *types.Info) bool {
+	if !astutils.HasFieldListLength(funcType.Params, 3) {
 		return false
 	}
+
+	if !astutils.IsFieldListTypePackageType(funcType.Params, 0, info, "context", "Context") {
+		return false
+	}
+
+	if !astutils.IsFieldListTypePackageType(funcType.Params, 1, info, PackagePathVersion(2), TypeNameResourceDiff) {
+		return false
+	}
+
+	if !astutils.IsFieldListType(funcType.Params, 2, astutils.IsExprTypeInterface) {
+		return false
+	}
+
+	if !astutils.HasFieldListLength(funcType.Results, 1) {
+		return false
+	}
+
+	return astutils.IsFieldListType(funcType.Results, 0, astutils.IsExprTypeError)
 }
 
 // CustomizeDiffFuncInfo represents all gathered CustomizeDiffFunc data for easier access

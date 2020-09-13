@@ -9390,10 +9390,25 @@ const (
 	DomainStatusDeleted = "Deleted"
 )
 
+// DomainStatus_Values returns all elements of the DomainStatus enum
+func DomainStatus_Values() []string {
+	return []string{
+		DomainStatusActive,
+		DomainStatusDeleted,
+	}
+}
+
 const (
 	// ExternalConnectionStatusAvailable is a ExternalConnectionStatus enum value
 	ExternalConnectionStatusAvailable = "Available"
 )
+
+// ExternalConnectionStatus_Values returns all elements of the ExternalConnectionStatus enum
+func ExternalConnectionStatus_Values() []string {
+	return []string{
+		ExternalConnectionStatusAvailable,
+	}
+}
 
 const (
 	// HashAlgorithmMd5 is a HashAlgorithm enum value
@@ -9409,6 +9424,16 @@ const (
 	HashAlgorithmSha512 = "SHA-512"
 )
 
+// HashAlgorithm_Values returns all elements of the HashAlgorithm enum
+func HashAlgorithm_Values() []string {
+	return []string{
+		HashAlgorithmMd5,
+		HashAlgorithmSha1,
+		HashAlgorithmSha256,
+		HashAlgorithmSha512,
+	}
+}
+
 const (
 	// PackageFormatNpm is a PackageFormat enum value
 	PackageFormatNpm = "npm"
@@ -9419,6 +9444,15 @@ const (
 	// PackageFormatMaven is a PackageFormat enum value
 	PackageFormatMaven = "maven"
 )
+
+// PackageFormat_Values returns all elements of the PackageFormat enum
+func PackageFormat_Values() []string {
+	return []string{
+		PackageFormatNpm,
+		PackageFormatPypi,
+		PackageFormatMaven,
+	}
+}
 
 const (
 	// PackageVersionErrorCodeAlreadyExists is a PackageVersionErrorCode enum value
@@ -9440,10 +9474,29 @@ const (
 	PackageVersionErrorCodeSkipped = "SKIPPED"
 )
 
+// PackageVersionErrorCode_Values returns all elements of the PackageVersionErrorCode enum
+func PackageVersionErrorCode_Values() []string {
+	return []string{
+		PackageVersionErrorCodeAlreadyExists,
+		PackageVersionErrorCodeMismatchedRevision,
+		PackageVersionErrorCodeMismatchedStatus,
+		PackageVersionErrorCodeNotAllowed,
+		PackageVersionErrorCodeNotFound,
+		PackageVersionErrorCodeSkipped,
+	}
+}
+
 const (
 	// PackageVersionSortTypePublishedTime is a PackageVersionSortType enum value
 	PackageVersionSortTypePublishedTime = "PUBLISHED_TIME"
 )
+
+// PackageVersionSortType_Values returns all elements of the PackageVersionSortType enum
+func PackageVersionSortType_Values() []string {
+	return []string{
+		PackageVersionSortTypePublishedTime,
+	}
+}
 
 const (
 	// PackageVersionStatusPublished is a PackageVersionStatus enum value
@@ -9465,6 +9518,18 @@ const (
 	PackageVersionStatusDeleted = "Deleted"
 )
 
+// PackageVersionStatus_Values returns all elements of the PackageVersionStatus enum
+func PackageVersionStatus_Values() []string {
+	return []string{
+		PackageVersionStatusPublished,
+		PackageVersionStatusUnfinished,
+		PackageVersionStatusUnlisted,
+		PackageVersionStatusArchived,
+		PackageVersionStatusDisposed,
+		PackageVersionStatusDeleted,
+	}
+}
+
 const (
 	// ResourceTypeDomain is a ResourceType enum value
 	ResourceTypeDomain = "domain"
@@ -9482,6 +9547,17 @@ const (
 	ResourceTypeAsset = "asset"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeDomain,
+		ResourceTypeRepository,
+		ResourceTypePackage,
+		ResourceTypePackageVersion,
+		ResourceTypeAsset,
+	}
+}
+
 const (
 	// ValidationExceptionReasonCannotParse is a ValidationExceptionReason enum value
 	ValidationExceptionReasonCannotParse = "CANNOT_PARSE"
@@ -9498,3 +9574,14 @@ const (
 	// ValidationExceptionReasonOther is a ValidationExceptionReason enum value
 	ValidationExceptionReasonOther = "OTHER"
 )
+
+// ValidationExceptionReason_Values returns all elements of the ValidationExceptionReason enum
+func ValidationExceptionReason_Values() []string {
+	return []string{
+		ValidationExceptionReasonCannotParse,
+		ValidationExceptionReasonEncryptionKeyError,
+		ValidationExceptionReasonFieldValidationFailed,
+		ValidationExceptionReasonUnknownOperation,
+		ValidationExceptionReasonOther,
+	}
+}

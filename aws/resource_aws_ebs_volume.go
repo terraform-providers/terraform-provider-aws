@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -46,7 +46,7 @@ func resourceAwsEbsVolume() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Get("type").(string) != ec2.VolumeTypeIo1 && new == "0"
+					return (d.Get("type").(string) != ec2.VolumeTypeIo1 && new == "0") || (d.Get("type").(string) != ec2.VolumeTypeIo2 && new == "0")
 				},
 			},
 			"kms_key_id": {
@@ -114,27 +114,30 @@ func resourceAwsEbsVolumeCreate(d *schema.ResourceData, meta interface{}) error 
 		request.OutpostArn = aws.String(value.(string))
 	}
 
-	// IOPs are only valid, and required for, storage type io1. The current minimu
-	// is 100. Instead of a hard validation we we only apply the IOPs to the
-	// request if the type is io1, and log a warning otherwise. This allows users
-	// to "disable" iops. See https://github.com/hashicorp/terraform/pull/4146
+	// IOPs are only valid, and required for, storage type io1 and io2. The current minimum
+	// is 100. Hard validation in place to return an error if IOPs are provided
+	// for an unsupported storage type.
+	// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/12667
 	var t string
 	if value, ok := d.GetOk("type"); ok {
 		t = value.(string)
 		request.VolumeType = aws.String(t)
 	}
 
-	iops := d.Get("iops").(int)
-	if t != ec2.VolumeTypeIo1 && iops > 0 {
-		log.Printf("[WARN] IOPs is only valid on IO1 storage type for EBS Volumes")
-	} else if t == ec2.VolumeTypeIo1 {
+	if iops := d.Get("iops").(int); iops > 0 {
+		if t != ec2.VolumeTypeIo1 && t != ec2.VolumeTypeIo2 {
+			if t == "" {
+				// Volume creation would default to gp2
+				t = ec2.VolumeTypeGp2
+			}
+			return fmt.Errorf("error creating ebs_volume: iops attribute not supported for type %s", t)
+		}
 		// We add the iops value without validating it's size, to allow AWS to
 		// enforce a size requirement (currently 100)
 		request.Iops = aws.Int64(int64(iops))
 	}
 
-	log.Printf(
-		"[DEBUG] EBS Volume create opts: %s", request)
+	log.Printf("[DEBUG] EBS Volume create opts: %s", request)
 	result, err := conn.CreateVolume(request)
 	if err != nil {
 		return fmt.Errorf("Error creating EC2 volume: %s", err)

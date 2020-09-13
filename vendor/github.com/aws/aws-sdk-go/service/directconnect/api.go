@@ -1620,10 +1620,8 @@ func (c *DirectConnect) CreateDirectConnectGatewayAssociationProposalRequest(inp
 // Creates a proposal to associate the specified virtual private gateway or
 // transit gateway with the specified Direct Connect gateway.
 //
-// You can only associate a Direct Connect gateway and virtual private gateway
-// or transit gateway when the account that owns the Direct Connect gateway
-// and the account that owns the virtual private gateway or transit gateway
-// have the same AWS Payer ID.
+// You can associate a Direct Connect gateway and virtual private gateway or
+// transit gateway that is owned by any AWS account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -12214,6 +12212,14 @@ const (
 	AddressFamilyIpv6 = "ipv6"
 )
 
+// AddressFamily_Values returns all elements of the AddressFamily enum
+func AddressFamily_Values() []string {
+	return []string{
+		AddressFamilyIpv4,
+		AddressFamilyIpv6,
+	}
+}
+
 const (
 	// BGPPeerStateVerifying is a BGPPeerState enum value
 	BGPPeerStateVerifying = "verifying"
@@ -12231,6 +12237,17 @@ const (
 	BGPPeerStateDeleted = "deleted"
 )
 
+// BGPPeerState_Values returns all elements of the BGPPeerState enum
+func BGPPeerState_Values() []string {
+	return []string{
+		BGPPeerStateVerifying,
+		BGPPeerStatePending,
+		BGPPeerStateAvailable,
+		BGPPeerStateDeleting,
+		BGPPeerStateDeleted,
+	}
+}
+
 const (
 	// BGPStatusUp is a BGPStatus enum value
 	BGPStatusUp = "up"
@@ -12241,6 +12258,15 @@ const (
 	// BGPStatusUnknown is a BGPStatus enum value
 	BGPStatusUnknown = "unknown"
 )
+
+// BGPStatus_Values returns all elements of the BGPStatus enum
+func BGPStatus_Values() []string {
+	return []string{
+		BGPStatusUp,
+		BGPStatusDown,
+		BGPStatusUnknown,
+	}
+}
 
 const (
 	// ConnectionStateOrdering is a ConnectionState enum value
@@ -12271,6 +12297,21 @@ const (
 	ConnectionStateUnknown = "unknown"
 )
 
+// ConnectionState_Values returns all elements of the ConnectionState enum
+func ConnectionState_Values() []string {
+	return []string{
+		ConnectionStateOrdering,
+		ConnectionStateRequested,
+		ConnectionStatePending,
+		ConnectionStateAvailable,
+		ConnectionStateDown,
+		ConnectionStateDeleting,
+		ConnectionStateDeleted,
+		ConnectionStateRejected,
+		ConnectionStateUnknown,
+	}
+}
+
 const (
 	// GatewayAssociationProposalStateRequested is a GatewayAssociationProposalState enum value
 	GatewayAssociationProposalStateRequested = "requested"
@@ -12281,6 +12322,15 @@ const (
 	// GatewayAssociationProposalStateDeleted is a GatewayAssociationProposalState enum value
 	GatewayAssociationProposalStateDeleted = "deleted"
 )
+
+// GatewayAssociationProposalState_Values returns all elements of the GatewayAssociationProposalState enum
+func GatewayAssociationProposalState_Values() []string {
+	return []string{
+		GatewayAssociationProposalStateRequested,
+		GatewayAssociationProposalStateAccepted,
+		GatewayAssociationProposalStateDeleted,
+	}
+}
 
 const (
 	// GatewayAssociationStateAssociating is a GatewayAssociationState enum value
@@ -12299,6 +12349,17 @@ const (
 	GatewayAssociationStateUpdating = "updating"
 )
 
+// GatewayAssociationState_Values returns all elements of the GatewayAssociationState enum
+func GatewayAssociationState_Values() []string {
+	return []string{
+		GatewayAssociationStateAssociating,
+		GatewayAssociationStateAssociated,
+		GatewayAssociationStateDisassociating,
+		GatewayAssociationStateDisassociated,
+		GatewayAssociationStateUpdating,
+	}
+}
+
 const (
 	// GatewayAttachmentStateAttaching is a GatewayAttachmentState enum value
 	GatewayAttachmentStateAttaching = "attaching"
@@ -12313,6 +12374,16 @@ const (
 	GatewayAttachmentStateDetached = "detached"
 )
 
+// GatewayAttachmentState_Values returns all elements of the GatewayAttachmentState enum
+func GatewayAttachmentState_Values() []string {
+	return []string{
+		GatewayAttachmentStateAttaching,
+		GatewayAttachmentStateAttached,
+		GatewayAttachmentStateDetaching,
+		GatewayAttachmentStateDetached,
+	}
+}
+
 const (
 	// GatewayAttachmentTypeTransitVirtualInterface is a GatewayAttachmentType enum value
 	GatewayAttachmentTypeTransitVirtualInterface = "TransitVirtualInterface"
@@ -12320,6 +12391,14 @@ const (
 	// GatewayAttachmentTypePrivateVirtualInterface is a GatewayAttachmentType enum value
 	GatewayAttachmentTypePrivateVirtualInterface = "PrivateVirtualInterface"
 )
+
+// GatewayAttachmentType_Values returns all elements of the GatewayAttachmentType enum
+func GatewayAttachmentType_Values() []string {
+	return []string{
+		GatewayAttachmentTypeTransitVirtualInterface,
+		GatewayAttachmentTypePrivateVirtualInterface,
+	}
+}
 
 const (
 	// GatewayStatePending is a GatewayState enum value
@@ -12335,6 +12414,16 @@ const (
 	GatewayStateDeleted = "deleted"
 )
 
+// GatewayState_Values returns all elements of the GatewayState enum
+func GatewayState_Values() []string {
+	return []string{
+		GatewayStatePending,
+		GatewayStateAvailable,
+		GatewayStateDeleting,
+		GatewayStateDeleted,
+	}
+}
+
 const (
 	// GatewayTypeVirtualPrivateGateway is a GatewayType enum value
 	GatewayTypeVirtualPrivateGateway = "virtualPrivateGateway"
@@ -12342,6 +12431,14 @@ const (
 	// GatewayTypeTransitGateway is a GatewayType enum value
 	GatewayTypeTransitGateway = "transitGateway"
 )
+
+// GatewayType_Values returns all elements of the GatewayType enum
+func GatewayType_Values() []string {
+	return []string{
+		GatewayTypeVirtualPrivateGateway,
+		GatewayTypeTransitGateway,
+	}
+}
 
 const (
 	// HasLogicalRedundancyUnknown is a HasLogicalRedundancy enum value
@@ -12353,6 +12450,15 @@ const (
 	// HasLogicalRedundancyNo is a HasLogicalRedundancy enum value
 	HasLogicalRedundancyNo = "no"
 )
+
+// HasLogicalRedundancy_Values returns all elements of the HasLogicalRedundancy enum
+func HasLogicalRedundancy_Values() []string {
+	return []string{
+		HasLogicalRedundancyUnknown,
+		HasLogicalRedundancyYes,
+		HasLogicalRedundancyNo,
+	}
+}
 
 const (
 	// InterconnectStateRequested is a InterconnectState enum value
@@ -12377,6 +12483,19 @@ const (
 	InterconnectStateUnknown = "unknown"
 )
 
+// InterconnectState_Values returns all elements of the InterconnectState enum
+func InterconnectState_Values() []string {
+	return []string{
+		InterconnectStateRequested,
+		InterconnectStatePending,
+		InterconnectStateAvailable,
+		InterconnectStateDown,
+		InterconnectStateDeleting,
+		InterconnectStateDeleted,
+		InterconnectStateUnknown,
+	}
+}
+
 const (
 	// LagStateRequested is a LagState enum value
 	LagStateRequested = "requested"
@@ -12400,10 +12519,30 @@ const (
 	LagStateUnknown = "unknown"
 )
 
+// LagState_Values returns all elements of the LagState enum
+func LagState_Values() []string {
+	return []string{
+		LagStateRequested,
+		LagStatePending,
+		LagStateAvailable,
+		LagStateDown,
+		LagStateDeleting,
+		LagStateDeleted,
+		LagStateUnknown,
+	}
+}
+
 const (
 	// LoaContentTypeApplicationPdf is a LoaContentType enum value
 	LoaContentTypeApplicationPdf = "application/pdf"
 )
+
+// LoaContentType_Values returns all elements of the LoaContentType enum
+func LoaContentType_Values() []string {
+	return []string{
+		LoaContentTypeApplicationPdf,
+	}
+}
 
 const (
 	// VirtualInterfaceStateConfirming is a VirtualInterfaceState enum value
@@ -12433,3 +12572,18 @@ const (
 	// VirtualInterfaceStateUnknown is a VirtualInterfaceState enum value
 	VirtualInterfaceStateUnknown = "unknown"
 )
+
+// VirtualInterfaceState_Values returns all elements of the VirtualInterfaceState enum
+func VirtualInterfaceState_Values() []string {
+	return []string{
+		VirtualInterfaceStateConfirming,
+		VirtualInterfaceStateVerifying,
+		VirtualInterfaceStatePending,
+		VirtualInterfaceStateAvailable,
+		VirtualInterfaceStateDown,
+		VirtualInterfaceStateDeleting,
+		VirtualInterfaceStateDeleted,
+		VirtualInterfaceStateRejected,
+		VirtualInterfaceStateUnknown,
+	}
+}

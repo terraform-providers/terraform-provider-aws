@@ -1740,6 +1740,93 @@ func (c *XRay) GetTraceSummariesPagesWithContext(ctx aws.Context, input *GetTrac
 	return p.Err()
 }
 
+const opListTagsForResource = "ListTagsForResource"
+
+// ListTagsForResourceRequest generates a "aws/request.Request" representing the
+// client's request for the ListTagsForResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListTagsForResource for more information on using the ListTagsForResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListTagsForResourceRequest method.
+//    req, resp := client.ListTagsForResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/ListTagsForResource
+func (c *XRay) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *request.Request, output *ListTagsForResourceOutput) {
+	op := &request.Operation{
+		Name:       opListTagsForResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/ListTagsForResource",
+	}
+
+	if input == nil {
+		input = &ListTagsForResourceInput{}
+	}
+
+	output = &ListTagsForResourceOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListTagsForResource API operation for AWS X-Ray.
+//
+// Returns a list of tags that are applied to the specified AWS X-Ray group
+// or sampling rule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS X-Ray's
+// API operation ListTagsForResource for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is missing required parameters or has invalid parameters.
+//
+//   * ThrottledException
+//   The request exceeds the maximum number of requests per second.
+//
+//   * ResourceNotFoundException
+//   The resource was not found. Verify that the name or ARN of the resource is
+//   correct.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/ListTagsForResource
+func (c *XRay) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	return out, req.Send()
+}
+
+// ListTagsForResourceWithContext is the same as ListTagsForResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListTagsForResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *XRay) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsForResourceInput, opts ...request.Option) (*ListTagsForResourceOutput, error) {
+	req, out := c.ListTagsForResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPutEncryptionConfig = "PutEncryptionConfig"
 
 // PutEncryptionConfigRequest generates a "aws/request.Request" representing the
@@ -2027,6 +2114,184 @@ func (c *XRay) PutTraceSegments(input *PutTraceSegmentsInput) (*PutTraceSegments
 // for more information on using Contexts.
 func (c *XRay) PutTraceSegmentsWithContext(ctx aws.Context, input *PutTraceSegmentsInput, opts ...request.Option) (*PutTraceSegmentsOutput, error) {
 	req, out := c.PutTraceSegmentsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opTagResource = "TagResource"
+
+// TagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the TagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See TagResource for more information on using the TagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the TagResourceRequest method.
+//    req, resp := client.TagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/TagResource
+func (c *XRay) TagResourceRequest(input *TagResourceInput) (req *request.Request, output *TagResourceOutput) {
+	op := &request.Operation{
+		Name:       opTagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/TagResource",
+	}
+
+	if input == nil {
+		input = &TagResourceInput{}
+	}
+
+	output = &TagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// TagResource API operation for AWS X-Ray.
+//
+// Applies tags to an existing AWS X-Ray group or sampling rule.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS X-Ray's
+// API operation TagResource for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is missing required parameters or has invalid parameters.
+//
+//   * ThrottledException
+//   The request exceeds the maximum number of requests per second.
+//
+//   * ResourceNotFoundException
+//   The resource was not found. Verify that the name or ARN of the resource is
+//   correct.
+//
+//   * TooManyTagsException
+//   You have exceeded the maximum number of tags you can apply to this resource.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/TagResource
+func (c *XRay) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	return out, req.Send()
+}
+
+// TagResourceWithContext is the same as TagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See TagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *XRay) TagResourceWithContext(ctx aws.Context, input *TagResourceInput, opts ...request.Option) (*TagResourceOutput, error) {
+	req, out := c.TagResourceRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUntagResource = "UntagResource"
+
+// UntagResourceRequest generates a "aws/request.Request" representing the
+// client's request for the UntagResource operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UntagResource for more information on using the UntagResource
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UntagResourceRequest method.
+//    req, resp := client.UntagResourceRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/UntagResource
+func (c *XRay) UntagResourceRequest(input *UntagResourceInput) (req *request.Request, output *UntagResourceOutput) {
+	op := &request.Operation{
+		Name:       opUntagResource,
+		HTTPMethod: "POST",
+		HTTPPath:   "/UntagResource",
+	}
+
+	if input == nil {
+		input = &UntagResourceInput{}
+	}
+
+	output = &UntagResourceOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UntagResource API operation for AWS X-Ray.
+//
+// Removes tags from an AWS X-Ray group or sampling rule. You cannot edit or
+// delete system tags (those with an aws: prefix).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS X-Ray's
+// API operation UntagResource for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is missing required parameters or has invalid parameters.
+//
+//   * ThrottledException
+//   The request exceeds the maximum number of requests per second.
+//
+//   * ResourceNotFoundException
+//   The resource was not found. Verify that the name or ARN of the resource is
+//   correct.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/xray-2016-04-12/UntagResource
+func (c *XRay) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
+	return out, req.Send()
+}
+
+// UntagResourceWithContext is the same as UntagResource with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UntagResource for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *XRay) UntagResourceWithContext(ctx aws.Context, input *UntagResourceInput, opts ...request.Option) (*UntagResourceOutput, error) {
+	req, out := c.UntagResourceRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -2466,6 +2731,32 @@ type CreateGroupInput struct {
 	//
 	// GroupName is a required field
 	GroupName *string `min:"1" type:"string" required:"true"`
+
+	// The structure containing configurations related to insights. The InsightsEnabled
+	// boolean can be set to true to enable insights for the new group or false
+	// to disable insights for the new group.
+	InsightsConfiguration *InsightsConfiguration `type:"structure"`
+
+	// A map that contains one or more tag keys and tag values to attach to an X-Ray
+	// group. For more information about ways to use tags, see Tagging AWS resources
+	// (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html) in the AWS
+	// General Reference.
+	//
+	// The following restrictions apply to tags:
+	//
+	//    * Maximum number of user-applied tags per resource: 50
+	//
+	//    * Maximum tag key length: 128 Unicode characters
+	//
+	//    * Maximum tag value length: 256 Unicode characters
+	//
+	//    * Valid values for key and value: a-z, A-Z, 0-9, space, and the following
+	//    characters: _ . : / = + - and @
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Don't use aws: as a prefix for keys; it's reserved for AWS use.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -2487,6 +2778,16 @@ func (s *CreateGroupInput) Validate() error {
 	if s.GroupName != nil && len(*s.GroupName) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("GroupName", 1))
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2506,12 +2807,24 @@ func (s *CreateGroupInput) SetGroupName(v string) *CreateGroupInput {
 	return s
 }
 
+// SetInsightsConfiguration sets the InsightsConfiguration field's value.
+func (s *CreateGroupInput) SetInsightsConfiguration(v *InsightsConfiguration) *CreateGroupInput {
+	s.InsightsConfiguration = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateGroupInput) SetTags(v []*Tag) *CreateGroupInput {
+	s.Tags = v
+	return s
+}
+
 type CreateGroupOutput struct {
 	_ struct{} `type:"structure"`
 
 	// The group that was created. Contains the name of the group that was created,
-	// the ARN of the group that was generated based on the group name, and the
-	// filter expression that was assigned to the group.
+	// the ARN of the group that was generated based on the group name, the filter
+	// expression, and the insight configuration that was assigned to the group.
 	Group *Group `type:"structure"`
 }
 
@@ -2538,6 +2851,27 @@ type CreateSamplingRuleInput struct {
 	//
 	// SamplingRule is a required field
 	SamplingRule *SamplingRule `type:"structure" required:"true"`
+
+	// A map that contains one or more tag keys and tag values to attach to an X-Ray
+	// sampling rule. For more information about ways to use tags, see Tagging AWS
+	// resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+	// in the AWS General Reference.
+	//
+	// The following restrictions apply to tags:
+	//
+	//    * Maximum number of user-applied tags per resource: 50
+	//
+	//    * Maximum tag key length: 128 Unicode characters
+	//
+	//    * Maximum tag value length: 256 Unicode characters
+	//
+	//    * Valid values for key and value: a-z, A-Z, 0-9, space, and the following
+	//    characters: _ . : / = + - and @
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Don't use aws: as a prefix for keys; it's reserved for AWS use.
+	Tags []*Tag `type:"list"`
 }
 
 // String returns the string representation
@@ -2561,6 +2895,16 @@ func (s *CreateSamplingRuleInput) Validate() error {
 			invalidParams.AddNested("SamplingRule", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -2571,6 +2915,12 @@ func (s *CreateSamplingRuleInput) Validate() error {
 // SetSamplingRule sets the SamplingRule field's value.
 func (s *CreateSamplingRuleInput) SetSamplingRule(v *SamplingRule) *CreateSamplingRuleInput {
 	s.SamplingRule = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateSamplingRuleInput) SetTags(v []*Tag) *CreateSamplingRuleInput {
+	s.Tags = v
 	return s
 }
 
@@ -4180,6 +4530,11 @@ type Group struct {
 
 	// The unique case-sensitive name of the group.
 	GroupName *string `type:"string"`
+
+	// The structure containing configurations related to insights. The InsightsEnabled
+	// boolean can be set to true to enable insights for the group or false to disable
+	// insights for the group.
+	InsightsConfiguration *InsightsConfiguration `type:"structure"`
 }
 
 // String returns the string representation
@@ -4210,6 +4565,12 @@ func (s *Group) SetGroupName(v string) *Group {
 	return s
 }
 
+// SetInsightsConfiguration sets the InsightsConfiguration field's value.
+func (s *Group) SetInsightsConfiguration(v *InsightsConfiguration) *Group {
+	s.InsightsConfiguration = v
+	return s
+}
+
 // Details for a group without metadata.
 type GroupSummary struct {
 	_ struct{} `type:"structure"`
@@ -4222,6 +4583,11 @@ type GroupSummary struct {
 
 	// The unique case-sensitive name of the group.
 	GroupName *string `type:"string"`
+
+	// The structure containing configurations related to insights. The InsightsEnabled
+	// boolean can be set to true to enable insights for the groups or false to
+	// disable insights for the groups.
+	InsightsConfiguration *InsightsConfiguration `type:"structure"`
 }
 
 // String returns the string representation
@@ -4249,6 +4615,12 @@ func (s *GroupSummary) SetGroupARN(v string) *GroupSummary {
 // SetGroupName sets the GroupName field's value.
 func (s *GroupSummary) SetGroupName(v string) *GroupSummary {
 	s.GroupName = &v
+	return s
+}
+
+// SetInsightsConfiguration sets the InsightsConfiguration field's value.
+func (s *GroupSummary) SetInsightsConfiguration(v *InsightsConfiguration) *GroupSummary {
+	s.InsightsConfiguration = v
 	return s
 }
 
@@ -4346,6 +4718,31 @@ func (s *Http) SetUserAgent(v string) *Http {
 	return s
 }
 
+// The structure containing configurations related to insights.
+type InsightsConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Set the InsightsEnabled value to true to enable insights or false to disable
+	// insights.
+	InsightsEnabled *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s InsightsConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InsightsConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetInsightsEnabled sets the InsightsEnabled field's value.
+func (s *InsightsConfiguration) SetInsightsEnabled(v bool) *InsightsConfiguration {
+	s.InsightsEnabled = &v
+	return s
+}
+
 // A list of EC2 instance IDs corresponding to the segments in a trace.
 type InstanceIdDetail struct {
 	_ struct{} `type:"structure"`
@@ -4424,6 +4821,92 @@ func (s *InvalidRequestException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidRequestException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type ListTagsForResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// A pagination token. If multiple pages of results are returned, use the NextToken
+	// value returned with the current page of results as the value of this parameter
+	// to get the next page of results.
+	NextToken *string `type:"string"`
+
+	// The Amazon Resource Number (ARN) of an X-Ray group or sampling rule.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListTagsForResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListTagsForResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListTagsForResourceInput) SetNextToken(v string) *ListTagsForResourceInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *ListTagsForResourceInput) SetResourceARN(v string) *ListTagsForResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+type ListTagsForResourceOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A pagination token. If multiple pages of results are returned, use the NextToken
+	// value returned with the current page of results to get the next page of results.
+	NextToken *string `type:"string"`
+
+	// A list of tags, as key and value pairs, that is associated with the specified
+	// X-Ray group or sampling rule.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s ListTagsForResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListTagsForResourceOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListTagsForResourceOutput) SetNextToken(v string) *ListTagsForResourceOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput {
+	s.Tags = v
+	return s
 }
 
 type PutEncryptionConfigInput struct {
@@ -4678,6 +5161,65 @@ func (s ResourceARNDetail) GoString() string {
 func (s *ResourceARNDetail) SetARN(v string) *ResourceARNDetail {
 	s.ARN = &v
 	return s
+}
+
+// The resource was not found. Verify that the name or ARN of the resource is
+// correct.
+type ResourceNotFoundException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	ResourceName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s ResourceNotFoundException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResourceNotFoundException) GoString() string {
+	return s.String()
+}
+
+func newErrorResourceNotFoundException(v protocol.ResponseMetadata) error {
+	return &ResourceNotFoundException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ResourceNotFoundException) Code() string {
+	return "ResourceNotFoundException"
+}
+
+// Message returns the exception's message.
+func (s *ResourceNotFoundException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ResourceNotFoundException) OrigErr() error {
+	return nil
+}
+
+func (s *ResourceNotFoundException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ResourceNotFoundException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ResourceNotFoundException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The root cause information for a response time warning.
@@ -5867,6 +6409,176 @@ func (s *ServiceStatistics) SetTotalResponseTime(v float64) *ServiceStatistics {
 	return s
 }
 
+// A map that contains tag keys and tag values to attach to an AWS X-Ray group
+// or sampling rule. For more information about ways to use tags, see Tagging
+// AWS resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+// in the AWS General Reference.
+//
+// The following restrictions apply to tags:
+//
+//    * Maximum number of user-applied tags per resource: 50
+//
+//    * Tag keys and values are case sensitive.
+//
+//    * Don't use aws: as a prefix for keys; it's reserved for AWS use. You
+//    cannot edit or delete system tags.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// A tag key, such as Stage or Name. A tag key cannot be empty. The key can
+	// be a maximum of 128 characters, and can contain only Unicode letters, numbers,
+	// or separators, or the following special characters: + - = . _ : /
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// An optional tag value, such as Production or test-only. The value can be
+	// a maximum of 255 characters, and contain only Unicode letters, numbers, or
+	// separators, or the following special characters: + - = . _ : /
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
+type TagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Number (ARN) of an X-Ray group or sampling rule.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+
+	// A map that contains one or more tag keys and tag values to attach to an X-Ray
+	// group or sampling rule. For more information about ways to use tags, see
+	// Tagging AWS resources (https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html)
+	// in the AWS General Reference.
+	//
+	// The following restrictions apply to tags:
+	//
+	//    * Maximum number of user-applied tags per resource: 50
+	//
+	//    * Maximum tag key length: 128 Unicode characters
+	//
+	//    * Maximum tag value length: 256 Unicode characters
+	//
+	//    * Valid values for key and value: a-z, A-Z, 0-9, space, and the following
+	//    characters: _ . : / = + - and @
+	//
+	//    * Tag keys and values are case sensitive.
+	//
+	//    * Don't use aws: as a prefix for keys; it's reserved for AWS use. You
+	//    cannot edit or delete system tags.
+	//
+	// Tags is a required field
+	Tags []*Tag `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s TagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *TagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "TagResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+	if s.Tags == nil {
+		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *TagResourceInput) SetResourceARN(v string) *TagResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *TagResourceInput) SetTags(v []*Tag) *TagResourceInput {
+	s.Tags = v
+	return s
+}
+
+type TagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s TagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TagResourceOutput) GoString() string {
+	return s.String()
+}
+
 type TelemetryRecord struct {
 	_ struct{} `type:"structure"`
 
@@ -6048,6 +6760,64 @@ func (s *TimeSeriesServiceStatistics) SetServiceSummaryStatistics(v *ServiceStat
 func (s *TimeSeriesServiceStatistics) SetTimestamp(v time.Time) *TimeSeriesServiceStatistics {
 	s.Timestamp = &v
 	return s
+}
+
+// You have exceeded the maximum number of tags you can apply to this resource.
+type TooManyTagsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+
+	ResourceName *string `min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s TooManyTagsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TooManyTagsException) GoString() string {
+	return s.String()
+}
+
+func newErrorTooManyTagsException(v protocol.ResponseMetadata) error {
+	return &TooManyTagsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *TooManyTagsException) Code() string {
+	return "TooManyTagsException"
+}
+
+// Message returns the exception's message.
+func (s *TooManyTagsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *TooManyTagsException) OrigErr() error {
+	return nil
+}
+
+func (s *TooManyTagsException) Error() string {
+	return fmt.Sprintf("%s: %s\n%s", s.Code(), s.Message(), s.String())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *TooManyTagsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *TooManyTagsException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // A collection of segment documents with matching trace IDs.
@@ -6414,6 +7184,76 @@ func (s *UnprocessedTraceSegment) SetMessage(v string) *UnprocessedTraceSegment 
 	return s
 }
 
+type UntagResourceInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Number (ARN) of an X-Ray group or sampling rule.
+	//
+	// ResourceARN is a required field
+	ResourceARN *string `min:"1" type:"string" required:"true"`
+
+	// Keys for one or more tags that you want to remove from an X-Ray group or
+	// sampling rule.
+	//
+	// TagKeys is a required field
+	TagKeys []*string `type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s UntagResourceInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UntagResourceInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UntagResourceInput"}
+	if s.ResourceARN == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceARN"))
+	}
+	if s.ResourceARN != nil && len(*s.ResourceARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceARN", 1))
+	}
+	if s.TagKeys == nil {
+		invalidParams.Add(request.NewErrParamRequired("TagKeys"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResourceARN sets the ResourceARN field's value.
+func (s *UntagResourceInput) SetResourceARN(v string) *UntagResourceInput {
+	s.ResourceARN = &v
+	return s
+}
+
+// SetTagKeys sets the TagKeys field's value.
+func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
+	s.TagKeys = v
+	return s
+}
+
+type UntagResourceOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UntagResourceOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UntagResourceOutput) GoString() string {
+	return s.String()
+}
+
 type UpdateGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -6425,6 +7265,11 @@ type UpdateGroupInput struct {
 
 	// The case-sensitive name of the group.
 	GroupName *string `min:"1" type:"string"`
+
+	// The structure containing configurations related to insights. The InsightsEnabled
+	// boolean can be set to true to enable insights for the group or false to disable
+	// insights for the group.
+	InsightsConfiguration *InsightsConfiguration `type:"structure"`
 }
 
 // String returns the string representation
@@ -6471,12 +7316,18 @@ func (s *UpdateGroupInput) SetGroupName(v string) *UpdateGroupInput {
 	return s
 }
 
+// SetInsightsConfiguration sets the InsightsConfiguration field's value.
+func (s *UpdateGroupInput) SetInsightsConfiguration(v *InsightsConfiguration) *UpdateGroupInput {
+	s.InsightsConfiguration = v
+	return s
+}
+
 type UpdateGroupOutput struct {
 	_ struct{} `type:"structure"`
 
 	// The group that was updated. Contains the name of the group that was updated,
-	// the ARN of the group that was updated, and the updated filter expression
-	// assigned to the group.
+	// the ARN of the group that was updated, the updated filter expression, and
+	// the updated insight configuration assigned to the group.
 	Group *Group `type:"structure"`
 }
 
@@ -6603,6 +7454,14 @@ const (
 	EncryptionStatusActive = "ACTIVE"
 )
 
+// EncryptionStatus_Values returns all elements of the EncryptionStatus enum
+func EncryptionStatus_Values() []string {
+	return []string{
+		EncryptionStatusUpdating,
+		EncryptionStatusActive,
+	}
+}
+
 const (
 	// EncryptionTypeNone is a EncryptionType enum value
 	EncryptionTypeNone = "NONE"
@@ -6610,6 +7469,14 @@ const (
 	// EncryptionTypeKms is a EncryptionType enum value
 	EncryptionTypeKms = "KMS"
 )
+
+// EncryptionType_Values returns all elements of the EncryptionType enum
+func EncryptionType_Values() []string {
+	return []string{
+		EncryptionTypeNone,
+		EncryptionTypeKms,
+	}
+}
 
 const (
 	// SamplingStrategyNamePartialScan is a SamplingStrategyName enum value
@@ -6619,6 +7486,14 @@ const (
 	SamplingStrategyNameFixedRate = "FixedRate"
 )
 
+// SamplingStrategyName_Values returns all elements of the SamplingStrategyName enum
+func SamplingStrategyName_Values() []string {
+	return []string{
+		SamplingStrategyNamePartialScan,
+		SamplingStrategyNameFixedRate,
+	}
+}
+
 const (
 	// TimeRangeTypeTraceId is a TimeRangeType enum value
 	TimeRangeTypeTraceId = "TraceId"
@@ -6626,3 +7501,11 @@ const (
 	// TimeRangeTypeEvent is a TimeRangeType enum value
 	TimeRangeTypeEvent = "Event"
 )
+
+// TimeRangeType_Values returns all elements of the TimeRangeType enum
+func TimeRangeType_Values() []string {
+	return []string{
+		TimeRangeTypeTraceId,
+		TimeRangeTypeEvent,
+	}
+}

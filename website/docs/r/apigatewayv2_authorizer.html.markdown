@@ -17,9 +17,9 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ```hcl
 resource "aws_apigatewayv2_authorizer" "example" {
-  api_id           = "${aws_apigatewayv2_api.example.id}"
+  api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "REQUEST"
-  authorizer_uri   = "${aws_lambda_function.example.invoke_arn}"
+  authorizer_uri   = aws_lambda_function.example.invoke_arn
   identity_sources = ["route.request.header.Auth"]
   name             = "example-authorizer"
 }
@@ -29,7 +29,7 @@ resource "aws_apigatewayv2_authorizer" "example" {
 
 ```hcl
 resource "aws_apigatewayv2_authorizer" "example" {
-  api_id           = "${aws_apigatewayv2_api.example.id}"
+  api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "JWT"
   identity_sources = ["$request.header.Authorization"]
   name             = "example-authorizer"

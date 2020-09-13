@@ -14,6 +14,12 @@ const (
 	// The target request is invalid.
 	ErrCodeBadRequestException = "BadRequestException"
 
+	// ErrCodeConcurrentAccessException for service response error code
+	// "ConcurrentAccessException".
+	//
+	// A concurrent access issue occurred.
+	ErrCodeConcurrentAccessException = "ConcurrentAccessException"
+
 	// ErrCodeConflictException for service response error code
 	// "ConflictException".
 	//
@@ -53,6 +59,7 @@ const (
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"BadRequestException":          newErrorBadRequestException,
+	"ConcurrentAccessException":    newErrorConcurrentAccessException,
 	"ConflictException":            newErrorConflictException,
 	"ForbiddenException":           newErrorForbiddenException,
 	"InternalServerErrorException": newErrorInternalServerErrorException,

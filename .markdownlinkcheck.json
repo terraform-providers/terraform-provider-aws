@@ -2,6 +2,9 @@
     "ignorePatterns": [
         {
             "pattern": "^http(s)?://(?!(docs\\.aws\\.amazon\\.com|github.com|(www\\.)?terraform\\.io))"
+        },
+        {
+            "pattern": "^https://github.com/[^/]+/[^/]+/(issues|labels|pull)"
         }
     ],
     "replacementPatterns": [
@@ -16,6 +19,10 @@
         {
             "pattern": "^/docs/providers/aws/",
             "replacement": "file:///github/workspace/website/docs/"
+        },
+        {
+            "pattern": "^(custom-service-endpoints|resource-tagging|version-2-upgrade|version-3-upgrade).html.markdown(#.*)?$",
+            "replacement": "file:///github/workspace/website/docs/guides/$1.html.md$2"
         },
         {
             "pattern": "^file:///github/workspace/website/docs/guides/(.*)\\.markdown(#.*)?$",

@@ -2453,15 +2453,38 @@ const (
 	GettablePolicyStateValuesError = "ERROR"
 )
 
+// GettablePolicyStateValues_Values returns all elements of the GettablePolicyStateValues enum
+func GettablePolicyStateValues_Values() []string {
+	return []string{
+		GettablePolicyStateValuesEnabled,
+		GettablePolicyStateValuesDisabled,
+		GettablePolicyStateValuesError,
+	}
+}
+
 const (
 	// IntervalUnitValuesHours is a IntervalUnitValues enum value
 	IntervalUnitValuesHours = "HOURS"
 )
 
+// IntervalUnitValues_Values returns all elements of the IntervalUnitValues enum
+func IntervalUnitValues_Values() []string {
+	return []string{
+		IntervalUnitValuesHours,
+	}
+}
+
 const (
 	// PolicyTypeValuesEbsSnapshotManagement is a PolicyTypeValues enum value
 	PolicyTypeValuesEbsSnapshotManagement = "EBS_SNAPSHOT_MANAGEMENT"
 )
+
+// PolicyTypeValues_Values returns all elements of the PolicyTypeValues enum
+func PolicyTypeValues_Values() []string {
+	return []string{
+		PolicyTypeValuesEbsSnapshotManagement,
+	}
+}
 
 const (
 	// ResourceTypeValuesVolume is a ResourceTypeValues enum value
@@ -2470,6 +2493,14 @@ const (
 	// ResourceTypeValuesInstance is a ResourceTypeValues enum value
 	ResourceTypeValuesInstance = "INSTANCE"
 )
+
+// ResourceTypeValues_Values returns all elements of the ResourceTypeValues enum
+func ResourceTypeValues_Values() []string {
+	return []string{
+		ResourceTypeValuesVolume,
+		ResourceTypeValuesInstance,
+	}
+}
 
 const (
 	// RetentionIntervalUnitValuesDays is a RetentionIntervalUnitValues enum value
@@ -2485,6 +2516,16 @@ const (
 	RetentionIntervalUnitValuesYears = "YEARS"
 )
 
+// RetentionIntervalUnitValues_Values returns all elements of the RetentionIntervalUnitValues enum
+func RetentionIntervalUnitValues_Values() []string {
+	return []string{
+		RetentionIntervalUnitValuesDays,
+		RetentionIntervalUnitValuesWeeks,
+		RetentionIntervalUnitValuesMonths,
+		RetentionIntervalUnitValuesYears,
+	}
+}
+
 const (
 	// SettablePolicyStateValuesEnabled is a SettablePolicyStateValues enum value
 	SettablePolicyStateValuesEnabled = "ENABLED"
@@ -2492,3 +2533,11 @@ const (
 	// SettablePolicyStateValuesDisabled is a SettablePolicyStateValues enum value
 	SettablePolicyStateValuesDisabled = "DISABLED"
 )
+
+// SettablePolicyStateValues_Values returns all elements of the SettablePolicyStateValues enum
+func SettablePolicyStateValues_Values() []string {
+	return []string{
+		SettablePolicyStateValuesEnabled,
+		SettablePolicyStateValuesDisabled,
+	}
+}

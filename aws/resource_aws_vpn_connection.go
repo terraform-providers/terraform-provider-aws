@@ -10,12 +10,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -70,6 +70,10 @@ func resourceAwsVpnConnection() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"vpn_gateway_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -298,6 +302,7 @@ func resourceAwsVpnConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		CustomerGatewayId: aws.String(d.Get("customer_gateway_id").(string)),
 		Options:           connectOpts,
 		Type:              aws.String(d.Get("type").(string)),
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeVpnConnection),
 	}
 
 	if v, ok := d.GetOk("transit_gateway_id"); ok {
@@ -321,12 +326,6 @@ func resourceAwsVpnConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("error waiting for VPN connection (%s) to become available: %s", d.Id(), err)
 	}
 
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding EC2 VPN Connection (%s) tags: %s", d.Id(), err)
-		}
-	}
-
 	// Read off the API to populate our RO fields.
 	return resourceAwsVpnConnectionRead(d, meta)
 }
@@ -338,7 +337,7 @@ func vpnConnectionRefreshFunc(conn *ec2.EC2, connectionId string) resource.State
 		})
 
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidVpnConnectionID.NotFound" {
+			if isAWSErr(err, "InvalidVpnConnectionID.NotFound", "") {
 				resp = nil
 			} else {
 				log.Printf("Error on VPNConnectionRefresh: %s", err)
@@ -351,7 +350,7 @@ func vpnConnectionRefreshFunc(conn *ec2.EC2, connectionId string) resource.State
 		}
 
 		connection := resp.VpnConnections[0]
-		return connection, *connection.State, nil
+		return connection, aws.StringValue(connection.State), nil
 	}
 }
 
@@ -475,6 +474,16 @@ func resourceAwsVpnConnectionRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("vpn-connection/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
+
 	return nil
 }
 
@@ -519,11 +528,11 @@ func routesToMapList(routes []*ec2.VpnStaticRoute) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(routes))
 	for _, r := range routes {
 		staticRoute := make(map[string]interface{})
-		staticRoute["destination_cidr_block"] = *r.DestinationCidrBlock
-		staticRoute["state"] = *r.State
+		staticRoute["destination_cidr_block"] = aws.StringValue(r.DestinationCidrBlock)
+		staticRoute["state"] = aws.StringValue(r.State)
 
 		if r.Source != nil {
-			staticRoute["source"] = *r.Source
+			staticRoute["source"] = aws.StringValue(r.Source)
 		}
 
 		result = append(result, staticRoute)
@@ -537,14 +546,14 @@ func telemetryToMapList(telemetry []*ec2.VgwTelemetry) []map[string]interface{} 
 	result := make([]map[string]interface{}, 0, len(telemetry))
 	for _, t := range telemetry {
 		vgw := make(map[string]interface{})
-		vgw["accepted_route_count"] = *t.AcceptedRouteCount
-		vgw["outside_ip_address"] = *t.OutsideIpAddress
-		vgw["status"] = *t.Status
-		vgw["status_message"] = *t.StatusMessage
+		vgw["accepted_route_count"] = aws.Int64Value(t.AcceptedRouteCount)
+		vgw["outside_ip_address"] = aws.StringValue(t.OutsideIpAddress)
+		vgw["status"] = aws.StringValue(t.Status)
+		vgw["status_message"] = aws.StringValue(t.StatusMessage)
 
 		// LastStatusChange is a time.Time(). Convert it into a string
 		// so it can be handled by schema's type system.
-		vgw["last_status_change"] = t.LastStatusChange.String()
+		vgw["last_status_change"] = t.LastStatusChange.Format(time.RFC3339)
 		result = append(result, vgw)
 	}
 
@@ -557,8 +566,8 @@ func waitForEc2VpnConnectionAvailable(conn *ec2.EC2, id string) error {
 	// slow at coming up or going down. There's also no point in checking
 	// more frequently than every ten seconds.
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"available"},
+		Pending:    []string{ec2.VpnStatePending},
+		Target:     []string{ec2.VpnStateAvailable},
 		Refresh:    vpnConnectionRefreshFunc(conn, id),
 		Timeout:    40 * time.Minute,
 		Delay:      10 * time.Second,
@@ -578,8 +587,8 @@ func waitForEc2VpnConnectionDeletion(conn *ec2.EC2, id string) error {
 	// wait to ensure any other modifications the user might make to their
 	// VPC stack can safely run.
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"deleting"},
-		Target:     []string{"deleted"},
+		Pending:    []string{ec2.VpnStateDeleting},
+		Target:     []string{ec2.VpnStateDeleted},
 		Refresh:    vpnConnectionRefreshFunc(conn, id),
 		Timeout:    30 * time.Minute,
 		Delay:      10 * time.Second,

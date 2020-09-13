@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/glacier"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -257,7 +257,7 @@ resource "aws_glacier_vault" "test" {
   name = "my_test_vault_%d"
 
   notification {
-    sns_topic = "${aws_sns_topic.aws_sns_topic.arn}"
+    sns_topic = aws_sns_topic.aws_sns_topic.arn
     events    = ["ArchiveRetrievalCompleted", "InventoryRetrievalCompleted"]
   }
 

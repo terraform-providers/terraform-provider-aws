@@ -19903,6 +19903,15 @@ const (
 	ArtifactCategoryLog = "LOG"
 )
 
+// ArtifactCategory_Values returns all elements of the ArtifactCategory enum
+func ArtifactCategory_Values() []string {
+	return []string{
+		ArtifactCategoryScreenshot,
+		ArtifactCategoryFile,
+		ArtifactCategoryLog,
+	}
+}
+
 const (
 	// ArtifactTypeUnknown is a ArtifactType enum value
 	ArtifactTypeUnknown = "UNKNOWN"
@@ -19989,6 +19998,40 @@ const (
 	ArtifactTypeTestspecOutput = "TESTSPEC_OUTPUT"
 )
 
+// ArtifactType_Values returns all elements of the ArtifactType enum
+func ArtifactType_Values() []string {
+	return []string{
+		ArtifactTypeUnknown,
+		ArtifactTypeScreenshot,
+		ArtifactTypeDeviceLog,
+		ArtifactTypeMessageLog,
+		ArtifactTypeVideoLog,
+		ArtifactTypeResultLog,
+		ArtifactTypeServiceLog,
+		ArtifactTypeWebkitLog,
+		ArtifactTypeInstrumentationOutput,
+		ArtifactTypeExerciserMonkeyOutput,
+		ArtifactTypeCalabashJsonOutput,
+		ArtifactTypeCalabashPrettyOutput,
+		ArtifactTypeCalabashStandardOutput,
+		ArtifactTypeCalabashJavaXmlOutput,
+		ArtifactTypeAutomationOutput,
+		ArtifactTypeAppiumServerOutput,
+		ArtifactTypeAppiumJavaOutput,
+		ArtifactTypeAppiumJavaXmlOutput,
+		ArtifactTypeAppiumPythonOutput,
+		ArtifactTypeAppiumPythonXmlOutput,
+		ArtifactTypeExplorerEventLog,
+		ArtifactTypeExplorerSummaryLog,
+		ArtifactTypeApplicationCrashReport,
+		ArtifactTypeXctestLog,
+		ArtifactTypeVideo,
+		ArtifactTypeCustomerArtifact,
+		ArtifactTypeCustomerArtifactLog,
+		ArtifactTypeTestspecOutput,
+	}
+}
+
 const (
 	// BillingMethodMetered is a BillingMethod enum value
 	BillingMethodMetered = "METERED"
@@ -19997,10 +20040,25 @@ const (
 	BillingMethodUnmetered = "UNMETERED"
 )
 
+// BillingMethod_Values returns all elements of the BillingMethod enum
+func BillingMethod_Values() []string {
+	return []string{
+		BillingMethodMetered,
+		BillingMethodUnmetered,
+	}
+}
+
 const (
 	// CurrencyCodeUsd is a CurrencyCode enum value
 	CurrencyCodeUsd = "USD"
 )
+
+// CurrencyCode_Values returns all elements of the CurrencyCode enum
+func CurrencyCode_Values() []string {
+	return []string{
+		CurrencyCodeUsd,
+	}
+}
 
 const (
 	// DeviceAttributeArn is a DeviceAttribute enum value
@@ -20043,6 +20101,25 @@ const (
 	DeviceAttributeAvailability = "AVAILABILITY"
 )
 
+// DeviceAttribute_Values returns all elements of the DeviceAttribute enum
+func DeviceAttribute_Values() []string {
+	return []string{
+		DeviceAttributeArn,
+		DeviceAttributePlatform,
+		DeviceAttributeFormFactor,
+		DeviceAttributeManufacturer,
+		DeviceAttributeRemoteAccessEnabled,
+		DeviceAttributeRemoteDebugEnabled,
+		DeviceAttributeAppiumVersion,
+		DeviceAttributeInstanceArn,
+		DeviceAttributeInstanceLabels,
+		DeviceAttributeFleetType,
+		DeviceAttributeOsVersion,
+		DeviceAttributeModel,
+		DeviceAttributeAvailability,
+	}
+}
+
 const (
 	// DeviceAvailabilityTemporaryNotAvailable is a DeviceAvailability enum value
 	DeviceAvailabilityTemporaryNotAvailable = "TEMPORARY_NOT_AVAILABLE"
@@ -20056,6 +20133,16 @@ const (
 	// DeviceAvailabilityHighlyAvailable is a DeviceAvailability enum value
 	DeviceAvailabilityHighlyAvailable = "HIGHLY_AVAILABLE"
 )
+
+// DeviceAvailability_Values returns all elements of the DeviceAvailability enum
+func DeviceAvailability_Values() []string {
+	return []string{
+		DeviceAvailabilityTemporaryNotAvailable,
+		DeviceAvailabilityBusy,
+		DeviceAvailabilityAvailable,
+		DeviceAvailabilityHighlyAvailable,
+	}
+}
 
 const (
 	// DeviceFilterAttributeArn is a DeviceFilterAttribute enum value
@@ -20095,6 +20182,24 @@ const (
 	DeviceFilterAttributeFleetType = "FLEET_TYPE"
 )
 
+// DeviceFilterAttribute_Values returns all elements of the DeviceFilterAttribute enum
+func DeviceFilterAttribute_Values() []string {
+	return []string{
+		DeviceFilterAttributeArn,
+		DeviceFilterAttributePlatform,
+		DeviceFilterAttributeOsVersion,
+		DeviceFilterAttributeModel,
+		DeviceFilterAttributeAvailability,
+		DeviceFilterAttributeFormFactor,
+		DeviceFilterAttributeManufacturer,
+		DeviceFilterAttributeRemoteAccessEnabled,
+		DeviceFilterAttributeRemoteDebugEnabled,
+		DeviceFilterAttributeInstanceArn,
+		DeviceFilterAttributeInstanceLabels,
+		DeviceFilterAttributeFleetType,
+	}
+}
+
 const (
 	// DeviceFormFactorPhone is a DeviceFormFactor enum value
 	DeviceFormFactorPhone = "PHONE"
@@ -20102,6 +20207,14 @@ const (
 	// DeviceFormFactorTablet is a DeviceFormFactor enum value
 	DeviceFormFactorTablet = "TABLET"
 )
+
+// DeviceFormFactor_Values returns all elements of the DeviceFormFactor enum
+func DeviceFormFactor_Values() []string {
+	return []string{
+		DeviceFormFactorPhone,
+		DeviceFormFactorTablet,
+	}
+}
 
 const (
 	// DevicePlatformAndroid is a DevicePlatform enum value
@@ -20111,6 +20224,14 @@ const (
 	DevicePlatformIos = "IOS"
 )
 
+// DevicePlatform_Values returns all elements of the DevicePlatform enum
+func DevicePlatform_Values() []string {
+	return []string{
+		DevicePlatformAndroid,
+		DevicePlatformIos,
+	}
+}
+
 const (
 	// DevicePoolTypeCurated is a DevicePoolType enum value
 	DevicePoolTypeCurated = "CURATED"
@@ -20118,6 +20239,14 @@ const (
 	// DevicePoolTypePrivate is a DevicePoolType enum value
 	DevicePoolTypePrivate = "PRIVATE"
 )
+
+// DevicePoolType_Values returns all elements of the DevicePoolType enum
+func DevicePoolType_Values() []string {
+	return []string{
+		DevicePoolTypeCurated,
+		DevicePoolTypePrivate,
+	}
+}
 
 const (
 	// ExecutionResultPending is a ExecutionResult enum value
@@ -20142,6 +20271,19 @@ const (
 	ExecutionResultStopped = "STOPPED"
 )
 
+// ExecutionResult_Values returns all elements of the ExecutionResult enum
+func ExecutionResult_Values() []string {
+	return []string{
+		ExecutionResultPending,
+		ExecutionResultPassed,
+		ExecutionResultWarned,
+		ExecutionResultFailed,
+		ExecutionResultSkipped,
+		ExecutionResultErrored,
+		ExecutionResultStopped,
+	}
+}
+
 const (
 	// ExecutionResultCodeParsingFailed is a ExecutionResultCode enum value
 	ExecutionResultCodeParsingFailed = "PARSING_FAILED"
@@ -20149,6 +20291,14 @@ const (
 	// ExecutionResultCodeVpcEndpointSetupFailed is a ExecutionResultCode enum value
 	ExecutionResultCodeVpcEndpointSetupFailed = "VPC_ENDPOINT_SETUP_FAILED"
 )
+
+// ExecutionResultCode_Values returns all elements of the ExecutionResultCode enum
+func ExecutionResultCode_Values() []string {
+	return []string{
+		ExecutionResultCodeParsingFailed,
+		ExecutionResultCodeVpcEndpointSetupFailed,
+	}
+}
 
 const (
 	// ExecutionStatusPending is a ExecutionStatus enum value
@@ -20179,6 +20329,21 @@ const (
 	ExecutionStatusStopping = "STOPPING"
 )
 
+// ExecutionStatus_Values returns all elements of the ExecutionStatus enum
+func ExecutionStatus_Values() []string {
+	return []string{
+		ExecutionStatusPending,
+		ExecutionStatusPendingConcurrency,
+		ExecutionStatusPendingDevice,
+		ExecutionStatusProcessing,
+		ExecutionStatusScheduling,
+		ExecutionStatusPreparing,
+		ExecutionStatusRunning,
+		ExecutionStatusCompleted,
+		ExecutionStatusStopping,
+	}
+}
+
 const (
 	// InstanceStatusInUse is a InstanceStatus enum value
 	InstanceStatusInUse = "IN_USE"
@@ -20193,6 +20358,16 @@ const (
 	InstanceStatusNotAvailable = "NOT_AVAILABLE"
 )
 
+// InstanceStatus_Values returns all elements of the InstanceStatus enum
+func InstanceStatus_Values() []string {
+	return []string{
+		InstanceStatusInUse,
+		InstanceStatusPreparing,
+		InstanceStatusAvailable,
+		InstanceStatusNotAvailable,
+	}
+}
+
 const (
 	// InteractionModeInteractive is a InteractionMode enum value
 	InteractionModeInteractive = "INTERACTIVE"
@@ -20204,6 +20379,15 @@ const (
 	InteractionModeVideoOnly = "VIDEO_ONLY"
 )
 
+// InteractionMode_Values returns all elements of the InteractionMode enum
+func InteractionMode_Values() []string {
+	return []string{
+		InteractionModeInteractive,
+		InteractionModeNoVideo,
+		InteractionModeVideoOnly,
+	}
+}
+
 const (
 	// NetworkProfileTypeCurated is a NetworkProfileType enum value
 	NetworkProfileTypeCurated = "CURATED"
@@ -20211,6 +20395,14 @@ const (
 	// NetworkProfileTypePrivate is a NetworkProfileType enum value
 	NetworkProfileTypePrivate = "PRIVATE"
 )
+
+// NetworkProfileType_Values returns all elements of the NetworkProfileType enum
+func NetworkProfileType_Values() []string {
+	return []string{
+		NetworkProfileTypeCurated,
+		NetworkProfileTypePrivate,
+	}
+}
 
 const (
 	// OfferingTransactionTypePurchase is a OfferingTransactionType enum value
@@ -20223,15 +20415,38 @@ const (
 	OfferingTransactionTypeSystem = "SYSTEM"
 )
 
+// OfferingTransactionType_Values returns all elements of the OfferingTransactionType enum
+func OfferingTransactionType_Values() []string {
+	return []string{
+		OfferingTransactionTypePurchase,
+		OfferingTransactionTypeRenew,
+		OfferingTransactionTypeSystem,
+	}
+}
+
 const (
 	// OfferingTypeRecurring is a OfferingType enum value
 	OfferingTypeRecurring = "RECURRING"
 )
 
+// OfferingType_Values returns all elements of the OfferingType enum
+func OfferingType_Values() []string {
+	return []string{
+		OfferingTypeRecurring,
+	}
+}
+
 const (
 	// RecurringChargeFrequencyMonthly is a RecurringChargeFrequency enum value
 	RecurringChargeFrequencyMonthly = "MONTHLY"
 )
+
+// RecurringChargeFrequency_Values returns all elements of the RecurringChargeFrequency enum
+func RecurringChargeFrequency_Values() []string {
+	return []string{
+		RecurringChargeFrequencyMonthly,
+	}
+}
 
 const (
 	// RuleOperatorEquals is a RuleOperator enum value
@@ -20258,6 +20473,20 @@ const (
 	// RuleOperatorContains is a RuleOperator enum value
 	RuleOperatorContains = "CONTAINS"
 )
+
+// RuleOperator_Values returns all elements of the RuleOperator enum
+func RuleOperator_Values() []string {
+	return []string{
+		RuleOperatorEquals,
+		RuleOperatorLessThan,
+		RuleOperatorLessThanOrEquals,
+		RuleOperatorGreaterThan,
+		RuleOperatorGreaterThanOrEquals,
+		RuleOperatorIn,
+		RuleOperatorNotIn,
+		RuleOperatorContains,
+	}
+}
 
 const (
 	// SampleTypeCpu is a SampleType enum value
@@ -20312,6 +20541,29 @@ const (
 	SampleTypeOpenglMaxDrawtime = "OPENGL_MAX_DRAWTIME"
 )
 
+// SampleType_Values returns all elements of the SampleType enum
+func SampleType_Values() []string {
+	return []string{
+		SampleTypeCpu,
+		SampleTypeMemory,
+		SampleTypeThreads,
+		SampleTypeRxRate,
+		SampleTypeTxRate,
+		SampleTypeRx,
+		SampleTypeTx,
+		SampleTypeNativeFrames,
+		SampleTypeNativeFps,
+		SampleTypeNativeMinDrawtime,
+		SampleTypeNativeAvgDrawtime,
+		SampleTypeNativeMaxDrawtime,
+		SampleTypeOpenglFrames,
+		SampleTypeOpenglFps,
+		SampleTypeOpenglMinDrawtime,
+		SampleTypeOpenglAvgDrawtime,
+		SampleTypeOpenglMaxDrawtime,
+	}
+}
+
 const (
 	// TestGridSessionArtifactCategoryVideo is a TestGridSessionArtifactCategory enum value
 	TestGridSessionArtifactCategoryVideo = "VIDEO"
@@ -20319,6 +20571,14 @@ const (
 	// TestGridSessionArtifactCategoryLog is a TestGridSessionArtifactCategory enum value
 	TestGridSessionArtifactCategoryLog = "LOG"
 )
+
+// TestGridSessionArtifactCategory_Values returns all elements of the TestGridSessionArtifactCategory enum
+func TestGridSessionArtifactCategory_Values() []string {
+	return []string{
+		TestGridSessionArtifactCategoryVideo,
+		TestGridSessionArtifactCategoryLog,
+	}
+}
 
 const (
 	// TestGridSessionArtifactTypeUnknown is a TestGridSessionArtifactType enum value
@@ -20331,6 +20591,15 @@ const (
 	TestGridSessionArtifactTypeSeleniumLog = "SELENIUM_LOG"
 )
 
+// TestGridSessionArtifactType_Values returns all elements of the TestGridSessionArtifactType enum
+func TestGridSessionArtifactType_Values() []string {
+	return []string{
+		TestGridSessionArtifactTypeUnknown,
+		TestGridSessionArtifactTypeVideo,
+		TestGridSessionArtifactTypeSeleniumLog,
+	}
+}
+
 const (
 	// TestGridSessionStatusActive is a TestGridSessionStatus enum value
 	TestGridSessionStatusActive = "ACTIVE"
@@ -20341,6 +20610,15 @@ const (
 	// TestGridSessionStatusErrored is a TestGridSessionStatus enum value
 	TestGridSessionStatusErrored = "ERRORED"
 )
+
+// TestGridSessionStatus_Values returns all elements of the TestGridSessionStatus enum
+func TestGridSessionStatus_Values() []string {
+	return []string{
+		TestGridSessionStatusActive,
+		TestGridSessionStatusClosed,
+		TestGridSessionStatusErrored,
+	}
+}
 
 const (
 	// TestTypeBuiltinFuzz is a TestType enum value
@@ -20407,6 +20685,33 @@ const (
 	TestTypeRemoteAccessReplay = "REMOTE_ACCESS_REPLAY"
 )
 
+// TestType_Values returns all elements of the TestType enum
+func TestType_Values() []string {
+	return []string{
+		TestTypeBuiltinFuzz,
+		TestTypeBuiltinExplorer,
+		TestTypeWebPerformanceProfile,
+		TestTypeAppiumJavaJunit,
+		TestTypeAppiumJavaTestng,
+		TestTypeAppiumPython,
+		TestTypeAppiumNode,
+		TestTypeAppiumRuby,
+		TestTypeAppiumWebJavaJunit,
+		TestTypeAppiumWebJavaTestng,
+		TestTypeAppiumWebPython,
+		TestTypeAppiumWebNode,
+		TestTypeAppiumWebRuby,
+		TestTypeCalabash,
+		TestTypeInstrumentation,
+		TestTypeUiautomation,
+		TestTypeUiautomator,
+		TestTypeXctest,
+		TestTypeXctestUi,
+		TestTypeRemoteAccessRecord,
+		TestTypeRemoteAccessReplay,
+	}
+}
+
 const (
 	// UploadCategoryCurated is a UploadCategory enum value
 	UploadCategoryCurated = "CURATED"
@@ -20414,6 +20719,14 @@ const (
 	// UploadCategoryPrivate is a UploadCategory enum value
 	UploadCategoryPrivate = "PRIVATE"
 )
+
+// UploadCategory_Values returns all elements of the UploadCategory enum
+func UploadCategory_Values() []string {
+	return []string{
+		UploadCategoryCurated,
+		UploadCategoryPrivate,
+	}
+}
 
 const (
 	// UploadStatusInitialized is a UploadStatus enum value
@@ -20428,6 +20741,16 @@ const (
 	// UploadStatusFailed is a UploadStatus enum value
 	UploadStatusFailed = "FAILED"
 )
+
+// UploadStatus_Values returns all elements of the UploadStatus enum
+func UploadStatus_Values() []string {
+	return []string{
+		UploadStatusInitialized,
+		UploadStatusProcessing,
+		UploadStatusSucceeded,
+		UploadStatusFailed,
+	}
+}
 
 const (
 	// UploadTypeAndroidApp is a UploadType enum value
@@ -20526,3 +20849,41 @@ const (
 	// UploadTypeXctestUiTestSpec is a UploadType enum value
 	UploadTypeXctestUiTestSpec = "XCTEST_UI_TEST_SPEC"
 )
+
+// UploadType_Values returns all elements of the UploadType enum
+func UploadType_Values() []string {
+	return []string{
+		UploadTypeAndroidApp,
+		UploadTypeIosApp,
+		UploadTypeWebApp,
+		UploadTypeExternalData,
+		UploadTypeAppiumJavaJunitTestPackage,
+		UploadTypeAppiumJavaTestngTestPackage,
+		UploadTypeAppiumPythonTestPackage,
+		UploadTypeAppiumNodeTestPackage,
+		UploadTypeAppiumRubyTestPackage,
+		UploadTypeAppiumWebJavaJunitTestPackage,
+		UploadTypeAppiumWebJavaTestngTestPackage,
+		UploadTypeAppiumWebPythonTestPackage,
+		UploadTypeAppiumWebNodeTestPackage,
+		UploadTypeAppiumWebRubyTestPackage,
+		UploadTypeCalabashTestPackage,
+		UploadTypeInstrumentationTestPackage,
+		UploadTypeUiautomationTestPackage,
+		UploadTypeUiautomatorTestPackage,
+		UploadTypeXctestTestPackage,
+		UploadTypeXctestUiTestPackage,
+		UploadTypeAppiumJavaJunitTestSpec,
+		UploadTypeAppiumJavaTestngTestSpec,
+		UploadTypeAppiumPythonTestSpec,
+		UploadTypeAppiumNodeTestSpec,
+		UploadTypeAppiumRubyTestSpec,
+		UploadTypeAppiumWebJavaJunitTestSpec,
+		UploadTypeAppiumWebJavaTestngTestSpec,
+		UploadTypeAppiumWebPythonTestSpec,
+		UploadTypeAppiumWebNodeTestSpec,
+		UploadTypeAppiumWebRubyTestSpec,
+		UploadTypeInstrumentationTestSpec,
+		UploadTypeXctestUiTestSpec,
+	}
+}

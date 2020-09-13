@@ -4759,6 +4759,14 @@ const (
 	ErrorCauseIamPermissionRevoked = "IAM_PERMISSION_REVOKED"
 )
 
+// ErrorCause_Values returns all elements of the ErrorCause enum
+func ErrorCause_Values() []string {
+	return []string{
+		ErrorCauseKinesisStreamNotFound,
+		ErrorCauseIamPermissionRevoked,
+	}
+}
+
 const (
 	// ExportStatusInProgress is a ExportStatus enum value
 	ExportStatusInProgress = "IN_PROGRESS"
@@ -4769,6 +4777,15 @@ const (
 	// ExportStatusCancelled is a ExportStatus enum value
 	ExportStatusCancelled = "CANCELLED"
 )
+
+// ExportStatus_Values returns all elements of the ExportStatus enum
+func ExportStatus_Values() []string {
+	return []string{
+		ExportStatusInProgress,
+		ExportStatusCompleted,
+		ExportStatusCancelled,
+	}
+}
 
 const (
 	// LedgerStateCreating is a LedgerState enum value
@@ -4784,10 +4801,27 @@ const (
 	LedgerStateDeleted = "DELETED"
 )
 
+// LedgerState_Values returns all elements of the LedgerState enum
+func LedgerState_Values() []string {
+	return []string{
+		LedgerStateCreating,
+		LedgerStateActive,
+		LedgerStateDeleting,
+		LedgerStateDeleted,
+	}
+}
+
 const (
 	// PermissionsModeAllowAll is a PermissionsMode enum value
 	PermissionsModeAllowAll = "ALLOW_ALL"
 )
+
+// PermissionsMode_Values returns all elements of the PermissionsMode enum
+func PermissionsMode_Values() []string {
+	return []string{
+		PermissionsModeAllowAll,
+	}
+}
 
 const (
 	// S3ObjectEncryptionTypeSseKms is a S3ObjectEncryptionType enum value
@@ -4799,6 +4833,15 @@ const (
 	// S3ObjectEncryptionTypeNoEncryption is a S3ObjectEncryptionType enum value
 	S3ObjectEncryptionTypeNoEncryption = "NO_ENCRYPTION"
 )
+
+// S3ObjectEncryptionType_Values returns all elements of the S3ObjectEncryptionType enum
+func S3ObjectEncryptionType_Values() []string {
+	return []string{
+		S3ObjectEncryptionTypeSseKms,
+		S3ObjectEncryptionTypeSseS3,
+		S3ObjectEncryptionTypeNoEncryption,
+	}
+}
 
 const (
 	// StreamStatusActive is a StreamStatus enum value
@@ -4816,3 +4859,14 @@ const (
 	// StreamStatusImpaired is a StreamStatus enum value
 	StreamStatusImpaired = "IMPAIRED"
 )
+
+// StreamStatus_Values returns all elements of the StreamStatus enum
+func StreamStatus_Values() []string {
+	return []string{
+		StreamStatusActive,
+		StreamStatusCompleted,
+		StreamStatusCanceled,
+		StreamStatusFailed,
+		StreamStatusImpaired,
+	}
+}

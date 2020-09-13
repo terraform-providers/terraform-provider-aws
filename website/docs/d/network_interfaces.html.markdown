@@ -16,7 +16,7 @@ The following shows outputing all network interface ids in a region.
 data "aws_network_interfaces" "example" {}
 
 output "example" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 
@@ -30,7 +30,7 @@ data "aws_network_interfaces" "example" {
 }
 
 output "example1" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 
@@ -41,12 +41,12 @@ with specific subnet.
 data "aws_network_interfaces" "example" {
   filter {
     name   = "subnet-id"
-    values = ["${aws_subnet.test.id}"]
+    values = [aws_subnet.test.id]
   }
 }
 
 output "example" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 

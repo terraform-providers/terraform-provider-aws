@@ -31,7 +31,7 @@ data "aws_security_groups" "test" {
 
   filter {
     name   = "vpc-id"
-    values = ["${var.vpc_id}"]
+    values = [var.vpc_id]
   }
 }
 ```

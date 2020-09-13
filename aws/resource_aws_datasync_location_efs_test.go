@@ -10,8 +10,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -285,7 +285,7 @@ func testAccCheckAWSDataSyncLocationEfsNotRecreated(i, j *datasync.DescribeLocat
 }
 
 func testAccAWSDataSyncLocationEfsConfigBase() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
@@ -296,7 +296,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "10.0.0.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-efs"
@@ -304,7 +304,7 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "tf-acc-test-datasync-location-efs"
@@ -314,34 +314,34 @@ resource "aws_security_group" "test" {
 resource "aws_efs_file_system" "test" {}
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
-  subnet_id      = "${aws_subnet.test.id}"
+  file_system_id = aws_efs_file_system.test.id
+  subnet_id      = aws_subnet.test.id
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationEfsConfig() string {
-	return testAccAWSDataSyncLocationEfsConfigBase() + fmt.Sprintf(`
+	return testAccAWSDataSyncLocationEfsConfigBase() + `
 resource "aws_datasync_location_efs" "test" {
-  efs_file_system_arn = "${aws_efs_mount_target.test.file_system_arn}"
+  efs_file_system_arn = aws_efs_mount_target.test.file_system_arn
 
   ec2_config {
-    security_group_arns = ["${aws_security_group.test.arn}"]
-    subnet_arn          = "${aws_subnet.test.arn}"
+    security_group_arns = [aws_security_group.test.arn]
+    subnet_arn          = aws_subnet.test.arn
   }
 }
-`)
+`
 }
 
 func testAccAWSDataSyncLocationEfsConfigSubdirectory(subdirectory string) string {
 	return testAccAWSDataSyncLocationEfsConfigBase() + fmt.Sprintf(`
 resource "aws_datasync_location_efs" "test" {
-  efs_file_system_arn = "${aws_efs_mount_target.test.file_system_arn}"
+  efs_file_system_arn = aws_efs_mount_target.test.file_system_arn
   subdirectory        = %q
 
   ec2_config {
-    security_group_arns = ["${aws_security_group.test.arn}"]
-    subnet_arn          = "${aws_subnet.test.arn}"
+    security_group_arns = [aws_security_group.test.arn]
+    subnet_arn          = aws_subnet.test.arn
   }
 }
 `, subdirectory)
@@ -350,11 +350,11 @@ resource "aws_datasync_location_efs" "test" {
 func testAccAWSDataSyncLocationEfsConfigTags1(key1, value1 string) string {
 	return testAccAWSDataSyncLocationEfsConfigBase() + fmt.Sprintf(`
 resource "aws_datasync_location_efs" "test" {
-  efs_file_system_arn = "${aws_efs_mount_target.test.file_system_arn}"
+  efs_file_system_arn = aws_efs_mount_target.test.file_system_arn
 
   ec2_config {
-    security_group_arns = ["${aws_security_group.test.arn}"]
-    subnet_arn          = "${aws_subnet.test.arn}"
+    security_group_arns = [aws_security_group.test.arn]
+    subnet_arn          = aws_subnet.test.arn
   }
 
   tags = {
@@ -367,11 +367,11 @@ resource "aws_datasync_location_efs" "test" {
 func testAccAWSDataSyncLocationEfsConfigTags2(key1, value1, key2, value2 string) string {
 	return testAccAWSDataSyncLocationEfsConfigBase() + fmt.Sprintf(`
 resource "aws_datasync_location_efs" "test" {
-  efs_file_system_arn = "${aws_efs_mount_target.test.file_system_arn}"
+  efs_file_system_arn = aws_efs_mount_target.test.file_system_arn
 
   ec2_config {
-    security_group_arns = ["${aws_security_group.test.arn}"]
-    subnet_arn          = "${aws_subnet.test.arn}"
+    security_group_arns = [aws_security_group.test.arn]
+    subnet_arn          = aws_subnet.test.arn
   }
 
   tags = {

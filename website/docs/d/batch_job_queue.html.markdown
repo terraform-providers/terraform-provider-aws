@@ -38,5 +38,5 @@ In addition to all arguments above, the following attributes are exported:
     associated with the same compute environment.
 * `compute_environment_order` - The compute environments that are attached to the job queue and the order in
     which job placement is preferred. Compute environments are selected for job placement in ascending order.
-  * `compute_environment_order.#.order` - The order of the compute environment.
-  * `compute_environment_order.#.compute_environment` - The ARN of the compute environment.
+    * `compute_environment_order.#.order` - The order of the compute environment.
+    * `compute_environment_order.#.compute_environment` - The ARN of the compute environment.

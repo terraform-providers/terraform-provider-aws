@@ -922,7 +922,8 @@ func (c *CodeCommit) CreateBranchRequest(input *CreateBranchInput) (req *request
 //   A branch name is required, but was not specified.
 //
 //   * BranchNameExistsException
-//   The specified branch name already exists.
+//   Cannot create the branch with the specified name because the commit conflicts
+//   with an existing branch with the same name. Branch names must be unique.
 //
 //   * InvalidBranchNameException
 //   The specified reference name is not valid.
@@ -3531,6 +3532,10 @@ func (c *CodeCommit) GetCommentRequest(input *GetCommentInput) (req *request.Req
 //
 // Returns the content of a comment made on a change, file, or commit in a repository.
 //
+// Reaction counts might include numbers from user identities who were deleted
+// after the reaction was made. For a count of reactions from active identities,
+// use GetCommentReactions.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -3543,6 +3548,10 @@ func (c *CodeCommit) GetCommentRequest(input *GetCommentInput) (req *request.Req
 //   No comment exists with the provided ID. Verify that you have used the correct
 //   ID, and then try again.
 //
+//   * CommentDeletedException
+//   This comment has already been deleted. You cannot edit or delete a deleted
+//   comment.
+//
 //   * CommentIdRequiredException
 //   The comment ID is missing or null. A comment ID is required.
 //
@@ -3550,9 +3559,20 @@ func (c *CodeCommit) GetCommentRequest(input *GetCommentInput) (req *request.Req
 //   The comment ID is not in a valid format. Make sure that you have provided
 //   the full comment ID.
 //
-//   * CommentDeletedException
-//   This comment has already been deleted. You cannot edit or delete a deleted
-//   comment.
+//   * EncryptionIntegrityChecksFailedException
+//   An encryption integrity check failed.
+//
+//   * EncryptionKeyAccessDeniedException
+//   An encryption key could not be accessed.
+//
+//   * EncryptionKeyDisabledException
+//   The encryption key is disabled.
+//
+//   * EncryptionKeyNotFoundException
+//   No encryption key was found.
+//
+//   * EncryptionKeyUnavailableException
+//   The encryption key is not available.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/GetComment
 func (c *CodeCommit) GetComment(input *GetCommentInput) (*GetCommentOutput, error) {
@@ -3574,6 +3594,165 @@ func (c *CodeCommit) GetCommentWithContext(ctx aws.Context, input *GetCommentInp
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opGetCommentReactions = "GetCommentReactions"
+
+// GetCommentReactionsRequest generates a "aws/request.Request" representing the
+// client's request for the GetCommentReactions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetCommentReactions for more information on using the GetCommentReactions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetCommentReactionsRequest method.
+//    req, resp := client.GetCommentReactionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/GetCommentReactions
+func (c *CodeCommit) GetCommentReactionsRequest(input *GetCommentReactionsInput) (req *request.Request, output *GetCommentReactionsOutput) {
+	op := &request.Operation{
+		Name:       opGetCommentReactions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &GetCommentReactionsInput{}
+	}
+
+	output = &GetCommentReactionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetCommentReactions API operation for AWS CodeCommit.
+//
+// Returns information about reactions to a specified comment ID. Reactions
+// from users who have been deleted will not be included in the count.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation GetCommentReactions for usage and error information.
+//
+// Returned Error Types:
+//   * CommentDoesNotExistException
+//   No comment exists with the provided ID. Verify that you have used the correct
+//   ID, and then try again.
+//
+//   * CommentIdRequiredException
+//   The comment ID is missing or null. A comment ID is required.
+//
+//   * InvalidCommentIdException
+//   The comment ID is not in a valid format. Make sure that you have provided
+//   the full comment ID.
+//
+//   * InvalidReactionUserArnException
+//   The Amazon Resource Name (ARN) of the user or identity is not valid.
+//
+//   * InvalidMaxResultsException
+//   The specified number of maximum results is not valid.
+//
+//   * InvalidContinuationTokenException
+//   The specified continuation token is not valid.
+//
+//   * CommentDeletedException
+//   This comment has already been deleted. You cannot edit or delete a deleted
+//   comment.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/GetCommentReactions
+func (c *CodeCommit) GetCommentReactions(input *GetCommentReactionsInput) (*GetCommentReactionsOutput, error) {
+	req, out := c.GetCommentReactionsRequest(input)
+	return out, req.Send()
+}
+
+// GetCommentReactionsWithContext is the same as GetCommentReactions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetCommentReactions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeCommit) GetCommentReactionsWithContext(ctx aws.Context, input *GetCommentReactionsInput, opts ...request.Option) (*GetCommentReactionsOutput, error) {
+	req, out := c.GetCommentReactionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// GetCommentReactionsPages iterates over the pages of a GetCommentReactions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See GetCommentReactions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a GetCommentReactions operation.
+//    pageNum := 0
+//    err := client.GetCommentReactionsPages(params,
+//        func(page *codecommit.GetCommentReactionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CodeCommit) GetCommentReactionsPages(input *GetCommentReactionsInput, fn func(*GetCommentReactionsOutput, bool) bool) error {
+	return c.GetCommentReactionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// GetCommentReactionsPagesWithContext same as GetCommentReactionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeCommit) GetCommentReactionsPagesWithContext(ctx aws.Context, input *GetCommentReactionsInput, fn func(*GetCommentReactionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *GetCommentReactionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.GetCommentReactionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*GetCommentReactionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opGetCommentsForComparedCommit = "GetCommentsForComparedCommit"
@@ -3627,6 +3806,10 @@ func (c *CodeCommit) GetCommentsForComparedCommitRequest(input *GetCommentsForCo
 // GetCommentsForComparedCommit API operation for AWS CodeCommit.
 //
 // Returns information about comments made on the comparison between two commits.
+//
+// Reaction counts might include numbers from user identities who were deleted
+// after the reaction was made. For a count of reactions from active identities,
+// use GetCommentReactions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3805,6 +3988,10 @@ func (c *CodeCommit) GetCommentsForPullRequestRequest(input *GetCommentsForPullR
 // GetCommentsForPullRequest API operation for AWS CodeCommit.
 //
 // Returns comments made on a pull request.
+//
+// Reaction counts might include numbers from user identities who were deleted
+// after the reaction was made. For a count of reactions from active identities,
+// use GetCommentReactions.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7986,6 +8173,10 @@ func (c *CodeCommit) PostCommentForComparedCommitRequest(input *PostCommentForCo
 //   * InvalidCommitIdException
 //   The specified commit ID is not valid.
 //
+//   * BeforeCommitIdAndAfterCommitIdAreSameException
+//   The before commit ID and the after commit ID are the same, which is not valid.
+//   The before commit ID and the after commit ID must be different commit IDs.
+//
 //   * EncryptionIntegrityChecksFailedException
 //   An encryption integrity check failed.
 //
@@ -8001,10 +8192,6 @@ func (c *CodeCommit) PostCommentForComparedCommitRequest(input *PostCommentForCo
 //   * EncryptionKeyUnavailableException
 //   The encryption key is not available.
 //
-//   * BeforeCommitIdAndAfterCommitIdAreSameException
-//   The before commit ID and the after commit ID are the same, which is not valid.
-//   The before commit ID and the after commit ID must be different commit IDs.
-//
 //   * CommitDoesNotExistException
 //   The specified commit does not exist or no commit was specified, and the specified
 //   repository has no default branch.
@@ -8014,6 +8201,9 @@ func (c *CodeCommit) PostCommentForComparedCommitRequest(input *PostCommentForCo
 //
 //   * PathDoesNotExistException
 //   The specified path does not exist.
+//
+//   * PathRequiredException
+//   The folderPath for a location cannot be null.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/PostCommentForComparedCommit
 func (c *CodeCommit) PostCommentForComparedCommit(input *PostCommentForComparedCommitInput) (*PostCommentForComparedCommitOutput, error) {
@@ -8163,6 +8353,10 @@ func (c *CodeCommit) PostCommentForPullRequestRequest(input *PostCommentForPullR
 //   * InvalidCommitIdException
 //   The specified commit ID is not valid.
 //
+//   * BeforeCommitIdAndAfterCommitIdAreSameException
+//   The before commit ID and the after commit ID are the same, which is not valid.
+//   The before commit ID and the after commit ID must be different commit IDs.
+//
 //   * EncryptionIntegrityChecksFailedException
 //   An encryption integrity check failed.
 //
@@ -8190,10 +8384,6 @@ func (c *CodeCommit) PostCommentForPullRequestRequest(input *PostCommentForPullR
 //
 //   * PathRequiredException
 //   The folderPath for a location cannot be null.
-//
-//   * BeforeCommitIdAndAfterCommitIdAreSameException
-//   The before commit ID and the after commit ID are the same, which is not valid.
-//   The before commit ID and the after commit ID must be different commit IDs.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/PostCommentForPullRequest
 func (c *CodeCommit) PostCommentForPullRequest(input *PostCommentForPullRequestInput) (*PostCommentForPullRequestOutput, error) {
@@ -8321,6 +8511,111 @@ func (c *CodeCommit) PostCommentReply(input *PostCommentReplyInput) (*PostCommen
 // for more information on using Contexts.
 func (c *CodeCommit) PostCommentReplyWithContext(ctx aws.Context, input *PostCommentReplyInput, opts ...request.Option) (*PostCommentReplyOutput, error) {
 	req, out := c.PostCommentReplyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opPutCommentReaction = "PutCommentReaction"
+
+// PutCommentReactionRequest generates a "aws/request.Request" representing the
+// client's request for the PutCommentReaction operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutCommentReaction for more information on using the PutCommentReaction
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutCommentReactionRequest method.
+//    req, resp := client.PutCommentReactionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/PutCommentReaction
+func (c *CodeCommit) PutCommentReactionRequest(input *PutCommentReactionInput) (req *request.Request, output *PutCommentReactionOutput) {
+	op := &request.Operation{
+		Name:       opPutCommentReaction,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutCommentReactionInput{}
+	}
+
+	output = &PutCommentReactionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(jsonrpc.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// PutCommentReaction API operation for AWS CodeCommit.
+//
+// Adds or updates a reaction to a specified comment for the user whose identity
+// is used to make the request. You can only add or update a reaction for yourself.
+// You cannot add, modify, or delete a reaction for another user.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeCommit's
+// API operation PutCommentReaction for usage and error information.
+//
+// Returned Error Types:
+//   * CommentDoesNotExistException
+//   No comment exists with the provided ID. Verify that you have used the correct
+//   ID, and then try again.
+//
+//   * CommentIdRequiredException
+//   The comment ID is missing or null. A comment ID is required.
+//
+//   * InvalidCommentIdException
+//   The comment ID is not in a valid format. Make sure that you have provided
+//   the full comment ID.
+//
+//   * InvalidReactionValueException
+//   The value of the reaction is not valid. For more information, see the AWS
+//   CodeCommit User Guide (https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html).
+//
+//   * ReactionValueRequiredException
+//   A reaction value is required.
+//
+//   * ReactionLimitExceededException
+//   The number of reactions has been exceeded. Reactions are limited to one reaction
+//   per user for each individual comment ID.
+//
+//   * CommentDeletedException
+//   This comment has already been deleted. You cannot edit or delete a deleted
+//   comment.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codecommit-2015-04-13/PutCommentReaction
+func (c *CodeCommit) PutCommentReaction(input *PutCommentReactionInput) (*PutCommentReactionOutput, error) {
+	req, out := c.PutCommentReactionRequest(input)
+	return out, req.Send()
+}
+
+// PutCommentReactionWithContext is the same as PutCommentReaction with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutCommentReaction for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeCommit) PutCommentReactionWithContext(ctx aws.Context, input *PutCommentReactionInput, opts ...request.Option) (*PutCommentReactionOutput, error) {
+	req, out := c.PutCommentReactionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -12500,7 +12795,8 @@ func (s *BranchInfo) SetCommitId(v string) *BranchInfo {
 	return s
 }
 
-// The specified branch name already exists.
+// Cannot create the branch with the specified name because the commit conflicts
+// with an existing branch with the same name. Branch names must be unique.
 type BranchNameExistsException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -12851,6 +13147,10 @@ type Comment struct {
 	// The Amazon Resource Name (ARN) of the person who posted the comment.
 	AuthorArn *string `locationName:"authorArn" type:"string"`
 
+	// The emoji reactions to a comment, if any, submitted by the user whose credentials
+	// are associated with the call to the API.
+	CallerReactions []*string `locationName:"callerReactions" type:"list"`
+
 	// A unique, client-generated idempotency token that, when provided in a request,
 	// ensures the request cannot be repeated with a changed parameter. If a request
 	// is received with the same parameters and a token is included, the request
@@ -12874,6 +13174,10 @@ type Comment struct {
 
 	// The date and time the comment was most recently modified, in timestamp format.
 	LastModifiedDate *time.Time `locationName:"lastModifiedDate" type:"timestamp"`
+
+	// A string to integer map that represents the number of individual users who
+	// have responded to a comment with the specified reactions.
+	ReactionCounts map[string]*int64 `locationName:"reactionCounts" type:"map"`
 }
 
 // String returns the string representation
@@ -12889,6 +13193,12 @@ func (s Comment) GoString() string {
 // SetAuthorArn sets the AuthorArn field's value.
 func (s *Comment) SetAuthorArn(v string) *Comment {
 	s.AuthorArn = &v
+	return s
+}
+
+// SetCallerReactions sets the CallerReactions field's value.
+func (s *Comment) SetCallerReactions(v []*string) *Comment {
+	s.CallerReactions = v
 	return s
 }
 
@@ -12931,6 +13241,12 @@ func (s *Comment) SetInReplyTo(v string) *Comment {
 // SetLastModifiedDate sets the LastModifiedDate field's value.
 func (s *Comment) SetLastModifiedDate(v time.Time) *Comment {
 	s.LastModifiedDate = &v
+	return s
+}
+
+// SetReactionCounts sets the ReactionCounts field's value.
+func (s *Comment) SetReactionCounts(v map[string]*int64) *Comment {
+	s.ReactionCounts = v
 	return s
 }
 
@@ -14246,7 +14562,7 @@ type CreateApprovalRuleTemplateInput struct {
 	//    Amazon Resource Name (ARN) of the IAM user or role.
 	//
 	// For more information about IAM ARNs, wildcards, and formats, see IAM Identifiers
-	// (https://docs.aws.amazon.com/iam/latest/UserGuide/reference_identifiers.html)
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
 	// in the IAM User Guide.
 	//
 	// ApprovalRuleTemplateContent is a required field
@@ -14678,7 +14994,7 @@ type CreatePullRequestApprovalRuleInput struct {
 	//    Amazon Resource Name (ARN) of the IAM user or role.
 	//
 	// For more information about IAM ARNs, wildcards, and formats, see IAM Identifiers
-	// (https://docs.aws.amazon.com/iam/latest/UserGuide/reference_identifiers.html)
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
 	// in the IAM User Guide.
 	//
 	// ApprovalRuleContent is a required field
@@ -17905,6 +18221,109 @@ func (s GetCommentOutput) GoString() string {
 // SetComment sets the Comment field's value.
 func (s *GetCommentOutput) SetComment(v *Comment) *GetCommentOutput {
 	s.Comment = v
+	return s
+}
+
+type GetCommentReactionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the comment for which you want to get reactions information.
+	//
+	// CommentId is a required field
+	CommentId *string `locationName:"commentId" type:"string" required:"true"`
+
+	// A non-zero, non-negative integer used to limit the number of returned results.
+	// The default is the same as the allowed maximum, 1,000.
+	MaxResults *int64 `locationName:"maxResults" type:"integer"`
+
+	// An enumeration token that, when provided in a request, returns the next batch
+	// of the results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Optional. The Amazon Resource Name (ARN) of the user or identity for which
+	// you want to get reaction information.
+	ReactionUserArn *string `locationName:"reactionUserArn" type:"string"`
+}
+
+// String returns the string representation
+func (s GetCommentReactionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCommentReactionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetCommentReactionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetCommentReactionsInput"}
+	if s.CommentId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CommentId"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCommentId sets the CommentId field's value.
+func (s *GetCommentReactionsInput) SetCommentId(v string) *GetCommentReactionsInput {
+	s.CommentId = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *GetCommentReactionsInput) SetMaxResults(v int64) *GetCommentReactionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetCommentReactionsInput) SetNextToken(v string) *GetCommentReactionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReactionUserArn sets the ReactionUserArn field's value.
+func (s *GetCommentReactionsInput) SetReactionUserArn(v string) *GetCommentReactionsInput {
+	s.ReactionUserArn = &v
+	return s
+}
+
+type GetCommentReactionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An enumeration token that can be used in a request to return the next batch
+	// of the results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// An array of reactions to the specified comment.
+	//
+	// ReactionsForComment is a required field
+	ReactionsForComment []*ReactionForComment `locationName:"reactionsForComment" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s GetCommentReactionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetCommentReactionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *GetCommentReactionsOutput) SetNextToken(v string) *GetCommentReactionsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReactionsForComment sets the ReactionsForComment field's value.
+func (s *GetCommentReactionsOutput) SetReactionsForComment(v []*ReactionForComment) *GetCommentReactionsOutput {
+	s.ReactionsForComment = v
 	return s
 }
 
@@ -21717,6 +22136,119 @@ func (s *InvalidPullRequestStatusUpdateException) StatusCode() int {
 
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidPullRequestStatusUpdateException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The Amazon Resource Name (ARN) of the user or identity is not valid.
+type InvalidReactionUserArnException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidReactionUserArnException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidReactionUserArnException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidReactionUserArnException(v protocol.ResponseMetadata) error {
+	return &InvalidReactionUserArnException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidReactionUserArnException) Code() string {
+	return "InvalidReactionUserArnException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidReactionUserArnException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidReactionUserArnException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidReactionUserArnException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidReactionUserArnException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidReactionUserArnException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The value of the reaction is not valid. For more information, see the AWS
+// CodeCommit User Guide (https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html).
+type InvalidReactionValueException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidReactionValueException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidReactionValueException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidReactionValueException(v protocol.ResponseMetadata) error {
+	return &InvalidReactionValueException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidReactionValueException) Code() string {
+	return "InvalidReactionValueException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidReactionValueException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidReactionValueException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidReactionValueException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidReactionValueException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidReactionValueException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
@@ -27815,6 +28347,75 @@ func (s *PullRequestTarget) SetSourceReference(v string) *PullRequestTarget {
 	return s
 }
 
+type PutCommentReactionInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the comment to which you want to add or update a reaction.
+	//
+	// CommentId is a required field
+	CommentId *string `locationName:"commentId" type:"string" required:"true"`
+
+	// The emoji reaction you want to add or update. To remove a reaction, provide
+	// a value of blank or null. You can also provide the value of none. For information
+	// about emoji reaction values supported in AWS CodeCommit, see the AWS CodeCommit
+	// User Guide (https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-commit-comment.html#emoji-reaction-table).
+	//
+	// ReactionValue is a required field
+	ReactionValue *string `locationName:"reactionValue" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PutCommentReactionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutCommentReactionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutCommentReactionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutCommentReactionInput"}
+	if s.CommentId == nil {
+		invalidParams.Add(request.NewErrParamRequired("CommentId"))
+	}
+	if s.ReactionValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReactionValue"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCommentId sets the CommentId field's value.
+func (s *PutCommentReactionInput) SetCommentId(v string) *PutCommentReactionInput {
+	s.CommentId = &v
+	return s
+}
+
+// SetReactionValue sets the ReactionValue field's value.
+func (s *PutCommentReactionInput) SetReactionValue(v string) *PutCommentReactionInput {
+	s.ReactionValue = &v
+	return s
+}
+
+type PutCommentReactionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s PutCommentReactionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutCommentReactionOutput) GoString() string {
+	return s.String()
+}
+
 // Information about a file added or updated as part of a commit.
 type PutFileEntry struct {
 	_ struct{} `type:"structure"`
@@ -28229,6 +28830,209 @@ func (s PutRepositoryTriggersOutput) GoString() string {
 func (s *PutRepositoryTriggersOutput) SetConfigurationId(v string) *PutRepositoryTriggersOutput {
 	s.ConfigurationId = &v
 	return s
+}
+
+// Information about the reaction values provided by users on a comment.
+type ReactionForComment struct {
+	_ struct{} `type:"structure"`
+
+	// The reaction for a specified comment.
+	Reaction *ReactionValueFormats `locationName:"reaction" type:"structure"`
+
+	// The Amazon Resource Names (ARNs) of users who have provided reactions to
+	// the comment.
+	ReactionUsers []*string `locationName:"reactionUsers" type:"list"`
+
+	// A numerical count of users who reacted with the specified emoji whose identities
+	// have been subsequently deleted from IAM. While these IAM users or roles no
+	// longer exist, the reactions might still appear in total reaction counts.
+	ReactionsFromDeletedUsersCount *int64 `locationName:"reactionsFromDeletedUsersCount" type:"integer"`
+}
+
+// String returns the string representation
+func (s ReactionForComment) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReactionForComment) GoString() string {
+	return s.String()
+}
+
+// SetReaction sets the Reaction field's value.
+func (s *ReactionForComment) SetReaction(v *ReactionValueFormats) *ReactionForComment {
+	s.Reaction = v
+	return s
+}
+
+// SetReactionUsers sets the ReactionUsers field's value.
+func (s *ReactionForComment) SetReactionUsers(v []*string) *ReactionForComment {
+	s.ReactionUsers = v
+	return s
+}
+
+// SetReactionsFromDeletedUsersCount sets the ReactionsFromDeletedUsersCount field's value.
+func (s *ReactionForComment) SetReactionsFromDeletedUsersCount(v int64) *ReactionForComment {
+	s.ReactionsFromDeletedUsersCount = &v
+	return s
+}
+
+// The number of reactions has been exceeded. Reactions are limited to one reaction
+// per user for each individual comment ID.
+type ReactionLimitExceededException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ReactionLimitExceededException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReactionLimitExceededException) GoString() string {
+	return s.String()
+}
+
+func newErrorReactionLimitExceededException(v protocol.ResponseMetadata) error {
+	return &ReactionLimitExceededException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ReactionLimitExceededException) Code() string {
+	return "ReactionLimitExceededException"
+}
+
+// Message returns the exception's message.
+func (s *ReactionLimitExceededException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ReactionLimitExceededException) OrigErr() error {
+	return nil
+}
+
+func (s *ReactionLimitExceededException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ReactionLimitExceededException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ReactionLimitExceededException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// Information about the values for reactions to a comment. AWS CodeCommit supports
+// a limited set of reactions.
+type ReactionValueFormats struct {
+	_ struct{} `type:"structure"`
+
+	// The Emoji Version 1.0 graphic of the reaction. These graphics are interpreted
+	// slightly differently on different operating systems.
+	Emoji *string `locationName:"emoji" type:"string"`
+
+	// The emoji short code for the reaction. Short codes are interpreted slightly
+	// differently on different operating systems.
+	ShortCode *string `locationName:"shortCode" type:"string"`
+
+	// The Unicode codepoint for the reaction.
+	Unicode *string `locationName:"unicode" type:"string"`
+}
+
+// String returns the string representation
+func (s ReactionValueFormats) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReactionValueFormats) GoString() string {
+	return s.String()
+}
+
+// SetEmoji sets the Emoji field's value.
+func (s *ReactionValueFormats) SetEmoji(v string) *ReactionValueFormats {
+	s.Emoji = &v
+	return s
+}
+
+// SetShortCode sets the ShortCode field's value.
+func (s *ReactionValueFormats) SetShortCode(v string) *ReactionValueFormats {
+	s.ShortCode = &v
+	return s
+}
+
+// SetUnicode sets the Unicode field's value.
+func (s *ReactionValueFormats) SetUnicode(v string) *ReactionValueFormats {
+	s.Unicode = &v
+	return s
+}
+
+// A reaction value is required.
+type ReactionValueRequiredException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s ReactionValueRequiredException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ReactionValueRequiredException) GoString() string {
+	return s.String()
+}
+
+func newErrorReactionValueRequiredException(v protocol.ResponseMetadata) error {
+	return &ReactionValueRequiredException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *ReactionValueRequiredException) Code() string {
+	return "ReactionValueRequiredException"
+}
+
+// Message returns the exception's message.
+func (s *ReactionValueRequiredException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *ReactionValueRequiredException) OrigErr() error {
+	return nil
+}
+
+func (s *ReactionValueRequiredException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *ReactionValueRequiredException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *ReactionValueRequiredException) RequestID() string {
+	return s.RespMetadata.RequestID
 }
 
 // The specified reference does not exist. You must provide a full commit ID.
@@ -31378,7 +32182,7 @@ type UpdatePullRequestApprovalRuleContentInput struct {
 	//    Amazon Resource Name (ARN) of the IAM user or role.
 	//
 	// For more information about IAM ARNs, wildcards, and formats, see IAM Identifiers
-	// (https://docs.aws.amazon.com/iam/latest/UserGuide/reference_identifiers.html)
+	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html)
 	// in the IAM User Guide.
 	//
 	// NewRuleContent is a required field
@@ -31977,6 +32781,14 @@ const (
 	ApprovalStateRevoke = "REVOKE"
 )
 
+// ApprovalState_Values returns all elements of the ApprovalState enum
+func ApprovalState_Values() []string {
+	return []string{
+		ApprovalStateApprove,
+		ApprovalStateRevoke,
+	}
+}
+
 const (
 	// ChangeTypeEnumA is a ChangeTypeEnum enum value
 	ChangeTypeEnumA = "A"
@@ -31988,6 +32800,15 @@ const (
 	ChangeTypeEnumD = "D"
 )
 
+// ChangeTypeEnum_Values returns all elements of the ChangeTypeEnum enum
+func ChangeTypeEnum_Values() []string {
+	return []string{
+		ChangeTypeEnumA,
+		ChangeTypeEnumM,
+		ChangeTypeEnumD,
+	}
+}
+
 const (
 	// ConflictDetailLevelTypeEnumFileLevel is a ConflictDetailLevelTypeEnum enum value
 	ConflictDetailLevelTypeEnumFileLevel = "FILE_LEVEL"
@@ -31995,6 +32816,14 @@ const (
 	// ConflictDetailLevelTypeEnumLineLevel is a ConflictDetailLevelTypeEnum enum value
 	ConflictDetailLevelTypeEnumLineLevel = "LINE_LEVEL"
 )
+
+// ConflictDetailLevelTypeEnum_Values returns all elements of the ConflictDetailLevelTypeEnum enum
+func ConflictDetailLevelTypeEnum_Values() []string {
+	return []string{
+		ConflictDetailLevelTypeEnumFileLevel,
+		ConflictDetailLevelTypeEnumLineLevel,
+	}
+}
 
 const (
 	// ConflictResolutionStrategyTypeEnumNone is a ConflictResolutionStrategyTypeEnum enum value
@@ -32010,6 +32839,16 @@ const (
 	ConflictResolutionStrategyTypeEnumAutomerge = "AUTOMERGE"
 )
 
+// ConflictResolutionStrategyTypeEnum_Values returns all elements of the ConflictResolutionStrategyTypeEnum enum
+func ConflictResolutionStrategyTypeEnum_Values() []string {
+	return []string{
+		ConflictResolutionStrategyTypeEnumNone,
+		ConflictResolutionStrategyTypeEnumAcceptSource,
+		ConflictResolutionStrategyTypeEnumAcceptDestination,
+		ConflictResolutionStrategyTypeEnumAutomerge,
+	}
+}
+
 const (
 	// FileModeTypeEnumExecutable is a FileModeTypeEnum enum value
 	FileModeTypeEnumExecutable = "EXECUTABLE"
@@ -32021,6 +32860,15 @@ const (
 	FileModeTypeEnumSymlink = "SYMLINK"
 )
 
+// FileModeTypeEnum_Values returns all elements of the FileModeTypeEnum enum
+func FileModeTypeEnum_Values() []string {
+	return []string{
+		FileModeTypeEnumExecutable,
+		FileModeTypeEnumNormal,
+		FileModeTypeEnumSymlink,
+	}
+}
+
 const (
 	// MergeOptionTypeEnumFastForwardMerge is a MergeOptionTypeEnum enum value
 	MergeOptionTypeEnumFastForwardMerge = "FAST_FORWARD_MERGE"
@@ -32031,6 +32879,15 @@ const (
 	// MergeOptionTypeEnumThreeWayMerge is a MergeOptionTypeEnum enum value
 	MergeOptionTypeEnumThreeWayMerge = "THREE_WAY_MERGE"
 )
+
+// MergeOptionTypeEnum_Values returns all elements of the MergeOptionTypeEnum enum
+func MergeOptionTypeEnum_Values() []string {
+	return []string{
+		MergeOptionTypeEnumFastForwardMerge,
+		MergeOptionTypeEnumSquashMerge,
+		MergeOptionTypeEnumThreeWayMerge,
+	}
+}
 
 const (
 	// ObjectTypeEnumFile is a ObjectTypeEnum enum value
@@ -32046,6 +32903,16 @@ const (
 	ObjectTypeEnumSymbolicLink = "SYMBOLIC_LINK"
 )
 
+// ObjectTypeEnum_Values returns all elements of the ObjectTypeEnum enum
+func ObjectTypeEnum_Values() []string {
+	return []string{
+		ObjectTypeEnumFile,
+		ObjectTypeEnumDirectory,
+		ObjectTypeEnumGitLink,
+		ObjectTypeEnumSymbolicLink,
+	}
+}
+
 const (
 	// OrderEnumAscending is a OrderEnum enum value
 	OrderEnumAscending = "ascending"
@@ -32054,6 +32921,14 @@ const (
 	OrderEnumDescending = "descending"
 )
 
+// OrderEnum_Values returns all elements of the OrderEnum enum
+func OrderEnum_Values() []string {
+	return []string{
+		OrderEnumAscending,
+		OrderEnumDescending,
+	}
+}
+
 const (
 	// OverrideStatusOverride is a OverrideStatus enum value
 	OverrideStatusOverride = "OVERRIDE"
@@ -32061,6 +32936,14 @@ const (
 	// OverrideStatusRevoke is a OverrideStatus enum value
 	OverrideStatusRevoke = "REVOKE"
 )
+
+// OverrideStatus_Values returns all elements of the OverrideStatus enum
+func OverrideStatus_Values() []string {
+	return []string{
+		OverrideStatusOverride,
+		OverrideStatusRevoke,
+	}
+}
 
 const (
 	// PullRequestEventTypePullRequestCreated is a PullRequestEventType enum value
@@ -32091,6 +32974,21 @@ const (
 	PullRequestEventTypePullRequestApprovalStateChanged = "PULL_REQUEST_APPROVAL_STATE_CHANGED"
 )
 
+// PullRequestEventType_Values returns all elements of the PullRequestEventType enum
+func PullRequestEventType_Values() []string {
+	return []string{
+		PullRequestEventTypePullRequestCreated,
+		PullRequestEventTypePullRequestStatusChanged,
+		PullRequestEventTypePullRequestSourceReferenceUpdated,
+		PullRequestEventTypePullRequestMergeStateChanged,
+		PullRequestEventTypePullRequestApprovalRuleCreated,
+		PullRequestEventTypePullRequestApprovalRuleUpdated,
+		PullRequestEventTypePullRequestApprovalRuleDeleted,
+		PullRequestEventTypePullRequestApprovalRuleOverridden,
+		PullRequestEventTypePullRequestApprovalStateChanged,
+	}
+}
+
 const (
 	// PullRequestStatusEnumOpen is a PullRequestStatusEnum enum value
 	PullRequestStatusEnumOpen = "OPEN"
@@ -32099,6 +32997,14 @@ const (
 	PullRequestStatusEnumClosed = "CLOSED"
 )
 
+// PullRequestStatusEnum_Values returns all elements of the PullRequestStatusEnum enum
+func PullRequestStatusEnum_Values() []string {
+	return []string{
+		PullRequestStatusEnumOpen,
+		PullRequestStatusEnumClosed,
+	}
+}
+
 const (
 	// RelativeFileVersionEnumBefore is a RelativeFileVersionEnum enum value
 	RelativeFileVersionEnumBefore = "BEFORE"
@@ -32106,6 +33012,14 @@ const (
 	// RelativeFileVersionEnumAfter is a RelativeFileVersionEnum enum value
 	RelativeFileVersionEnumAfter = "AFTER"
 )
+
+// RelativeFileVersionEnum_Values returns all elements of the RelativeFileVersionEnum enum
+func RelativeFileVersionEnum_Values() []string {
+	return []string{
+		RelativeFileVersionEnumBefore,
+		RelativeFileVersionEnumAfter,
+	}
+}
 
 const (
 	// ReplacementTypeEnumKeepBase is a ReplacementTypeEnum enum value
@@ -32121,6 +33035,16 @@ const (
 	ReplacementTypeEnumUseNewContent = "USE_NEW_CONTENT"
 )
 
+// ReplacementTypeEnum_Values returns all elements of the ReplacementTypeEnum enum
+func ReplacementTypeEnum_Values() []string {
+	return []string{
+		ReplacementTypeEnumKeepBase,
+		ReplacementTypeEnumKeepSource,
+		ReplacementTypeEnumKeepDestination,
+		ReplacementTypeEnumUseNewContent,
+	}
+}
+
 const (
 	// RepositoryTriggerEventEnumAll is a RepositoryTriggerEventEnum enum value
 	RepositoryTriggerEventEnumAll = "all"
@@ -32135,6 +33059,16 @@ const (
 	RepositoryTriggerEventEnumDeleteReference = "deleteReference"
 )
 
+// RepositoryTriggerEventEnum_Values returns all elements of the RepositoryTriggerEventEnum enum
+func RepositoryTriggerEventEnum_Values() []string {
+	return []string{
+		RepositoryTriggerEventEnumAll,
+		RepositoryTriggerEventEnumUpdateReference,
+		RepositoryTriggerEventEnumCreateReference,
+		RepositoryTriggerEventEnumDeleteReference,
+	}
+}
+
 const (
 	// SortByEnumRepositoryName is a SortByEnum enum value
 	SortByEnumRepositoryName = "repositoryName"
@@ -32142,3 +33076,11 @@ const (
 	// SortByEnumLastModifiedDate is a SortByEnum enum value
 	SortByEnumLastModifiedDate = "lastModifiedDate"
 )
+
+// SortByEnum_Values returns all elements of the SortByEnum enum
+func SortByEnum_Values() []string {
+	return []string{
+		SortByEnumRepositoryName,
+		SortByEnumLastModifiedDate,
+	}
+}

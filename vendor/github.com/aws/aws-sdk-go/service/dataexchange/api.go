@@ -6661,6 +6661,13 @@ const (
 	AssetTypeS3Snapshot = "S3_SNAPSHOT"
 )
 
+// AssetType_Values returns all elements of the AssetType enum
+func AssetType_Values() []string {
+	return []string{
+		AssetTypeS3Snapshot,
+	}
+}
+
 const (
 	// CodeAccessDeniedException is a Code enum value
 	CodeAccessDeniedException = "ACCESS_DENIED_EXCEPTION"
@@ -6684,6 +6691,19 @@ const (
 	CodeMalwareScanEncryptedFile = "MALWARE_SCAN_ENCRYPTED_FILE"
 )
 
+// Code_Values returns all elements of the Code enum
+func Code_Values() []string {
+	return []string{
+		CodeAccessDeniedException,
+		CodeInternalServerException,
+		CodeMalwareDetected,
+		CodeResourceNotFoundException,
+		CodeServiceQuotaExceededException,
+		CodeValidationException,
+		CodeMalwareScanEncryptedFile,
+	}
+}
+
 // The name of the limit that was reached.
 const (
 	// JobErrorLimitNameAssetsperrevision is a JobErrorLimitName enum value
@@ -6693,6 +6713,14 @@ const (
 	JobErrorLimitNameAssetsizeinGb = "Asset size in GB"
 )
 
+// JobErrorLimitName_Values returns all elements of the JobErrorLimitName enum
+func JobErrorLimitName_Values() []string {
+	return []string{
+		JobErrorLimitNameAssetsperrevision,
+		JobErrorLimitNameAssetsizeinGb,
+	}
+}
+
 // The types of resource which the job error can apply to.
 const (
 	// JobErrorResourceTypesRevision is a JobErrorResourceTypes enum value
@@ -6701,6 +6729,14 @@ const (
 	// JobErrorResourceTypesAsset is a JobErrorResourceTypes enum value
 	JobErrorResourceTypesAsset = "ASSET"
 )
+
+// JobErrorResourceTypes_Values returns all elements of the JobErrorResourceTypes enum
+func JobErrorResourceTypes_Values() []string {
+	return []string{
+		JobErrorResourceTypesRevision,
+		JobErrorResourceTypesAsset,
+	}
+}
 
 const (
 	// LimitNameProductsperaccount is a LimitName enum value
@@ -6740,6 +6776,24 @@ const (
 	LimitNameConcurrentinprogressjobstoexportassetstoasignedUrl = "Concurrent in progress jobs to export assets to a signed URL"
 )
 
+// LimitName_Values returns all elements of the LimitName enum
+func LimitName_Values() []string {
+	return []string{
+		LimitNameProductsperaccount,
+		LimitNameDatasetsperaccount,
+		LimitNameDatasetsperproduct,
+		LimitNameRevisionsperdataset,
+		LimitNameAssetsperrevision,
+		LimitNameAssetsperimportjobfromAmazonS3,
+		LimitNameAssetperexportjobfromAmazonS3,
+		LimitNameAssetsizeinGb,
+		LimitNameConcurrentinprogressjobstoimportassetsfromAmazonS3,
+		LimitNameConcurrentinprogressjobstoimportassetsfromasignedUrl,
+		LimitNameConcurrentinprogressjobstoexportassetstoAmazonS3,
+		LimitNameConcurrentinprogressjobstoexportassetstoasignedUrl,
+	}
+}
+
 // A property that defines the data set as OWNED by the account (for providers)
 // or ENTITLED to the account (for subscribers). When an owned data set is published
 // in a product, AWS Data Exchange creates a copy of the data set. Subscribers
@@ -6751,6 +6805,14 @@ const (
 	// OriginEntitled is a Origin enum value
 	OriginEntitled = "ENTITLED"
 )
+
+// Origin_Values returns all elements of the Origin enum
+func Origin_Values() []string {
+	return []string{
+		OriginOwned,
+		OriginEntitled,
+	}
+}
 
 const (
 	// ResourceTypeDataSet is a ResourceType enum value
@@ -6766,6 +6828,16 @@ const (
 	ResourceTypeJob = "JOB"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeDataSet,
+		ResourceTypeRevision,
+		ResourceTypeAsset,
+		ResourceTypeJob,
+	}
+}
+
 // The types of encryption supported in export jobs to Amazon S3.
 const (
 	// ServerSideEncryptionTypesAwsKms is a ServerSideEncryptionTypes enum value
@@ -6774,6 +6846,14 @@ const (
 	// ServerSideEncryptionTypesAes256 is a ServerSideEncryptionTypes enum value
 	ServerSideEncryptionTypesAes256 = "AES256"
 )
+
+// ServerSideEncryptionTypes_Values returns all elements of the ServerSideEncryptionTypes enum
+func ServerSideEncryptionTypes_Values() []string {
+	return []string{
+		ServerSideEncryptionTypesAwsKms,
+		ServerSideEncryptionTypesAes256,
+	}
+}
 
 const (
 	// StateWaiting is a State enum value
@@ -6795,6 +6875,18 @@ const (
 	StateTimedOut = "TIMED_OUT"
 )
 
+// State_Values returns all elements of the State enum
+func State_Values() []string {
+	return []string{
+		StateWaiting,
+		StateInProgress,
+		StateError,
+		StateCompleted,
+		StateCancelled,
+		StateTimedOut,
+	}
+}
+
 const (
 	// TypeImportAssetsFromS3 is a Type enum value
 	TypeImportAssetsFromS3 = "IMPORT_ASSETS_FROM_S3"
@@ -6808,3 +6900,13 @@ const (
 	// TypeExportAssetToSignedUrl is a Type enum value
 	TypeExportAssetToSignedUrl = "EXPORT_ASSET_TO_SIGNED_URL"
 )
+
+// Type_Values returns all elements of the Type enum
+func Type_Values() []string {
+	return []string{
+		TypeImportAssetsFromS3,
+		TypeImportAssetFromSignedUrl,
+		TypeExportAssetsToS3,
+		TypeExportAssetToSignedUrl,
+	}
+}

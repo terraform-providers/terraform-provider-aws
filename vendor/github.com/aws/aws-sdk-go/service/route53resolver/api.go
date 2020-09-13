@@ -56,11 +56,12 @@ func (c *Route53Resolver) AssociateResolverEndpointIpAddressRequest(input *Assoc
 
 // AssociateResolverEndpointIpAddress API operation for Amazon Route 53 Resolver.
 //
-// Adds IP addresses to an inbound or an outbound resolver endpoint. If you
-// want to adding more than one IP address, submit one AssociateResolverEndpointIpAddress
+// Adds IP addresses to an inbound or an outbound Resolver endpoint. If you
+// want to add more than one IP address, submit one AssociateResolverEndpointIpAddress
 // request for each IP address.
 //
-// To remove an IP address from an endpoint, see DisassociateResolverEndpointIpAddress.
+// To remove an IP address from an endpoint, see DisassociateResolverEndpointIpAddress
+// (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverEndpointIpAddress.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -113,6 +114,117 @@ func (c *Route53Resolver) AssociateResolverEndpointIpAddressWithContext(ctx aws.
 	return out, req.Send()
 }
 
+const opAssociateResolverQueryLogConfig = "AssociateResolverQueryLogConfig"
+
+// AssociateResolverQueryLogConfigRequest generates a "aws/request.Request" representing the
+// client's request for the AssociateResolverQueryLogConfig operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See AssociateResolverQueryLogConfig for more information on using the AssociateResolverQueryLogConfig
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the AssociateResolverQueryLogConfigRequest method.
+//    req, resp := client.AssociateResolverQueryLogConfigRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/AssociateResolverQueryLogConfig
+func (c *Route53Resolver) AssociateResolverQueryLogConfigRequest(input *AssociateResolverQueryLogConfigInput) (req *request.Request, output *AssociateResolverQueryLogConfigOutput) {
+	op := &request.Operation{
+		Name:       opAssociateResolverQueryLogConfig,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &AssociateResolverQueryLogConfigInput{}
+	}
+
+	output = &AssociateResolverQueryLogConfigOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// AssociateResolverQueryLogConfig API operation for Amazon Route 53 Resolver.
+//
+// Associates an Amazon VPC with a specified query logging configuration. Route
+// 53 Resolver logs DNS queries that originate in all of the Amazon VPCs that
+// are associated with a specified query logging configuration. To associate
+// more than one VPC with a configuration, submit one AssociateResolverQueryLogConfig
+// request for each VPC.
+//
+// The VPCs that you associate with a query logging configuration must be in
+// the same Region as the configuration.
+//
+// To remove a VPC from a query logging configuration, see DisassociateResolverQueryLogConfig
+// (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverQueryLogConfig.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation AssociateResolverQueryLogConfig for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * ResourceExistsException
+//   The resource that you tried to create already exists.
+//
+//   * LimitExceededException
+//   The request caused one or more limits to be exceeded.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/AssociateResolverQueryLogConfig
+func (c *Route53Resolver) AssociateResolverQueryLogConfig(input *AssociateResolverQueryLogConfigInput) (*AssociateResolverQueryLogConfigOutput, error) {
+	req, out := c.AssociateResolverQueryLogConfigRequest(input)
+	return out, req.Send()
+}
+
+// AssociateResolverQueryLogConfigWithContext is the same as AssociateResolverQueryLogConfig with the addition of
+// the ability to pass a context and additional request options.
+//
+// See AssociateResolverQueryLogConfig for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) AssociateResolverQueryLogConfigWithContext(ctx aws.Context, input *AssociateResolverQueryLogConfigInput, opts ...request.Option) (*AssociateResolverQueryLogConfigOutput, error) {
+	req, out := c.AssociateResolverQueryLogConfigRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opAssociateResolverRule = "AssociateResolverRule"
 
 // AssociateResolverRuleRequest generates a "aws/request.Request" representing the
@@ -157,11 +269,11 @@ func (c *Route53Resolver) AssociateResolverRuleRequest(input *AssociateResolverR
 
 // AssociateResolverRule API operation for Amazon Route 53 Resolver.
 //
-// Associates a resolver rule with a VPC. When you associate a rule with a VPC,
+// Associates a Resolver rule with a VPC. When you associate a rule with a VPC,
 // Resolver forwards all DNS queries for the domain name that is specified in
 // the rule and that originate in the VPC. The queries are forwarded to the
 // IP addresses for the DNS resolvers that are specified in the rule. For more
-// information about rules, see CreateResolverRule.
+// information about rules, see CreateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverRule.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -176,6 +288,9 @@ func (c *Route53Resolver) AssociateResolverRuleRequest(input *AssociateResolverR
 //
 //   * InvalidRequestException
 //   The request is invalid.
+//
+//   * LimitExceededException
+//   The request caused one or more limits to be exceeded.
 //
 //   * InvalidParameterException
 //   One or more parameters in this request are not valid.
@@ -258,14 +373,14 @@ func (c *Route53Resolver) CreateResolverEndpointRequest(input *CreateResolverEnd
 
 // CreateResolverEndpoint API operation for Amazon Route 53 Resolver.
 //
-// Creates a resolver endpoint. There are two types of resolver endpoints, inbound
+// Creates a Resolver endpoint. There are two types of Resolver endpoints, inbound
 // and outbound:
 //
-//    * An inbound resolver endpoint forwards DNS queries to the DNS service
-//    for a VPC from your network or another VPC.
+//    * An inbound Resolver endpoint forwards DNS queries to the DNS service
+//    for a VPC from your network.
 //
-//    * An outbound resolver endpoint forwards DNS queries from the DNS service
-//    for a VPC to your network or another VPC.
+//    * An outbound Resolver endpoint forwards DNS queries from the DNS service
+//    for a VPC to your network.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -318,6 +433,119 @@ func (c *Route53Resolver) CreateResolverEndpointWithContext(ctx aws.Context, inp
 	return out, req.Send()
 }
 
+const opCreateResolverQueryLogConfig = "CreateResolverQueryLogConfig"
+
+// CreateResolverQueryLogConfigRequest generates a "aws/request.Request" representing the
+// client's request for the CreateResolverQueryLogConfig operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateResolverQueryLogConfig for more information on using the CreateResolverQueryLogConfig
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateResolverQueryLogConfigRequest method.
+//    req, resp := client.CreateResolverQueryLogConfigRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/CreateResolverQueryLogConfig
+func (c *Route53Resolver) CreateResolverQueryLogConfigRequest(input *CreateResolverQueryLogConfigInput) (req *request.Request, output *CreateResolverQueryLogConfigOutput) {
+	op := &request.Operation{
+		Name:       opCreateResolverQueryLogConfig,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateResolverQueryLogConfigInput{}
+	}
+
+	output = &CreateResolverQueryLogConfigOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateResolverQueryLogConfig API operation for Amazon Route 53 Resolver.
+//
+// Creates a Resolver query logging configuration, which defines where you want
+// Resolver to save DNS query logs that originate in your VPCs. Resolver can
+// log queries only for VPCs that are in the same Region as the query logging
+// configuration.
+//
+// To specify which VPCs you want to log queries for, you use AssociateResolverQueryLogConfig.
+// For more information, see AssociateResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverQueryLogConfig.html).
+//
+// You can optionally use AWS Resource Access Manager (AWS RAM) to share a query
+// logging configuration with other AWS accounts. The other accounts can then
+// associate VPCs with the configuration. The query logs that Resolver creates
+// for a configuration include all DNS queries that originate in all VPCs that
+// are associated with the configuration.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation CreateResolverQueryLogConfig for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * ResourceExistsException
+//   The resource that you tried to create already exists.
+//
+//   * LimitExceededException
+//   The request caused one or more limits to be exceeded.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/CreateResolverQueryLogConfig
+func (c *Route53Resolver) CreateResolverQueryLogConfig(input *CreateResolverQueryLogConfigInput) (*CreateResolverQueryLogConfigOutput, error) {
+	req, out := c.CreateResolverQueryLogConfigRequest(input)
+	return out, req.Send()
+}
+
+// CreateResolverQueryLogConfigWithContext is the same as CreateResolverQueryLogConfig with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateResolverQueryLogConfig for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) CreateResolverQueryLogConfigWithContext(ctx aws.Context, input *CreateResolverQueryLogConfigInput, opts ...request.Option) (*CreateResolverQueryLogConfigOutput, error) {
+	req, out := c.CreateResolverQueryLogConfigRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateResolverRule = "CreateResolverRule"
 
 // CreateResolverRuleRequest generates a "aws/request.Request" representing the
@@ -362,7 +590,7 @@ func (c *Route53Resolver) CreateResolverRuleRequest(input *CreateResolverRuleInp
 
 // CreateResolverRule API operation for Amazon Route 53 Resolver.
 //
-// For DNS queries that originate in your VPCs, specifies which resolver endpoint
+// For DNS queries that originate in your VPCs, specifies which Resolver endpoint
 // the queries pass through, one domain name that you want to forward to your
 // network, and the IP addresses of the DNS resolvers in your network.
 //
@@ -464,14 +692,13 @@ func (c *Route53Resolver) DeleteResolverEndpointRequest(input *DeleteResolverEnd
 
 // DeleteResolverEndpoint API operation for Amazon Route 53 Resolver.
 //
-// Deletes a resolver endpoint. The effect of deleting a resolver endpoint depends
-// on whether it's an inbound or an outbound resolver endpoint:
+// Deletes a Resolver endpoint. The effect of deleting a Resolver endpoint depends
+// on whether it's an inbound or an outbound Resolver endpoint:
 //
-//    * Inbound: DNS queries from your network or another VPC are no longer
-//    routed to the DNS service for the specified VPC.
+//    * Inbound: DNS queries from your network are no longer routed to the DNS
+//    service for the specified VPC.
 //
-//    * Outbound: DNS queries from a VPC are no longer routed to your network
-//    or to another VPC.
+//    * Outbound: DNS queries from a VPC are no longer routed to your network.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -513,6 +740,115 @@ func (c *Route53Resolver) DeleteResolverEndpoint(input *DeleteResolverEndpointIn
 // for more information on using Contexts.
 func (c *Route53Resolver) DeleteResolverEndpointWithContext(ctx aws.Context, input *DeleteResolverEndpointInput, opts ...request.Option) (*DeleteResolverEndpointOutput, error) {
 	req, out := c.DeleteResolverEndpointRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteResolverQueryLogConfig = "DeleteResolverQueryLogConfig"
+
+// DeleteResolverQueryLogConfigRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteResolverQueryLogConfig operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteResolverQueryLogConfig for more information on using the DeleteResolverQueryLogConfig
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteResolverQueryLogConfigRequest method.
+//    req, resp := client.DeleteResolverQueryLogConfigRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DeleteResolverQueryLogConfig
+func (c *Route53Resolver) DeleteResolverQueryLogConfigRequest(input *DeleteResolverQueryLogConfigInput) (req *request.Request, output *DeleteResolverQueryLogConfigOutput) {
+	op := &request.Operation{
+		Name:       opDeleteResolverQueryLogConfig,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteResolverQueryLogConfigInput{}
+	}
+
+	output = &DeleteResolverQueryLogConfigOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteResolverQueryLogConfig API operation for Amazon Route 53 Resolver.
+//
+// Deletes a query logging configuration. When you delete a configuration, Resolver
+// stops logging DNS queries for all of the Amazon VPCs that are associated
+// with the configuration. This also applies if the query logging configuration
+// is shared with other AWS accounts, and the other accounts have associated
+// VPCs with the shared configuration.
+//
+// Before you can delete a query logging configuration, you must first disassociate
+// all VPCs from the configuration. See DisassociateResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverQueryLogConfig.html).
+//
+// If you used Resource Access Manager (RAM) to share a query logging configuration
+// with other accounts, you must stop sharing the configuration before you can
+// delete a configuration. The accounts that you shared the configuration with
+// can first disassociate VPCs that they associated with the configuration,
+// but that's not necessary. If you stop sharing the configuration, those VPCs
+// are automatically disassociated from the configuration.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation DeleteResolverQueryLogConfig for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DeleteResolverQueryLogConfig
+func (c *Route53Resolver) DeleteResolverQueryLogConfig(input *DeleteResolverQueryLogConfigInput) (*DeleteResolverQueryLogConfigOutput, error) {
+	req, out := c.DeleteResolverQueryLogConfigRequest(input)
+	return out, req.Send()
+}
+
+// DeleteResolverQueryLogConfigWithContext is the same as DeleteResolverQueryLogConfig with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteResolverQueryLogConfig for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) DeleteResolverQueryLogConfigWithContext(ctx aws.Context, input *DeleteResolverQueryLogConfigInput, opts ...request.Option) (*DeleteResolverQueryLogConfigOutput, error) {
+	req, out := c.DeleteResolverQueryLogConfigRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -562,9 +898,9 @@ func (c *Route53Resolver) DeleteResolverRuleRequest(input *DeleteResolverRuleInp
 
 // DeleteResolverRule API operation for Amazon Route 53 Resolver.
 //
-// Deletes a resolver rule. Before you can delete a resolver rule, you must
-// disassociate it from all the VPCs that you associated the resolver rule with.
-// For more infomation, see DisassociateResolverRule.
+// Deletes a Resolver rule. Before you can delete a Resolver rule, you must
+// disassociate it from all the VPCs that you associated the Resolver rule with.
+// For more information, see DisassociateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverRule.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -655,11 +991,12 @@ func (c *Route53Resolver) DisassociateResolverEndpointIpAddressRequest(input *Di
 
 // DisassociateResolverEndpointIpAddress API operation for Amazon Route 53 Resolver.
 //
-// Removes IP addresses from an inbound or an outbound resolver endpoint. If
+// Removes IP addresses from an inbound or an outbound Resolver endpoint. If
 // you want to remove more than one IP address, submit one DisassociateResolverEndpointIpAddress
 // request for each IP address.
 //
-// To add an IP address to an endpoint, see AssociateResolverEndpointIpAddress.
+// To add an IP address to an endpoint, see AssociateResolverEndpointIpAddress
+// (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverEndpointIpAddress.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -709,6 +1046,111 @@ func (c *Route53Resolver) DisassociateResolverEndpointIpAddressWithContext(ctx a
 	return out, req.Send()
 }
 
+const opDisassociateResolverQueryLogConfig = "DisassociateResolverQueryLogConfig"
+
+// DisassociateResolverQueryLogConfigRequest generates a "aws/request.Request" representing the
+// client's request for the DisassociateResolverQueryLogConfig operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DisassociateResolverQueryLogConfig for more information on using the DisassociateResolverQueryLogConfig
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DisassociateResolverQueryLogConfigRequest method.
+//    req, resp := client.DisassociateResolverQueryLogConfigRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DisassociateResolverQueryLogConfig
+func (c *Route53Resolver) DisassociateResolverQueryLogConfigRequest(input *DisassociateResolverQueryLogConfigInput) (req *request.Request, output *DisassociateResolverQueryLogConfigOutput) {
+	op := &request.Operation{
+		Name:       opDisassociateResolverQueryLogConfig,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DisassociateResolverQueryLogConfigInput{}
+	}
+
+	output = &DisassociateResolverQueryLogConfigOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DisassociateResolverQueryLogConfig API operation for Amazon Route 53 Resolver.
+//
+// Disassociates a VPC from a query logging configuration.
+//
+// Before you can delete a query logging configuration, you must first disassociate
+// all VPCs from the configuration. If you used Resource Access Manager (RAM)
+// to share a query logging configuration with other accounts, VPCs can be disassociated
+// from the configuration in the following ways:
+//
+//    * The accounts that you shared the configuration with can disassociate
+//    VPCs from the configuration.
+//
+//    * You can stop sharing the configuration.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation DisassociateResolverQueryLogConfig for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/DisassociateResolverQueryLogConfig
+func (c *Route53Resolver) DisassociateResolverQueryLogConfig(input *DisassociateResolverQueryLogConfigInput) (*DisassociateResolverQueryLogConfigOutput, error) {
+	req, out := c.DisassociateResolverQueryLogConfigRequest(input)
+	return out, req.Send()
+}
+
+// DisassociateResolverQueryLogConfigWithContext is the same as DisassociateResolverQueryLogConfig with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DisassociateResolverQueryLogConfig for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) DisassociateResolverQueryLogConfigWithContext(ctx aws.Context, input *DisassociateResolverQueryLogConfigInput, opts ...request.Option) (*DisassociateResolverQueryLogConfigOutput, error) {
+	req, out := c.DisassociateResolverQueryLogConfigRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDisassociateResolverRule = "DisassociateResolverRule"
 
 // DisassociateResolverRuleRequest generates a "aws/request.Request" representing the
@@ -753,11 +1195,11 @@ func (c *Route53Resolver) DisassociateResolverRuleRequest(input *DisassociateRes
 
 // DisassociateResolverRule API operation for Amazon Route 53 Resolver.
 //
-// Removes the association between a specified resolver rule and a specified
+// Removes the association between a specified Resolver rule and a specified
 // VPC.
 //
-// If you disassociate a resolver rule from a VPC, Resolver stops forwarding
-// DNS queries for the domain name that you specified in the resolver rule.
+// If you disassociate a Resolver rule from a VPC, Resolver stops forwarding
+// DNS queries for the domain name that you specified in the Resolver rule.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -845,8 +1287,8 @@ func (c *Route53Resolver) GetResolverEndpointRequest(input *GetResolverEndpointI
 
 // GetResolverEndpoint API operation for Amazon Route 53 Resolver.
 //
-// Gets information about a specified resolver endpoint, such as whether it's
-// an inbound or an outbound resolver endpoint, and the current status of the
+// Gets information about a specified Resolver endpoint, such as whether it's
+// an inbound or an outbound Resolver endpoint, and the current status of the
 // endpoint.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -886,6 +1328,294 @@ func (c *Route53Resolver) GetResolverEndpoint(input *GetResolverEndpointInput) (
 // for more information on using Contexts.
 func (c *Route53Resolver) GetResolverEndpointWithContext(ctx aws.Context, input *GetResolverEndpointInput, opts ...request.Option) (*GetResolverEndpointOutput, error) {
 	req, out := c.GetResolverEndpointRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetResolverQueryLogConfig = "GetResolverQueryLogConfig"
+
+// GetResolverQueryLogConfigRequest generates a "aws/request.Request" representing the
+// client's request for the GetResolverQueryLogConfig operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetResolverQueryLogConfig for more information on using the GetResolverQueryLogConfig
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetResolverQueryLogConfigRequest method.
+//    req, resp := client.GetResolverQueryLogConfigRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfig
+func (c *Route53Resolver) GetResolverQueryLogConfigRequest(input *GetResolverQueryLogConfigInput) (req *request.Request, output *GetResolverQueryLogConfigOutput) {
+	op := &request.Operation{
+		Name:       opGetResolverQueryLogConfig,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetResolverQueryLogConfigInput{}
+	}
+
+	output = &GetResolverQueryLogConfigOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetResolverQueryLogConfig API operation for Amazon Route 53 Resolver.
+//
+// Gets information about a specified Resolver query logging configuration,
+// such as the number of VPCs that the configuration is logging queries for
+// and the location that logs are sent to.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation GetResolverQueryLogConfig for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfig
+func (c *Route53Resolver) GetResolverQueryLogConfig(input *GetResolverQueryLogConfigInput) (*GetResolverQueryLogConfigOutput, error) {
+	req, out := c.GetResolverQueryLogConfigRequest(input)
+	return out, req.Send()
+}
+
+// GetResolverQueryLogConfigWithContext is the same as GetResolverQueryLogConfig with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetResolverQueryLogConfig for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) GetResolverQueryLogConfigWithContext(ctx aws.Context, input *GetResolverQueryLogConfigInput, opts ...request.Option) (*GetResolverQueryLogConfigOutput, error) {
+	req, out := c.GetResolverQueryLogConfigRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetResolverQueryLogConfigAssociation = "GetResolverQueryLogConfigAssociation"
+
+// GetResolverQueryLogConfigAssociationRequest generates a "aws/request.Request" representing the
+// client's request for the GetResolverQueryLogConfigAssociation operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetResolverQueryLogConfigAssociation for more information on using the GetResolverQueryLogConfigAssociation
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetResolverQueryLogConfigAssociationRequest method.
+//    req, resp := client.GetResolverQueryLogConfigAssociationRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfigAssociation
+func (c *Route53Resolver) GetResolverQueryLogConfigAssociationRequest(input *GetResolverQueryLogConfigAssociationInput) (req *request.Request, output *GetResolverQueryLogConfigAssociationOutput) {
+	op := &request.Operation{
+		Name:       opGetResolverQueryLogConfigAssociation,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetResolverQueryLogConfigAssociationInput{}
+	}
+
+	output = &GetResolverQueryLogConfigAssociationOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetResolverQueryLogConfigAssociation API operation for Amazon Route 53 Resolver.
+//
+// Gets information about a specified association between a Resolver query logging
+// configuration and an Amazon VPC. When you associate a VPC with a query logging
+// configuration, Resolver logs DNS queries that originate in that VPC.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation GetResolverQueryLogConfigAssociation for usage and error information.
+//
+// Returned Error Types:
+//   * ResourceNotFoundException
+//   The specified resource doesn't exist.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfigAssociation
+func (c *Route53Resolver) GetResolverQueryLogConfigAssociation(input *GetResolverQueryLogConfigAssociationInput) (*GetResolverQueryLogConfigAssociationOutput, error) {
+	req, out := c.GetResolverQueryLogConfigAssociationRequest(input)
+	return out, req.Send()
+}
+
+// GetResolverQueryLogConfigAssociationWithContext is the same as GetResolverQueryLogConfigAssociation with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetResolverQueryLogConfigAssociation for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) GetResolverQueryLogConfigAssociationWithContext(ctx aws.Context, input *GetResolverQueryLogConfigAssociationInput, opts ...request.Option) (*GetResolverQueryLogConfigAssociationOutput, error) {
+	req, out := c.GetResolverQueryLogConfigAssociationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opGetResolverQueryLogConfigPolicy = "GetResolverQueryLogConfigPolicy"
+
+// GetResolverQueryLogConfigPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the GetResolverQueryLogConfigPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See GetResolverQueryLogConfigPolicy for more information on using the GetResolverQueryLogConfigPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the GetResolverQueryLogConfigPolicyRequest method.
+//    req, resp := client.GetResolverQueryLogConfigPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfigPolicy
+func (c *Route53Resolver) GetResolverQueryLogConfigPolicyRequest(input *GetResolverQueryLogConfigPolicyInput) (req *request.Request, output *GetResolverQueryLogConfigPolicyOutput) {
+	op := &request.Operation{
+		Name:       opGetResolverQueryLogConfigPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetResolverQueryLogConfigPolicyInput{}
+	}
+
+	output = &GetResolverQueryLogConfigPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetResolverQueryLogConfigPolicy API operation for Amazon Route 53 Resolver.
+//
+// Gets information about a query logging policy. A query logging policy specifies
+// the Resolver query logging operations and resources that you want to allow
+// another AWS account to be able to use.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation GetResolverQueryLogConfigPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * UnknownResourceException
+//   The specified resource doesn't exist.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/GetResolverQueryLogConfigPolicy
+func (c *Route53Resolver) GetResolverQueryLogConfigPolicy(input *GetResolverQueryLogConfigPolicyInput) (*GetResolverQueryLogConfigPolicyOutput, error) {
+	req, out := c.GetResolverQueryLogConfigPolicyRequest(input)
+	return out, req.Send()
+}
+
+// GetResolverQueryLogConfigPolicyWithContext is the same as GetResolverQueryLogConfigPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See GetResolverQueryLogConfigPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) GetResolverQueryLogConfigPolicyWithContext(ctx aws.Context, input *GetResolverQueryLogConfigPolicyInput, opts ...request.Option) (*GetResolverQueryLogConfigPolicyOutput, error) {
+	req, out := c.GetResolverQueryLogConfigPolicyRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -935,8 +1665,8 @@ func (c *Route53Resolver) GetResolverRuleRequest(input *GetResolverRuleInput) (r
 
 // GetResolverRule API operation for Amazon Route 53 Resolver.
 //
-// Gets information about a specified resolver rule, such as the domain name
-// that the rule forwards DNS queries for and the ID of the outbound resolver
+// Gets information about a specified Resolver rule, such as the domain name
+// that the rule forwards DNS queries for and the ID of the outbound Resolver
 // endpoint that the rule is associated with.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1025,8 +1755,9 @@ func (c *Route53Resolver) GetResolverRuleAssociationRequest(input *GetResolverRu
 
 // GetResolverRuleAssociation API operation for Amazon Route 53 Resolver.
 //
-// Gets information about an association between a specified resolver rule and
-// a VPC. You associate a resolver rule and a VPC using AssociateResolverRule.
+// Gets information about an association between a specified Resolver rule and
+// a VPC. You associate a Resolver rule and a VPC using AssociateResolverRule
+// (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverRule.html).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1114,7 +1845,7 @@ func (c *Route53Resolver) GetResolverRulePolicyRequest(input *GetResolverRulePol
 
 // GetResolverRulePolicy API operation for Amazon Route 53 Resolver.
 //
-// Gets information about a resolver rule policy. A resolver rule policy specifies
+// Gets information about a Resolver rule policy. A Resolver rule policy specifies
 // the Resolver operations and resources that you want to allow another AWS
 // account to be able to use.
 //
@@ -1207,7 +1938,7 @@ func (c *Route53Resolver) ListResolverEndpointIpAddressesRequest(input *ListReso
 
 // ListResolverEndpointIpAddresses API operation for Amazon Route 53 Resolver.
 //
-// Gets the IP addresses for a specified resolver endpoint.
+// Gets the IP addresses for a specified Resolver endpoint.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1356,7 +2087,7 @@ func (c *Route53Resolver) ListResolverEndpointsRequest(input *ListResolverEndpoi
 
 // ListResolverEndpoints API operation for Amazon Route 53 Resolver.
 //
-// Lists all the resolver endpoints that were created using the current AWS
+// Lists all the Resolver endpoints that were created using the current AWS
 // account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1456,6 +2187,315 @@ func (c *Route53Resolver) ListResolverEndpointsPagesWithContext(ctx aws.Context,
 	return p.Err()
 }
 
+const opListResolverQueryLogConfigAssociations = "ListResolverQueryLogConfigAssociations"
+
+// ListResolverQueryLogConfigAssociationsRequest generates a "aws/request.Request" representing the
+// client's request for the ListResolverQueryLogConfigAssociations operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListResolverQueryLogConfigAssociations for more information on using the ListResolverQueryLogConfigAssociations
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListResolverQueryLogConfigAssociationsRequest method.
+//    req, resp := client.ListResolverQueryLogConfigAssociationsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverQueryLogConfigAssociations
+func (c *Route53Resolver) ListResolverQueryLogConfigAssociationsRequest(input *ListResolverQueryLogConfigAssociationsInput) (req *request.Request, output *ListResolverQueryLogConfigAssociationsOutput) {
+	op := &request.Operation{
+		Name:       opListResolverQueryLogConfigAssociations,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListResolverQueryLogConfigAssociationsInput{}
+	}
+
+	output = &ListResolverQueryLogConfigAssociationsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListResolverQueryLogConfigAssociations API operation for Amazon Route 53 Resolver.
+//
+// Lists information about associations between Amazon VPCs and query logging
+// configurations.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation ListResolverQueryLogConfigAssociations for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * LimitExceededException
+//   The request caused one or more limits to be exceeded.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverQueryLogConfigAssociations
+func (c *Route53Resolver) ListResolverQueryLogConfigAssociations(input *ListResolverQueryLogConfigAssociationsInput) (*ListResolverQueryLogConfigAssociationsOutput, error) {
+	req, out := c.ListResolverQueryLogConfigAssociationsRequest(input)
+	return out, req.Send()
+}
+
+// ListResolverQueryLogConfigAssociationsWithContext is the same as ListResolverQueryLogConfigAssociations with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListResolverQueryLogConfigAssociations for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) ListResolverQueryLogConfigAssociationsWithContext(ctx aws.Context, input *ListResolverQueryLogConfigAssociationsInput, opts ...request.Option) (*ListResolverQueryLogConfigAssociationsOutput, error) {
+	req, out := c.ListResolverQueryLogConfigAssociationsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListResolverQueryLogConfigAssociationsPages iterates over the pages of a ListResolverQueryLogConfigAssociations operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListResolverQueryLogConfigAssociations method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListResolverQueryLogConfigAssociations operation.
+//    pageNum := 0
+//    err := client.ListResolverQueryLogConfigAssociationsPages(params,
+//        func(page *route53resolver.ListResolverQueryLogConfigAssociationsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Route53Resolver) ListResolverQueryLogConfigAssociationsPages(input *ListResolverQueryLogConfigAssociationsInput, fn func(*ListResolverQueryLogConfigAssociationsOutput, bool) bool) error {
+	return c.ListResolverQueryLogConfigAssociationsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListResolverQueryLogConfigAssociationsPagesWithContext same as ListResolverQueryLogConfigAssociationsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) ListResolverQueryLogConfigAssociationsPagesWithContext(ctx aws.Context, input *ListResolverQueryLogConfigAssociationsInput, fn func(*ListResolverQueryLogConfigAssociationsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListResolverQueryLogConfigAssociationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListResolverQueryLogConfigAssociationsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverQueryLogConfigAssociationsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListResolverQueryLogConfigs = "ListResolverQueryLogConfigs"
+
+// ListResolverQueryLogConfigsRequest generates a "aws/request.Request" representing the
+// client's request for the ListResolverQueryLogConfigs operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListResolverQueryLogConfigs for more information on using the ListResolverQueryLogConfigs
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListResolverQueryLogConfigsRequest method.
+//    req, resp := client.ListResolverQueryLogConfigsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverQueryLogConfigs
+func (c *Route53Resolver) ListResolverQueryLogConfigsRequest(input *ListResolverQueryLogConfigsInput) (req *request.Request, output *ListResolverQueryLogConfigsOutput) {
+	op := &request.Operation{
+		Name:       opListResolverQueryLogConfigs,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListResolverQueryLogConfigsInput{}
+	}
+
+	output = &ListResolverQueryLogConfigsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListResolverQueryLogConfigs API operation for Amazon Route 53 Resolver.
+//
+// Lists information about the specified query logging configurations. Each
+// configuration defines where you want Resolver to save DNS query logs and
+// specifies the VPCs that you want to log queries for.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation ListResolverQueryLogConfigs for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidNextTokenException
+//   The value that you specified for NextToken in a List request isn't valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * ThrottlingException
+//   The request was throttled. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/ListResolverQueryLogConfigs
+func (c *Route53Resolver) ListResolverQueryLogConfigs(input *ListResolverQueryLogConfigsInput) (*ListResolverQueryLogConfigsOutput, error) {
+	req, out := c.ListResolverQueryLogConfigsRequest(input)
+	return out, req.Send()
+}
+
+// ListResolverQueryLogConfigsWithContext is the same as ListResolverQueryLogConfigs with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListResolverQueryLogConfigs for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) ListResolverQueryLogConfigsWithContext(ctx aws.Context, input *ListResolverQueryLogConfigsInput, opts ...request.Option) (*ListResolverQueryLogConfigsOutput, error) {
+	req, out := c.ListResolverQueryLogConfigsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListResolverQueryLogConfigsPages iterates over the pages of a ListResolverQueryLogConfigs operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListResolverQueryLogConfigs method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListResolverQueryLogConfigs operation.
+//    pageNum := 0
+//    err := client.ListResolverQueryLogConfigsPages(params,
+//        func(page *route53resolver.ListResolverQueryLogConfigsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Route53Resolver) ListResolverQueryLogConfigsPages(input *ListResolverQueryLogConfigsInput, fn func(*ListResolverQueryLogConfigsOutput, bool) bool) error {
+	return c.ListResolverQueryLogConfigsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListResolverQueryLogConfigsPagesWithContext same as ListResolverQueryLogConfigsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) ListResolverQueryLogConfigsPagesWithContext(ctx aws.Context, input *ListResolverQueryLogConfigsInput, fn func(*ListResolverQueryLogConfigsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListResolverQueryLogConfigsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListResolverQueryLogConfigsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListResolverQueryLogConfigsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListResolverRuleAssociations = "ListResolverRuleAssociations"
 
 // ListResolverRuleAssociationsRequest generates a "aws/request.Request" representing the
@@ -1506,7 +2546,7 @@ func (c *Route53Resolver) ListResolverRuleAssociationsRequest(input *ListResolve
 
 // ListResolverRuleAssociations API operation for Amazon Route 53 Resolver.
 //
-// Lists the associations that were created between resolver rules and VPCs
+// Lists the associations that were created between Resolver rules and VPCs
 // using the current AWS account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -1656,7 +2696,7 @@ func (c *Route53Resolver) ListResolverRulesRequest(input *ListResolverRulesInput
 
 // ListResolverRules API operation for Amazon Route 53 Resolver.
 //
-// Lists the resolver rules that were created using the current AWS account.
+// Lists the Resolver rules that were created using the current AWS account.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1786,6 +2826,12 @@ func (c *Route53Resolver) ListTagsForResourceRequest(input *ListTagsForResourceI
 		Name:       opListTagsForResource,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"NextToken"},
+			OutputTokens:    []string{"NextToken"},
+			LimitToken:      "MaxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -1849,6 +2895,155 @@ func (c *Route53Resolver) ListTagsForResourceWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+// ListTagsForResourcePages iterates over the pages of a ListTagsForResource operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTagsForResource method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTagsForResource operation.
+//    pageNum := 0
+//    err := client.ListTagsForResourcePages(params,
+//        func(page *route53resolver.ListTagsForResourceOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *Route53Resolver) ListTagsForResourcePages(input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool) error {
+	return c.ListTagsForResourcePagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTagsForResourcePagesWithContext same as ListTagsForResourcePages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) ListTagsForResourcePagesWithContext(ctx aws.Context, input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTagsForResourceInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTagsForResourceRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opPutResolverQueryLogConfigPolicy = "PutResolverQueryLogConfigPolicy"
+
+// PutResolverQueryLogConfigPolicyRequest generates a "aws/request.Request" representing the
+// client's request for the PutResolverQueryLogConfigPolicy operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See PutResolverQueryLogConfigPolicy for more information on using the PutResolverQueryLogConfigPolicy
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the PutResolverQueryLogConfigPolicyRequest method.
+//    req, resp := client.PutResolverQueryLogConfigPolicyRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/PutResolverQueryLogConfigPolicy
+func (c *Route53Resolver) PutResolverQueryLogConfigPolicyRequest(input *PutResolverQueryLogConfigPolicyInput) (req *request.Request, output *PutResolverQueryLogConfigPolicyOutput) {
+	op := &request.Operation{
+		Name:       opPutResolverQueryLogConfigPolicy,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &PutResolverQueryLogConfigPolicyInput{}
+	}
+
+	output = &PutResolverQueryLogConfigPolicyOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// PutResolverQueryLogConfigPolicy API operation for Amazon Route 53 Resolver.
+//
+// Specifies an AWS account that you want to share a query logging configuration
+// with, the query logging configuration that you want to share, and the operations
+// that you want the account to be able to perform on the configuration.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for Amazon Route 53 Resolver's
+// API operation PutResolverQueryLogConfigPolicy for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidPolicyDocument
+//   The specified Resolver rule policy is invalid.
+//
+//   * InvalidParameterException
+//   One or more parameters in this request are not valid.
+//
+//   * InvalidRequestException
+//   The request is invalid.
+//
+//   * UnknownResourceException
+//   The specified resource doesn't exist.
+//
+//   * InternalServiceErrorException
+//   We encountered an unknown error. Try again in a few minutes.
+//
+//   * AccessDeniedException
+//   The current account doesn't have the IAM permissions required to perform
+//   the specified Resolver operation.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/route53resolver-2018-04-01/PutResolverQueryLogConfigPolicy
+func (c *Route53Resolver) PutResolverQueryLogConfigPolicy(input *PutResolverQueryLogConfigPolicyInput) (*PutResolverQueryLogConfigPolicyOutput, error) {
+	req, out := c.PutResolverQueryLogConfigPolicyRequest(input)
+	return out, req.Send()
+}
+
+// PutResolverQueryLogConfigPolicyWithContext is the same as PutResolverQueryLogConfigPolicy with the addition of
+// the ability to pass a context and additional request options.
+//
+// See PutResolverQueryLogConfigPolicy for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *Route53Resolver) PutResolverQueryLogConfigPolicyWithContext(ctx aws.Context, input *PutResolverQueryLogConfigPolicyInput, opts ...request.Option) (*PutResolverQueryLogConfigPolicyOutput, error) {
+	req, out := c.PutResolverQueryLogConfigPolicyRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opPutResolverRulePolicy = "PutResolverRulePolicy"
 
 // PutResolverRulePolicyRequest generates a "aws/request.Request" representing the
@@ -1893,8 +3088,9 @@ func (c *Route53Resolver) PutResolverRulePolicyRequest(input *PutResolverRulePol
 
 // PutResolverRulePolicy API operation for Amazon Route 53 Resolver.
 //
-// Specifies the Resolver operations and resources that you want to allow another
-// AWS account to be able to use.
+// Specifies an AWS account that you want to share rules with, the Resolver
+// rules that you want to share, and the operations that you want the account
+// to be able to perform on those rules.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1905,7 +3101,7 @@ func (c *Route53Resolver) PutResolverRulePolicyRequest(input *PutResolverRulePol
 //
 // Returned Error Types:
 //   * InvalidPolicyDocument
-//   The specified resolver rule policy is invalid.
+//   The specified Resolver rule policy is invalid.
 //
 //   * InvalidParameterException
 //   One or more parameters in this request are not valid.
@@ -2002,6 +3198,9 @@ func (c *Route53Resolver) TagResourceRequest(input *TagResourceInput) (req *requ
 //   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
+//   * InvalidRequestException
+//   The request is invalid.
+//
 //   * InvalidTagException
 //   The specified tag is invalid.
 //
@@ -2094,6 +3293,9 @@ func (c *Route53Resolver) UntagResourceRequest(input *UntagResourceInput) (req *
 //   * InvalidParameterException
 //   One or more parameters in this request are not valid.
 //
+//   * InvalidRequestException
+//   The request is invalid.
+//
 //   * InternalServiceErrorException
 //   We encountered an unknown error. Try again in a few minutes.
 //
@@ -2166,7 +3368,7 @@ func (c *Route53Resolver) UpdateResolverEndpointRequest(input *UpdateResolverEnd
 
 // UpdateResolverEndpoint API operation for Amazon Route 53 Resolver.
 //
-// Updates the name of an inbound or an outbound resolver endpoint.
+// Updates the name of an inbound or an outbound Resolver endpoint.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2257,7 +3459,7 @@ func (c *Route53Resolver) UpdateResolverRuleRequest(input *UpdateResolverRuleInp
 
 // UpdateResolverRule API operation for Amazon Route 53 Resolver.
 //
-// Updates settings for a specified resolver rule. ResolverRuleId is required,
+// Updates settings for a specified Resolver rule. ResolverRuleId is required,
 // and all other parameters are optional. If you don't specify a parameter,
 // it retains its current value.
 //
@@ -2312,17 +3514,74 @@ func (c *Route53Resolver) UpdateResolverRuleWithContext(ctx aws.Context, input *
 	return out, req.Send()
 }
 
+// The current account doesn't have the IAM permissions required to perform
+// the specified Resolver operation.
+type AccessDeniedException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"Message" type:"string"`
+}
+
+// String returns the string representation
+func (s AccessDeniedException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AccessDeniedException) GoString() string {
+	return s.String()
+}
+
+func newErrorAccessDeniedException(v protocol.ResponseMetadata) error {
+	return &AccessDeniedException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *AccessDeniedException) Code() string {
+	return "AccessDeniedException"
+}
+
+// Message returns the exception's message.
+func (s *AccessDeniedException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *AccessDeniedException) OrigErr() error {
+	return nil
+}
+
+func (s *AccessDeniedException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *AccessDeniedException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *AccessDeniedException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 type AssociateResolverEndpointIpAddressInput struct {
 	_ struct{} `type:"structure"`
 
-	// Either the IPv4 address that you want to add to a resolver endpoint or a
+	// Either the IPv4 address that you want to add to a Resolver endpoint or a
 	// subnet ID. If you specify a subnet ID, Resolver chooses an IP address for
 	// you from the available IPs in the specified subnet.
 	//
 	// IpAddress is a required field
 	IpAddress *IpAddressUpdate `type:"structure" required:"true"`
 
-	// The ID of the resolver endpoint that you want to associate IP addresses with.
+	// The ID of the Resolver endpoint that you want to associate IP addresses with.
 	//
 	// ResolverEndpointId is a required field
 	ResolverEndpointId *string `min:"1" type:"string" required:"true"`
@@ -2397,20 +3656,106 @@ func (s *AssociateResolverEndpointIpAddressOutput) SetResolverEndpoint(v *Resolv
 	return s
 }
 
+type AssociateResolverQueryLogConfigInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the query logging configuration that you want to associate a VPC
+	// with.
+	//
+	// ResolverQueryLogConfigId is a required field
+	ResolverQueryLogConfigId *string `min:"1" type:"string" required:"true"`
+
+	// The ID of an Amazon VPC that you want this query logging configuration to
+	// log queries for.
+	//
+	// The VPCs and the query logging configuration must be in the same Region.
+	//
+	// ResourceId is a required field
+	ResourceId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s AssociateResolverQueryLogConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateResolverQueryLogConfigInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *AssociateResolverQueryLogConfigInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "AssociateResolverQueryLogConfigInput"}
+	if s.ResolverQueryLogConfigId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigId"))
+	}
+	if s.ResolverQueryLogConfigId != nil && len(*s.ResolverQueryLogConfigId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResolverQueryLogConfigId", 1))
+	}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResolverQueryLogConfigId sets the ResolverQueryLogConfigId field's value.
+func (s *AssociateResolverQueryLogConfigInput) SetResolverQueryLogConfigId(v string) *AssociateResolverQueryLogConfigInput {
+	s.ResolverQueryLogConfigId = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *AssociateResolverQueryLogConfigInput) SetResourceId(v string) *AssociateResolverQueryLogConfigInput {
+	s.ResourceId = &v
+	return s
+}
+
+type AssociateResolverQueryLogConfigOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A complex type that contains settings for a specified association between
+	// an Amazon VPC and a query logging configuration.
+	ResolverQueryLogConfigAssociation *ResolverQueryLogConfigAssociation `type:"structure"`
+}
+
+// String returns the string representation
+func (s AssociateResolverQueryLogConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AssociateResolverQueryLogConfigOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfigAssociation sets the ResolverQueryLogConfigAssociation field's value.
+func (s *AssociateResolverQueryLogConfigOutput) SetResolverQueryLogConfigAssociation(v *ResolverQueryLogConfigAssociation) *AssociateResolverQueryLogConfigOutput {
+	s.ResolverQueryLogConfigAssociation = v
+	return s
+}
+
 type AssociateResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// A name for the association that you're creating between a resolver rule and
+	// A name for the association that you're creating between a Resolver rule and
 	// a VPC.
 	Name *string `type:"string"`
 
-	// The ID of the resolver rule that you want to associate with the VPC. To list
-	// the existing resolver rules, use ListResolverRules.
+	// The ID of the Resolver rule that you want to associate with the VPC. To list
+	// the existing Resolver rules, use ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html).
 	//
 	// ResolverRuleId is a required field
 	ResolverRuleId *string `min:"1" type:"string" required:"true"`
 
-	// The ID of the VPC that you want to associate the resolver rule with.
+	// The ID of the VPC that you want to associate the Resolver rule with.
 	//
 	// VPCId is a required field
 	VPCId *string `min:"1" type:"string" required:"true"`
@@ -2503,17 +3848,17 @@ type CreateResolverEndpointInput struct {
 	// Specify the applicable value:
 	//
 	//    * INBOUND: Resolver forwards DNS queries to the DNS service for a VPC
-	//    from your network or another VPC
+	//    from your network
 	//
 	//    * OUTBOUND: Resolver forwards DNS queries from the DNS service for a VPC
-	//    to your network or another VPC
+	//    to your network
 	//
 	// Direction is a required field
 	Direction *string `type:"string" required:"true" enum:"ResolverEndpointDirection"`
 
-	// The subnets and IP addresses in your VPC that you want DNS queries to pass
-	// through on the way from your VPCs to your network (for outbound endpoints)
-	// or on the way from your network to your VPCs (for inbound resolver endpoints).
+	// The subnets and IP addresses in your VPC that DNS queries originate from
+	// (for outbound endpoints) or that you forward DNS queries to (for inbound
+	// endpoints). The subnet ID uniquely identifies a VPC.
 	//
 	// IpAddresses is a required field
 	IpAddresses []*IpAddressRequest `min:"1" type:"list" required:"true"`
@@ -2524,8 +3869,10 @@ type CreateResolverEndpointInput struct {
 
 	// The ID of one or more security groups that you want to use to control access
 	// to this VPC. The security group that you specify must include one or more
-	// inbound rules (for inbound resolver endpoints) or outbound rules (for outbound
-	// resolver endpoints).
+	// inbound rules (for inbound Resolver endpoints) or outbound rules (for outbound
+	// Resolver endpoints). Inbound and outbound rules must allow TCP and UDP access.
+	// For inbound access, open port 53. For outbound access, open the port that
+	// you're using for DNS queries on your network.
 	//
 	// SecurityGroupIds is a required field
 	SecurityGroupIds []*string `type:"list" required:"true"`
@@ -2572,6 +3919,16 @@ func (s *CreateResolverEndpointInput) Validate() error {
 			}
 			if err := v.Validate(); err != nil {
 				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "IpAddresses", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
 			}
 		}
 	}
@@ -2642,6 +3999,131 @@ func (s *CreateResolverEndpointOutput) SetResolverEndpoint(v *ResolverEndpoint) 
 	return s
 }
 
+type CreateResolverQueryLogConfigInput struct {
+	_ struct{} `type:"structure"`
+
+	// A unique string that identifies the request and that allows failed requests
+	// to be retried without the risk of executing the operation twice. CreatorRequestId
+	// can be any unique string, for example, a date/time stamp.
+	CreatorRequestId *string `min:"1" type:"string" idempotencyToken:"true"`
+
+	// The ARN of the resource that you want Resolver to send query logs. You can
+	// send query logs to an S3 bucket, a CloudWatch Logs log group, or a Kinesis
+	// Data Firehose delivery stream. Examples of valid values include the following:
+	//
+	//    * S3 bucket: arn:aws:s3:::examplebucket You can optionally append a file
+	//    prefix to the end of the ARN. arn:aws:s3:::examplebucket/development/
+	//
+	//    * CloudWatch Logs log group: arn:aws:logs:us-west-1:123456789012:log-group:/mystack-testgroup-12ABC1AB12A1:*
+	//
+	//    * Kinesis Data Firehose delivery stream: arn:aws:kinesis:us-east-2:0123456789:stream/my_stream_name
+	//
+	// DestinationArn is a required field
+	DestinationArn *string `min:"1" type:"string" required:"true"`
+
+	// The name that you want to give the query logging configuration
+	//
+	// Name is a required field
+	Name *string `min:"1" type:"string" required:"true"`
+
+	// A list of the tag keys and values that you want to associate with the query
+	// logging configuration.
+	Tags []*Tag `type:"list"`
+}
+
+// String returns the string representation
+func (s CreateResolverQueryLogConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateResolverQueryLogConfigInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateResolverQueryLogConfigInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateResolverQueryLogConfigInput"}
+	if s.CreatorRequestId != nil && len(*s.CreatorRequestId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CreatorRequestId", 1))
+	}
+	if s.DestinationArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("DestinationArn"))
+	}
+	if s.DestinationArn != nil && len(*s.DestinationArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("DestinationArn", 1))
+	}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCreatorRequestId sets the CreatorRequestId field's value.
+func (s *CreateResolverQueryLogConfigInput) SetCreatorRequestId(v string) *CreateResolverQueryLogConfigInput {
+	s.CreatorRequestId = &v
+	return s
+}
+
+// SetDestinationArn sets the DestinationArn field's value.
+func (s *CreateResolverQueryLogConfigInput) SetDestinationArn(v string) *CreateResolverQueryLogConfigInput {
+	s.DestinationArn = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateResolverQueryLogConfigInput) SetName(v string) *CreateResolverQueryLogConfigInput {
+	s.Name = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateResolverQueryLogConfigInput) SetTags(v []*Tag) *CreateResolverQueryLogConfigInput {
+	s.Tags = v
+	return s
+}
+
+type CreateResolverQueryLogConfigOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the CreateResolverQueryLogConfig request, including the
+	// status of the request.
+	ResolverQueryLogConfig *ResolverQueryLogConfig `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateResolverQueryLogConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateResolverQueryLogConfigOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfig sets the ResolverQueryLogConfig field's value.
+func (s *CreateResolverQueryLogConfigOutput) SetResolverQueryLogConfig(v *ResolverQueryLogConfig) *CreateResolverQueryLogConfigOutput {
+	s.ResolverQueryLogConfig = v
+	return s
+}
+
 type CreateResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
@@ -2653,8 +4135,8 @@ type CreateResolverRuleInput struct {
 	CreatorRequestId *string `min:"1" type:"string" required:"true"`
 
 	// DNS queries for this domain name are forwarded to the IP addresses that you
-	// specify in TargetIps. If a query matches multiple resolver rules (example.com
-	// and www.example.com), outbound DNS queries are routed using the resolver
+	// specify in TargetIps. If a query matches multiple Resolver rules (example.com
+	// and www.example.com), outbound DNS queries are routed using the Resolver
 	// rule that contains the most specific domain name (www.example.com).
 	//
 	// DomainName is a required field
@@ -2664,11 +4146,24 @@ type CreateResolverRuleInput struct {
 	// in the Route 53 console.
 	Name *string `type:"string"`
 
-	// The ID of the outbound resolver endpoint that you want to use to route DNS
+	// The ID of the outbound Resolver endpoint that you want to use to route DNS
 	// queries to the IP addresses that you specify in TargetIps.
 	ResolverEndpointId *string `min:"1" type:"string"`
 
-	// Specify FORWARD. Other resolver rule types aren't supported.
+	// When you want to forward DNS queries for specified domain name to resolvers
+	// on your network, specify FORWARD.
+	//
+	// When you have a forwarding rule to forward DNS queries for a domain to your
+	// network and you want Resolver to process queries for a subdomain of that
+	// domain, specify SYSTEM.
+	//
+	// For example, to forward DNS queries for example.com to resolvers on your
+	// network, you create a rule and specify FORWARD for RuleType. To then have
+	// Resolver process queries for apex.example.com, you create a rule and specify
+	// SYSTEM for RuleType.
+	//
+	// Currently, only Resolver can create rules that have a value of RECURSIVE
+	// for RuleType.
 	//
 	// RuleType is a required field
 	RuleType *string `type:"string" required:"true" enum:"RuleTypeOption"`
@@ -2678,6 +4173,8 @@ type CreateResolverRuleInput struct {
 
 	// The IPs that you want Resolver to forward DNS queries to. You can specify
 	// only IPv4 addresses. Separate IP addresses with a comma.
+	//
+	// TargetIps is available only when the value of Rule type is FORWARD.
 	TargetIps []*TargetAddress `min:"1" type:"list"`
 }
 
@@ -2714,6 +4211,16 @@ func (s *CreateResolverRuleInput) Validate() error {
 	}
 	if s.TargetIps != nil && len(s.TargetIps) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("TargetIps", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 	if s.TargetIps != nil {
 		for i, v := range s.TargetIps {
@@ -2801,7 +4308,7 @@ func (s *CreateResolverRuleOutput) SetResolverRule(v *ResolverRule) *CreateResol
 type DeleteResolverEndpointInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver endpoint that you want to delete.
+	// The ID of the Resolver endpoint that you want to delete.
 	//
 	// ResolverEndpointId is a required field
 	ResolverEndpointId *string `min:"1" type:"string" required:"true"`
@@ -2863,10 +4370,75 @@ func (s *DeleteResolverEndpointOutput) SetResolverEndpoint(v *ResolverEndpoint) 
 	return s
 }
 
+type DeleteResolverQueryLogConfigInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the query logging configuration that you want to delete.
+	//
+	// ResolverQueryLogConfigId is a required field
+	ResolverQueryLogConfigId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteResolverQueryLogConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResolverQueryLogConfigInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteResolverQueryLogConfigInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteResolverQueryLogConfigInput"}
+	if s.ResolverQueryLogConfigId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigId"))
+	}
+	if s.ResolverQueryLogConfigId != nil && len(*s.ResolverQueryLogConfigId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResolverQueryLogConfigId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResolverQueryLogConfigId sets the ResolverQueryLogConfigId field's value.
+func (s *DeleteResolverQueryLogConfigInput) SetResolverQueryLogConfigId(v string) *DeleteResolverQueryLogConfigInput {
+	s.ResolverQueryLogConfigId = &v
+	return s
+}
+
+type DeleteResolverQueryLogConfigOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the query logging configuration that you deleted, including
+	// the status of the request.
+	ResolverQueryLogConfig *ResolverQueryLogConfig `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteResolverQueryLogConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteResolverQueryLogConfigOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfig sets the ResolverQueryLogConfig field's value.
+func (s *DeleteResolverQueryLogConfigOutput) SetResolverQueryLogConfig(v *ResolverQueryLogConfig) *DeleteResolverQueryLogConfigOutput {
+	s.ResolverQueryLogConfig = v
+	return s
+}
+
 type DeleteResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver rule that you want to delete.
+	// The ID of the Resolver rule that you want to delete.
 	//
 	// ResolverRuleId is a required field
 	ResolverRuleId *string `min:"1" type:"string" required:"true"`
@@ -2931,12 +4503,12 @@ func (s *DeleteResolverRuleOutput) SetResolverRule(v *ResolverRule) *DeleteResol
 type DisassociateResolverEndpointIpAddressInput struct {
 	_ struct{} `type:"structure"`
 
-	// The IPv4 address that you want to remove from a resolver endpoint.
+	// The IPv4 address that you want to remove from a Resolver endpoint.
 	//
 	// IpAddress is a required field
 	IpAddress *IpAddressUpdate `type:"structure" required:"true"`
 
-	// The ID of the resolver endpoint that you want to disassociate an IP address
+	// The ID of the Resolver endpoint that you want to disassociate an IP address
 	// from.
 	//
 	// ResolverEndpointId is a required field
@@ -3012,16 +4584,100 @@ func (s *DisassociateResolverEndpointIpAddressOutput) SetResolverEndpoint(v *Res
 	return s
 }
 
+type DisassociateResolverQueryLogConfigInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the query logging configuration that you want to disassociate a
+	// specified VPC from.
+	//
+	// ResolverQueryLogConfigId is a required field
+	ResolverQueryLogConfigId *string `min:"1" type:"string" required:"true"`
+
+	// The ID of the Amazon VPC that you want to disassociate from a specified query
+	// logging configuration.
+	//
+	// ResourceId is a required field
+	ResourceId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DisassociateResolverQueryLogConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateResolverQueryLogConfigInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DisassociateResolverQueryLogConfigInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DisassociateResolverQueryLogConfigInput"}
+	if s.ResolverQueryLogConfigId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigId"))
+	}
+	if s.ResolverQueryLogConfigId != nil && len(*s.ResolverQueryLogConfigId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResolverQueryLogConfigId", 1))
+	}
+	if s.ResourceId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceId"))
+	}
+	if s.ResourceId != nil && len(*s.ResourceId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResourceId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResolverQueryLogConfigId sets the ResolverQueryLogConfigId field's value.
+func (s *DisassociateResolverQueryLogConfigInput) SetResolverQueryLogConfigId(v string) *DisassociateResolverQueryLogConfigInput {
+	s.ResolverQueryLogConfigId = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *DisassociateResolverQueryLogConfigInput) SetResourceId(v string) *DisassociateResolverQueryLogConfigInput {
+	s.ResourceId = &v
+	return s
+}
+
+type DisassociateResolverQueryLogConfigOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A complex type that contains settings for the association that you deleted
+	// between an Amazon VPC and a query logging configuration.
+	ResolverQueryLogConfigAssociation *ResolverQueryLogConfigAssociation `type:"structure"`
+}
+
+// String returns the string representation
+func (s DisassociateResolverQueryLogConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DisassociateResolverQueryLogConfigOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfigAssociation sets the ResolverQueryLogConfigAssociation field's value.
+func (s *DisassociateResolverQueryLogConfigOutput) SetResolverQueryLogConfigAssociation(v *ResolverQueryLogConfigAssociation) *DisassociateResolverQueryLogConfigOutput {
+	s.ResolverQueryLogConfigAssociation = v
+	return s
+}
+
 type DisassociateResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver rule that you want to disassociate from the specified
+	// The ID of the Resolver rule that you want to disassociate from the specified
 	// VPC.
 	//
 	// ResolverRuleId is a required field
 	ResolverRuleId *string `min:"1" type:"string" required:"true"`
 
-	// The ID of the VPC that you want to disassociate the resolver rule from.
+	// The ID of the VPC that you want to disassociate the Resolver rule from.
 	//
 	// VPCId is a required field
 	VPCId *string `min:"1" type:"string" required:"true"`
@@ -3095,22 +4751,171 @@ func (s *DisassociateResolverRuleOutput) SetResolverRuleAssociation(v *ResolverR
 	return s
 }
 
-// For List operations, an optional specification to return a subset of objects,
-// such as resolver endpoints or resolver rules.
+// For Resolver list operations (ListResolverEndpoints (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverEndpoints.html),
+// ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html),
+// ListResolverRuleAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRuleAssociations.html),
+// ListResolverQueryLogConfigs (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigs.html),
+// and ListResolverQueryLogConfigAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigAssociations.html)),
+// an optional specification to return a subset of objects.
+//
+// To filter objects, such as Resolver endpoints or Resolver rules, you specify
+// Name and Values. For example, to list only inbound Resolver endpoints, specify
+// Direction for Name and specify INBOUND for Values.
 type Filter struct {
 	_ struct{} `type:"structure"`
 
-	// When you're using a List operation and you want the operation to return a
-	// subset of objects, such as resolver endpoints or resolver rules, the name
-	// of the parameter that you want to use to filter objects. For example, to
-	// list only inbound resolver endpoints, specify Direction for the value of
-	// Name.
+	// The name of the parameter that you want to use to filter objects.
+	//
+	// The valid values for Name depend on the action that you're including the
+	// filter in, ListResolverEndpoints (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverEndpoints.html),
+	// ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html),
+	// ListResolverRuleAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRuleAssociations.html),
+	// ListResolverQueryLogConfigs (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigs.html),
+	// or ListResolverQueryLogConfigAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigAssociations.html).
+	//
+	// In early versions of Resolver, values for Name were listed as uppercase,
+	// with underscore (_) delimiters. For example, CreatorRequestId was originally
+	// listed as CREATOR_REQUEST_ID. Uppercase values for Name are still supported.
+	//
+	// ListResolverEndpoints
+	//
+	// Valid values for Name include the following:
+	//
+	//    * CreatorRequestId: The value that you specified when you created the
+	//    Resolver endpoint.
+	//
+	//    * Direction: Whether you want to return inbound or outbound Resolver endpoints.
+	//    If you specify DIRECTION for Name, specify INBOUND or OUTBOUND for Values.
+	//
+	//    * HostVpcId: The ID of the VPC that inbound DNS queries pass through on
+	//    the way from your network to your VPCs in a region, or the VPC that outbound
+	//    queries pass through on the way from your VPCs to your network. In a CreateResolverEndpoint
+	//    (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverEndpoint.html)
+	//    request, SubnetId indirectly identifies the VPC. In a GetResolverEndpoint
+	//    (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html)
+	//    request, the VPC ID for a Resolver endpoint is returned in the HostVPCId
+	//    element.
+	//
+	//    * IpAddressCount: The number of IP addresses that you have associated
+	//    with the Resolver endpoint.
+	//
+	//    * Name: The name of the Resolver endpoint.
+	//
+	//    * SecurityGroupIds: The IDs of the VPC security groups that you specified
+	//    when you created the Resolver endpoint.
+	//
+	//    * Status: The status of the Resolver endpoint. If you specify Status for
+	//    Name, specify one of the following status codes for Values: CREATING,
+	//    OPERATIONAL, UPDATING, AUTO_RECOVERING, ACTION_NEEDED, or DELETING. For
+	//    more information, see Status in ResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ResolverEndpoint.html).
+	//
+	// ListResolverRules
+	//
+	// Valid values for Name include the following:
+	//
+	//    * CreatorRequestId: The value that you specified when you created the
+	//    Resolver rule.
+	//
+	//    * DomainName: The domain name for which Resolver is forwarding DNS queries
+	//    to your network. In the value that you specify for Values, include a trailing
+	//    dot (.) after the domain name. For example, if the domain name is example.com,
+	//    specify the following value. Note the "." after com: example.com.
+	//
+	//    * Name: The name of the Resolver rule.
+	//
+	//    * ResolverEndpointId: The ID of the Resolver endpoint that the Resolver
+	//    rule is associated with. You can filter on the Resolver endpoint only
+	//    for rules that have a value of FORWARD for RuleType.
+	//
+	//    * Status: The status of the Resolver rule. If you specify Status for Name,
+	//    specify one of the following status codes for Values: COMPLETE, DELETING,
+	//    UPDATING, or FAILED.
+	//
+	//    * Type: The type of the Resolver rule. If you specify TYPE for Name, specify
+	//    FORWARD or SYSTEM for Values.
+	//
+	// ListResolverRuleAssociations
+	//
+	// Valid values for Name include the following:
+	//
+	//    * Name: The name of the Resolver rule association.
+	//
+	//    * ResolverRuleId: The ID of the Resolver rule that is associated with
+	//    one or more VPCs.
+	//
+	//    * Status: The status of the Resolver rule association. If you specify
+	//    Status for Name, specify one of the following status codes for Values:
+	//    CREATING, COMPLETE, DELETING, or FAILED.
+	//
+	//    * VPCId: The ID of the VPC that the Resolver rule is associated with.
+	//
+	// ListResolverQueryLogConfigs
+	//
+	// Valid values for Name include the following:
+	//
+	//    * Arn: The ARN for the query logging configuration.
+	//
+	//    * AssociationCount: The number of VPCs that are associated with the query
+	//    logging configuration.
+	//
+	//    * CreationTime: The date and time that the query logging configuration
+	//    was created, in Unix time format and Coordinated Universal Time (UTC).
+	//
+	//    * CreatorRequestId: A unique string that identifies the request that created
+	//    the query logging configuration.
+	//
+	//    * Destination: The AWS service that you want to forward query logs to.
+	//    Valid values include the following: S3 CloudWatchLogs KinesisFirehose
+	//
+	//    * DestinationArn: The ARN of the location that Resolver is sending query
+	//    logs to. This value can be the ARN for an S3 bucket, a CloudWatch Logs
+	//    log group, or a Kinesis Data Firehose delivery stream.
+	//
+	//    * Id: The ID of the query logging configuration
+	//
+	//    * Name: The name of the query logging configuration
+	//
+	//    * OwnerId: The AWS account ID for the account that created the query logging
+	//    configuration.
+	//
+	//    * ShareStatus: An indication of whether the query logging configuration
+	//    is shared with other AWS accounts, or was shared with the current account
+	//    by another AWS account. Valid values include: NOT_SHARED, SHARED_WITH_ME,
+	//    or SHARED_BY_ME.
+	//
+	//    * Status: The status of the query logging configuration. If you specify
+	//    Status for Name, specify the applicable status code for Values: CREATING,
+	//    CREATED, DELETING, or FAILED. For more information, see Status (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ResolverQueryLogConfig.html#Route53Resolver-Type-route53resolver_ResolverQueryLogConfig-Status).
+	//
+	// ListResolverQueryLogConfigAssociations
+	//
+	// Valid values for Name include the following:
+	//
+	//    * CreationTime: The date and time that the VPC was associated with the
+	//    query logging configuration, in Unix time format and Coordinated Universal
+	//    Time (UTC).
+	//
+	//    * Error: If the value of Status is FAILED, specify the cause: DESTINATION_NOT_FOUND
+	//    or ACCESS_DENIED.
+	//
+	//    * Id: The ID of the query logging association.
+	//
+	//    * ResolverQueryLogConfigId: The ID of the query logging configuration
+	//    that a VPC is associated with.
+	//
+	//    * ResourceId: The ID of the Amazon VPC that is associated with the query
+	//    logging configuration.
+	//
+	//    * Status: The status of the query logging association. If you specify
+	//    Status for Name, specify the applicable status code for Values: CREATING,
+	//    CREATED, DELETING, or FAILED. For more information, see Status (https://docs.aws.amazon.com/API_route53resolver_ResolverQueryLogConfigAssociation.html#Route53Resolver-Type-route53resolver_ResolverQueryLogConfigAssociation-Status).
 	Name *string `min:"1" type:"string"`
 
 	// When you're using a List operation and you want the operation to return a
-	// subset of objects, such as resolver endpoints or resolver rules, the value
+	// subset of objects, such as Resolver endpoints or Resolver rules, the value
 	// of the parameter that you want to use to filter objects. For example, to
-	// list only inbound resolver endpoints, specify INBOUND for the value of Values.
+	// list only inbound Resolver endpoints, specify Direction for Name and specify
+	// INBOUND for Values.
 	Values []*string `type:"list"`
 }
 
@@ -3152,7 +4957,7 @@ func (s *Filter) SetValues(v []*string) *Filter {
 type GetResolverEndpointInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver endpoint that you want to get information about.
+	// The ID of the Resolver endpoint that you want to get information about.
 	//
 	// ResolverEndpointId is a required field
 	ResolverEndpointId *string `min:"1" type:"string" required:"true"`
@@ -3193,7 +4998,7 @@ func (s *GetResolverEndpointInput) SetResolverEndpointId(v string) *GetResolverE
 type GetResolverEndpointOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the resolver endpoint that you specified in a GetResolverEndpoint
+	// Information about the Resolver endpoint that you specified in a GetResolverEndpoint
 	// request.
 	ResolverEndpoint *ResolverEndpoint `type:"structure"`
 }
@@ -3214,10 +5019,208 @@ func (s *GetResolverEndpointOutput) SetResolverEndpoint(v *ResolverEndpoint) *Ge
 	return s
 }
 
+type GetResolverQueryLogConfigAssociationInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Resolver query logging configuration association that you want
+	// to get information about.
+	//
+	// ResolverQueryLogConfigAssociationId is a required field
+	ResolverQueryLogConfigAssociationId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigAssociationInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigAssociationInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResolverQueryLogConfigAssociationInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResolverQueryLogConfigAssociationInput"}
+	if s.ResolverQueryLogConfigAssociationId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigAssociationId"))
+	}
+	if s.ResolverQueryLogConfigAssociationId != nil && len(*s.ResolverQueryLogConfigAssociationId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResolverQueryLogConfigAssociationId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResolverQueryLogConfigAssociationId sets the ResolverQueryLogConfigAssociationId field's value.
+func (s *GetResolverQueryLogConfigAssociationInput) SetResolverQueryLogConfigAssociationId(v string) *GetResolverQueryLogConfigAssociationInput {
+	s.ResolverQueryLogConfigAssociationId = &v
+	return s
+}
+
+type GetResolverQueryLogConfigAssociationOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the Resolver query logging configuration association that
+	// you specified in a GetQueryLogConfigAssociation request.
+	ResolverQueryLogConfigAssociation *ResolverQueryLogConfigAssociation `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigAssociationOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigAssociationOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfigAssociation sets the ResolverQueryLogConfigAssociation field's value.
+func (s *GetResolverQueryLogConfigAssociationOutput) SetResolverQueryLogConfigAssociation(v *ResolverQueryLogConfigAssociation) *GetResolverQueryLogConfigAssociationOutput {
+	s.ResolverQueryLogConfigAssociation = v
+	return s
+}
+
+type GetResolverQueryLogConfigInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ID of the Resolver query logging configuration that you want to get information
+	// about.
+	//
+	// ResolverQueryLogConfigId is a required field
+	ResolverQueryLogConfigId *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResolverQueryLogConfigInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResolverQueryLogConfigInput"}
+	if s.ResolverQueryLogConfigId == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigId"))
+	}
+	if s.ResolverQueryLogConfigId != nil && len(*s.ResolverQueryLogConfigId) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ResolverQueryLogConfigId", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetResolverQueryLogConfigId sets the ResolverQueryLogConfigId field's value.
+func (s *GetResolverQueryLogConfigInput) SetResolverQueryLogConfigId(v string) *GetResolverQueryLogConfigInput {
+	s.ResolverQueryLogConfigId = &v
+	return s
+}
+
+type GetResolverQueryLogConfigOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the Resolver query logging configuration that you specified
+	// in a GetQueryLogConfig request.
+	ResolverQueryLogConfig *ResolverQueryLogConfig `type:"structure"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfig sets the ResolverQueryLogConfig field's value.
+func (s *GetResolverQueryLogConfigOutput) SetResolverQueryLogConfig(v *ResolverQueryLogConfig) *GetResolverQueryLogConfigOutput {
+	s.ResolverQueryLogConfig = v
+	return s
+}
+
+type GetResolverQueryLogConfigPolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the query logging configuration that you want to get the query
+	// logging policy for.
+	//
+	// Arn is a required field
+	Arn *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetResolverQueryLogConfigPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetResolverQueryLogConfigPolicyInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *GetResolverQueryLogConfigPolicyInput) SetArn(v string) *GetResolverQueryLogConfigPolicyInput {
+	s.Arn = &v
+	return s
+}
+
+type GetResolverQueryLogConfigPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about the query logging policy for the query logging configuration
+	// that you specified in a GetResolverQueryLogConfigPolicy request.
+	ResolverQueryLogConfigPolicy *string `type:"string"`
+}
+
+// String returns the string representation
+func (s GetResolverQueryLogConfigPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetResolverQueryLogConfigPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetResolverQueryLogConfigPolicy sets the ResolverQueryLogConfigPolicy field's value.
+func (s *GetResolverQueryLogConfigPolicyOutput) SetResolverQueryLogConfigPolicy(v string) *GetResolverQueryLogConfigPolicyOutput {
+	s.ResolverQueryLogConfigPolicy = &v
+	return s
+}
+
 type GetResolverRuleAssociationInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver rule association that you want to get information
+	// The ID of the Resolver rule association that you want to get information
 	// about.
 	//
 	// ResolverRuleAssociationId is a required field
@@ -3259,7 +5262,7 @@ func (s *GetResolverRuleAssociationInput) SetResolverRuleAssociationId(v string)
 type GetResolverRuleAssociationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the resolver rule association that you specified in a GetResolverRuleAssociation
+	// Information about the Resolver rule association that you specified in a GetResolverRuleAssociation
 	// request.
 	ResolverRuleAssociation *ResolverRuleAssociation `type:"structure"`
 }
@@ -3283,7 +5286,7 @@ func (s *GetResolverRuleAssociationOutput) SetResolverRuleAssociation(v *Resolve
 type GetResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver rule that you want to get information about.
+	// The ID of the Resolver rule that you want to get information about.
 	//
 	// ResolverRuleId is a required field
 	ResolverRuleId *string `min:"1" type:"string" required:"true"`
@@ -3324,7 +5327,7 @@ func (s *GetResolverRuleInput) SetResolverRuleId(v string) *GetResolverRuleInput
 type GetResolverRuleOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the resolver rule that you specified in a GetResolverRule
+	// Information about the Resolver rule that you specified in a GetResolverRule
 	// request.
 	ResolverRule *ResolverRule `type:"structure"`
 }
@@ -3348,7 +5351,7 @@ func (s *GetResolverRuleOutput) SetResolverRule(v *ResolverRule) *GetResolverRul
 type GetResolverRulePolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the resolver rule policy that you want to get information about.
+	// The ID of the Resolver rule policy that you want to get information about.
 	//
 	// Arn is a required field
 	Arn *string `min:"1" type:"string" required:"true"`
@@ -3389,7 +5392,7 @@ func (s *GetResolverRulePolicyInput) SetArn(v string) *GetResolverRulePolicyInpu
 type GetResolverRulePolicyOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the resolver rule policy that you specified in a GetResolverRulePolicy
+	// Information about the Resolver rule policy that you specified in a GetResolverRulePolicy
 	// request.
 	ResolverRulePolicy *string `type:"string"`
 }
@@ -3582,7 +5585,7 @@ func (s *InvalidParameterException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The specified resolver rule policy is invalid.
+// The specified Resolver rule policy is invalid.
 type InvalidPolicyDocument struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -3750,15 +5753,17 @@ func (s *InvalidTagException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// In an CreateResolverEndpoint request, a subnet and IP address that you want
-// to use for DNS queries.
+// In a CreateResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverEndpoint.html)
+// request, the IP address that DNS queries originate from (for outbound endpoints)
+// or that you forward DNS queries to (for inbound endpoints). IpAddressRequest
+// also includes the ID of the subnet that contains the IP address.
 type IpAddressRequest struct {
 	_ struct{} `type:"structure"`
 
 	// The IP address that you want to use for DNS queries.
 	Ip *string `min:"7" type:"string"`
 
-	// The subnet that contains the IP address.
+	// The ID of the subnet that contains the IP address.
 	//
 	// SubnetId is a required field
 	SubnetId *string `min:"1" type:"string" required:"true"`
@@ -3805,8 +5810,9 @@ func (s *IpAddressRequest) SetSubnetId(v string) *IpAddressRequest {
 	return s
 }
 
-// In the response to a GetResolverEndpoint request, information about the IP
-// addresses that the resolver endpoint uses for DNS queries.
+// In the response to a GetResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html)
+// request, information about the IP addresses that the Resolver endpoint uses
+// for DNS queries.
 type IpAddressResponse struct {
 	_ struct{} `type:"structure"`
 
@@ -3814,7 +5820,7 @@ type IpAddressResponse struct {
 	// Coordinated Universal Time (UTC).
 	CreationTime *string `min:"20" type:"string"`
 
-	// One IP address that the resolver endpoint uses for DNS queries.
+	// One IP address that the Resolver endpoint uses for DNS queries.
 	Ip *string `min:"7" type:"string"`
 
 	// The ID of one IP address.
@@ -3886,20 +5892,21 @@ func (s *IpAddressResponse) SetSubnetId(v string) *IpAddressResponse {
 	return s
 }
 
-// In an UpdateResolverEndpoint request, information about an IP address to
-// update.
+// In an UpdateResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_UpdateResolverEndpoint.html)
+// request, information about an IP address to update.
 type IpAddressUpdate struct {
 	_ struct{} `type:"structure"`
 
 	// The new IP address.
 	Ip *string `min:"7" type:"string"`
 
-	// Only when removing an IP address from a resolver endpoint: The ID of the
-	// IP address that you want to remove. To get this ID, use GetResolverEndpoint.
+	// Only when removing an IP address from a Resolver endpoint: The ID of the
+	// IP address that you want to remove. To get this ID, use GetResolverEndpoint
+	// (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html).
 	IpId *string `min:"1" type:"string"`
 
 	// The ID of the subnet that includes the IP address that you want to update.
-	// To get this ID, use GetResolverEndpoint.
+	// To get this ID, use GetResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html).
 	SubnetId *string `min:"1" type:"string"`
 }
 
@@ -4020,13 +6027,13 @@ type ListResolverEndpointIpAddressesInput struct {
 
 	// For the first ListResolverEndpointIpAddresses request, omit this value.
 	//
-	// If the specified resolver endpoint has more than MaxResults IP addresses,
+	// If the specified Resolver endpoint has more than MaxResults IP addresses,
 	// you can submit another ListResolverEndpointIpAddresses request to get the
 	// next group of IP addresses. In the next request, specify the value of NextToken
 	// from the previous response.
 	NextToken *string `type:"string"`
 
-	// The ID of the resolver endpoint that you want to get IP addresses for.
+	// The ID of the Resolver endpoint that you want to get IP addresses for.
 	//
 	// ResolverEndpointId is a required field
 	ResolverEndpointId *string `min:"1" type:"string" required:"true"`
@@ -4082,8 +6089,9 @@ func (s *ListResolverEndpointIpAddressesInput) SetResolverEndpointId(v string) *
 type ListResolverEndpointIpAddressesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The IP addresses that DNS queries pass through on their way to your network
-	// (outbound endpoint) or on the way to Resolver (inbound endpoint).
+	// Information about the IP addresses in your VPC that DNS queries originate
+	// from (for outbound endpoints) or that you forward DNS queries to (for inbound
+	// endpoints).
 	IpAddresses []*IpAddressResponse `type:"list"`
 
 	// The value that you specified for MaxResults in the request.
@@ -4127,23 +6135,23 @@ func (s *ListResolverEndpointIpAddressesOutput) SetNextToken(v string) *ListReso
 type ListResolverEndpointsInput struct {
 	_ struct{} `type:"structure"`
 
-	// An optional specification to return a subset of resolver endpoints, such
-	// as all inbound resolver endpoints.
+	// An optional specification to return a subset of Resolver endpoints, such
+	// as all inbound Resolver endpoints.
 	//
 	// If you submit a second or subsequent ListResolverEndpoints request and specify
 	// the NextToken parameter, you must use the same values for Filters, if any,
 	// as in the previous request.
 	Filters []*Filter `type:"list"`
 
-	// The maximum number of resolver endpoints that you want to return in the response
+	// The maximum number of Resolver endpoints that you want to return in the response
 	// to a ListResolverEndpoints request. If you don't specify a value for MaxResults,
-	// Resolver returns up to 100 resolver endpoints.
+	// Resolver returns up to 100 Resolver endpoints.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// For the first ListResolverEndpoints request, omit this value.
 	//
-	// If you have more than MaxResults resolver endpoints, you can submit another
-	// ListResolverEndpoints request to get the next group of resolver endpoints.
+	// If you have more than MaxResults Resolver endpoints, you can submit another
+	// ListResolverEndpoints request to get the next group of Resolver endpoints.
 	// In the next request, specify the value of NextToken from the previous response.
 	NextToken *string `type:"string"`
 }
@@ -4210,7 +6218,7 @@ type ListResolverEndpointsOutput struct {
 	// In the next request, specify the value of NextToken from the previous response.
 	NextToken *string `type:"string"`
 
-	// The resolver endpoints that were created by using the current AWS account,
+	// The Resolver endpoints that were created by using the current AWS account,
 	// and that match the specified filters, if any.
 	ResolverEndpoints []*ResolverEndpoint `type:"list"`
 }
@@ -4243,10 +6251,405 @@ func (s *ListResolverEndpointsOutput) SetResolverEndpoints(v []*ResolverEndpoint
 	return s
 }
 
+type ListResolverQueryLogConfigAssociationsInput struct {
+	_ struct{} `type:"structure"`
+
+	// An optional specification to return a subset of query logging associations.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigAssociations
+	// request and specify the NextToken parameter, you must use the same values
+	// for Filters, if any, as in the previous request.
+	Filters []*Filter `type:"list"`
+
+	// The maximum number of query logging associations that you want to return
+	// in the response to a ListResolverQueryLogConfigAssociations request. If you
+	// don't specify a value for MaxResults, Resolver returns up to 100 query logging
+	// associations.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// For the first ListResolverQueryLogConfigAssociations request, omit this value.
+	//
+	// If there are more than MaxResults query logging associations that match the
+	// values that you specify for Filters, you can submit another ListResolverQueryLogConfigAssociations
+	// request to get the next group of associations. In the next request, specify
+	// the value of NextToken from the previous response.
+	NextToken *string `type:"string"`
+
+	// The element that you want Resolver to sort query logging associations by.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigAssociations
+	// request and specify the NextToken parameter, you must use the same value
+	// for SortBy, if any, as in the previous request.
+	//
+	// Valid values include the following elements:
+	//
+	//    * CreationTime: The ID of the query logging association.
+	//
+	//    * Error: If the value of Status is FAILED, the value of Error indicates
+	//    the cause: DESTINATION_NOT_FOUND: The specified destination (for example,
+	//    an Amazon S3 bucket) was deleted. ACCESS_DENIED: Permissions don't allow
+	//    sending logs to the destination. If Status is a value other than FAILED,
+	//    ERROR is null.
+	//
+	//    * Id: The ID of the query logging association
+	//
+	//    * ResolverQueryLogConfigId: The ID of the query logging configuration
+	//
+	//    * ResourceId: The ID of the VPC that is associated with the query logging
+	//    configuration
+	//
+	//    * Status: The current status of the configuration. Valid values include
+	//    the following: CREATING: Resolver is creating an association between an
+	//    Amazon VPC and a query logging configuration. CREATED: The association
+	//    between an Amazon VPC and a query logging configuration was successfully
+	//    created. Resolver is logging queries that originate in the specified VPC.
+	//    DELETING: Resolver is deleting this query logging association. FAILED:
+	//    Resolver either couldn't create or couldn't delete the query logging association.
+	//    Here are two common causes: The specified destination (for example, an
+	//    Amazon S3 bucket) was deleted. Permissions don't allow sending logs to
+	//    the destination.
+	SortBy *string `min:"1" type:"string"`
+
+	// If you specified a value for SortBy, the order that you want query logging
+	// associations to be listed in, ASCENDING or DESCENDING.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigAssociations
+	// request and specify the NextToken parameter, you must use the same value
+	// for SortOrder, if any, as in the previous request.
+	SortOrder *string `type:"string" enum:"SortOrder"`
+}
+
+// String returns the string representation
+func (s ListResolverQueryLogConfigAssociationsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResolverQueryLogConfigAssociationsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListResolverQueryLogConfigAssociationsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListResolverQueryLogConfigAssociationsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.SortBy != nil && len(*s.SortBy) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SortBy", 1))
+	}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListResolverQueryLogConfigAssociationsInput) SetFilters(v []*Filter) *ListResolverQueryLogConfigAssociationsInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListResolverQueryLogConfigAssociationsInput) SetMaxResults(v int64) *ListResolverQueryLogConfigAssociationsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResolverQueryLogConfigAssociationsInput) SetNextToken(v string) *ListResolverQueryLogConfigAssociationsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListResolverQueryLogConfigAssociationsInput) SetSortBy(v string) *ListResolverQueryLogConfigAssociationsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListResolverQueryLogConfigAssociationsInput) SetSortOrder(v string) *ListResolverQueryLogConfigAssociationsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListResolverQueryLogConfigAssociationsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If there are more than MaxResults query logging associations, you can submit
+	// another ListResolverQueryLogConfigAssociations request to get the next group
+	// of associations. In the next request, specify the value of NextToken from
+	// the previous response.
+	NextToken *string `type:"string"`
+
+	// A list that contains one ResolverQueryLogConfigAssociations element for each
+	// query logging association that matches the values that you specified for
+	// Filter.
+	ResolverQueryLogConfigAssociations []*ResolverQueryLogConfigAssociation `type:"list"`
+
+	// The total number of query logging associations that were created by the current
+	// account in the specified Region. This count can differ from the number of
+	// associations that are returned in a ListResolverQueryLogConfigAssociations
+	// response, depending on the values that you specify in the request.
+	TotalCount *int64 `type:"integer"`
+
+	// The total number of query logging associations that were created by the current
+	// account in the specified Region and that match the filters that were specified
+	// in the ListResolverQueryLogConfigAssociations request. For the total number
+	// of associations that were created by the current account in the specified
+	// Region, see TotalCount.
+	TotalFilteredCount *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s ListResolverQueryLogConfigAssociationsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResolverQueryLogConfigAssociationsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResolverQueryLogConfigAssociationsOutput) SetNextToken(v string) *ListResolverQueryLogConfigAssociationsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResolverQueryLogConfigAssociations sets the ResolverQueryLogConfigAssociations field's value.
+func (s *ListResolverQueryLogConfigAssociationsOutput) SetResolverQueryLogConfigAssociations(v []*ResolverQueryLogConfigAssociation) *ListResolverQueryLogConfigAssociationsOutput {
+	s.ResolverQueryLogConfigAssociations = v
+	return s
+}
+
+// SetTotalCount sets the TotalCount field's value.
+func (s *ListResolverQueryLogConfigAssociationsOutput) SetTotalCount(v int64) *ListResolverQueryLogConfigAssociationsOutput {
+	s.TotalCount = &v
+	return s
+}
+
+// SetTotalFilteredCount sets the TotalFilteredCount field's value.
+func (s *ListResolverQueryLogConfigAssociationsOutput) SetTotalFilteredCount(v int64) *ListResolverQueryLogConfigAssociationsOutput {
+	s.TotalFilteredCount = &v
+	return s
+}
+
+type ListResolverQueryLogConfigsInput struct {
+	_ struct{} `type:"structure"`
+
+	// An optional specification to return a subset of query logging configurations.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigs request
+	// and specify the NextToken parameter, you must use the same values for Filters,
+	// if any, as in the previous request.
+	Filters []*Filter `type:"list"`
+
+	// The maximum number of query logging configurations that you want to return
+	// in the response to a ListResolverQueryLogConfigs request. If you don't specify
+	// a value for MaxResults, Resolver returns up to 100 query logging configurations.
+	MaxResults *int64 `min:"1" type:"integer"`
+
+	// For the first ListResolverQueryLogConfigs request, omit this value.
+	//
+	// If there are more than MaxResults query logging configurations that match
+	// the values that you specify for Filters, you can submit another ListResolverQueryLogConfigs
+	// request to get the next group of configurations. In the next request, specify
+	// the value of NextToken from the previous response.
+	NextToken *string `type:"string"`
+
+	// The element that you want Resolver to sort query logging configurations by.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigs request
+	// and specify the NextToken parameter, you must use the same value for SortBy,
+	// if any, as in the previous request.
+	//
+	// Valid values include the following elements:
+	//
+	//    * Arn: The ARN of the query logging configuration
+	//
+	//    * AssociationCount: The number of VPCs that are associated with the specified
+	//    configuration
+	//
+	//    * CreationTime: The date and time that Resolver returned when the configuration
+	//    was created
+	//
+	//    * CreatorRequestId: The value that was specified for CreatorRequestId
+	//    when the configuration was created
+	//
+	//    * DestinationArn: The location that logs are sent to
+	//
+	//    * Id: The ID of the configuration
+	//
+	//    * Name: The name of the configuration
+	//
+	//    * OwnerId: The AWS account number of the account that created the configuration
+	//
+	//    * ShareStatus: Whether the configuration is shared with other AWS accounts
+	//    or shared with the current account by another AWS account. Sharing is
+	//    configured through AWS Resource Access Manager (AWS RAM).
+	//
+	//    * Status: The current status of the configuration. Valid values include
+	//    the following: CREATING: Resolver is creating the query logging configuration.
+	//    CREATED: The query logging configuration was successfully created. Resolver
+	//    is logging queries that originate in the specified VPC. DELETING: Resolver
+	//    is deleting this query logging configuration. FAILED: Resolver either
+	//    couldn't create or couldn't delete the query logging configuration. Here
+	//    are two common causes: The specified destination (for example, an Amazon
+	//    S3 bucket) was deleted. Permissions don't allow sending logs to the destination.
+	SortBy *string `min:"1" type:"string"`
+
+	// If you specified a value for SortBy, the order that you want query logging
+	// configurations to be listed in, ASCENDING or DESCENDING.
+	//
+	// If you submit a second or subsequent ListResolverQueryLogConfigs request
+	// and specify the NextToken parameter, you must use the same value for SortOrder,
+	// if any, as in the previous request.
+	SortOrder *string `type:"string" enum:"SortOrder"`
+}
+
+// String returns the string representation
+func (s ListResolverQueryLogConfigsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResolverQueryLogConfigsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListResolverQueryLogConfigsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListResolverQueryLogConfigsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.SortBy != nil && len(*s.SortBy) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("SortBy", 1))
+	}
+	if s.Filters != nil {
+		for i, v := range s.Filters {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Filters", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilters sets the Filters field's value.
+func (s *ListResolverQueryLogConfigsInput) SetFilters(v []*Filter) *ListResolverQueryLogConfigsInput {
+	s.Filters = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListResolverQueryLogConfigsInput) SetMaxResults(v int64) *ListResolverQueryLogConfigsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResolverQueryLogConfigsInput) SetNextToken(v string) *ListResolverQueryLogConfigsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *ListResolverQueryLogConfigsInput) SetSortBy(v string) *ListResolverQueryLogConfigsInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListResolverQueryLogConfigsInput) SetSortOrder(v string) *ListResolverQueryLogConfigsInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListResolverQueryLogConfigsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// If there are more than MaxResults query logging configurations, you can submit
+	// another ListResolverQueryLogConfigs request to get the next group of configurations.
+	// In the next request, specify the value of NextToken from the previous response.
+	NextToken *string `type:"string"`
+
+	// A list that contains one ResolverQueryLogConfig element for each query logging
+	// configuration that matches the values that you specified for Filter.
+	ResolverQueryLogConfigs []*ResolverQueryLogConfig `type:"list"`
+
+	// The total number of query logging configurations that were created by the
+	// current account in the specified Region. This count can differ from the number
+	// of query logging configurations that are returned in a ListResolverQueryLogConfigs
+	// response, depending on the values that you specify in the request.
+	TotalCount *int64 `type:"integer"`
+
+	// The total number of query logging configurations that were created by the
+	// current account in the specified Region and that match the filters that were
+	// specified in the ListResolverQueryLogConfigs request. For the total number
+	// of query logging configurations that were created by the current account
+	// in the specified Region, see TotalCount.
+	TotalFilteredCount *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s ListResolverQueryLogConfigsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListResolverQueryLogConfigsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListResolverQueryLogConfigsOutput) SetNextToken(v string) *ListResolverQueryLogConfigsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResolverQueryLogConfigs sets the ResolverQueryLogConfigs field's value.
+func (s *ListResolverQueryLogConfigsOutput) SetResolverQueryLogConfigs(v []*ResolverQueryLogConfig) *ListResolverQueryLogConfigsOutput {
+	s.ResolverQueryLogConfigs = v
+	return s
+}
+
+// SetTotalCount sets the TotalCount field's value.
+func (s *ListResolverQueryLogConfigsOutput) SetTotalCount(v int64) *ListResolverQueryLogConfigsOutput {
+	s.TotalCount = &v
+	return s
+}
+
+// SetTotalFilteredCount sets the TotalFilteredCount field's value.
+func (s *ListResolverQueryLogConfigsOutput) SetTotalFilteredCount(v int64) *ListResolverQueryLogConfigsOutput {
+	s.TotalFilteredCount = &v
+	return s
+}
+
 type ListResolverRuleAssociationsInput struct {
 	_ struct{} `type:"structure"`
 
-	// An optional specification to return a subset of resolver rules, such as resolver
+	// An optional specification to return a subset of Resolver rules, such as Resolver
 	// rules that are associated with the same VPC ID.
 	//
 	// If you submit a second or subsequent ListResolverRuleAssociations request
@@ -4330,7 +6733,7 @@ type ListResolverRuleAssociationsOutput struct {
 	// previous response.
 	NextToken *string `type:"string"`
 
-	// The associations that were created between resolver rules and VPCs using
+	// The associations that were created between Resolver rules and VPCs using
 	// the current AWS account, and that match the specified filters, if any.
 	ResolverRuleAssociations []*ResolverRuleAssociation `type:"list"`
 }
@@ -4366,23 +6769,23 @@ func (s *ListResolverRuleAssociationsOutput) SetResolverRuleAssociations(v []*Re
 type ListResolverRulesInput struct {
 	_ struct{} `type:"structure"`
 
-	// An optional specification to return a subset of resolver rules, such as all
-	// resolver rules that are associated with the same resolver endpoint.
+	// An optional specification to return a subset of Resolver rules, such as all
+	// Resolver rules that are associated with the same Resolver endpoint.
 	//
 	// If you submit a second or subsequent ListResolverRules request and specify
 	// the NextToken parameter, you must use the same values for Filters, if any,
 	// as in the previous request.
 	Filters []*Filter `type:"list"`
 
-	// The maximum number of resolver rules that you want to return in the response
+	// The maximum number of Resolver rules that you want to return in the response
 	// to a ListResolverRules request. If you don't specify a value for MaxResults,
-	// Resolver returns up to 100 resolver rules.
+	// Resolver returns up to 100 Resolver rules.
 	MaxResults *int64 `min:"1" type:"integer"`
 
 	// For the first ListResolverRules request, omit this value.
 	//
-	// If you have more than MaxResults resolver rules, you can submit another ListResolverRules
-	// request to get the next group of resolver rules. In the next request, specify
+	// If you have more than MaxResults Resolver rules, you can submit another ListResolverRules
+	// request to get the next group of Resolver rules. In the next request, specify
 	// the value of NextToken from the previous response.
 	NextToken *string `type:"string"`
 }
@@ -4444,12 +6847,12 @@ type ListResolverRulesOutput struct {
 	// The value that you specified for MaxResults in the request.
 	MaxResults *int64 `min:"1" type:"integer"`
 
-	// If more than MaxResults resolver rules match the specified criteria, you
+	// If more than MaxResults Resolver rules match the specified criteria, you
 	// can submit another ListResolverRules request to get the next group of results.
 	// In the next request, specify the value of NextToken from the previous response.
 	NextToken *string `type:"string"`
 
-	// The resolver rules that were created using the current AWS account and that
+	// The Resolver rules that were created using the current AWS account and that
 	// match the specified filters, if any.
 	ResolverRules []*ResolverRule `type:"list"`
 }
@@ -4586,17 +6989,127 @@ func (s *ListTagsForResourceOutput) SetTags(v []*Tag) *ListTagsForResourceOutput
 	return s
 }
 
-type PutResolverRulePolicyInput struct {
+type PutResolverQueryLogConfigPolicyInput struct {
 	_ struct{} `type:"structure"`
 
-	// The Amazon Resource Name (ARN) of the account that you want to grant permissions
-	// to.
+	// The Amazon Resource Name (ARN) of the account that you want to share rules
+	// with.
 	//
 	// Arn is a required field
 	Arn *string `min:"1" type:"string" required:"true"`
 
-	// An AWS Identity and Access Management policy statement that lists the permissions
-	// that you want to grant to another AWS account.
+	// An AWS Identity and Access Management policy statement that lists the query
+	// logging configurations that you want to share with another AWS account and
+	// the operations that you want the account to be able to perform. You can specify
+	// the following operations in the Actions section of the statement:
+	//
+	//    * route53resolver:AssociateResolverQueryLogConfig
+	//
+	//    * route53resolver:DisassociateResolverQueryLogConfig
+	//
+	//    * route53resolver:ListResolverQueryLogConfigAssociations
+	//
+	//    * route53resolver:ListResolverQueryLogConfigs
+	//
+	// In the Resource section of the statement, you specify the ARNs for the query
+	// logging configurations that you want to share with the account that you specified
+	// in Arn.
+	//
+	// ResolverQueryLogConfigPolicy is a required field
+	ResolverQueryLogConfigPolicy *string `type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s PutResolverQueryLogConfigPolicyInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutResolverQueryLogConfigPolicyInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *PutResolverQueryLogConfigPolicyInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "PutResolverQueryLogConfigPolicyInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 1))
+	}
+	if s.ResolverQueryLogConfigPolicy == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResolverQueryLogConfigPolicy"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *PutResolverQueryLogConfigPolicyInput) SetArn(v string) *PutResolverQueryLogConfigPolicyInput {
+	s.Arn = &v
+	return s
+}
+
+// SetResolverQueryLogConfigPolicy sets the ResolverQueryLogConfigPolicy field's value.
+func (s *PutResolverQueryLogConfigPolicyInput) SetResolverQueryLogConfigPolicy(v string) *PutResolverQueryLogConfigPolicyInput {
+	s.ResolverQueryLogConfigPolicy = &v
+	return s
+}
+
+// The response to a PutResolverQueryLogConfigPolicy request.
+type PutResolverQueryLogConfigPolicyOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Whether the PutResolverQueryLogConfigPolicy request was successful.
+	ReturnValue *bool `type:"boolean"`
+}
+
+// String returns the string representation
+func (s PutResolverQueryLogConfigPolicyOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s PutResolverQueryLogConfigPolicyOutput) GoString() string {
+	return s.String()
+}
+
+// SetReturnValue sets the ReturnValue field's value.
+func (s *PutResolverQueryLogConfigPolicyOutput) SetReturnValue(v bool) *PutResolverQueryLogConfigPolicyOutput {
+	s.ReturnValue = &v
+	return s
+}
+
+type PutResolverRulePolicyInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the account that you want to share rules
+	// with.
+	//
+	// Arn is a required field
+	Arn *string `min:"1" type:"string" required:"true"`
+
+	// An AWS Identity and Access Management policy statement that lists the rules
+	// that you want to share with another AWS account and the operations that you
+	// want the account to be able to perform. You can specify the following operations
+	// in the Actions section of the statement:
+	//
+	//    * route53resolver:GetResolverRule
+	//
+	//    * route53resolver:AssociateResolverRule
+	//
+	//    * route53resolver:DisassociateResolverRule
+	//
+	//    * route53resolver:ListResolverRules
+	//
+	//    * route53resolver:ListResolverRuleAssociations
+	//
+	// In the Resource section of the statement, you specify the ARNs for the rules
+	// that you want to share with the account that you specified in Arn.
 	//
 	// ResolverRulePolicy is a required field
 	ResolverRulePolicy *string `type:"string" required:"true"`
@@ -4667,58 +7180,95 @@ func (s *PutResolverRulePolicyOutput) SetReturnValue(v bool) *PutResolverRulePol
 	return s
 }
 
-// In the response to a CreateResolverEndpoint, DeleteResolverEndpoint, GetResolverEndpoint,
-// ListResolverEndpoints, or UpdateResolverEndpoint request, a complex type
-// that contains settings for an existing inbound or outbound resolver endpoint.
+// In the response to a CreateResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverEndpoint.html),
+// DeleteResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DeleteResolverEndpoint.html),
+// GetResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html),
+// ListResolverEndpoints (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverEndpoints.html),
+// or UpdateResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_UpdateResolverEndpoint.html)
+// request, a complex type that contains settings for an existing inbound or
+// outbound Resolver endpoint.
 type ResolverEndpoint struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN (Amazon Resource Name) for the resolver endpoint.
+	// The ARN (Amazon Resource Name) for the Resolver endpoint.
 	Arn *string `min:"1" type:"string"`
 
 	// The date and time that the endpoint was created, in Unix time format and
 	// Coordinated Universal Time (UTC).
 	CreationTime *string `min:"20" type:"string"`
 
-	// A unique string that identifies the request that created the resolver endpoint.
+	// A unique string that identifies the request that created the Resolver endpoint.
 	// The CreatorRequestId allows failed requests to be retried without the risk
 	// of executing the operation twice.
 	CreatorRequestId *string `min:"1" type:"string"`
 
-	// Indicates whether the resolver endpoint allows inbound or outbound DNS queries:
+	// Indicates whether the Resolver endpoint allows inbound or outbound DNS queries:
 	//
-	//    * INBOUND: allows DNS queries to your VPC from your network or another
-	//    VPC
+	//    * INBOUND: allows DNS queries to your VPC from your network
 	//
-	//    * OUTBOUND: allows DNS queries from your VPC to your network or another
-	//    VPC
+	//    * OUTBOUND: allows DNS queries from your VPC to your network
 	Direction *string `type:"string" enum:"ResolverEndpointDirection"`
 
-	// The ID of the VPC that you want to create the resolver endpoint in.
+	// The ID of the VPC that you want to create the Resolver endpoint in.
 	HostVPCId *string `min:"1" type:"string"`
 
-	// The ID of the resolver endpoint.
+	// The ID of the Resolver endpoint.
 	Id *string `min:"1" type:"string"`
 
-	// The number of IP addresses that the resolver endpoint can use for DNS queries.
+	// The number of IP addresses that the Resolver endpoint can use for DNS queries.
 	IpAddressCount *int64 `type:"integer"`
 
 	// The date and time that the endpoint was last modified, in Unix time format
 	// and Coordinated Universal Time (UTC).
 	ModificationTime *string `min:"20" type:"string"`
 
-	// The name that you assigned to the resolver endpoint when you submitted a
-	// CreateResolverEndpoint request.
+	// The name that you assigned to the Resolver endpoint when you submitted a
+	// CreateResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverEndpoint.html)
+	// request.
 	Name *string `type:"string"`
 
 	// The ID of one or more security groups that control access to this VPC. The
-	// security group must include one or more inbound resolver rules.
+	// security group must include one or more inbound rules (for inbound endpoints)
+	// or outbound rules (for outbound endpoints). Inbound and outbound rules must
+	// allow TCP and UDP access. For inbound access, open port 53. For outbound
+	// access, open the port that you're using for DNS queries on your network.
 	SecurityGroupIds []*string `type:"list"`
 
-	// A code that specifies the current status of the resolver endpoint.
+	// A code that specifies the current status of the Resolver endpoint. Valid
+	// values include the following:
+	//
+	//    * CREATING: Resolver is creating and configuring one or more Amazon VPC
+	//    network interfaces for this endpoint.
+	//
+	//    * OPERATIONAL: The Amazon VPC network interfaces for this endpoint are
+	//    correctly configured and able to pass inbound or outbound DNS queries
+	//    between your network and Resolver.
+	//
+	//    * UPDATING: Resolver is associating or disassociating one or more network
+	//    interfaces with this endpoint.
+	//
+	//    * AUTO_RECOVERING: Resolver is trying to recover one or more of the network
+	//    interfaces that are associated with this endpoint. During the recovery
+	//    process, the endpoint functions with limited capacity because of the limit
+	//    on the number of DNS queries per IP address (per network interface). For
+	//    the current limit, see Limits on Route 53 Resolver (https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html#limits-api-entities-resolver).
+	//
+	//    * ACTION_NEEDED: This endpoint is unhealthy, and Resolver can't automatically
+	//    recover it. To resolve the problem, we recommend that you check each IP
+	//    address that you associated with the endpoint. For each IP address that
+	//    isn't available, add another IP address and then delete the IP address
+	//    that isn't available. (An endpoint must always include at least two IP
+	//    addresses.) A status of ACTION_NEEDED can have a variety of causes. Here
+	//    are two common causes: One or more of the network interfaces that are
+	//    associated with the endpoint were deleted using Amazon VPC. The network
+	//    interface couldn't be created for some reason that's outside the control
+	//    of Resolver.
+	//
+	//    * DELETING: Resolver is deleting this endpoint and the associated network
+	//    interfaces.
 	Status *string `type:"string" enum:"ResolverEndpointStatus"`
 
-	// A detailed description of the status of the resolver endpoint.
+	// A detailed description of the status of the Resolver endpoint.
 	StatusMessage *string `type:"string"`
 }
 
@@ -4804,32 +7354,278 @@ func (s *ResolverEndpoint) SetStatusMessage(v string) *ResolverEndpoint {
 	return s
 }
 
-// For queries that originate in your VPC, detailed information about a resolver
+// In the response to a CreateResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverQueryLogConfig.html),
+// DeleteResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DeleteResolverQueryLogConfig.html),
+// GetResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverQueryLogConfig.html),
+// or ListResolverQueryLogConfigs (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigs.html)
+// request, a complex type that contains settings for one query logging configuration.
+type ResolverQueryLogConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN for the query logging configuration.
+	Arn *string `min:"1" type:"string"`
+
+	// The number of VPCs that are associated with the query logging configuration.
+	AssociationCount *int64 `type:"integer"`
+
+	// The date and time that the query logging configuration was created, in Unix
+	// time format and Coordinated Universal Time (UTC).
+	CreationTime *string `min:"20" type:"string"`
+
+	// A unique string that identifies the request that created the query logging
+	// configuration. The CreatorRequestId allows failed requests to be retried
+	// without the risk of executing the operation twice.
+	CreatorRequestId *string `min:"1" type:"string"`
+
+	// The ARN of the resource that you want Resolver to send query logs: an Amazon
+	// S3 bucket, a CloudWatch Logs log group, or a Kinesis Data Firehose delivery
+	// stream.
+	DestinationArn *string `min:"1" type:"string"`
+
+	// The ID for the query logging configuration.
+	Id *string `min:"1" type:"string"`
+
+	// The name of the query logging configuration.
+	Name *string `min:"1" type:"string"`
+
+	// The AWS account ID for the account that created the query logging configuration.
+	OwnerId *string `min:"12" type:"string"`
+
+	// An indication of whether the query logging configuration is shared with other
+	// AWS accounts, or was shared with the current account by another AWS account.
+	// Sharing is configured through AWS Resource Access Manager (AWS RAM).
+	ShareStatus *string `type:"string" enum:"ShareStatus"`
+
+	// The status of the specified query logging configuration. Valid values include
+	// the following:
+	//
+	//    * CREATING: Resolver is creating the query logging configuration.
+	//
+	//    * CREATED: The query logging configuration was successfully created. Resolver
+	//    is logging queries that originate in the specified VPC.
+	//
+	//    * DELETING: Resolver is deleting this query logging configuration.
+	//
+	//    * FAILED: Resolver can't deliver logs to the location that is specified
+	//    in the query logging configuration. Here are two common causes: The specified
+	//    destination (for example, an Amazon S3 bucket) was deleted. Permissions
+	//    don't allow sending logs to the destination.
+	Status *string `type:"string" enum:"ResolverQueryLogConfigStatus"`
+}
+
+// String returns the string representation
+func (s ResolverQueryLogConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResolverQueryLogConfig) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *ResolverQueryLogConfig) SetArn(v string) *ResolverQueryLogConfig {
+	s.Arn = &v
+	return s
+}
+
+// SetAssociationCount sets the AssociationCount field's value.
+func (s *ResolverQueryLogConfig) SetAssociationCount(v int64) *ResolverQueryLogConfig {
+	s.AssociationCount = &v
+	return s
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *ResolverQueryLogConfig) SetCreationTime(v string) *ResolverQueryLogConfig {
+	s.CreationTime = &v
+	return s
+}
+
+// SetCreatorRequestId sets the CreatorRequestId field's value.
+func (s *ResolverQueryLogConfig) SetCreatorRequestId(v string) *ResolverQueryLogConfig {
+	s.CreatorRequestId = &v
+	return s
+}
+
+// SetDestinationArn sets the DestinationArn field's value.
+func (s *ResolverQueryLogConfig) SetDestinationArn(v string) *ResolverQueryLogConfig {
+	s.DestinationArn = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *ResolverQueryLogConfig) SetId(v string) *ResolverQueryLogConfig {
+	s.Id = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *ResolverQueryLogConfig) SetName(v string) *ResolverQueryLogConfig {
+	s.Name = &v
+	return s
+}
+
+// SetOwnerId sets the OwnerId field's value.
+func (s *ResolverQueryLogConfig) SetOwnerId(v string) *ResolverQueryLogConfig {
+	s.OwnerId = &v
+	return s
+}
+
+// SetShareStatus sets the ShareStatus field's value.
+func (s *ResolverQueryLogConfig) SetShareStatus(v string) *ResolverQueryLogConfig {
+	s.ShareStatus = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ResolverQueryLogConfig) SetStatus(v string) *ResolverQueryLogConfig {
+	s.Status = &v
+	return s
+}
+
+// In the response to an AssociateResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverQueryLogConfig.html),
+// DisassociateResolverQueryLogConfig (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverQueryLogConfig.html),
+// GetResolverQueryLogConfigAssociation (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverQueryLogConfigAssociation.html),
+// or ListResolverQueryLogConfigAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverQueryLogConfigAssociations.html),
+// request, a complex type that contains settings for a specified association
+// between an Amazon VPC and a query logging configuration.
+type ResolverQueryLogConfigAssociation struct {
+	_ struct{} `type:"structure"`
+
+	// The date and time that the VPC was associated with the query logging configuration,
+	// in Unix time format and Coordinated Universal Time (UTC).
+	CreationTime *string `min:"20" type:"string"`
+
+	// If the value of Status is FAILED, the value of Error indicates the cause:
+	//
+	//    * DESTINATION_NOT_FOUND: The specified destination (for example, an Amazon
+	//    S3 bucket) was deleted.
+	//
+	//    * ACCESS_DENIED: Permissions don't allow sending logs to the destination.
+	//
+	// If the value of Status is a value other than FAILED, Error is null.
+	Error *string `type:"string" enum:"ResolverQueryLogConfigAssociationError"`
+
+	// Contains additional information about the error. If the value or Error is
+	// null, the value of ErrorMessage also is null.
+	ErrorMessage *string `type:"string"`
+
+	// The ID of the query logging association.
+	Id *string `min:"1" type:"string"`
+
+	// The ID of the query logging configuration that a VPC is associated with.
+	ResolverQueryLogConfigId *string `min:"1" type:"string"`
+
+	// The ID of the Amazon VPC that is associated with the query logging configuration.
+	ResourceId *string `min:"1" type:"string"`
+
+	// The status of the specified query logging association. Valid values include
+	// the following:
+	//
+	//    * CREATING: Resolver is creating an association between an Amazon VPC
+	//    and a query logging configuration.
+	//
+	//    * CREATED: The association between an Amazon VPC and a query logging configuration
+	//    was successfully created. Resolver is logging queries that originate in
+	//    the specified VPC.
+	//
+	//    * DELETING: Resolver is deleting this query logging association.
+	//
+	//    * FAILED: Resolver either couldn't create or couldn't delete the query
+	//    logging association.
+	Status *string `type:"string" enum:"ResolverQueryLogConfigAssociationStatus"`
+}
+
+// String returns the string representation
+func (s ResolverQueryLogConfigAssociation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResolverQueryLogConfigAssociation) GoString() string {
+	return s.String()
+}
+
+// SetCreationTime sets the CreationTime field's value.
+func (s *ResolverQueryLogConfigAssociation) SetCreationTime(v string) *ResolverQueryLogConfigAssociation {
+	s.CreationTime = &v
+	return s
+}
+
+// SetError sets the Error field's value.
+func (s *ResolverQueryLogConfigAssociation) SetError(v string) *ResolverQueryLogConfigAssociation {
+	s.Error = &v
+	return s
+}
+
+// SetErrorMessage sets the ErrorMessage field's value.
+func (s *ResolverQueryLogConfigAssociation) SetErrorMessage(v string) *ResolverQueryLogConfigAssociation {
+	s.ErrorMessage = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *ResolverQueryLogConfigAssociation) SetId(v string) *ResolverQueryLogConfigAssociation {
+	s.Id = &v
+	return s
+}
+
+// SetResolverQueryLogConfigId sets the ResolverQueryLogConfigId field's value.
+func (s *ResolverQueryLogConfigAssociation) SetResolverQueryLogConfigId(v string) *ResolverQueryLogConfigAssociation {
+	s.ResolverQueryLogConfigId = &v
+	return s
+}
+
+// SetResourceId sets the ResourceId field's value.
+func (s *ResolverQueryLogConfigAssociation) SetResourceId(v string) *ResolverQueryLogConfigAssociation {
+	s.ResourceId = &v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *ResolverQueryLogConfigAssociation) SetStatus(v string) *ResolverQueryLogConfigAssociation {
+	s.Status = &v
+	return s
+}
+
+// For queries that originate in your VPC, detailed information about a Resolver
 // rule, which specifies how to route DNS queries out of the VPC. The ResolverRule
-// parameter appears in the response to a CreateResolverRule, DeleteResolverRule,
-// GetResolverRule, ListResolverRules, or UpdateResolverRule request.
+// parameter appears in the response to a CreateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverRule.html),
+// DeleteResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DeleteResolverRule.html),
+// GetResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverRule.html),
+// ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html),
+// or UpdateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_UpdateResolverRule.html)
+// request.
 type ResolverRule struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN (Amazon Resource Name) for the resolver rule specified by Id.
+	// The ARN (Amazon Resource Name) for the Resolver rule specified by Id.
 	Arn *string `min:"1" type:"string"`
 
-	// A unique string that you specified when you created the resolver rule. CreatorRequestIdidentifies
-	// the request and allows failed requests to be retried without the risk of
-	// executing the operation twice.
+	// The date and time that the Resolver rule was created, in Unix time format
+	// and Coordinated Universal Time (UTC).
+	CreationTime *string `min:"20" type:"string"`
+
+	// A unique string that you specified when you created the Resolver rule. CreatorRequestId
+	// identifies the request and allows failed requests to be retried without the
+	// risk of executing the operation twice.
 	CreatorRequestId *string `min:"1" type:"string"`
 
 	// DNS queries for this domain name are forwarded to the IP addresses that are
-	// specified in TargetIps. If a query matches multiple resolver rules (example.com
-	// and www.example.com), the query is routed using the resolver rule that contains
+	// specified in TargetIps. If a query matches multiple Resolver rules (example.com
+	// and www.example.com), the query is routed using the Resolver rule that contains
 	// the most specific domain name (www.example.com).
 	DomainName *string `min:"1" type:"string"`
 
-	// The ID that Resolver assigned to the resolver rule when you created it.
+	// The ID that Resolver assigned to the Resolver rule when you created it.
 	Id *string `min:"1" type:"string"`
 
-	// The name for the resolver rule, which you specified when you created the
-	// resolver rule.
+	// The date and time that the Resolver rule was last updated, in Unix time format
+	// and Coordinated Universal Time (UTC).
+	ModificationTime *string `min:"20" type:"string"`
+
+	// The name for the Resolver rule, which you specified when you created the
+	// Resolver rule.
 	Name *string `type:"string"`
 
 	// When a rule is shared with another AWS account, the account ID of the account
@@ -4839,7 +7635,20 @@ type ResolverRule struct {
 	// The ID of the endpoint that the rule is associated with.
 	ResolverEndpointId *string `min:"1" type:"string"`
 
-	// This value is always FORWARD. Other resolver rule types aren't supported.
+	// When you want to forward DNS queries for specified domain name to resolvers
+	// on your network, specify FORWARD.
+	//
+	// When you have a forwarding rule to forward DNS queries for a domain to your
+	// network and you want Resolver to process queries for a subdomain of that
+	// domain, specify SYSTEM.
+	//
+	// For example, to forward DNS queries for example.com to resolvers on your
+	// network, you create a rule and specify FORWARD for RuleType. To then have
+	// Resolver process queries for apex.example.com, you create a rule and specify
+	// SYSTEM for RuleType.
+	//
+	// Currently, only Resolver can create rules that have a value of RECURSIVE
+	// for RuleType.
 	RuleType *string `type:"string" enum:"RuleTypeOption"`
 
 	// Whether the rules is shared and, if so, whether the current account is sharing
@@ -4847,13 +7656,15 @@ type ResolverRule struct {
 	// the current account.
 	ShareStatus *string `type:"string" enum:"ShareStatus"`
 
-	// A code that specifies the current status of the resolver rule.
+	// A code that specifies the current status of the Resolver rule.
 	Status *string `type:"string" enum:"ResolverRuleStatus"`
 
-	// A detailed description of the status of a resolver rule.
+	// A detailed description of the status of a Resolver rule.
 	StatusMessage *string `type:"string"`
 
-	// An array that contains the IP addresses and ports that you want to forward
+	// An array that contains the IP addresses and ports that an outbound endpoint
+	// forwards DNS queries to. Typically, these are the IP addresses of DNS resolvers
+	// on your network. Specify IPv4 addresses. IPv6 is not supported.
 	TargetIps []*TargetAddress `min:"1" type:"list"`
 }
 
@@ -4873,6 +7684,12 @@ func (s *ResolverRule) SetArn(v string) *ResolverRule {
 	return s
 }
 
+// SetCreationTime sets the CreationTime field's value.
+func (s *ResolverRule) SetCreationTime(v string) *ResolverRule {
+	s.CreationTime = &v
+	return s
+}
+
 // SetCreatorRequestId sets the CreatorRequestId field's value.
 func (s *ResolverRule) SetCreatorRequestId(v string) *ResolverRule {
 	s.CreatorRequestId = &v
@@ -4888,6 +7705,12 @@ func (s *ResolverRule) SetDomainName(v string) *ResolverRule {
 // SetId sets the Id field's value.
 func (s *ResolverRule) SetId(v string) *ResolverRule {
 	s.Id = &v
+	return s
+}
+
+// SetModificationTime sets the ModificationTime field's value.
+func (s *ResolverRule) SetModificationTime(v string) *ResolverRule {
+	s.ModificationTime = &v
 	return s
 }
 
@@ -4939,32 +7762,36 @@ func (s *ResolverRule) SetTargetIps(v []*TargetAddress) *ResolverRule {
 	return s
 }
 
-// In the response to an AssociateResolverRule, DisassociateResolverRule, or
-// ListResolverRuleAssociations request, information about an association between
-// a resolver rule and a VPC.
+// In the response to an AssociateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverRule.html),
+// DisassociateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_DisassociateResolverRule.html),
+// or ListResolverRuleAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRuleAssociations.html)
+// request, provides information about an association between a Resolver rule
+// and a VPC. The association determines which DNS queries that originate in
+// the VPC are forwarded to your network.
 type ResolverRuleAssociation struct {
 	_ struct{} `type:"structure"`
 
-	// The ID of the association between a resolver rule and a VPC. Resolver assigns
-	// this value when you submit an AssociateResolverRule request.
+	// The ID of the association between a Resolver rule and a VPC. Resolver assigns
+	// this value when you submit an AssociateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_AssociateResolverRule.html)
+	// request.
 	Id *string `min:"1" type:"string"`
 
-	// The name of an association between a resolver rule and a VPC.
+	// The name of an association between a Resolver rule and a VPC.
 	Name *string `type:"string"`
 
-	// The ID of the resolver rule that you associated with the VPC that is specified
+	// The ID of the Resolver rule that you associated with the VPC that is specified
 	// by VPCId.
 	ResolverRuleId *string `min:"1" type:"string"`
 
-	// A code that specifies the current status of the association between a resolver
+	// A code that specifies the current status of the association between a Resolver
 	// rule and a VPC.
 	Status *string `type:"string" enum:"ResolverRuleAssociationStatus"`
 
-	// A detailed description of the status of the association between a resolver
+	// A detailed description of the status of the association between a Resolver
 	// rule and a VPC.
 	StatusMessage *string `type:"string"`
 
-	// The ID of the VPC that you associated the resolver rule with.
+	// The ID of the VPC that you associated the Resolver rule with.
 	VPCId *string `min:"1" type:"string"`
 }
 
@@ -5014,16 +7841,16 @@ func (s *ResolverRuleAssociation) SetVPCId(v string) *ResolverRuleAssociation {
 	return s
 }
 
-// In an UpdateResolverRule request, information about the changes that you
-// want to make.
+// In an UpdateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_UpdateResolverRule.html)
+// request, information about the changes that you want to make.
 type ResolverRuleConfig struct {
 	_ struct{} `type:"structure"`
 
-	// The new name for the resolver rule. The name that you specify appears in
+	// The new name for the Resolver rule. The name that you specify appears in
 	// the Resolver dashboard in the Route 53 console.
 	Name *string `type:"string"`
 
-	// The ID of the new outbound resolver endpoint that you want to use to route
+	// The ID of the new outbound Resolver endpoint that you want to use to route
 	// DNS queries to the IP addresses that you specify in TargetIps.
 	ResolverEndpointId *string `min:"1" type:"string"`
 
@@ -5334,11 +8161,15 @@ type Tag struct {
 	// The name for the tag. For example, if you want to associate Resolver resources
 	// with the account IDs of your customers for billing purposes, the value of
 	// Key might be account-id.
-	Key *string `type:"string"`
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
 
 	// The value for the tag. For example, if Key is account-id, then Value might
 	// be the ID of the customer account that you're creating the resource for.
-	Value *string `type:"string"`
+	//
+	// Value is a required field
+	Value *string `type:"string" required:"true"`
 }
 
 // String returns the string representation
@@ -5349,6 +8180,25 @@ func (s Tag) String() string {
 // GoString returns the string representation
 func (s Tag) GoString() string {
 	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
 }
 
 // SetKey sets the Key field's value.
@@ -5369,17 +8219,17 @@ type TagResourceInput struct {
 	// The Amazon Resource Name (ARN) for the resource that you want to add tags
 	// to. To get the ARN for a resource, use the applicable Get or List command:
 	//
-	//    * GetResolverEndpoint
+	//    * GetResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html)
 	//
-	//    * GetResolverRule
+	//    * GetResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverRule.html)
 	//
-	//    * GetResolverRuleAssociation
+	//    * GetResolverRuleAssociation (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverRuleAssociation.html)
 	//
-	//    * ListResolverEndpoints
+	//    * ListResolverEndpoints (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverEndpoints.html)
 	//
-	//    * ListResolverRuleAssociations
+	//    * ListResolverRuleAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRuleAssociations.html)
 	//
-	//    * ListResolverRules
+	//    * ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html)
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -5411,6 +8261,16 @@ func (s *TagResourceInput) Validate() error {
 	}
 	if s.Tags == nil {
 		invalidParams.Add(request.NewErrParamRequired("Tags"))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -5445,8 +8305,8 @@ func (s TagResourceOutput) GoString() string {
 	return s.String()
 }
 
-// In a CreateResolverRule request, an array of the IPs that you want to forward
-// DNS queries to.
+// In a CreateResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_CreateResolverRule.html)
+// request, an array of the IPs that you want to forward DNS queries to.
 type TargetAddress struct {
 	_ struct{} `type:"structure"`
 
@@ -5616,17 +8476,17 @@ type UntagResourceInput struct {
 	// The Amazon Resource Name (ARN) for the resource that you want to remove tags
 	// from. To get the ARN for a resource, use the applicable Get or List command:
 	//
-	//    * GetResolverEndpoint
+	//    * GetResolverEndpoint (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverEndpoint.html)
 	//
-	//    * GetResolverRule
+	//    * GetResolverRule (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverRule.html)
 	//
-	//    * GetResolverRuleAssociation
+	//    * GetResolverRuleAssociation (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_GetResolverRuleAssociation.html)
 	//
-	//    * ListResolverEndpoints
+	//    * ListResolverEndpoints (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverEndpoints.html)
 	//
-	//    * ListResolverRuleAssociations
+	//    * ListResolverRuleAssociations (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRuleAssociations.html)
 	//
-	//    * ListResolverRules
+	//    * ListResolverRules (https://docs.aws.amazon.com/Route53/latest/APIReference/API_route53resolver_ListResolverRules.html)
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `min:"1" type:"string" required:"true"`
@@ -5695,10 +8555,10 @@ func (s UntagResourceOutput) GoString() string {
 type UpdateResolverEndpointInput struct {
 	_ struct{} `type:"structure"`
 
-	// The name of the resolver endpoint that you want to update.
+	// The name of the Resolver endpoint that you want to update.
 	Name *string `type:"string"`
 
-	// The ID of the resolver endpoint that you want to update.
+	// The ID of the Resolver endpoint that you want to update.
 	//
 	// ResolverEndpointId is a required field
 	ResolverEndpointId *string `min:"1" type:"string" required:"true"`
@@ -5768,12 +8628,12 @@ func (s *UpdateResolverEndpointOutput) SetResolverEndpoint(v *ResolverEndpoint) 
 type UpdateResolverRuleInput struct {
 	_ struct{} `type:"structure"`
 
-	// The new settings for the resolver rule.
+	// The new settings for the Resolver rule.
 	//
 	// Config is a required field
 	Config *ResolverRuleConfig `type:"structure" required:"true"`
 
-	// The ID of the resolver rule that you want to update.
+	// The ID of the Resolver rule that you want to update.
 	//
 	// ResolverRuleId is a required field
 	ResolverRuleId *string `min:"1" type:"string" required:"true"`
@@ -5880,6 +8740,22 @@ const (
 	IpAddressStatusDeleteFailedFasExpired = "DELETE_FAILED_FAS_EXPIRED"
 )
 
+// IpAddressStatus_Values returns all elements of the IpAddressStatus enum
+func IpAddressStatus_Values() []string {
+	return []string{
+		IpAddressStatusCreating,
+		IpAddressStatusFailedCreation,
+		IpAddressStatusAttaching,
+		IpAddressStatusAttached,
+		IpAddressStatusRemapDetaching,
+		IpAddressStatusRemapAttaching,
+		IpAddressStatusDetaching,
+		IpAddressStatusFailedResourceGone,
+		IpAddressStatusDeleting,
+		IpAddressStatusDeleteFailedFasExpired,
+	}
+}
+
 const (
 	// ResolverEndpointDirectionInbound is a ResolverEndpointDirection enum value
 	ResolverEndpointDirectionInbound = "INBOUND"
@@ -5887,6 +8763,14 @@ const (
 	// ResolverEndpointDirectionOutbound is a ResolverEndpointDirection enum value
 	ResolverEndpointDirectionOutbound = "OUTBOUND"
 )
+
+// ResolverEndpointDirection_Values returns all elements of the ResolverEndpointDirection enum
+func ResolverEndpointDirection_Values() []string {
+	return []string{
+		ResolverEndpointDirectionInbound,
+		ResolverEndpointDirectionOutbound,
+	}
+}
 
 const (
 	// ResolverEndpointStatusCreating is a ResolverEndpointStatus enum value
@@ -5908,6 +8792,94 @@ const (
 	ResolverEndpointStatusDeleting = "DELETING"
 )
 
+// ResolverEndpointStatus_Values returns all elements of the ResolverEndpointStatus enum
+func ResolverEndpointStatus_Values() []string {
+	return []string{
+		ResolverEndpointStatusCreating,
+		ResolverEndpointStatusOperational,
+		ResolverEndpointStatusUpdating,
+		ResolverEndpointStatusAutoRecovering,
+		ResolverEndpointStatusActionNeeded,
+		ResolverEndpointStatusDeleting,
+	}
+}
+
+const (
+	// ResolverQueryLogConfigAssociationErrorNone is a ResolverQueryLogConfigAssociationError enum value
+	ResolverQueryLogConfigAssociationErrorNone = "NONE"
+
+	// ResolverQueryLogConfigAssociationErrorDestinationNotFound is a ResolverQueryLogConfigAssociationError enum value
+	ResolverQueryLogConfigAssociationErrorDestinationNotFound = "DESTINATION_NOT_FOUND"
+
+	// ResolverQueryLogConfigAssociationErrorAccessDenied is a ResolverQueryLogConfigAssociationError enum value
+	ResolverQueryLogConfigAssociationErrorAccessDenied = "ACCESS_DENIED"
+
+	// ResolverQueryLogConfigAssociationErrorInternalServiceError is a ResolverQueryLogConfigAssociationError enum value
+	ResolverQueryLogConfigAssociationErrorInternalServiceError = "INTERNAL_SERVICE_ERROR"
+)
+
+// ResolverQueryLogConfigAssociationError_Values returns all elements of the ResolverQueryLogConfigAssociationError enum
+func ResolverQueryLogConfigAssociationError_Values() []string {
+	return []string{
+		ResolverQueryLogConfigAssociationErrorNone,
+		ResolverQueryLogConfigAssociationErrorDestinationNotFound,
+		ResolverQueryLogConfigAssociationErrorAccessDenied,
+		ResolverQueryLogConfigAssociationErrorInternalServiceError,
+	}
+}
+
+const (
+	// ResolverQueryLogConfigAssociationStatusCreating is a ResolverQueryLogConfigAssociationStatus enum value
+	ResolverQueryLogConfigAssociationStatusCreating = "CREATING"
+
+	// ResolverQueryLogConfigAssociationStatusActive is a ResolverQueryLogConfigAssociationStatus enum value
+	ResolverQueryLogConfigAssociationStatusActive = "ACTIVE"
+
+	// ResolverQueryLogConfigAssociationStatusActionNeeded is a ResolverQueryLogConfigAssociationStatus enum value
+	ResolverQueryLogConfigAssociationStatusActionNeeded = "ACTION_NEEDED"
+
+	// ResolverQueryLogConfigAssociationStatusDeleting is a ResolverQueryLogConfigAssociationStatus enum value
+	ResolverQueryLogConfigAssociationStatusDeleting = "DELETING"
+
+	// ResolverQueryLogConfigAssociationStatusFailed is a ResolverQueryLogConfigAssociationStatus enum value
+	ResolverQueryLogConfigAssociationStatusFailed = "FAILED"
+)
+
+// ResolverQueryLogConfigAssociationStatus_Values returns all elements of the ResolverQueryLogConfigAssociationStatus enum
+func ResolverQueryLogConfigAssociationStatus_Values() []string {
+	return []string{
+		ResolverQueryLogConfigAssociationStatusCreating,
+		ResolverQueryLogConfigAssociationStatusActive,
+		ResolverQueryLogConfigAssociationStatusActionNeeded,
+		ResolverQueryLogConfigAssociationStatusDeleting,
+		ResolverQueryLogConfigAssociationStatusFailed,
+	}
+}
+
+const (
+	// ResolverQueryLogConfigStatusCreating is a ResolverQueryLogConfigStatus enum value
+	ResolverQueryLogConfigStatusCreating = "CREATING"
+
+	// ResolverQueryLogConfigStatusCreated is a ResolverQueryLogConfigStatus enum value
+	ResolverQueryLogConfigStatusCreated = "CREATED"
+
+	// ResolverQueryLogConfigStatusDeleting is a ResolverQueryLogConfigStatus enum value
+	ResolverQueryLogConfigStatusDeleting = "DELETING"
+
+	// ResolverQueryLogConfigStatusFailed is a ResolverQueryLogConfigStatus enum value
+	ResolverQueryLogConfigStatusFailed = "FAILED"
+)
+
+// ResolverQueryLogConfigStatus_Values returns all elements of the ResolverQueryLogConfigStatus enum
+func ResolverQueryLogConfigStatus_Values() []string {
+	return []string{
+		ResolverQueryLogConfigStatusCreating,
+		ResolverQueryLogConfigStatusCreated,
+		ResolverQueryLogConfigStatusDeleting,
+		ResolverQueryLogConfigStatusFailed,
+	}
+}
+
 const (
 	// ResolverRuleAssociationStatusCreating is a ResolverRuleAssociationStatus enum value
 	ResolverRuleAssociationStatusCreating = "CREATING"
@@ -5925,6 +8897,17 @@ const (
 	ResolverRuleAssociationStatusOverridden = "OVERRIDDEN"
 )
 
+// ResolverRuleAssociationStatus_Values returns all elements of the ResolverRuleAssociationStatus enum
+func ResolverRuleAssociationStatus_Values() []string {
+	return []string{
+		ResolverRuleAssociationStatusCreating,
+		ResolverRuleAssociationStatusComplete,
+		ResolverRuleAssociationStatusDeleting,
+		ResolverRuleAssociationStatusFailed,
+		ResolverRuleAssociationStatusOverridden,
+	}
+}
+
 const (
 	// ResolverRuleStatusComplete is a ResolverRuleStatus enum value
 	ResolverRuleStatusComplete = "COMPLETE"
@@ -5939,6 +8922,16 @@ const (
 	ResolverRuleStatusFailed = "FAILED"
 )
 
+// ResolverRuleStatus_Values returns all elements of the ResolverRuleStatus enum
+func ResolverRuleStatus_Values() []string {
+	return []string{
+		ResolverRuleStatusComplete,
+		ResolverRuleStatusDeleting,
+		ResolverRuleStatusUpdating,
+		ResolverRuleStatusFailed,
+	}
+}
+
 const (
 	// RuleTypeOptionForward is a RuleTypeOption enum value
 	RuleTypeOptionForward = "FORWARD"
@@ -5950,6 +8943,15 @@ const (
 	RuleTypeOptionRecursive = "RECURSIVE"
 )
 
+// RuleTypeOption_Values returns all elements of the RuleTypeOption enum
+func RuleTypeOption_Values() []string {
+	return []string{
+		RuleTypeOptionForward,
+		RuleTypeOptionSystem,
+		RuleTypeOptionRecursive,
+	}
+}
+
 const (
 	// ShareStatusNotShared is a ShareStatus enum value
 	ShareStatusNotShared = "NOT_SHARED"
@@ -5960,3 +8962,28 @@ const (
 	// ShareStatusSharedByMe is a ShareStatus enum value
 	ShareStatusSharedByMe = "SHARED_BY_ME"
 )
+
+// ShareStatus_Values returns all elements of the ShareStatus enum
+func ShareStatus_Values() []string {
+	return []string{
+		ShareStatusNotShared,
+		ShareStatusSharedWithMe,
+		ShareStatusSharedByMe,
+	}
+}
+
+const (
+	// SortOrderAscending is a SortOrder enum value
+	SortOrderAscending = "ASCENDING"
+
+	// SortOrderDescending is a SortOrder enum value
+	SortOrderDescending = "DESCENDING"
+)
+
+// SortOrder_Values returns all elements of the SortOrder enum
+func SortOrder_Values() []string {
+	return []string{
+		SortOrderAscending,
+		SortOrderDescending,
+	}
+}

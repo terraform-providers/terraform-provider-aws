@@ -20,12 +20,12 @@ resource "aws_api_gateway_rest_api" "myapi" {
 # ...
 
 resource "aws_api_gateway_deployment" "dev" {
-  rest_api_id = "${aws_api_gateway_rest_api.myapi.id}"
+  rest_api_id = aws_api_gateway_rest_api.myapi.id
   stage_name  = "dev"
 }
 
 resource "aws_api_gateway_deployment" "prod" {
-  rest_api_id = "${aws_api_gateway_rest_api.myapi.id}"
+  rest_api_id = aws_api_gateway_rest_api.myapi.id
   stage_name  = "prod"
 }
 
@@ -35,13 +35,13 @@ resource "aws_api_gateway_usage_plan" "MyUsagePlan" {
   product_code = "MYCODE"
 
   api_stages {
-    api_id = "${aws_api_gateway_rest_api.myapi.id}"
-    stage  = "${aws_api_gateway_deployment.dev.stage_name}"
+    api_id = aws_api_gateway_rest_api.myapi.id
+    stage  = aws_api_gateway_deployment.dev.stage_name
   }
 
   api_stages {
-    api_id = "${aws_api_gateway_rest_api.myapi.id}"
-    stage  = "${aws_api_gateway_deployment.prod.stage_name}"
+    api_id = aws_api_gateway_rest_api.myapi.id
+    stage  = aws_api_gateway_deployment.prod.stage_name
   }
 
   quota_settings {
@@ -73,19 +73,19 @@ The API Gateway Usage Plan argument layout is a structure composed of several su
 
 #### Api Stages arguments
 
-  * `api_id` (Required) - API Id of the associated API stage in a usage plan.
-  * `stage` (Required) - API stage name of the associated API stage in a usage plan.
+* `api_id` (Required) - API Id of the associated API stage in a usage plan.
+* `stage` (Required) - API stage name of the associated API stage in a usage plan.
 
 #### Quota Settings Arguments
 
-  * `limit` (Optional) - The maximum number of requests that can be made in a given time period.
-  * `offset` (Optional) - The number of requests subtracted from the given limit in the initial time period.
-  * `period` (Optional) - The time period in which the limit applies. Valid values are "DAY", "WEEK" or "MONTH".
+* `limit` (Optional) - The maximum number of requests that can be made in a given time period.
+* `offset` (Optional) - The number of requests subtracted from the given limit in the initial time period.
+* `period` (Optional) - The time period in which the limit applies. Valid values are "DAY", "WEEK" or "MONTH".
 
 #### Throttling Settings Arguments
 
-  * `burst_limit` (Optional) - The API request burst limit, the maximum rate limit over a time ranging from one to a few seconds, depending upon whether the underlying token bucket is at its full capacity.
-  * `rate_limit` (Optional) - The API request steady-state rate limit.
+* `burst_limit` (Optional) - The API request burst limit, the maximum rate limit over a time ranging from one to a few seconds, depending upon whether the underlying token bucket is at its full capacity.
+* `rate_limit` (Optional) - The API request steady-state rate limit.
 
 ## Attributes Reference
 

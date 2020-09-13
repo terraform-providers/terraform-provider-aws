@@ -20,18 +20,18 @@ an LB Target Group for use in other resources, given LB Target Group name.
 
 ```hcl
 variable "lb_tg_arn" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 variable "lb_tg_name" {
-  type    = "string"
+  type    = string
   default = ""
 }
 
 data "aws_lb_target_group" "test" {
-  arn  = "${var.lb_tg_arn}"
-  name = "${var.lb_tg_name}"
+  arn  = var.lb_tg_arn
+  name = var.lb_tg_name
 }
 ```
 

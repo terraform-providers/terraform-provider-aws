@@ -28,7 +28,7 @@ resource "aws_db_instance" "bar" {
 }
 
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.bar.id}"
+  db_instance_identifier = aws_db_instance.bar.id
   db_snapshot_identifier = "testsnapshot1234"
 }
 ```

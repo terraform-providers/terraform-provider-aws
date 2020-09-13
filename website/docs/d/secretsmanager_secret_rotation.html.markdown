@@ -16,7 +16,7 @@ Retrieve information about a Secrets Manager secret rotation. To retrieve secret
 
 ```hcl
 data "aws_secretsmanager_secret_rotation" "example" {
-  secret_id = "${data.aws_secretsmanager_secret.example.id}"
+  secret_id = data.aws_secretsmanager_secret.example.id
 }
 ```
 

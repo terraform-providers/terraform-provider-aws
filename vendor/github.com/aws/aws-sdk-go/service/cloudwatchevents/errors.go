@@ -49,6 +49,12 @@ const (
 	// or UntagResource.
 	ErrCodeManagedRuleException = "ManagedRuleException"
 
+	// ErrCodeOperationDisabledException for service response error code
+	// "OperationDisabledException".
+	//
+	// The operation you are attempting is not available in this region.
+	ErrCodeOperationDisabledException = "OperationDisabledException"
+
 	// ErrCodePolicyLengthExceededException for service response error code
 	// "PolicyLengthExceededException".
 	//
@@ -75,6 +81,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidStateException":           newErrorInvalidStateException,
 	"LimitExceededException":          newErrorLimitExceededException,
 	"ManagedRuleException":            newErrorManagedRuleException,
+	"OperationDisabledException":      newErrorOperationDisabledException,
 	"PolicyLengthExceededException":   newErrorPolicyLengthExceededException,
 	"ResourceAlreadyExistsException":  newErrorResourceAlreadyExistsException,
 	"ResourceNotFoundException":       newErrorResourceNotFoundException,

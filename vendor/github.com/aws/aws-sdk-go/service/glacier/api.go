@@ -8986,6 +8986,15 @@ const (
 	ActionCodeSelect = "Select"
 )
 
+// ActionCode_Values returns all elements of the ActionCode enum
+func ActionCode_Values() []string {
+	return []string{
+		ActionCodeArchiveRetrieval,
+		ActionCodeInventoryRetrieval,
+		ActionCodeSelect,
+	}
+}
+
 const (
 	// CannedACLPrivate is a CannedACL enum value
 	CannedACLPrivate = "private"
@@ -9009,6 +9018,19 @@ const (
 	CannedACLBucketOwnerFullControl = "bucket-owner-full-control"
 )
 
+// CannedACL_Values returns all elements of the CannedACL enum
+func CannedACL_Values() []string {
+	return []string{
+		CannedACLPrivate,
+		CannedACLPublicRead,
+		CannedACLPublicReadWrite,
+		CannedACLAwsExecRead,
+		CannedACLAuthenticatedRead,
+		CannedACLBucketOwnerRead,
+		CannedACLBucketOwnerFullControl,
+	}
+}
+
 const (
 	// EncryptionTypeAwsKms is a EncryptionType enum value
 	EncryptionTypeAwsKms = "aws:kms"
@@ -9017,10 +9039,25 @@ const (
 	EncryptionTypeAes256 = "AES256"
 )
 
+// EncryptionType_Values returns all elements of the EncryptionType enum
+func EncryptionType_Values() []string {
+	return []string{
+		EncryptionTypeAwsKms,
+		EncryptionTypeAes256,
+	}
+}
+
 const (
 	// ExpressionTypeSql is a ExpressionType enum value
 	ExpressionTypeSql = "SQL"
 )
+
+// ExpressionType_Values returns all elements of the ExpressionType enum
+func ExpressionType_Values() []string {
+	return []string{
+		ExpressionTypeSql,
+	}
+}
 
 const (
 	// FileHeaderInfoUse is a FileHeaderInfo enum value
@@ -9032,6 +9069,15 @@ const (
 	// FileHeaderInfoNone is a FileHeaderInfo enum value
 	FileHeaderInfoNone = "NONE"
 )
+
+// FileHeaderInfo_Values returns all elements of the FileHeaderInfo enum
+func FileHeaderInfo_Values() []string {
+	return []string{
+		FileHeaderInfoUse,
+		FileHeaderInfoIgnore,
+		FileHeaderInfoNone,
+	}
+}
 
 const (
 	// PermissionFullControl is a Permission enum value
@@ -9050,6 +9096,17 @@ const (
 	PermissionReadAcp = "READ_ACP"
 )
 
+// Permission_Values returns all elements of the Permission enum
+func Permission_Values() []string {
+	return []string{
+		PermissionFullControl,
+		PermissionWrite,
+		PermissionWriteAcp,
+		PermissionRead,
+		PermissionReadAcp,
+	}
+}
+
 const (
 	// QuoteFieldsAlways is a QuoteFields enum value
 	QuoteFieldsAlways = "ALWAYS"
@@ -9057,6 +9114,14 @@ const (
 	// QuoteFieldsAsneeded is a QuoteFields enum value
 	QuoteFieldsAsneeded = "ASNEEDED"
 )
+
+// QuoteFields_Values returns all elements of the QuoteFields enum
+func QuoteFields_Values() []string {
+	return []string{
+		QuoteFieldsAlways,
+		QuoteFieldsAsneeded,
+	}
+}
 
 const (
 	// StatusCodeInProgress is a StatusCode enum value
@@ -9069,6 +9134,15 @@ const (
 	StatusCodeFailed = "Failed"
 )
 
+// StatusCode_Values returns all elements of the StatusCode enum
+func StatusCode_Values() []string {
+	return []string{
+		StatusCodeInProgress,
+		StatusCodeSucceeded,
+		StatusCodeFailed,
+	}
+}
+
 const (
 	// StorageClassStandard is a StorageClass enum value
 	StorageClassStandard = "STANDARD"
@@ -9080,6 +9154,15 @@ const (
 	StorageClassStandardIa = "STANDARD_IA"
 )
 
+// StorageClass_Values returns all elements of the StorageClass enum
+func StorageClass_Values() []string {
+	return []string{
+		StorageClassStandard,
+		StorageClassReducedRedundancy,
+		StorageClassStandardIa,
+	}
+}
+
 const (
 	// TypeAmazonCustomerByEmail is a Type enum value
 	TypeAmazonCustomerByEmail = "AmazonCustomerByEmail"
@@ -9090,3 +9173,12 @@ const (
 	// TypeGroup is a Type enum value
 	TypeGroup = "Group"
 )
+
+// Type_Values returns all elements of the Type enum
+func Type_Values() []string {
+	return []string{
+		TypeAmazonCustomerByEmail,
+		TypeCanonicalUser,
+		TypeGroup,
+	}
+}

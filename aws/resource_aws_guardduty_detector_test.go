@@ -9,14 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_guardduty_detector", &resource.Sweeper{
-		Name: "aws_guardduty_detector",
-		F:    testSweepGuarddutyDetectors,
+		Name:         "aws_guardduty_detector",
+		F:            testSweepGuarddutyDetectors,
+		Dependencies: []string{"aws_guardduty_publishing_destination"},
 	})
 }
 
@@ -192,22 +193,26 @@ func testAccCheckAwsGuardDutyDetectorExists(name string) resource.TestCheckFunc 
 }
 
 const testAccGuardDutyDetectorConfig_basic1 = `
-resource "aws_guardduty_detector" "test" {}`
+resource "aws_guardduty_detector" "test" {}
+`
 
 const testAccGuardDutyDetectorConfig_basic2 = `
 resource "aws_guardduty_detector" "test" {
   enable = false
-}`
+}
+`
 
 const testAccGuardDutyDetectorConfig_basic3 = `
 resource "aws_guardduty_detector" "test" {
   enable = true
-}`
+}
+`
 
 const testAccGuardDutyDetectorConfig_basic4 = `
 resource "aws_guardduty_detector" "test" {
   finding_publishing_frequency = "FIFTEEN_MINUTES"
-}`
+}
+`
 
 func testAccGuardDutyDetectorConfigTags1(tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`

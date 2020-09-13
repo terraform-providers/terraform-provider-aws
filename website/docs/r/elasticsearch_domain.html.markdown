@@ -47,7 +47,7 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 resource "aws_elasticsearch_domain" "example" {
-  domain_name = "${var.domain}"
+  domain_name = var.domain
 
   # ... other configuration ...
 
@@ -105,7 +105,7 @@ resource "aws_elasticsearch_domain" "example" {
   # .. other configuration ...
 
   log_publishing_options {
-    cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.example.arn}"
+    cloudwatch_log_group_arn = aws_cloudwatch_log_group.example.arn
     log_type                 = "INDEX_SLOW_LOGS"
   }
 }
@@ -122,12 +122,12 @@ variable "domain" {
 
 data "aws_vpc" "selected" {
   tags = {
-    Name = "${var.vpc}"
+    Name = var.vpc
   }
 }
 
 data "aws_subnet_ids" "selected" {
-  vpc_id = "${data.aws_vpc.selected.id}"
+  vpc_id = data.aws_vpc.selected.id
 
   tags = {
     Tier = "private"
@@ -141,7 +141,7 @@ data "aws_caller_identity" "current" {}
 resource "aws_security_group" "es" {
   name        = "${var.vpc}-elasticsearch-${var.domain}"
   description = "Managed by Terraform"
-  vpc_id      = "${data.aws_vpc.selected.id}"
+  vpc_id      = data.aws_vpc.selected.id
 
   ingress {
     from_port = 443
@@ -149,7 +149,7 @@ resource "aws_security_group" "es" {
     protocol  = "tcp"
 
     cidr_blocks = [
-      "${data.aws_vpc.selected.cidr_block}",
+      data.aws_vpc.selected.cidr_block,
     ]
   }
 }
@@ -159,7 +159,7 @@ resource "aws_iam_service_linked_role" "es" {
 }
 
 resource "aws_elasticsearch_domain" "es" {
-  domain_name           = "${var.domain}"
+  domain_name           = var.domain
   elasticsearch_version = "6.3"
 
   cluster_config {
@@ -168,11 +168,11 @@ resource "aws_elasticsearch_domain" "es" {
 
   vpc_options {
     subnet_ids = [
-      "${data.aws_subnet_ids.selected.ids[0]}",
-      "${data.aws_subnet_ids.selected.ids[1]}",
+      data.aws_subnet_ids.selected.ids[0],
+      data.aws_subnet_ids.selected.ids[1],
     ]
 
-    security_group_ids = ["${aws_security_group.es.id}"]
+    security_group_ids = [aws_security_group.es.id]
   }
 
   advanced_options = {
@@ -201,9 +201,7 @@ CONFIG
     Domain = "TestDomain"
   }
 
-  depends_on = [
-    "aws_iam_service_linked_role.es",
-  ]
+  depends_on = [aws_iam_service_linked_role.es]
 }
 ```
 
@@ -217,16 +215,26 @@ The following arguments are supported:
    Note that the values for these configuration options must be strings (wrapped in quotes) or they
    may be wrong and cause a perpetual diff, causing Terraform to want to recreate your Elasticsearch
    domain on every apply.
+* `advanced_security_options` - (Optional) Options for [fine-grained access control](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/fgac.html). See below for more details.
 * `ebs_options` - (Optional) EBS related options, may be required based on chosen [instance size](https://aws.amazon.com/elasticsearch-service/pricing/). See below.
 * `encrypt_at_rest` - (Optional) Encrypt at rest options. Only available for [certain instance types](http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-supported-instance-types.html). See below.
 * `node_to_node_encryption` - (Optional) Node-to-node encryption options. See below.
 * `cluster_config` - (Optional) Cluster configuration of the domain, see below.
 * `snapshot_options` - (Optional) Snapshot related options, see below.
 * `vpc_options` - (Optional) VPC related options, see below. Adding or removing this configuration forces a new resource ([documentation](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-limitations)).
-* `log_publishing_options` - (Optional) Options for publishing slow logs to CloudWatch Logs.
+* `log_publishing_options` - (Optional) Options for publishing slow  and application logs to CloudWatch Logs. This block can be declared multiple times, for each log_type, within the same resource.
 * `elasticsearch_version` - (Optional) The version of Elasticsearch to deploy. Defaults to `1.5`
 * `domain_endpoint_options` - (Optional) Domain endpoint HTTP(S) related options. See below.
 * `tags` - (Optional) A map of tags to assign to the resource
+
+The **advanced_security_options** block supports the following attributes:
+
+* `enabled` - (Required, Forces new resource) Whether advanced security is enabled
+* `internal_user_database_enabled` - (Optional, Default: false) Whether the internal user database is enabled. If not set, defaults to `false` by the AWS API.
+* `master_user_options` - (Optional) Credentials for the master user: username and password, or ARN
+    * `master_user_arn` - (Optional) ARN for the master user. Only specify if `internal_user_database_enabled` is not set or set to `false`)
+    * `master_user_name` - (Optional) The master user's username, which is stored in the Amazon Elasticsearch Service domain's internal database. Only specify if `internal_user_database_enabled` is set to `true`.
+    * `master_user_password` - (Optional) The master user's password, which is stored in the Amazon Elasticsearch Service domain's internal database. Only specify if `internal_user_database_enabled` is set to `true`.
 
 **ebs_options** supports the following attributes:
 

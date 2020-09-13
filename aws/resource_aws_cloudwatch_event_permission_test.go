@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -67,7 +67,7 @@ func testSweepCloudWatchEventPermissions(region string) error {
 	return nil
 }
 
-func TestAccAWSCloudWatchEventPermission_Basic(t *testing.T) {
+func TestAccAWSCloudWatchEventPermission_basic(t *testing.T) {
 	principal1 := "111111111111"
 	principal2 := "*"
 	statementID := acctest.RandomWithPrefix(t.Name())

@@ -915,8 +915,12 @@ func (c *ConfigService) DeleteOrganizationConfigRuleRequest(input *DeleteOrganiz
 // DeleteOrganizationConfigRule API operation for AWS Config.
 //
 // Deletes the specified organization config rule and all of its evaluation
-// results from all member accounts in that organization. Only a master account
-// can delete an organization config rule.
+// results from all member accounts in that organization.
+//
+// Only a master account and a delegated administrator account can delete an
+// organization config rule. When calling this API with a delegated administrator,
+// you must ensure AWS Organizations ListDelegatedAdministrator permissions
+// are added.
 //
 // AWS Config sets the state of a rule to DELETE_IN_PROGRESS until the deletion
 // is complete. You cannot update a rule while it is in this state.
@@ -1036,7 +1040,11 @@ func (c *ConfigService) DeleteOrganizationConformancePackRequest(input *DeleteOr
 //
 // Deletes the specified organization conformance pack and all of the config
 // rules and remediation actions from all member accounts in that organization.
-// Only a master account can delete an organization conformance pack.
+//
+// Only a master account or a delegated administrator account can delete an
+// organization conformance pack. When calling this API with a delegated administrator,
+// you must ensure AWS Organizations ListDelegatedAdministrator permissions
+// are added.
 //
 // AWS Config sets the state of a conformance pack to DELETE_IN_PROGRESS until
 // the deletion is complete. You cannot update a conformance pack while it is
@@ -1342,6 +1350,10 @@ func (c *ConfigService) DeleteRemediationExceptionsRequest(input *DeleteRemediat
 // DeleteRemediationExceptions API operation for AWS Config.
 //
 // Deletes one or more remediation exceptions mentioned in the resource keys.
+//
+// AWS Config generates a remediation exception when a problem occurs executing
+// a remediation action to a specific resource. Remediation exceptions blocks
+// auto-remediation until the exception is cleared.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2727,6 +2739,10 @@ func (c *ConfigService) DescribeConformancePackStatusRequest(input *DescribeConf
 //   The specified next token is invalid. Specify the nextToken string that was
 //   returned in the previous response to get the next page of results.
 //
+//   * InvalidParameterValueException
+//   One or more of the specified parameters are invalid. Verify that your parameters
+//   are valid and try again.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/config-2014-11-12/DescribeConformancePackStatus
 func (c *ConfigService) DescribeConformancePackStatus(input *DescribeConformancePackStatusInput) (*DescribeConformancePackStatusOutput, error) {
 	req, out := c.DescribeConformancePackStatusRequest(input)
@@ -2812,6 +2828,10 @@ func (c *ConfigService) DescribeConformancePacksRequest(input *DescribeConforman
 //   * InvalidNextTokenException
 //   The specified next token is invalid. Specify the nextToken string that was
 //   returned in the previous response to get the next page of results.
+//
+//   * InvalidParameterValueException
+//   One or more of the specified parameters are invalid. Verify that your parameters
+//   are valid and try again.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/config-2014-11-12/DescribeConformancePacks
 func (c *ConfigService) DescribeConformancePacks(input *DescribeConformancePacksInput) (*DescribeConformancePacksOutput, error) {
@@ -3047,6 +3067,10 @@ func (c *ConfigService) DescribeOrganizationConfigRuleStatusesRequest(input *Des
 //
 // Provides organization config rule deployment status for an organization.
 //
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
+//
 // The status is not considered successful until organization config rule is
 // successfully deployed in all the member accounts with an exception of excluded
 // accounts.
@@ -3055,8 +3079,6 @@ func (c *ConfigService) DescribeOrganizationConfigRuleStatusesRequest(input *Des
 // Limit and next token are not applicable if you specify organization config
 // rule names. It is only applicable, when you request all the organization
 // config rules.
-//
-// Only a master account can call this API.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3152,12 +3174,14 @@ func (c *ConfigService) DescribeOrganizationConfigRulesRequest(input *DescribeOr
 //
 // Returns a list of organization config rules.
 //
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
+//
 // When you specify the limit and the next token, you receive a paginated response.
 // Limit and next token are not applicable if you specify organization config
 // rule names. It is only applicable, when you request all the organization
 // config rules.
-//
-// Only a master account can call this API.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3253,6 +3277,10 @@ func (c *ConfigService) DescribeOrganizationConformancePackStatusesRequest(input
 //
 // Provides organization conformance pack deployment status for an organization.
 //
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
+//
 // The status is not considered successful until organization conformance pack
 // is successfully deployed in all the member accounts with an exception of
 // excluded accounts.
@@ -3261,8 +3289,6 @@ func (c *ConfigService) DescribeOrganizationConformancePackStatusesRequest(input
 // Limit and next token are not applicable if you specify organization conformance
 // pack names. They are only applicable, when you request all the organization
 // conformance packs.
-//
-// Only a master account can call this API.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3362,13 +3388,15 @@ func (c *ConfigService) DescribeOrganizationConformancePacksRequest(input *Descr
 //
 // Returns a list of organization conformance packs.
 //
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
+//
 // When you specify the limit and the next token, you receive a paginated response.
 //
 // Limit and next token are not applicable if you specify organization conformance
 // packs names. They are only applicable, when you request all the organization
 // conformance packs.
-//
-// Only a master account can call this API.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3637,6 +3665,10 @@ func (c *ConfigService) DescribeRemediationExceptionsRequest(input *DescribeReme
 // of a remediation exception for a set of resources that includes an explanation
 // of an exception and the time when the exception will be deleted. When you
 // specify the limit and the next token, you receive a paginated response.
+//
+// AWS Config generates a remediation exception when a problem occurs executing
+// a remediation action to a specific resource. Remediation exceptions blocks
+// auto-remediation until the exception is cleared.
 //
 // When you specify the limit and the next token, you receive a paginated response.
 //
@@ -5019,7 +5051,9 @@ func (c *ConfigService) GetOrganizationConfigRuleDetailedStatusRequest(input *Ge
 // Returns detailed status for each member account within an organization for
 // a given organization config rule.
 //
-// Only a master account can call this API.
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -5116,7 +5150,9 @@ func (c *ConfigService) GetOrganizationConformancePackDetailedStatusRequest(inpu
 // Returns detailed status for each member account within an organization for
 // a given organization conformance pack.
 //
-// Only a master account can call this API.
+// Only a master account and a delegated administrator account can call this
+// API. When calling this API with a delegated administrator, you must ensure
+// AWS Organizations ListDelegatedAdministrator permissions are added.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6143,8 +6179,7 @@ func (c *ConfigService) PutConformancePackRequest(input *PutConformancePackInput
 //
 // This API creates a service linked role AWSServiceRoleForConfigConforms in
 // your account. The service linked role is created only when the role does
-// not exist in your account. AWS Config verifies the existence of role with
-// GetRole action.
+// not exist in your account.
 //
 // You must specify either the TemplateS3Uri or the TemplateBody parameter,
 // but not both. If you provide both AWS Config uses the TemplateS3Uri parameter
@@ -6481,25 +6516,36 @@ func (c *ConfigService) PutOrganizationConfigRuleRequest(input *PutOrganizationC
 // PutOrganizationConfigRule API operation for AWS Config.
 //
 // Adds or updates organization config rule for your entire organization evaluating
-// whether your AWS resources comply with your desired configurations. Only
-// a master account can create or update an organization config rule.
+// whether your AWS resources comply with your desired configurations.
+//
+// Only a master account and a delegated administrator can create or update
+// an organization config rule. When calling this API with a delegated administrator,
+// you must ensure AWS Organizations ListDelegatedAdministrator permissions
+// are added.
 //
 // This API enables organization service access through the EnableAWSServiceAccess
 // action and creates a service linked role AWSServiceRoleForConfigMultiAccountSetup
-// in the master account of your organization. The service linked role is created
-// only when the role does not exist in the master account. AWS Config verifies
-// the existence of role with GetRole action.
+// in the master or delegated administrator account of your organization. The
+// service linked role is created only when the role does not exist in the caller
+// account. AWS Config verifies the existence of role with GetRole action.
+//
+// To use this API with delegated administrator, register a delegated administrator
+// by calling AWS Organization register-delegated-administrator for config-multiaccountsetup.amazonaws.com.
 //
 // You can use this action to create both custom AWS Config rules and AWS managed
 // Config rules. If you are adding a new custom AWS Config rule, you must first
-// create AWS Lambda function in the master account that the rule invokes to
-// evaluate your resources. When you use the PutOrganizationConfigRule action
-// to add the rule to AWS Config, you must specify the Amazon Resource Name
-// (ARN) that AWS Lambda assigns to the function. If you are adding an AWS managed
-// Config rule, specify the rule's identifier for the RuleIdentifier key.
+// create AWS Lambda function in the master account or a delegated administrator
+// that the rule invokes to evaluate your resources. When you use the PutOrganizationConfigRule
+// action to add the rule to AWS Config, you must specify the Amazon Resource
+// Name (ARN) that AWS Lambda assigns to the function. If you are adding an
+// AWS managed Config rule, specify the rule's identifier for the RuleIdentifier
+// key.
 //
 // The maximum number of organization config rules that AWS Config supports
-// is 150.
+// is 150 and 3 delegated administrator per organization.
+//
+// Prerequisite: Ensure you call EnableAllFeatures API to enable all features
+// in an organization.
 //
 // Specify either OrganizationCustomRuleMetadata or OrganizationManagedRuleMetadata.
 //
@@ -6649,21 +6695,31 @@ func (c *ConfigService) PutOrganizationConformancePackRequest(input *PutOrganiza
 //
 // Deploys conformance packs across member accounts in an AWS Organization.
 //
+// Only a master account and a delegated administrator can call this API. When
+// calling this API with a delegated administrator, you must ensure AWS Organizations
+// ListDelegatedAdministrator permissions are added.
+//
 // This API enables organization service access for config-multiaccountsetup.amazonaws.com
 // through the EnableAWSServiceAccess action and creates a service linked role
-// AWSServiceRoleForConfigMultiAccountSetup in the master account of your organization.
-// The service linked role is created only when the role does not exist in the
-// master account. AWS Config verifies the existence of role with GetRole action.
+// AWSServiceRoleForConfigMultiAccountSetup in the master or delegated administrator
+// account of your organization. The service linked role is created only when
+// the role does not exist in the caller account. To use this API with delegated
+// administrator, register a delegated administrator by calling AWS Organization
+// register-delegate-admin for config-multiaccountsetup.amazonaws.com.
+//
+// Prerequisite: Ensure you call EnableAllFeatures API to enable all features
+// in an organization.
 //
 // You must specify either the TemplateS3Uri or the TemplateBody parameter,
 // but not both. If you provide both AWS Config uses the TemplateS3Uri parameter
 // and ignores the TemplateBody parameter.
 //
 // AWS Config sets the state of a conformance pack to CREATE_IN_PROGRESS and
-// UPDATE_IN_PROGRESS until the confomance pack is created or updated. You cannot
-// update a conformance pack while it is in this state.
+// UPDATE_IN_PROGRESS until the conformance pack is created or updated. You
+// cannot update a conformance pack while it is in this state.
 //
-// You can create 6 conformance packs with 25 AWS Config rules in each pack.
+// You can create 6 conformance packs with 25 AWS Config rules in each pack
+// and 3 delegated administrator per organization.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -6815,6 +6871,9 @@ func (c *ConfigService) PutRemediationConfigurationsRequest(input *PutRemediatio
 // you to add a remediation configuration. The target (SSM document) must exist
 // and have permissions to use the target.
 //
+// If you make backward incompatible changes to the SSM document, you must call
+// this again to ensure the remediations can run.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -6914,6 +6973,10 @@ func (c *ConfigService) PutRemediationExceptionsRequest(input *PutRemediationExc
 // for auto-remediation. This API adds a new exception or updates an exisiting
 // exception for a specific resource with a specific AWS Config rule.
 //
+// AWS Config generates a remediation exception when a problem occurs executing
+// a remediation action to a specific resource. Remediation exceptions blocks
+// auto-remediation until the exception is cleared.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -6925,6 +6988,23 @@ func (c *ConfigService) PutRemediationExceptionsRequest(input *PutRemediationExc
 //   * InvalidParameterValueException
 //   One or more of the specified parameters are invalid. Verify that your parameters
 //   are valid and try again.
+//
+//   * InsufficientPermissionsException
+//   Indicates one of the following errors:
+//
+//      * For PutConfigRule, the rule cannot be created because the IAM role assigned
+//      to AWS Config lacks permissions to perform the config:Put* action.
+//
+//      * For PutConfigRule, the AWS Lambda function cannot be invoked. Check
+//      the function ARN, and check the function's permissions.
+//
+//      * For PutOrganizationConfigRule, organization config rule cannot be created
+//      because you do not have permissions to call IAM GetRole action or create
+//      a service linked role.
+//
+//      * For PutConformancePack and PutOrganizationConformancePack, a conformance
+//      pack cannot be created because you do not have permissions: To call IAM
+//      GetRole action or create a service linked role. To read Amazon S3 bucket.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/config-2014-11-12/PutRemediationExceptions
 func (c *ConfigService) PutRemediationExceptions(input *PutRemediationExceptionsInput) (*PutRemediationExceptionsOutput, error) {
@@ -7005,6 +7085,9 @@ func (c *ConfigService) PutResourceConfigRequest(input *PutResourceConfigInput) 
 // When you call this API, AWS Config only stores configuration state of the
 // resource provided in the request. This API does not change or remediate the
 // configuration of the resource.
+//
+// Write-only schema properites are not recorded as part of the published configuration
+// item.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -8489,7 +8572,23 @@ type BaseConfigurationItem struct {
 	// The time when the configuration recording was initiated.
 	ConfigurationItemCaptureTime *time.Time `locationName:"configurationItemCaptureTime" type:"timestamp"`
 
-	// The configuration item status.
+	// The configuration item status. The valid values are:
+	//
+	//    * OK – The resource configuration has been updated
+	//
+	//    * ResourceDiscovered – The resource was newly discovered
+	//
+	//    * ResourceNotRecorded – The resource was discovered but its configuration
+	//    was not recorded since the recorder excludes the recording of resources
+	//    of this type
+	//
+	//    * ResourceDeleted – The resource was deleted
+	//
+	//    * ResourceDeletedNotRecorded – The resource was deleted but its configuration
+	//    was not recorded since the recorder excludes the recording of resources
+	//    of this type
+	//
+	// The CIs do not incur any cost.
 	ConfigurationItemStatus *string `locationName:"configurationItemStatus" type:"string" enum:"ConfigurationItemStatus"`
 
 	// An identifier that indicates the ordering of the configuration items of a
@@ -9190,6 +9289,8 @@ type ConfigRule struct {
 	// to constrain the resources that can trigger an evaluation for the rule. If
 	// you do not specify a scope, evaluations are triggered when any resource in
 	// the recording group changes.
+	//
+	// The scope can be empty.
 	Scope *Scope `type:"structure"`
 
 	// Provides the rule owner (AWS or customer), the rule identifier, and the notifications
@@ -9455,6 +9556,7 @@ type ConfigRuleEvaluationStatus struct {
 	//    against the rule.
 	FirstEvaluationStarted *bool `type:"boolean"`
 
+	// The time that you last turned off the AWS Config rule.
 	LastDeactivatedTime *time.Time `type:"timestamp"`
 
 	// The error code that AWS Config returned when the rule last failed.
@@ -9691,6 +9793,9 @@ type ConfigurationAggregator struct {
 	// The name of the aggregator.
 	ConfigurationAggregatorName *string `min:"1" type:"string"`
 
+	// AWS service that created the configuration aggregator.
+	CreatedBy *string `min:"1" type:"string"`
+
 	// The time stamp when the configuration aggregator was created.
 	CreationTime *time.Time `type:"timestamp"`
 
@@ -9726,6 +9831,12 @@ func (s *ConfigurationAggregator) SetConfigurationAggregatorArn(v string) *Confi
 // SetConfigurationAggregatorName sets the ConfigurationAggregatorName field's value.
 func (s *ConfigurationAggregator) SetConfigurationAggregatorName(v string) *ConfigurationAggregator {
 	s.ConfigurationAggregatorName = &v
+	return s
+}
+
+// SetCreatedBy sets the CreatedBy field's value.
+func (s *ConfigurationAggregator) SetCreatedBy(v string) *ConfigurationAggregator {
+	s.CreatedBy = &v
 	return s
 }
 
@@ -9775,7 +9886,23 @@ type ConfigurationItem struct {
 	// that are associated with the same resource.
 	ConfigurationItemMD5Hash *string `locationName:"configurationItemMD5Hash" type:"string"`
 
-	// The configuration item status.
+	// The configuration item status. The valid values are:
+	//
+	//    * OK – The resource configuration has been updated
+	//
+	//    * ResourceDiscovered – The resource was newly discovered
+	//
+	//    * ResourceNotRecorded – The resource was discovered but its configuration
+	//    was not recorded since the recorder excludes the recording of resources
+	//    of this type
+	//
+	//    * ResourceDeleted – The resource was deleted
+	//
+	//    * ResourceDeletedNotRecorded – The resource was deleted but its configuration
+	//    was not recorded since the recorder excludes the recording of resources
+	//    of this type
+	//
+	// The CIs do not incur any cost.
 	ConfigurationItemStatus *string `locationName:"configurationItemStatus" type:"string" enum:"ConfigurationItemStatus"`
 
 	// An identifier that indicates the ordering of the configuration items of a
@@ -10397,8 +10524,8 @@ func (s *ConformancePackEvaluationResult) SetResultRecordedTime(v time.Time) *Co
 }
 
 // Input parameters in the form of key-value pairs for the conformance pack,
-// both of which you define. Keys can have a maximum character length of 128
-// characters, and values can have a maximum length of 256 characters.
+// both of which you define. Keys can have a maximum character length of 255
+// characters, and values can have a maximum length of 4096 characters.
 type ConformancePackInputParameter struct {
 	_ struct{} `type:"structure"`
 
@@ -21000,8 +21127,8 @@ type RemediationConfiguration struct {
 	// select a number, the default is 5.
 	//
 	// For example, if you specify MaximumAutomaticAttempts as 5 with RetryAttemptsSeconds
-	// as 50 seconds, AWS Config throws an exception after the 5th failed attempt
-	// within 50 seconds.
+	// as 50 seconds, AWS Config will put a RemediationException on your behalf
+	// for the failing resource after the 5th failed attempt within 50 seconds.
 	MaximumAutomaticAttempts *int64 `min:"1" type:"integer"`
 
 	// An object of the RemediationParameterValue.
@@ -21029,6 +21156,9 @@ type RemediationConfiguration struct {
 	TargetType *string `type:"string" required:"true" enum:"RemediationTargetType"`
 
 	// Version of the target. For example, version of the SSM document.
+	//
+	// If you make backward incompatible changes to the SSM document, you must call
+	// PutRemediationConfiguration API again to ensure the remediations can run.
 	TargetVersion *string `type:"string"`
 }
 
@@ -22152,6 +22282,8 @@ type SelectAggregateResourceConfigInput struct {
 	// The maximum number of query results returned on each page.
 	Limit *int64 `type:"integer"`
 
+	// The maximum number of query results returned on each page. AWS Config also
+	// allows the Limit request parameter.
 	MaxResults *int64 `type:"integer"`
 
 	// The nextToken string returned in a previous request that you use to request
@@ -23269,6 +23401,15 @@ const (
 	AggregatedSourceStatusTypeOutdated = "OUTDATED"
 )
 
+// AggregatedSourceStatusType_Values returns all elements of the AggregatedSourceStatusType enum
+func AggregatedSourceStatusType_Values() []string {
+	return []string{
+		AggregatedSourceStatusTypeFailed,
+		AggregatedSourceStatusTypeSucceeded,
+		AggregatedSourceStatusTypeOutdated,
+	}
+}
+
 const (
 	// AggregatedSourceTypeAccount is a AggregatedSourceType enum value
 	AggregatedSourceTypeAccount = "ACCOUNT"
@@ -23277,6 +23418,14 @@ const (
 	AggregatedSourceTypeOrganization = "ORGANIZATION"
 )
 
+// AggregatedSourceType_Values returns all elements of the AggregatedSourceType enum
+func AggregatedSourceType_Values() []string {
+	return []string{
+		AggregatedSourceTypeAccount,
+		AggregatedSourceTypeOrganization,
+	}
+}
+
 const (
 	// ChronologicalOrderReverse is a ChronologicalOrder enum value
 	ChronologicalOrderReverse = "Reverse"
@@ -23284,6 +23433,14 @@ const (
 	// ChronologicalOrderForward is a ChronologicalOrder enum value
 	ChronologicalOrderForward = "Forward"
 )
+
+// ChronologicalOrder_Values returns all elements of the ChronologicalOrder enum
+func ChronologicalOrder_Values() []string {
+	return []string{
+		ChronologicalOrderReverse,
+		ChronologicalOrderForward,
+	}
+}
 
 const (
 	// ComplianceTypeCompliant is a ComplianceType enum value
@@ -23299,6 +23456,16 @@ const (
 	ComplianceTypeInsufficientData = "INSUFFICIENT_DATA"
 )
 
+// ComplianceType_Values returns all elements of the ComplianceType enum
+func ComplianceType_Values() []string {
+	return []string{
+		ComplianceTypeCompliant,
+		ComplianceTypeNonCompliant,
+		ComplianceTypeNotApplicable,
+		ComplianceTypeInsufficientData,
+	}
+}
+
 const (
 	// ConfigRuleComplianceSummaryGroupKeyAccountId is a ConfigRuleComplianceSummaryGroupKey enum value
 	ConfigRuleComplianceSummaryGroupKeyAccountId = "ACCOUNT_ID"
@@ -23306,6 +23473,14 @@ const (
 	// ConfigRuleComplianceSummaryGroupKeyAwsRegion is a ConfigRuleComplianceSummaryGroupKey enum value
 	ConfigRuleComplianceSummaryGroupKeyAwsRegion = "AWS_REGION"
 )
+
+// ConfigRuleComplianceSummaryGroupKey_Values returns all elements of the ConfigRuleComplianceSummaryGroupKey enum
+func ConfigRuleComplianceSummaryGroupKey_Values() []string {
+	return []string{
+		ConfigRuleComplianceSummaryGroupKeyAccountId,
+		ConfigRuleComplianceSummaryGroupKeyAwsRegion,
+	}
+}
 
 const (
 	// ConfigRuleStateActive is a ConfigRuleState enum value
@@ -23320,6 +23495,16 @@ const (
 	// ConfigRuleStateEvaluating is a ConfigRuleState enum value
 	ConfigRuleStateEvaluating = "EVALUATING"
 )
+
+// ConfigRuleState_Values returns all elements of the ConfigRuleState enum
+func ConfigRuleState_Values() []string {
+	return []string{
+		ConfigRuleStateActive,
+		ConfigRuleStateDeleting,
+		ConfigRuleStateDeletingResults,
+		ConfigRuleStateEvaluating,
+	}
+}
 
 const (
 	// ConfigurationItemStatusOk is a ConfigurationItemStatus enum value
@@ -23338,6 +23523,17 @@ const (
 	ConfigurationItemStatusResourceDeletedNotRecorded = "ResourceDeletedNotRecorded"
 )
 
+// ConfigurationItemStatus_Values returns all elements of the ConfigurationItemStatus enum
+func ConfigurationItemStatus_Values() []string {
+	return []string{
+		ConfigurationItemStatusOk,
+		ConfigurationItemStatusResourceDiscovered,
+		ConfigurationItemStatusResourceNotRecorded,
+		ConfigurationItemStatusResourceDeleted,
+		ConfigurationItemStatusResourceDeletedNotRecorded,
+	}
+}
+
 const (
 	// ConformancePackComplianceTypeCompliant is a ConformancePackComplianceType enum value
 	ConformancePackComplianceTypeCompliant = "COMPLIANT"
@@ -23345,6 +23541,14 @@ const (
 	// ConformancePackComplianceTypeNonCompliant is a ConformancePackComplianceType enum value
 	ConformancePackComplianceTypeNonCompliant = "NON_COMPLIANT"
 )
+
+// ConformancePackComplianceType_Values returns all elements of the ConformancePackComplianceType enum
+func ConformancePackComplianceType_Values() []string {
+	return []string{
+		ConformancePackComplianceTypeCompliant,
+		ConformancePackComplianceTypeNonCompliant,
+	}
+}
 
 const (
 	// ConformancePackStateCreateInProgress is a ConformancePackState enum value
@@ -23363,6 +23567,17 @@ const (
 	ConformancePackStateDeleteFailed = "DELETE_FAILED"
 )
 
+// ConformancePackState_Values returns all elements of the ConformancePackState enum
+func ConformancePackState_Values() []string {
+	return []string{
+		ConformancePackStateCreateInProgress,
+		ConformancePackStateCreateComplete,
+		ConformancePackStateCreateFailed,
+		ConformancePackStateDeleteInProgress,
+		ConformancePackStateDeleteFailed,
+	}
+}
+
 const (
 	// DeliveryStatusSuccess is a DeliveryStatus enum value
 	DeliveryStatusSuccess = "Success"
@@ -23374,10 +23589,26 @@ const (
 	DeliveryStatusNotApplicable = "Not_Applicable"
 )
 
+// DeliveryStatus_Values returns all elements of the DeliveryStatus enum
+func DeliveryStatus_Values() []string {
+	return []string{
+		DeliveryStatusSuccess,
+		DeliveryStatusFailure,
+		DeliveryStatusNotApplicable,
+	}
+}
+
 const (
 	// EventSourceAwsConfig is a EventSource enum value
 	EventSourceAwsConfig = "aws.config"
 )
+
+// EventSource_Values returns all elements of the EventSource enum
+func EventSource_Values() []string {
+	return []string{
+		EventSourceAwsConfig,
+	}
+}
 
 const (
 	// MaximumExecutionFrequencyOneHour is a MaximumExecutionFrequency enum value
@@ -23395,6 +23626,17 @@ const (
 	// MaximumExecutionFrequencyTwentyFourHours is a MaximumExecutionFrequency enum value
 	MaximumExecutionFrequencyTwentyFourHours = "TwentyFour_Hours"
 )
+
+// MaximumExecutionFrequency_Values returns all elements of the MaximumExecutionFrequency enum
+func MaximumExecutionFrequency_Values() []string {
+	return []string{
+		MaximumExecutionFrequencyOneHour,
+		MaximumExecutionFrequencyThreeHours,
+		MaximumExecutionFrequencySixHours,
+		MaximumExecutionFrequencyTwelveHours,
+		MaximumExecutionFrequencyTwentyFourHours,
+	}
+}
 
 const (
 	// MemberAccountRuleStatusCreateSuccessful is a MemberAccountRuleStatus enum value
@@ -23425,6 +23667,21 @@ const (
 	MemberAccountRuleStatusUpdateFailed = "UPDATE_FAILED"
 )
 
+// MemberAccountRuleStatus_Values returns all elements of the MemberAccountRuleStatus enum
+func MemberAccountRuleStatus_Values() []string {
+	return []string{
+		MemberAccountRuleStatusCreateSuccessful,
+		MemberAccountRuleStatusCreateInProgress,
+		MemberAccountRuleStatusCreateFailed,
+		MemberAccountRuleStatusDeleteSuccessful,
+		MemberAccountRuleStatusDeleteFailed,
+		MemberAccountRuleStatusDeleteInProgress,
+		MemberAccountRuleStatusUpdateSuccessful,
+		MemberAccountRuleStatusUpdateInProgress,
+		MemberAccountRuleStatusUpdateFailed,
+	}
+}
+
 const (
 	// MessageTypeConfigurationItemChangeNotification is a MessageType enum value
 	MessageTypeConfigurationItemChangeNotification = "ConfigurationItemChangeNotification"
@@ -23439,6 +23696,16 @@ const (
 	MessageTypeOversizedConfigurationItemChangeNotification = "OversizedConfigurationItemChangeNotification"
 )
 
+// MessageType_Values returns all elements of the MessageType enum
+func MessageType_Values() []string {
+	return []string{
+		MessageTypeConfigurationItemChangeNotification,
+		MessageTypeConfigurationSnapshotDeliveryCompleted,
+		MessageTypeScheduledNotification,
+		MessageTypeOversizedConfigurationItemChangeNotification,
+	}
+}
+
 const (
 	// OrganizationConfigRuleTriggerTypeConfigurationItemChangeNotification is a OrganizationConfigRuleTriggerType enum value
 	OrganizationConfigRuleTriggerTypeConfigurationItemChangeNotification = "ConfigurationItemChangeNotification"
@@ -23449,6 +23716,15 @@ const (
 	// OrganizationConfigRuleTriggerTypeScheduledNotification is a OrganizationConfigRuleTriggerType enum value
 	OrganizationConfigRuleTriggerTypeScheduledNotification = "ScheduledNotification"
 )
+
+// OrganizationConfigRuleTriggerType_Values returns all elements of the OrganizationConfigRuleTriggerType enum
+func OrganizationConfigRuleTriggerType_Values() []string {
+	return []string{
+		OrganizationConfigRuleTriggerTypeConfigurationItemChangeNotification,
+		OrganizationConfigRuleTriggerTypeOversizedConfigurationItemChangeNotification,
+		OrganizationConfigRuleTriggerTypeScheduledNotification,
+	}
+}
 
 const (
 	// OrganizationResourceDetailedStatusCreateSuccessful is a OrganizationResourceDetailedStatus enum value
@@ -23479,6 +23755,21 @@ const (
 	OrganizationResourceDetailedStatusUpdateFailed = "UPDATE_FAILED"
 )
 
+// OrganizationResourceDetailedStatus_Values returns all elements of the OrganizationResourceDetailedStatus enum
+func OrganizationResourceDetailedStatus_Values() []string {
+	return []string{
+		OrganizationResourceDetailedStatusCreateSuccessful,
+		OrganizationResourceDetailedStatusCreateInProgress,
+		OrganizationResourceDetailedStatusCreateFailed,
+		OrganizationResourceDetailedStatusDeleteSuccessful,
+		OrganizationResourceDetailedStatusDeleteFailed,
+		OrganizationResourceDetailedStatusDeleteInProgress,
+		OrganizationResourceDetailedStatusUpdateSuccessful,
+		OrganizationResourceDetailedStatusUpdateInProgress,
+		OrganizationResourceDetailedStatusUpdateFailed,
+	}
+}
+
 const (
 	// OrganizationResourceStatusCreateSuccessful is a OrganizationResourceStatus enum value
 	OrganizationResourceStatusCreateSuccessful = "CREATE_SUCCESSFUL"
@@ -23507,6 +23798,21 @@ const (
 	// OrganizationResourceStatusUpdateFailed is a OrganizationResourceStatus enum value
 	OrganizationResourceStatusUpdateFailed = "UPDATE_FAILED"
 )
+
+// OrganizationResourceStatus_Values returns all elements of the OrganizationResourceStatus enum
+func OrganizationResourceStatus_Values() []string {
+	return []string{
+		OrganizationResourceStatusCreateSuccessful,
+		OrganizationResourceStatusCreateInProgress,
+		OrganizationResourceStatusCreateFailed,
+		OrganizationResourceStatusDeleteSuccessful,
+		OrganizationResourceStatusDeleteFailed,
+		OrganizationResourceStatusDeleteInProgress,
+		OrganizationResourceStatusUpdateSuccessful,
+		OrganizationResourceStatusUpdateInProgress,
+		OrganizationResourceStatusUpdateFailed,
+	}
+}
 
 const (
 	// OrganizationRuleStatusCreateSuccessful is a OrganizationRuleStatus enum value
@@ -23537,6 +23843,21 @@ const (
 	OrganizationRuleStatusUpdateFailed = "UPDATE_FAILED"
 )
 
+// OrganizationRuleStatus_Values returns all elements of the OrganizationRuleStatus enum
+func OrganizationRuleStatus_Values() []string {
+	return []string{
+		OrganizationRuleStatusCreateSuccessful,
+		OrganizationRuleStatusCreateInProgress,
+		OrganizationRuleStatusCreateFailed,
+		OrganizationRuleStatusDeleteSuccessful,
+		OrganizationRuleStatusDeleteFailed,
+		OrganizationRuleStatusDeleteInProgress,
+		OrganizationRuleStatusUpdateSuccessful,
+		OrganizationRuleStatusUpdateInProgress,
+		OrganizationRuleStatusUpdateFailed,
+	}
+}
+
 const (
 	// OwnerCustomLambda is a Owner enum value
 	OwnerCustomLambda = "CUSTOM_LAMBDA"
@@ -23544,6 +23865,14 @@ const (
 	// OwnerAws is a Owner enum value
 	OwnerAws = "AWS"
 )
+
+// Owner_Values returns all elements of the Owner enum
+func Owner_Values() []string {
+	return []string{
+		OwnerCustomLambda,
+		OwnerAws,
+	}
+}
 
 const (
 	// RecorderStatusPending is a RecorderStatus enum value
@@ -23555,6 +23884,15 @@ const (
 	// RecorderStatusFailure is a RecorderStatus enum value
 	RecorderStatusFailure = "Failure"
 )
+
+// RecorderStatus_Values returns all elements of the RecorderStatus enum
+func RecorderStatus_Values() []string {
+	return []string{
+		RecorderStatusPending,
+		RecorderStatusSuccess,
+		RecorderStatusFailure,
+	}
+}
 
 const (
 	// RemediationExecutionStateQueued is a RemediationExecutionState enum value
@@ -23570,6 +23908,16 @@ const (
 	RemediationExecutionStateFailed = "FAILED"
 )
 
+// RemediationExecutionState_Values returns all elements of the RemediationExecutionState enum
+func RemediationExecutionState_Values() []string {
+	return []string{
+		RemediationExecutionStateQueued,
+		RemediationExecutionStateInProgress,
+		RemediationExecutionStateSucceeded,
+		RemediationExecutionStateFailed,
+	}
+}
+
 const (
 	// RemediationExecutionStepStateSucceeded is a RemediationExecutionStepState enum value
 	RemediationExecutionStepStateSucceeded = "SUCCEEDED"
@@ -23581,10 +23929,26 @@ const (
 	RemediationExecutionStepStateFailed = "FAILED"
 )
 
+// RemediationExecutionStepState_Values returns all elements of the RemediationExecutionStepState enum
+func RemediationExecutionStepState_Values() []string {
+	return []string{
+		RemediationExecutionStepStateSucceeded,
+		RemediationExecutionStepStatePending,
+		RemediationExecutionStepStateFailed,
+	}
+}
+
 const (
 	// RemediationTargetTypeSsmDocument is a RemediationTargetType enum value
 	RemediationTargetTypeSsmDocument = "SSM_DOCUMENT"
 )
+
+// RemediationTargetType_Values returns all elements of the RemediationTargetType enum
+func RemediationTargetType_Values() []string {
+	return []string{
+		RemediationTargetTypeSsmDocument,
+	}
+}
 
 const (
 	// ResourceCountGroupKeyResourceType is a ResourceCountGroupKey enum value
@@ -23596,6 +23960,15 @@ const (
 	// ResourceCountGroupKeyAwsRegion is a ResourceCountGroupKey enum value
 	ResourceCountGroupKeyAwsRegion = "AWS_REGION"
 )
+
+// ResourceCountGroupKey_Values returns all elements of the ResourceCountGroupKey enum
+func ResourceCountGroupKey_Values() []string {
+	return []string{
+		ResourceCountGroupKeyResourceType,
+		ResourceCountGroupKeyAccountId,
+		ResourceCountGroupKeyAwsRegion,
+	}
+}
 
 const (
 	// ResourceTypeAwsEc2CustomerGateway is a ResourceType enum value
@@ -23867,9 +24240,124 @@ const (
 
 	// ResourceTypeAwsQldbLedger is a ResourceType enum value
 	ResourceTypeAwsQldbLedger = "AWS::QLDB::Ledger"
+
+	// ResourceTypeAwsSecretsManagerSecret is a ResourceType enum value
+	ResourceTypeAwsSecretsManagerSecret = "AWS::SecretsManager::Secret"
+
+	// ResourceTypeAwsSnsTopic is a ResourceType enum value
+	ResourceTypeAwsSnsTopic = "AWS::SNS::Topic"
+
+	// ResourceTypeAwsSsmFileData is a ResourceType enum value
+	ResourceTypeAwsSsmFileData = "AWS::SSM::FileData"
 )
+
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeAwsEc2CustomerGateway,
+		ResourceTypeAwsEc2Eip,
+		ResourceTypeAwsEc2Host,
+		ResourceTypeAwsEc2Instance,
+		ResourceTypeAwsEc2InternetGateway,
+		ResourceTypeAwsEc2NetworkAcl,
+		ResourceTypeAwsEc2NetworkInterface,
+		ResourceTypeAwsEc2RouteTable,
+		ResourceTypeAwsEc2SecurityGroup,
+		ResourceTypeAwsEc2Subnet,
+		ResourceTypeAwsCloudTrailTrail,
+		ResourceTypeAwsEc2Volume,
+		ResourceTypeAwsEc2Vpc,
+		ResourceTypeAwsEc2Vpnconnection,
+		ResourceTypeAwsEc2Vpngateway,
+		ResourceTypeAwsEc2RegisteredHainstance,
+		ResourceTypeAwsEc2NatGateway,
+		ResourceTypeAwsEc2EgressOnlyInternetGateway,
+		ResourceTypeAwsEc2Vpcendpoint,
+		ResourceTypeAwsEc2VpcendpointService,
+		ResourceTypeAwsEc2FlowLog,
+		ResourceTypeAwsEc2VpcpeeringConnection,
+		ResourceTypeAwsElasticsearchDomain,
+		ResourceTypeAwsIamGroup,
+		ResourceTypeAwsIamPolicy,
+		ResourceTypeAwsIamRole,
+		ResourceTypeAwsIamUser,
+		ResourceTypeAwsElasticLoadBalancingV2LoadBalancer,
+		ResourceTypeAwsAcmCertificate,
+		ResourceTypeAwsRdsDbinstance,
+		ResourceTypeAwsRdsDbsubnetGroup,
+		ResourceTypeAwsRdsDbsecurityGroup,
+		ResourceTypeAwsRdsDbsnapshot,
+		ResourceTypeAwsRdsDbcluster,
+		ResourceTypeAwsRdsDbclusterSnapshot,
+		ResourceTypeAwsRdsEventSubscription,
+		ResourceTypeAwsS3Bucket,
+		ResourceTypeAwsS3AccountPublicAccessBlock,
+		ResourceTypeAwsRedshiftCluster,
+		ResourceTypeAwsRedshiftClusterSnapshot,
+		ResourceTypeAwsRedshiftClusterParameterGroup,
+		ResourceTypeAwsRedshiftClusterSecurityGroup,
+		ResourceTypeAwsRedshiftClusterSubnetGroup,
+		ResourceTypeAwsRedshiftEventSubscription,
+		ResourceTypeAwsSsmManagedInstanceInventory,
+		ResourceTypeAwsCloudWatchAlarm,
+		ResourceTypeAwsCloudFormationStack,
+		ResourceTypeAwsElasticLoadBalancingLoadBalancer,
+		ResourceTypeAwsAutoScalingAutoScalingGroup,
+		ResourceTypeAwsAutoScalingLaunchConfiguration,
+		ResourceTypeAwsAutoScalingScalingPolicy,
+		ResourceTypeAwsAutoScalingScheduledAction,
+		ResourceTypeAwsDynamoDbTable,
+		ResourceTypeAwsCodeBuildProject,
+		ResourceTypeAwsWafRateBasedRule,
+		ResourceTypeAwsWafRule,
+		ResourceTypeAwsWafRuleGroup,
+		ResourceTypeAwsWafWebAcl,
+		ResourceTypeAwsWafregionalRateBasedRule,
+		ResourceTypeAwsWafregionalRule,
+		ResourceTypeAwsWafregionalRuleGroup,
+		ResourceTypeAwsWafregionalWebAcl,
+		ResourceTypeAwsCloudFrontDistribution,
+		ResourceTypeAwsCloudFrontStreamingDistribution,
+		ResourceTypeAwsLambdaFunction,
+		ResourceTypeAwsElasticBeanstalkApplication,
+		ResourceTypeAwsElasticBeanstalkApplicationVersion,
+		ResourceTypeAwsElasticBeanstalkEnvironment,
+		ResourceTypeAwsWafv2WebAcl,
+		ResourceTypeAwsWafv2RuleGroup,
+		ResourceTypeAwsWafv2Ipset,
+		ResourceTypeAwsWafv2RegexPatternSet,
+		ResourceTypeAwsWafv2ManagedRuleSet,
+		ResourceTypeAwsXrayEncryptionConfig,
+		ResourceTypeAwsSsmAssociationCompliance,
+		ResourceTypeAwsSsmPatchCompliance,
+		ResourceTypeAwsShieldProtection,
+		ResourceTypeAwsShieldRegionalProtection,
+		ResourceTypeAwsConfigResourceCompliance,
+		ResourceTypeAwsApiGatewayStage,
+		ResourceTypeAwsApiGatewayRestApi,
+		ResourceTypeAwsApiGatewayV2Stage,
+		ResourceTypeAwsApiGatewayV2Api,
+		ResourceTypeAwsCodePipelinePipeline,
+		ResourceTypeAwsServiceCatalogCloudFormationProvisionedProduct,
+		ResourceTypeAwsServiceCatalogCloudFormationProduct,
+		ResourceTypeAwsServiceCatalogPortfolio,
+		ResourceTypeAwsSqsQueue,
+		ResourceTypeAwsKmsKey,
+		ResourceTypeAwsQldbLedger,
+		ResourceTypeAwsSecretsManagerSecret,
+		ResourceTypeAwsSnsTopic,
+		ResourceTypeAwsSsmFileData,
+	}
+}
 
 const (
 	// ResourceValueTypeResourceId is a ResourceValueType enum value
 	ResourceValueTypeResourceId = "RESOURCE_ID"
 )
+
+// ResourceValueType_Values returns all elements of the ResourceValueType enum
+func ResourceValueType_Values() []string {
+	return []string{
+		ResourceValueTypeResourceId,
+	}
+}

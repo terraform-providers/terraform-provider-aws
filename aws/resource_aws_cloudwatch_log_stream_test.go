@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudWatchLogStream_basic(t *testing.T) {
@@ -175,7 +175,7 @@ resource "aws_cloudwatch_log_group" "test" {
 
 resource "aws_cloudwatch_log_stream" "test" {
   name           = %[1]q
-  log_group_name = "${aws_cloudwatch_log_group.test.id}"
+  log_group_name = aws_cloudwatch_log_group.test.id
 }
 `, rName)
 }

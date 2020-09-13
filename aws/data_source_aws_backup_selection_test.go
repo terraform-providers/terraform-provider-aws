@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSBackupSelectionDataSource_basic(t *testing.T) {
@@ -36,9 +36,10 @@ func TestAccAWSBackupSelectionDataSource_basic(t *testing.T) {
 
 const testAccAwsBackupSelectionDataSourceConfig_nonExistent = `
 data "aws_backup_selection" "test" {
-	plan_id      = "tf-acc-test-does-not-exist"
-	selection_id = "tf-acc-test-dne"
-}`
+  plan_id      = "tf-acc-test-does-not-exist"
+  selection_id = "tf-acc-test-dne"
+}
+`
 
 func testAccAwsBackupSelectionDataSourceConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
@@ -57,13 +58,13 @@ resource "aws_backup_plan" "test" {
 
   rule {
     rule_name         = "tf_acc_test_backup_rule_%[1]d"
-    target_vault_name = "${aws_backup_vault.test.name}"
+    target_vault_name = aws_backup_vault.test.name
     schedule          = "cron(0 12 * * ? *)"
   }
 }
 
 resource "aws_backup_selection" "test" {
-  plan_id      = "${aws_backup_plan.test.id}"
+  plan_id      = aws_backup_plan.test.id
   name         = "tf_acc_test_backup_selection_%[1]d"
   iam_role_arn = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/service-role/AWSBackupDefaultServiceRole"
 

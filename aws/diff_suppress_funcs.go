@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/jen20/awspolicyequivalence"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
 func suppressEquivalentAwsPolicyDiffs(k, old, new string, d *schema.ResourceData) bool {
@@ -97,25 +97,15 @@ func suppressOpenIdURL(k, old, new string, d *schema.ResourceData) bool {
 	return oldUrl.String() == newUrl.String()
 }
 
-func suppressAutoscalingGroupAvailabilityZoneDiffs(k, old, new string, d *schema.ResourceData) bool {
-	// If VPC zone identifiers are provided then there is no need to explicitly
-	// specify availability zones.
-	if _, ok := d.GetOk("vpc_zone_identifier"); ok {
-		return true
-	}
-
-	return false
-}
-
-func suppressCloudFormationTemplateBodyDiffs(k, old, new string, d *schema.ResourceData) bool {
-	normalizedOld, err := normalizeCloudFormationTemplate(old)
+func suppressEquivalentJsonOrYamlDiffs(k, old, new string, d *schema.ResourceData) bool {
+	normalizedOld, err := normalizeJsonOrYamlString(old)
 
 	if err != nil {
 		log.Printf("[WARN] Unable to normalize Terraform state CloudFormation template body: %s", err)
 		return false
 	}
 
-	normalizedNew, err := normalizeCloudFormationTemplate(new)
+	normalizedNew, err := normalizeJsonOrYamlString(new)
 
 	if err != nil {
 		log.Printf("[WARN] Unable to normalize Terraform configuration CloudFormation template body: %s", err)
@@ -125,10 +115,8 @@ func suppressCloudFormationTemplateBodyDiffs(k, old, new string, d *schema.Resou
 	return normalizedOld == normalizedNew
 }
 
-func suppressRoute53ZoneNameWithTrailingDot(k, old, new string, d *schema.ResourceData) bool {
-	// "." is different from "".
-	if old == "." || new == "." {
-		return old == new
-	}
-	return strings.TrimSuffix(old, ".") == strings.TrimSuffix(new, ".")
+// suppressEqualCIDRBlockDiffs provides custom difference suppression for CIDR blocks
+// that have different string values but represent the same CIDR.
+func suppressEqualCIDRBlockDiffs(k, old, new string, d *schema.ResourceData) bool {
+	return cidrBlocksEqual(old, new)
 }

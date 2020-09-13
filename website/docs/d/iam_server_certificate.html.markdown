@@ -26,7 +26,7 @@ resource "aws_elb" "elb" {
     instance_protocol  = "https"
     lb_port            = 443
     lb_protocol        = "https"
-    ssl_certificate_id = "${data.aws_iam_server_certificate.my-domain.arn}"
+    ssl_certificate_id = data.aws_iam_server_certificate.my-domain.arn
   }
 }
 ```
@@ -47,7 +47,7 @@ resource "aws_elb" "elb" {
 * `certificate_body` is the public key certificate (PEM-encoded). This is useful when [configuring back-end instance authentication](http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-create-https-ssl-load-balancer.html) policy for load balancer
 * `certificate_chain` is the public key certificate chain (PEM-encoded) if exists, empty otherwise
 
-## Import 
+## Import
 
-The terraform import function will read in certificate body, certificate chain (if it exists), id, name, path, and arn. 
-It will not retrieve the private key which is not available through the AWS API.   
+The terraform import function will read in certificate body, certificate chain (if it exists), id, name, path, and arn.
+It will not retrieve the private key which is not available through the AWS API.

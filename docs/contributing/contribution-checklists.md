@@ -42,7 +42,7 @@ In addition to the below checklist, please see the [Common Review
 Items](pullrequest-submission-and-lifecycle.md#common-review-items) sections for more specific coding and testing
 guidelines.
 
- - [ ] __Acceptance test coverage of new behavior__: Existing resources each
+- [ ] __Acceptance test coverage of new behavior__: Existing resources each
    have a set of [acceptance tests][acctests] covering their functionality.
    These tests should exercise all the behavior of the resource. Whether you are
    adding something or fixing a bug, the idea is to have an acceptance test that
@@ -51,17 +51,17 @@ guidelines.
    that is used, but it's often better to add a new test. You can copy/paste an
    existing test and follow the conventions you see there, modifying the test
    to exercise the behavior of your code.
- - [ ] __Documentation updates__: If your code makes any changes that need to
+- [ ] __Documentation updates__: If your code makes any changes that need to
    be documented, you should include those doc updates in the same PR. This
    includes things like new resource attributes or changes in default values.
    The [Terraform website][website] source is in this repo and includes
    instructions for getting a local copy of the site up and running if you'd
    like to preview your changes.
- - [ ] __Well-formed Code__: Do your best to follow existing conventions you
+- [ ] __Well-formed Code__: Do your best to follow existing conventions you
    see in the codebase, and ensure your code is formatted with `go fmt`.
    The PR reviewers can help out on this front, and may provide comments with
    suggestions on how to improve the code.
- - [ ] __Vendor additions__: Create a separate PR if you are updating the vendor
+- [ ] __Vendor additions__: Create a separate PR if you are updating the vendor
    folder. This is to avoid conflicts as the vendor versions tend to be fast-
    moving targets. We will plan to merge the PR with this change first.
 
@@ -214,9 +214,9 @@ Some AWS components support [resource-based IAM policies](https://docs.aws.amazo
 - Many of these policies require the Amazon Resource Name (ARN) of the resource in the policy itself. It is difficult to workaround this requirement with custom difference handling within a self-contained resource.
 - Sometimes policies between two resources need to be written where they cross-reference each other resource's ARN within each policy. Without a separate resource, this introduces a configuration cycle.
 - Splitting the resources allows operators to logically split their infrastructure on purely operational and security boundaries with separate configurations/modules.
-- Splitting the resources prevents any separate policy API calls from needing to be whitelisted in the main resource in environments with restrictive IAM permissions, which can be undesirable.
+- Splitting the resources prevents any separate policy API calls from needing to be permitted in the main resource in environments with restrictive IAM permissions, which can be undesirable.
 
-Follow the [New Resource section][#new-resource] for more information about implementing the separate resource.
+See the [New Resource section](#new-resource) for more information about implementing the separate resource.
 
 ## Adding Resource Tagging Support
 
@@ -235,13 +235,13 @@ See also a [full example pull request for implementing EKS tagging](https://gith
 
 This step is only necessary for the first implementation and may have been previously completed. If so, move on to the next section.
 
-More details about this code generation, including fixes for potential error messages in this process, can be found in the [keyvaluetags documentation](../aws/internal/keyvaluetags/README.md).
+More details about this code generation, including fixes for potential error messages in this process, can be found in the [keyvaluetags documentation](../../aws/internal/keyvaluetags/README.md).
 
 - Open the AWS Go SDK documentation for the service, e.g. for [`service/eks`](https://docs.aws.amazon.com/sdk-for-go/api/service/eks/). Note: there can be a delay between the AWS announcement and the updated AWS Go SDK documentation.
 - Determine the "type" of tagging implementation. Some services will use a simple map style (`map[string]*string` in Go) while others will have a separate structure shape (`[]service.Tag` struct with `Key` and `Value` fields).
 
-  - If the type is a map, add the AWS Go SDK service name (e.g. `eks`) to `mapServiceNames` in `aws/internal/keyvaluetags/generators/servicetags/main.go`
-  - Otherwise, if the type is a struct, add the AWS Go SDK service name (e.g. `eks`) to `sliceServiceNames` in `aws/internal/keyvaluetags/generators/servicetags/main.go`. If the struct name is not exactly `Tag`, it can be customized via the `ServiceTagType` function. If the struct key field is not exactly `Key`, it can be customized via the `ServiceTagTypeKeyField` function. If the struct value field is not exactly `Value`, it can be customized via the `ServiceTagTypeValueField` function.
+    - If the type is a map, add the AWS Go SDK service name (e.g. `eks`) to `mapServiceNames` in `aws/internal/keyvaluetags/generators/servicetags/main.go`
+    - Otherwise, if the type is a struct, add the AWS Go SDK service name (e.g. `eks`) to `sliceServiceNames` in `aws/internal/keyvaluetags/generators/servicetags/main.go`. If the struct name is not exactly `Tag`, it can be customized via the `ServiceTagType` function. If the struct key field is not exactly `Key`, it can be customized via the `ServiceTagTypeKeyField` function. If the struct value field is not exactly `Value`, it can be customized via the `ServiceTagTypeValueField` function.
 
 - Determine if the service API includes functionality for listing tags (usually a `ListTags` or `ListTagsForResource` API call) or updating tags (usually `TagResource` and `UntagResource` API calls). If so, add the AWS Go SDK service client information to `ServiceClientType` (along with the new required import) in `aws/internal/keyvaluetags/service_generation_customizations.go`, e.g. for EKS:
 
@@ -250,8 +250,8 @@ More details about this code generation, including fixes for potential error mes
     funcType = reflect.TypeOf(eks.New)
   ```
 
-  - If the service API includes functionality for listing tags, add the AWS Go SDK service name (e.g. `eks`) to `serviceNames` in `aws/internal/keyvaluetags/generators/listtags/main.go`.
-  - If the service API includes functionality for updating tags, add the AWS Go SDK service name (e.g. `eks`) to `serviceNames` in `aws/internal/keyvaluetags/generators/updatetags/main.go`.
+    - If the service API includes functionality for listing tags, add the AWS Go SDK service name (e.g. `eks`) to `serviceNames` in `aws/internal/keyvaluetags/generators/listtags/main.go`.
+    - If the service API includes functionality for updating tags, add the AWS Go SDK service name (e.g. `eks`) to `serviceNames` in `aws/internal/keyvaluetags/generators/updatetags/main.go`.
 
 - Run `make gen` (`go generate ./...`) and ensure there are no errors via `make test` (`go test ./...`)
 
@@ -402,7 +402,7 @@ More details about this code generation, including fixes for potential error mes
       subnet_ids = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
     }
 
-    depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy", "aws_iam_role_policy_attachment.test-AmazonEKSServicePolicy"]
+    depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy"]
   }
   `, rName, tagKey1, tagValue1)
   }
@@ -422,7 +422,7 @@ More details about this code generation, including fixes for potential error mes
       subnet_ids = ["${aws_subnet.test.*.id[0]}", "${aws_subnet.test.*.id[1]}"]
     }
 
-    depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy", "aws_iam_role_policy_attachment.test-AmazonEKSServicePolicy"]
+    depends_on = ["aws_iam_role_policy_attachment.test-AmazonEKSClusterPolicy"]
   }
   `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
   }
@@ -448,43 +448,40 @@ In addition to the below checklist, please see the [Common Review
 Items](pullrequest-submission-and-lifecycle.md#common-review-items) sections for more specific coding and testing
 guidelines.
 
- - [ ] __Minimal LOC__: It's difficult for both the reviewer and author to go
+- [ ] __Minimal LOC__: It's difficult for both the reviewer and author to go
    through long feedback cycles on a big PR with many resources. We ask you to
    only submit **1 resource at a time**.
- - [ ] __Acceptance tests__: New resources should include acceptance tests
+- [ ] __Acceptance tests__: New resources should include acceptance tests
    covering their behavior. See [Writing Acceptance
    Tests](#writing-acceptance-tests) below for a detailed guide on how to
    approach these.
- - [ ] __Resource Naming__: Resources should be named `aws_<service>_<name>`,
+- [ ] __Resource Naming__: Resources should be named `aws_<service>_<name>`,
    using underscores (`_`) as the separator. Resources are namespaced with the
    service name to allow easier searching of related resources, to align
    the resource naming with the service for [Customizing Endpoints](https://www.terraform.io/docs/providers/aws/guides/custom-service-endpoints.html#available-endpoint-customizations),
    and to prevent future conflicts with new AWS services/resources.
    For reference:
 
-   - `service` is the AWS short service name that matches the entry in
+    - `service` is the AWS short service name that matches the entry in
      `endpointServiceNames` (created via the [New Service](#new-service)
      section)
-   - `name` represents the conceptual infrastructure represented by the
+    - `name` represents the conceptual infrastructure represented by the
      create, read, update, and delete methods of the service API. It should
      be a singular noun. For example, in an API that has methods such as
      `CreateThing`, `DeleteThing`, `DescribeThing`, and `ModifyThing` the name
      of the resource would end in `_thing`.
 
- - [ ] __Arguments_and_Attributes__: The HCL for arguments and attributes should
+- [ ] __Arguments_and_Attributes__: The HCL for arguments and attributes should
    mimic the types and structs presented by the AWS API. API arguments should be
    converted from `CamelCase` to `camel_case`.
- - [ ] __Documentation__: Each resource gets a page in the Terraform
-   documentation. The [Terraform website][website] source is in this
-   repo and includes instructions for getting a local copy of the site up and
-   running if you'd like to preview your changes. For a resource, you'll want
-   to add a new file in the appropriate place and add a link to the sidebar for
-   that page.
- - [ ] __Well-formed Code__: Do your best to follow existing conventions you
+- [ ] __Documentation__: Each data source and resource gets a page in the Terraform
+   documentation, which lives at `website/docs/d/<service>_<name>.html.markdown` and
+   `website/docs/r/<service>_<name>.html.markdown` respectively.
+- [ ] __Well-formed Code__: Do your best to follow existing conventions you
    see in the codebase, and ensure your code is formatted with `go fmt`.
    The PR reviewers can help out on this front, and may provide comments with
    suggestions on how to improve the code.
- - [ ] __Vendor updates__: Create a separate PR if you are adding to the vendor
+- [ ] __Vendor updates__: Create a separate PR if you are adding to the vendor
    folder. This is to avoid conflicts as the vendor versions tend to be fast-
    moving targets. We will plan to merge the PR with this change first.
 
@@ -503,21 +500,21 @@ into Terraform.
 
   To add the AWS Go SDK service client:
 
-  - In `aws/provider.go` Add a new service entry to `endpointServiceNames`.
+    - In `aws/provider.go` Add a new service entry to `endpointServiceNames`.
     This service name should match the AWS Go SDK or AWS CLI service name.
-  - In `aws/config.go`: Add a new import for the AWS Go SDK code. e.g.
+    - In `aws/config.go`: Add a new import for the AWS Go SDK code. e.g.
     `github.com/aws/aws-sdk-go/service/quicksight`
-  - In `aws/config.go`: Add a new `{SERVICE}conn` field to the `AWSClient`
+    - In `aws/config.go`: Add a new `{SERVICE}conn` field to the `AWSClient`
     struct for the service client. The service name should match the name
     in `endpointServiceNames`. e.g. `quicksightconn *quicksight.QuickSight`
-  - In `aws/config.go`: Create the new service client in the `{SERVICE}conn`
+    - In `aws/config.go`: Create the new service client in the `{SERVICE}conn`
     field in the `AWSClient` instantiation within `Client()`. e.g.
     `quicksightconn: quicksight.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["quicksight"])})),`
-  - In `website/allowed-subcategories.txt`: Add a name acceptable for the documentation navigation.
-  - In `website/docs/guides/custom-service-endpoints.html.md`: Add the service
+    - In `website/allowed-subcategories.txt`: Add a name acceptable for the documentation navigation.
+    - In `website/docs/guides/custom-service-endpoints.html.md`: Add the service
     name in the list of customizable endpoints.
-  - In `infrastructure/repository/labels-service.tf`: Add the new service to create a repository label.
-  - In `.hashibot.hcl`: Add the new service to automated issue and pull request labeling. e.g. with the `quicksight` service
+    - In `infrastructure/repository/labels-service.tf`: Add the new service to create a repository label.
+    - In `.hashibot.hcl`: Add the new service to automated issue and pull request labeling. e.g. with the `quicksight` service
 
   ```hcl
   behavior "regexp_issue_labeler_v2" "service_labels" {
@@ -538,6 +535,7 @@ into Terraform.
     label_map = {
       # ... other services ...
       "service/quicksight" = [
+        "aws/internal/service/quicksight/**/*",
         "**/*_quicksight_*",
         "**/quicksight_*",
       ],
@@ -546,7 +544,7 @@ into Terraform.
   }
   ```
 
-  - Run the following then submit the pull request:
+    - Run the following then submit the pull request:
 
   ```sh
   go test ./aws
@@ -570,9 +568,9 @@ While region validation is automatically added with SDK updates, new regions
 are generally limited in which services they support. Below are some
 manually sourced values from documentation.
 
- - [ ] Check [Elastic Load Balancing endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/elb.html#elb_region) and add Route53 Hosted Zone ID if available to `aws/data_source_aws_elb_hosted_zone_id.go`
- - [ ] Check [Amazon Simple Storage Service endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_region) and add Route53 Hosted Zone ID if available to `aws/hosted_zones.go`
- - [ ] Check [CloudTrail Supported Regions docs](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-supported-regions.html#cloudtrail-supported-regions) and add AWS Account ID if available to `aws/data_source_aws_cloudtrail_service_account.go`
- - [ ] Check [Elastic Load Balancing Access Logs docs](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html#attach-bucket-policy) and add Elastic Load Balancing Account ID if available to `aws/data_source_aws_elb_service_account.go`
- - [ ] Check [Redshift Database Audit Logging docs](https://docs.aws.amazon.com/redshift/latest/mgmt/db-auditing.html#db-auditing-bucket-permissions) and add AWS Account ID if available to `aws/data_source_aws_redshift_service_account.go`
- - [ ] Check [AWS Elastic Beanstalk endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html#elasticbeanstalk_region) and add Route53 Hosted Zone ID if available to `aws/data_source_aws_elastic_beanstalk_hosted_zone.go`
+- [ ] Check [Elastic Load Balancing endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/elb.html#elb_region) and add Route53 Hosted Zone ID if available to `aws/data_source_aws_elb_hosted_zone_id.go`
+- [ ] Check [Amazon Simple Storage Service endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_region) and add Route53 Hosted Zone ID if available to `aws/hosted_zones.go`
+- [ ] Check [CloudTrail Supported Regions docs](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-supported-regions.html#cloudtrail-supported-regions) and add AWS Account ID if available to `aws/data_source_aws_cloudtrail_service_account.go`
+- [ ] Check [Elastic Load Balancing Access Logs docs](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html#attach-bucket-policy) and add Elastic Load Balancing Account ID if available to `aws/data_source_aws_elb_service_account.go`
+- [ ] Check [Redshift Database Audit Logging docs](https://docs.aws.amazon.com/redshift/latest/mgmt/db-auditing.html#db-auditing-bucket-permissions) and add AWS Account ID if available to `aws/data_source_aws_redshift_service_account.go`
+- [ ] Check [AWS Elastic Beanstalk endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html#elasticbeanstalk_region) and add Route53 Hosted Zone ID if available to `aws/data_source_aws_elastic_beanstalk_hosted_zone.go`

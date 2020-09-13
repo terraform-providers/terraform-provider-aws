@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -199,7 +199,7 @@ func TestAccAWSEBSVolume_updateType(t *testing.T) {
 	})
 }
 
-func TestAccAWSEBSVolume_updateIops(t *testing.T) {
+func TestAccAWSEBSVolume_updateIops_Io1(t *testing.T) {
 	var v ec2.Volume
 	resourceName := "aws_ebs_volume.test"
 
@@ -210,7 +210,7 @@ func TestAccAWSEBSVolume_updateIops(t *testing.T) {
 		CheckDestroy:  testAccCheckVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsEbsVolumeConfigWithIops,
+				Config: testAccAwsEbsVolumeConfigWithIopsIo1,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVolumeExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "iops", "100"),
@@ -222,7 +222,40 @@ func TestAccAWSEBSVolume_updateIops(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAwsEbsVolumeConfigWithIopsUpdated,
+				Config: testAccAwsEbsVolumeConfigWithIopsIo1Updated,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "iops", "200"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSEBSVolume_updateIops_Io2(t *testing.T) {
+	var v ec2.Volume
+	resourceName := "aws_ebs_volume.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEbsVolumeConfigWithIopsIo2,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVolumeExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "iops", "100"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsEbsVolumeConfigWithIopsIo2Updated,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVolumeExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "iops", "200"),
@@ -281,6 +314,22 @@ func TestAccAWSEBSVolume_NoIops(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/12667
+func TestAccAWSEBSVolume_InvalidIopsForType(t *testing.T) {
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAwsEbsVolumeConfigWithInvalidIopsForType,
+				ExpectError: regexp.MustCompile(`error creating ebs_volume: iops attribute not supported for type gp2`),
 			},
 		},
 	})
@@ -459,9 +508,9 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  type = "gp2"
-  size = 1
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "gp2"
+  size              = 1
 }
 `
 
@@ -493,7 +542,7 @@ data "aws_ami" "debian_jessie_latest" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.debian_jessie_latest.id}"
+  ami           = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.medium"
 
   root_block_device {
@@ -517,17 +566,17 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  depends_on = ["aws_instance.test"]
-  availability_zone = "${aws_instance.test.availability_zone}"
-  type = "gp2"
-  size = "10"
+  depends_on        = [aws_instance.test]
+  availability_zone = aws_instance.test.availability_zone
+  type              = "gp2"
+  size              = "10"
 }
 
 resource "aws_volume_attachment" "test" {
-  depends_on  = ["aws_ebs_volume.test"]
+  depends_on  = [aws_ebs_volume.test]
   device_name = "/dev/xvdg"
-  volume_id   = "${aws_ebs_volume.test.id}"
-  instance_id = "${aws_instance.test.id}"
+  volume_id   = aws_ebs_volume.test.id
+  instance_id = aws_instance.test.id
 }
 `
 
@@ -559,7 +608,7 @@ data "aws_ami" "debian_jessie_latest" {
 }
 
 resource "aws_instance" "test" {
-  ami           = "${data.aws_ami.debian_jessie_latest.id}"
+  ami           = data.aws_ami.debian_jessie_latest.id
   instance_type = "t2.medium"
 
   root_block_device {
@@ -569,22 +618,22 @@ resource "aws_instance" "test" {
   }
 
   tags = {
-    Name    = "test-terraform"
+    Name = "test-terraform"
   }
 }
 
 resource "aws_ebs_volume" "test" {
-  depends_on = ["aws_instance.test"]
-  availability_zone = "${aws_instance.test.availability_zone}"
-  type = "gp2"
-  size = "20"
+  depends_on        = [aws_instance.test]
+  availability_zone = aws_instance.test.availability_zone
+  type              = "gp2"
+  size              = "20"
 }
 
 resource "aws_volume_attachment" "test" {
-  depends_on  = ["aws_ebs_volume.test"]
+  depends_on  = [aws_ebs_volume.test]
   device_name = "/dev/xvdg"
-  volume_id   = "${aws_ebs_volume.test.id}"
-  instance_id = "${aws_instance.test.id}"
+  volume_id   = aws_ebs_volume.test.id
+  instance_id = aws_instance.test.id
 }
 `
 
@@ -599,9 +648,10 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  type = "gp2"
-  size = 10
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "gp2"
+  size              = 10
+
   tags = {
     Name = "tf-acc-test-ebs-volume-test"
   }
@@ -619,16 +669,17 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  type = "sc1"
-  size = 500
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "sc1"
+  size              = 500
+
   tags = {
     Name = "tf-acc-test-ebs-volume-test"
   }
 }
 `
 
-const testAccAwsEbsVolumeConfigWithIops = `
+const testAccAwsEbsVolumeConfigWithIopsIo1 = `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -639,17 +690,18 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  type = "io1"
-  size = 4
-  iops = 100
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "io1"
+  size              = 4
+  iops              = 100
+
   tags = {
     Name = "tf-acc-test-ebs-volume-test"
   }
 }
 `
 
-const testAccAwsEbsVolumeConfigWithIopsUpdated = `
+const testAccAwsEbsVolumeConfigWithIopsIo1Updated = `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -660,10 +712,55 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  type = "io1"
-  size = 4
-  iops = 200
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "io1"
+  size              = 4
+  iops              = 200
+
+  tags = {
+    Name = "tf-acc-test-ebs-volume-test"
+  }
+}
+`
+
+const testAccAwsEbsVolumeConfigWithIopsIo2 = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "io2"
+  size              = 4
+  iops              = 100
+
+  tags = {
+    Name = "tf-acc-test-ebs-volume-test"
+  }
+}
+`
+
+const testAccAwsEbsVolumeConfigWithIopsIo2Updated = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  type              = "io2"
+  size              = 4
+  iops              = 200
+
   tags = {
     Name = "tf-acc-test-ebs-volume-test"
   }
@@ -673,7 +770,7 @@ resource "aws_ebs_volume" "test" {
 const testAccAwsEbsVolumeConfigWithKmsKey = `
 resource "aws_kms_key" "test" {
   description = "Terraform acc test %d"
-  policy = <<POLICY
+  policy      = <<POLICY
 {
   "Version": "2012-10-17",
   "Id": "kms-tf-1",
@@ -702,10 +799,10 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
   encrypted         = true
-  kms_key_id        = "${aws_kms_key.test.arn}"
+  kms_key_id        = aws_kms_key.test.arn
 }
 `
 
@@ -720,8 +817,9 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  size = 1
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 1
+
   tags = {
     Name = "TerraformTest"
   }
@@ -739,10 +837,32 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  size = 10
-  type = "gp2"
-  iops = 0
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 10
+  type              = "gp2"
+  iops              = 0
+
+  tags = {
+    Name = "TerraformTest"
+  }
+}
+`
+
+const testAccAwsEbsVolumeConfigWithInvalidIopsForType = `
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_ebs_volume" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  size              = 10
+  iops              = 100
+
   tags = {
     Name = "TerraformTest"
   }
@@ -761,6 +881,7 @@ resource "aws_ebs_volume" "test" {
   availability_zone = data.aws_outposts_outpost.test.availability_zone
   size              = 1
   outpost_arn       = data.aws_outposts_outpost.test.arn
+
   tags = {
     Name = "tf-acc-volume-outpost"
   }
@@ -780,7 +901,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone    = data.aws_availability_zones.available.names[0]
   type                 = "io1"
   multi_attach_enabled = true
   size                 = 4

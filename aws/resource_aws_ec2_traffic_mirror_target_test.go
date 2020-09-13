@@ -5,13 +5,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TrafficMirrorTarget_nlb(t *testing.T) {
@@ -204,9 +204,9 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "sub1" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.0.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[0]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[0]
 
   tags = {
     Name = %[1]q
@@ -214,9 +214,9 @@ resource "aws_subnet" "sub1" {
 }
 
 resource "aws_subnet" "sub2" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[1]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[1]
 
   tags = {
     Name = %[1]q
@@ -231,7 +231,7 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
   enable_deletion_protection  = false
 
@@ -242,8 +242,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 }
 `, rName, description)
 }
@@ -267,9 +267,9 @@ data "aws_ami" "amzn-linux" {
 }
 
 resource "aws_instance" "src" {
-  ami = "${data.aws_ami.amzn-linux.id}"
+  ami           = data.aws_ami.amzn-linux.id
   instance_type = "t2.micro"
-  subnet_id = "${aws_subnet.sub1.id}"
+  subnet_id     = aws_subnet.sub1.id
 
   tags = {
     Name = %[1]q
@@ -277,8 +277,8 @@ resource "aws_instance" "src" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
+  description          = %[2]q
+  network_interface_id = aws_instance.src.primary_network_interface_id
 }
 `, rName, description)
 }
@@ -289,7 +289,7 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
   enable_deletion_protection  = false
 
@@ -300,8 +300,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 
   tags = {
     %[3]q = %[4]q
@@ -316,7 +316,7 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
   enable_deletion_protection  = false
 
@@ -327,8 +327,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 
   tags = {
     %[3]q = %[4]q

@@ -6,9 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	dms "github.com/aws/aws-sdk-go/service/databasemigrationservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSDmsEventSubscription_basic(t *testing.T) {
@@ -18,10 +19,9 @@ func TestAccAWSDmsEventSubscription_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckDmsEventSubscriptionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDmsEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDmsEventSubscriptionConfigEnabled(rName, true),
@@ -31,8 +31,8 @@ func TestAccAWSDmsEventSubscription_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "source_type", "replication-instance"),
 					resource.TestCheckResourceAttr(resourceName, "event_categories.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.1475249524", "creation"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.563807169", "failure"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "creation"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "failure"),
 					resource.TestCheckResourceAttr(resourceName, "source_ids.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "sns_topic_arn", snsTopicResourceName, "arn"),
 				),
@@ -114,18 +114,17 @@ func TestAccAWSDmsEventSubscription_EventCategories(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckDmsEventSubscriptionDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDmsEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDmsEventSubscriptionConfigEventCategories2(rName, "creation", "failure"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDmsEventSubscriptionExists(resourceName, &eventSubscription),
 					resource.TestCheckResourceAttr(resourceName, "event_categories.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.1475249524", "creation"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.563807169", "failure"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "creation"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "failure"),
 				),
 			},
 			{
@@ -138,8 +137,8 @@ func TestAccAWSDmsEventSubscription_EventCategories(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDmsEventSubscriptionExists(resourceName, &eventSubscription),
 					resource.TestCheckResourceAttr(resourceName, "event_categories.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.2890955135", "configuration change"),
-					resource.TestCheckResourceAttr(resourceName, "event_categories.769513765", "deletion"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "configuration change"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "event_categories.*", "deletion"),
 				),
 			},
 		},

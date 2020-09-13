@@ -31,7 +31,7 @@ To enable automatic secret rotation, the Secrets Manager service requires usage 
 ```hcl
 resource "aws_secretsmanager_secret" "rotation-example" {
   name                = "rotation-example"
-  rotation_lambda_arn = "${aws_lambda_function.example.arn}"
+  rotation_lambda_arn = aws_lambda_function.example.arn
 
   rotation_rules {
     automatically_after_days = 7
@@ -46,7 +46,7 @@ The following arguments are supported:
 * `name` - (Optional) Specifies the friendly name of the new secret. The secret name can consist of uppercase letters, lowercase letters, digits, and any of the following characters: `/_+=.@-` Conflicts with `name_prefix`.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
 * `description` - (Optional) A description of the secret.
-* `kms_key_id` - (Optional) Specifies the ARN or alias of the AWS KMS customer master key (CMK) to be used to encrypt the secret values in the versions stored in this secret. If you don't specify this value, then Secrets Manager defaults to using the AWS account's default CMK (the one named `aws/secretsmanager`). If the default KMS CMK with that name doesn't yet exist, then AWS Secrets Manager creates it for you automatically the first time.
+* `kms_key_id` - (Optional) Specifies the ARN or Id of the AWS KMS customer master key (CMK) to be used to encrypt the secret values in the versions stored in this secret. If you don't specify this value, then Secrets Manager defaults to using the AWS account's default CMK (the one named `aws/secretsmanager`). If the default KMS CMK with that name doesn't yet exist, then AWS Secrets Manager creates it for you automatically the first time.
 * `policy` - (Optional) A valid JSON document representing a [resource policy](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_resource-based-policies.html). For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 * `recovery_window_in_days` - (Optional) Specifies the number of days that AWS Secrets Manager waits before it can delete the secret. This value can be `0` to force deletion without recovery or range from `7` to `30` days. The default value is `30`.
 * `rotation_lambda_arn` - (Optional, **DEPRECATED**) Specifies the ARN of the Lambda function that can rotate the secret. Use the `aws_secretsmanager_secret_rotation` resource to manage this configuration instead. As of version 2.67.0, removal of this configuration will no longer remove rotation due to supporting the new resource. Either import the new resource and remove the configuration or manually remove rotation.

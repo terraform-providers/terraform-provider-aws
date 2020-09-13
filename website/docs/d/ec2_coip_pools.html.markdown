@@ -18,7 +18,7 @@ The following shows outputing all COIP Pool Ids.
 data "aws_ec2_coip_pools" "foo" {}
 
 output "foo" {
-  value = "${data.aws_ec2_coip_pools.foo.ids}"
+  value = data.aws_ec2_coip_pools.foo.ids
 }
 ```
 

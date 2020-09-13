@@ -3509,7 +3509,15 @@ func (c *WAFV2) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req
 // 2019. For information, including how to migrate your AWS WAF resources from
 // the prior release, see the AWS WAF Developer Guide (https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html).
 //
-// Retrieves the TagInfoForResource for the specified resource.
+// Retrieves the TagInfoForResource for the specified resource. Tags are key:value
+// pairs that you can use to categorize and manage your resources, for purposes
+// like billing. For example, you might set the tag key to "customer" and the
+// value to the customer name or ID. You can specify one or more tags to add
+// to each AWS resource, up to 50 tags for a resource.
+//
+// You can tag the AWS resources that you manage through AWS WAF: web ACLs,
+// rule groups, IP sets, and regex pattern sets. You can't manage or view tags
+// through the AWS WAF console.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3738,6 +3746,9 @@ func (c *WAFV2) PutLoggingConfigurationRequest(input *PutLoggingConfigurationInp
 // operating. If you are capturing logs for Amazon CloudFront, always create
 // the firehose in US East (N. Virginia).
 //
+// Give the data firehose a name that starts with the prefix aws-waf-logs-.
+// For example, aws-waf-logs-us-east-2-analytics.
+//
 // Do not create the data firehose using a Kinesis stream as your source.
 //
 // Associate that firehose to your web ACL using a PutLoggingConfiguration request.
@@ -3797,6 +3808,12 @@ func (c *WAFV2) PutLoggingConfigurationRequest(input *PutLoggingConfigurationInp
 //
 //   * WAFInvalidOperationException
 //   The operation isn't valid.
+//
+//   * WAFLimitsExceededException
+//   AWS WAF couldn’t perform the operation because you exceeded your resource
+//   limit. For example, the maximum number of WebACL objects that you can create
+//   for an AWS account. For more information, see Limits (https://docs.aws.amazon.com/waf/latest/developerguide/limits.html)
+//   in the AWS WAF Developer Guide.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/wafv2-2019-07-29/PutLoggingConfiguration
 func (c *WAFV2) PutLoggingConfiguration(input *PutLoggingConfigurationInput) (*PutLoggingConfigurationOutput, error) {
@@ -4002,10 +4019,14 @@ func (c *WAFV2) TagResourceRequest(input *TagResourceInput) (req *request.Reques
 // the prior release, see the AWS WAF Developer Guide (https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html).
 //
 // Associates tags with the specified AWS resource. Tags are key:value pairs
-// that you can associate with AWS resources. For example, the tag key might
-// be "customer" and the tag value might be "companyA." You can specify one
-// or more tags to add to each container. You can add up to 50 tags to each
-// AWS resource.
+// that you can use to categorize and manage your resources, for purposes like
+// billing. For example, you might set the tag key to "customer" and the value
+// to the customer name or ID. You can specify one or more tags to add to each
+// AWS resource, up to 50 tags for a resource.
+//
+// You can tag the AWS resources that you manage through AWS WAF: web ACLs,
+// rule groups, IP sets, and regex pattern sets. You can't manage or view tags
+// through the AWS WAF console.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -7183,6 +7204,88 @@ func (s *FirewallManagerStatement) SetRuleGroupReferenceStatement(v *RuleGroupRe
 	return s
 }
 
+// The configuration for inspecting IP addresses in an HTTP header that you
+// specify, instead of using the IP address that's reported by the web request
+// origin. Commonly, this is the X-Forwarded-For (XFF) header, but you can specify
+// any header name.
+//
+// If the specified header isn't present in the request, AWS WAF doesn't apply
+// the rule to the web request at all.
+//
+// This configuration is used for GeoMatchStatement and RateBasedStatement.
+// For IPSetReferenceStatement, use IPSetForwardedIPConfig instead.
+//
+// AWS WAF only evaluates the first IP address found in the specified HTTP header.
+type ForwardedIPConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The match status to assign to the web request if the request doesn't have
+	// a valid IP address in the specified position.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	//
+	// You can specify the following fallback behaviors:
+	//
+	//    * MATCH - Treat the web request as matching the rule statement. AWS WAF
+	//    applies the rule action to the request.
+	//
+	//    * NO_MATCH - Treat the web request as not matching the rule statement.
+	//
+	// FallbackBehavior is a required field
+	FallbackBehavior *string `type:"string" required:"true" enum:"FallbackBehavior"`
+
+	// The name of the HTTP header to use for the IP address. For example, to use
+	// the X-Forwarded-For (XFF) header, set this to X-Forwarded-For.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	//
+	// HeaderName is a required field
+	HeaderName *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ForwardedIPConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ForwardedIPConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ForwardedIPConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ForwardedIPConfig"}
+	if s.FallbackBehavior == nil {
+		invalidParams.Add(request.NewErrParamRequired("FallbackBehavior"))
+	}
+	if s.HeaderName == nil {
+		invalidParams.Add(request.NewErrParamRequired("HeaderName"))
+	}
+	if s.HeaderName != nil && len(*s.HeaderName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("HeaderName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFallbackBehavior sets the FallbackBehavior field's value.
+func (s *ForwardedIPConfig) SetFallbackBehavior(v string) *ForwardedIPConfig {
+	s.FallbackBehavior = &v
+	return s
+}
+
+// SetHeaderName sets the HeaderName field's value.
+func (s *ForwardedIPConfig) SetHeaderName(v string) *ForwardedIPConfig {
+	s.HeaderName = &v
+	return s
+}
+
 //
 // This is the latest version of AWS WAF, named AWS WAFV2, released in November,
 // 2019. For information, including how to migrate your AWS WAF resources from
@@ -7195,6 +7298,15 @@ type GeoMatchStatement struct {
 	// An array of two-character country codes, for example, [ "US", "CN" ], from
 	// the alpha-2 country ISO codes of the ISO 3166 international standard.
 	CountryCodes []*string `min:"1" type:"list"`
+
+	// The configuration for inspecting IP addresses in an HTTP header that you
+	// specify, instead of using the IP address that's reported by the web request
+	// origin. Commonly, this is the X-Forwarded-For (XFF) header, but you can specify
+	// any header name.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	ForwardedIPConfig *ForwardedIPConfig `type:"structure"`
 }
 
 // String returns the string representation
@@ -7213,6 +7325,11 @@ func (s *GeoMatchStatement) Validate() error {
 	if s.CountryCodes != nil && len(s.CountryCodes) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("CountryCodes", 1))
 	}
+	if s.ForwardedIPConfig != nil {
+		if err := s.ForwardedIPConfig.Validate(); err != nil {
+			invalidParams.AddNested("ForwardedIPConfig", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -7223,6 +7340,12 @@ func (s *GeoMatchStatement) Validate() error {
 // SetCountryCodes sets the CountryCodes field's value.
 func (s *GeoMatchStatement) SetCountryCodes(v []*string) *GeoMatchStatement {
 	s.CountryCodes = v
+	return s
+}
+
+// SetForwardedIPConfig sets the ForwardedIPConfig field's value.
+func (s *GeoMatchStatement) SetForwardedIPConfig(v *ForwardedIPConfig) *GeoMatchStatement {
+	s.ForwardedIPConfig = v
 	return s
 }
 
@@ -7920,9 +8043,10 @@ type GetSampledRequestsInput struct {
 	Scope *string `type:"string" required:"true" enum:"Scope"`
 
 	// The start date and time and the end date and time of the range for which
-	// you want GetSampledRequests to return a sample of requests. Specify the date
-	// and time in the following format: "2016-09-27T14:50Z". You can specify any
-	// time range in the previous three hours.
+	// you want GetSampledRequests to return a sample of requests. You must specify
+	// the times in Coordinated Universal Time (UTC) format. UTC format includes
+	// the special designator, Z. For example, "2016-09-27T14:50Z". You can specify
+	// any time range in the previous three hours.
 	//
 	// TimeWindow is a required field
 	TimeWindow *TimeWindow `type:"structure" required:"true"`
@@ -8028,7 +8152,8 @@ type GetSampledRequestsOutput struct {
 	// Usually, TimeWindow is the time range that you specified in the GetSampledRequests
 	// request. However, if your AWS resource received more than 5,000 requests
 	// during the time range that you specified in the request, GetSampledRequests
-	// returns the time range for the first 5,000 requests.
+	// returns the time range for the first 5,000 requests. Times are in Coordinated
+	// Universal Time (UTC) format.
 	TimeWindow *TimeWindow `type:"structure"`
 }
 
@@ -8491,6 +8616,115 @@ func (s *IPSet) SetName(v string) *IPSet {
 	return s
 }
 
+// The configuration for inspecting IP addresses in an HTTP header that you
+// specify, instead of using the IP address that's reported by the web request
+// origin. Commonly, this is the X-Forwarded-For (XFF) header, but you can specify
+// any header name.
+//
+// If the specified header isn't present in the request, AWS WAF doesn't apply
+// the rule to the web request at all.
+//
+// This configuration is used only for IPSetReferenceStatement. For GeoMatchStatement
+// and RateBasedStatement, use ForwardedIPConfig instead.
+type IPSetForwardedIPConfig struct {
+	_ struct{} `type:"structure"`
+
+	// The match status to assign to the web request if the request doesn't have
+	// a valid IP address in the specified position.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	//
+	// You can specify the following fallback behaviors:
+	//
+	//    * MATCH - Treat the web request as matching the rule statement. AWS WAF
+	//    applies the rule action to the request.
+	//
+	//    * NO_MATCH - Treat the web request as not matching the rule statement.
+	//
+	// FallbackBehavior is a required field
+	FallbackBehavior *string `type:"string" required:"true" enum:"FallbackBehavior"`
+
+	// The name of the HTTP header to use for the IP address. For example, to use
+	// the X-Forwarded-For (XFF) header, set this to X-Forwarded-For.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	//
+	// HeaderName is a required field
+	HeaderName *string `min:"1" type:"string" required:"true"`
+
+	// The position in the header to search for the IP address. The header can contain
+	// IP addresses of the original client and also of proxies. For example, the
+	// header value could be 10.1.1.1, 127.0.0.0, 10.10.10.10 where the first IP
+	// address identifies the original client and the rest identify proxies that
+	// the request went through.
+	//
+	// The options for this setting are the following:
+	//
+	//    * FIRST - Inspect the first IP address in the list of IP addresses in
+	//    the header. This is usually the client's original IP.
+	//
+	//    * LAST - Inspect the last IP address in the list of IP addresses in the
+	//    header.
+	//
+	//    * ANY - Inspect all IP addresses in the header for a match. If the header
+	//    contains more than 10 IP addresses, AWS WAF inspects the last 10.
+	//
+	// Position is a required field
+	Position *string `type:"string" required:"true" enum:"ForwardedIPPosition"`
+}
+
+// String returns the string representation
+func (s IPSetForwardedIPConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s IPSetForwardedIPConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *IPSetForwardedIPConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "IPSetForwardedIPConfig"}
+	if s.FallbackBehavior == nil {
+		invalidParams.Add(request.NewErrParamRequired("FallbackBehavior"))
+	}
+	if s.HeaderName == nil {
+		invalidParams.Add(request.NewErrParamRequired("HeaderName"))
+	}
+	if s.HeaderName != nil && len(*s.HeaderName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("HeaderName", 1))
+	}
+	if s.Position == nil {
+		invalidParams.Add(request.NewErrParamRequired("Position"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFallbackBehavior sets the FallbackBehavior field's value.
+func (s *IPSetForwardedIPConfig) SetFallbackBehavior(v string) *IPSetForwardedIPConfig {
+	s.FallbackBehavior = &v
+	return s
+}
+
+// SetHeaderName sets the HeaderName field's value.
+func (s *IPSetForwardedIPConfig) SetHeaderName(v string) *IPSetForwardedIPConfig {
+	s.HeaderName = &v
+	return s
+}
+
+// SetPosition sets the Position field's value.
+func (s *IPSetForwardedIPConfig) SetPosition(v string) *IPSetForwardedIPConfig {
+	s.Position = &v
+	return s
+}
+
 //
 // This is the latest version of AWS WAF, named AWS WAFV2, released in November,
 // 2019. For information, including how to migrate your AWS WAF resources from
@@ -8512,6 +8746,15 @@ type IPSetReferenceStatement struct {
 	//
 	// ARN is a required field
 	ARN *string `min:"20" type:"string" required:"true"`
+
+	// The configuration for inspecting IP addresses in an HTTP header that you
+	// specify, instead of using the IP address that's reported by the web request
+	// origin. Commonly, this is the X-Forwarded-For (XFF) header, but you can specify
+	// any header name.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	IPSetForwardedIPConfig *IPSetForwardedIPConfig `type:"structure"`
 }
 
 // String returns the string representation
@@ -8533,6 +8776,11 @@ func (s *IPSetReferenceStatement) Validate() error {
 	if s.ARN != nil && len(*s.ARN) < 20 {
 		invalidParams.Add(request.NewErrParamMinLen("ARN", 20))
 	}
+	if s.IPSetForwardedIPConfig != nil {
+		if err := s.IPSetForwardedIPConfig.Validate(); err != nil {
+			invalidParams.AddNested("IPSetForwardedIPConfig", err.(request.ErrInvalidParams))
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -8543,6 +8791,12 @@ func (s *IPSetReferenceStatement) Validate() error {
 // SetARN sets the ARN field's value.
 func (s *IPSetReferenceStatement) SetARN(v string) *IPSetReferenceStatement {
 	s.ARN = &v
+	return s
+}
+
+// SetIPSetForwardedIPConfig sets the IPSetForwardedIPConfig field's value.
+func (s *IPSetReferenceStatement) SetIPSetForwardedIPConfig(v *IPSetForwardedIPConfig) *IPSetReferenceStatement {
+	s.IPSetForwardedIPConfig = v
 	return s
 }
 
@@ -9483,9 +9737,16 @@ type LoggingConfiguration struct {
 	// LogDestinationConfigs is a required field
 	LogDestinationConfigs []*string `min:"1" type:"list" required:"true"`
 
+	// Indicates whether the logging configuration was created by AWS Firewall Manager,
+	// as part of an AWS WAF policy configuration. If true, only Firewall Manager
+	// can modify or delete the configuration.
+	ManagedByFirewallManager *bool `type:"boolean"`
+
 	// The parts of the request that you want to keep out of the logs. For example,
-	// if you redact the cookie field, the cookie field in the firehose will be
+	// if you redact the HEADER field, the HEADER field in the firehose will be
 	// xxx.
+	//
+	// You must use one of the following values: URI, QUERY_STRING, HEADER, or METHOD.
 	RedactedFields []*FieldToMatch `type:"list"`
 
 	// The Amazon Resource Name (ARN) of the web ACL that you want to associate
@@ -9540,6 +9801,12 @@ func (s *LoggingConfiguration) Validate() error {
 // SetLogDestinationConfigs sets the LogDestinationConfigs field's value.
 func (s *LoggingConfiguration) SetLogDestinationConfigs(v []*string) *LoggingConfiguration {
 	s.LogDestinationConfigs = v
+	return s
+}
+
+// SetManagedByFirewallManager sets the ManagedByFirewallManager field's value.
+func (s *LoggingConfiguration) SetManagedByFirewallManager(v bool) *LoggingConfiguration {
+	s.ManagedByFirewallManager = &v
 	return s
 }
 
@@ -10135,14 +10402,32 @@ func (s QueryString) GoString() string {
 type RateBasedStatement struct {
 	_ struct{} `type:"structure"`
 
-	// Setting that indicates how to aggregate the request counts. Currently, you
-	// must set this to IP. The request counts are aggregated on IP addresses.
+	// Setting that indicates how to aggregate the request counts. The options are
+	// the following:
+	//
+	//    * IP - Aggregate the request counts on the IP address from the web request
+	//    origin.
+	//
+	//    * FORWARDED_IP - Aggregate the request counts on the first IP address
+	//    in an HTTP header. If you use this, configure the ForwardedIPConfig, to
+	//    specify the header to use.
 	//
 	// AggregateKeyType is a required field
 	AggregateKeyType *string `type:"string" required:"true" enum:"RateBasedStatementAggregateKeyType"`
 
+	// The configuration for inspecting IP addresses in an HTTP header that you
+	// specify, instead of using the IP address that's reported by the web request
+	// origin. Commonly, this is the X-Forwarded-For (XFF) header, but you can specify
+	// any header name.
+	//
+	// If the specified header isn't present in the request, AWS WAF doesn't apply
+	// the rule to the web request at all.
+	//
+	// This is required if AggregateKeyType is set to FORWARDED_IP.
+	ForwardedIPConfig *ForwardedIPConfig `type:"structure"`
+
 	// The limit on requests per 5-minute period for a single originating IP address.
-	// If the statement includes a ScopDownStatement, this limit is applied only
+	// If the statement includes a ScopeDownStatement, this limit is applied only
 	// to the requests that match the statement.
 	//
 	// Limit is a required field
@@ -10176,6 +10461,11 @@ func (s *RateBasedStatement) Validate() error {
 	if s.Limit != nil && *s.Limit < 100 {
 		invalidParams.Add(request.NewErrParamMinValue("Limit", 100))
 	}
+	if s.ForwardedIPConfig != nil {
+		if err := s.ForwardedIPConfig.Validate(); err != nil {
+			invalidParams.AddNested("ForwardedIPConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.ScopeDownStatement != nil {
 		if err := s.ScopeDownStatement.Validate(); err != nil {
 			invalidParams.AddNested("ScopeDownStatement", err.(request.ErrInvalidParams))
@@ -10191,6 +10481,12 @@ func (s *RateBasedStatement) Validate() error {
 // SetAggregateKeyType sets the AggregateKeyType field's value.
 func (s *RateBasedStatement) SetAggregateKeyType(v string) *RateBasedStatement {
 	s.AggregateKeyType = &v
+	return s
+}
+
+// SetForwardedIPConfig sets the ForwardedIPConfig field's value.
+func (s *RateBasedStatement) SetForwardedIPConfig(v *ForwardedIPConfig) *RateBasedStatement {
+	s.ForwardedIPConfig = v
 	return s
 }
 
@@ -11083,7 +11379,7 @@ type SampledHTTPRequest struct {
 	// The name of the Rule that the request matched. For managed rule groups, the
 	// format for this name is <vendor name>#<managed rule group name>#<rule name>.
 	// For your own rule groups, the format for this name is <rule group name>#<rule
-	// name>. If the rule is not in a rule group, the format is <rule name>.
+	// name>. If the rule is not in a rule group, this field is absent.
 	RuleNameWithinRuleGroup *string `min:"1" type:"string"`
 
 	// The time at which AWS WAF received the request from your AWS resource, in
@@ -11754,11 +12050,18 @@ func (s *Statement) SetXssMatchStatement(v *XssMatchStatement) *Statement {
 // 2019. For information, including how to migrate your AWS WAF resources from
 // the prior release, see the AWS WAF Developer Guide (https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html).
 //
-// A collection of key:value pairs associated with an AWS resource. The key:value
-// pair can be anything you define. Typically, the tag key represents a category
-// (such as "environment") and the tag value represents a specific value within
-// that category (such as "test," "development," or "production"). You can add
-// up to 50 tags to each AWS resource.
+// A tag associated with an AWS resource. Tags are key:value pairs that you
+// can use to categorize and manage your resources, for purposes like billing
+// or other management. Typically, the tag key represents a category, such as
+// "environment", and the tag value represents a specific value within that
+// category, such as "test," "development," or "production". Or you might set
+// the tag key to "customer" and the value to the customer name or ID. You can
+// specify one or more tags to add to each AWS resource, up to 50 tags for a
+// resource.
+//
+// You can tag the AWS resources that you manage through AWS WAF: web ACLs,
+// rule groups, IP sets, and regex pattern sets. You can't manage or view tags
+// through the AWS WAF console.
 type Tag struct {
 	_ struct{} `type:"structure"`
 
@@ -11822,7 +12125,18 @@ func (s *Tag) SetValue(v string) *Tag {
 // 2019. For information, including how to migrate your AWS WAF resources from
 // the prior release, see the AWS WAF Developer Guide (https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html).
 //
-// The collection of tagging definitions for an AWS resource.
+// The collection of tagging definitions for an AWS resource. Tags are key:value
+// pairs that you can use to categorize and manage your resources, for purposes
+// like billing or other management. Typically, the tag key represents a category,
+// such as "environment", and the tag value represents a specific value within
+// that category, such as "test," "development," or "production". Or you might
+// set the tag key to "customer" and the value to the customer name or ID. You
+// can specify one or more tags to add to each AWS resource, up to 50 tags for
+// a resource.
+//
+// You can tag the AWS resources that you manage through AWS WAF: web ACLs,
+// rule groups, IP sets, and regex pattern sets. You can't manage or view tags
+// through the AWS WAF console.
 type TagInfoForResource struct {
 	_ struct{} `type:"structure"`
 
@@ -12073,6 +12387,10 @@ func (s *TextTransformation) SetType(v string) *TextTransformation {
 // In a GetSampledRequests request, the StartTime and EndTime objects specify
 // the time range for which you want AWS WAF to return a sample of web requests.
 //
+// You must specify the times in Coordinated Universal Time (UTC) format. UTC
+// format includes the special designator, Z. For example, "2016-09-27T14:50Z".
+// You can specify any time range in the previous three hours.
+//
 // In a GetSampledRequests response, the StartTime and EndTime objects specify
 // the time range for which AWS WAF actually returned a sample of web requests.
 // AWS WAF gets the specified number of requests from among the first 5,000
@@ -12084,17 +12402,19 @@ type TimeWindow struct {
 	_ struct{} `type:"structure"`
 
 	// The end of the time range from which you want GetSampledRequests to return
-	// a sample of the requests that your AWS resource received. Specify the date
-	// and time in the following format: "2016-09-27T14:50Z". You can specify any
-	// time range in the previous three hours.
+	// a sample of the requests that your AWS resource received. You must specify
+	// the times in Coordinated Universal Time (UTC) format. UTC format includes
+	// the special designator, Z. For example, "2016-09-27T14:50Z". You can specify
+	// any time range in the previous three hours.
 	//
 	// EndTime is a required field
 	EndTime *time.Time `type:"timestamp" required:"true"`
 
 	// The beginning of the time range from which you want GetSampledRequests to
-	// return a sample of the requests that your AWS resource received. Specify
-	// the date and time in the following format: "2016-09-27T14:50Z". You can specify
-	// any time range in the previous three hours.
+	// return a sample of the requests that your AWS resource received. You must
+	// specify the times in Coordinated Universal Time (UTC) format. UTC format
+	// includes the special designator, Z. For example, "2016-09-27T14:50Z". You
+	// can specify any time range in the previous three hours.
 	//
 	// StartTime is a required field
 	StartTime *time.Time `type:"timestamp" required:"true"`
@@ -12982,10 +13302,10 @@ type VisibilityConfig struct {
 	// CloudWatchMetricsEnabled is a required field
 	CloudWatchMetricsEnabled *bool `type:"boolean" required:"true"`
 
-	// A name of the CloudWatch metric. The name can contain only alphanumeric characters
-	// (A-Z, a-z, 0-9), with length from one to 128 characters. It can't contain
-	// whitespace or metric names reserved for AWS WAF, for example "All" and "Default_Action."
-	// You can't change a MetricName after you create a VisibilityConfig.
+	// A name of the CloudWatch metric. The name can contain only the characters:
+	// A-Z, a-z, 0-9, - (hyphen), and _ (underscore). The name can be from one to
+	// 128 characters long. It can't contain whitespace or metric names reserved
+	// for AWS WAF, for example "All" and "Default_Action."
 	//
 	// MetricName is a required field
 	MetricName *string `min:"1" type:"string" required:"true"`
@@ -14295,6 +14615,18 @@ const (
 	ComparisonOperatorGt = "GT"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorEq,
+		ComparisonOperatorNe,
+		ComparisonOperatorLe,
+		ComparisonOperatorLt,
+		ComparisonOperatorGe,
+		ComparisonOperatorGt,
+	}
+}
+
 const (
 	// CountryCodeAf is a CountryCode enum value
 	CountryCodeAf = "AF"
@@ -15044,6 +15376,297 @@ const (
 	CountryCodeZw = "ZW"
 )
 
+// CountryCode_Values returns all elements of the CountryCode enum
+func CountryCode_Values() []string {
+	return []string{
+		CountryCodeAf,
+		CountryCodeAx,
+		CountryCodeAl,
+		CountryCodeDz,
+		CountryCodeAs,
+		CountryCodeAd,
+		CountryCodeAo,
+		CountryCodeAi,
+		CountryCodeAq,
+		CountryCodeAg,
+		CountryCodeAr,
+		CountryCodeAm,
+		CountryCodeAw,
+		CountryCodeAu,
+		CountryCodeAt,
+		CountryCodeAz,
+		CountryCodeBs,
+		CountryCodeBh,
+		CountryCodeBd,
+		CountryCodeBb,
+		CountryCodeBy,
+		CountryCodeBe,
+		CountryCodeBz,
+		CountryCodeBj,
+		CountryCodeBm,
+		CountryCodeBt,
+		CountryCodeBo,
+		CountryCodeBq,
+		CountryCodeBa,
+		CountryCodeBw,
+		CountryCodeBv,
+		CountryCodeBr,
+		CountryCodeIo,
+		CountryCodeBn,
+		CountryCodeBg,
+		CountryCodeBf,
+		CountryCodeBi,
+		CountryCodeKh,
+		CountryCodeCm,
+		CountryCodeCa,
+		CountryCodeCv,
+		CountryCodeKy,
+		CountryCodeCf,
+		CountryCodeTd,
+		CountryCodeCl,
+		CountryCodeCn,
+		CountryCodeCx,
+		CountryCodeCc,
+		CountryCodeCo,
+		CountryCodeKm,
+		CountryCodeCg,
+		CountryCodeCd,
+		CountryCodeCk,
+		CountryCodeCr,
+		CountryCodeCi,
+		CountryCodeHr,
+		CountryCodeCu,
+		CountryCodeCw,
+		CountryCodeCy,
+		CountryCodeCz,
+		CountryCodeDk,
+		CountryCodeDj,
+		CountryCodeDm,
+		CountryCodeDo,
+		CountryCodeEc,
+		CountryCodeEg,
+		CountryCodeSv,
+		CountryCodeGq,
+		CountryCodeEr,
+		CountryCodeEe,
+		CountryCodeEt,
+		CountryCodeFk,
+		CountryCodeFo,
+		CountryCodeFj,
+		CountryCodeFi,
+		CountryCodeFr,
+		CountryCodeGf,
+		CountryCodePf,
+		CountryCodeTf,
+		CountryCodeGa,
+		CountryCodeGm,
+		CountryCodeGe,
+		CountryCodeDe,
+		CountryCodeGh,
+		CountryCodeGi,
+		CountryCodeGr,
+		CountryCodeGl,
+		CountryCodeGd,
+		CountryCodeGp,
+		CountryCodeGu,
+		CountryCodeGt,
+		CountryCodeGg,
+		CountryCodeGn,
+		CountryCodeGw,
+		CountryCodeGy,
+		CountryCodeHt,
+		CountryCodeHm,
+		CountryCodeVa,
+		CountryCodeHn,
+		CountryCodeHk,
+		CountryCodeHu,
+		CountryCodeIs,
+		CountryCodeIn,
+		CountryCodeId,
+		CountryCodeIr,
+		CountryCodeIq,
+		CountryCodeIe,
+		CountryCodeIm,
+		CountryCodeIl,
+		CountryCodeIt,
+		CountryCodeJm,
+		CountryCodeJp,
+		CountryCodeJe,
+		CountryCodeJo,
+		CountryCodeKz,
+		CountryCodeKe,
+		CountryCodeKi,
+		CountryCodeKp,
+		CountryCodeKr,
+		CountryCodeKw,
+		CountryCodeKg,
+		CountryCodeLa,
+		CountryCodeLv,
+		CountryCodeLb,
+		CountryCodeLs,
+		CountryCodeLr,
+		CountryCodeLy,
+		CountryCodeLi,
+		CountryCodeLt,
+		CountryCodeLu,
+		CountryCodeMo,
+		CountryCodeMk,
+		CountryCodeMg,
+		CountryCodeMw,
+		CountryCodeMy,
+		CountryCodeMv,
+		CountryCodeMl,
+		CountryCodeMt,
+		CountryCodeMh,
+		CountryCodeMq,
+		CountryCodeMr,
+		CountryCodeMu,
+		CountryCodeYt,
+		CountryCodeMx,
+		CountryCodeFm,
+		CountryCodeMd,
+		CountryCodeMc,
+		CountryCodeMn,
+		CountryCodeMe,
+		CountryCodeMs,
+		CountryCodeMa,
+		CountryCodeMz,
+		CountryCodeMm,
+		CountryCodeNa,
+		CountryCodeNr,
+		CountryCodeNp,
+		CountryCodeNl,
+		CountryCodeNc,
+		CountryCodeNz,
+		CountryCodeNi,
+		CountryCodeNe,
+		CountryCodeNg,
+		CountryCodeNu,
+		CountryCodeNf,
+		CountryCodeMp,
+		CountryCodeNo,
+		CountryCodeOm,
+		CountryCodePk,
+		CountryCodePw,
+		CountryCodePs,
+		CountryCodePa,
+		CountryCodePg,
+		CountryCodePy,
+		CountryCodePe,
+		CountryCodePh,
+		CountryCodePn,
+		CountryCodePl,
+		CountryCodePt,
+		CountryCodePr,
+		CountryCodeQa,
+		CountryCodeRe,
+		CountryCodeRo,
+		CountryCodeRu,
+		CountryCodeRw,
+		CountryCodeBl,
+		CountryCodeSh,
+		CountryCodeKn,
+		CountryCodeLc,
+		CountryCodeMf,
+		CountryCodePm,
+		CountryCodeVc,
+		CountryCodeWs,
+		CountryCodeSm,
+		CountryCodeSt,
+		CountryCodeSa,
+		CountryCodeSn,
+		CountryCodeRs,
+		CountryCodeSc,
+		CountryCodeSl,
+		CountryCodeSg,
+		CountryCodeSx,
+		CountryCodeSk,
+		CountryCodeSi,
+		CountryCodeSb,
+		CountryCodeSo,
+		CountryCodeZa,
+		CountryCodeGs,
+		CountryCodeSs,
+		CountryCodeEs,
+		CountryCodeLk,
+		CountryCodeSd,
+		CountryCodeSr,
+		CountryCodeSj,
+		CountryCodeSz,
+		CountryCodeSe,
+		CountryCodeCh,
+		CountryCodeSy,
+		CountryCodeTw,
+		CountryCodeTj,
+		CountryCodeTz,
+		CountryCodeTh,
+		CountryCodeTl,
+		CountryCodeTg,
+		CountryCodeTk,
+		CountryCodeTo,
+		CountryCodeTt,
+		CountryCodeTn,
+		CountryCodeTr,
+		CountryCodeTm,
+		CountryCodeTc,
+		CountryCodeTv,
+		CountryCodeUg,
+		CountryCodeUa,
+		CountryCodeAe,
+		CountryCodeGb,
+		CountryCodeUs,
+		CountryCodeUm,
+		CountryCodeUy,
+		CountryCodeUz,
+		CountryCodeVu,
+		CountryCodeVe,
+		CountryCodeVn,
+		CountryCodeVg,
+		CountryCodeVi,
+		CountryCodeWf,
+		CountryCodeEh,
+		CountryCodeYe,
+		CountryCodeZm,
+		CountryCodeZw,
+	}
+}
+
+const (
+	// FallbackBehaviorMatch is a FallbackBehavior enum value
+	FallbackBehaviorMatch = "MATCH"
+
+	// FallbackBehaviorNoMatch is a FallbackBehavior enum value
+	FallbackBehaviorNoMatch = "NO_MATCH"
+)
+
+// FallbackBehavior_Values returns all elements of the FallbackBehavior enum
+func FallbackBehavior_Values() []string {
+	return []string{
+		FallbackBehaviorMatch,
+		FallbackBehaviorNoMatch,
+	}
+}
+
+const (
+	// ForwardedIPPositionFirst is a ForwardedIPPosition enum value
+	ForwardedIPPositionFirst = "FIRST"
+
+	// ForwardedIPPositionLast is a ForwardedIPPosition enum value
+	ForwardedIPPositionLast = "LAST"
+
+	// ForwardedIPPositionAny is a ForwardedIPPosition enum value
+	ForwardedIPPositionAny = "ANY"
+)
+
+// ForwardedIPPosition_Values returns all elements of the ForwardedIPPosition enum
+func ForwardedIPPosition_Values() []string {
+	return []string{
+		ForwardedIPPositionFirst,
+		ForwardedIPPositionLast,
+		ForwardedIPPositionAny,
+	}
+}
+
 const (
 	// IPAddressVersionIpv4 is a IPAddressVersion enum value
 	IPAddressVersionIpv4 = "IPV4"
@@ -15051,6 +15674,14 @@ const (
 	// IPAddressVersionIpv6 is a IPAddressVersion enum value
 	IPAddressVersionIpv6 = "IPV6"
 )
+
+// IPAddressVersion_Values returns all elements of the IPAddressVersion enum
+func IPAddressVersion_Values() []string {
+	return []string{
+		IPAddressVersionIpv4,
+		IPAddressVersionIpv6,
+	}
+}
 
 const (
 	// ParameterExceptionFieldWebAcl is a ParameterExceptionField enum value
@@ -15166,7 +15797,71 @@ const (
 
 	// ParameterExceptionFieldFirewallManagerStatement is a ParameterExceptionField enum value
 	ParameterExceptionFieldFirewallManagerStatement = "FIREWALL_MANAGER_STATEMENT"
+
+	// ParameterExceptionFieldFallbackBehavior is a ParameterExceptionField enum value
+	ParameterExceptionFieldFallbackBehavior = "FALLBACK_BEHAVIOR"
+
+	// ParameterExceptionFieldPosition is a ParameterExceptionField enum value
+	ParameterExceptionFieldPosition = "POSITION"
+
+	// ParameterExceptionFieldForwardedIpConfig is a ParameterExceptionField enum value
+	ParameterExceptionFieldForwardedIpConfig = "FORWARDED_IP_CONFIG"
+
+	// ParameterExceptionFieldIpSetForwardedIpConfig is a ParameterExceptionField enum value
+	ParameterExceptionFieldIpSetForwardedIpConfig = "IP_SET_FORWARDED_IP_CONFIG"
+
+	// ParameterExceptionFieldHeaderName is a ParameterExceptionField enum value
+	ParameterExceptionFieldHeaderName = "HEADER_NAME"
 )
+
+// ParameterExceptionField_Values returns all elements of the ParameterExceptionField enum
+func ParameterExceptionField_Values() []string {
+	return []string{
+		ParameterExceptionFieldWebAcl,
+		ParameterExceptionFieldRuleGroup,
+		ParameterExceptionFieldRegexPatternSet,
+		ParameterExceptionFieldIpSet,
+		ParameterExceptionFieldManagedRuleSet,
+		ParameterExceptionFieldRule,
+		ParameterExceptionFieldExcludedRule,
+		ParameterExceptionFieldStatement,
+		ParameterExceptionFieldByteMatchStatement,
+		ParameterExceptionFieldSqliMatchStatement,
+		ParameterExceptionFieldXssMatchStatement,
+		ParameterExceptionFieldSizeConstraintStatement,
+		ParameterExceptionFieldGeoMatchStatement,
+		ParameterExceptionFieldRateBasedStatement,
+		ParameterExceptionFieldRuleGroupReferenceStatement,
+		ParameterExceptionFieldRegexPatternReferenceStatement,
+		ParameterExceptionFieldIpSetReferenceStatement,
+		ParameterExceptionFieldManagedRuleSetStatement,
+		ParameterExceptionFieldAndStatement,
+		ParameterExceptionFieldOrStatement,
+		ParameterExceptionFieldNotStatement,
+		ParameterExceptionFieldIpAddress,
+		ParameterExceptionFieldIpAddressVersion,
+		ParameterExceptionFieldFieldToMatch,
+		ParameterExceptionFieldTextTransformation,
+		ParameterExceptionFieldSingleQueryArgument,
+		ParameterExceptionFieldSingleHeader,
+		ParameterExceptionFieldDefaultAction,
+		ParameterExceptionFieldRuleAction,
+		ParameterExceptionFieldEntityLimit,
+		ParameterExceptionFieldOverrideAction,
+		ParameterExceptionFieldScopeValue,
+		ParameterExceptionFieldResourceArn,
+		ParameterExceptionFieldResourceType,
+		ParameterExceptionFieldTags,
+		ParameterExceptionFieldTagKeys,
+		ParameterExceptionFieldMetricName,
+		ParameterExceptionFieldFirewallManagerStatement,
+		ParameterExceptionFieldFallbackBehavior,
+		ParameterExceptionFieldPosition,
+		ParameterExceptionFieldForwardedIpConfig,
+		ParameterExceptionFieldIpSetForwardedIpConfig,
+		ParameterExceptionFieldHeaderName,
+	}
+}
 
 const (
 	// PositionalConstraintExactly is a PositionalConstraint enum value
@@ -15185,10 +15880,32 @@ const (
 	PositionalConstraintContainsWord = "CONTAINS_WORD"
 )
 
+// PositionalConstraint_Values returns all elements of the PositionalConstraint enum
+func PositionalConstraint_Values() []string {
+	return []string{
+		PositionalConstraintExactly,
+		PositionalConstraintStartsWith,
+		PositionalConstraintEndsWith,
+		PositionalConstraintContains,
+		PositionalConstraintContainsWord,
+	}
+}
+
 const (
 	// RateBasedStatementAggregateKeyTypeIp is a RateBasedStatementAggregateKeyType enum value
 	RateBasedStatementAggregateKeyTypeIp = "IP"
+
+	// RateBasedStatementAggregateKeyTypeForwardedIp is a RateBasedStatementAggregateKeyType enum value
+	RateBasedStatementAggregateKeyTypeForwardedIp = "FORWARDED_IP"
 )
+
+// RateBasedStatementAggregateKeyType_Values returns all elements of the RateBasedStatementAggregateKeyType enum
+func RateBasedStatementAggregateKeyType_Values() []string {
+	return []string{
+		RateBasedStatementAggregateKeyTypeIp,
+		RateBasedStatementAggregateKeyTypeForwardedIp,
+	}
+}
 
 const (
 	// ResourceTypeApplicationLoadBalancer is a ResourceType enum value
@@ -15198,6 +15915,14 @@ const (
 	ResourceTypeApiGateway = "API_GATEWAY"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeApplicationLoadBalancer,
+		ResourceTypeApiGateway,
+	}
+}
+
 const (
 	// ScopeCloudfront is a Scope enum value
 	ScopeCloudfront = "CLOUDFRONT"
@@ -15205,6 +15930,14 @@ const (
 	// ScopeRegional is a Scope enum value
 	ScopeRegional = "REGIONAL"
 )
+
+// Scope_Values returns all elements of the Scope enum
+func Scope_Values() []string {
+	return []string{
+		ScopeCloudfront,
+		ScopeRegional,
+	}
+}
 
 const (
 	// TextTransformationTypeNone is a TextTransformationType enum value
@@ -15225,3 +15958,15 @@ const (
 	// TextTransformationTypeUrlDecode is a TextTransformationType enum value
 	TextTransformationTypeUrlDecode = "URL_DECODE"
 )
+
+// TextTransformationType_Values returns all elements of the TextTransformationType enum
+func TextTransformationType_Values() []string {
+	return []string{
+		TextTransformationTypeNone,
+		TextTransformationTypeCompressWhiteSpace,
+		TextTransformationTypeHtmlEntityDecode,
+		TextTransformationTypeLowercase,
+		TextTransformationTypeCmdLine,
+		TextTransformationTypeUrlDecode,
+	}
+}

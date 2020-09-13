@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -21,6 +22,10 @@ func resourceAwsEc2TrafficMirrorSession() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -92,7 +97,7 @@ func resourceAwsEc2TrafficMirrorSessionCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error creating traffic mirror session %v", err)
 	}
 
-	d.SetId(*out.TrafficMirrorSession.TrafficMirrorSessionId)
+	d.SetId(aws.StringValue(out.TrafficMirrorSession.TrafficMirrorSessionId))
 	return resourceAwsEc2TrafficMirrorSessionRead(d, meta)
 }
 
@@ -211,6 +216,16 @@ func resourceAwsEc2TrafficMirrorSessionRead(d *schema.ResourceData, meta interfa
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(session.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("traffic-mirror-session/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

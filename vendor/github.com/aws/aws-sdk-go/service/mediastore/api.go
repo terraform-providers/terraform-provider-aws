@@ -4153,6 +4153,14 @@ const (
 	ContainerLevelMetricsDisabled = "DISABLED"
 )
 
+// ContainerLevelMetrics_Values returns all elements of the ContainerLevelMetrics enum
+func ContainerLevelMetrics_Values() []string {
+	return []string{
+		ContainerLevelMetricsEnabled,
+		ContainerLevelMetricsDisabled,
+	}
+}
+
 const (
 	// ContainerStatusActive is a ContainerStatus enum value
 	ContainerStatusActive = "ACTIVE"
@@ -4163,6 +4171,15 @@ const (
 	// ContainerStatusDeleting is a ContainerStatus enum value
 	ContainerStatusDeleting = "DELETING"
 )
+
+// ContainerStatus_Values returns all elements of the ContainerStatus enum
+func ContainerStatus_Values() []string {
+	return []string{
+		ContainerStatusActive,
+		ContainerStatusCreating,
+		ContainerStatusDeleting,
+	}
+}
 
 const (
 	// MethodNamePut is a MethodName enum value
@@ -4177,3 +4194,13 @@ const (
 	// MethodNameHead is a MethodName enum value
 	MethodNameHead = "HEAD"
 )
+
+// MethodName_Values returns all elements of the MethodName enum
+func MethodName_Values() []string {
+	return []string{
+		MethodNamePut,
+		MethodNameGet,
+		MethodNameDelete,
+		MethodNameHead,
+	}
+}

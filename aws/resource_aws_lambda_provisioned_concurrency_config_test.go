@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLambdaProvisionedConcurrencyConfig_basic(t *testing.T) {
@@ -305,7 +305,7 @@ resource "aws_lambda_provisioned_concurrency_config" "test" {
 }
 
 func testAccAWSLambdaProvisionedConcurrencyConfigQualifierAliasName(rName string) string {
-	return testAccAWSLambdaProvisionedConcurrencyConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSLambdaProvisionedConcurrencyConfigBase(rName) + `
 resource "aws_lambda_alias" "test" {
   function_name    = aws_lambda_function.test.function_name
   function_version = aws_lambda_function.test.version
@@ -317,15 +317,15 @@ resource "aws_lambda_provisioned_concurrency_config" "test" {
   provisioned_concurrent_executions = 1
   qualifier                         = aws_lambda_alias.test.name
 }
-`)
+`
 }
 
 func testAccAWSLambdaProvisionedConcurrencyConfigQualifierFunctionVersion(rName string) string {
-	return testAccAWSLambdaProvisionedConcurrencyConfigBase(rName) + fmt.Sprintf(`
+	return testAccAWSLambdaProvisionedConcurrencyConfigBase(rName) + `
 resource "aws_lambda_provisioned_concurrency_config" "test" {
   function_name                     = aws_lambda_function.test.function_name
   provisioned_concurrent_executions = 1
   qualifier                         = aws_lambda_function.test.version
 }
-`)
+`
 }

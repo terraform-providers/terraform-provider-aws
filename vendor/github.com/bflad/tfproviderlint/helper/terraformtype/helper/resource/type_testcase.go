@@ -5,7 +5,6 @@ import (
 	"go/types"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
-	tfresource "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 const (
@@ -22,11 +21,18 @@ const (
 	TypeNameTestCase = `TestCase`
 )
 
+// testCaseType is an internal representation of the SDK helper/resource.TestCase type
+//
+// This is used to prevent importing the real type since the project supports
+// multiple versions of the Terraform Plugin SDK, while allowing passes to
+// access the data in a familiar manner.
+type testCaseType struct{}
+
 // TestCaseInfo represents all gathered TestCase data for easier access
 type TestCaseInfo struct {
 	AstCompositeLit *ast.CompositeLit
 	Fields          map[string]*ast.KeyValueExpr
-	TestCase        *tfresource.TestCase
+	TestCase        *testCaseType
 	TypesInfo       *types.Info
 }
 
@@ -35,7 +41,7 @@ func NewTestCaseInfo(cl *ast.CompositeLit, info *types.Info) *TestCaseInfo {
 	result := &TestCaseInfo{
 		AstCompositeLit: cl,
 		Fields:          astutils.CompositeLitFields(cl),
-		TestCase:        &tfresource.TestCase{},
+		TestCase:        &testCaseType{},
 		TypesInfo:       info,
 	}
 

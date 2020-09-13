@@ -29,7 +29,7 @@ resource "aws_wafregional_rule" "wafrule" {
   metric_name = "tfWAFRule"
 
   predicate {
-    data_id = "${aws_wafregional_ipset.ipset.id}"
+    data_id = aws_wafregional_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -49,7 +49,7 @@ resource "aws_wafregional_web_acl" "wafacl" {
     }
 
     priority = 1
-    rule_id  = "${aws_wafregional_rule.wafrule.id}"
+    rule_id  = aws_wafregional_rule.wafrule.id
     type     = "REGULAR"
   }
 }
@@ -68,7 +68,7 @@ resource "aws_wafregional_web_acl" "example" {
 
   rule {
     priority = 1
-    rule_id  = "${aws_wafregional_rule_group.example.id}"
+    rule_id  = aws_wafregional_rule_group.example.id
     type     = "GROUP"
 
     override_action {
@@ -87,7 +87,7 @@ resource "aws_wafregional_web_acl" "example" {
   # ... other configuration ...
 
   logging_configuration {
-    log_destination = "${aws_kinesis_firehose_delivery_stream.example.arn}"
+    log_destination = aws_kinesis_firehose_delivery_stream.example.arn
 
     redacted_fields {
       field_to_match {

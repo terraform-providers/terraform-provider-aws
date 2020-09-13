@@ -7,12 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codestarnotifications"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSCodeStarNotificationsNotificationRule_Basic(t *testing.T) {
+func TestAccAWSCodeStarNotificationsNotificationRule_basic(t *testing.T) {
 	resourceName := "aws_codestarnotifications_notification_rule.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
@@ -246,19 +246,19 @@ resource "aws_sns_topic" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigBasic(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = ["codecommit-repository-comments-on-commits"]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type    = "BASIC"
+  event_type_ids = ["codecommit-repository-comments-on-commits"]
+  name           = %[1]q
+  resource       = aws_codecommit_repository.test.arn
+  status         = "ENABLED"
 
-    tags = {
-      TestTag = "123456"
-    }
+  tags = {
+    TestTag = "123456"
+  }
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }
@@ -320,20 +320,20 @@ resource "aws_codestarnotifications_notification_rule" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigTags1(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = ["codecommit-repository-comments-on-commits"]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type    = "BASIC"
+  event_type_ids = ["codecommit-repository-comments-on-commits"]
+  name           = %[1]q
+  resource       = aws_codecommit_repository.test.arn
+  status         = "ENABLED"
 
-    tags = {
-      TestTag1 = "123456"
-      TestTag2 = "654321"
-    }
+  tags = {
+    TestTag1 = "123456"
+    TestTag2 = "654321"
+  }
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }
@@ -341,20 +341,20 @@ resource "aws_codestarnotifications_notification_rule" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigTags2(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = ["codecommit-repository-comments-on-commits"]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type    = "BASIC"
+  event_type_ids = ["codecommit-repository-comments-on-commits"]
+  name           = %[1]q
+  resource       = aws_codecommit_repository.test.arn
+  status         = "ENABLED"
 
-    tags = {
-      TestTag2 = "654321"
-      TestTag3 = "asdfgh"
-    }
+  tags = {
+    TestTag2 = "654321"
+    TestTag3 = "asdfgh"
+  }
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }
@@ -362,17 +362,17 @@ resource "aws_codestarnotifications_notification_rule" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigEventTypeIds1(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = [
-        "codecommit-repository-comments-on-commits",
-    ]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type = "BASIC"
+  event_type_ids = [
+    "codecommit-repository-comments-on-commits",
+  ]
+  name     = %[1]q
+  resource = aws_codecommit_repository.test.arn
+  status   = "ENABLED"
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }
@@ -380,18 +380,18 @@ resource "aws_codestarnotifications_notification_rule" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigEventTypeIds2(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = [
-        "codecommit-repository-comments-on-commits",
-        "codecommit-repository-pull-request-created",
-    ]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type = "BASIC"
+  event_type_ids = [
+    "codecommit-repository-comments-on-commits",
+    "codecommit-repository-pull-request-created",
+  ]
+  name     = %[1]q
+  resource = aws_codecommit_repository.test.arn
+  status   = "ENABLED"
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }
@@ -399,17 +399,17 @@ resource "aws_codestarnotifications_notification_rule" "test" {
 func testAccAWSCodeStarNotificationsNotificationRuleConfigEventTypeIds3(rName string) string {
 	return testAccAWSCodeStarNotificationsNotificationRuleConfigBase(rName) + fmt.Sprintf(`
 resource "aws_codestarnotifications_notification_rule" "test" {
-    detail_type    = "BASIC"
-    event_type_ids = [
-        "codecommit-repository-pull-request-created",
-    ]
-    name           = %[1]q
-    resource       = aws_codecommit_repository.test.arn
-    status         = "ENABLED"
+  detail_type = "BASIC"
+  event_type_ids = [
+    "codecommit-repository-pull-request-created",
+  ]
+  name     = %[1]q
+  resource = aws_codecommit_repository.test.arn
+  status   = "ENABLED"
 
-    target {
-      address = aws_sns_topic.test.arn
-    }
+  target {
+    address = aws_sns_topic.test.arn
+  }
 }
 `, rName)
 }

@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVolumeAttachment_basic(t *testing.T) {
@@ -269,7 +269,10 @@ func testAccCheckVolumeAttachmentDestroy(s *terraform.State) error {
 }
 
 func testAccVolumeAttachmentInstanceOnlyConfigBase(rName string) string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("data.aws_availability_zones.available.names[0]", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -279,32 +282,22 @@ data "aws_availability_zones" "available" {
   }
 }
 
-data "aws_ec2_instance_type_offering" "available" {
-  filter {
-    name   = "instance-type"
-    values = ["t3.micro", "t2.micro"]
-  }
-
-  location_type            = "availability-zone"
-  preferred_instance_types = ["t3.micro", "t2.micro"]
-}
-
 resource "aws_instance" "test" {
-  ami               = "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  instance_type     = "${data.aws_ec2_instance_type_offering.available.instance_type}"
+  ami               = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  availability_zone = data.aws_availability_zones.available.names[0]
+  instance_type     = data.aws_ec2_instance_type_offering.available.instance_type
 
   tags = {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccVolumeAttachmentConfigBase(rName string) string {
 	return testAccVolumeAttachmentInstanceOnlyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 
   tags = {
@@ -315,13 +308,13 @@ resource "aws_ebs_volume" "test" {
 }
 
 func testAccVolumeAttachmentConfig(rName string) string {
-	return testAccVolumeAttachmentConfigBase(rName) + fmt.Sprintf(`
+	return testAccVolumeAttachmentConfigBase(rName) + `
 resource "aws_volume_attachment" "test" {
   device_name = "/dev/sdh"
-  volume_id   = "${aws_ebs_volume.test.id}"
-  instance_id = "${aws_instance.test.id}"
+  volume_id   = aws_ebs_volume.test.id
+  instance_id = aws_instance.test.id
 }
-`)
+`
 }
 
 func testAccVolumeAttachmentConfigSkipDestroy(rName string) string {
@@ -329,12 +322,14 @@ func testAccVolumeAttachmentConfigSkipDestroy(rName string) string {
 data "aws_ebs_volume" "test" {
   filter {
     name   = "size"
-    values = ["${aws_ebs_volume.test.size}"]
+    values = [aws_ebs_volume.test.size]
   }
+
   filter {
     name   = "availability-zone"
-    values = ["${aws_ebs_volume.test.availability_zone}"]
+    values = [aws_ebs_volume.test.availability_zone]
   }
+
   filter {
     name   = "tag:Name"
     values = ["%[1]s"]
@@ -343,8 +338,8 @@ data "aws_ebs_volume" "test" {
 
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/sdh"
-  volume_id    = "${data.aws_ebs_volume.test.id}"
-  instance_id  = "${aws_instance.test.id}"
+  volume_id    = data.aws_ebs_volume.test.id
+  instance_id  = aws_instance.test.id
   skip_destroy = true
 }
 `, rName)
@@ -354,8 +349,8 @@ func testAccVolumeAttachmentUpdateConfig(rName string, detach bool) string {
 	return testAccVolumeAttachmentConfigBase(rName) + fmt.Sprintf(`
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/sdh"
-  volume_id    = "${aws_ebs_volume.test.id}"
-  instance_id  = "${aws_instance.test.id}"
+  volume_id    = aws_ebs_volume.test.id
+  instance_id  = aws_instance.test.id
   force_detach = %[1]t
   skip_destroy = %[1]t
 }

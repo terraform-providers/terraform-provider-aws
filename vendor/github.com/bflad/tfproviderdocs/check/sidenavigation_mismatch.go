@@ -8,7 +8,7 @@ import (
 )
 
 func SideNavigationMismatchCheck(opts *SideNavigationOptions, dataSourceFiles []string, resourceFiles []string) error {
-	if opts == nil || opts.ProviderName == "" {
+	if opts == nil || opts.ProviderName == "" || !opts.Require {
 		return nil
 	}
 

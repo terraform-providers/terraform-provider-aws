@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsFmsAdminAccount_basic(t *testing.T) {
@@ -68,6 +68,6 @@ resource "aws_organizations_organization" "test" {
 }
 
 resource "aws_fms_admin_account" "test" {
-  account_id = "${aws_organizations_organization.test.master_account_id}"
+  account_id = aws_organizations_organization.test.master_account_id
 }
 `

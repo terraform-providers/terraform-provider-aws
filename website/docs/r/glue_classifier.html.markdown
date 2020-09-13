@@ -84,7 +84,7 @@ The following arguments are supported:
 * `allow_single_column` - (Optional) Enables the processing of files that contain only one column.
 * `contains_header` - (Optional) Indicates whether the CSV file contains a header. This can be one of "ABSENT", "PRESENT", or "UNKNOWN".
 * `delimiter` - (Optional) The delimiter used in the Csv to separate columns.
-* `disable_value_trimming` - (Optional) Specifies whether to trim column values. 
+* `disable_value_trimming` - (Optional) Specifies whether to trim column values.
 * `header` - (Optional) A list of strings representing column names.
 * `quote_symbol` - (Optional) A custom symbol to denote what combines content into a single column value. It must be different from the column delimiter.
 

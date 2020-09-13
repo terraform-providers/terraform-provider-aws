@@ -244,7 +244,7 @@ resource "aws_api_gateway_api_key" "example" {
 }
 
 resource "aws_api_gateway_usage_plan" "example" {
-  name         = "example"
+  name = "example"
 
   api_stages {
     api_id = "${aws_api_gateway_rest_api.example.id}"
@@ -352,7 +352,7 @@ resource "aws_api_gateway_method" "example" {
 
   request_parameters = {
     "method.request.header.Content-Type" = false
-    "method.request.querystring.page" = true
+    "method.request.querystring.page"    = true
   }
 }
 ```
@@ -735,9 +735,9 @@ resource "aws_redshift_cluster" "example" {
   # ... other configuration ...
 
   logging {
-    bucket_name    = "example"
-    enable         = true
-    s3_key_prefix  = "example"
+    bucket_name   = "example"
+    enable        = true
+    s3_key_prefix = "example"
   }
 }
 ```
@@ -747,7 +747,7 @@ resource "aws_redshift_cluster" "example" {
 ### Import Change
 
 Previously, importing this resource resulted in an `aws_route` resource for each route, in
-addition to the `aws_route_table`, in the Terraform state. Support for importing `aws_route` resources has been added and importing this resource only adds the `aws_route_table` 
+addition to the `aws_route_table`, in the Terraform state. Support for importing `aws_route` resources has been added and importing this resource only adds the `aws_route_table`
 resource, with in-line routes, to the state.
 
 ## Resource: aws_route53_record

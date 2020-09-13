@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAccAWSOrganizations(t *testing.T) {
+func TestAccAWSOrganizations_serial(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"Organization": {
 			"basic":                      testAccAwsOrganizationsOrganization_basic,
@@ -26,10 +26,13 @@ func TestAccAWSOrganizations(t *testing.T) {
 			"DataSource": testAccDataSourceAwsOrganizationsOrganizationalUnits_basic,
 		},
 		"Policy": {
-			"basic":       testAccAwsOrganizationsPolicy_basic,
-			"concurrent":  testAccAwsOrganizationsPolicy_concurrent,
-			"Description": testAccAwsOrganizationsPolicy_description,
-			"Type":        testAccAwsOrganizationsPolicy_type,
+			"basic":           testAccAwsOrganizationsPolicy_basic,
+			"concurrent":      testAccAwsOrganizationsPolicy_concurrent,
+			"Description":     testAccAwsOrganizationsPolicy_description,
+			"Type_AI_OPT_OUT": testAccAwsOrganizationsPolicy_type_AI_OPT_OUT,
+			"Type_Backup":     testAccAwsOrganizationsPolicy_type_Backup,
+			"Type_SCP":        testAccAwsOrganizationsPolicy_type_SCP,
+			"Type_Tag":        testAccAwsOrganizationsPolicy_type_Tag,
 		},
 		"PolicyAttachment": {
 			"Account":            testAccAwsOrganizationsPolicyAttachment_Account,

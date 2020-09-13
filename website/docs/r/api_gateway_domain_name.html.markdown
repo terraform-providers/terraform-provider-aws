@@ -29,10 +29,10 @@ the `regional_domain_name` attribute.
 
 ~> **Note:** API Gateway requires the use of AWS Certificate Manager (ACM) certificates instead of Identity and Access Management (IAM) certificates in regions that support ACM. Regions that support ACM can be found in the [Regions and Endpoints Documentation](https://docs.aws.amazon.com/general/latest/gr/rande.html#acm_region). To import an existing private key and certificate into ACM or request an ACM certificate, see the [`aws_acm_certificate` resource](/docs/providers/aws/r/acm_certificate.html).
 
-~> **Note:** The `aws_api_gateway_domain_name` resource expects dependency on the `aws_acm_certificate_validation` as 
-only verified certificates can be used. This can be made either explicitly by adding the 
-`depends_on = [aws_acm_certificate_validation.cert]` attribute. Or implicitly by referring certificate ARN 
-from the validation resource where it will be available after the resource creation: 
+~> **Note:** The `aws_api_gateway_domain_name` resource expects dependency on the `aws_acm_certificate_validation` as
+only verified certificates can be used. This can be made either explicitly by adding the
+`depends_on = [aws_acm_certificate_validation.cert]` attribute. Or implicitly by referring certificate ARN
+from the validation resource where it will be available after the resource creation:
 `regional_certificate_arn = aws_acm_certificate_validation.cert.certificate_arn`.
 
 ~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
@@ -44,21 +44,21 @@ from the validation resource where it will be available after the resource creat
 
 ```hcl
 resource "aws_api_gateway_domain_name" "example" {
-  certificate_arn = "${aws_acm_certificate_validation.example.certificate_arn}"
+  certificate_arn = aws_acm_certificate_validation.example.certificate_arn
   domain_name     = "api.example.com"
 }
 
 # Example DNS record using Route53.
 # Route53 is not specifically required; any DNS host can be used.
 resource "aws_route53_record" "example" {
-  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  name    = aws_api_gateway_domain_name.example.domain_name
   type    = "A"
-  zone_id = "${aws_route53_zone.example.id}"
+  zone_id = aws_route53_zone.example.id
 
   alias {
     evaluate_target_health = true
-    name                   = "${aws_api_gateway_domain_name.example.cloudfront_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.example.cloudfront_zone_id}"
+    name                   = aws_api_gateway_domain_name.example.cloudfront_domain_name
+    zone_id                = aws_api_gateway_domain_name.example.cloudfront_zone_id
   }
 }
 ```
@@ -70,22 +70,22 @@ resource "aws_api_gateway_domain_name" "example" {
   domain_name = "api.example.com"
 
   certificate_name        = "example-api"
-  certificate_body        = "${file("${path.module}/example.com/example.crt")}"
-  certificate_chain       = "${file("${path.module}/example.com/ca.crt")}"
-  certificate_private_key = "${file("${path.module}/example.com/example.key")}"
+  certificate_body        = file("${path.module}/example.com/example.crt")
+  certificate_chain       = file("${path.module}/example.com/ca.crt")
+  certificate_private_key = file("${path.module}/example.com/example.key")
 }
 
 # Example DNS record using Route53.
 # Route53 is not specifically required; any DNS host can be used.
 resource "aws_route53_record" "example" {
-  zone_id = "${aws_route53_zone.example.id}" # See aws_route53_zone for how to create this
+  zone_id = aws_route53_zone.example.id # See aws_route53_zone for how to create this
 
-  name = "${aws_api_gateway_domain_name.example.domain_name}"
+  name = aws_api_gateway_domain_name.example.domain_name
   type = "A"
 
   alias {
-    name                   = "${aws_api_gateway_domain_name.example.cloudfront_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.example.cloudfront_zone_id}"
+    name                   = aws_api_gateway_domain_name.example.cloudfront_domain_name
+    zone_id                = aws_api_gateway_domain_name.example.cloudfront_zone_id
     evaluate_target_health = true
   }
 }
@@ -96,7 +96,7 @@ resource "aws_route53_record" "example" {
 ```hcl
 resource "aws_api_gateway_domain_name" "example" {
   domain_name              = "api.example.com"
-  regional_certificate_arn = "${aws_acm_certificate_validation.example.certificate_arn}"
+  regional_certificate_arn = aws_acm_certificate_validation.example.certificate_arn
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -106,14 +106,14 @@ resource "aws_api_gateway_domain_name" "example" {
 # Example DNS record using Route53.
 # Route53 is not specifically required; any DNS host can be used.
 resource "aws_route53_record" "example" {
-  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  name    = aws_api_gateway_domain_name.example.domain_name
   type    = "A"
-  zone_id = "${aws_route53_zone.example.id}"
+  zone_id = aws_route53_zone.example.id
 
   alias {
     evaluate_target_health = true
-    name                   = "${aws_api_gateway_domain_name.example.regional_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.example.regional_zone_id}"
+    name                   = aws_api_gateway_domain_name.example.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.example.regional_zone_id
   }
 }
 ```
@@ -122,9 +122,9 @@ resource "aws_route53_record" "example" {
 
 ```hcl
 resource "aws_api_gateway_domain_name" "example" {
-  certificate_body          = "${file("${path.module}/example.com/example.crt")}"
-  certificate_chain         = "${file("${path.module}/example.com/ca.crt")}"
-  certificate_private_key   = "${file("${path.module}/example.com/example.key")}"
+  certificate_body          = file("${path.module}/example.com/example.crt")
+  certificate_chain         = file("${path.module}/example.com/ca.crt")
+  certificate_private_key   = file("${path.module}/example.com/example.key")
   domain_name               = "api.example.com"
   regional_certificate_name = "example-api"
 
@@ -136,14 +136,14 @@ resource "aws_api_gateway_domain_name" "example" {
 # Example DNS record using Route53.
 # Route53 is not specifically required; any DNS host can be used.
 resource "aws_route53_record" "example" {
-  name    = "${aws_api_gateway_domain_name.example.domain_name}"
+  name    = aws_api_gateway_domain_name.example.domain_name
   type    = "A"
-  zone_id = "${aws_route53_zone.example.id}"
+  zone_id = aws_route53_zone.example.id
 
   alias {
     evaluate_target_health = true
-    name                   = "${aws_api_gateway_domain_name.example.regional_domain_name}"
-    zone_id                = "${aws_api_gateway_domain_name.example.regional_zone_id}"
+    name                   = aws_api_gateway_domain_name.example.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.example.regional_zone_id
   }
 }
 ```

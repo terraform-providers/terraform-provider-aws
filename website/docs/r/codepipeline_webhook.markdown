@@ -15,14 +15,14 @@ Provides a CodePipeline Webhook.
 ```hcl
 resource "aws_codepipeline" "bar" {
   name     = "tf-test-pipeline"
-  role_arn = "${aws_iam_role.bar.arn}"
+  role_arn = aws_iam_role.bar.arn
 
   artifact_store {
-    location = "${aws_s3_bucket.bar.bucket}"
+    location = aws_s3_bucket.bar.bucket
     type     = "S3"
 
     encryption_key {
-      id   = "${data.aws_kms_alias.s3kmskey.arn}"
+      id   = data.aws_kms_alias.s3kmskey.arn
       type = "KMS"
     }
   }
@@ -76,10 +76,10 @@ resource "aws_codepipeline_webhook" "bar" {
   name            = "test-webhook-github-bar"
   authentication  = "GITHUB_HMAC"
   target_action   = "Source"
-  target_pipeline = "${aws_codepipeline.bar.name}"
+  target_pipeline = aws_codepipeline.bar.name
 
   authentication_configuration {
-    secret_token = "${local.webhook_secret}"
+    secret_token = local.webhook_secret
   }
 
   filter {
@@ -90,15 +90,15 @@ resource "aws_codepipeline_webhook" "bar" {
 
 # Wire the CodePipeline webhook into a GitHub repository.
 resource "github_repository_webhook" "bar" {
-  repository = "${github_repository.repo.name}"
+  repository = github_repository.repo.name
 
   name = "web"
 
   configuration {
-    url          = "${aws_codepipeline_webhook.bar.url}"
+    url          = aws_codepipeline_webhook.bar.url
     content_type = "json"
     insecure_ssl = true
-    secret       = "${local.webhook_secret}"
+    secret       = local.webhook_secret
   }
 
   events = ["push"]

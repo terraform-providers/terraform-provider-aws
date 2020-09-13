@@ -13,9 +13,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/budgets"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -634,20 +634,19 @@ resource "aws_sns_topic" "budget_notifications" {
 }
 
 resource "aws_budgets_budget" "foo" {
-	name = "%s"
-	budget_type = "%s"
-	limit_amount = "%s"
-	limit_unit = "%s"
-	cost_types {
-		include_tax = "%t"
-		include_subscription = "%t"
-		use_blended = "%t"
-	}
+  name         = "%s"
+  budget_type  = "%s"
+  limit_amount = "%s"
+  limit_unit   = "%s"
+  cost_types {
+    include_tax          = "%t"
+    include_subscription = "%t"
+    use_blended          = "%t"
+  }
 
-	time_period_start = "%s"
-	time_period_end = "%s"
-	time_unit = "%s"
-
+  time_period_start = "%s"
+  time_period_end   = "%s"
+  time_unit         = "%s"
     %s
 }
 `, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, strings.Join(notificationStrings, "\n"))
@@ -666,13 +665,13 @@ func testAccAWSBudgetsBudgetConfigNotificationSnippet(notification budgets.Notif
 	}
 
 	return fmt.Sprintf(`
-	notification {
-		threshold = %f
-		threshold_type = "%s"
-		notification_type = "%s"
-		subscriber_email_addresses = [%s]
-		subscriber_sns_topic_arns = [%s]
-		comparison_operator = "%s"
-	}
+notification {
+  threshold                  = %f
+  threshold_type             = "%s"
+  notification_type          = "%s"
+  subscriber_email_addresses = [%s]
+  subscriber_sns_topic_arns  = [%s]
+  comparison_operator        = "%s"
+}
 `, *notification.Threshold, *notification.ThresholdType, *notification.NotificationType, strings.Join(quotedEMails, ","), strings.Join(quotedTopics, ","), *notification.ComparisonOperator)
 }

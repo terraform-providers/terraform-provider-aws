@@ -12,10 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/hashicorp/vault/helper/pgpkeys"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/vault/helper/pgpkeys"
 )
 
 func TestGenerateIAMPassword(t *testing.T) {
@@ -339,12 +339,12 @@ data "aws_iam_policy_document" "user" {
 
 resource "aws_iam_user_policy" "user" {
   name   = "AllowChangeOwnPassword"
-  user   = "${aws_iam_user.user.name}"
-  policy = "${data.aws_iam_policy_document.user.json}"
+  user   = aws_iam_user.user.name
+  policy = data.aws_iam_policy_document.user.json
 }
 
 resource "aws_iam_access_key" "user" {
-  user = "${aws_iam_user.user.name}"
+  user = aws_iam_user.user.name
 }
 `, rName, path)
 }
@@ -354,7 +354,7 @@ func testAccAWSUserLoginProfileConfig_PasswordLength(rName, path, pgpKey string,
 %s
 
 resource "aws_iam_user_login_profile" "user" {
-  user            = "${aws_iam_user.user.name}"
+  user            = aws_iam_user.user.name
   password_length = %d
 
   pgp_key = <<EOF
@@ -369,7 +369,7 @@ func testAccAWSUserLoginProfileConfig_Required(rName, path, pgpKey string) strin
 %s
 
 resource "aws_iam_user_login_profile" "user" {
-  user = "${aws_iam_user.user.name}"
+  user = aws_iam_user.user.name
 
   pgp_key = <<EOF
 %s

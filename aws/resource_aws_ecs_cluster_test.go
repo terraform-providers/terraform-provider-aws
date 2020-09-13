@@ -7,9 +7,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -290,10 +291,9 @@ func TestAccAWSEcsCluster_containerInsights(t *testing.T) {
 	resourceName := "aws_ecs_cluster.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSEcsClusterDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEcsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEcsClusterConfig(rName),
@@ -309,8 +309,10 @@ func TestAccAWSEcsCluster_containerInsights(t *testing.T) {
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ecs", fmt.Sprintf("cluster/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "setting.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "setting.4047805881.name", "containerInsights"),
-					resource.TestCheckResourceAttr(resourceName, "setting.4047805881.value", "enabled"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "setting.*", map[string]string{
+						"name":  "containerInsights",
+						"value": "enabled",
+					}),
 				),
 			},
 			{
@@ -318,8 +320,10 @@ func TestAccAWSEcsCluster_containerInsights(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEcsClusterExists(resourceName, &cluster1),
 					resource.TestCheckResourceAttr(resourceName, "setting.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "setting.1157067080.name", "containerInsights"),
-					resource.TestCheckResourceAttr(resourceName, "setting.1157067080.value", "disabled"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "setting.*", map[string]string{
+						"name":  "containerInsights",
+						"value": "disabled",
+					}),
 				),
 			},
 		},
@@ -450,20 +454,20 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProviders(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE_SPOT", "FARGATE"]
+  capacity_providers = ["FARGATE_SPOT", "FARGATE"]
 
-	default_capacity_provider_strategy {
-		capacity_provider = "FARGATE_SPOT"
-		weight = 1
-		base   = 1
-	}
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+    base              = 1
+  }
 
-	default_capacity_provider_strategy {
-		capacity_provider = "FARGATE"
-		weight = 1
-	}
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 }
 `, rName)
 }
@@ -471,20 +475,20 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersReOrdered(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
-	default_capacity_provider_strategy {
-		capacity_provider = "FARGATE"
-		weight = 1
-	}
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 
-	default_capacity_provider_strategy {
-		capacity_provider = "FARGATE_SPOT"
-		weight = 1
-		base   = 1
-	}
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+    base              = 1
+  }
 }
 `, rName)
 }
@@ -492,15 +496,15 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersFargate(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE"]
+  capacity_providers = ["FARGATE"]
 
-	default_capacity_provider_strategy {
-		base = 1
-		capacity_provider = "FARGATE"
-		weight = 1
-	}
+  default_capacity_provider_strategy {
+    base              = 1
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 }
 `, rName)
 }
@@ -508,15 +512,15 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersFargateSpot(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE_SPOT"]
+  capacity_providers = ["FARGATE_SPOT"]
 
-	default_capacity_provider_strategy {
-		base = 1
-		capacity_provider = "FARGATE_SPOT"
-		weight = 1
-	}
+  default_capacity_provider_strategy {
+    base              = 1
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
 }
 `, rName)
 }
@@ -524,15 +528,15 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersFargateBoth(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
-	default_capacity_provider_strategy {
-		base = 1
-		capacity_provider = "FARGATE_SPOT"
-		weight = 1
-	}
+  default_capacity_provider_strategy {
+    base              = 1
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
 }
 `, rName)
 }
@@ -540,9 +544,9 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersFargateNoStrategy(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE"]
+  capacity_providers = ["FARGATE"]
 }
 `, rName)
 }
@@ -550,9 +554,9 @@ resource "aws_ecs_cluster" "test" {
 func testAccAWSEcsClusterCapacityProvidersFargateSpotNoStrategy(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ecs_cluster" "test" {
-	name = %[1]q
+  name = %[1]q
 
-	capacity_providers = ["FARGATE_SPOT"]
+  capacity_providers = ["FARGATE_SPOT"]
 }
 `, rName)
 }
@@ -575,8 +579,8 @@ func testAccAWSEcsClusterConfigContainerInsights(rName string) string {
 resource "aws_ecs_cluster" "test" {
   name = %q
   setting {
-	name = "containerInsights"
-	value = "enabled"
+    name  = "containerInsights"
+    value = "enabled"
   }
 }
 `, rName)
@@ -587,8 +591,8 @@ func testAccAWSEcsClusterConfigContainerInsightsDisable(rName string) string {
 resource "aws_ecs_cluster" "test" {
   name = %q
   setting {
-	name = "containerInsights"
-	value = "disabled"
+    name  = "containerInsights"
+    value = "disabled"
   }
 }
 `, rName)

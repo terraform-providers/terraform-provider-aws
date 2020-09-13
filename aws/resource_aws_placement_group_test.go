@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSPlacementGroup_basic(t *testing.T) {
@@ -27,6 +27,7 @@ func TestAccAWSPlacementGroup_basic(t *testing.T) {
 					testAccCheckAWSPlacementGroupExists(resourceName, &pg),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "strategy", "cluster"),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "ec2", fmt.Sprintf("placement-group/%s", rName)),
 				),
 			},
 			{
@@ -95,7 +96,7 @@ func TestAccAWSPlacementGroup_disappears(t *testing.T) {
 				Config: testAccAWSPlacementGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSPlacementGroupExists(resourceName, &pg),
-					testAccCheckAWSPlacementGroupDisappears(&pg),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsPlacementGroup(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -126,16 +127,6 @@ func testAccCheckAWSPlacementGroupDestroy(s *terraform.State) error {
 		return fmt.Errorf("still exists")
 	}
 	return nil
-}
-
-func testAccCheckAWSPlacementGroupDisappears(pg *ec2.PlacementGroup) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		req := &ec2.DeletePlacementGroupInput{GroupName: pg.GroupName}
-		_, err := conn.DeletePlacementGroup(req)
-
-		return err
-	}
 }
 
 func testAccCheckAWSPlacementGroupExists(n string, pg *ec2.PlacementGroup) resource.TestCheckFunc {

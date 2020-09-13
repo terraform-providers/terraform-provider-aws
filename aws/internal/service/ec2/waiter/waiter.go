@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const (
@@ -45,6 +45,155 @@ func LocalGatewayRouteTableVpcAssociationDisassociated(conn *ec2.EC2, localGatew
 	outputRaw, err := stateConf.WaitForState()
 
 	if output, ok := outputRaw.(*ec2.LocalGatewayRouteTableVpcAssociation); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
+	ClientVpnEndpointDeletedTimout = 5 * time.Minute
+)
+
+func ClientVpnEndpointDeleted(conn *ec2.EC2, id string) (*ec2.ClientVpnEndpoint, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.ClientVpnEndpointStatusCodeDeleting},
+		Target:  []string{},
+		Refresh: ClientVpnEndpointStatus(conn, id),
+		Timeout: ClientVpnEndpointDeletedTimout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.ClientVpnEndpoint); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
+	ClientVpnAuthorizationRuleActiveTimeout = 5 * time.Minute
+
+	ClientVpnAuthorizationRuleRevokedTimeout = 5 * time.Minute
+)
+
+func ClientVpnAuthorizationRuleAuthorized(conn *ec2.EC2, authorizationRuleID string) (*ec2.AuthorizationRule, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.ClientVpnAuthorizationRuleStatusCodeAuthorizing},
+		Target:  []string{ec2.ClientVpnAuthorizationRuleStatusCodeActive},
+		Refresh: ClientVpnAuthorizationRuleStatus(conn, authorizationRuleID),
+		Timeout: ClientVpnAuthorizationRuleActiveTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.AuthorizationRule); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func ClientVpnAuthorizationRuleRevoked(conn *ec2.EC2, authorizationRuleID string) (*ec2.AuthorizationRule, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.ClientVpnAuthorizationRuleStatusCodeRevoking},
+		Target:  []string{},
+		Refresh: ClientVpnAuthorizationRuleStatus(conn, authorizationRuleID),
+		Timeout: ClientVpnAuthorizationRuleRevokedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.AuthorizationRule); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
+	ClientVpnNetworkAssociationAssociatedTimeout = 10 * time.Minute
+
+	ClientVpnNetworkAssociationAssociatedDelay = 4 * time.Minute
+
+	ClientVpnNetworkAssociationDisassociatedTimeout = 10 * time.Minute
+
+	ClientVpnNetworkAssociationDisassociatedDelay = 4 * time.Minute
+
+	ClientVpnNetworkAssociationStatusPollInterval = 10 * time.Second
+)
+
+func ClientVpnNetworkAssociationAssociated(conn *ec2.EC2, networkAssociationID, clientVpnEndpointID string) (*ec2.TargetNetwork, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:      []string{ec2.AssociationStatusCodeAssociating},
+		Target:       []string{ec2.AssociationStatusCodeAssociated},
+		Refresh:      ClientVpnNetworkAssociationStatus(conn, networkAssociationID, clientVpnEndpointID),
+		Timeout:      ClientVpnNetworkAssociationAssociatedTimeout,
+		Delay:        ClientVpnNetworkAssociationAssociatedDelay,
+		PollInterval: ClientVpnNetworkAssociationStatusPollInterval,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.TargetNetwork); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func ClientVpnNetworkAssociationDisassociated(conn *ec2.EC2, networkAssociationID, clientVpnEndpointID string) (*ec2.TargetNetwork, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:      []string{ec2.AssociationStatusCodeDisassociating},
+		Target:       []string{},
+		Refresh:      ClientVpnNetworkAssociationStatus(conn, networkAssociationID, clientVpnEndpointID),
+		Timeout:      ClientVpnNetworkAssociationDisassociatedTimeout,
+		Delay:        ClientVpnNetworkAssociationDisassociatedDelay,
+		PollInterval: ClientVpnNetworkAssociationStatusPollInterval,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.TargetNetwork); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
+	ClientVpnRouteDeletedTimeout = 1 * time.Minute
+)
+
+func ClientVpnRouteDeleted(conn *ec2.EC2, routeID string) (*ec2.ClientVpnRoute, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.ClientVpnRouteStatusCodeActive, ec2.ClientVpnRouteStatusCodeDeleting},
+		Target:  []string{},
+		Refresh: ClientVpnRouteStatus(conn, routeID),
+		Timeout: ClientVpnRouteDeletedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.ClientVpnRoute); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func SecurityGroupCreated(conn *ec2.EC2, id string, timeout time.Duration) (*ec2.SecurityGroup, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{SecurityGroupStatusNotFound},
+		Target:  []string{SecurityGroupStatusCreated},
+		Refresh: SecurityGroupStatus(conn, id),
+		Timeout: timeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.SecurityGroup); ok {
 		return output, err
 	}
 

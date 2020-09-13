@@ -18,7 +18,7 @@ The following example shows how one might accept a local gateway id as a variabl
 variable "local_gateway_id" {}
 
 data "aws_ec2_local_gateway" "selected" {
-  id = "${var.local_gateway_id}"
+  id = var.local_gateway_id
 }
 ```
 

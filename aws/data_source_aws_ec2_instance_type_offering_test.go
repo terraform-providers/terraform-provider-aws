@@ -1,12 +1,11 @@
 package aws
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2InstanceTypeOfferingDataSource_Filter(t *testing.T) {
@@ -82,7 +81,7 @@ func testAccPreCheckAWSEc2InstanceTypeOffering(t *testing.T) {
 }
 
 func testAccAWSEc2InstanceTypeOfferingDataSourceConfigFilter() string {
-	return fmt.Sprintf(`
+	return `
 # Rather than hardcode an instance type in the testing,
 # use the first result from all available offerings.
 data "aws_ec2_instance_type_offerings" "test" {}
@@ -93,20 +92,11 @@ data "aws_ec2_instance_type_offering" "test" {
     values = [tolist(data.aws_ec2_instance_type_offerings.test.instance_types)[0]]
   }
 }
-`)
+`
 }
 
 func testAccAWSEc2InstanceTypeOfferingDataSourceConfigLocationType() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 # Rather than hardcode an instance type in the testing,
 # use the first result from all available offerings.
 data "aws_ec2_instance_type_offerings" "test" {
@@ -131,11 +121,11 @@ data "aws_ec2_instance_type_offering" "test" {
 
   location_type = "availability-zone"
 }
-`)
+`
 }
 
 func testAccAWSEc2InstanceTypeOfferingDataSourceConfigPreferredInstanceTypes() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ec2_instance_type_offering" "test" {
   filter {
     name   = "instance-type"
@@ -144,5 +134,5 @@ data "aws_ec2_instance_type_offering" "test" {
 
   preferred_instance_types = ["t3.micro", "t2.micro", "t1.micro"]
 }
-`)
+`
 }

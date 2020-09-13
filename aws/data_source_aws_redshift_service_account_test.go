@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSRedshiftServiceAccount_basic(t *testing.T) {
@@ -47,13 +47,13 @@ func TestAccAWSRedshiftServiceAccount_Region(t *testing.T) {
 }
 
 const testAccCheckAwsRedshiftServiceAccountConfig = `
-data "aws_redshift_service_account" "main" { }
+data "aws_redshift_service_account" "main" {}
 `
 
 const testAccCheckAwsRedshiftServiceAccountExplicitRegionConfig = `
 data "aws_region" "current" {}
 
 data "aws_redshift_service_account" "regional" {
-	region = data.aws_region.current.name
+  region = data.aws_region.current.name
 }
 `

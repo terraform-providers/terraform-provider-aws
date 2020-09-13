@@ -26,7 +26,7 @@ resource "aws_globalaccelerator_accelerator" "example" {
 }
 
 resource "aws_globalaccelerator_listener" "example" {
-  accelerator_arn = "${aws_globalaccelerator_accelerator.example.id}"
+  accelerator_arn = aws_globalaccelerator_accelerator.example.id
   client_affinity = "SOURCE_IP"
   protocol        = "TCP"
 

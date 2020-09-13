@@ -9,8 +9,8 @@ description: |-
 # Data Source: aws_api_gateway_rest_api
 
 Use this data source to get the id and root_resource_id of a REST API in
-API Gateway. To fetch the REST API you must provide a name to match against. 
-As there is no unique name constraint on REST APIs this data source will 
+API Gateway. To fetch the REST API you must provide a name to match against.
+As there is no unique name constraint on REST APIs this data source will
 error if there is more than one match.
 
 ## Example Usage

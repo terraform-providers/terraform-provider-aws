@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
@@ -72,22 +72,23 @@ func TestAccAWSVPNGatewayRoutePropagation_basic(t *testing.T) {
 
 const testAccAWSVPNGatewayRoutePropagation_basic = `
 resource "aws_vpc" "foo" {
-	cidr_block = "10.1.0.0/16"
-	tags = {
-		Name = "terraform-testacc-vpn-gateway-route-propagation"
-	}
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpn-gateway-route-propagation"
+  }
 }
 
 resource "aws_vpn_gateway" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
 resource "aws_route_table" "foo" {
-	vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
 resource "aws_vpn_gateway_route_propagation" "foo" {
-	vpn_gateway_id = "${aws_vpn_gateway.foo.id}"
-	route_table_id = "${aws_route_table.foo.id}"
+  vpn_gateway_id = aws_vpn_gateway.foo.id
+  route_table_id = aws_route_table.foo.id
 }
 `

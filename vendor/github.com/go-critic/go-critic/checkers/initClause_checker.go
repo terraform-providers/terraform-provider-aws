@@ -3,13 +3,13 @@ package checkers
 import (
 	"go/ast"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astp"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "initClause"
 	info.Tags = []string{"style", "opinionated", "experimental"}
 	info.Summary = "Detects non-assignment statements inside if/switch init clause"
@@ -19,14 +19,14 @@ func init() {
 if cond {
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForStmt(&initClauseChecker{ctx: ctx})
 	})
 }
 
 type initClauseChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *initClauseChecker) VisitStmt(stmt ast.Stmt) {

@@ -41,7 +41,7 @@ EOF
 
 resource "aws_iam_role_policy" "foo" {
   name = "tf-test-transfer-user-iam-policy"
-  role = "${aws_iam_role.foo.id}"
+  role = aws_iam_role.foo.id
 
   policy = <<POLICY
 {
@@ -61,9 +61,9 @@ POLICY
 }
 
 resource "aws_transfer_user" "foo" {
-  server_id = "${aws_transfer_server.foo.id}"
+  server_id = aws_transfer_server.foo.id
   user_name = "tftestuser"
-  role      = "${aws_iam_role.foo.arn}"
+  role      = aws_iam_role.foo.arn
 }
 ```
 

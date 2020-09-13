@@ -14,11 +14,11 @@ Provides information about a Lambda Function.
 
 ```hcl
 variable "function_name" {
-  type = "string"
+  type = string
 }
 
 data "aws_lambda_function" "existing" {
-  function_name = "${var.function_name}"
+  function_name = var.function_name
 }
 ```
 

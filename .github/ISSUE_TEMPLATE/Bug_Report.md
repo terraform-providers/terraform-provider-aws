@@ -26,7 +26,7 @@ If you are running into one of these scenarios, we recommend opening an issue in
 
 <!--- Thank you for keeping this note for the community --->
 
-### Terraform Version
+### Terraform CLI and Terraform AWS Provider Version
 
 <!--- Please run `terraform -v` to show the Terraform core version and provider version(s). If you are not running the latest version of Terraform or the provider, please upgrade because your issue may have already been fixed. [Terraform documentation on provider versioning](https://www.terraform.io/docs/configuration/providers.html#provider-versions). --->
 

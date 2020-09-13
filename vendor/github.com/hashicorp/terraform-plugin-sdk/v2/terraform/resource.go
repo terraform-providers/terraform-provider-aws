@@ -1,0 +1,333 @@
+package terraform
+
+import (
+	"fmt"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/mitchellh/copystructure"
+	"github.com/mitchellh/reflectwalk"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/hcl2shim"
+)
+
+// InstanceInfo is used to hold information about the instance and/or
+// resource being modified.
+type InstanceInfo struct {
+	// Id is a unique name to represent this instance. This is not related
+	// to InstanceState.ID in any way.
+	Id string
+
+	// ModulePath is the complete path of the module containing this
+	// instance.
+	ModulePath []string
+
+	// Type is the resource type of this instance
+	Type string
+}
+
+// ResourceConfig is a legacy type that was formerly used to represent
+// interpolatable configuration blocks. It is now only used to shim to old
+// APIs that still use this type, via NewResourceConfigShimmed.
+type ResourceConfig struct {
+	ComputedKeys []string
+	Raw          map[string]interface{}
+	Config       map[string]interface{}
+}
+
+// NewResourceConfigRaw constructs a ResourceConfig whose content is exactly
+// the given value.
+//
+// The given value may contain hcl2shim.UnknownVariableValue to signal that
+// something is computed, but it must not contain unprocessed interpolation
+// sequences as we might've seen in Terraform v0.11 and prior.
+func NewResourceConfigRaw(raw map[string]interface{}) *ResourceConfig {
+	v := hcl2shim.HCL2ValueFromConfigValue(raw)
+
+	// This is a little weird but we round-trip the value through the hcl2shim
+	// package here for two reasons: firstly, because that reduces the risk
+	// of it including something unlike what NewResourceConfigShimmed would
+	// produce, and secondly because it creates a copy of "raw" just in case
+	// something is relying on the fact that in the old world the raw and
+	// config maps were always distinct, and thus you could in principle mutate
+	// one without affecting the other. (I sure hope nobody was doing that, though!)
+	cfg := hcl2shim.ConfigValueFromHCL2(v).(map[string]interface{})
+
+	return &ResourceConfig{
+		Raw:    raw,
+		Config: cfg,
+
+		ComputedKeys: newResourceConfigShimmedComputedKeys(v, ""),
+	}
+}
+
+// NewResourceConfigShimmed wraps a cty.Value of object type in a legacy
+// ResourceConfig object, so that it can be passed to older APIs that expect
+// this wrapping.
+//
+// The returned ResourceConfig is already interpolated and cannot be
+// re-interpolated. It is, therefore, useful only to functions that expect
+// an already-populated ResourceConfig which they then treat as read-only.
+//
+// If the given value is not of an object type that conforms to the given
+// schema then this function will panic.
+func NewResourceConfigShimmed(val cty.Value, schema *configschema.Block) *ResourceConfig {
+	if !val.Type().IsObjectType() {
+		panic(fmt.Errorf("NewResourceConfigShimmed given %#v; an object type is required", val.Type()))
+	}
+	ret := &ResourceConfig{}
+
+	legacyVal := hcl2shim.ConfigValueFromHCL2Block(val, schema)
+	if legacyVal != nil {
+		ret.Config = legacyVal
+
+		// Now we need to walk through our structure and find any unknown values,
+		// producing the separate list ComputedKeys to represent these. We use the
+		// schema here so that we can preserve the expected invariant
+		// that an attribute is always either wholly known or wholly unknown, while
+		// a child block can be partially unknown.
+		ret.ComputedKeys = newResourceConfigShimmedComputedKeys(val, "")
+	} else {
+		ret.Config = make(map[string]interface{})
+	}
+	ret.Raw = ret.Config
+
+	return ret
+}
+
+// Record the any config values in ComputedKeys. This field had been unused in
+// helper/schema, but in the new protocol we're using this so that the SDK can
+// now handle having an unknown collection. The legacy diff code doesn't
+// properly handle the unknown, because it can't be expressed in the same way
+// between the config and diff.
+func newResourceConfigShimmedComputedKeys(val cty.Value, path string) []string {
+	var ret []string
+	ty := val.Type()
+
+	if val.IsNull() {
+		return ret
+	}
+
+	if !val.IsKnown() {
+		// we shouldn't have an entirely unknown resource, but prevent empty
+		// strings just in case
+		if len(path) > 0 {
+			ret = append(ret, path)
+		}
+		return ret
+	}
+
+	if path != "" {
+		path += "."
+	}
+	switch {
+	case ty.IsListType(), ty.IsTupleType(), ty.IsSetType():
+		i := 0
+		for it := val.ElementIterator(); it.Next(); i++ {
+			_, subVal := it.Element()
+			keys := newResourceConfigShimmedComputedKeys(subVal, fmt.Sprintf("%s%d", path, i))
+			ret = append(ret, keys...)
+		}
+
+	case ty.IsMapType(), ty.IsObjectType():
+		for it := val.ElementIterator(); it.Next(); {
+			subK, subVal := it.Element()
+			keys := newResourceConfigShimmedComputedKeys(subVal, fmt.Sprintf("%s%s", path, subK.AsString()))
+			ret = append(ret, keys...)
+		}
+	}
+
+	return ret
+}
+
+// DeepCopy performs a deep copy of the configuration. This makes it safe
+// to modify any of the structures that are part of the resource config without
+// affecting the original configuration.
+func (c *ResourceConfig) DeepCopy() *ResourceConfig {
+	// DeepCopying a nil should return a nil to avoid panics
+	if c == nil {
+		return nil
+	}
+
+	// Copy, this will copy all the exported attributes
+	copy, err := copystructure.Config{Lock: true}.Copy(c)
+	if err != nil {
+		panic(err)
+	}
+
+	// Force the type
+	result := copy.(*ResourceConfig)
+
+	return result
+}
+
+// Equal checks the equality of two resource configs.
+func (c *ResourceConfig) Equal(c2 *ResourceConfig) bool {
+	// If either are nil, then they're only equal if they're both nil
+	if c == nil || c2 == nil {
+		return c == c2
+	}
+
+	// Sort the computed keys so they're deterministic
+	sort.Strings(c.ComputedKeys)
+	sort.Strings(c2.ComputedKeys)
+
+	// Two resource configs if their exported properties are equal.
+	// We don't compare "raw" because it is never used again after
+	// initialization and for all intents and purposes they are equal
+	// if the exported properties are equal.
+	check := [][2]interface{}{
+		{c.ComputedKeys, c2.ComputedKeys},
+		{c.Raw, c2.Raw},
+		{c.Config, c2.Config},
+	}
+	for _, pair := range check {
+		if !reflect.DeepEqual(pair[0], pair[1]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Get looks up a configuration value by key and returns the value.
+//
+// The second return value is true if the get was successful. Get will
+// return the raw value if the key is computed, so you should pair this
+// with IsComputed.
+func (c *ResourceConfig) Get(k string) (interface{}, bool) {
+	// We aim to get a value from the configuration. If it is computed,
+	// then we return the pure raw value.
+	source := c.Config
+	if c.IsComputed(k) {
+		source = c.Raw
+	}
+
+	return c.get(k, source)
+}
+
+// GetRaw looks up a configuration value by key and returns the value,
+// from the raw, uninterpolated config.
+//
+// The second return value is true if the get was successful. Get will
+// not succeed if the value is being computed.
+func (c *ResourceConfig) GetRaw(k string) (interface{}, bool) {
+	return c.get(k, c.Raw)
+}
+
+// IsComputed returns whether the given key is computed or not.
+func (c *ResourceConfig) IsComputed(k string) bool {
+	// The next thing we do is check the config if we get a computed
+	// value out of it.
+	v, ok := c.get(k, c.Config)
+	if !ok {
+		return false
+	}
+
+	// If value is nil, then it isn't computed
+	if v == nil {
+		return false
+	}
+
+	// Test if the value contains an unknown value
+	var w unknownCheckWalker
+	if err := reflectwalk.Walk(v, &w); err != nil {
+		panic(err)
+	}
+
+	return w.Unknown
+}
+
+func (c *ResourceConfig) get(
+	k string, raw map[string]interface{}) (interface{}, bool) {
+	parts := strings.Split(k, ".")
+	if len(parts) == 1 && parts[0] == "" {
+		parts = nil
+	}
+
+	var current interface{} = raw
+	var previous interface{} = nil
+	for i, part := range parts {
+		if current == nil {
+			return nil, false
+		}
+
+		cv := reflect.ValueOf(current)
+		switch cv.Kind() {
+		case reflect.Map:
+			previous = current
+			v := cv.MapIndex(reflect.ValueOf(part))
+			if !v.IsValid() {
+				if i > 0 && i != (len(parts)-1) {
+					tryKey := strings.Join(parts[i:], ".")
+					v := cv.MapIndex(reflect.ValueOf(tryKey))
+					if !v.IsValid() {
+						return nil, false
+					}
+
+					return v.Interface(), true
+				}
+
+				return nil, false
+			}
+
+			current = v.Interface()
+		case reflect.Slice:
+			previous = current
+
+			if part == "#" {
+				// If any value in a list is computed, this whole thing
+				// is computed and we can't read any part of it.
+				for i := 0; i < cv.Len(); i++ {
+					if v := cv.Index(i).Interface(); v == hcl2shim.UnknownVariableValue {
+						return v, true
+					}
+				}
+
+				current = cv.Len()
+			} else {
+				i, err := strconv.ParseInt(part, 0, 0)
+				if err != nil {
+					return nil, false
+				}
+				if int(i) < 0 || int(i) >= cv.Len() {
+					return nil, false
+				}
+				current = cv.Index(int(i)).Interface()
+			}
+		case reflect.String:
+			// This happens when map keys contain "." and have a common
+			// prefix so were split as path components above.
+			actualKey := strings.Join(parts[i-1:], ".")
+			if prevMap, ok := previous.(map[string]interface{}); ok {
+				v, ok := prevMap[actualKey]
+				return v, ok
+			}
+
+			return nil, false
+		default:
+			panic(fmt.Sprintf("Unknown kind: %s", cv.Kind()))
+		}
+	}
+
+	return current, true
+}
+
+// unknownCheckWalker
+type unknownCheckWalker struct {
+	Unknown bool
+}
+
+// TODO: investigate why deleting this causes odd runtime test failures
+// must be some kind of interface implementation
+func (w *unknownCheckWalker) Primitive(v reflect.Value) error {
+	if v.Interface() == hcl2shim.UnknownVariableValue {
+		w.Unknown = true
+	}
+
+	return nil
+}

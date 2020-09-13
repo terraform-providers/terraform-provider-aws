@@ -6,8 +6,9 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -16,6 +17,10 @@ func dataSourceAwsVpnGateway() *schema.Resource {
 		Read: dataSourceAwsVpnGatewayRead,
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -113,11 +118,21 @@ func dataSourceAwsVpnGatewayRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	for _, attachment := range vgw.VpcAttachments {
-		if *attachment.State == "attached" {
+		if aws.StringValue(attachment.State) == ec2.AttachmentStatusAttached {
 			d.Set("attached_vpc_id", attachment.VpcId)
 			break
 		}
 	}
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("vpn-gateway/%s", d.Id()),
+	}.String()
+
+	d.Set("arn", arn)
 
 	return nil
 }

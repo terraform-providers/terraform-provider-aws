@@ -7845,10 +7845,24 @@ const (
 	EventCategoryInsight = "insight"
 )
 
+// EventCategory_Values returns all elements of the EventCategory enum
+func EventCategory_Values() []string {
+	return []string{
+		EventCategoryInsight,
+	}
+}
+
 const (
 	// InsightTypeApiCallRateInsight is a InsightType enum value
 	InsightTypeApiCallRateInsight = "ApiCallRateInsight"
 )
+
+// InsightType_Values returns all elements of the InsightType enum
+func InsightType_Values() []string {
+	return []string{
+		InsightTypeApiCallRateInsight,
+	}
+}
 
 const (
 	// LookupAttributeKeyEventId is a LookupAttributeKey enum value
@@ -7876,6 +7890,20 @@ const (
 	LookupAttributeKeyAccessKeyId = "AccessKeyId"
 )
 
+// LookupAttributeKey_Values returns all elements of the LookupAttributeKey enum
+func LookupAttributeKey_Values() []string {
+	return []string{
+		LookupAttributeKeyEventId,
+		LookupAttributeKeyEventName,
+		LookupAttributeKeyReadOnly,
+		LookupAttributeKeyUsername,
+		LookupAttributeKeyResourceType,
+		LookupAttributeKeyResourceName,
+		LookupAttributeKeyEventSource,
+		LookupAttributeKeyAccessKeyId,
+	}
+}
+
 const (
 	// ReadWriteTypeReadOnly is a ReadWriteType enum value
 	ReadWriteTypeReadOnly = "ReadOnly"
@@ -7886,3 +7914,12 @@ const (
 	// ReadWriteTypeAll is a ReadWriteType enum value
 	ReadWriteTypeAll = "All"
 )
+
+// ReadWriteType_Values returns all elements of the ReadWriteType enum
+func ReadWriteType_Values() []string {
+	return []string{
+		ReadWriteTypeReadOnly,
+		ReadWriteTypeWriteOnly,
+		ReadWriteTypeAll,
+	}
+}

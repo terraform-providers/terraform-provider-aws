@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
@@ -238,11 +238,11 @@ func testAccCheckAWSLBTargetGroupAttachmentDestroy(s *terraform.State) error {
 }
 
 func testAccAWSLBTargetGroupAttachmentConfigInstanceBase() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_availability_zones" "available" {
   # t2.micro instance type is not available in these Availability Zones
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -258,7 +258,7 @@ data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
     name   = "name"
     values = ["amzn-ami-minimal-hvm-*"]
   }
-  
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
@@ -288,7 +288,7 @@ resource "aws_vpc" "test" {
     Name = "tf-acc-test-lb-target-group-attachment"
   }
 }
-`)
+`
 }
 
 func testAccAWSLBTargetGroupAttachmentConfigTargetIdInstance(rName string) string {
@@ -395,19 +395,20 @@ resource "aws_lambda_alias" "test" {
 resource "aws_iam_role" "test" {
   assume_role_policy = <<EOF
 {
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Action": "sts:AssumeRole",
-				"Principal": {
-					"Service": "lambda.${data.aws_partition.current.dns_suffix}"
-				},
-				"Effect": "Allow",
-				"Sid": ""
-			}
-		]
-	}
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.${data.aws_partition.current.dns_suffix}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
 	EOF
+
 }
 
 resource "aws_lb_target_group_attachment" "test" {

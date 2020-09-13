@@ -3,15 +3,13 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"strings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsAppautoscalingTarget() *schema.Resource {
@@ -148,46 +146,29 @@ func resourceAwsAppautoscalingTargetRead(d *schema.ResourceData, meta interface{
 func resourceAwsAppautoscalingTargetDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appautoscalingconn
 
-	namespace := d.Get("service_namespace").(string)
-	dimension := d.Get("scalable_dimension").(string)
-
-	t, err := getAwsAppautoscalingTarget(d.Id(), namespace, dimension, conn)
-	if err != nil {
-		return err
-	}
-	if t == nil {
-		log.Printf("[INFO] Application AutoScaling Target %q not found", d.Id())
-		return nil
-	}
-
-	log.Printf("[DEBUG] Application AutoScaling Target destroy: %#v", d.Id())
-	deleteOpts := applicationautoscaling.DeregisterScalableTargetInput{
+	input := &applicationautoscaling.DeregisterScalableTargetInput{
 		ResourceId:        aws.String(d.Get("resource_id").(string)),
 		ServiceNamespace:  aws.String(d.Get("service_namespace").(string)),
 		ScalableDimension: aws.String(d.Get("scalable_dimension").(string)),
 	}
 
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		if _, err := conn.DeregisterScalableTarget(&deleteOpts); err != nil {
-			if awserr, ok := err.(awserr.Error); ok {
-				// @TODO: We should do stuff here depending on the actual error returned
-				return resource.RetryableError(awserr)
-			}
-			// Non recognized error, no retry.
-			return resource.NonRetryableError(err)
-		}
-		// Successful delete
-		return nil
-	})
+	_, err := conn.DeregisterScalableTarget(input)
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error deleting Application AutoScaling Target (%s): %w", d.Id(), err)
 	}
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		if t, _ = getAwsAppautoscalingTarget(d.Id(), namespace, dimension, conn); t != nil {
-			return resource.RetryableError(
-				fmt.Errorf("Application AutoScaling Target still exists"))
+		t, err := getAwsAppautoscalingTarget(d.Get("resource_id").(string), d.Get("service_namespace").(string), d.Get("scalable_dimension").(string), conn)
+
+		if err != nil {
+			return resource.NonRetryableError(err)
 		}
+
+		if t != nil {
+			return resource.RetryableError(fmt.Errorf("Application AutoScaling Target (%s) still exists", d.Id()))
+		}
+
 		return nil
 	})
 }

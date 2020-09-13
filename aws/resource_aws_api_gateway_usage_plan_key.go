@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsApiGatewayUsagePlanKey() *schema.Resource {
@@ -92,7 +91,7 @@ func resourceAwsApiGatewayUsagePlanKeyRead(d *schema.ResourceData, meta interfac
 		KeyId:       aws.String(d.Get("key_id").(string)),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == apigateway.ErrCodeNotFoundException {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] API Gateway Usage Plan Key (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil

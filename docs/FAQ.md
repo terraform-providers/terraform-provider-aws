@@ -1,5 +1,7 @@
 # Frequently Asked Questions
 
+<!-- markdownlint-disable MD026 -->
+
 ### Who are the maintainers?
 
 The HashiCorp Terraform AWS provider team is :
@@ -17,9 +19,9 @@ Unfortunately, due to the volume of issues and new pull requests we receive, we 
 
 ### How do you decide what gets merged for each release?
 
-The number one factor we look at when deciding what issues to look at are your 👍 [reactions](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue/PR description as these can be easily discovered. Comments that further explain desired use cases or poor user experience are also heavily factored. The items with the most support are always on our radar, and we commit to keep the community updated on their status and potential timelines.
+The number one factor we look at when deciding what issues to look at are your 👍 [reactions](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue/PR description as these can be [easily discovered](https://github.com/terraform-providers/terraform-provider-aws/issues?q=is%3Aopen+sort%3Areactions-%2B1-desc). Comments that further explain desired use cases or poor user experience are also heavily factored. The items with the most support are always on our radar, and we commit to keep the community updated on their status and potential timelines.
 
-We publish a [roadmap](../ROADMAP.md) every quarter which describes major themes or specific product areas of focus. 
+We publish a [roadmap](../ROADMAP.md) every quarter which describes major themes or specific product areas of focus.
 
 We also are investing time to improve the contributing experience by improving documentation, adding more linter coverage to ensure that incoming PR's can be in as good shape as possible. This will allow us to get through them quicker.
 
@@ -35,7 +37,7 @@ Due to the constant release pace of AWS and the relatively infrequent major vers
 
 ### AWS just announced a new region, when will I see it in the provider.
 
-Normally pretty quickly. We usually see the region appear within the `aws-go-sdk` within a couple days of the announcement. Depending on when it lands, we can often get it out within the current or following weekly release. Comparatively, adding support for a new  region in the S3 backend can take a little longer, as it is shipped as part of Terraform Core and not via the AWS Provider. 
+Normally pretty quickly. We usually see the region appear within the `aws-go-sdk` within a couple days of the announcement. Depending on when it lands, we can often get it out within the current or following weekly release. Comparatively, adding support for a new  region in the S3 backend can take a little longer, as it is shipped as part of Terraform Core and not via the AWS Provider.
 
 Please note that this new region requires a manual process to enable in your account. Once enabled in the console, it takes a few minutes for everything to work properly.
 
@@ -72,3 +74,5 @@ Check out the [Contributing Guide](CONTRIBUTING.md) for additional information.
 ### How can I become a maintainer?
 
 This is an area under active research. Stay tuned!
+
+<!-- markdownlint-enable MD026 -->

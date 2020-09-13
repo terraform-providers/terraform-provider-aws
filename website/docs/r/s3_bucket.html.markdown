@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "b" {
 resource "aws_s3_bucket" "b" {
   bucket = "s3-website-test.hashicorp.com"
   acl    = "public-read"
-  policy = "${file("policy.json")}"
+  policy = file("policy.json")
 
   website {
     index_document = "index.html"
@@ -95,7 +95,7 @@ resource "aws_s3_bucket" "b" {
   acl    = "private"
 
   logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
+    target_bucket = aws_s3_bucket.log_bucket.id
     target_prefix = "log/"
   }
 }
@@ -247,13 +247,12 @@ POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "replication" {
-  role       = "${aws_iam_role.replication.name}"
-  policy_arn = "${aws_iam_policy.replication.arn}"
+  role       = aws_iam_role.replication.name
+  policy_arn = aws_iam_policy.replication.arn
 }
 
 resource "aws_s3_bucket" "destination" {
   bucket = "tf-test-bucket-destination-12345"
-  region = "eu-west-1"
 
   versioning {
     enabled = true
@@ -261,17 +260,16 @@ resource "aws_s3_bucket" "destination" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  provider = "aws.central"
+  provider = aws.central
   bucket   = "tf-test-bucket-12345"
   acl      = "private"
-  region   = "eu-central-1"
 
   versioning {
     enabled = true
   }
 
   replication_configuration {
-    role = "${aws_iam_role.replication.arn}"
+    role = aws_iam_role.replication.arn
 
     rules {
       id     = "foobar"
@@ -279,7 +277,7 @@ resource "aws_s3_bucket" "bucket" {
       status = "Enabled"
 
       destination {
-        bucket        = "${aws_s3_bucket.destination.arn}"
+        bucket        = aws_s3_bucket.destination.arn
         storage_class = "STANDARD"
       }
     }
@@ -301,7 +299,7 @@ resource "aws_s3_bucket" "mybucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "${aws_kms_key.mykey.arn}"
+        kms_master_key_id = aws_kms_key.mykey.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -318,7 +316,7 @@ resource "aws_s3_bucket" "bucket" {
   bucket = "mybucket"
 
   grant {
-    id          = "${data.aws_canonical_user_id.current_user.id}"
+    id          = data.aws_canonical_user_id.current_user.id
     type        = "CanonicalUser"
     permissions = ["FULL_CONTROL"]
   }
@@ -349,7 +347,6 @@ The following arguments are supported:
 * `logging` - (Optional) A settings of [bucket logging](https://docs.aws.amazon.com/AmazonS3/latest/UG/ManagingBucketLogging.html) (documented below).
 * `lifecycle_rule` - (Optional) A configuration of [object lifecycle management](http://docs.aws.amazon.com/AmazonS3/latest/dev/object-lifecycle-mgmt.html) (documented below).
 * `acceleration_status` - (Optional) Sets the accelerate configuration of an existing bucket. Can be `Enabled` or `Suspended`.
-* `region` - (Optional) If specified, the AWS region this bucket should reside in. Otherwise, the region used by the callee.
 * `request_payer` - (Optional) Specifies who should bear the cost of Amazon S3 data transfer.
 Can be either `BucketOwner` or `Requester`. By default, the owner of the S3 bucket would incur
 the costs of any data transfer. See [Requester Pays Buckets](http://docs.aws.amazon.com/AmazonS3/latest/dev/RequesterPaysBuckets.html)
@@ -533,3 +530,5 @@ S3 bucket can be imported using the `bucket`, e.g.
 ```
 $ terraform import aws_s3_bucket.bucket bucket-name
 ```
+
+The `policy` argument is not imported and will be deprecated in a future version 3.x of the Terraform AWS Provider for removal in version 4.0. Use the [`aws_s3_bucket_policy` resource](/docs/providers/aws/r/s3_bucket_policy.html) to manage the S3 Bucket Policy instead.

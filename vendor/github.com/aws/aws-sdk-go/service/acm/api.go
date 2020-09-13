@@ -4142,6 +4142,19 @@ const (
 	CertificateStatusFailed = "FAILED"
 )
 
+// CertificateStatus_Values returns all elements of the CertificateStatus enum
+func CertificateStatus_Values() []string {
+	return []string{
+		CertificateStatusPendingValidation,
+		CertificateStatusIssued,
+		CertificateStatusInactive,
+		CertificateStatusExpired,
+		CertificateStatusValidationTimedOut,
+		CertificateStatusRevoked,
+		CertificateStatusFailed,
+	}
+}
+
 const (
 	// CertificateTransparencyLoggingPreferenceEnabled is a CertificateTransparencyLoggingPreference enum value
 	CertificateTransparencyLoggingPreferenceEnabled = "ENABLED"
@@ -4149,6 +4162,14 @@ const (
 	// CertificateTransparencyLoggingPreferenceDisabled is a CertificateTransparencyLoggingPreference enum value
 	CertificateTransparencyLoggingPreferenceDisabled = "DISABLED"
 )
+
+// CertificateTransparencyLoggingPreference_Values returns all elements of the CertificateTransparencyLoggingPreference enum
+func CertificateTransparencyLoggingPreference_Values() []string {
+	return []string{
+		CertificateTransparencyLoggingPreferenceEnabled,
+		CertificateTransparencyLoggingPreferenceDisabled,
+	}
+}
 
 const (
 	// CertificateTypeImported is a CertificateType enum value
@@ -4161,6 +4182,15 @@ const (
 	CertificateTypePrivate = "PRIVATE"
 )
 
+// CertificateType_Values returns all elements of the CertificateType enum
+func CertificateType_Values() []string {
+	return []string{
+		CertificateTypeImported,
+		CertificateTypeAmazonIssued,
+		CertificateTypePrivate,
+	}
+}
+
 const (
 	// DomainStatusPendingValidation is a DomainStatus enum value
 	DomainStatusPendingValidation = "PENDING_VALIDATION"
@@ -4171,6 +4201,15 @@ const (
 	// DomainStatusFailed is a DomainStatus enum value
 	DomainStatusFailed = "FAILED"
 )
+
+// DomainStatus_Values returns all elements of the DomainStatus enum
+func DomainStatus_Values() []string {
+	return []string{
+		DomainStatusPendingValidation,
+		DomainStatusSuccess,
+		DomainStatusFailed,
+	}
+}
 
 const (
 	// ExtendedKeyUsageNameTlsWebServerAuthentication is a ExtendedKeyUsageName enum value
@@ -4209,6 +4248,24 @@ const (
 	// ExtendedKeyUsageNameCustom is a ExtendedKeyUsageName enum value
 	ExtendedKeyUsageNameCustom = "CUSTOM"
 )
+
+// ExtendedKeyUsageName_Values returns all elements of the ExtendedKeyUsageName enum
+func ExtendedKeyUsageName_Values() []string {
+	return []string{
+		ExtendedKeyUsageNameTlsWebServerAuthentication,
+		ExtendedKeyUsageNameTlsWebClientAuthentication,
+		ExtendedKeyUsageNameCodeSigning,
+		ExtendedKeyUsageNameEmailProtection,
+		ExtendedKeyUsageNameTimeStamping,
+		ExtendedKeyUsageNameOcspSigning,
+		ExtendedKeyUsageNameIpsecEndSystem,
+		ExtendedKeyUsageNameIpsecTunnel,
+		ExtendedKeyUsageNameIpsecUser,
+		ExtendedKeyUsageNameAny,
+		ExtendedKeyUsageNameNone,
+		ExtendedKeyUsageNameCustom,
+	}
+}
 
 const (
 	// FailureReasonNoAvailableContacts is a FailureReason enum value
@@ -4256,9 +4313,35 @@ const (
 	// FailureReasonPcaAccessDenied is a FailureReason enum value
 	FailureReasonPcaAccessDenied = "PCA_ACCESS_DENIED"
 
+	// FailureReasonSlrNotFound is a FailureReason enum value
+	FailureReasonSlrNotFound = "SLR_NOT_FOUND"
+
 	// FailureReasonOther is a FailureReason enum value
 	FailureReasonOther = "OTHER"
 )
+
+// FailureReason_Values returns all elements of the FailureReason enum
+func FailureReason_Values() []string {
+	return []string{
+		FailureReasonNoAvailableContacts,
+		FailureReasonAdditionalVerificationRequired,
+		FailureReasonDomainNotAllowed,
+		FailureReasonInvalidPublicDomain,
+		FailureReasonDomainValidationDenied,
+		FailureReasonCaaError,
+		FailureReasonPcaLimitExceeded,
+		FailureReasonPcaInvalidArn,
+		FailureReasonPcaInvalidState,
+		FailureReasonPcaRequestFailed,
+		FailureReasonPcaNameConstraintsValidation,
+		FailureReasonPcaResourceNotFound,
+		FailureReasonPcaInvalidArgs,
+		FailureReasonPcaInvalidDuration,
+		FailureReasonPcaAccessDenied,
+		FailureReasonSlrNotFound,
+		FailureReasonOther,
+	}
+}
 
 const (
 	// KeyAlgorithmRsa2048 is a KeyAlgorithm enum value
@@ -4279,6 +4362,18 @@ const (
 	// KeyAlgorithmEcSecp521r1 is a KeyAlgorithm enum value
 	KeyAlgorithmEcSecp521r1 = "EC_secp521r1"
 )
+
+// KeyAlgorithm_Values returns all elements of the KeyAlgorithm enum
+func KeyAlgorithm_Values() []string {
+	return []string{
+		KeyAlgorithmRsa2048,
+		KeyAlgorithmRsa1024,
+		KeyAlgorithmRsa4096,
+		KeyAlgorithmEcPrime256v1,
+		KeyAlgorithmEcSecp384r1,
+		KeyAlgorithmEcSecp521r1,
+	}
+}
 
 const (
 	// KeyUsageNameDigitalSignature is a KeyUsageName enum value
@@ -4315,10 +4410,34 @@ const (
 	KeyUsageNameCustom = "CUSTOM"
 )
 
+// KeyUsageName_Values returns all elements of the KeyUsageName enum
+func KeyUsageName_Values() []string {
+	return []string{
+		KeyUsageNameDigitalSignature,
+		KeyUsageNameNonRepudiation,
+		KeyUsageNameKeyEncipherment,
+		KeyUsageNameDataEncipherment,
+		KeyUsageNameKeyAgreement,
+		KeyUsageNameCertificateSigning,
+		KeyUsageNameCrlSigning,
+		KeyUsageNameEncipherOnly,
+		KeyUsageNameDecipherOnly,
+		KeyUsageNameAny,
+		KeyUsageNameCustom,
+	}
+}
+
 const (
 	// RecordTypeCname is a RecordType enum value
 	RecordTypeCname = "CNAME"
 )
+
+// RecordType_Values returns all elements of the RecordType enum
+func RecordType_Values() []string {
+	return []string{
+		RecordTypeCname,
+	}
+}
 
 const (
 	// RenewalEligibilityEligible is a RenewalEligibility enum value
@@ -4327,6 +4446,14 @@ const (
 	// RenewalEligibilityIneligible is a RenewalEligibility enum value
 	RenewalEligibilityIneligible = "INELIGIBLE"
 )
+
+// RenewalEligibility_Values returns all elements of the RenewalEligibility enum
+func RenewalEligibility_Values() []string {
+	return []string{
+		RenewalEligibilityEligible,
+		RenewalEligibilityIneligible,
+	}
+}
 
 const (
 	// RenewalStatusPendingAutoRenewal is a RenewalStatus enum value
@@ -4341,6 +4468,16 @@ const (
 	// RenewalStatusFailed is a RenewalStatus enum value
 	RenewalStatusFailed = "FAILED"
 )
+
+// RenewalStatus_Values returns all elements of the RenewalStatus enum
+func RenewalStatus_Values() []string {
+	return []string{
+		RenewalStatusPendingAutoRenewal,
+		RenewalStatusPendingValidation,
+		RenewalStatusSuccess,
+		RenewalStatusFailed,
+	}
+}
 
 const (
 	// RevocationReasonUnspecified is a RevocationReason enum value
@@ -4374,6 +4511,22 @@ const (
 	RevocationReasonAACompromise = "A_A_COMPROMISE"
 )
 
+// RevocationReason_Values returns all elements of the RevocationReason enum
+func RevocationReason_Values() []string {
+	return []string{
+		RevocationReasonUnspecified,
+		RevocationReasonKeyCompromise,
+		RevocationReasonCaCompromise,
+		RevocationReasonAffiliationChanged,
+		RevocationReasonSuperceded,
+		RevocationReasonCessationOfOperation,
+		RevocationReasonCertificateHold,
+		RevocationReasonRemoveFromCrl,
+		RevocationReasonPrivilegeWithdrawn,
+		RevocationReasonAACompromise,
+	}
+}
+
 const (
 	// ValidationMethodEmail is a ValidationMethod enum value
 	ValidationMethodEmail = "EMAIL"
@@ -4381,3 +4534,11 @@ const (
 	// ValidationMethodDns is a ValidationMethod enum value
 	ValidationMethodDns = "DNS"
 )
+
+// ValidationMethod_Values returns all elements of the ValidationMethod enum
+func ValidationMethod_Values() []string {
+	return []string{
+		ValidationMethodEmail,
+		ValidationMethodDns,
+	}
+}

@@ -3,13 +3,22 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/accessanalyzer"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+)
+
+const (
+	// Maximum amount of time to wait for Organizations eventual consistency on creation
+	// This timeout value is much higher than usual since the cross-service validation
+	// appears to be consistently caching for 5 minutes:
+	// --- PASS: TestAccAWSAccessAnalyzer_serial/Analyzer/Type_Organization (315.86s)
+	accessAnalyzerOrganizationCreationTimeout = 10 * time.Minute
 )
 
 func resourceAwsAccessAnalyzerAnalyzer() *schema.Resource {
@@ -37,9 +46,11 @@ func resourceAwsAccessAnalyzerAnalyzer() *schema.Resource {
 			"type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  accessanalyzer.TypeAccount,
 				ValidateFunc: validation.StringInSlice([]string{
 					accessanalyzer.TypeAccount,
+					accessanalyzer.TypeOrganization,
 				}, false),
 			},
 		},
@@ -57,7 +68,24 @@ func resourceAwsAccessAnalyzerAnalyzerCreate(d *schema.ResourceData, meta interf
 		Type:         aws.String(d.Get("type").(string)),
 	}
 
-	_, err := conn.CreateAnalyzer(input)
+	// Handle Organizations eventual consistency
+	err := resource.Retry(accessAnalyzerOrganizationCreationTimeout, func() *resource.RetryError {
+		_, err := conn.CreateAnalyzer(input)
+
+		if isAWSErr(err, accessanalyzer.ErrCodeValidationException, "You must create an organization") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		_, err = conn.CreateAnalyzer(input)
+	}
 
 	if err != nil {
 		return fmt.Errorf("error creating Access Analyzer Analyzer (%s): %s", analyzerName, err)

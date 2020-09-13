@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSMskConfigurationDataSource_Name(t *testing.T) {
@@ -46,7 +46,7 @@ PROPERTIES
 }
 
 data "aws_msk_configuration" "test" {
-  name = "${aws_msk_configuration.test.name}"
+  name = aws_msk_configuration.test.name
 }
 `, rName)
 }

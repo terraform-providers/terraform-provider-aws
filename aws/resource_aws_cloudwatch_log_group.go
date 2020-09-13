@@ -3,9 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -131,9 +132,7 @@ func resourceAwsCloudWatchLogGroupRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
-	log.Printf("[DEBUG] Found Log Group: %#v", *lg)
-
-	d.Set("arn", lg.Arn)
+	d.Set("arn", strings.TrimSuffix(aws.StringValue(lg.Arn), ":*"))
 	d.Set("name", lg.LogGroupName)
 	d.Set("kms_key_id", lg.KmsKeyId)
 	d.Set("retention_in_days", lg.RetentionInDays)

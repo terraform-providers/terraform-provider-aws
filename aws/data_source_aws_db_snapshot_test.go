@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDbSnapshotDataSource_basic(t *testing.T) {
@@ -63,11 +63,11 @@ resource "aws_db_instance" "bar" {
 
 data "aws_db_snapshot" "snapshot" {
   most_recent            = "true"
-  db_snapshot_identifier = "${aws_db_snapshot.test.id}"
+  db_snapshot_identifier = aws_db_snapshot.test.id
 }
 
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.bar.id}"
+  db_instance_identifier = aws_db_instance.bar.id
   db_snapshot_identifier = "testsnapshot%d"
 }
 `, rInt)

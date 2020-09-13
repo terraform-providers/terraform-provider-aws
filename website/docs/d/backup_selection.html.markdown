@@ -14,7 +14,7 @@ Use this data source to get information on an existing backup selection.
 
 ```hcl
 data "aws_backup_selection" "example" {
-  plan_id      = "${data.aws_backup_plan.example.id}"
+  plan_id      = data.aws_backup_plan.example.id
   selection_id = "selection-id-example"
 }
 ```

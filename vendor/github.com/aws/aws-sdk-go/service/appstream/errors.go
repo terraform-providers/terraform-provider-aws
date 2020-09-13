@@ -51,6 +51,14 @@ const (
 	// The attempted operation is not permitted.
 	ErrCodeOperationNotPermittedException = "OperationNotPermittedException"
 
+	// ErrCodeRequestLimitExceededException for service response error code
+	// "RequestLimitExceededException".
+	//
+	// AppStream 2.0 can’t process the request right now because the Describe
+	// calls from your AWS account are being throttled by Amazon EC2. Try again
+	// later.
+	ErrCodeRequestLimitExceededException = "RequestLimitExceededException"
+
 	// ErrCodeResourceAlreadyExistsException for service response error code
 	// "ResourceAlreadyExistsException".
 	//
@@ -84,6 +92,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidRoleException":                 newErrorInvalidRoleException,
 	"LimitExceededException":               newErrorLimitExceededException,
 	"OperationNotPermittedException":       newErrorOperationNotPermittedException,
+	"RequestLimitExceededException":        newErrorRequestLimitExceededException,
 	"ResourceAlreadyExistsException":       newErrorResourceAlreadyExistsException,
 	"ResourceInUseException":               newErrorResourceInUseException,
 	"ResourceNotAvailableException":        newErrorResourceNotAvailableException,

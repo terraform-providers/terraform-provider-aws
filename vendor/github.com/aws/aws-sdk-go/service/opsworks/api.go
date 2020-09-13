@@ -17616,6 +17616,16 @@ const (
 	AppAttributesKeysAwsFlowRubySettings = "AwsFlowRubySettings"
 )
 
+// AppAttributesKeys_Values returns all elements of the AppAttributesKeys enum
+func AppAttributesKeys_Values() []string {
+	return []string{
+		AppAttributesKeysDocumentRoot,
+		AppAttributesKeysRailsEnv,
+		AppAttributesKeysAutoBundleOnDeploy,
+		AppAttributesKeysAwsFlowRubySettings,
+	}
+}
+
 const (
 	// AppTypeAwsFlowRuby is a AppType enum value
 	AppTypeAwsFlowRuby = "aws-flow-ruby"
@@ -17639,6 +17649,19 @@ const (
 	AppTypeOther = "other"
 )
 
+// AppType_Values returns all elements of the AppType enum
+func AppType_Values() []string {
+	return []string{
+		AppTypeAwsFlowRuby,
+		AppTypeJava,
+		AppTypeRails,
+		AppTypePhp,
+		AppTypeNodejs,
+		AppTypeStatic,
+		AppTypeOther,
+	}
+}
+
 const (
 	// ArchitectureX8664 is a Architecture enum value
 	ArchitectureX8664 = "x86_64"
@@ -17647,6 +17670,14 @@ const (
 	ArchitectureI386 = "i386"
 )
 
+// Architecture_Values returns all elements of the Architecture enum
+func Architecture_Values() []string {
+	return []string{
+		ArchitectureX8664,
+		ArchitectureI386,
+	}
+}
+
 const (
 	// AutoScalingTypeLoad is a AutoScalingType enum value
 	AutoScalingTypeLoad = "load"
@@ -17654,6 +17685,14 @@ const (
 	// AutoScalingTypeTimer is a AutoScalingType enum value
 	AutoScalingTypeTimer = "timer"
 )
+
+// AutoScalingType_Values returns all elements of the AutoScalingType enum
+func AutoScalingType_Values() []string {
+	return []string{
+		AutoScalingTypeLoad,
+		AutoScalingTypeTimer,
+	}
+}
 
 // Specifies the encoding of the log file so that the file can be read correctly.
 // The default is utf_8. Encodings supported by Python codecs.decode() can be
@@ -17936,6 +17975,104 @@ const (
 	CloudWatchLogsEncodingUtf8Sig = "utf_8_sig"
 )
 
+// CloudWatchLogsEncoding_Values returns all elements of the CloudWatchLogsEncoding enum
+func CloudWatchLogsEncoding_Values() []string {
+	return []string{
+		CloudWatchLogsEncodingAscii,
+		CloudWatchLogsEncodingBig5,
+		CloudWatchLogsEncodingBig5hkscs,
+		CloudWatchLogsEncodingCp037,
+		CloudWatchLogsEncodingCp424,
+		CloudWatchLogsEncodingCp437,
+		CloudWatchLogsEncodingCp500,
+		CloudWatchLogsEncodingCp720,
+		CloudWatchLogsEncodingCp737,
+		CloudWatchLogsEncodingCp775,
+		CloudWatchLogsEncodingCp850,
+		CloudWatchLogsEncodingCp852,
+		CloudWatchLogsEncodingCp855,
+		CloudWatchLogsEncodingCp856,
+		CloudWatchLogsEncodingCp857,
+		CloudWatchLogsEncodingCp858,
+		CloudWatchLogsEncodingCp860,
+		CloudWatchLogsEncodingCp861,
+		CloudWatchLogsEncodingCp862,
+		CloudWatchLogsEncodingCp863,
+		CloudWatchLogsEncodingCp864,
+		CloudWatchLogsEncodingCp865,
+		CloudWatchLogsEncodingCp866,
+		CloudWatchLogsEncodingCp869,
+		CloudWatchLogsEncodingCp874,
+		CloudWatchLogsEncodingCp875,
+		CloudWatchLogsEncodingCp932,
+		CloudWatchLogsEncodingCp949,
+		CloudWatchLogsEncodingCp950,
+		CloudWatchLogsEncodingCp1006,
+		CloudWatchLogsEncodingCp1026,
+		CloudWatchLogsEncodingCp1140,
+		CloudWatchLogsEncodingCp1250,
+		CloudWatchLogsEncodingCp1251,
+		CloudWatchLogsEncodingCp1252,
+		CloudWatchLogsEncodingCp1253,
+		CloudWatchLogsEncodingCp1254,
+		CloudWatchLogsEncodingCp1255,
+		CloudWatchLogsEncodingCp1256,
+		CloudWatchLogsEncodingCp1257,
+		CloudWatchLogsEncodingCp1258,
+		CloudWatchLogsEncodingEucJp,
+		CloudWatchLogsEncodingEucJis2004,
+		CloudWatchLogsEncodingEucJisx0213,
+		CloudWatchLogsEncodingEucKr,
+		CloudWatchLogsEncodingGb2312,
+		CloudWatchLogsEncodingGbk,
+		CloudWatchLogsEncodingGb18030,
+		CloudWatchLogsEncodingHz,
+		CloudWatchLogsEncodingIso2022Jp,
+		CloudWatchLogsEncodingIso2022Jp1,
+		CloudWatchLogsEncodingIso2022Jp2,
+		CloudWatchLogsEncodingIso2022Jp2004,
+		CloudWatchLogsEncodingIso2022Jp3,
+		CloudWatchLogsEncodingIso2022JpExt,
+		CloudWatchLogsEncodingIso2022Kr,
+		CloudWatchLogsEncodingLatin1,
+		CloudWatchLogsEncodingIso88592,
+		CloudWatchLogsEncodingIso88593,
+		CloudWatchLogsEncodingIso88594,
+		CloudWatchLogsEncodingIso88595,
+		CloudWatchLogsEncodingIso88596,
+		CloudWatchLogsEncodingIso88597,
+		CloudWatchLogsEncodingIso88598,
+		CloudWatchLogsEncodingIso88599,
+		CloudWatchLogsEncodingIso885910,
+		CloudWatchLogsEncodingIso885913,
+		CloudWatchLogsEncodingIso885914,
+		CloudWatchLogsEncodingIso885915,
+		CloudWatchLogsEncodingIso885916,
+		CloudWatchLogsEncodingJohab,
+		CloudWatchLogsEncodingKoi8R,
+		CloudWatchLogsEncodingKoi8U,
+		CloudWatchLogsEncodingMacCyrillic,
+		CloudWatchLogsEncodingMacGreek,
+		CloudWatchLogsEncodingMacIceland,
+		CloudWatchLogsEncodingMacLatin2,
+		CloudWatchLogsEncodingMacRoman,
+		CloudWatchLogsEncodingMacTurkish,
+		CloudWatchLogsEncodingPtcp154,
+		CloudWatchLogsEncodingShiftJis,
+		CloudWatchLogsEncodingShiftJis2004,
+		CloudWatchLogsEncodingShiftJisx0213,
+		CloudWatchLogsEncodingUtf32,
+		CloudWatchLogsEncodingUtf32Be,
+		CloudWatchLogsEncodingUtf32Le,
+		CloudWatchLogsEncodingUtf16,
+		CloudWatchLogsEncodingUtf16Be,
+		CloudWatchLogsEncodingUtf16Le,
+		CloudWatchLogsEncodingUtf7,
+		CloudWatchLogsEncodingUtf8,
+		CloudWatchLogsEncodingUtf8Sig,
+	}
+}
+
 // Specifies where to start to read data (start_of_file or end_of_file). The
 // default is start_of_file. It's only used if there is no state persisted for
 // that log stream.
@@ -17947,6 +18084,14 @@ const (
 	CloudWatchLogsInitialPositionEndOfFile = "end_of_file"
 )
 
+// CloudWatchLogsInitialPosition_Values returns all elements of the CloudWatchLogsInitialPosition enum
+func CloudWatchLogsInitialPosition_Values() []string {
+	return []string{
+		CloudWatchLogsInitialPositionStartOfFile,
+		CloudWatchLogsInitialPositionEndOfFile,
+	}
+}
+
 // The preferred time zone for logs streamed to CloudWatch Logs. Valid values
 // are LOCAL and UTC, for Coordinated Universal Time.
 const (
@@ -17956,6 +18101,14 @@ const (
 	// CloudWatchLogsTimeZoneUtc is a CloudWatchLogsTimeZone enum value
 	CloudWatchLogsTimeZoneUtc = "UTC"
 )
+
+// CloudWatchLogsTimeZone_Values returns all elements of the CloudWatchLogsTimeZone enum
+func CloudWatchLogsTimeZone_Values() []string {
+	return []string{
+		CloudWatchLogsTimeZoneLocal,
+		CloudWatchLogsTimeZoneUtc,
+	}
+}
 
 const (
 	// DeploymentCommandNameInstallDependencies is a DeploymentCommandName enum value
@@ -17994,6 +18147,24 @@ const (
 	// DeploymentCommandNameUndeploy is a DeploymentCommandName enum value
 	DeploymentCommandNameUndeploy = "undeploy"
 )
+
+// DeploymentCommandName_Values returns all elements of the DeploymentCommandName enum
+func DeploymentCommandName_Values() []string {
+	return []string{
+		DeploymentCommandNameInstallDependencies,
+		DeploymentCommandNameUpdateDependencies,
+		DeploymentCommandNameUpdateCustomCookbooks,
+		DeploymentCommandNameExecuteRecipes,
+		DeploymentCommandNameConfigure,
+		DeploymentCommandNameSetup,
+		DeploymentCommandNameDeploy,
+		DeploymentCommandNameRollback,
+		DeploymentCommandNameStart,
+		DeploymentCommandNameStop,
+		DeploymentCommandNameRestart,
+		DeploymentCommandNameUndeploy,
+	}
+}
 
 const (
 	// LayerAttributesKeysEcsClusterArn is a LayerAttributesKeys enum value
@@ -18072,6 +18243,37 @@ const (
 	LayerAttributesKeysJavaAppServerVersion = "JavaAppServerVersion"
 )
 
+// LayerAttributesKeys_Values returns all elements of the LayerAttributesKeys enum
+func LayerAttributesKeys_Values() []string {
+	return []string{
+		LayerAttributesKeysEcsClusterArn,
+		LayerAttributesKeysEnableHaproxyStats,
+		LayerAttributesKeysHaproxyStatsUrl,
+		LayerAttributesKeysHaproxyStatsUser,
+		LayerAttributesKeysHaproxyStatsPassword,
+		LayerAttributesKeysHaproxyHealthCheckUrl,
+		LayerAttributesKeysHaproxyHealthCheckMethod,
+		LayerAttributesKeysMysqlRootPassword,
+		LayerAttributesKeysMysqlRootPasswordUbiquitous,
+		LayerAttributesKeysGangliaUrl,
+		LayerAttributesKeysGangliaUser,
+		LayerAttributesKeysGangliaPassword,
+		LayerAttributesKeysMemcachedMemory,
+		LayerAttributesKeysNodejsVersion,
+		LayerAttributesKeysRubyVersion,
+		LayerAttributesKeysRubygemsVersion,
+		LayerAttributesKeysManageBundler,
+		LayerAttributesKeysBundlerVersion,
+		LayerAttributesKeysRailsStack,
+		LayerAttributesKeysPassengerVersion,
+		LayerAttributesKeysJvm,
+		LayerAttributesKeysJvmVersion,
+		LayerAttributesKeysJvmOptions,
+		LayerAttributesKeysJavaAppServer,
+		LayerAttributesKeysJavaAppServerVersion,
+	}
+}
+
 const (
 	// LayerTypeAwsFlowRuby is a LayerType enum value
 	LayerTypeAwsFlowRuby = "aws-flow-ruby"
@@ -18110,6 +18312,24 @@ const (
 	LayerTypeCustom = "custom"
 )
 
+// LayerType_Values returns all elements of the LayerType enum
+func LayerType_Values() []string {
+	return []string{
+		LayerTypeAwsFlowRuby,
+		LayerTypeEcsCluster,
+		LayerTypeJavaApp,
+		LayerTypeLb,
+		LayerTypeWeb,
+		LayerTypePhpApp,
+		LayerTypeRailsApp,
+		LayerTypeNodejsApp,
+		LayerTypeMemcached,
+		LayerTypeDbMaster,
+		LayerTypeMonitoringMaster,
+		LayerTypeCustom,
+	}
+}
+
 const (
 	// RootDeviceTypeEbs is a RootDeviceType enum value
 	RootDeviceTypeEbs = "ebs"
@@ -18117,6 +18337,14 @@ const (
 	// RootDeviceTypeInstanceStore is a RootDeviceType enum value
 	RootDeviceTypeInstanceStore = "instance-store"
 )
+
+// RootDeviceType_Values returns all elements of the RootDeviceType enum
+func RootDeviceType_Values() []string {
+	return []string{
+		RootDeviceTypeEbs,
+		RootDeviceTypeInstanceStore,
+	}
+}
 
 const (
 	// SourceTypeGit is a SourceType enum value
@@ -18132,10 +18360,27 @@ const (
 	SourceTypeS3 = "s3"
 )
 
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeGit,
+		SourceTypeSvn,
+		SourceTypeArchive,
+		SourceTypeS3,
+	}
+}
+
 const (
 	// StackAttributesKeysColor is a StackAttributesKeys enum value
 	StackAttributesKeysColor = "Color"
 )
+
+// StackAttributesKeys_Values returns all elements of the StackAttributesKeys enum
+func StackAttributesKeys_Values() []string {
+	return []string{
+		StackAttributesKeysColor,
+	}
+}
 
 const (
 	// VirtualizationTypeParavirtual is a VirtualizationType enum value
@@ -18144,6 +18389,14 @@ const (
 	// VirtualizationTypeHvm is a VirtualizationType enum value
 	VirtualizationTypeHvm = "hvm"
 )
+
+// VirtualizationType_Values returns all elements of the VirtualizationType enum
+func VirtualizationType_Values() []string {
+	return []string{
+		VirtualizationTypeParavirtual,
+		VirtualizationTypeHvm,
+	}
+}
 
 const (
 	// VolumeTypeGp2 is a VolumeType enum value
@@ -18155,3 +18408,12 @@ const (
 	// VolumeTypeStandard is a VolumeType enum value
 	VolumeTypeStandard = "standard"
 )
+
+// VolumeType_Values returns all elements of the VolumeType enum
+func VolumeType_Values() []string {
+	return []string{
+		VolumeTypeGp2,
+		VolumeTypeIo1,
+		VolumeTypeStandard,
+	}
+}

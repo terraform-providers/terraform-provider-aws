@@ -16,18 +16,14 @@ policy `arn:aws:iam::aws:policy/AmazonWorkSpacesServiceAccess`, or it will leak 
 ## Example Usage
 
 ```hcl
-data "aws_workspaces_directory" "main" {
-  directory_id = "d-ten5h0y19"
-}
-
 data "aws_workspaces_bundle" "value_windows_10" {
   bundle_id = "wsb-bh8rsxt14" # Value with Windows 10 (English)
 }
 
-resource "aws_workspaces_workspace" "jhon.doe" {
-  directory_id = "${data.aws_workspaces_directory.main.id}"
-  bundle_id    = "${data.aws_workspaces_bundle.value_windows_10.id}"
-  user_name    = "jhon.doe"
+resource "aws_workspaces_workspace" "example" {
+  directory_id = aws_workspaces_directory.example.id
+  bundle_id    = data.aws_workspaces_bundle.value_windows_10.id
+  user_name    = "john.doe"
 
   root_volume_encryption_enabled = true
   user_volume_encryption_enabled = true

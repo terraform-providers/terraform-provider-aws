@@ -61,8 +61,8 @@ func (c *ServiceDiscovery) CreateHttpNamespaceRequest(input *CreateHttpNamespace
 // namespace can be discovered using a DiscoverInstances request but can't be
 // discovered using DNS.
 //
-// For the current limit on the number of namespaces that you can create using
-// the same AWS account, see AWS Cloud Map Limits (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
+// For the current quota on the number of namespaces that you can create using
+// the same AWS account, see AWS Cloud Map quotas (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
 // in the AWS Cloud Map Developer Guide.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -82,14 +82,14 @@ func (c *ServiceDiscovery) CreateHttpNamespaceRequest(input *CreateHttpNamespace
 //   The namespace that you're trying to create already exists.
 //
 //   * ResourceLimitExceeded
-//   The resource can't be created because you've reached the limit on the number
+//   The resource can't be created because you've reached the quota on the number
 //   of resources.
 //
 //   * DuplicateRequest
 //   The operation is already in progress.
 //
 //   * TooManyTagsException
-//   The list of tags on the resource is over the limit. The maximum number of
+//   The list of tags on the resource is over the quota. The maximum number of
 //   tags that can be applied to a resource is 50.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/servicediscovery-2017-03-14/CreateHttpNamespace
@@ -162,7 +162,7 @@ func (c *ServiceDiscovery) CreatePrivateDnsNamespaceRequest(input *CreatePrivate
 // a specified Amazon VPC. The namespace defines your service naming scheme.
 // For example, if you name your namespace example.com and name your service
 // backend, the resulting DNS name for the service will be backend.example.com.
-// For the current limit on the number of namespaces that you can create using
+// For the current quota on the number of namespaces that you can create using
 // the same AWS account, see AWS Cloud Map Limits (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
 // in the AWS Cloud Map Developer Guide.
 //
@@ -183,14 +183,14 @@ func (c *ServiceDiscovery) CreatePrivateDnsNamespaceRequest(input *CreatePrivate
 //   The namespace that you're trying to create already exists.
 //
 //   * ResourceLimitExceeded
-//   The resource can't be created because you've reached the limit on the number
+//   The resource can't be created because you've reached the quota on the number
 //   of resources.
 //
 //   * DuplicateRequest
 //   The operation is already in progress.
 //
 //   * TooManyTagsException
-//   The list of tags on the resource is over the limit. The maximum number of
+//   The list of tags on the resource is over the quota. The maximum number of
 //   tags that can be applied to a resource is 50.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/servicediscovery-2017-03-14/CreatePrivateDnsNamespace
@@ -262,7 +262,7 @@ func (c *ServiceDiscovery) CreatePublicDnsNamespaceRequest(input *CreatePublicDn
 // Creates a public namespace based on DNS, which will be visible on the internet.
 // The namespace defines your service naming scheme. For example, if you name
 // your namespace example.com and name your service backend, the resulting DNS
-// name for the service will be backend.example.com. For the current limit on
+// name for the service will be backend.example.com. For the current quota on
 // the number of namespaces that you can create using the same AWS account,
 // see AWS Cloud Map Limits (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
 // in the AWS Cloud Map Developer Guide.
@@ -284,14 +284,14 @@ func (c *ServiceDiscovery) CreatePublicDnsNamespaceRequest(input *CreatePublicDn
 //   The namespace that you're trying to create already exists.
 //
 //   * ResourceLimitExceeded
-//   The resource can't be created because you've reached the limit on the number
+//   The resource can't be created because you've reached the quota on the number
 //   of resources.
 //
 //   * DuplicateRequest
 //   The operation is already in progress.
 //
 //   * TooManyTagsException
-//   The list of tags on the resource is over the limit. The maximum number of
+//   The list of tags on the resource is over the quota. The maximum number of
 //   tags that can be applied to a resource is 50.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/servicediscovery-2017-03-14/CreatePublicDnsNamespace
@@ -371,7 +371,7 @@ func (c *ServiceDiscovery) CreateServiceRequest(input *CreateServiceInput) (req 
 // request, and AWS Cloud Map uses the values in the configuration to create
 // the specified entities.
 //
-// For the current limit on the number of instances that you can register using
+// For the current quota on the number of instances that you can register using
 // the same namespace and using the same service, see AWS Cloud Map Limits (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
 // in the AWS Cloud Map Developer Guide.
 //
@@ -389,7 +389,7 @@ func (c *ServiceDiscovery) CreateServiceRequest(input *CreateServiceInput) (req 
 //   a string value might exceed length constraints.
 //
 //   * ResourceLimitExceeded
-//   The resource can't be created because you've reached the limit on the number
+//   The resource can't be created because you've reached the quota on the number
 //   of resources.
 //
 //   * NamespaceNotFound
@@ -400,7 +400,7 @@ func (c *ServiceDiscovery) CreateServiceRequest(input *CreateServiceInput) (req 
 //   exists.
 //
 //   * TooManyTagsException
-//   The list of tags on the resource is over the limit. The maximum number of
+//   The list of tags on the resource is over the quota. The maximum number of
 //   tags that can be applied to a resource is 50.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/servicediscovery-2017-03-14/CreateService
@@ -774,8 +774,10 @@ func (c *ServiceDiscovery) DiscoverInstancesRequest(input *DiscoverInstancesInpu
 //   a string value might exceed length constraints.
 //
 //   * RequestLimitExceeded
-//   The operation can't be completed because you've reached the limit on the
-//   number of requests.
+//   The operation can't be completed because you've reached the quota for the
+//   number of requests. For more information, see AWS Cloud Map API request throttling
+//   quota (https://docs.aws.amazon.com/cloud-map/latest/dg/throttling.html) in
+//   the AWS Cloud Map Developer Guide.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/servicediscovery-2017-03-14/DiscoverInstances
 func (c *ServiceDiscovery) DiscoverInstances(input *DiscoverInstancesInput) (*DiscoverInstancesOutput, error) {
@@ -2013,7 +2015,7 @@ func (c *ServiceDiscovery) RegisterInstanceRequest(input *RegisterInstanceInput)
 //    * If you didn't specify a health check configuration: returns all the
 //    records
 //
-// For the current limit on the number of instances that you can register using
+// For the current quota on the number of instances that you can register using
 // the same namespace and using the same service, see AWS Cloud Map Limits (https://docs.aws.amazon.com/cloud-map/latest/dg/cloud-map-limits.html)
 // in the AWS Cloud Map Developer Guide.
 //
@@ -2038,7 +2040,7 @@ func (c *ServiceDiscovery) RegisterInstanceRequest(input *RegisterInstanceInput)
 //   For example, you can't delete a service that contains any instances.
 //
 //   * ResourceLimitExceeded
-//   The resource can't be created because you've reached the limit on the number
+//   The resource can't be created because you've reached the quota on the number
 //   of resources.
 //
 //   * ServiceNotFound
@@ -2125,7 +2127,7 @@ func (c *ServiceDiscovery) TagResourceRequest(input *TagResourceInput) (req *req
 //   The operation can't be completed because the resource was not found.
 //
 //   * TooManyTagsException
-//   The list of tags on the resource is over the limit. The maximum number of
+//   The list of tags on the resource is over the quota. The maximum number of
 //   tags that can be applied to a resource is 50.
 //
 //   * InvalidInput
@@ -4097,14 +4099,14 @@ func (s *GetServiceOutput) SetService(v *Service) *GetServiceOutput {
 //
 // Note the following about configuring health checks.
 //
-// A and AAAA records
+//  A and AAAA records
 //
 // If DnsConfig includes configurations for both A and AAAA records, AWS Cloud
 // Map creates a health check that uses the IPv4 address to check the health
 // of the resource. If the endpoint that is specified by the IPv4 address is
 // unhealthy, Route 53 considers both the A and AAAA records to be unhealthy.
 //
-// CNAME records
+//  CNAME records
 //
 // You can't specify settings for HealthCheckConfig when the DNSConfig includes
 // CNAME for the value of Type. If you do, the CreateService request will fail
@@ -4454,6 +4456,11 @@ type Instance struct {
 	//    * If you specify a value for AWS_ALIAS_DNS_NAME, don't specify values
 	//    for any of the AWS_INSTANCE attributes.
 	//
+	// AWS_EC2_INSTANCE_ID
+	//
+	// HTTP namespaces only. The Amazon EC2 instance ID for the instance. The AWS_INSTANCE_IPV4
+	// attribute contains the primary private IPv4 address.
+	//
 	// AWS_INSTANCE_CNAME
 	//
 	// If the service configuration includes a CNAME record, the domain name that
@@ -4623,6 +4630,11 @@ type InstanceSummary struct {
 	//    * AWS_ALIAS_DNS_NAME: For an alias record that routes traffic to an Elastic
 	//    Load Balancing load balancer, the DNS name that is associated with the
 	//    load balancer.
+	//
+	//    * AWS_EC2_INSTANCE_ID: (HTTP namespaces only) The Amazon EC2 instance
+	//    ID for the instance. When the AWS_EC2_INSTANCE_ID attribute is specified,
+	//    then the AWS_INSTANCE_IPV4 attribute contains the primary private IPv4
+	//    address.
 	//
 	//    * AWS_INSTANCE_CNAME: For a CNAME record, the domain name that Route 53
 	//    returns in response to DNS queries, for example, example.com.
@@ -6031,10 +6043,18 @@ type RegisterInstanceInput struct {
 	//    won't associate the health check with the alias record.
 	//
 	//    * Auto naming currently doesn't support creating alias records that route
-	//    traffic to AWS resources other than ELB load balancers.
+	//    traffic to AWS resources other than Elastic Load Balancing load balancers.
 	//
 	//    * If you specify a value for AWS_ALIAS_DNS_NAME, don't specify values
 	//    for any of the AWS_INSTANCE attributes.
+	//
+	// AWS_EC2_INSTANCE_ID
+	//
+	// HTTP namespaces only. The Amazon EC2 instance ID for the instance. If the
+	// AWS_EC2_INSTANCE_ID attribute is specified, then the only other attribute
+	// that can be specified is AWS_INIT_HEALTH_STATUS. When the AWS_EC2_INSTANCE_ID
+	// attribute is specified, then the AWS_INSTANCE_IPV4 attribute will be filled
+	// out with the primary private IPv4 address.
 	//
 	// AWS_INIT_HEALTH_STATUS
 	//
@@ -6084,7 +6104,7 @@ type RegisterInstanceInput struct {
 	//
 	// You can add up to 30 custom attributes. For each key-value pair, the maximum
 	// length of the attribute name is 255 characters, and the maximum length of
-	// the attribute value is 1,024 characters. Total size of all provided attributes
+	// the attribute value is 1,024 characters. The total size of all provided attributes
 	// (sum of all keys and values) must not exceed 5,000 characters.
 	//
 	// Attributes is a required field
@@ -6202,8 +6222,10 @@ func (s *RegisterInstanceOutput) SetOperationId(v string) *RegisterInstanceOutpu
 	return s
 }
 
-// The operation can't be completed because you've reached the limit on the
-// number of requests.
+// The operation can't be completed because you've reached the quota for the
+// number of requests. For more information, see AWS Cloud Map API request throttling
+// quota (https://docs.aws.amazon.com/cloud-map/latest/dg/throttling.html) in
+// the AWS Cloud Map Developer Guide.
 type RequestLimitExceeded struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -6316,7 +6338,7 @@ func (s *ResourceInUse) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// The resource can't be created because you've reached the limit on the number
+// The resource can't be created because you've reached the quota on the number
 // of resources.
 type ResourceLimitExceeded struct {
 	_            struct{}                  `type:"structure"`
@@ -6651,14 +6673,14 @@ type ServiceChange struct {
 	//
 	// Note the following about configuring health checks.
 	//
-	// A and AAAA records
+	//  A and AAAA records
 	//
 	// If DnsConfig includes configurations for both A and AAAA records, AWS Cloud
 	// Map creates a health check that uses the IPv4 address to check the health
 	// of the resource. If the endpoint that is specified by the IPv4 address is
 	// unhealthy, Route 53 considers both the A and AAAA records to be unhealthy.
 	//
-	// CNAME records
+	//  CNAME records
 	//
 	// You can't specify settings for HealthCheckConfig when the DNSConfig includes
 	// CNAME for the value of Type. If you do, the CreateService request will fail
@@ -6908,14 +6930,14 @@ type ServiceSummary struct {
 	//
 	// Note the following about configuring health checks.
 	//
-	// A and AAAA records
+	//  A and AAAA records
 	//
 	// If DnsConfig includes configurations for both A and AAAA records, AWS Cloud
 	// Map creates a health check that uses the IPv4 address to check the health
 	// of the resource. If the endpoint that is specified by the IPv4 address is
 	// unhealthy, Route 53 considers both the A and AAAA records to be unhealthy.
 	//
-	// CNAME records
+	//  CNAME records
 	//
 	// You can't specify settings for HealthCheckConfig when the DNSConfig includes
 	// CNAME for the value of Type. If you do, the CreateService request will fail
@@ -7092,9 +7114,8 @@ type Tag struct {
 	// Key is a required field
 	Key *string `min:"1" type:"string" required:"true"`
 
-	// The string value that's associated with the key of the tag. You can set the
-	// value of a tag to an empty string, but you can't set the value of a tag to
-	// null.
+	// The string value associated with the key of the tag. You can set the value
+	// of a tag to an empty string, but you can't set the value of a tag to null.
 	//
 	// Value is a required field
 	Value *string `type:"string" required:"true"`
@@ -7223,7 +7244,7 @@ func (s TagResourceOutput) GoString() string {
 	return s.String()
 }
 
-// The list of tags on the resource is over the limit. The maximum number of
+// The list of tags on the resource is over the quota. The maximum number of
 // tags that can be applied to a resource is 50.
 type TooManyTagsException struct {
 	_            struct{}                  `type:"structure"`
@@ -7523,6 +7544,14 @@ const (
 	CustomHealthStatusUnhealthy = "UNHEALTHY"
 )
 
+// CustomHealthStatus_Values returns all elements of the CustomHealthStatus enum
+func CustomHealthStatus_Values() []string {
+	return []string{
+		CustomHealthStatusHealthy,
+		CustomHealthStatusUnhealthy,
+	}
+}
+
 const (
 	// FilterConditionEq is a FilterCondition enum value
 	FilterConditionEq = "EQ"
@@ -7533,6 +7562,15 @@ const (
 	// FilterConditionBetween is a FilterCondition enum value
 	FilterConditionBetween = "BETWEEN"
 )
+
+// FilterCondition_Values returns all elements of the FilterCondition enum
+func FilterCondition_Values() []string {
+	return []string{
+		FilterConditionEq,
+		FilterConditionIn,
+		FilterConditionBetween,
+	}
+}
 
 const (
 	// HealthCheckTypeHttp is a HealthCheckType enum value
@@ -7545,6 +7583,15 @@ const (
 	HealthCheckTypeTcp = "TCP"
 )
 
+// HealthCheckType_Values returns all elements of the HealthCheckType enum
+func HealthCheckType_Values() []string {
+	return []string{
+		HealthCheckTypeHttp,
+		HealthCheckTypeHttps,
+		HealthCheckTypeTcp,
+	}
+}
+
 const (
 	// HealthStatusHealthy is a HealthStatus enum value
 	HealthStatusHealthy = "HEALTHY"
@@ -7555,6 +7602,15 @@ const (
 	// HealthStatusUnknown is a HealthStatus enum value
 	HealthStatusUnknown = "UNKNOWN"
 )
+
+// HealthStatus_Values returns all elements of the HealthStatus enum
+func HealthStatus_Values() []string {
+	return []string{
+		HealthStatusHealthy,
+		HealthStatusUnhealthy,
+		HealthStatusUnknown,
+	}
+}
 
 const (
 	// HealthStatusFilterHealthy is a HealthStatusFilter enum value
@@ -7567,10 +7623,26 @@ const (
 	HealthStatusFilterAll = "ALL"
 )
 
+// HealthStatusFilter_Values returns all elements of the HealthStatusFilter enum
+func HealthStatusFilter_Values() []string {
+	return []string{
+		HealthStatusFilterHealthy,
+		HealthStatusFilterUnhealthy,
+		HealthStatusFilterAll,
+	}
+}
+
 const (
 	// NamespaceFilterNameType is a NamespaceFilterName enum value
 	NamespaceFilterNameType = "TYPE"
 )
+
+// NamespaceFilterName_Values returns all elements of the NamespaceFilterName enum
+func NamespaceFilterName_Values() []string {
+	return []string{
+		NamespaceFilterNameType,
+	}
+}
 
 const (
 	// NamespaceTypeDnsPublic is a NamespaceType enum value
@@ -7582,6 +7654,15 @@ const (
 	// NamespaceTypeHttp is a NamespaceType enum value
 	NamespaceTypeHttp = "HTTP"
 )
+
+// NamespaceType_Values returns all elements of the NamespaceType enum
+func NamespaceType_Values() []string {
+	return []string{
+		NamespaceTypeDnsPublic,
+		NamespaceTypeDnsPrivate,
+		NamespaceTypeHttp,
+	}
+}
 
 const (
 	// OperationFilterNameNamespaceId is a OperationFilterName enum value
@@ -7600,6 +7681,17 @@ const (
 	OperationFilterNameUpdateDate = "UPDATE_DATE"
 )
 
+// OperationFilterName_Values returns all elements of the OperationFilterName enum
+func OperationFilterName_Values() []string {
+	return []string{
+		OperationFilterNameNamespaceId,
+		OperationFilterNameServiceId,
+		OperationFilterNameStatus,
+		OperationFilterNameType,
+		OperationFilterNameUpdateDate,
+	}
+}
+
 const (
 	// OperationStatusSubmitted is a OperationStatus enum value
 	OperationStatusSubmitted = "SUBMITTED"
@@ -7614,6 +7706,16 @@ const (
 	OperationStatusFail = "FAIL"
 )
 
+// OperationStatus_Values returns all elements of the OperationStatus enum
+func OperationStatus_Values() []string {
+	return []string{
+		OperationStatusSubmitted,
+		OperationStatusPending,
+		OperationStatusSuccess,
+		OperationStatusFail,
+	}
+}
+
 const (
 	// OperationTargetTypeNamespace is a OperationTargetType enum value
 	OperationTargetTypeNamespace = "NAMESPACE"
@@ -7624,6 +7726,15 @@ const (
 	// OperationTargetTypeInstance is a OperationTargetType enum value
 	OperationTargetTypeInstance = "INSTANCE"
 )
+
+// OperationTargetType_Values returns all elements of the OperationTargetType enum
+func OperationTargetType_Values() []string {
+	return []string{
+		OperationTargetTypeNamespace,
+		OperationTargetTypeService,
+		OperationTargetTypeInstance,
+	}
+}
 
 const (
 	// OperationTypeCreateNamespace is a OperationType enum value
@@ -7642,6 +7753,17 @@ const (
 	OperationTypeDeregisterInstance = "DEREGISTER_INSTANCE"
 )
 
+// OperationType_Values returns all elements of the OperationType enum
+func OperationType_Values() []string {
+	return []string{
+		OperationTypeCreateNamespace,
+		OperationTypeDeleteNamespace,
+		OperationTypeUpdateService,
+		OperationTypeRegisterInstance,
+		OperationTypeDeregisterInstance,
+	}
+}
+
 const (
 	// RecordTypeSrv is a RecordType enum value
 	RecordTypeSrv = "SRV"
@@ -7656,6 +7778,16 @@ const (
 	RecordTypeCname = "CNAME"
 )
 
+// RecordType_Values returns all elements of the RecordType enum
+func RecordType_Values() []string {
+	return []string{
+		RecordTypeSrv,
+		RecordTypeA,
+		RecordTypeAaaa,
+		RecordTypeCname,
+	}
+}
+
 const (
 	// RoutingPolicyMultivalue is a RoutingPolicy enum value
 	RoutingPolicyMultivalue = "MULTIVALUE"
@@ -7664,7 +7796,22 @@ const (
 	RoutingPolicyWeighted = "WEIGHTED"
 )
 
+// RoutingPolicy_Values returns all elements of the RoutingPolicy enum
+func RoutingPolicy_Values() []string {
+	return []string{
+		RoutingPolicyMultivalue,
+		RoutingPolicyWeighted,
+	}
+}
+
 const (
 	// ServiceFilterNameNamespaceId is a ServiceFilterName enum value
 	ServiceFilterNameNamespaceId = "NAMESPACE_ID"
 )
+
+// ServiceFilterName_Values returns all elements of the ServiceFilterName enum
+func ServiceFilterName_Values() []string {
+	return []string{
+		ServiceFilterNameNamespaceId,
+	}
+}

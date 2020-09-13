@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         go_version: ["1.14"]
-        terraform_version: ["0.11.14", "0.12.24"]
+        terraform_version: ["0.12.29"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -40,31 +40,33 @@ jobs:
     - uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: ${{ matrix.terraform_version }}
+        # Needed to use the output of `terraform validate -json`
+        terraform_wrapper: false
+    - name: install tflint
+      env:
+        TFLINT_VERSION: "v0.18.0"
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
     - name: terraform
       run: |
         for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
-          if [ ${{ matrix.terraform_version }} = 0.11.14 ]; then
-            if [ $DIR = ./examples/eks-getting-started ]; then
-              # Skip example already converted to Terraform 0.12 and later syntax
-              continue
-            elif [ $DIR = ./examples/two-tier ]; then
-              # 0.11 validation requires file path to exist
-              mkdir -p ~/.ssh
-              touch ~/.ssh/terraform-provider-aws-example.pub
-            fi
-          fi
-          pushd $DIR
+          pushd "$DIR"
           if [ -f terraform.template.tfvars ]; then
             cp terraform.template.tfvars terraform.tfvars
           fi
           echo; echo -e "\e[1;35m===> Initializing Example: $DIR <===\e[0m"; echo
           terraform init
-          # Prefer Terraform 0.12 and later format checking to prevent conflicts
-          if [ ${{ matrix.terraform_version }} != 0.11.14 ]; then
-            echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
-            terraform fmt -check
-          fi
+          echo; echo -e "\e[1;35m===> Format Checking Example: $DIR <===\e[0m"; echo
+          terraform fmt -check
           echo; echo -e "\e[1;35m===> Validating Example: $DIR <===\e[0m"; echo
+          # Catch errors
           terraform validate
+          # Terraform syntax checks
+          tflint \
+            --enable-rule=terraform_deprecated_interpolation \
+            --enable-rule=terraform_deprecated_index \
+            --enable-rule=terraform_unused_declarations \
+            --enable-rule=terraform_comment_syntax \
+            --enable-rule=terraform_required_version
           popd
         done

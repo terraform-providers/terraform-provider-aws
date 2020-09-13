@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -153,6 +153,27 @@ func TestAccAWSAPIGatewayVpcLink_tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayVpcLink_disappears(t *testing.T) {
+	rName := acctest.RandString(5)
+	resourceName := "aws_api_gateway_vpc_link.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAPIGatewayVpcLinkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAPIGatewayVpcLinkConfig(rName, "test"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAPIGatewayVpcLinkExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayVpcLink(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAwsAPIGatewayVpcLinkDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
@@ -203,7 +224,7 @@ resource "aws_lb" "test_a" {
   name               = "tf-lb-%s"
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.test.id}"]
+  subnets            = [aws_subnet.test.id]
 }
 
 resource "aws_vpc" "test" {
@@ -223,9 +244,9 @@ data "aws_availability_zones" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.10.0.0/21"
-  availability_zone = "${data.aws_availability_zones.test.names[0]}"
+  availability_zone = data.aws_availability_zones.test.names[0]
 
   tags = {
     Name = "tf-acc-api-gateway-vpc-link"
@@ -237,9 +258,9 @@ resource "aws_subnet" "test" {
 func testAccAPIGatewayVpcLinkConfig(rName, description string) string {
 	return testAccAPIGatewayVpcLinkConfig_basis(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_vpc_link" "test" {
-  name = "tf-apigateway-%s"
+  name        = "tf-apigateway-%s"
   description = %q
-  target_arns = ["${aws_lb.test_a.arn}"]
+  target_arns = [aws_lb.test_a.arn]
 }
 `, rName, description)
 }
@@ -247,12 +268,12 @@ resource "aws_api_gateway_vpc_link" "test" {
 func testAccAPIGatewayVpcLinkConfigTags1(rName, description, tagKey1, tagValue1 string) string {
 	return testAccAPIGatewayVpcLinkConfig_basis(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_vpc_link" "test" {
-  name = "tf-apigateway-%s"
+  name        = "tf-apigateway-%s"
   description = %q
-  target_arns = ["${aws_lb.test_a.arn}"]
+  target_arns = [aws_lb.test_a.arn]
 
   tags = {
-  	%q = %q
+    %q = %q
   }
 }
 `, rName, description, tagKey1, tagValue1)
@@ -261,13 +282,13 @@ resource "aws_api_gateway_vpc_link" "test" {
 func testAccAPIGatewayVpcLinkConfigTags2(rName, description, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return testAccAPIGatewayVpcLinkConfig_basis(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_vpc_link" "test" {
- name = "tf-apigateway-%s"
- description = %q
- target_arns = ["${aws_lb.test_a.arn}"]
+  name        = "tf-apigateway-%s"
+  description = %q
+  target_arns = [aws_lb.test_a.arn]
 
   tags = {
-  	%q = %q
-	%q = %q
+    %q = %q
+    %q = %q
   }
 }
 `, rName, description, tagKey1, tagValue1, tagKey2, tagValue2)
@@ -276,9 +297,9 @@ resource "aws_api_gateway_vpc_link" "test" {
 func testAccAPIGatewayVpcLinkConfig_Update(rName, description string) string {
 	return testAccAPIGatewayVpcLinkConfig_basis(rName) + fmt.Sprintf(`
 resource "aws_api_gateway_vpc_link" "test" {
-  name = "tf-apigateway-update-%s"
+  name        = "tf-apigateway-update-%s"
   description = %q
-  target_arns = ["${aws_lb.test_a.arn}"]
+  target_arns = [aws_lb.test_a.arn]
 }
 `, rName, description)
 }

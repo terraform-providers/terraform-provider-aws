@@ -21,7 +21,7 @@ resource "aws_ssm_maintenance_window" "window" {
 }
 
 resource "aws_ssm_maintenance_window_target" "target1" {
-  window_id     = "${aws_ssm_maintenance_window.window.id}"
+  window_id     = aws_ssm_maintenance_window.window.id
   name          = "maintenance-window-target"
   description   = "This is a maintenance window target"
   resource_type = "INSTANCE"
@@ -44,7 +44,7 @@ resource "aws_ssm_maintenance_window" "window" {
 }
 
 resource "aws_ssm_maintenance_window_target" "target1" {
-  window_id     = "${aws_ssm_maintenance_window.window.id}"
+  window_id     = aws_ssm_maintenance_window.window.id
   name          = "maintenance-window-target"
   description   = "This is a maintenance window target"
   resource_type = "RESOURCE_GROUP"

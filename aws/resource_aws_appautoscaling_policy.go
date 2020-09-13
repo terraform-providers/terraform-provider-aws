@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/applicationautoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsAppautoscalingPolicy() *schema.Resource {
@@ -98,47 +98,6 @@ func resourceAwsAppautoscalingPolicy() *schema.Resource {
 									},
 								},
 							},
-						},
-					},
-				},
-			},
-			"adjustment_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `step_scaling_policy_configuration` configuration block `adjustment_type` argument instead",
-			},
-			"cooldown": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Removed:  "Use `step_scaling_policy_configuration` configuration block `cooldown` argument instead",
-			},
-			"metric_aggregation_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Removed:  "Use `step_scaling_policy_configuration` configuration block `metric_aggregation_type` argument instead",
-			},
-			"min_adjustment_magnitude": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Removed:  "Use `step_scaling_policy_configuration` configuration block `min_adjustment_magnitude` argument instead",
-			},
-			"step_adjustment": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Removed:  "Use `step_scaling_policy_configuration` configuration block `step_adjustment` configuration block instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"metric_interval_lower_bound": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"metric_interval_upper_bound": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"scaling_adjustment": {
-							Type:     schema.TypeInt,
-							Required: true,
 						},
 					},
 				},

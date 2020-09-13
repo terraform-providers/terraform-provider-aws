@@ -4520,6 +4520,16 @@ const (
 	CapabilityCapabilityResourcePolicy = "CAPABILITY_RESOURCE_POLICY"
 )
 
+// Capability_Values returns all elements of the Capability enum
+func Capability_Values() []string {
+	return []string{
+		CapabilityCapabilityIam,
+		CapabilityCapabilityNamedIam,
+		CapabilityCapabilityAutoExpand,
+		CapabilityCapabilityResourcePolicy,
+	}
+}
+
 const (
 	// StatusPreparing is a Status enum value
 	StatusPreparing = "PREPARING"
@@ -4530,3 +4540,12 @@ const (
 	// StatusExpired is a Status enum value
 	StatusExpired = "EXPIRED"
 )
+
+// Status_Values returns all elements of the Status enum
+func Status_Values() []string {
+	return []string{
+		StatusPreparing,
+		StatusActive,
+		StatusExpired,
+	}
+}

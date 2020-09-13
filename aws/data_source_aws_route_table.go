@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -68,6 +68,11 @@ func dataSourceAwsRouteTable() *schema.Resource {
 						},
 
 						"nat_gateway_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"local_gateway_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -227,6 +232,9 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 		}
 		if r.NatGatewayId != nil {
 			m["nat_gateway_id"] = *r.NatGatewayId
+		}
+		if r.LocalGatewayId != nil {
+			m["local_gateway_id"] = *r.LocalGatewayId
 		}
 		if r.InstanceId != nil {
 			m["instance_id"] = *r.InstanceId

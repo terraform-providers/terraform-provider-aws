@@ -6,12 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAwsSecretsManagerSecretRotation(t *testing.T) {
+func TestAccAwsSecretsManagerSecretRotation_basic(t *testing.T) {
 	var secret secretsmanager.DescribeSecretOutput
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_secretsmanager_secret_rotation.test"
@@ -124,15 +124,15 @@ resource "aws_lambda_function" "test1" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s-1"
   handler       = "exports.example"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test1" {
-  action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test1.function_name}"
-  principal      = "secretsmanager.amazonaws.com"
-  statement_id   = "AllowExecutionFromSecretsManager1"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test1.function_name
+  principal     = "secretsmanager.amazonaws.com"
+  statement_id  = "AllowExecutionFromSecretsManager1"
 }
 
 # Not a real rotation function
@@ -140,15 +140,15 @@ resource "aws_lambda_function" "test2" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%[1]s-2"
   handler       = "exports.example"
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_permission" "test2" {
-  action         = "lambda:InvokeFunction"
-  function_name  = "${aws_lambda_function.test2.function_name}"
-  principal      = "secretsmanager.amazonaws.com"
-  statement_id   = "AllowExecutionFromSecretsManager2"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test2.function_name
+  principal     = "secretsmanager.amazonaws.com"
+  statement_id  = "AllowExecutionFromSecretsManager2"
 }
 
 resource "aws_secretsmanager_secret" "test" {
@@ -156,14 +156,14 @@ resource "aws_secretsmanager_secret" "test" {
 }
 
 resource "aws_secretsmanager_secret_rotation" "test" {
-	secret_id 					= "${aws_secretsmanager_secret.test.id}"
-	rotation_lambda_arn = "${aws_lambda_function.test1.arn}"
+  secret_id           = aws_secretsmanager_secret.test.id
+  rotation_lambda_arn = aws_lambda_function.test1.arn
 
-	rotation_rules {
+  rotation_rules {
     automatically_after_days = %[2]d
-	}
+  }
 
-	depends_on = ["aws_lambda_permission.test1"]
+  depends_on = [aws_lambda_permission.test1]
 }
 `, rName, automaticallyAfterDays)
 }

@@ -35,7 +35,7 @@ EOF
 
 resource "aws_iam_role_policy" "dlm_lifecycle" {
   name = "dlm-lifecycle-policy"
-  role = "${aws_iam_role.dlm_lifecycle_role.id}"
+  role = aws_iam_role.dlm_lifecycle_role.id
 
   policy = <<EOF
 {
@@ -65,7 +65,7 @@ EOF
 
 resource "aws_dlm_lifecycle_policy" "example" {
   description        = "example DLM lifecycle policy"
-  execution_role_arn = "${aws_iam_role.dlm_lifecycle_role.arn}"
+  execution_role_arn = aws_iam_role.dlm_lifecycle_role.arn
   state              = "ENABLED"
 
   policy_details {

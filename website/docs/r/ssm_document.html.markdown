@@ -116,7 +116,7 @@ resource "aws_ssm_document" "test" {
 
   # There is no AWS SSM API for reading attachments_source info directly
   lifecycle {
-    ignore_changes = ["attachments_source"]
+    ignore_changes = [attachments_source]
   }
 }
 ```

@@ -1417,6 +1417,95 @@ func (c *IoT) ConfirmTopicRuleDestinationWithContext(ctx aws.Context, input *Con
 	return out, req.Send()
 }
 
+const opCreateAuditSuppression = "CreateAuditSuppression"
+
+// CreateAuditSuppressionRequest generates a "aws/request.Request" representing the
+// client's request for the CreateAuditSuppression operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateAuditSuppression for more information on using the CreateAuditSuppression
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateAuditSuppressionRequest method.
+//    req, resp := client.CreateAuditSuppressionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) CreateAuditSuppressionRequest(input *CreateAuditSuppressionInput) (req *request.Request, output *CreateAuditSuppressionOutput) {
+	op := &request.Operation{
+		Name:       opCreateAuditSuppression,
+		HTTPMethod: "POST",
+		HTTPPath:   "/audit/suppressions/create",
+	}
+
+	if input == nil {
+		input = &CreateAuditSuppressionInput{}
+	}
+
+	output = &CreateAuditSuppressionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// CreateAuditSuppression API operation for AWS IoT.
+//
+// Creates a Device Defender audit suppression.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation CreateAuditSuppression for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ResourceAlreadyExistsException
+//   The resource already exists.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+//   * LimitExceededException
+//   A limit has been exceeded.
+//
+func (c *IoT) CreateAuditSuppression(input *CreateAuditSuppressionInput) (*CreateAuditSuppressionOutput, error) {
+	req, out := c.CreateAuditSuppressionRequest(input)
+	return out, req.Send()
+}
+
+// CreateAuditSuppressionWithContext is the same as CreateAuditSuppression with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateAuditSuppression for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) CreateAuditSuppressionWithContext(ctx aws.Context, input *CreateAuditSuppressionInput, opts ...request.Option) (*CreateAuditSuppressionOutput, error) {
+	req, out := c.CreateAuditSuppressionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateAuthorizer = "CreateAuthorizer"
 
 // CreateAuthorizerRequest generates a "aws/request.Request" representing the
@@ -2236,6 +2325,8 @@ func (c *IoT) CreateMitigationActionRequest(input *CreateMitigationActionInput) 
 // CreateMitigationAction API operation for AWS IoT.
 //
 // Defines an action that can be applied to audit findings by using StartAuditMitigationActionsTask.
+// Only certain types of mitigation actions can be applied to specific check
+// names. For more information, see Mitigation actions (https://docs.aws.amazon.com/iot/latest/developerguide/device-defender-mitigation-actions.html).
 // Each mitigation action can apply only one type of change.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
@@ -3771,6 +3862,89 @@ func (c *IoT) DeleteAccountAuditConfiguration(input *DeleteAccountAuditConfigura
 // for more information on using Contexts.
 func (c *IoT) DeleteAccountAuditConfigurationWithContext(ctx aws.Context, input *DeleteAccountAuditConfigurationInput, opts ...request.Option) (*DeleteAccountAuditConfigurationOutput, error) {
 	req, out := c.DeleteAccountAuditConfigurationRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteAuditSuppression = "DeleteAuditSuppression"
+
+// DeleteAuditSuppressionRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteAuditSuppression operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteAuditSuppression for more information on using the DeleteAuditSuppression
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteAuditSuppressionRequest method.
+//    req, resp := client.DeleteAuditSuppressionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) DeleteAuditSuppressionRequest(input *DeleteAuditSuppressionInput) (req *request.Request, output *DeleteAuditSuppressionOutput) {
+	op := &request.Operation{
+		Name:       opDeleteAuditSuppression,
+		HTTPMethod: "POST",
+		HTTPPath:   "/audit/suppressions/delete",
+	}
+
+	if input == nil {
+		input = &DeleteAuditSuppressionInput{}
+	}
+
+	output = &DeleteAuditSuppressionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// DeleteAuditSuppression API operation for AWS IoT.
+//
+// Deletes a Device Defender audit suppression.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation DeleteAuditSuppression for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+func (c *IoT) DeleteAuditSuppression(input *DeleteAuditSuppressionInput) (*DeleteAuditSuppressionOutput, error) {
+	req, out := c.DeleteAuditSuppressionRequest(input)
+	return out, req.Send()
+}
+
+// DeleteAuditSuppressionWithContext is the same as DeleteAuditSuppression with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteAuditSuppression for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) DeleteAuditSuppressionWithContext(ctx aws.Context, input *DeleteAuditSuppressionInput, opts ...request.Option) (*DeleteAuditSuppressionOutput, error) {
+	req, out := c.DeleteAuditSuppressionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -6519,6 +6693,91 @@ func (c *IoT) DescribeAuditMitigationActionsTask(input *DescribeAuditMitigationA
 // for more information on using Contexts.
 func (c *IoT) DescribeAuditMitigationActionsTaskWithContext(ctx aws.Context, input *DescribeAuditMitigationActionsTaskInput, opts ...request.Option) (*DescribeAuditMitigationActionsTaskOutput, error) {
 	req, out := c.DescribeAuditMitigationActionsTaskRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeAuditSuppression = "DescribeAuditSuppression"
+
+// DescribeAuditSuppressionRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeAuditSuppression operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeAuditSuppression for more information on using the DescribeAuditSuppression
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeAuditSuppressionRequest method.
+//    req, resp := client.DescribeAuditSuppressionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) DescribeAuditSuppressionRequest(input *DescribeAuditSuppressionInput) (req *request.Request, output *DescribeAuditSuppressionOutput) {
+	op := &request.Operation{
+		Name:       opDescribeAuditSuppression,
+		HTTPMethod: "POST",
+		HTTPPath:   "/audit/suppressions/describe",
+	}
+
+	if input == nil {
+		input = &DescribeAuditSuppressionInput{}
+	}
+
+	output = &DescribeAuditSuppressionOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeAuditSuppression API operation for AWS IoT.
+//
+// Gets information about a Device Defender audit suppression.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation DescribeAuditSuppression for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource does not exist.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+func (c *IoT) DescribeAuditSuppression(input *DescribeAuditSuppressionInput) (*DescribeAuditSuppressionOutput, error) {
+	req, out := c.DescribeAuditSuppressionRequest(input)
+	return out, req.Send()
+}
+
+// DescribeAuditSuppressionWithContext is the same as DescribeAuditSuppression with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeAuditSuppression for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) DescribeAuditSuppressionWithContext(ctx aws.Context, input *DescribeAuditSuppressionInput, opts ...request.Option) (*DescribeAuditSuppressionOutput, error) {
+	req, out := c.DescribeAuditSuppressionRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -10494,6 +10753,12 @@ func (c *IoT) ListActiveViolationsRequest(input *ListActiveViolationsInput) (req
 		Name:       opListActiveViolations,
 		HTTPMethod: "GET",
 		HTTPPath:   "/active-violations",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10550,6 +10815,58 @@ func (c *IoT) ListActiveViolationsWithContext(ctx aws.Context, input *ListActive
 	return out, req.Send()
 }
 
+// ListActiveViolationsPages iterates over the pages of a ListActiveViolations operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListActiveViolations method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListActiveViolations operation.
+//    pageNum := 0
+//    err := client.ListActiveViolationsPages(params,
+//        func(page *iot.ListActiveViolationsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListActiveViolationsPages(input *ListActiveViolationsInput, fn func(*ListActiveViolationsOutput, bool) bool) error {
+	return c.ListActiveViolationsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListActiveViolationsPagesWithContext same as ListActiveViolationsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListActiveViolationsPagesWithContext(ctx aws.Context, input *ListActiveViolationsInput, fn func(*ListActiveViolationsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListActiveViolationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListActiveViolationsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListActiveViolationsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAttachedPolicies = "ListAttachedPolicies"
 
 // ListAttachedPoliciesRequest generates a "aws/request.Request" representing the
@@ -10579,6 +10896,12 @@ func (c *IoT) ListAttachedPoliciesRequest(input *ListAttachedPoliciesInput) (req
 		Name:       opListAttachedPolicies,
 		HTTPMethod: "POST",
 		HTTPPath:   "/attached-policies/{target}",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10644,6 +10967,58 @@ func (c *IoT) ListAttachedPoliciesWithContext(ctx aws.Context, input *ListAttach
 	return out, req.Send()
 }
 
+// ListAttachedPoliciesPages iterates over the pages of a ListAttachedPolicies operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAttachedPolicies method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAttachedPolicies operation.
+//    pageNum := 0
+//    err := client.ListAttachedPoliciesPages(params,
+//        func(page *iot.ListAttachedPoliciesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAttachedPoliciesPages(input *ListAttachedPoliciesInput, fn func(*ListAttachedPoliciesOutput, bool) bool) error {
+	return c.ListAttachedPoliciesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAttachedPoliciesPagesWithContext same as ListAttachedPoliciesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAttachedPoliciesPagesWithContext(ctx aws.Context, input *ListAttachedPoliciesInput, fn func(*ListAttachedPoliciesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAttachedPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAttachedPoliciesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAttachedPoliciesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAuditFindings = "ListAuditFindings"
 
 // ListAuditFindingsRequest generates a "aws/request.Request" representing the
@@ -10673,6 +11048,12 @@ func (c *IoT) ListAuditFindingsRequest(input *ListAuditFindingsInput) (req *requ
 		Name:       opListAuditFindings,
 		HTTPMethod: "POST",
 		HTTPPath:   "/audit/findings",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10728,6 +11109,58 @@ func (c *IoT) ListAuditFindingsWithContext(ctx aws.Context, input *ListAuditFind
 	return out, req.Send()
 }
 
+// ListAuditFindingsPages iterates over the pages of a ListAuditFindings operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuditFindings method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuditFindings operation.
+//    pageNum := 0
+//    err := client.ListAuditFindingsPages(params,
+//        func(page *iot.ListAuditFindingsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuditFindingsPages(input *ListAuditFindingsInput, fn func(*ListAuditFindingsOutput, bool) bool) error {
+	return c.ListAuditFindingsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuditFindingsPagesWithContext same as ListAuditFindingsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditFindingsPagesWithContext(ctx aws.Context, input *ListAuditFindingsInput, fn func(*ListAuditFindingsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuditFindingsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuditFindingsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuditFindingsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAuditMitigationActionsExecutions = "ListAuditMitigationActionsExecutions"
 
 // ListAuditMitigationActionsExecutionsRequest generates a "aws/request.Request" representing the
@@ -10757,6 +11190,12 @@ func (c *IoT) ListAuditMitigationActionsExecutionsRequest(input *ListAuditMitiga
 		Name:       opListAuditMitigationActionsExecutions,
 		HTTPMethod: "GET",
 		HTTPPath:   "/audit/mitigationactions/executions",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10810,6 +11249,58 @@ func (c *IoT) ListAuditMitigationActionsExecutionsWithContext(ctx aws.Context, i
 	return out, req.Send()
 }
 
+// ListAuditMitigationActionsExecutionsPages iterates over the pages of a ListAuditMitigationActionsExecutions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuditMitigationActionsExecutions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuditMitigationActionsExecutions operation.
+//    pageNum := 0
+//    err := client.ListAuditMitigationActionsExecutionsPages(params,
+//        func(page *iot.ListAuditMitigationActionsExecutionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuditMitigationActionsExecutionsPages(input *ListAuditMitigationActionsExecutionsInput, fn func(*ListAuditMitigationActionsExecutionsOutput, bool) bool) error {
+	return c.ListAuditMitigationActionsExecutionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuditMitigationActionsExecutionsPagesWithContext same as ListAuditMitigationActionsExecutionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditMitigationActionsExecutionsPagesWithContext(ctx aws.Context, input *ListAuditMitigationActionsExecutionsInput, fn func(*ListAuditMitigationActionsExecutionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuditMitigationActionsExecutionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuditMitigationActionsExecutionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuditMitigationActionsExecutionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAuditMitigationActionsTasks = "ListAuditMitigationActionsTasks"
 
 // ListAuditMitigationActionsTasksRequest generates a "aws/request.Request" representing the
@@ -10839,6 +11330,12 @@ func (c *IoT) ListAuditMitigationActionsTasksRequest(input *ListAuditMitigationA
 		Name:       opListAuditMitigationActionsTasks,
 		HTTPMethod: "GET",
 		HTTPPath:   "/audit/mitigationactions/tasks",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10892,6 +11389,198 @@ func (c *IoT) ListAuditMitigationActionsTasksWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+// ListAuditMitigationActionsTasksPages iterates over the pages of a ListAuditMitigationActionsTasks operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuditMitigationActionsTasks method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuditMitigationActionsTasks operation.
+//    pageNum := 0
+//    err := client.ListAuditMitigationActionsTasksPages(params,
+//        func(page *iot.ListAuditMitigationActionsTasksOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuditMitigationActionsTasksPages(input *ListAuditMitigationActionsTasksInput, fn func(*ListAuditMitigationActionsTasksOutput, bool) bool) error {
+	return c.ListAuditMitigationActionsTasksPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuditMitigationActionsTasksPagesWithContext same as ListAuditMitigationActionsTasksPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditMitigationActionsTasksPagesWithContext(ctx aws.Context, input *ListAuditMitigationActionsTasksInput, fn func(*ListAuditMitigationActionsTasksOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuditMitigationActionsTasksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuditMitigationActionsTasksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuditMitigationActionsTasksOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListAuditSuppressions = "ListAuditSuppressions"
+
+// ListAuditSuppressionsRequest generates a "aws/request.Request" representing the
+// client's request for the ListAuditSuppressions operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListAuditSuppressions for more information on using the ListAuditSuppressions
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListAuditSuppressionsRequest method.
+//    req, resp := client.ListAuditSuppressionsRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) ListAuditSuppressionsRequest(input *ListAuditSuppressionsInput) (req *request.Request, output *ListAuditSuppressionsOutput) {
+	op := &request.Operation{
+		Name:       opListAuditSuppressions,
+		HTTPMethod: "POST",
+		HTTPPath:   "/audit/suppressions/list",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListAuditSuppressionsInput{}
+	}
+
+	output = &ListAuditSuppressionsOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListAuditSuppressions API operation for AWS IoT.
+//
+// Lists your Device Defender audit listings.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation ListAuditSuppressions for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+func (c *IoT) ListAuditSuppressions(input *ListAuditSuppressionsInput) (*ListAuditSuppressionsOutput, error) {
+	req, out := c.ListAuditSuppressionsRequest(input)
+	return out, req.Send()
+}
+
+// ListAuditSuppressionsWithContext is the same as ListAuditSuppressions with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListAuditSuppressions for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditSuppressionsWithContext(ctx aws.Context, input *ListAuditSuppressionsInput, opts ...request.Option) (*ListAuditSuppressionsOutput, error) {
+	req, out := c.ListAuditSuppressionsRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListAuditSuppressionsPages iterates over the pages of a ListAuditSuppressions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuditSuppressions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuditSuppressions operation.
+//    pageNum := 0
+//    err := client.ListAuditSuppressionsPages(params,
+//        func(page *iot.ListAuditSuppressionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuditSuppressionsPages(input *ListAuditSuppressionsInput, fn func(*ListAuditSuppressionsOutput, bool) bool) error {
+	return c.ListAuditSuppressionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuditSuppressionsPagesWithContext same as ListAuditSuppressionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditSuppressionsPagesWithContext(ctx aws.Context, input *ListAuditSuppressionsInput, fn func(*ListAuditSuppressionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuditSuppressionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuditSuppressionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuditSuppressionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAuditTasks = "ListAuditTasks"
 
 // ListAuditTasksRequest generates a "aws/request.Request" representing the
@@ -10921,6 +11610,12 @@ func (c *IoT) ListAuditTasksRequest(input *ListAuditTasksInput) (req *request.Re
 		Name:       opListAuditTasks,
 		HTTPMethod: "GET",
 		HTTPPath:   "/audit/tasks",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -10975,6 +11670,58 @@ func (c *IoT) ListAuditTasksWithContext(ctx aws.Context, input *ListAuditTasksIn
 	return out, req.Send()
 }
 
+// ListAuditTasksPages iterates over the pages of a ListAuditTasks operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuditTasks method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuditTasks operation.
+//    pageNum := 0
+//    err := client.ListAuditTasksPages(params,
+//        func(page *iot.ListAuditTasksOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuditTasksPages(input *ListAuditTasksInput, fn func(*ListAuditTasksOutput, bool) bool) error {
+	return c.ListAuditTasksPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuditTasksPagesWithContext same as ListAuditTasksPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuditTasksPagesWithContext(ctx aws.Context, input *ListAuditTasksInput, fn func(*ListAuditTasksOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuditTasksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuditTasksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuditTasksOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListAuthorizers = "ListAuthorizers"
 
 // ListAuthorizersRequest generates a "aws/request.Request" representing the
@@ -11004,6 +11751,12 @@ func (c *IoT) ListAuthorizersRequest(input *ListAuthorizersInput) (req *request.
 		Name:       opListAuthorizers,
 		HTTPMethod: "GET",
 		HTTPPath:   "/authorizers/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11063,6 +11816,58 @@ func (c *IoT) ListAuthorizersWithContext(ctx aws.Context, input *ListAuthorizers
 	return out, req.Send()
 }
 
+// ListAuthorizersPages iterates over the pages of a ListAuthorizers operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListAuthorizers method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListAuthorizers operation.
+//    pageNum := 0
+//    err := client.ListAuthorizersPages(params,
+//        func(page *iot.ListAuthorizersOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListAuthorizersPages(input *ListAuthorizersInput, fn func(*ListAuthorizersOutput, bool) bool) error {
+	return c.ListAuthorizersPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListAuthorizersPagesWithContext same as ListAuthorizersPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListAuthorizersPagesWithContext(ctx aws.Context, input *ListAuthorizersInput, fn func(*ListAuthorizersOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListAuthorizersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListAuthorizersRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListAuthorizersOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListBillingGroups = "ListBillingGroups"
 
 // ListBillingGroupsRequest generates a "aws/request.Request" representing the
@@ -11092,6 +11897,12 @@ func (c *IoT) ListBillingGroupsRequest(input *ListBillingGroupsInput) (req *requ
 		Name:       opListBillingGroups,
 		HTTPMethod: "GET",
 		HTTPPath:   "/billing-groups",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11148,6 +11959,58 @@ func (c *IoT) ListBillingGroupsWithContext(ctx aws.Context, input *ListBillingGr
 	return out, req.Send()
 }
 
+// ListBillingGroupsPages iterates over the pages of a ListBillingGroups operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListBillingGroups method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListBillingGroups operation.
+//    pageNum := 0
+//    err := client.ListBillingGroupsPages(params,
+//        func(page *iot.ListBillingGroupsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListBillingGroupsPages(input *ListBillingGroupsInput, fn func(*ListBillingGroupsOutput, bool) bool) error {
+	return c.ListBillingGroupsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListBillingGroupsPagesWithContext same as ListBillingGroupsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListBillingGroupsPagesWithContext(ctx aws.Context, input *ListBillingGroupsInput, fn func(*ListBillingGroupsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListBillingGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListBillingGroupsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListBillingGroupsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListCACertificates = "ListCACertificates"
 
 // ListCACertificatesRequest generates a "aws/request.Request" representing the
@@ -11177,6 +12040,12 @@ func (c *IoT) ListCACertificatesRequest(input *ListCACertificatesInput) (req *re
 		Name:       opListCACertificates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/cacertificates",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11239,6 +12108,58 @@ func (c *IoT) ListCACertificatesWithContext(ctx aws.Context, input *ListCACertif
 	return out, req.Send()
 }
 
+// ListCACertificatesPages iterates over the pages of a ListCACertificates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListCACertificates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListCACertificates operation.
+//    pageNum := 0
+//    err := client.ListCACertificatesPages(params,
+//        func(page *iot.ListCACertificatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListCACertificatesPages(input *ListCACertificatesInput, fn func(*ListCACertificatesOutput, bool) bool) error {
+	return c.ListCACertificatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListCACertificatesPagesWithContext same as ListCACertificatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListCACertificatesPagesWithContext(ctx aws.Context, input *ListCACertificatesInput, fn func(*ListCACertificatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListCACertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListCACertificatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListCACertificatesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListCertificates = "ListCertificates"
 
 // ListCertificatesRequest generates a "aws/request.Request" representing the
@@ -11268,6 +12189,12 @@ func (c *IoT) ListCertificatesRequest(input *ListCertificatesInput) (req *reques
 		Name:       opListCertificates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/certificates",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11330,6 +12257,58 @@ func (c *IoT) ListCertificatesWithContext(ctx aws.Context, input *ListCertificat
 	return out, req.Send()
 }
 
+// ListCertificatesPages iterates over the pages of a ListCertificates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListCertificates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListCertificates operation.
+//    pageNum := 0
+//    err := client.ListCertificatesPages(params,
+//        func(page *iot.ListCertificatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListCertificatesPages(input *ListCertificatesInput, fn func(*ListCertificatesOutput, bool) bool) error {
+	return c.ListCertificatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListCertificatesPagesWithContext same as ListCertificatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListCertificatesPagesWithContext(ctx aws.Context, input *ListCertificatesInput, fn func(*ListCertificatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListCertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListCertificatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListCertificatesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListCertificatesByCA = "ListCertificatesByCA"
 
 // ListCertificatesByCARequest generates a "aws/request.Request" representing the
@@ -11359,6 +12338,12 @@ func (c *IoT) ListCertificatesByCARequest(input *ListCertificatesByCAInput) (req
 		Name:       opListCertificatesByCA,
 		HTTPMethod: "GET",
 		HTTPPath:   "/certificates-by-ca/{caCertificateId}",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11418,6 +12403,58 @@ func (c *IoT) ListCertificatesByCAWithContext(ctx aws.Context, input *ListCertif
 	return out, req.Send()
 }
 
+// ListCertificatesByCAPages iterates over the pages of a ListCertificatesByCA operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListCertificatesByCA method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListCertificatesByCA operation.
+//    pageNum := 0
+//    err := client.ListCertificatesByCAPages(params,
+//        func(page *iot.ListCertificatesByCAOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListCertificatesByCAPages(input *ListCertificatesByCAInput, fn func(*ListCertificatesByCAOutput, bool) bool) error {
+	return c.ListCertificatesByCAPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListCertificatesByCAPagesWithContext same as ListCertificatesByCAPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListCertificatesByCAPagesWithContext(ctx aws.Context, input *ListCertificatesByCAInput, fn func(*ListCertificatesByCAOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListCertificatesByCAInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListCertificatesByCARequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListCertificatesByCAOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListDimensions = "ListDimensions"
 
 // ListDimensionsRequest generates a "aws/request.Request" representing the
@@ -11447,6 +12484,12 @@ func (c *IoT) ListDimensionsRequest(input *ListDimensionsInput) (req *request.Re
 		Name:       opListDimensions,
 		HTTPMethod: "GET",
 		HTTPPath:   "/dimensions",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11500,6 +12543,58 @@ func (c *IoT) ListDimensionsWithContext(ctx aws.Context, input *ListDimensionsIn
 	return out, req.Send()
 }
 
+// ListDimensionsPages iterates over the pages of a ListDimensions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListDimensions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListDimensions operation.
+//    pageNum := 0
+//    err := client.ListDimensionsPages(params,
+//        func(page *iot.ListDimensionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListDimensionsPages(input *ListDimensionsInput, fn func(*ListDimensionsOutput, bool) bool) error {
+	return c.ListDimensionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListDimensionsPagesWithContext same as ListDimensionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListDimensionsPagesWithContext(ctx aws.Context, input *ListDimensionsInput, fn func(*ListDimensionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListDimensionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDimensionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListDimensionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListDomainConfigurations = "ListDomainConfigurations"
 
 // ListDomainConfigurationsRequest generates a "aws/request.Request" representing the
@@ -11529,6 +12624,12 @@ func (c *IoT) ListDomainConfigurationsRequest(input *ListDomainConfigurationsInp
 		Name:       opListDomainConfigurations,
 		HTTPMethod: "GET",
 		HTTPPath:   "/domainConfigurations",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11591,6 +12692,58 @@ func (c *IoT) ListDomainConfigurationsWithContext(ctx aws.Context, input *ListDo
 	return out, req.Send()
 }
 
+// ListDomainConfigurationsPages iterates over the pages of a ListDomainConfigurations operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListDomainConfigurations method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListDomainConfigurations operation.
+//    pageNum := 0
+//    err := client.ListDomainConfigurationsPages(params,
+//        func(page *iot.ListDomainConfigurationsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListDomainConfigurationsPages(input *ListDomainConfigurationsInput, fn func(*ListDomainConfigurationsOutput, bool) bool) error {
+	return c.ListDomainConfigurationsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListDomainConfigurationsPagesWithContext same as ListDomainConfigurationsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListDomainConfigurationsPagesWithContext(ctx aws.Context, input *ListDomainConfigurationsInput, fn func(*ListDomainConfigurationsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListDomainConfigurationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListDomainConfigurationsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListDomainConfigurationsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListIndices = "ListIndices"
 
 // ListIndicesRequest generates a "aws/request.Request" representing the
@@ -11620,6 +12773,12 @@ func (c *IoT) ListIndicesRequest(input *ListIndicesInput) (req *request.Request,
 		Name:       opListIndices,
 		HTTPMethod: "GET",
 		HTTPPath:   "/indices",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11679,6 +12838,58 @@ func (c *IoT) ListIndicesWithContext(ctx aws.Context, input *ListIndicesInput, o
 	return out, req.Send()
 }
 
+// ListIndicesPages iterates over the pages of a ListIndices operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListIndices method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListIndices operation.
+//    pageNum := 0
+//    err := client.ListIndicesPages(params,
+//        func(page *iot.ListIndicesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListIndicesPages(input *ListIndicesInput, fn func(*ListIndicesOutput, bool) bool) error {
+	return c.ListIndicesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListIndicesPagesWithContext same as ListIndicesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListIndicesPagesWithContext(ctx aws.Context, input *ListIndicesInput, fn func(*ListIndicesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListIndicesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListIndicesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListIndicesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListJobExecutionsForJob = "ListJobExecutionsForJob"
 
 // ListJobExecutionsForJobRequest generates a "aws/request.Request" representing the
@@ -11708,6 +12919,12 @@ func (c *IoT) ListJobExecutionsForJobRequest(input *ListJobExecutionsForJobInput
 		Name:       opListJobExecutionsForJob,
 		HTTPMethod: "GET",
 		HTTPPath:   "/jobs/{jobId}/things",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11764,6 +12981,58 @@ func (c *IoT) ListJobExecutionsForJobWithContext(ctx aws.Context, input *ListJob
 	return out, req.Send()
 }
 
+// ListJobExecutionsForJobPages iterates over the pages of a ListJobExecutionsForJob operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobExecutionsForJob method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobExecutionsForJob operation.
+//    pageNum := 0
+//    err := client.ListJobExecutionsForJobPages(params,
+//        func(page *iot.ListJobExecutionsForJobOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListJobExecutionsForJobPages(input *ListJobExecutionsForJobInput, fn func(*ListJobExecutionsForJobOutput, bool) bool) error {
+	return c.ListJobExecutionsForJobPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJobExecutionsForJobPagesWithContext same as ListJobExecutionsForJobPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListJobExecutionsForJobPagesWithContext(ctx aws.Context, input *ListJobExecutionsForJobInput, fn func(*ListJobExecutionsForJobOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJobExecutionsForJobInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobExecutionsForJobRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListJobExecutionsForJobOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListJobExecutionsForThing = "ListJobExecutionsForThing"
 
 // ListJobExecutionsForThingRequest generates a "aws/request.Request" representing the
@@ -11793,6 +13062,12 @@ func (c *IoT) ListJobExecutionsForThingRequest(input *ListJobExecutionsForThingI
 		Name:       opListJobExecutionsForThing,
 		HTTPMethod: "GET",
 		HTTPPath:   "/things/{thingName}/jobs",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11849,6 +13124,58 @@ func (c *IoT) ListJobExecutionsForThingWithContext(ctx aws.Context, input *ListJ
 	return out, req.Send()
 }
 
+// ListJobExecutionsForThingPages iterates over the pages of a ListJobExecutionsForThing operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobExecutionsForThing method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobExecutionsForThing operation.
+//    pageNum := 0
+//    err := client.ListJobExecutionsForThingPages(params,
+//        func(page *iot.ListJobExecutionsForThingOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListJobExecutionsForThingPages(input *ListJobExecutionsForThingInput, fn func(*ListJobExecutionsForThingOutput, bool) bool) error {
+	return c.ListJobExecutionsForThingPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJobExecutionsForThingPagesWithContext same as ListJobExecutionsForThingPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListJobExecutionsForThingPagesWithContext(ctx aws.Context, input *ListJobExecutionsForThingInput, fn func(*ListJobExecutionsForThingOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJobExecutionsForThingInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobExecutionsForThingRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListJobExecutionsForThingOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListJobs = "ListJobs"
 
 // ListJobsRequest generates a "aws/request.Request" representing the
@@ -11878,6 +13205,12 @@ func (c *IoT) ListJobsRequest(input *ListJobsInput) (req *request.Request, outpu
 		Name:       opListJobs,
 		HTTPMethod: "GET",
 		HTTPPath:   "/jobs",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -11934,6 +13267,58 @@ func (c *IoT) ListJobsWithContext(ctx aws.Context, input *ListJobsInput, opts ..
 	return out, req.Send()
 }
 
+// ListJobsPages iterates over the pages of a ListJobs operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListJobs method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListJobs operation.
+//    pageNum := 0
+//    err := client.ListJobsPages(params,
+//        func(page *iot.ListJobsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListJobsPages(input *ListJobsInput, fn func(*ListJobsOutput, bool) bool) error {
+	return c.ListJobsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListJobsPagesWithContext same as ListJobsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListJobsPagesWithContext(ctx aws.Context, input *ListJobsInput, fn func(*ListJobsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListJobsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListJobsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListJobsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListMitigationActions = "ListMitigationActions"
 
 // ListMitigationActionsRequest generates a "aws/request.Request" representing the
@@ -11963,6 +13348,12 @@ func (c *IoT) ListMitigationActionsRequest(input *ListMitigationActionsInput) (r
 		Name:       opListMitigationActions,
 		HTTPMethod: "GET",
 		HTTPPath:   "/mitigationactions/actions",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12016,6 +13407,58 @@ func (c *IoT) ListMitigationActionsWithContext(ctx aws.Context, input *ListMitig
 	return out, req.Send()
 }
 
+// ListMitigationActionsPages iterates over the pages of a ListMitigationActions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListMitigationActions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListMitigationActions operation.
+//    pageNum := 0
+//    err := client.ListMitigationActionsPages(params,
+//        func(page *iot.ListMitigationActionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListMitigationActionsPages(input *ListMitigationActionsInput, fn func(*ListMitigationActionsOutput, bool) bool) error {
+	return c.ListMitigationActionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListMitigationActionsPagesWithContext same as ListMitigationActionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListMitigationActionsPagesWithContext(ctx aws.Context, input *ListMitigationActionsInput, fn func(*ListMitigationActionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListMitigationActionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListMitigationActionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListMitigationActionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListOTAUpdates = "ListOTAUpdates"
 
 // ListOTAUpdatesRequest generates a "aws/request.Request" representing the
@@ -12045,6 +13488,12 @@ func (c *IoT) ListOTAUpdatesRequest(input *ListOTAUpdatesInput) (req *request.Re
 		Name:       opListOTAUpdates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/otaUpdates",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12104,6 +13553,58 @@ func (c *IoT) ListOTAUpdatesWithContext(ctx aws.Context, input *ListOTAUpdatesIn
 	return out, req.Send()
 }
 
+// ListOTAUpdatesPages iterates over the pages of a ListOTAUpdates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListOTAUpdates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListOTAUpdates operation.
+//    pageNum := 0
+//    err := client.ListOTAUpdatesPages(params,
+//        func(page *iot.ListOTAUpdatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListOTAUpdatesPages(input *ListOTAUpdatesInput, fn func(*ListOTAUpdatesOutput, bool) bool) error {
+	return c.ListOTAUpdatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListOTAUpdatesPagesWithContext same as ListOTAUpdatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListOTAUpdatesPagesWithContext(ctx aws.Context, input *ListOTAUpdatesInput, fn func(*ListOTAUpdatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListOTAUpdatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListOTAUpdatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListOTAUpdatesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListOutgoingCertificates = "ListOutgoingCertificates"
 
 // ListOutgoingCertificatesRequest generates a "aws/request.Request" representing the
@@ -12133,6 +13634,12 @@ func (c *IoT) ListOutgoingCertificatesRequest(input *ListOutgoingCertificatesInp
 		Name:       opListOutgoingCertificates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/certificates-out-going",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12192,6 +13699,58 @@ func (c *IoT) ListOutgoingCertificatesWithContext(ctx aws.Context, input *ListOu
 	return out, req.Send()
 }
 
+// ListOutgoingCertificatesPages iterates over the pages of a ListOutgoingCertificates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListOutgoingCertificates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListOutgoingCertificates operation.
+//    pageNum := 0
+//    err := client.ListOutgoingCertificatesPages(params,
+//        func(page *iot.ListOutgoingCertificatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListOutgoingCertificatesPages(input *ListOutgoingCertificatesInput, fn func(*ListOutgoingCertificatesOutput, bool) bool) error {
+	return c.ListOutgoingCertificatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListOutgoingCertificatesPagesWithContext same as ListOutgoingCertificatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListOutgoingCertificatesPagesWithContext(ctx aws.Context, input *ListOutgoingCertificatesInput, fn func(*ListOutgoingCertificatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListOutgoingCertificatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListOutgoingCertificatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListOutgoingCertificatesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListPolicies = "ListPolicies"
 
 // ListPoliciesRequest generates a "aws/request.Request" representing the
@@ -12221,6 +13780,12 @@ func (c *IoT) ListPoliciesRequest(input *ListPoliciesInput) (req *request.Reques
 		Name:       opListPolicies,
 		HTTPMethod: "GET",
 		HTTPPath:   "/policies",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12280,6 +13845,58 @@ func (c *IoT) ListPoliciesWithContext(ctx aws.Context, input *ListPoliciesInput,
 	return out, req.Send()
 }
 
+// ListPoliciesPages iterates over the pages of a ListPolicies operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPolicies method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPolicies operation.
+//    pageNum := 0
+//    err := client.ListPoliciesPages(params,
+//        func(page *iot.ListPoliciesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListPoliciesPages(input *ListPoliciesInput, fn func(*ListPoliciesOutput, bool) bool) error {
+	return c.ListPoliciesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPoliciesPagesWithContext same as ListPoliciesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListPoliciesPagesWithContext(ctx aws.Context, input *ListPoliciesInput, fn func(*ListPoliciesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPoliciesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPoliciesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListPolicyPrincipals = "ListPolicyPrincipals"
 
 // ListPolicyPrincipalsRequest generates a "aws/request.Request" representing the
@@ -12314,6 +13931,12 @@ func (c *IoT) ListPolicyPrincipalsRequest(input *ListPolicyPrincipalsInput) (req
 		Name:       opListPolicyPrincipals,
 		HTTPMethod: "GET",
 		HTTPPath:   "/policy-principals",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12380,6 +14003,62 @@ func (c *IoT) ListPolicyPrincipalsWithContext(ctx aws.Context, input *ListPolicy
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// ListPolicyPrincipalsPages iterates over the pages of a ListPolicyPrincipals operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPolicyPrincipals method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPolicyPrincipals operation.
+//    pageNum := 0
+//    err := client.ListPolicyPrincipalsPages(params,
+//        func(page *iot.ListPolicyPrincipalsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+//
+// Deprecated: ListPolicyPrincipalsPages has been deprecated
+func (c *IoT) ListPolicyPrincipalsPages(input *ListPolicyPrincipalsInput, fn func(*ListPolicyPrincipalsOutput, bool) bool) error {
+	return c.ListPolicyPrincipalsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPolicyPrincipalsPagesWithContext same as ListPolicyPrincipalsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+//
+// Deprecated: ListPolicyPrincipalsPagesWithContext has been deprecated
+func (c *IoT) ListPolicyPrincipalsPagesWithContext(ctx aws.Context, input *ListPolicyPrincipalsInput, fn func(*ListPolicyPrincipalsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPolicyPrincipalsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPolicyPrincipalsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPolicyPrincipalsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListPolicyVersions = "ListPolicyVersions"
@@ -12507,6 +14186,12 @@ func (c *IoT) ListPrincipalPoliciesRequest(input *ListPrincipalPoliciesInput) (r
 		Name:       opListPrincipalPolicies,
 		HTTPMethod: "GET",
 		HTTPPath:   "/principal-policies",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12576,6 +14261,62 @@ func (c *IoT) ListPrincipalPoliciesWithContext(ctx aws.Context, input *ListPrinc
 	return out, req.Send()
 }
 
+// ListPrincipalPoliciesPages iterates over the pages of a ListPrincipalPolicies operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPrincipalPolicies method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPrincipalPolicies operation.
+//    pageNum := 0
+//    err := client.ListPrincipalPoliciesPages(params,
+//        func(page *iot.ListPrincipalPoliciesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+//
+// Deprecated: ListPrincipalPoliciesPages has been deprecated
+func (c *IoT) ListPrincipalPoliciesPages(input *ListPrincipalPoliciesInput, fn func(*ListPrincipalPoliciesOutput, bool) bool) error {
+	return c.ListPrincipalPoliciesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPrincipalPoliciesPagesWithContext same as ListPrincipalPoliciesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+//
+// Deprecated: ListPrincipalPoliciesPagesWithContext has been deprecated
+func (c *IoT) ListPrincipalPoliciesPagesWithContext(ctx aws.Context, input *ListPrincipalPoliciesInput, fn func(*ListPrincipalPoliciesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPrincipalPoliciesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPrincipalPoliciesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPrincipalPoliciesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListPrincipalThings = "ListPrincipalThings"
 
 // ListPrincipalThingsRequest generates a "aws/request.Request" representing the
@@ -12605,6 +14346,12 @@ func (c *IoT) ListPrincipalThingsRequest(input *ListPrincipalThingsInput) (req *
 		Name:       opListPrincipalThings,
 		HTTPMethod: "GET",
 		HTTPPath:   "/principals/things",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12669,6 +14416,58 @@ func (c *IoT) ListPrincipalThingsWithContext(ctx aws.Context, input *ListPrincip
 	return out, req.Send()
 }
 
+// ListPrincipalThingsPages iterates over the pages of a ListPrincipalThings operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListPrincipalThings method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListPrincipalThings operation.
+//    pageNum := 0
+//    err := client.ListPrincipalThingsPages(params,
+//        func(page *iot.ListPrincipalThingsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListPrincipalThingsPages(input *ListPrincipalThingsInput, fn func(*ListPrincipalThingsOutput, bool) bool) error {
+	return c.ListPrincipalThingsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListPrincipalThingsPagesWithContext same as ListPrincipalThingsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListPrincipalThingsPagesWithContext(ctx aws.Context, input *ListPrincipalThingsInput, fn func(*ListPrincipalThingsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListPrincipalThingsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListPrincipalThingsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListPrincipalThingsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListProvisioningTemplateVersions = "ListProvisioningTemplateVersions"
 
 // ListProvisioningTemplateVersionsRequest generates a "aws/request.Request" representing the
@@ -12698,6 +14497,12 @@ func (c *IoT) ListProvisioningTemplateVersionsRequest(input *ListProvisioningTem
 		Name:       opListProvisioningTemplateVersions,
 		HTTPMethod: "GET",
 		HTTPPath:   "/provisioning-templates/{templateName}/versions",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12757,6 +14562,58 @@ func (c *IoT) ListProvisioningTemplateVersionsWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+// ListProvisioningTemplateVersionsPages iterates over the pages of a ListProvisioningTemplateVersions operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListProvisioningTemplateVersions method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListProvisioningTemplateVersions operation.
+//    pageNum := 0
+//    err := client.ListProvisioningTemplateVersionsPages(params,
+//        func(page *iot.ListProvisioningTemplateVersionsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListProvisioningTemplateVersionsPages(input *ListProvisioningTemplateVersionsInput, fn func(*ListProvisioningTemplateVersionsOutput, bool) bool) error {
+	return c.ListProvisioningTemplateVersionsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListProvisioningTemplateVersionsPagesWithContext same as ListProvisioningTemplateVersionsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListProvisioningTemplateVersionsPagesWithContext(ctx aws.Context, input *ListProvisioningTemplateVersionsInput, fn func(*ListProvisioningTemplateVersionsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListProvisioningTemplateVersionsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListProvisioningTemplateVersionsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListProvisioningTemplateVersionsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListProvisioningTemplates = "ListProvisioningTemplates"
 
 // ListProvisioningTemplatesRequest generates a "aws/request.Request" representing the
@@ -12786,6 +14643,12 @@ func (c *IoT) ListProvisioningTemplatesRequest(input *ListProvisioningTemplatesI
 		Name:       opListProvisioningTemplates,
 		HTTPMethod: "GET",
 		HTTPPath:   "/provisioning-templates",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12842,6 +14705,58 @@ func (c *IoT) ListProvisioningTemplatesWithContext(ctx aws.Context, input *ListP
 	return out, req.Send()
 }
 
+// ListProvisioningTemplatesPages iterates over the pages of a ListProvisioningTemplates operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListProvisioningTemplates method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListProvisioningTemplates operation.
+//    pageNum := 0
+//    err := client.ListProvisioningTemplatesPages(params,
+//        func(page *iot.ListProvisioningTemplatesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListProvisioningTemplatesPages(input *ListProvisioningTemplatesInput, fn func(*ListProvisioningTemplatesOutput, bool) bool) error {
+	return c.ListProvisioningTemplatesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListProvisioningTemplatesPagesWithContext same as ListProvisioningTemplatesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListProvisioningTemplatesPagesWithContext(ctx aws.Context, input *ListProvisioningTemplatesInput, fn func(*ListProvisioningTemplatesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListProvisioningTemplatesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListProvisioningTemplatesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListProvisioningTemplatesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListRoleAliases = "ListRoleAliases"
 
 // ListRoleAliasesRequest generates a "aws/request.Request" representing the
@@ -12871,6 +14786,12 @@ func (c *IoT) ListRoleAliasesRequest(input *ListRoleAliasesInput) (req *request.
 		Name:       opListRoleAliases,
 		HTTPMethod: "GET",
 		HTTPPath:   "/role-aliases",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -12930,6 +14851,58 @@ func (c *IoT) ListRoleAliasesWithContext(ctx aws.Context, input *ListRoleAliases
 	return out, req.Send()
 }
 
+// ListRoleAliasesPages iterates over the pages of a ListRoleAliases operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListRoleAliases method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListRoleAliases operation.
+//    pageNum := 0
+//    err := client.ListRoleAliasesPages(params,
+//        func(page *iot.ListRoleAliasesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListRoleAliasesPages(input *ListRoleAliasesInput, fn func(*ListRoleAliasesOutput, bool) bool) error {
+	return c.ListRoleAliasesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListRoleAliasesPagesWithContext same as ListRoleAliasesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListRoleAliasesPagesWithContext(ctx aws.Context, input *ListRoleAliasesInput, fn func(*ListRoleAliasesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListRoleAliasesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListRoleAliasesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListRoleAliasesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListScheduledAudits = "ListScheduledAudits"
 
 // ListScheduledAuditsRequest generates a "aws/request.Request" representing the
@@ -12959,6 +14932,12 @@ func (c *IoT) ListScheduledAuditsRequest(input *ListScheduledAuditsInput) (req *
 		Name:       opListScheduledAudits,
 		HTTPMethod: "GET",
 		HTTPPath:   "/audit/scheduledaudits",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13012,6 +14991,58 @@ func (c *IoT) ListScheduledAuditsWithContext(ctx aws.Context, input *ListSchedul
 	return out, req.Send()
 }
 
+// ListScheduledAuditsPages iterates over the pages of a ListScheduledAudits operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListScheduledAudits method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListScheduledAudits operation.
+//    pageNum := 0
+//    err := client.ListScheduledAuditsPages(params,
+//        func(page *iot.ListScheduledAuditsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListScheduledAuditsPages(input *ListScheduledAuditsInput, fn func(*ListScheduledAuditsOutput, bool) bool) error {
+	return c.ListScheduledAuditsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListScheduledAuditsPagesWithContext same as ListScheduledAuditsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListScheduledAuditsPagesWithContext(ctx aws.Context, input *ListScheduledAuditsInput, fn func(*ListScheduledAuditsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListScheduledAuditsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListScheduledAuditsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListScheduledAuditsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListSecurityProfiles = "ListSecurityProfiles"
 
 // ListSecurityProfilesRequest generates a "aws/request.Request" representing the
@@ -13041,6 +15072,12 @@ func (c *IoT) ListSecurityProfilesRequest(input *ListSecurityProfilesInput) (req
 		Name:       opListSecurityProfiles,
 		HTTPMethod: "GET",
 		HTTPPath:   "/security-profiles",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13099,6 +15136,58 @@ func (c *IoT) ListSecurityProfilesWithContext(ctx aws.Context, input *ListSecuri
 	return out, req.Send()
 }
 
+// ListSecurityProfilesPages iterates over the pages of a ListSecurityProfiles operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListSecurityProfiles method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListSecurityProfiles operation.
+//    pageNum := 0
+//    err := client.ListSecurityProfilesPages(params,
+//        func(page *iot.ListSecurityProfilesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListSecurityProfilesPages(input *ListSecurityProfilesInput, fn func(*ListSecurityProfilesOutput, bool) bool) error {
+	return c.ListSecurityProfilesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListSecurityProfilesPagesWithContext same as ListSecurityProfilesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListSecurityProfilesPagesWithContext(ctx aws.Context, input *ListSecurityProfilesInput, fn func(*ListSecurityProfilesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListSecurityProfilesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListSecurityProfilesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListSecurityProfilesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListSecurityProfilesForTarget = "ListSecurityProfilesForTarget"
 
 // ListSecurityProfilesForTargetRequest generates a "aws/request.Request" representing the
@@ -13128,6 +15217,12 @@ func (c *IoT) ListSecurityProfilesForTargetRequest(input *ListSecurityProfilesFo
 		Name:       opListSecurityProfilesForTarget,
 		HTTPMethod: "GET",
 		HTTPPath:   "/security-profiles-for-target",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13184,6 +15279,58 @@ func (c *IoT) ListSecurityProfilesForTargetWithContext(ctx aws.Context, input *L
 	return out, req.Send()
 }
 
+// ListSecurityProfilesForTargetPages iterates over the pages of a ListSecurityProfilesForTarget operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListSecurityProfilesForTarget method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListSecurityProfilesForTarget operation.
+//    pageNum := 0
+//    err := client.ListSecurityProfilesForTargetPages(params,
+//        func(page *iot.ListSecurityProfilesForTargetOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListSecurityProfilesForTargetPages(input *ListSecurityProfilesForTargetInput, fn func(*ListSecurityProfilesForTargetOutput, bool) bool) error {
+	return c.ListSecurityProfilesForTargetPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListSecurityProfilesForTargetPagesWithContext same as ListSecurityProfilesForTargetPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListSecurityProfilesForTargetPagesWithContext(ctx aws.Context, input *ListSecurityProfilesForTargetInput, fn func(*ListSecurityProfilesForTargetOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListSecurityProfilesForTargetInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListSecurityProfilesForTargetRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListSecurityProfilesForTargetOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListStreams = "ListStreams"
 
 // ListStreamsRequest generates a "aws/request.Request" representing the
@@ -13213,6 +15360,12 @@ func (c *IoT) ListStreamsRequest(input *ListStreamsInput) (req *request.Request,
 		Name:       opListStreams,
 		HTTPMethod: "GET",
 		HTTPPath:   "/streams",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13272,6 +15425,58 @@ func (c *IoT) ListStreamsWithContext(ctx aws.Context, input *ListStreamsInput, o
 	return out, req.Send()
 }
 
+// ListStreamsPages iterates over the pages of a ListStreams operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListStreams method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListStreams operation.
+//    pageNum := 0
+//    err := client.ListStreamsPages(params,
+//        func(page *iot.ListStreamsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListStreamsPages(input *ListStreamsInput, fn func(*ListStreamsOutput, bool) bool) error {
+	return c.ListStreamsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListStreamsPagesWithContext same as ListStreamsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListStreamsPagesWithContext(ctx aws.Context, input *ListStreamsInput, fn func(*ListStreamsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListStreamsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListStreamsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListStreamsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListTagsForResource = "ListTagsForResource"
 
 // ListTagsForResourceRequest generates a "aws/request.Request" representing the
@@ -13301,6 +15506,12 @@ func (c *IoT) ListTagsForResourceRequest(input *ListTagsForResourceInput) (req *
 		Name:       opListTagsForResource,
 		HTTPMethod: "GET",
 		HTTPPath:   "/tags",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13357,6 +15568,58 @@ func (c *IoT) ListTagsForResourceWithContext(ctx aws.Context, input *ListTagsFor
 	return out, req.Send()
 }
 
+// ListTagsForResourcePages iterates over the pages of a ListTagsForResource operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTagsForResource method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTagsForResource operation.
+//    pageNum := 0
+//    err := client.ListTagsForResourcePages(params,
+//        func(page *iot.ListTagsForResourceOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListTagsForResourcePages(input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool) error {
+	return c.ListTagsForResourcePagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTagsForResourcePagesWithContext same as ListTagsForResourcePages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListTagsForResourcePagesWithContext(ctx aws.Context, input *ListTagsForResourceInput, fn func(*ListTagsForResourceOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTagsForResourceInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTagsForResourceRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListTargetsForPolicy = "ListTargetsForPolicy"
 
 // ListTargetsForPolicyRequest generates a "aws/request.Request" representing the
@@ -13386,6 +15649,12 @@ func (c *IoT) ListTargetsForPolicyRequest(input *ListTargetsForPolicyInput) (req
 		Name:       opListTargetsForPolicy,
 		HTTPMethod: "POST",
 		HTTPPath:   "/policy-targets/{policyName}",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"marker"},
+			OutputTokens:    []string{"nextMarker"},
+			LimitToken:      "pageSize",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13451,6 +15720,58 @@ func (c *IoT) ListTargetsForPolicyWithContext(ctx aws.Context, input *ListTarget
 	return out, req.Send()
 }
 
+// ListTargetsForPolicyPages iterates over the pages of a ListTargetsForPolicy operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTargetsForPolicy method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTargetsForPolicy operation.
+//    pageNum := 0
+//    err := client.ListTargetsForPolicyPages(params,
+//        func(page *iot.ListTargetsForPolicyOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListTargetsForPolicyPages(input *ListTargetsForPolicyInput, fn func(*ListTargetsForPolicyOutput, bool) bool) error {
+	return c.ListTargetsForPolicyPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTargetsForPolicyPagesWithContext same as ListTargetsForPolicyPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListTargetsForPolicyPagesWithContext(ctx aws.Context, input *ListTargetsForPolicyInput, fn func(*ListTargetsForPolicyOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTargetsForPolicyInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTargetsForPolicyRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTargetsForPolicyOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListTargetsForSecurityProfile = "ListTargetsForSecurityProfile"
 
 // ListTargetsForSecurityProfileRequest generates a "aws/request.Request" representing the
@@ -13480,6 +15801,12 @@ func (c *IoT) ListTargetsForSecurityProfileRequest(input *ListTargetsForSecurity
 		Name:       opListTargetsForSecurityProfile,
 		HTTPMethod: "GET",
 		HTTPPath:   "/security-profiles/{securityProfileName}/targets",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13537,6 +15864,58 @@ func (c *IoT) ListTargetsForSecurityProfileWithContext(ctx aws.Context, input *L
 	return out, req.Send()
 }
 
+// ListTargetsForSecurityProfilePages iterates over the pages of a ListTargetsForSecurityProfile operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTargetsForSecurityProfile method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTargetsForSecurityProfile operation.
+//    pageNum := 0
+//    err := client.ListTargetsForSecurityProfilePages(params,
+//        func(page *iot.ListTargetsForSecurityProfileOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListTargetsForSecurityProfilePages(input *ListTargetsForSecurityProfileInput, fn func(*ListTargetsForSecurityProfileOutput, bool) bool) error {
+	return c.ListTargetsForSecurityProfilePagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTargetsForSecurityProfilePagesWithContext same as ListTargetsForSecurityProfilePages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListTargetsForSecurityProfilePagesWithContext(ctx aws.Context, input *ListTargetsForSecurityProfileInput, fn func(*ListTargetsForSecurityProfileOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTargetsForSecurityProfileInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTargetsForSecurityProfileRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTargetsForSecurityProfileOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingGroups = "ListThingGroups"
 
 // ListThingGroupsRequest generates a "aws/request.Request" representing the
@@ -13566,6 +15945,12 @@ func (c *IoT) ListThingGroupsRequest(input *ListThingGroupsInput) (req *request.
 		Name:       opListThingGroups,
 		HTTPMethod: "GET",
 		HTTPPath:   "/thing-groups",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13619,6 +16004,58 @@ func (c *IoT) ListThingGroupsWithContext(ctx aws.Context, input *ListThingGroups
 	return out, req.Send()
 }
 
+// ListThingGroupsPages iterates over the pages of a ListThingGroups operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingGroups method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingGroups operation.
+//    pageNum := 0
+//    err := client.ListThingGroupsPages(params,
+//        func(page *iot.ListThingGroupsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingGroupsPages(input *ListThingGroupsInput, fn func(*ListThingGroupsOutput, bool) bool) error {
+	return c.ListThingGroupsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingGroupsPagesWithContext same as ListThingGroupsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingGroupsPagesWithContext(ctx aws.Context, input *ListThingGroupsInput, fn func(*ListThingGroupsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingGroupsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingGroupsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingGroupsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingGroupsForThing = "ListThingGroupsForThing"
 
 // ListThingGroupsForThingRequest generates a "aws/request.Request" representing the
@@ -13648,6 +16085,12 @@ func (c *IoT) ListThingGroupsForThingRequest(input *ListThingGroupsForThingInput
 		Name:       opListThingGroupsForThing,
 		HTTPMethod: "GET",
 		HTTPPath:   "/things/{thingName}/thing-groups",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13699,6 +16142,58 @@ func (c *IoT) ListThingGroupsForThingWithContext(ctx aws.Context, input *ListThi
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// ListThingGroupsForThingPages iterates over the pages of a ListThingGroupsForThing operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingGroupsForThing method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingGroupsForThing operation.
+//    pageNum := 0
+//    err := client.ListThingGroupsForThingPages(params,
+//        func(page *iot.ListThingGroupsForThingOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingGroupsForThingPages(input *ListThingGroupsForThingInput, fn func(*ListThingGroupsForThingOutput, bool) bool) error {
+	return c.ListThingGroupsForThingPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingGroupsForThingPagesWithContext same as ListThingGroupsForThingPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingGroupsForThingPagesWithContext(ctx aws.Context, input *ListThingGroupsForThingInput, fn func(*ListThingGroupsForThingOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingGroupsForThingInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingGroupsForThingRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingGroupsForThingOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListThingPrincipals = "ListThingPrincipals"
@@ -13823,6 +16318,12 @@ func (c *IoT) ListThingRegistrationTaskReportsRequest(input *ListThingRegistrati
 		Name:       opListThingRegistrationTaskReports,
 		HTTPMethod: "GET",
 		HTTPPath:   "/thing-registration-tasks/{taskId}/reports",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13879,6 +16380,58 @@ func (c *IoT) ListThingRegistrationTaskReportsWithContext(ctx aws.Context, input
 	return out, req.Send()
 }
 
+// ListThingRegistrationTaskReportsPages iterates over the pages of a ListThingRegistrationTaskReports operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingRegistrationTaskReports method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingRegistrationTaskReports operation.
+//    pageNum := 0
+//    err := client.ListThingRegistrationTaskReportsPages(params,
+//        func(page *iot.ListThingRegistrationTaskReportsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingRegistrationTaskReportsPages(input *ListThingRegistrationTaskReportsInput, fn func(*ListThingRegistrationTaskReportsOutput, bool) bool) error {
+	return c.ListThingRegistrationTaskReportsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingRegistrationTaskReportsPagesWithContext same as ListThingRegistrationTaskReportsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingRegistrationTaskReportsPagesWithContext(ctx aws.Context, input *ListThingRegistrationTaskReportsInput, fn func(*ListThingRegistrationTaskReportsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingRegistrationTaskReportsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingRegistrationTaskReportsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingRegistrationTaskReportsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingRegistrationTasks = "ListThingRegistrationTasks"
 
 // ListThingRegistrationTasksRequest generates a "aws/request.Request" representing the
@@ -13908,6 +16461,12 @@ func (c *IoT) ListThingRegistrationTasksRequest(input *ListThingRegistrationTask
 		Name:       opListThingRegistrationTasks,
 		HTTPMethod: "GET",
 		HTTPPath:   "/thing-registration-tasks",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -13964,6 +16523,58 @@ func (c *IoT) ListThingRegistrationTasksWithContext(ctx aws.Context, input *List
 	return out, req.Send()
 }
 
+// ListThingRegistrationTasksPages iterates over the pages of a ListThingRegistrationTasks operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingRegistrationTasks method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingRegistrationTasks operation.
+//    pageNum := 0
+//    err := client.ListThingRegistrationTasksPages(params,
+//        func(page *iot.ListThingRegistrationTasksOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingRegistrationTasksPages(input *ListThingRegistrationTasksInput, fn func(*ListThingRegistrationTasksOutput, bool) bool) error {
+	return c.ListThingRegistrationTasksPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingRegistrationTasksPagesWithContext same as ListThingRegistrationTasksPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingRegistrationTasksPagesWithContext(ctx aws.Context, input *ListThingRegistrationTasksInput, fn func(*ListThingRegistrationTasksOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingRegistrationTasksInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingRegistrationTasksRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingRegistrationTasksOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingTypes = "ListThingTypes"
 
 // ListThingTypesRequest generates a "aws/request.Request" representing the
@@ -13993,6 +16604,12 @@ func (c *IoT) ListThingTypesRequest(input *ListThingTypesInput) (req *request.Re
 		Name:       opListThingTypes,
 		HTTPMethod: "GET",
 		HTTPPath:   "/thing-types",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14052,6 +16669,58 @@ func (c *IoT) ListThingTypesWithContext(ctx aws.Context, input *ListThingTypesIn
 	return out, req.Send()
 }
 
+// ListThingTypesPages iterates over the pages of a ListThingTypes operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingTypes method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingTypes operation.
+//    pageNum := 0
+//    err := client.ListThingTypesPages(params,
+//        func(page *iot.ListThingTypesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingTypesPages(input *ListThingTypesInput, fn func(*ListThingTypesOutput, bool) bool) error {
+	return c.ListThingTypesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingTypesPagesWithContext same as ListThingTypesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingTypesPagesWithContext(ctx aws.Context, input *ListThingTypesInput, fn func(*ListThingTypesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingTypesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingTypesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingTypesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThings = "ListThings"
 
 // ListThingsRequest generates a "aws/request.Request" representing the
@@ -14081,6 +16750,12 @@ func (c *IoT) ListThingsRequest(input *ListThingsInput) (req *request.Request, o
 		Name:       opListThings,
 		HTTPMethod: "GET",
 		HTTPPath:   "/things",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14098,6 +16773,10 @@ func (c *IoT) ListThingsRequest(input *ListThingsInput) (req *request.Request, o
 // filter your things. For example, calling ListThings with attributeName=Color
 // and attributeValue=Red retrieves all things in the registry that contain
 // an attribute Color with the value Red.
+//
+// You will not be charged for calling this API if an Access denied error is
+// returned. You will also not be charged if no attributes or pagination token
+// was provided in request and no pagination token and no results were returned.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -14143,6 +16822,58 @@ func (c *IoT) ListThingsWithContext(ctx aws.Context, input *ListThingsInput, opt
 	return out, req.Send()
 }
 
+// ListThingsPages iterates over the pages of a ListThings operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThings method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThings operation.
+//    pageNum := 0
+//    err := client.ListThingsPages(params,
+//        func(page *iot.ListThingsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingsPages(input *ListThingsInput, fn func(*ListThingsOutput, bool) bool) error {
+	return c.ListThingsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingsPagesWithContext same as ListThingsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingsPagesWithContext(ctx aws.Context, input *ListThingsInput, fn func(*ListThingsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingsInBillingGroup = "ListThingsInBillingGroup"
 
 // ListThingsInBillingGroupRequest generates a "aws/request.Request" representing the
@@ -14172,6 +16903,12 @@ func (c *IoT) ListThingsInBillingGroupRequest(input *ListThingsInBillingGroupInp
 		Name:       opListThingsInBillingGroup,
 		HTTPMethod: "GET",
 		HTTPPath:   "/billing-groups/{billingGroupName}/things",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14228,6 +16965,58 @@ func (c *IoT) ListThingsInBillingGroupWithContext(ctx aws.Context, input *ListTh
 	return out, req.Send()
 }
 
+// ListThingsInBillingGroupPages iterates over the pages of a ListThingsInBillingGroup operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingsInBillingGroup method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingsInBillingGroup operation.
+//    pageNum := 0
+//    err := client.ListThingsInBillingGroupPages(params,
+//        func(page *iot.ListThingsInBillingGroupOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingsInBillingGroupPages(input *ListThingsInBillingGroupInput, fn func(*ListThingsInBillingGroupOutput, bool) bool) error {
+	return c.ListThingsInBillingGroupPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingsInBillingGroupPagesWithContext same as ListThingsInBillingGroupPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingsInBillingGroupPagesWithContext(ctx aws.Context, input *ListThingsInBillingGroupInput, fn func(*ListThingsInBillingGroupOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingsInBillingGroupInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingsInBillingGroupRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingsInBillingGroupOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListThingsInThingGroup = "ListThingsInThingGroup"
 
 // ListThingsInThingGroupRequest generates a "aws/request.Request" representing the
@@ -14257,6 +17046,12 @@ func (c *IoT) ListThingsInThingGroupRequest(input *ListThingsInThingGroupInput) 
 		Name:       opListThingsInThingGroup,
 		HTTPMethod: "GET",
 		HTTPPath:   "/thing-groups/{thingGroupName}/things",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14310,6 +17105,58 @@ func (c *IoT) ListThingsInThingGroupWithContext(ctx aws.Context, input *ListThin
 	return out, req.Send()
 }
 
+// ListThingsInThingGroupPages iterates over the pages of a ListThingsInThingGroup operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListThingsInThingGroup method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListThingsInThingGroup operation.
+//    pageNum := 0
+//    err := client.ListThingsInThingGroupPages(params,
+//        func(page *iot.ListThingsInThingGroupOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListThingsInThingGroupPages(input *ListThingsInThingGroupInput, fn func(*ListThingsInThingGroupOutput, bool) bool) error {
+	return c.ListThingsInThingGroupPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListThingsInThingGroupPagesWithContext same as ListThingsInThingGroupPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListThingsInThingGroupPagesWithContext(ctx aws.Context, input *ListThingsInThingGroupInput, fn func(*ListThingsInThingGroupOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListThingsInThingGroupInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListThingsInThingGroupRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListThingsInThingGroupOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListTopicRuleDestinations = "ListTopicRuleDestinations"
 
 // ListTopicRuleDestinationsRequest generates a "aws/request.Request" representing the
@@ -14339,6 +17186,12 @@ func (c *IoT) ListTopicRuleDestinationsRequest(input *ListTopicRuleDestinationsI
 		Name:       opListTopicRuleDestinations,
 		HTTPMethod: "GET",
 		HTTPPath:   "/destinations",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14395,6 +17248,58 @@ func (c *IoT) ListTopicRuleDestinationsWithContext(ctx aws.Context, input *ListT
 	return out, req.Send()
 }
 
+// ListTopicRuleDestinationsPages iterates over the pages of a ListTopicRuleDestinations operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTopicRuleDestinations method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTopicRuleDestinations operation.
+//    pageNum := 0
+//    err := client.ListTopicRuleDestinationsPages(params,
+//        func(page *iot.ListTopicRuleDestinationsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListTopicRuleDestinationsPages(input *ListTopicRuleDestinationsInput, fn func(*ListTopicRuleDestinationsOutput, bool) bool) error {
+	return c.ListTopicRuleDestinationsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTopicRuleDestinationsPagesWithContext same as ListTopicRuleDestinationsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListTopicRuleDestinationsPagesWithContext(ctx aws.Context, input *ListTopicRuleDestinationsInput, fn func(*ListTopicRuleDestinationsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTopicRuleDestinationsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTopicRuleDestinationsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTopicRuleDestinationsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListTopicRules = "ListTopicRules"
 
 // ListTopicRulesRequest generates a "aws/request.Request" representing the
@@ -14424,6 +17329,12 @@ func (c *IoT) ListTopicRulesRequest(input *ListTopicRulesInput) (req *request.Re
 		Name:       opListTopicRules,
 		HTTPMethod: "GET",
 		HTTPPath:   "/rules",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14477,6 +17388,58 @@ func (c *IoT) ListTopicRulesWithContext(ctx aws.Context, input *ListTopicRulesIn
 	return out, req.Send()
 }
 
+// ListTopicRulesPages iterates over the pages of a ListTopicRules operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListTopicRules method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListTopicRules operation.
+//    pageNum := 0
+//    err := client.ListTopicRulesPages(params,
+//        func(page *iot.ListTopicRulesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListTopicRulesPages(input *ListTopicRulesInput, fn func(*ListTopicRulesOutput, bool) bool) error {
+	return c.ListTopicRulesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListTopicRulesPagesWithContext same as ListTopicRulesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListTopicRulesPagesWithContext(ctx aws.Context, input *ListTopicRulesInput, fn func(*ListTopicRulesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListTopicRulesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListTopicRulesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListTopicRulesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListV2LoggingLevels = "ListV2LoggingLevels"
 
 // ListV2LoggingLevelsRequest generates a "aws/request.Request" representing the
@@ -14506,6 +17469,12 @@ func (c *IoT) ListV2LoggingLevelsRequest(input *ListV2LoggingLevelsInput) (req *
 		Name:       opListV2LoggingLevels,
 		HTTPMethod: "GET",
 		HTTPPath:   "/v2LoggingLevel",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14562,6 +17531,58 @@ func (c *IoT) ListV2LoggingLevelsWithContext(ctx aws.Context, input *ListV2Loggi
 	return out, req.Send()
 }
 
+// ListV2LoggingLevelsPages iterates over the pages of a ListV2LoggingLevels operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListV2LoggingLevels method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListV2LoggingLevels operation.
+//    pageNum := 0
+//    err := client.ListV2LoggingLevelsPages(params,
+//        func(page *iot.ListV2LoggingLevelsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListV2LoggingLevelsPages(input *ListV2LoggingLevelsInput, fn func(*ListV2LoggingLevelsOutput, bool) bool) error {
+	return c.ListV2LoggingLevelsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListV2LoggingLevelsPagesWithContext same as ListV2LoggingLevelsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListV2LoggingLevelsPagesWithContext(ctx aws.Context, input *ListV2LoggingLevelsInput, fn func(*ListV2LoggingLevelsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListV2LoggingLevelsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListV2LoggingLevelsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListV2LoggingLevelsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
 const opListViolationEvents = "ListViolationEvents"
 
 // ListViolationEventsRequest generates a "aws/request.Request" representing the
@@ -14591,6 +17612,12 @@ func (c *IoT) ListViolationEventsRequest(input *ListViolationEventsInput) (req *
 		Name:       opListViolationEvents,
 		HTTPMethod: "GET",
 		HTTPPath:   "/violation-events",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -14644,6 +17671,58 @@ func (c *IoT) ListViolationEventsWithContext(ctx aws.Context, input *ListViolati
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// ListViolationEventsPages iterates over the pages of a ListViolationEvents operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListViolationEvents method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListViolationEvents operation.
+//    pageNum := 0
+//    err := client.ListViolationEventsPages(params,
+//        func(page *iot.ListViolationEventsOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *IoT) ListViolationEventsPages(input *ListViolationEventsInput, fn func(*ListViolationEventsOutput, bool) bool) error {
+	return c.ListViolationEventsPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListViolationEventsPagesWithContext same as ListViolationEventsPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) ListViolationEventsPagesWithContext(ctx aws.Context, input *ListViolationEventsInput, fn func(*ListViolationEventsOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListViolationEventsInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListViolationEventsRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListViolationEventsOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opRegisterCACertificate = "RegisterCACertificate"
@@ -16878,6 +19957,92 @@ func (c *IoT) UpdateAccountAuditConfigurationWithContext(ctx aws.Context, input 
 	return out, req.Send()
 }
 
+const opUpdateAuditSuppression = "UpdateAuditSuppression"
+
+// UpdateAuditSuppressionRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateAuditSuppression operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateAuditSuppression for more information on using the UpdateAuditSuppression
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateAuditSuppressionRequest method.
+//    req, resp := client.UpdateAuditSuppressionRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+func (c *IoT) UpdateAuditSuppressionRequest(input *UpdateAuditSuppressionInput) (req *request.Request, output *UpdateAuditSuppressionOutput) {
+	op := &request.Operation{
+		Name:       opUpdateAuditSuppression,
+		HTTPMethod: "PATCH",
+		HTTPPath:   "/audit/suppressions/update",
+	}
+
+	if input == nil {
+		input = &UpdateAuditSuppressionInput{}
+	}
+
+	output = &UpdateAuditSuppressionOutput{}
+	req = c.newRequest(op, input, output)
+	req.Handlers.Unmarshal.Swap(restjson.UnmarshalHandler.Name, protocol.UnmarshalDiscardBodyHandler)
+	return
+}
+
+// UpdateAuditSuppression API operation for AWS IoT.
+//
+// Updates a Device Defender audit suppression.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS IoT's
+// API operation UpdateAuditSuppression for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidRequestException
+//   The request is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified resource does not exist.
+//
+//   * ThrottlingException
+//   The rate exceeds the limit.
+//
+//   * InternalFailureException
+//   An unexpected error has occurred.
+//
+func (c *IoT) UpdateAuditSuppression(input *UpdateAuditSuppressionInput) (*UpdateAuditSuppressionOutput, error) {
+	req, out := c.UpdateAuditSuppressionRequest(input)
+	return out, req.Send()
+}
+
+// UpdateAuditSuppressionWithContext is the same as UpdateAuditSuppression with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateAuditSuppression for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *IoT) UpdateAuditSuppressionWithContext(ctx aws.Context, input *UpdateAuditSuppressionInput, opts ...request.Option) (*UpdateAuditSuppressionOutput, error) {
+	req, out := c.UpdateAuditSuppressionRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateAuthorizer = "UpdateAuthorizer"
 
 // UpdateAuthorizerRequest generates a "aws/request.Request" representing the
@@ -17198,11 +20363,13 @@ func (c *IoT) UpdateCertificateRequest(input *UpdateCertificateInput) (req *requ
 //
 // Updates the status of the specified certificate. This operation is idempotent.
 //
-// Moving a certificate from the ACTIVE state (including REVOKED) will not disconnect
-// currently connected devices, but these devices will be unable to reconnect.
+// Certificates must be in the ACTIVE state to authenticate devices that use
+// a certificate to connect to AWS IoT.
 //
-// The ACTIVE state is required to authenticate devices connecting to AWS IoT
-// using a certificate.
+// Within a few minutes of updating a certificate from the ACTIVE state to any
+// other state, AWS IoT disconnects all devices that used that certificate to
+// connect. Devices cannot use a certificate that is not in the ACTIVE state
+// to reconnect.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -20313,6 +23480,10 @@ type AuditCheckDetails struct {
 	// The number of resources that were found noncompliant during the check.
 	NonCompliantResourcesCount *int64 `locationName:"nonCompliantResourcesCount" type:"long"`
 
+	// Describes how many of the non-compliant resources created during the evaluation
+	// of an audit check were marked as suppressed.
+	SuppressedNonCompliantResourcesCount *int64 `locationName:"suppressedNonCompliantResourcesCount" type:"long"`
+
 	// The number of resources on which the check was performed.
 	TotalResourcesCount *int64 `locationName:"totalResourcesCount" type:"long"`
 }
@@ -20357,6 +23528,12 @@ func (s *AuditCheckDetails) SetNonCompliantResourcesCount(v int64) *AuditCheckDe
 	return s
 }
 
+// SetSuppressedNonCompliantResourcesCount sets the SuppressedNonCompliantResourcesCount field's value.
+func (s *AuditCheckDetails) SetSuppressedNonCompliantResourcesCount(v int64) *AuditCheckDetails {
+	s.SuppressedNonCompliantResourcesCount = &v
+	return s
+}
+
 // SetTotalResourcesCount sets the TotalResourcesCount field's value.
 func (s *AuditCheckDetails) SetTotalResourcesCount(v int64) *AuditCheckDetails {
 	s.TotalResourcesCount = &v
@@ -20376,6 +23553,9 @@ type AuditFinding struct {
 
 	// The time the result (finding) was discovered.
 	FindingTime *time.Time `locationName:"findingTime" type:"timestamp"`
+
+	// Indicates whether the audit finding was suppressed or not during reporting.
+	IsSuppressed *bool `locationName:"isSuppressed" type:"boolean"`
 
 	// The resource that was found to be noncompliant with the audit check.
 	NonCompliantResource *NonCompliantResource `locationName:"nonCompliantResource" type:"structure"`
@@ -20424,6 +23604,12 @@ func (s *AuditFinding) SetFindingId(v string) *AuditFinding {
 // SetFindingTime sets the FindingTime field's value.
 func (s *AuditFinding) SetFindingTime(v time.Time) *AuditFinding {
 	s.FindingTime = &v
+	return s
+}
+
+// SetIsSuppressed sets the IsSuppressed field's value.
+func (s *AuditFinding) SetIsSuppressed(v bool) *AuditFinding {
+	s.IsSuppressed = &v
 	return s
 }
 
@@ -20725,6 +23911,73 @@ func (s *AuditNotificationTarget) SetRoleArn(v string) *AuditNotificationTarget 
 // SetTargetArn sets the TargetArn field's value.
 func (s *AuditNotificationTarget) SetTargetArn(v string) *AuditNotificationTarget {
 	s.TargetArn = &v
+	return s
+}
+
+// Filters out specific findings of a Device Defender audit.
+type AuditSuppression struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	//
+	// CheckName is a required field
+	CheckName *string `locationName:"checkName" type:"string" required:"true"`
+
+	// The description of the audit suppression.
+	Description *string `locationName:"description" type:"string"`
+
+	// The expiration date (epoch timestamp in seconds) that you want the suppression
+	// to adhere to.
+	ExpirationDate *time.Time `locationName:"expirationDate" type:"timestamp"`
+
+	// Information that identifies the noncompliant resource.
+	//
+	// ResourceIdentifier is a required field
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure" required:"true"`
+
+	// Indicates whether a suppression should exist indefinitely or not.
+	SuppressIndefinitely *bool `locationName:"suppressIndefinitely" type:"boolean"`
+}
+
+// String returns the string representation
+func (s AuditSuppression) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s AuditSuppression) GoString() string {
+	return s.String()
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *AuditSuppression) SetCheckName(v string) *AuditSuppression {
+	s.CheckName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *AuditSuppression) SetDescription(v string) *AuditSuppression {
+	s.Description = &v
+	return s
+}
+
+// SetExpirationDate sets the ExpirationDate field's value.
+func (s *AuditSuppression) SetExpirationDate(v time.Time) *AuditSuppression {
+	s.ExpirationDate = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *AuditSuppression) SetResourceIdentifier(v *ResourceIdentifier) *AuditSuppression {
+	s.ResourceIdentifier = v
+	return s
+}
+
+// SetSuppressIndefinitely sets the SuppressIndefinitely field's value.
+func (s *AuditSuppression) SetSuppressIndefinitely(v bool) *AuditSuppression {
+	s.SuppressIndefinitely = &v
 	return s
 }
 
@@ -23166,6 +26419,118 @@ func (s *ConflictingResourceUpdateException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *ConflictingResourceUpdateException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type CreateAuditSuppressionInput struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	//
+	// CheckName is a required field
+	CheckName *string `locationName:"checkName" type:"string" required:"true"`
+
+	// The epoch timestamp in seconds at which this suppression expires.
+	ClientRequestToken *string `locationName:"clientRequestToken" min:"1" type:"string" idempotencyToken:"true"`
+
+	// The description of the audit suppression.
+	Description *string `locationName:"description" type:"string"`
+
+	// The epoch timestamp in seconds at which this suppression expires.
+	ExpirationDate *time.Time `locationName:"expirationDate" type:"timestamp"`
+
+	// Information that identifies the noncompliant resource.
+	//
+	// ResourceIdentifier is a required field
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure" required:"true"`
+
+	// Indicates whether a suppression should exist indefinitely or not.
+	SuppressIndefinitely *bool `locationName:"suppressIndefinitely" type:"boolean"`
+}
+
+// String returns the string representation
+func (s CreateAuditSuppressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAuditSuppressionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateAuditSuppressionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateAuditSuppressionInput"}
+	if s.CheckName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CheckName"))
+	}
+	if s.ClientRequestToken != nil && len(*s.ClientRequestToken) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ClientRequestToken", 1))
+	}
+	if s.ResourceIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceIdentifier"))
+	}
+	if s.ResourceIdentifier != nil {
+		if err := s.ResourceIdentifier.Validate(); err != nil {
+			invalidParams.AddNested("ResourceIdentifier", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *CreateAuditSuppressionInput) SetCheckName(v string) *CreateAuditSuppressionInput {
+	s.CheckName = &v
+	return s
+}
+
+// SetClientRequestToken sets the ClientRequestToken field's value.
+func (s *CreateAuditSuppressionInput) SetClientRequestToken(v string) *CreateAuditSuppressionInput {
+	s.ClientRequestToken = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateAuditSuppressionInput) SetDescription(v string) *CreateAuditSuppressionInput {
+	s.Description = &v
+	return s
+}
+
+// SetExpirationDate sets the ExpirationDate field's value.
+func (s *CreateAuditSuppressionInput) SetExpirationDate(v time.Time) *CreateAuditSuppressionInput {
+	s.ExpirationDate = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *CreateAuditSuppressionInput) SetResourceIdentifier(v *ResourceIdentifier) *CreateAuditSuppressionInput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+// SetSuppressIndefinitely sets the SuppressIndefinitely field's value.
+func (s *CreateAuditSuppressionInput) SetSuppressIndefinitely(v bool) *CreateAuditSuppressionInput {
+	s.SuppressIndefinitely = &v
+	return s
+}
+
+type CreateAuditSuppressionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateAuditSuppressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateAuditSuppressionOutput) GoString() string {
+	return s.String()
 }
 
 type CreateAuthorizerInput struct {
@@ -26560,6 +29925,79 @@ func (s DeleteAccountAuditConfigurationOutput) GoString() string {
 	return s.String()
 }
 
+type DeleteAuditSuppressionInput struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	//
+	// CheckName is a required field
+	CheckName *string `locationName:"checkName" type:"string" required:"true"`
+
+	// Information that identifies the noncompliant resource.
+	//
+	// ResourceIdentifier is a required field
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteAuditSuppressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAuditSuppressionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteAuditSuppressionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteAuditSuppressionInput"}
+	if s.CheckName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CheckName"))
+	}
+	if s.ResourceIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceIdentifier"))
+	}
+	if s.ResourceIdentifier != nil {
+		if err := s.ResourceIdentifier.Validate(); err != nil {
+			invalidParams.AddNested("ResourceIdentifier", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *DeleteAuditSuppressionInput) SetCheckName(v string) *DeleteAuditSuppressionInput {
+	s.CheckName = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *DeleteAuditSuppressionInput) SetResourceIdentifier(v *ResourceIdentifier) *DeleteAuditSuppressionInput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+type DeleteAuditSuppressionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteAuditSuppressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteAuditSuppressionOutput) GoString() string {
+	return s.String()
+}
+
 type DeleteAuthorizerInput struct {
 	_ struct{} `type:"structure"`
 
@@ -28574,6 +32012,126 @@ func (s *DescribeAuditMitigationActionsTaskOutput) SetTaskStatistics(v map[strin
 // SetTaskStatus sets the TaskStatus field's value.
 func (s *DescribeAuditMitigationActionsTaskOutput) SetTaskStatus(v string) *DescribeAuditMitigationActionsTaskOutput {
 	s.TaskStatus = &v
+	return s
+}
+
+type DescribeAuditSuppressionInput struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	//
+	// CheckName is a required field
+	CheckName *string `locationName:"checkName" type:"string" required:"true"`
+
+	// Information that identifies the noncompliant resource.
+	//
+	// ResourceIdentifier is a required field
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeAuditSuppressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAuditSuppressionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeAuditSuppressionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeAuditSuppressionInput"}
+	if s.CheckName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CheckName"))
+	}
+	if s.ResourceIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceIdentifier"))
+	}
+	if s.ResourceIdentifier != nil {
+		if err := s.ResourceIdentifier.Validate(); err != nil {
+			invalidParams.AddNested("ResourceIdentifier", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *DescribeAuditSuppressionInput) SetCheckName(v string) *DescribeAuditSuppressionInput {
+	s.CheckName = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *DescribeAuditSuppressionInput) SetResourceIdentifier(v *ResourceIdentifier) *DescribeAuditSuppressionInput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+type DescribeAuditSuppressionOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	CheckName *string `locationName:"checkName" type:"string"`
+
+	// The description of the audit suppression.
+	Description *string `locationName:"description" type:"string"`
+
+	// The epoch timestamp in seconds at which this suppression expires.
+	ExpirationDate *time.Time `locationName:"expirationDate" type:"timestamp"`
+
+	// Information that identifies the noncompliant resource.
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure"`
+
+	// Indicates whether a suppression should exist indefinitely or not.
+	SuppressIndefinitely *bool `locationName:"suppressIndefinitely" type:"boolean"`
+}
+
+// String returns the string representation
+func (s DescribeAuditSuppressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeAuditSuppressionOutput) GoString() string {
+	return s.String()
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *DescribeAuditSuppressionOutput) SetCheckName(v string) *DescribeAuditSuppressionOutput {
+	s.CheckName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *DescribeAuditSuppressionOutput) SetDescription(v string) *DescribeAuditSuppressionOutput {
+	s.Description = &v
+	return s
+}
+
+// SetExpirationDate sets the ExpirationDate field's value.
+func (s *DescribeAuditSuppressionOutput) SetExpirationDate(v time.Time) *DescribeAuditSuppressionOutput {
+	s.ExpirationDate = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *DescribeAuditSuppressionOutput) SetResourceIdentifier(v *ResourceIdentifier) *DescribeAuditSuppressionOutput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+// SetSuppressIndefinitely sets the SuppressIndefinitely field's value.
+func (s *DescribeAuditSuppressionOutput) SetSuppressIndefinitely(v bool) *DescribeAuditSuppressionOutput {
+	s.SuppressIndefinitely = &v
 	return s
 }
 
@@ -31103,8 +34661,9 @@ type DetachPrincipalPolicyInput struct {
 
 	// The principal.
 	//
-	// If the principal is a certificate, specify the certificate ARN. If the principal
-	// is an Amazon Cognito identity, specify the identity ID.
+	// Valid principals are CertificateArn (arn:aws:iot:region:accountId:cert/certificateId),
+	// thingGroupArn (arn:aws:iot:region:accountId:thinggroup/groupName) and CognitoId
+	// (region:id).
 	//
 	// Principal is a required field
 	Principal *string `location:"header" locationName:"x-amzn-iot-principal" type:"string" required:"true"`
@@ -32279,7 +35838,9 @@ type GetEffectivePoliciesInput struct {
 	// The Cognito identity pool ID.
 	CognitoIdentityPoolId *string `locationName:"cognitoIdentityPoolId" type:"string"`
 
-	// The principal.
+	// The principal. Valid principals are CertificateArn (arn:aws:iot:region:accountId:cert/certificateId),
+	// thingGroupArn (arn:aws:iot:region:accountId:thinggroup/groupName) and CognitoId
+	// (region:id).
 	Principal *string `locationName:"principal" type:"string"`
 
 	// The thing name.
@@ -35296,7 +38857,9 @@ type ListAttachedPoliciesInput struct {
 	// When true, recursively list attached policies.
 	Recursive *bool `location:"querystring" locationName:"recursive" type:"boolean"`
 
-	// The group or principal for which the policies will be listed.
+	// The group or principal for which the policies will be listed. Valid principals
+	// are CertificateArn (arn:aws:iot:region:accountId:cert/certificateId), thingGroupArn
+	// (arn:aws:iot:region:accountId:thinggroup/groupName) and CognitoId (region:id).
 	//
 	// Target is a required field
 	Target *string `location:"uri" locationName:"target" type:"string" required:"true"`
@@ -35398,6 +38961,11 @@ type ListAuditFindingsInput struct {
 	// specify either the startTime and endTime or the taskId, but not both.
 	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
 
+	// Boolean flag indicating whether only the suppressed findings or the unsuppressed
+	// findings should be listed. If this parameter isn't provided, the response
+	// will list both suppressed and unsuppressed findings.
+	ListSuppressedFindings *bool `locationName:"listSuppressedFindings" type:"boolean"`
+
 	// The maximum number of results to return at one time. The default is 25.
 	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
 
@@ -35456,6 +39024,12 @@ func (s *ListAuditFindingsInput) SetCheckName(v string) *ListAuditFindingsInput 
 // SetEndTime sets the EndTime field's value.
 func (s *ListAuditFindingsInput) SetEndTime(v time.Time) *ListAuditFindingsInput {
 	s.EndTime = &v
+	return s
+}
+
+// SetListSuppressedFindings sets the ListSuppressedFindings field's value.
+func (s *ListAuditFindingsInput) SetListSuppressedFindings(v bool) *ListAuditFindingsInput {
+	s.ListSuppressedFindings = &v
 	return s
 }
 
@@ -35784,6 +39358,119 @@ func (s *ListAuditMitigationActionsTasksOutput) SetNextToken(v string) *ListAudi
 // SetTasks sets the Tasks field's value.
 func (s *ListAuditMitigationActionsTasksOutput) SetTasks(v []*AuditMitigationActionsTaskMetadata) *ListAuditMitigationActionsTasksOutput {
 	s.Tasks = v
+	return s
+}
+
+type ListAuditSuppressionsInput struct {
+	_ struct{} `type:"structure"`
+
+	// Determines whether suppressions are listed in ascending order by expiration
+	// date or not. If parameter isn't provided, ascendingOrder=true.
+	AscendingOrder *bool `locationName:"ascendingOrder" type:"boolean"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	CheckName *string `locationName:"checkName" type:"string"`
+
+	// The maximum number of results to return at one time. The default is 25.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The token for the next set of results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Information that identifies the noncompliant resource.
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure"`
+}
+
+// String returns the string representation
+func (s ListAuditSuppressionsInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAuditSuppressionsInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListAuditSuppressionsInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListAuditSuppressionsInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ResourceIdentifier != nil {
+		if err := s.ResourceIdentifier.Validate(); err != nil {
+			invalidParams.AddNested("ResourceIdentifier", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAscendingOrder sets the AscendingOrder field's value.
+func (s *ListAuditSuppressionsInput) SetAscendingOrder(v bool) *ListAuditSuppressionsInput {
+	s.AscendingOrder = &v
+	return s
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *ListAuditSuppressionsInput) SetCheckName(v string) *ListAuditSuppressionsInput {
+	s.CheckName = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListAuditSuppressionsInput) SetMaxResults(v int64) *ListAuditSuppressionsInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAuditSuppressionsInput) SetNextToken(v string) *ListAuditSuppressionsInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *ListAuditSuppressionsInput) SetResourceIdentifier(v *ResourceIdentifier) *ListAuditSuppressionsInput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+type ListAuditSuppressionsOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A token that can be used to retrieve the next set of results, or null if
+	// there are no additional results.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// List of audit suppressions.
+	Suppressions []*AuditSuppression `locationName:"suppressions" type:"list"`
+}
+
+// String returns the string representation
+func (s ListAuditSuppressionsOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListAuditSuppressionsOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListAuditSuppressionsOutput) SetNextToken(v string) *ListAuditSuppressionsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSuppressions sets the Suppressions field's value.
+func (s *ListAuditSuppressionsOutput) SetSuppressions(v []*AuditSuppression) *ListAuditSuppressionsOutput {
+	s.Suppressions = v
 	return s
 }
 
@@ -37505,7 +41192,9 @@ type ListPrincipalPoliciesInput struct {
 	// The result page size.
 	PageSize *int64 `location:"querystring" locationName:"pageSize" min:"1" type:"integer"`
 
-	// The principal.
+	// The principal. Valid principals are CertificateArn (arn:aws:iot:region:accountId:cert/certificateId),
+	// thingGroupArn (arn:aws:iot:region:accountId:thinggroup/groupName) and CognitoId
+	// (region:id).
 	//
 	// Principal is a required field
 	Principal *string `location:"header" locationName:"x-amzn-iot-principal" type:"string" required:"true"`
@@ -38747,8 +42436,8 @@ func (s *ListThingGroupsInput) SetRecursive(v bool) *ListThingGroupsInput {
 type ListThingGroupsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The token used to get the next set of results, or null if there are no additional
-	// results.
+	// The token used to get the next set of results. Will not be returned if operation
+	// has returned all results.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The thing groups.
@@ -39110,8 +42799,8 @@ func (s *ListThingTypesInput) SetThingTypeName(v string) *ListThingTypesInput {
 type ListThingTypesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The token for the next set of results, or null if there are no additional
-	// results.
+	// The token for the next set of results. Will not be returned if operation
+	// has returned all results.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The thing types.
@@ -39205,8 +42894,8 @@ func (s *ListThingsInBillingGroupInput) SetNextToken(v string) *ListThingsInBill
 type ListThingsInBillingGroupOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The token used to get the next set of results, or null if there are no additional
-	// results.
+	// The token used to get the next set of results. Will not be returned if operation
+	// has returned all results.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// A list of things in the billing group.
@@ -39419,8 +43108,8 @@ func (s *ListThingsInput) SetThingTypeName(v string) *ListThingsInput {
 type ListThingsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The token used to get the next set of results, or null if there are no additional
-	// results.
+	// The token used to get the next set of results. Will not be returned if operation
+	// has returned all results.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
 	// The things.
@@ -45289,7 +48978,9 @@ type TestAuthorizationInput struct {
 	// as if they are not attached to the principal being authorized.
 	PolicyNamesToSkip []*string `locationName:"policyNamesToSkip" type:"list"`
 
-	// The principal.
+	// The principal. Valid principals are CertificateArn (arn:aws:iot:region:accountId:cert/certificateId),
+	// thingGroupArn (arn:aws:iot:region:accountId:thinggroup/groupName) and CognitoId
+	// (region:id).
 	Principal *string `locationName:"principal" type:"string"`
 }
 
@@ -47192,6 +50883,107 @@ func (s UpdateAccountAuditConfigurationOutput) String() string {
 
 // GoString returns the string representation
 func (s UpdateAccountAuditConfigurationOutput) GoString() string {
+	return s.String()
+}
+
+type UpdateAuditSuppressionInput struct {
+	_ struct{} `type:"structure"`
+
+	// An audit check name. Checks must be enabled for your account. (Use DescribeAccountAuditConfiguration
+	// to see the list of all checks, including those that are enabled or use UpdateAccountAuditConfiguration
+	// to select which checks are enabled.)
+	//
+	// CheckName is a required field
+	CheckName *string `locationName:"checkName" type:"string" required:"true"`
+
+	// The description of the audit suppression.
+	Description *string `locationName:"description" type:"string"`
+
+	// The expiration date (epoch timestamp in seconds) that you want the suppression
+	// to adhere to.
+	ExpirationDate *time.Time `locationName:"expirationDate" type:"timestamp"`
+
+	// Information that identifies the noncompliant resource.
+	//
+	// ResourceIdentifier is a required field
+	ResourceIdentifier *ResourceIdentifier `locationName:"resourceIdentifier" type:"structure" required:"true"`
+
+	// Indicates whether a suppression should exist indefinitely or not.
+	SuppressIndefinitely *bool `locationName:"suppressIndefinitely" type:"boolean"`
+}
+
+// String returns the string representation
+func (s UpdateAuditSuppressionInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAuditSuppressionInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateAuditSuppressionInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateAuditSuppressionInput"}
+	if s.CheckName == nil {
+		invalidParams.Add(request.NewErrParamRequired("CheckName"))
+	}
+	if s.ResourceIdentifier == nil {
+		invalidParams.Add(request.NewErrParamRequired("ResourceIdentifier"))
+	}
+	if s.ResourceIdentifier != nil {
+		if err := s.ResourceIdentifier.Validate(); err != nil {
+			invalidParams.AddNested("ResourceIdentifier", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCheckName sets the CheckName field's value.
+func (s *UpdateAuditSuppressionInput) SetCheckName(v string) *UpdateAuditSuppressionInput {
+	s.CheckName = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateAuditSuppressionInput) SetDescription(v string) *UpdateAuditSuppressionInput {
+	s.Description = &v
+	return s
+}
+
+// SetExpirationDate sets the ExpirationDate field's value.
+func (s *UpdateAuditSuppressionInput) SetExpirationDate(v time.Time) *UpdateAuditSuppressionInput {
+	s.ExpirationDate = &v
+	return s
+}
+
+// SetResourceIdentifier sets the ResourceIdentifier field's value.
+func (s *UpdateAuditSuppressionInput) SetResourceIdentifier(v *ResourceIdentifier) *UpdateAuditSuppressionInput {
+	s.ResourceIdentifier = v
+	return s
+}
+
+// SetSuppressIndefinitely sets the SuppressIndefinitely field's value.
+func (s *UpdateAuditSuppressionInput) SetSuppressIndefinitely(v bool) *UpdateAuditSuppressionInput {
+	s.SuppressIndefinitely = &v
+	return s
+}
+
+type UpdateAuditSuppressionOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateAuditSuppressionOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateAuditSuppressionOutput) GoString() string {
 	return s.String()
 }
 
@@ -49752,6 +53544,13 @@ const (
 	AbortActionCancel = "CANCEL"
 )
 
+// AbortAction_Values returns all elements of the AbortAction enum
+func AbortAction_Values() []string {
+	return []string{
+		AbortActionCancel,
+	}
+}
+
 const (
 	// ActionTypePublish is a ActionType enum value
 	ActionTypePublish = "PUBLISH"
@@ -49766,11 +53565,28 @@ const (
 	ActionTypeConnect = "CONNECT"
 )
 
+// ActionType_Values returns all elements of the ActionType enum
+func ActionType_Values() []string {
+	return []string{
+		ActionTypePublish,
+		ActionTypeSubscribe,
+		ActionTypeReceive,
+		ActionTypeConnect,
+	}
+}
+
 // The type of alert target: one of "SNS".
 const (
 	// AlertTargetTypeSns is a AlertTargetType enum value
 	AlertTargetTypeSns = "SNS"
 )
+
+// AlertTargetType_Values returns all elements of the AlertTargetType enum
+func AlertTargetType_Values() []string {
+	return []string{
+		AlertTargetTypeSns,
+	}
+}
 
 const (
 	// AuditCheckRunStatusInProgress is a AuditCheckRunStatus enum value
@@ -49792,6 +53608,18 @@ const (
 	AuditCheckRunStatusFailed = "FAILED"
 )
 
+// AuditCheckRunStatus_Values returns all elements of the AuditCheckRunStatus enum
+func AuditCheckRunStatus_Values() []string {
+	return []string{
+		AuditCheckRunStatusInProgress,
+		AuditCheckRunStatusWaitingForDataCollection,
+		AuditCheckRunStatusCanceled,
+		AuditCheckRunStatusCompletedCompliant,
+		AuditCheckRunStatusCompletedNonCompliant,
+		AuditCheckRunStatusFailed,
+	}
+}
+
 const (
 	// AuditFindingSeverityCritical is a AuditFindingSeverity enum value
 	AuditFindingSeverityCritical = "CRITICAL"
@@ -49806,6 +53634,16 @@ const (
 	AuditFindingSeverityLow = "LOW"
 )
 
+// AuditFindingSeverity_Values returns all elements of the AuditFindingSeverity enum
+func AuditFindingSeverity_Values() []string {
+	return []string{
+		AuditFindingSeverityCritical,
+		AuditFindingSeverityHigh,
+		AuditFindingSeverityMedium,
+		AuditFindingSeverityLow,
+	}
+}
+
 const (
 	// AuditFrequencyDaily is a AuditFrequency enum value
 	AuditFrequencyDaily = "DAILY"
@@ -49819,6 +53657,16 @@ const (
 	// AuditFrequencyMonthly is a AuditFrequency enum value
 	AuditFrequencyMonthly = "MONTHLY"
 )
+
+// AuditFrequency_Values returns all elements of the AuditFrequency enum
+func AuditFrequency_Values() []string {
+	return []string{
+		AuditFrequencyDaily,
+		AuditFrequencyWeekly,
+		AuditFrequencyBiweekly,
+		AuditFrequencyMonthly,
+	}
+}
 
 const (
 	// AuditMitigationActionsExecutionStatusInProgress is a AuditMitigationActionsExecutionStatus enum value
@@ -49840,6 +53688,18 @@ const (
 	AuditMitigationActionsExecutionStatusPending = "PENDING"
 )
 
+// AuditMitigationActionsExecutionStatus_Values returns all elements of the AuditMitigationActionsExecutionStatus enum
+func AuditMitigationActionsExecutionStatus_Values() []string {
+	return []string{
+		AuditMitigationActionsExecutionStatusInProgress,
+		AuditMitigationActionsExecutionStatusCompleted,
+		AuditMitigationActionsExecutionStatusFailed,
+		AuditMitigationActionsExecutionStatusCanceled,
+		AuditMitigationActionsExecutionStatusSkipped,
+		AuditMitigationActionsExecutionStatusPending,
+	}
+}
+
 const (
 	// AuditMitigationActionsTaskStatusInProgress is a AuditMitigationActionsTaskStatus enum value
 	AuditMitigationActionsTaskStatusInProgress = "IN_PROGRESS"
@@ -49854,10 +53714,27 @@ const (
 	AuditMitigationActionsTaskStatusCanceled = "CANCELED"
 )
 
+// AuditMitigationActionsTaskStatus_Values returns all elements of the AuditMitigationActionsTaskStatus enum
+func AuditMitigationActionsTaskStatus_Values() []string {
+	return []string{
+		AuditMitigationActionsTaskStatusInProgress,
+		AuditMitigationActionsTaskStatusCompleted,
+		AuditMitigationActionsTaskStatusFailed,
+		AuditMitigationActionsTaskStatusCanceled,
+	}
+}
+
 const (
 	// AuditNotificationTypeSns is a AuditNotificationType enum value
 	AuditNotificationTypeSns = "SNS"
 )
+
+// AuditNotificationType_Values returns all elements of the AuditNotificationType enum
+func AuditNotificationType_Values() []string {
+	return []string{
+		AuditNotificationTypeSns,
+	}
+}
 
 const (
 	// AuditTaskStatusInProgress is a AuditTaskStatus enum value
@@ -49873,6 +53750,16 @@ const (
 	AuditTaskStatusCanceled = "CANCELED"
 )
 
+// AuditTaskStatus_Values returns all elements of the AuditTaskStatus enum
+func AuditTaskStatus_Values() []string {
+	return []string{
+		AuditTaskStatusInProgress,
+		AuditTaskStatusCompleted,
+		AuditTaskStatusFailed,
+		AuditTaskStatusCanceled,
+	}
+}
+
 const (
 	// AuditTaskTypeOnDemandAuditTask is a AuditTaskType enum value
 	AuditTaskTypeOnDemandAuditTask = "ON_DEMAND_AUDIT_TASK"
@@ -49880,6 +53767,14 @@ const (
 	// AuditTaskTypeScheduledAuditTask is a AuditTaskType enum value
 	AuditTaskTypeScheduledAuditTask = "SCHEDULED_AUDIT_TASK"
 )
+
+// AuditTaskType_Values returns all elements of the AuditTaskType enum
+func AuditTaskType_Values() []string {
+	return []string{
+		AuditTaskTypeOnDemandAuditTask,
+		AuditTaskTypeScheduledAuditTask,
+	}
+}
 
 const (
 	// AuthDecisionAllowed is a AuthDecision enum value
@@ -49892,6 +53787,15 @@ const (
 	AuthDecisionImplicitDeny = "IMPLICIT_DENY"
 )
 
+// AuthDecision_Values returns all elements of the AuthDecision enum
+func AuthDecision_Values() []string {
+	return []string{
+		AuthDecisionAllowed,
+		AuthDecisionExplicitDeny,
+		AuthDecisionImplicitDeny,
+	}
+}
+
 const (
 	// AuthorizerStatusActive is a AuthorizerStatus enum value
 	AuthorizerStatusActive = "ACTIVE"
@@ -49899,6 +53803,14 @@ const (
 	// AuthorizerStatusInactive is a AuthorizerStatus enum value
 	AuthorizerStatusInactive = "INACTIVE"
 )
+
+// AuthorizerStatus_Values returns all elements of the AuthorizerStatus enum
+func AuthorizerStatus_Values() []string {
+	return []string{
+		AuthorizerStatusActive,
+		AuthorizerStatusInactive,
+	}
+}
 
 const (
 	// AutoRegistrationStatusEnable is a AutoRegistrationStatus enum value
@@ -49908,10 +53820,25 @@ const (
 	AutoRegistrationStatusDisable = "DISABLE"
 )
 
+// AutoRegistrationStatus_Values returns all elements of the AutoRegistrationStatus enum
+func AutoRegistrationStatus_Values() []string {
+	return []string{
+		AutoRegistrationStatusEnable,
+		AutoRegistrationStatusDisable,
+	}
+}
+
 const (
 	// AwsJobAbortCriteriaAbortActionCancel is a AwsJobAbortCriteriaAbortAction enum value
 	AwsJobAbortCriteriaAbortActionCancel = "CANCEL"
 )
+
+// AwsJobAbortCriteriaAbortAction_Values returns all elements of the AwsJobAbortCriteriaAbortAction enum
+func AwsJobAbortCriteriaAbortAction_Values() []string {
+	return []string{
+		AwsJobAbortCriteriaAbortActionCancel,
+	}
+}
 
 const (
 	// AwsJobAbortCriteriaFailureTypeFailed is a AwsJobAbortCriteriaFailureType enum value
@@ -49927,6 +53854,16 @@ const (
 	AwsJobAbortCriteriaFailureTypeAll = "ALL"
 )
 
+// AwsJobAbortCriteriaFailureType_Values returns all elements of the AwsJobAbortCriteriaFailureType enum
+func AwsJobAbortCriteriaFailureType_Values() []string {
+	return []string{
+		AwsJobAbortCriteriaFailureTypeFailed,
+		AwsJobAbortCriteriaFailureTypeRejected,
+		AwsJobAbortCriteriaFailureTypeTimedOut,
+		AwsJobAbortCriteriaFailureTypeAll,
+	}
+}
+
 const (
 	// CACertificateStatusActive is a CACertificateStatus enum value
 	CACertificateStatusActive = "ACTIVE"
@@ -49935,10 +53872,25 @@ const (
 	CACertificateStatusInactive = "INACTIVE"
 )
 
+// CACertificateStatus_Values returns all elements of the CACertificateStatus enum
+func CACertificateStatus_Values() []string {
+	return []string{
+		CACertificateStatusActive,
+		CACertificateStatusInactive,
+	}
+}
+
 const (
 	// CACertificateUpdateActionDeactivate is a CACertificateUpdateAction enum value
 	CACertificateUpdateActionDeactivate = "DEACTIVATE"
 )
+
+// CACertificateUpdateAction_Values returns all elements of the CACertificateUpdateAction enum
+func CACertificateUpdateAction_Values() []string {
+	return []string{
+		CACertificateUpdateActionDeactivate,
+	}
+}
 
 const (
 	// CannedAccessControlListPrivate is a CannedAccessControlList enum value
@@ -49966,6 +53918,20 @@ const (
 	CannedAccessControlListLogDeliveryWrite = "log-delivery-write"
 )
 
+// CannedAccessControlList_Values returns all elements of the CannedAccessControlList enum
+func CannedAccessControlList_Values() []string {
+	return []string{
+		CannedAccessControlListPrivate,
+		CannedAccessControlListPublicRead,
+		CannedAccessControlListPublicReadWrite,
+		CannedAccessControlListAwsExecRead,
+		CannedAccessControlListAuthenticatedRead,
+		CannedAccessControlListBucketOwnerRead,
+		CannedAccessControlListBucketOwnerFullControl,
+		CannedAccessControlListLogDeliveryWrite,
+	}
+}
+
 const (
 	// CertificateModeDefault is a CertificateMode enum value
 	CertificateModeDefault = "DEFAULT"
@@ -49973,6 +53939,14 @@ const (
 	// CertificateModeSniOnly is a CertificateMode enum value
 	CertificateModeSniOnly = "SNI_ONLY"
 )
+
+// CertificateMode_Values returns all elements of the CertificateMode enum
+func CertificateMode_Values() []string {
+	return []string{
+		CertificateModeDefault,
+		CertificateModeSniOnly,
+	}
+}
 
 const (
 	// CertificateStatusActive is a CertificateStatus enum value
@@ -49993,6 +53967,18 @@ const (
 	// CertificateStatusPendingActivation is a CertificateStatus enum value
 	CertificateStatusPendingActivation = "PENDING_ACTIVATION"
 )
+
+// CertificateStatus_Values returns all elements of the CertificateStatus enum
+func CertificateStatus_Values() []string {
+	return []string{
+		CertificateStatusActive,
+		CertificateStatusInactive,
+		CertificateStatusRevoked,
+		CertificateStatusPendingTransfer,
+		CertificateStatusRegisterInactive,
+		CertificateStatusPendingActivation,
+	}
+}
 
 const (
 	// ComparisonOperatorLessThan is a ComparisonOperator enum value
@@ -50020,6 +54006,20 @@ const (
 	ComparisonOperatorNotInPortSet = "not-in-port-set"
 )
 
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorLessThan,
+		ComparisonOperatorLessThanEquals,
+		ComparisonOperatorGreaterThan,
+		ComparisonOperatorGreaterThanEquals,
+		ComparisonOperatorInCidrSet,
+		ComparisonOperatorNotInCidrSet,
+		ComparisonOperatorInPortSet,
+		ComparisonOperatorNotInPortSet,
+	}
+}
+
 const (
 	// DayOfWeekSun is a DayOfWeek enum value
 	DayOfWeekSun = "SUN"
@@ -50043,15 +54043,42 @@ const (
 	DayOfWeekSat = "SAT"
 )
 
+// DayOfWeek_Values returns all elements of the DayOfWeek enum
+func DayOfWeek_Values() []string {
+	return []string{
+		DayOfWeekSun,
+		DayOfWeekMon,
+		DayOfWeekTue,
+		DayOfWeekWed,
+		DayOfWeekThu,
+		DayOfWeekFri,
+		DayOfWeekSat,
+	}
+}
+
 const (
 	// DeviceCertificateUpdateActionDeactivate is a DeviceCertificateUpdateAction enum value
 	DeviceCertificateUpdateActionDeactivate = "DEACTIVATE"
 )
 
+// DeviceCertificateUpdateAction_Values returns all elements of the DeviceCertificateUpdateAction enum
+func DeviceCertificateUpdateAction_Values() []string {
+	return []string{
+		DeviceCertificateUpdateActionDeactivate,
+	}
+}
+
 const (
 	// DimensionTypeTopicFilter is a DimensionType enum value
 	DimensionTypeTopicFilter = "TOPIC_FILTER"
 )
+
+// DimensionType_Values returns all elements of the DimensionType enum
+func DimensionType_Values() []string {
+	return []string{
+		DimensionTypeTopicFilter,
+	}
+}
 
 const (
 	// DimensionValueOperatorIn is a DimensionValueOperator enum value
@@ -50061,6 +54088,14 @@ const (
 	DimensionValueOperatorNotIn = "NOT_IN"
 )
 
+// DimensionValueOperator_Values returns all elements of the DimensionValueOperator enum
+func DimensionValueOperator_Values() []string {
+	return []string{
+		DimensionValueOperatorIn,
+		DimensionValueOperatorNotIn,
+	}
+}
+
 const (
 	// DomainConfigurationStatusEnabled is a DomainConfigurationStatus enum value
 	DomainConfigurationStatusEnabled = "ENABLED"
@@ -50068,6 +54103,14 @@ const (
 	// DomainConfigurationStatusDisabled is a DomainConfigurationStatus enum value
 	DomainConfigurationStatusDisabled = "DISABLED"
 )
+
+// DomainConfigurationStatus_Values returns all elements of the DomainConfigurationStatus enum
+func DomainConfigurationStatus_Values() []string {
+	return []string{
+		DomainConfigurationStatusEnabled,
+		DomainConfigurationStatusDisabled,
+	}
+}
 
 const (
 	// DomainTypeEndpoint is a DomainType enum value
@@ -50080,6 +54123,15 @@ const (
 	DomainTypeCustomerManaged = "CUSTOMER_MANAGED"
 )
 
+// DomainType_Values returns all elements of the DomainType enum
+func DomainType_Values() []string {
+	return []string{
+		DomainTypeEndpoint,
+		DomainTypeAwsManaged,
+		DomainTypeCustomerManaged,
+	}
+}
+
 const (
 	// DynamicGroupStatusActive is a DynamicGroupStatus enum value
 	DynamicGroupStatusActive = "ACTIVE"
@@ -50091,6 +54143,15 @@ const (
 	DynamicGroupStatusRebuilding = "REBUILDING"
 )
 
+// DynamicGroupStatus_Values returns all elements of the DynamicGroupStatus enum
+func DynamicGroupStatus_Values() []string {
+	return []string{
+		DynamicGroupStatusActive,
+		DynamicGroupStatusBuilding,
+		DynamicGroupStatusRebuilding,
+	}
+}
+
 const (
 	// DynamoKeyTypeString is a DynamoKeyType enum value
 	DynamoKeyTypeString = "STRING"
@@ -50098,6 +54159,14 @@ const (
 	// DynamoKeyTypeNumber is a DynamoKeyType enum value
 	DynamoKeyTypeNumber = "NUMBER"
 )
+
+// DynamoKeyType_Values returns all elements of the DynamoKeyType enum
+func DynamoKeyType_Values() []string {
+	return []string{
+		DynamoKeyTypeString,
+		DynamoKeyTypeNumber,
+	}
+}
 
 const (
 	// EventTypeThing is a EventType enum value
@@ -50134,6 +54203,23 @@ const (
 	EventTypeCaCertificate = "CA_CERTIFICATE"
 )
 
+// EventType_Values returns all elements of the EventType enum
+func EventType_Values() []string {
+	return []string{
+		EventTypeThing,
+		EventTypeThingGroup,
+		EventTypeThingType,
+		EventTypeThingGroupMembership,
+		EventTypeThingGroupHierarchy,
+		EventTypeThingTypeAssociation,
+		EventTypeJob,
+		EventTypeJobExecution,
+		EventTypePolicy,
+		EventTypeCertificate,
+		EventTypeCaCertificate,
+	}
+}
+
 const (
 	// FieldTypeNumber is a FieldType enum value
 	FieldTypeNumber = "Number"
@@ -50145,6 +54231,15 @@ const (
 	FieldTypeBoolean = "Boolean"
 )
 
+// FieldType_Values returns all elements of the FieldType enum
+func FieldType_Values() []string {
+	return []string{
+		FieldTypeNumber,
+		FieldTypeString,
+		FieldTypeBoolean,
+	}
+}
+
 const (
 	// IndexStatusActive is a IndexStatus enum value
 	IndexStatusActive = "ACTIVE"
@@ -50155,6 +54250,15 @@ const (
 	// IndexStatusRebuilding is a IndexStatus enum value
 	IndexStatusRebuilding = "REBUILDING"
 )
+
+// IndexStatus_Values returns all elements of the IndexStatus enum
+func IndexStatus_Values() []string {
+	return []string{
+		IndexStatusActive,
+		IndexStatusBuilding,
+		IndexStatusRebuilding,
+	}
+}
 
 const (
 	// JobExecutionFailureTypeFailed is a JobExecutionFailureType enum value
@@ -50169,6 +54273,16 @@ const (
 	// JobExecutionFailureTypeAll is a JobExecutionFailureType enum value
 	JobExecutionFailureTypeAll = "ALL"
 )
+
+// JobExecutionFailureType_Values returns all elements of the JobExecutionFailureType enum
+func JobExecutionFailureType_Values() []string {
+	return []string{
+		JobExecutionFailureTypeFailed,
+		JobExecutionFailureTypeRejected,
+		JobExecutionFailureTypeTimedOut,
+		JobExecutionFailureTypeAll,
+	}
+}
 
 const (
 	// JobExecutionStatusQueued is a JobExecutionStatus enum value
@@ -50196,6 +54310,20 @@ const (
 	JobExecutionStatusCanceled = "CANCELED"
 )
 
+// JobExecutionStatus_Values returns all elements of the JobExecutionStatus enum
+func JobExecutionStatus_Values() []string {
+	return []string{
+		JobExecutionStatusQueued,
+		JobExecutionStatusInProgress,
+		JobExecutionStatusSucceeded,
+		JobExecutionStatusFailed,
+		JobExecutionStatusTimedOut,
+		JobExecutionStatusRejected,
+		JobExecutionStatusRemoved,
+		JobExecutionStatusCanceled,
+	}
+}
+
 const (
 	// JobStatusInProgress is a JobStatus enum value
 	JobStatusInProgress = "IN_PROGRESS"
@@ -50209,6 +54337,16 @@ const (
 	// JobStatusDeletionInProgress is a JobStatus enum value
 	JobStatusDeletionInProgress = "DELETION_IN_PROGRESS"
 )
+
+// JobStatus_Values returns all elements of the JobStatus enum
+func JobStatus_Values() []string {
+	return []string{
+		JobStatusInProgress,
+		JobStatusCanceled,
+		JobStatusCompleted,
+		JobStatusDeletionInProgress,
+	}
+}
 
 const (
 	// LogLevelDebug is a LogLevel enum value
@@ -50227,6 +54365,17 @@ const (
 	LogLevelDisabled = "DISABLED"
 )
 
+// LogLevel_Values returns all elements of the LogLevel enum
+func LogLevel_Values() []string {
+	return []string{
+		LogLevelDebug,
+		LogLevelInfo,
+		LogLevelError,
+		LogLevelWarn,
+		LogLevelDisabled,
+	}
+}
+
 const (
 	// LogTargetTypeDefault is a LogTargetType enum value
 	LogTargetTypeDefault = "DEFAULT"
@@ -50235,6 +54384,14 @@ const (
 	LogTargetTypeThingGroup = "THING_GROUP"
 )
 
+// LogTargetType_Values returns all elements of the LogTargetType enum
+func LogTargetType_Values() []string {
+	return []string{
+		LogTargetTypeDefault,
+		LogTargetTypeThingGroup,
+	}
+}
+
 const (
 	// MessageFormatRaw is a MessageFormat enum value
 	MessageFormatRaw = "RAW"
@@ -50242,6 +54399,14 @@ const (
 	// MessageFormatJson is a MessageFormat enum value
 	MessageFormatJson = "JSON"
 )
+
+// MessageFormat_Values returns all elements of the MessageFormat enum
+func MessageFormat_Values() []string {
+	return []string{
+		MessageFormatRaw,
+		MessageFormatJson,
+	}
+}
 
 const (
 	// MitigationActionTypeUpdateDeviceCertificate is a MitigationActionType enum value
@@ -50263,6 +54428,18 @@ const (
 	MitigationActionTypePublishFindingToSns = "PUBLISH_FINDING_TO_SNS"
 )
 
+// MitigationActionType_Values returns all elements of the MitigationActionType enum
+func MitigationActionType_Values() []string {
+	return []string{
+		MitigationActionTypeUpdateDeviceCertificate,
+		MitigationActionTypeUpdateCaCertificate,
+		MitigationActionTypeAddThingsToThingGroup,
+		MitigationActionTypeReplaceDefaultPolicyVersion,
+		MitigationActionTypeEnableIotLogging,
+		MitigationActionTypePublishFindingToSns,
+	}
+}
+
 const (
 	// OTAUpdateStatusCreatePending is a OTAUpdateStatus enum value
 	OTAUpdateStatusCreatePending = "CREATE_PENDING"
@@ -50277,10 +54454,27 @@ const (
 	OTAUpdateStatusCreateFailed = "CREATE_FAILED"
 )
 
+// OTAUpdateStatus_Values returns all elements of the OTAUpdateStatus enum
+func OTAUpdateStatus_Values() []string {
+	return []string{
+		OTAUpdateStatusCreatePending,
+		OTAUpdateStatusCreateInProgress,
+		OTAUpdateStatusCreateComplete,
+		OTAUpdateStatusCreateFailed,
+	}
+}
+
 const (
 	// PolicyTemplateNameBlankPolicy is a PolicyTemplateName enum value
 	PolicyTemplateNameBlankPolicy = "BLANK_POLICY"
 )
+
+// PolicyTemplateName_Values returns all elements of the PolicyTemplateName enum
+func PolicyTemplateName_Values() []string {
+	return []string{
+		PolicyTemplateNameBlankPolicy,
+	}
+}
 
 const (
 	// ProtocolMqtt is a Protocol enum value
@@ -50290,6 +54484,14 @@ const (
 	ProtocolHttp = "HTTP"
 )
 
+// Protocol_Values returns all elements of the Protocol enum
+func Protocol_Values() []string {
+	return []string{
+		ProtocolMqtt,
+		ProtocolHttp,
+	}
+}
+
 const (
 	// ReportTypeErrors is a ReportType enum value
 	ReportTypeErrors = "ERRORS"
@@ -50297,6 +54499,14 @@ const (
 	// ReportTypeResults is a ReportType enum value
 	ReportTypeResults = "RESULTS"
 )
+
+// ReportType_Values returns all elements of the ReportType enum
+func ReportType_Values() []string {
+	return []string{
+		ReportTypeErrors,
+		ReportTypeResults,
+	}
+}
 
 const (
 	// ResourceTypeDeviceCertificate is a ResourceType enum value
@@ -50324,6 +54534,20 @@ const (
 	ResourceTypeIamRole = "IAM_ROLE"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeDeviceCertificate,
+		ResourceTypeCaCertificate,
+		ResourceTypeIotPolicy,
+		ResourceTypeCognitoIdentityPool,
+		ResourceTypeClientId,
+		ResourceTypeAccountSettings,
+		ResourceTypeRoleAlias,
+		ResourceTypeIamRole,
+	}
+}
+
 const (
 	// ServerCertificateStatusInvalid is a ServerCertificateStatus enum value
 	ServerCertificateStatusInvalid = "INVALID"
@@ -50331,6 +54555,14 @@ const (
 	// ServerCertificateStatusValid is a ServerCertificateStatus enum value
 	ServerCertificateStatusValid = "VALID"
 )
+
+// ServerCertificateStatus_Values returns all elements of the ServerCertificateStatus enum
+func ServerCertificateStatus_Values() []string {
+	return []string{
+		ServerCertificateStatusInvalid,
+		ServerCertificateStatusValid,
+	}
+}
 
 const (
 	// ServiceTypeData is a ServiceType enum value
@@ -50342,6 +54574,15 @@ const (
 	// ServiceTypeJobs is a ServiceType enum value
 	ServiceTypeJobs = "JOBS"
 )
+
+// ServiceType_Values returns all elements of the ServiceType enum
+func ServiceType_Values() []string {
+	return []string{
+		ServiceTypeData,
+		ServiceTypeCredentialProvider,
+		ServiceTypeJobs,
+	}
+}
 
 const (
 	// StatusInProgress is a Status enum value
@@ -50360,6 +54601,17 @@ const (
 	StatusCancelling = "Cancelling"
 )
 
+// Status_Values returns all elements of the Status enum
+func Status_Values() []string {
+	return []string{
+		StatusInProgress,
+		StatusCompleted,
+		StatusFailed,
+		StatusCancelled,
+		StatusCancelling,
+	}
+}
+
 const (
 	// TargetSelectionContinuous is a TargetSelection enum value
 	TargetSelectionContinuous = "CONTINUOUS"
@@ -50367,6 +54619,14 @@ const (
 	// TargetSelectionSnapshot is a TargetSelection enum value
 	TargetSelectionSnapshot = "SNAPSHOT"
 )
+
+// TargetSelection_Values returns all elements of the TargetSelection enum
+func TargetSelection_Values() []string {
+	return []string{
+		TargetSelectionContinuous,
+		TargetSelectionSnapshot,
+	}
+}
 
 const (
 	// ThingConnectivityIndexingModeOff is a ThingConnectivityIndexingMode enum value
@@ -50376,6 +54636,14 @@ const (
 	ThingConnectivityIndexingModeStatus = "STATUS"
 )
 
+// ThingConnectivityIndexingMode_Values returns all elements of the ThingConnectivityIndexingMode enum
+func ThingConnectivityIndexingMode_Values() []string {
+	return []string{
+		ThingConnectivityIndexingModeOff,
+		ThingConnectivityIndexingModeStatus,
+	}
+}
+
 const (
 	// ThingGroupIndexingModeOff is a ThingGroupIndexingMode enum value
 	ThingGroupIndexingModeOff = "OFF"
@@ -50383,6 +54651,14 @@ const (
 	// ThingGroupIndexingModeOn is a ThingGroupIndexingMode enum value
 	ThingGroupIndexingModeOn = "ON"
 )
+
+// ThingGroupIndexingMode_Values returns all elements of the ThingGroupIndexingMode enum
+func ThingGroupIndexingMode_Values() []string {
+	return []string{
+		ThingGroupIndexingModeOff,
+		ThingGroupIndexingModeOn,
+	}
+}
 
 const (
 	// ThingIndexingModeOff is a ThingIndexingMode enum value
@@ -50394,6 +54670,15 @@ const (
 	// ThingIndexingModeRegistryAndShadow is a ThingIndexingMode enum value
 	ThingIndexingModeRegistryAndShadow = "REGISTRY_AND_SHADOW"
 )
+
+// ThingIndexingMode_Values returns all elements of the ThingIndexingMode enum
+func ThingIndexingMode_Values() []string {
+	return []string{
+		ThingIndexingModeOff,
+		ThingIndexingModeRegistry,
+		ThingIndexingModeRegistryAndShadow,
+	}
+}
 
 const (
 	// TopicRuleDestinationStatusEnabled is a TopicRuleDestinationStatus enum value
@@ -50409,6 +54694,16 @@ const (
 	TopicRuleDestinationStatusError = "ERROR"
 )
 
+// TopicRuleDestinationStatus_Values returns all elements of the TopicRuleDestinationStatus enum
+func TopicRuleDestinationStatus_Values() []string {
+	return []string{
+		TopicRuleDestinationStatusEnabled,
+		TopicRuleDestinationStatusInProgress,
+		TopicRuleDestinationStatusDisabled,
+		TopicRuleDestinationStatusError,
+	}
+}
+
 const (
 	// ViolationEventTypeInAlarm is a ViolationEventType enum value
 	ViolationEventTypeInAlarm = "in-alarm"
@@ -50419,3 +54714,12 @@ const (
 	// ViolationEventTypeAlarmInvalidated is a ViolationEventType enum value
 	ViolationEventTypeAlarmInvalidated = "alarm-invalidated"
 )
+
+// ViolationEventType_Values returns all elements of the ViolationEventType enum
+func ViolationEventType_Values() []string {
+	return []string{
+		ViolationEventTypeInAlarm,
+		ViolationEventTypeAlarmCleared,
+		ViolationEventTypeAlarmInvalidated,
+	}
+}

@@ -1,0 +1,13 @@
+rules:
+  - id: helper-schema-ResourceData-GetOk-with-extraneous-conditional
+    languages: [go]
+    message: Zero value conditional check after `d.GetOk()` is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(bool) { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(int) != 0 { $BODY }
+        - pattern: if $VALUE, $OK := d.GetOk($KEY); $OK && $VALUE.(string) != "" { $BODY }
+    severity: WARNING

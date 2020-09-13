@@ -6,6 +6,8 @@ type SideNavigationOptions struct {
 	IgnoreDataSources []string
 	IgnoreResources   []string
 
+	Require bool
+
 	ProviderName string
 }
 

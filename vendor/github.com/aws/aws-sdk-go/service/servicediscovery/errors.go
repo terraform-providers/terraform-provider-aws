@@ -57,8 +57,10 @@ const (
 	// ErrCodeRequestLimitExceeded for service response error code
 	// "RequestLimitExceeded".
 	//
-	// The operation can't be completed because you've reached the limit on the
-	// number of requests.
+	// The operation can't be completed because you've reached the quota for the
+	// number of requests. For more information, see AWS Cloud Map API request throttling
+	// quota (https://docs.aws.amazon.com/cloud-map/latest/dg/throttling.html) in
+	// the AWS Cloud Map Developer Guide.
 	ErrCodeRequestLimitExceeded = "RequestLimitExceeded"
 
 	// ErrCodeResourceInUse for service response error code
@@ -71,7 +73,7 @@ const (
 	// ErrCodeResourceLimitExceeded for service response error code
 	// "ResourceLimitExceeded".
 	//
-	// The resource can't be created because you've reached the limit on the number
+	// The resource can't be created because you've reached the quota on the number
 	// of resources.
 	ErrCodeResourceLimitExceeded = "ResourceLimitExceeded"
 
@@ -97,7 +99,7 @@ const (
 	// ErrCodeTooManyTagsException for service response error code
 	// "TooManyTagsException".
 	//
-	// The list of tags on the resource is over the limit. The maximum number of
+	// The list of tags on the resource is over the quota. The maximum number of
 	// tags that can be applied to a resource is 50.
 	ErrCodeTooManyTagsException = "TooManyTagsException"
 )

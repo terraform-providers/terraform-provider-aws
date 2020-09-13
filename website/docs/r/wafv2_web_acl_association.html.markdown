@@ -10,6 +10,11 @@ description: |-
 
 Creates a WAFv2 Web ACL Association.
 
+~> **NOTE on associating a WAFv2 Web ACL with a Cloudfront distribution:** Do not use this resource to associate a WAFv2 Web ACL with a Cloudfront Distribution. The [AWS API call backing this resource][1] notes that you should use the [`web_acl_id`][2] property on the [`cloudfront_distribution`][2] instead.
+
+[1]: https://docs.aws.amazon.com/waf/latest/APIReference/API_AssociateWebACL.html
+[2]: /docs/providers/aws/r/cloudfront_distribution.html#web_acl_id
+
 ## Example Usage
 
 ```hcl
@@ -67,7 +72,6 @@ resource "aws_wafv2_web_acl_association" "example" {
   resource_arn = aws_api_gateway_stage.example.arn
   web_acl_arn  = aws_wafv2_web_acl.example.arn
 }
-
 ```
 
 

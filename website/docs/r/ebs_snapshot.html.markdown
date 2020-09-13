@@ -23,7 +23,7 @@ resource "aws_ebs_volume" "example" {
 }
 
 resource "aws_ebs_snapshot" "example_snapshot" {
-  volume_id = "${aws_ebs_volume.example.id}"
+  volume_id = aws_ebs_volume.example.id
 
   tags = {
     Name = "HelloWorld_snap"
@@ -51,6 +51,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - Amazon Resource Name (ARN) of the EBS Snapshot.
 * `id` - The snapshot ID (e.g. snap-59fcb34e).
 * `owner_id` - The AWS account ID of the EBS snapshot owner.
 * `owner_alias` - Value from an Amazon-maintained list (`amazon`, `aws-marketplace`, `microsoft`) of snapshot owners.
@@ -59,3 +60,11 @@ In addition to all arguments above, the following attributes are exported:
 * `kms_key_id` - The ARN for the KMS encryption key.
 * `data_encryption_key_id` - The data encryption key identifier for the snapshot.
 * `tags` - A map of tags for the snapshot.
+
+## Import
+
+EBS Snapshot can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_ebs_snapshot.id snap-049df61146c4d7901
+```

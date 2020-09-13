@@ -16,8 +16,8 @@ Get information on an EC2 Transit Gateway's attachment to a Direct Connect Gatew
 
 ```hcl
 data "aws_ec2_transit_gateway_dx_gateway_attachment" "example" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.example.id}"
-  dx_gateway_id      = "${aws_dx_gateway.example.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+  dx_gateway_id      = aws_dx_gateway.example.id
 }
 ```
 

@@ -6179,6 +6179,14 @@ const (
 	AcceleratorStatusInProgress = "IN_PROGRESS"
 )
 
+// AcceleratorStatus_Values returns all elements of the AcceleratorStatus enum
+func AcceleratorStatus_Values() []string {
+	return []string{
+		AcceleratorStatusDeployed,
+		AcceleratorStatusInProgress,
+	}
+}
+
 const (
 	// ByoipCidrStatePendingProvisioning is a ByoipCidrState enum value
 	ByoipCidrStatePendingProvisioning = "PENDING_PROVISIONING"
@@ -6214,6 +6222,23 @@ const (
 	ByoipCidrStateFailedDeprovision = "FAILED_DEPROVISION"
 )
 
+// ByoipCidrState_Values returns all elements of the ByoipCidrState enum
+func ByoipCidrState_Values() []string {
+	return []string{
+		ByoipCidrStatePendingProvisioning,
+		ByoipCidrStateReady,
+		ByoipCidrStatePendingAdvertising,
+		ByoipCidrStateAdvertising,
+		ByoipCidrStatePendingWithdrawing,
+		ByoipCidrStatePendingDeprovisioning,
+		ByoipCidrStateDeprovisioned,
+		ByoipCidrStateFailedProvision,
+		ByoipCidrStateFailedAdvertising,
+		ByoipCidrStateFailedWithdraw,
+		ByoipCidrStateFailedDeprovision,
+	}
+}
+
 const (
 	// ClientAffinityNone is a ClientAffinity enum value
 	ClientAffinityNone = "NONE"
@@ -6221,6 +6246,14 @@ const (
 	// ClientAffinitySourceIp is a ClientAffinity enum value
 	ClientAffinitySourceIp = "SOURCE_IP"
 )
+
+// ClientAffinity_Values returns all elements of the ClientAffinity enum
+func ClientAffinity_Values() []string {
+	return []string{
+		ClientAffinityNone,
+		ClientAffinitySourceIp,
+	}
+}
 
 const (
 	// HealthCheckProtocolTcp is a HealthCheckProtocol enum value
@@ -6233,6 +6266,15 @@ const (
 	HealthCheckProtocolHttps = "HTTPS"
 )
 
+// HealthCheckProtocol_Values returns all elements of the HealthCheckProtocol enum
+func HealthCheckProtocol_Values() []string {
+	return []string{
+		HealthCheckProtocolTcp,
+		HealthCheckProtocolHttp,
+		HealthCheckProtocolHttps,
+	}
+}
+
 const (
 	// HealthStateInitial is a HealthState enum value
 	HealthStateInitial = "INITIAL"
@@ -6244,10 +6286,26 @@ const (
 	HealthStateUnhealthy = "UNHEALTHY"
 )
 
+// HealthState_Values returns all elements of the HealthState enum
+func HealthState_Values() []string {
+	return []string{
+		HealthStateInitial,
+		HealthStateHealthy,
+		HealthStateUnhealthy,
+	}
+}
+
 const (
 	// IpAddressTypeIpv4 is a IpAddressType enum value
 	IpAddressTypeIpv4 = "IPV4"
 )
+
+// IpAddressType_Values returns all elements of the IpAddressType enum
+func IpAddressType_Values() []string {
+	return []string{
+		IpAddressTypeIpv4,
+	}
+}
 
 const (
 	// ProtocolTcp is a Protocol enum value
@@ -6256,3 +6314,11 @@ const (
 	// ProtocolUdp is a Protocol enum value
 	ProtocolUdp = "UDP"
 )
+
+// Protocol_Values returns all elements of the Protocol enum
+func Protocol_Values() []string {
+	return []string{
+		ProtocolTcp,
+		ProtocolUdp,
+	}
+}

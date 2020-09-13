@@ -2,27 +2,27 @@
 
 - [Acceptance Tests Often Cost Money to Run](#acceptance-tests-often-cost-money-to-run)
 - [Running an Acceptance Test](#running-an-acceptance-test)
-  - [Running Cross-Account Tests](#running-cross-account-tests)
-  - [Running Cross-Region Tests](#running-cross-region-tests)
+    - [Running Cross-Account Tests](#running-cross-account-tests)
+    - [Running Cross-Region Tests](#running-cross-region-tests)
 - [Writing an Acceptance Test](#writing-an-acceptance-test)
-  - [Anatomy of an Acceptance Test](#anatomy-of-an-acceptance-test)
-  - [Resource Acceptance Testing](#resource-acceptance-testing)
-    - [Test Configurations](#test-configurations)
-    - [Combining Test Configurations](#combining-test-configurations)
-      - [Base Test Configurations](#base-test-configurations)
-      - [Available Common Test Configurations](#available-common-test-configurations)
-    - [Randomized Naming](#randomized-naming)
-    - [Other Recommended Variables](#other-recommended-variables)
-    - [Basic Acceptance Tests](#basic-acceptance-tests)
-    - [Service Availability PreCheck](#service-availability-precheck)
-    - [Disappears Acceptance Tests](#disappears-acceptance-tests)
-    - [Per Attribute Acceptance Tests](#per-attribute-acceptance-tests)
-    - [Cross-Account Acceptance Tests](#cross-account-acceptance-tests)
-    - [Cross-Region Acceptance Tests](#cross-region-acceptance-tests)
-  - [Data Source Acceptance Testing](#data-source-acceptance-testing)
+    - [Anatomy of an Acceptance Test](#anatomy-of-an-acceptance-test)
+    - [Resource Acceptance Testing](#resource-acceptance-testing)
+        - [Test Configurations](#test-configurations)
+        - [Combining Test Configurations](#combining-test-configurations)
+            - [Base Test Configurations](#base-test-configurations)
+            - [Available Common Test Configurations](#available-common-test-configurations)
+        - [Randomized Naming](#randomized-naming)
+        - [Other Recommended Variables](#other-recommended-variables)
+        - [Basic Acceptance Tests](#basic-acceptance-tests)
+        - [Service Availability PreCheck](#service-availability-precheck)
+        - [Disappears Acceptance Tests](#disappears-acceptance-tests)
+        - [Per Attribute Acceptance Tests](#per-attribute-acceptance-tests)
+        - [Cross-Account Acceptance Tests](#cross-account-acceptance-tests)
+        - [Cross-Region Acceptance Tests](#cross-region-acceptance-tests)
+    - [Data Source Acceptance Testing](#data-source-acceptance-testing)
 - [Acceptance Test Sweepers](#acceptance-test-sweepers)
-  - [Running Test Sweepers](#running-test-sweepers)
-  - [Writing Test Sweepers](#writing-test-sweepers)
+    - [Running Test Sweepers](#running-test-sweepers)
+    - [Writing Test Sweepers](#writing-test-sweepers)
 - [Acceptance Test Checklist](#acceptance-test-checklist)
 
 Terraform includes an acceptance test harness that does most of the repetitive
@@ -61,18 +61,17 @@ export AWS_DEFAULT_REGION=...
 ```
 
 Please note that the default region for the testing is `us-west-2` and must be
-overriden via the `AWS_DEFAULT_REGION` environment variable, if necessary. This
+overridden via the `AWS_DEFAULT_REGION` environment variable, if necessary. This
 is especially important for testing AWS GovCloud (US), which requires:
 
 ```sh
 export AWS_DEFAULT_REGION=us-gov-west-1
 ```
 
-Tests can then be run by specifying the target provider and a regular
-expression defining the tests to run:
+Tests can then be run by specifying a regular expression defining the tests to run:
 
 ```sh
-$ make testacc TEST=./aws TESTARGS='-run=TestAccAWSCloudWatchDashboard_update'
+$ make testacc TESTARGS='-run=TestAccAWSCloudWatchDashboard_update'
 ==> Checking that code complies with gofmt requirements...
 TF_ACC=1 go test ./aws -v -run=TestAccAWSCloudWatchDashboard_update -timeout 120m
 === RUN   TestAccAWSCloudWatchDashboard_update
@@ -87,7 +86,7 @@ write the regular expression. For example, to run all tests of the
 testing like this:
 
 ```sh
-$ make testacc TEST=./aws TESTARGS='-run=TestAccAWSCloudWatchDashboard'
+$ make testacc TESTARGS='-run=TestAccAWSCloudWatchDashboard'
 ==> Checking that code complies with gofmt requirements...
 TF_ACC=1 go test ./aws -v -run=TestAccAWSCloudWatchDashboard -timeout 120m
 === RUN   TestAccAWSCloudWatchDashboard_importBasic
@@ -99,6 +98,8 @@ TF_ACC=1 go test ./aws -v -run=TestAccAWSCloudWatchDashboard -timeout 120m
 PASS
 ok  	github.com/terraform-providers/terraform-provider-aws/aws	55.619s
 ```
+
+Running acceptance tests requires version 0.12.26 or higher of the Terraform CLI to be installed.
 
 Please Note: On macOS 10.14 and later (and some Linux distributions), the default user open file limit is 256. This may cause unexpected issues when running the acceptance testing since this can prevent various operations from occurring such as opening network connections to AWS. To view this limit, the `ulimit -n` command can be run. To update this limit, run `ulimit -n 1024`  (or higher).
 
@@ -636,7 +637,7 @@ When testing requires AWS infrastructure in a second AWS account, the below chan
 - In the `PreCheck` function, include `testAccAlternateAccountPreCheck(t)` to ensure a standardized set of information is required for cross-account testing credentials
 - Declare a `providers` variable at the top of the test function: `var providers []*schema.Provider`
 - Switch usage of `Providers: testAccProviders` to `ProviderFactories: testAccProviderFactories(&providers)`
-- Add `testAccAlternateAccountProviderConfig()` to the test configuration and use `provider = "aws.alternate"` for cross-account resources. The resource that is the focus of the acceptance test should _not_ use the provider alias to simplify the testing setup.
+- Add `testAccAlternateAccountProviderConfig()` to the test configuration and use `provider = "awsalternate"` for cross-account resources. The resource that is the focus of the acceptance test should _not_ use the alternate provider identification to simplify the testing setup.
 - For any `TestStep` that includes `ImportState: true`, add the `Config` that matches the previous `TestStep` `Config`
 
 An example acceptance test implementation can be seen below:
@@ -674,9 +675,9 @@ func TestAccAwsExample_basic(t *testing.T) {
 func testAccAwsExampleConfig() string {
   return testAccAlternateAccountProviderConfig() + fmt.Sprintf(`
 # Cross account resources should be handled by the cross account provider.
-# The standardized provider alias is aws.alternate as seen below.
+# The standardized provider block to use is awsalternate as seen below.
 resource "aws_cross_account_example" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   # ... configuration ...
 }
@@ -699,7 +700,7 @@ When testing requires AWS infrastructure in a second or third AWS region, the be
 - In the `PreCheck` function, include `testAccMultipleRegionPreCheck(t, ###)` to ensure a standardized set of information is required for cross-region testing configuration. If the infrastructure in the second AWS region is also in a second AWS account also include `testAccAlternateAccountPreCheck(t)`
 - Declare a `providers` variable at the top of the test function: `var providers []*schema.Provider`
 - Switch usage of `Providers: testAccProviders` to `ProviderFactories: testAccProviderFactories(&providers)`
-- Add `testAccMultipleRegionProviderConfig(###)` to the test configuration and use `provider = "aws.alternate"` (and/or `provider = "aws.third"`) for cross-region resources. The resource that is the focus of the acceptance test should _not_ use the provider alias to simplify the testing setup. If the infrastructure in the second AWS region is also in a second AWS account use `testAccAlternateAccountAlternateRegionProviderConfig()` instead
+- Add `testAccMultipleRegionProviderConfig(###)` to the test configuration and use `provider = "awsalternate"` (and/or `provider = "awsthird"`) for cross-region resources. The resource that is the focus of the acceptance test should _not_ use the alternative providers to simplify the testing setup. If the infrastructure in the second AWS region is also in a second AWS account use `testAccAlternateAccountAlternateRegionProviderConfig()` instead
 - For any `TestStep` that includes `ImportState: true`, add the `Config` that matches the previous `TestStep` `Config`
 
 An example acceptance test implementation can be seen below:
@@ -737,9 +738,9 @@ func TestAccAwsExample_basic(t *testing.T) {
 func testAccAwsExampleConfig() string {
   return testAccMultipleRegionProviderConfig(2) + fmt.Sprintf(`
 # Cross region resources should be handled by the cross region provider.
-# The standardized provider alias is aws.alternate as seen below.
+# The standardized provider is awsalternate as seen below.
 resource "aws_cross_region_example" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   # ... configuration ...
 }
@@ -753,6 +754,22 @@ resource "aws_example" "test" {
 }
 ```
 
+#### Please Note
+
+When adding a new provider to the codebase for the purposes of cross-account/cross-region testing, please ensure the provider name in the config matches an entry in the list of factories in `provider_test.go`
+
+```hcl
+# provider block, ensure name does not include periods '.'
+provider "awsnewalternate" {
+  region = "us-west-3"
+}
+```
+
+```go
+// provider_testo.go in init()
+var providerNames = []string{"aws", "awseast", "awswest", "awsalternate", /* ... */ "awsnewalternate"}
+```
+
 Searching for usage of `testAccMultipleRegionPreCheck` in the codebase will yield real world examples of this setup in action.
 
 ### Data Source Acceptance Testing
@@ -762,7 +779,7 @@ Writing acceptance testing for data sources is similar to resources, with the bi
 - Adding `DataSource` to the test and configuration naming, such as `TestAccAwsExampleThingDataSource_Filter`
 - The basic test _may_ be named after the easiest lookup attribute instead, e.g. `TestAccAwsExampleThingDataSource_Name`
 - No disappears testing
-- Almost all checks should be done with [`resource.TestCheckResourceAttrPair()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/helper/resource?tab=doc#TestCheckResourceAttrPair) to compare the data source attributes to the resource attributes
+- Almost all checks should be done with [`resource.TestCheckResourceAttrPair()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource?tab=doc#TestCheckResourceAttrPair) to compare the data source attributes to the resource attributes
 - The usage of an additional `dataSourceName` variable to store a data source reference, e.g. `data.aws_example_thing.test`
 
 Data sources testing should still utilize the `CheckDestroy` function of the resource, just to continue verifying that there are no dangling AWS resources after a test is ran.
@@ -827,7 +844,7 @@ $ make sweep
 To run a specific resource sweeper:
 
 ```console
-$ SWEEPARGS=-sweep-run=aws_example_thing make sweep 
+$ SWEEPARGS=-sweep-run=aws_example_thing make sweep
 ```
 
 ### Writing Test Sweepers
@@ -997,18 +1014,25 @@ The below are location-based items that _may_ be noted during review and are rec
   }
   ```
 
-- [ ] __Uses aws_availability_zones Data Source__: Any hardcoded AWS Availability Zone configuration, e.g. `us-west-2a`, should be replaced with the [`aws_availability_zones` data source](https://www.terraform.io/docs/providers/aws/d/availability_zones.html). A common pattern is declaring `data "aws_availability_zones" "available" {...}` and referencing it via `data.aws_availability_zones.available.names[0]` or `data.aws_availability_zones.available.names[count.index]` in resources utilizing `count`.
+- [ ] __Uses aws_availability_zones Data Source__: Any hardcoded AWS Availability Zone configuration, e.g. `us-west-2a`, should be replaced with the [`aws_availability_zones` data source](https://www.terraform.io/docs/providers/aws/d/availability_zones.html). Use the convenience function called `testAccAvailableAZsNoOptInConfig()` (defined in `resource_aws_instance_test.go`) to declare `data "aws_availability_zones" "available" {...}`. You can then reference the data source via `data.aws_availability_zones.available.names[0]` or `data.aws_availability_zones.available.names[count.index]` in resources utilizing `count`.
 
-  ```hcl
-  data "aws_availability_zones" "available" {
-    state = "available"
+Here's an example of using `testAccAvailableAZsNoOptInConfig()` and `data.aws_availability_zones.available.names[0]`:
 
-    filter {
-      name   = "opt-in-status"
-      values = ["opt-in-not-required"]
-    }
+```go
+func testAccAwsInstanceVpcConfigBasic(rName string) string {
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+resource "aws_subnet" "test" {
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  cidr_block              = "10.0.0.0/24"
+  vpc_id                  = aws_vpc.test.id
+
+  tags = {
+    Name = %[1]q
   }
-  ```
+}
+`, rName)
+}
+```
 
 - [ ] __Uses aws_region Data Source__: Any hardcoded AWS Region configuration, e.g. `us-west-2`, should be replaced with the [`aws_region` data source](https://www.terraform.io/docs/providers/aws/d/region.html). A common pattern is declaring `data "aws_region" "current" {}` and referencing it via `data.aws_region.current.name`
 - [ ] __Uses aws_partition Data Source__: Any hardcoded AWS Partition configuration, e.g. the `aws` in a `arn:aws:SERVICE:REGION:ACCOUNT:RESOURCE` ARN, should be replaced with the [`aws_partition` data source](https://www.terraform.io/docs/providers/aws/d/partition.html). A common pattern is declaring `data "aws_partition" "current" {}` and referencing it via `data.aws_partition.current.partition`

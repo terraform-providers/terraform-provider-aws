@@ -24,12 +24,12 @@ The following arguments are supported:
 
 * `id` - (Optional) Identifier of the Outpost.
 * `name` - (Optional) Name of the Outpost.
+* `arn` - (Optional) Amazon Resource Name (ARN).
 
 ## Attribute Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `arn` - Amazon Resource Name (ARN).
 * `availability_zone` - Availability Zone name.
 * `availability_zone_id` - Availability Zone identifier.
 * `description` - Description.

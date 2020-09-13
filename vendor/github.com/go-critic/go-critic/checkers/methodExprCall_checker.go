@@ -4,15 +4,15 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/typep"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "methodExprCall"
 	info.Tags = []string{"style", "experimental"}
 	info.Summary = "Detects method expression call that can be replaced with a method call"
@@ -21,14 +21,14 @@ foo.bar(f)`
 	info.After = `f := foo{}
 f.bar()`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&methodExprCallChecker{ctx: ctx})
 	})
 }
 
 type methodExprCallChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *methodExprCallChecker) VisitExpr(x ast.Expr) {

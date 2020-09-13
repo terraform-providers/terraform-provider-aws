@@ -23,7 +23,7 @@ So, `err113` reports every `==` and `!=` comparison for exact `error` type varia
 
 Also, any call of `errors.New()` and `fmt.Errorf()` methods are reported except the calls used to initialise package-level variables and the `fmt.Errorf()` calls wrapping the other errors.
 
-Note: non-standard packages, like `github.com/pkg/errors` are ignored complitely.
+Note: non-standard packages, like `github.com/pkg/errors` are ignored completely.
 
 == Install
 
@@ -71,3 +71,5 @@ Flags:
 == Thanks
 
 To link:https://github.com/quasilyte[Iskander (Alex) Sharipov] for the really useful advices.
+
+To link:https://github.com/jackwhelpton[Jack Whelpton] for the bugfix provided.

@@ -23,14 +23,14 @@ resource "aws_ami_launch_permission" "example" {
 
 The following arguments are supported:
 
-  * `image_id` - (required) A region-unique name for the AMI.
-  * `account_id` - (required) An AWS Account ID to add launch permissions.
+* `image_id` - (required) A region-unique name for the AMI.
+* `account_id` - (required) An AWS Account ID to add launch permissions.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-  * `id` - A combination of "`image_id`-`account_id`".
+* `id` - A combination of "`image_id`-`account_id`".
 
 ## Import
 

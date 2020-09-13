@@ -1,14 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="https://terraform-dev-ed.my.salesforce.com" validUntil="2025-09-02T18:27:19.710Z">
-   <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-      <md:KeyDescriptor use="signing">
-         <ds:KeyInfo>
-            <ds:X509Data>
-               <ds:X509Certificate>MIIErDCCA5SgAwIBAgIOAU+PT8RBAAAAAHxJXEcwDQYJKoZIhvcNAQELBQAwgZAxKDAmBgNVBAMMH1NlbGZTaWduZWRDZXJ0XzAyU2VwMjAxNV8xODI2NTMxGDAWBgNVBAsMDzAwRDI0MDAwMDAwcEFvQTEXMBUGA1UECgwOU2FsZXNmb3JjZS5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xCzAJBgNVBAgMAkNBMQwwCgYDVQQGEwNVU0EwHhcNMTUwOTAyMTgyNjUzWhcNMTcwOTAyMTIwMDAwWjCBkDEoMCYGA1UEAwwfU2VsZlNpZ25lZENlcnRfMDJTZXAyMDE1XzE4MjY1MzEYMBYGA1UECwwPMDBEMjQwMDAwMDBwQW9BMRcwFQYDVQQKDA5TYWxlc2ZvcmNlLmNvbTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzELMAkGA1UECAwCQ0ExDDAKBgNVBAYTA1VTQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJp/wTRr9n1IWJpkRTjNpep47OKJrD2E6rGbJ18TG2RxtIz+zCn2JwH2aP3TULh0r0hhcg/pecv51RRcG7O19DBBaTQ5+KuoICQyKZy07/yDXSiZontTwkEYs06ssTwTHUcRXbcwTKv16L7omt0MjIhTTGfvtLOYiPwyvKvzAHg4eNuAcli0duVM78UIBORtdmy9C9ZcMh8yRJo5aPBq85wsE3JXU58ytyZzCHTBLH+2xFQrjYnUSEW+FOEEpI7o33MVdFBvWWg1R17HkWzcve4C30lqOHqvxBzyESZ/N1mMlmSt8gPFyB+mUXY99StJDJpnytbY8DwSzMQUo/sOVB0CAwEAAaOCAQAwgf0wHQYDVR0OBBYEFByu1EQqRQS0bYQBKS9K5qwKi+6IMA8GA1UdEwEB/wQFMAMBAf8wgcoGA1UdIwSBwjCBv4AUHK7URCpFBLRthAEpL0rmrAqL7oihgZakgZMwgZAxKDAmBgNVBAMMH1NlbGZTaWduZWRDZXJ0XzAyU2VwMjAxNV8xODI2NTMxGDAWBgNVBAsMDzAwRDI0MDAwMDAwcEFvQTEXMBUGA1UECgwOU2FsZXNmb3JjZS5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xCzAJBgNVBAgMAkNBMQwwCgYDVQQGEwNVU0GCDgFPj0/EQQAAAAB8SVxHMA0GCSqGSIb3DQEBCwUAA4IBAQA9O5o1tC71qJnkq+ABPo4A1aFKZVT/07GcBX4/wetcbYySL4Q2nR9pMgfPYYS1j+P2E3viPsQwPIWDUBwFkNsjjX5DSGEkLAioVGKRwJshRSCSynMcsVZbQkfBUiZXqhM0wzvoa/ALvGD+aSSb1m+x7lEpDYNwQKWaUW2VYcHWv9wjujMyy7dlj8E/jqM71mw7ThNl6k4+3RQ802dMa14txm8pkF0vZgfpV3tkqhBqtjBAicVCaveqr3r3iGqjvyilBgdY+0NR8szqzm7CD/Bkb22+/IgM/mXQuL9KHD/WADlSGmYKmG3SSahmcZxznYCnzcRNN9LVuXlz5cbljmBj</ds:X509Certificate>
-            </ds:X509Data>
-         </ds:KeyInfo>
-      </md:KeyDescriptor>
-      <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://terraform-dev-ed.my.salesforce.com/idp/endpoint/HttpPost"/>
-      <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://terraform-dev-ed.my.salesforce.com/idp/endpoint/HttpRedirect"/>
-   </md:IDPSSODescriptor>
+<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://terraform-dev-ed.my.salesforce.com" validUntil="2070-08-31T14:30:09Z">
+  <md:IDPSSODescriptor WantAuthnRequestsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIICfjCCAeegAwIBAgIBADANBgkqhkiG9w0BAQ0FADBbMQswCQYDVQQGEwJ1czELMAkGA1UECAwCQ0ExEjAQBgNVBAoMCVRlcnJhZm9ybTErMCkGA1UEAwwidGVycmFmb3JtLWRldi1lZC5teS5zYWxlc2ZvcmNlLmNvbTAgFw0yMDA4MjkxNDQ4MzlaGA8yMDcwMDgxNzE0NDgzOVowWzELMAkGA1UEBhMCdXMxCzAJBgNVBAgMAkNBMRIwEAYDVQQKDAlUZXJyYWZvcm0xKzApBgNVBAMMInRlcnJhZm9ybS1kZXYtZWQubXkuc2FsZXNmb3JjZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOxUTzEKdivVjfZ/BERGpX/ZWQsBKHut17dQTKW/3jox1N9EJ3ULj9qEDen6zQ74Ce8hSEkrG7MP9mcP1oEhQZSca5tTAop1GejJG+bfF4v6cXM9pqHlllrYrmXMfESiahqhBhE8VvoGJkvp393TcB1lX+WxO8Q74demTrQn5tgvAgMBAAGjUDBOMB0GA1UdDgQWBBREKZt4Av70WKQE4aLD2tvbSLnBlzAfBgNVHSMEGDAWgBREKZt4Av70WKQE4aLD2tvbSLnBlzAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBACxeC29WMGqeOlQF4JWwsYwIC82SUaZvMDqjAm9ieIrAZRH6J6Cu40c/rvsUGUjQ9logKX15RAyI7Rn0jBUgopRkNL71HyyM7ug4qN5An05VmKQWIbVfxkNVB2Ipb/ICMc5UE38G4y4VbANZFvbFbkVq6OAP2GGNl22o/XSnhFY8</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://terraform-dev-ed.my.salesforce.com/idp/endpoint/HttpPost"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://terraform-dev-ed.my.salesforce.com/idp/endpoint/HttpRedirect"/>
+  </md:IDPSSODescriptor>
 </md:EntityDescriptor>

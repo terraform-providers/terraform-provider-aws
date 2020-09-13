@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -9,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -133,6 +134,7 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 		CidrBlock:                   aws.String(d.Get("cidr_block").(string)),
 		InstanceTenancy:             aws.String(d.Get("instance_tenancy").(string)),
 		AmazonProvidedIpv6CidrBlock: aws.Bool(d.Get("assign_generated_ipv6_cidr_block").(bool)),
+		TagSpecifications:           ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeVpc),
 	}
 
 	log.Printf("[DEBUG] VPC create config: %#v", *createOpts)
@@ -218,12 +220,6 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 
 		if _, err := conn.EnableVpcClassicLinkDnsSupport(input); err != nil {
 			return fmt.Errorf("error enabling VPC (%s) ClassicLink DNS support: %s", d.Id(), err)
-		}
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v); err != nil {
-			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
 
@@ -549,7 +545,7 @@ func resourceAwsVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceAwsVpcCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func resourceAwsVpcCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	if diff.HasChange("assign_generated_ipv6_cidr_block") {
 		if err := diff.SetNewComputed("ipv6_association_id"); err != nil {
 			return fmt.Errorf("error setting ipv6_association_id to computed: %s", err)

@@ -6,9 +6,10 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -19,6 +20,10 @@ func dataSourceAwsVpcEndpointService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"acceptance_required": {
 				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"arn": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"availability_zones": {
@@ -133,9 +138,20 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	sd := resp.ServiceDetails[0]
+	serviceId := aws.StringValue(sd.ServiceId)
 	serviceName = aws.StringValue(sd.ServiceName)
+
 	d.SetId(strconv.Itoa(hashcode.String(serviceName)))
-	d.Set("service_name", serviceName)
+
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ec2",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("vpc-endpoint-service/%s", serviceId),
+	}.String()
+	d.Set("arn", arn)
+
 	d.Set("acceptance_required", sd.AcceptanceRequired)
 	err = d.Set("availability_zones", flattenStringSet(sd.AvailabilityZones))
 	if err != nil {
@@ -148,7 +164,8 @@ func dataSourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("manages_vpc_endpoints", sd.ManagesVpcEndpoints)
 	d.Set("owner", sd.Owner)
 	d.Set("private_dns_name", sd.PrivateDnsName)
-	d.Set("service_id", sd.ServiceId)
+	d.Set("service_id", serviceId)
+	d.Set("service_name", serviceName)
 	d.Set("service_type", sd.ServiceType[0].ServiceType)
 	err = d.Set("tags", keyvaluetags.Ec2KeyValueTags(sd.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
 	if err != nil {

@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
@@ -61,17 +62,22 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_ClusterMode(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  state = "available"
+func TestAccDataSourceAwsElasticacheReplicationGroup_NonExistent(t *testing.T) {
 
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDataSourceAwsElasticacheReplicationGroupConfig_NonExistent,
+				ExpectError: regexp.MustCompile(`not found`),
+			},
+		},
+	})
 }
 
+func testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName string) string {
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
 resource "aws_elasticache_replication_group" "test" {
   replication_group_id          = %[1]q
   replication_group_description = "test description"
@@ -109,3 +115,9 @@ data "aws_elasticache_replication_group" "test" {
 }
 `, rName)
 }
+
+const testAccDataSourceAwsElasticacheReplicationGroupConfig_NonExistent = `
+data "aws_elasticache_replication_group" "test" {
+  replication_group_id = "tf-acc-test-nonexistent"
+}
+`

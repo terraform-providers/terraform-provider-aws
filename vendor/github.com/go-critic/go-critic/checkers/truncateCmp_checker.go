@@ -5,17 +5,17 @@ import (
 	"go/token"
 	"go/types"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 	"github.com/go-toolsmith/astp"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "truncateCmp"
 	info.Tags = []string{"diagnostic", "experimental"}
-	info.Params = lintpack.CheckerParams{
+	info.Params = linter.CheckerParams{
 		"skipArchDependent": {
 			Value: true,
 			Usage: "whether to skip int/uint/uintptr types",
@@ -31,7 +31,7 @@ func f(x int32, int16) bool {
   return x < int32(y)
 }`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		c := &truncateCmpChecker{ctx: ctx}
 		c.skipArchDependent = info.Params.Bool("skipArchDependent")
 		return astwalk.WalkerForExpr(c)
@@ -40,7 +40,7 @@ func f(x int32, int16) bool {
 
 type truncateCmpChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 
 	skipArchDependent bool
 }

@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsInternetGateway_typical(t *testing.T) {
@@ -48,7 +48,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_internet_gateway" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name = "terraform-testacc-data-source-igw"
@@ -56,19 +56,19 @@ resource "aws_internet_gateway" "test" {
 }
 
 data "aws_internet_gateway" "by_id" {
-  internet_gateway_id = "${aws_internet_gateway.test.id}"
+  internet_gateway_id = aws_internet_gateway.test.id
 }
 
 data "aws_internet_gateway" "by_tags" {
   tags = {
-    Name = "${aws_internet_gateway.test.tags["Name"]}"
+    Name = aws_internet_gateway.test.tags["Name"]
   }
 }
 
 data "aws_internet_gateway" "by_filter" {
   filter {
-    name = "internet-gateway-id"
-    values = ["${aws_internet_gateway.test.id}"]
+    name   = "internet-gateway-id"
+    values = [aws_internet_gateway.test.id]
   }
 }
 `

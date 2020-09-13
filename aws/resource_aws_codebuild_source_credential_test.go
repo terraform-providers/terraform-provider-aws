@@ -8,12 +8,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSCodeBuildSourceCredential_Basic(t *testing.T) {
+func TestAccAWSCodeBuildSourceCredential_basic(t *testing.T) {
 	var sourceCredentialsInfo codebuild.SourceCredentialsInfo
 	token := acctest.RandomWithPrefix("token")
 	resourceName := "aws_codebuild_source_credential.test"
@@ -146,9 +146,9 @@ func testAccCheckAWSCodeBuildSourceCredentialExists(name string, sourceCredentia
 func testAccAWSCodeBuildSourceCredential_Basic(authType, serverType, token string) string {
 	return fmt.Sprintf(`
 resource "aws_codebuild_source_credential" "test" {
-  auth_type = "%s"
+  auth_type   = "%s"
   server_type = "%s"
-  token = "%s"
+  token       = "%s"
 }
 `, authType, serverType, token)
 }
@@ -156,10 +156,10 @@ resource "aws_codebuild_source_credential" "test" {
 func testAccAWSCodeBuildSourceCredential_BasicAuth(token, userName string) string {
 	return fmt.Sprintf(`
 resource "aws_codebuild_source_credential" "test" {
-  auth_type = "BASIC_AUTH"
+  auth_type   = "BASIC_AUTH"
   server_type = "BITBUCKET"
-  token = "%s"
-  user_name = "%s"
+  token       = "%s"
+  user_name   = "%s"
 }
 `, token, userName)
 }

@@ -4,23 +4,23 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccDataSourceAwsRoute53ResolverRules_basic(t *testing.T) {
 	dsResourceName := "data.aws_route53_resolver_rules.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
-		Providers:           testAccProviders,
-		DisableBinaryDriver: true,
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsRoute53ResolverRules_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dsResourceName, "resolver_rule_ids.#", "1"),
-					resource.TestCheckResourceAttr(dsResourceName, "resolver_rule_ids.1743502667", "rslvr-autodefined-rr-internet-resolver"),
+					tfawsresource.TestCheckTypeSetElemAttr(dsResourceName, "resolver_rule_ids.*", "rslvr-autodefined-rr-internet-resolver"),
 				),
 			},
 		},
@@ -66,7 +66,7 @@ resource "aws_route53_resolver_rule" "forward" {
   rule_type   = "FORWARD"
   name        = %[1]q
 
-  resolver_endpoint_id = "${aws_route53_resolver_endpoint.bar.id}"
+  resolver_endpoint_id = aws_route53_resolver_endpoint.bar.id
 
   target_ip {
     ip = "192.0.2.7"
@@ -80,15 +80,15 @@ resource "aws_route53_resolver_rule" "recursive" {
 }
 
 data "aws_route53_resolver_rules" "by_resolver_endpoint_id" {
-  owner_id             = "${aws_route53_resolver_rule.forward.owner_id}"
-  resolver_endpoint_id = "${aws_route53_resolver_rule.forward.resolver_endpoint_id}"
+  owner_id             = aws_route53_resolver_rule.forward.owner_id
+  resolver_endpoint_id = aws_route53_resolver_rule.forward.resolver_endpoint_id
 }
 
 data "aws_route53_resolver_rules" "by_resolver_endpoint_id_rule_type_share_status" {
-  owner_id             = "${aws_route53_resolver_rule.recursive.owner_id}"
-  resolver_endpoint_id = "${aws_route53_resolver_rule.recursive.resolver_endpoint_id}"
-  rule_type            = "${aws_route53_resolver_rule.recursive.rule_type}"
-  share_status         = "${aws_route53_resolver_rule.recursive.share_status}"
+  owner_id             = aws_route53_resolver_rule.recursive.owner_id
+  resolver_endpoint_id = aws_route53_resolver_rule.recursive.resolver_endpoint_id
+  rule_type            = aws_route53_resolver_rule.recursive.rule_type
+  share_status         = aws_route53_resolver_rule.recursive.share_status
 }
 
 data "aws_route53_resolver_rules" "by_invalid_owner_id" {

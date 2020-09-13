@@ -80,15 +80,15 @@ const (
 // color on windows
 var winColorsMap map[Color]uint16
 
+// related docs
+// https://docs.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
+// https://docs.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences#samples
 var (
-	// for cmd.exe
-	// echo %ESC%[1;33;40m Yellow on black %ESC%[0m
-	escChar = ""
 	// isMSys bool
 	kernel32 *syscall.LazyDLL
 
 	procGetConsoleMode *syscall.LazyProc
-	// procSetConsoleMode *syscall.LazyProc
+	procSetConsoleMode *syscall.LazyProc
 
 	procSetTextAttribute           *syscall.LazyProc
 	procGetConsoleScreenBufferInfo *syscall.LazyProc
@@ -104,16 +104,17 @@ func init() {
 		return
 	}
 
-	// init some info
+	// init simple color code info
 	isLikeInCmd = true
 	initWinColorsMap()
 
+	// load related windows dll
 	// isMSys = utils.IsMSys()
 	kernel32 = syscall.NewLazyDLL("kernel32.dll")
 
 	// https://docs.microsoft.com/en-us/windows/console/setconsolemode
 	procGetConsoleMode = kernel32.NewProc("GetConsoleMode")
-	// procSetConsoleMode = kernel32.NewProc("SetConsoleMode")
+	procSetConsoleMode = kernel32.NewProc("SetConsoleMode")
 
 	procSetTextAttribute = kernel32.NewProc("SetConsoleTextAttribute")
 	// https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo
@@ -122,6 +123,73 @@ func init() {
 	// fetch console screen buffer info
 	// err := getConsoleScreenBufferInfo(uintptr(syscall.Stdout), &defScreenInfo)
 }
+
+/*************************************************************
+ * render full color code on windows(8,16,24bit color)
+ *************************************************************/
+
+// docs https://docs.microsoft.com/zh-cn/windows/console/getconsolemode#parameters
+const (
+	// equals to docs page's ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+	EnableVirtualTerminalProcessingMode uint32 = 0x4
+)
+
+// EnableVirtualTerminalProcessing Enable virtual terminal processing
+//
+// ref from github.com/konsorten/go-windows-terminal-sequences
+// doc https://docs.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences#samples
+//
+// Usage:
+// 	err := EnableVirtualTerminalProcessing(syscall.Stdout, true)
+// 	// support print color text
+// 	err = EnableVirtualTerminalProcessing(syscall.Stdout, false)
+func EnableVirtualTerminalProcessing(stream syscall.Handle, enable bool) error {
+	var mode uint32
+	// Check if it is currently in the terminal
+	err := syscall.GetConsoleMode(syscall.Stdout, &mode)
+	if err != nil {
+		return err
+	}
+
+	if enable {
+		mode |= EnableVirtualTerminalProcessingMode
+	} else {
+		mode &^= EnableVirtualTerminalProcessingMode
+	}
+
+	ret, _, err := procSetConsoleMode.Call(uintptr(unsafe.Pointer(stream)), uintptr(mode))
+	if ret == 0 {
+		return err
+	}
+
+	return nil
+}
+
+// renderColorCodeOnCmd enable cmd color render.
+func renderColorCodeOnCmd(fn func()) {
+	err := EnableVirtualTerminalProcessing(syscall.Stdout, true)
+	// if is not in terminal, will clear color tag.
+	if err != nil {
+		// panic(err)
+		fn()
+		return
+	}
+
+	// force open color render
+	old := ForceOpenColor()
+	fn()
+	// revert color setting
+	isSupportColor = old
+
+	err = EnableVirtualTerminalProcessing(syscall.Stdout, false)
+	if err != nil {
+		panic(err)
+	}
+}
+
+/*************************************************************
+ * render simple color code on windows
+ *************************************************************/
 
 // initWinColorsMap init colors to win-colors mapping
 func initWinColorsMap() {
@@ -185,12 +253,12 @@ func initWinColorsMap() {
 
 // winPrint
 func winPrint(str string, colors ...Color) {
-	_, _ = winInternalPrint(str, convertColorsToWinAttr(colors), false)
+	_, _ = winInternalPrint(str, colorsToWinAttr(colors), false)
 }
 
 // winPrintln
 func winPrintln(str string, colors ...Color) {
-	_, _ = winInternalPrint(str, convertColorsToWinAttr(colors), true)
+	_, _ = winInternalPrint(str, colorsToWinAttr(colors), true)
 }
 
 // winInternalPrint
@@ -198,19 +266,17 @@ func winPrintln(str string, colors ...Color) {
 func winInternalPrint(str string, attribute uint16, newline bool) (int, error) {
 	if !Enable { // not enable
 		if newline {
-			return fmt.Println(str)
+			return fmt.Fprintln(output, str)
 		}
-
-		return fmt.Print(str)
+		return fmt.Fprint(output, str)
 	}
 
 	// fmt.Print("attribute val: ", attribute, "\n")
 	_, _ = setConsoleTextAttr(uintptr(syscall.Stdout), attribute)
-
 	if newline {
-		fmt.Println(str)
+		_, _ = fmt.Fprintln(output, str)
 	} else {
-		fmt.Print(str)
+		_, _ = fmt.Fprint(output, str)
 	}
 
 	// handle, _, _ = procSetTextAttribute.Call(uintptr(syscall.Stdout), winDefSetting)
@@ -220,19 +286,14 @@ func winInternalPrint(str string, attribute uint16, newline bool) (int, error) {
 	return winReset()
 }
 
-// func winRender(str string, colors ...Color) string {
-// 	setConsoleTextAttr(uintptr(syscall.Stdout), convertColorsToWinAttr(colors))
-//
-// 	return str
-// }
-
 // winSet set console color attributes
 func winSet(colors ...Color) (int, error) {
-	if !Enable { // not enable
+	// not enable
+	if !Enable {
 		return 0, nil
 	}
 
-	return setConsoleTextAttr(uintptr(syscall.Stdout), convertColorsToWinAttr(colors))
+	return setConsoleTextAttr(uintptr(syscall.Stdout), colorsToWinAttr(colors))
 }
 
 // winReset reset color settings to default
@@ -245,8 +306,8 @@ func winReset() (int, error) {
 	return setConsoleTextAttr(uintptr(syscall.Stdout), winDefSetting)
 }
 
-// convertColorsToWinAttr convert generic colors to win-colors attribute
-func convertColorsToWinAttr(colors []Color) uint16 {
+// colorsToWinAttr convert generic colors to win-colors attribute
+func colorsToWinAttr(colors []Color) uint16 {
 	var setting uint16
 	for _, c := range colors {
 		// check exists
@@ -299,10 +360,14 @@ func IsTerminal(fd int) bool {
 	return r != 0 && e == 0
 }
 
+/*************************************************************
+ * some extra utils for windows
+ *************************************************************/
+
 // from package: golang.org/x/sys/windows
 type (
 	short int16
-	word uint16
+	word  uint16
 
 	// coord cursor position coordinates
 	coord struct {

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsLBCookieStickinessPolicy() *schema.Resource {
@@ -138,7 +138,11 @@ func resourceAwsLBCookieStickinessPolicyRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", policyName)
 	d.Set("load_balancer", lbName)
-	d.Set("lb_port", lbPort)
+	lbPortInt, err := strconv.Atoi(lbPort)
+	if err != nil {
+		return err
+	}
+	d.Set("lb_port", lbPortInt)
 
 	return nil
 }

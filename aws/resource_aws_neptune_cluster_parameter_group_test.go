@@ -8,9 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSNeptuneClusterParameterGroup_basic(t *testing.T) {
@@ -136,10 +137,9 @@ func TestAccAWSNeptuneClusterParameterGroup_Parameter(t *testing.T) {
 	parameterGroupName := acctest.RandomWithPrefix("cluster-parameter-group-test-tf")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSNeptuneClusterParameterGroupDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSNeptuneClusterParameterGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSNeptuneClusterParameterGroupConfig_Parameter(parameterGroupName, "neptune_enable_audit_log", "1"),
@@ -147,9 +147,11 @@ func TestAccAWSNeptuneClusterParameterGroup_Parameter(t *testing.T) {
 					testAccCheckAWSNeptuneClusterParameterGroupExists(resourceName, &v),
 					testAccCheckAWSNeptuneClusterParameterGroupAttributes(&v, parameterGroupName),
 					resource.TestCheckResourceAttr(resourceName, "parameter.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.709171678.apply_method", "pending-reboot"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.709171678.name", "neptune_enable_audit_log"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.709171678.value", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"apply_method": "pending-reboot",
+						"name":         "neptune_enable_audit_log",
+						"value":        "1",
+					}),
 				),
 			},
 			{
@@ -163,9 +165,11 @@ func TestAccAWSNeptuneClusterParameterGroup_Parameter(t *testing.T) {
 					testAccCheckAWSNeptuneClusterParameterGroupExists(resourceName, &v),
 					testAccCheckAWSNeptuneClusterParameterGroupAttributes(&v, parameterGroupName),
 					resource.TestCheckResourceAttr(resourceName, "parameter.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.861808799.apply_method", "pending-reboot"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.861808799.name", "neptune_enable_audit_log"),
-					resource.TestCheckResourceAttr(resourceName, "parameter.861808799.value", "0"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "parameter.*", map[string]string{
+						"apply_method": "pending-reboot",
+						"name":         "neptune_enable_audit_log",
+						"value":        "0",
+					}),
 				),
 			},
 		},
@@ -253,7 +257,6 @@ func testAccCheckAWSNeptuneClusterParameterGroupDestroy(s *terraform.State) erro
 
 func testAccCheckAWSNeptuneClusterParameterGroupAttributes(v *neptune.DBClusterParameterGroup, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		if *v.DBClusterParameterGroupName != name {
 			return fmt.Errorf("bad name: %#v expected: %v", *v.DBClusterParameterGroupName, name)
 		}
@@ -352,6 +355,7 @@ resource "aws_neptune_cluster_parameter_group" "test" {
   name_prefix = "tf-test-"
 }
 `
+
 const testAccAWSNeptuneClusterParameterGroupConfig_generatedName = `
 resource "aws_neptune_cluster_parameter_group" "test" {
   family = "neptune1"

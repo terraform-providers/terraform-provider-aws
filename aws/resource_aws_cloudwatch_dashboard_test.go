@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudWatchDashboard_basic(t *testing.T) {
@@ -177,29 +177,33 @@ func testAccCheckAWSCloudWatchDashboardDestroyPrevious(dashboardName string) res
 
 const (
 	basicWidget = `{
-  "widgets": [{
-    "type": "text",
-    "x": 0,
-    "y": 0,
-    "width": 6,
-    "height": 6,
-    "properties": {
-      "markdown": "Hi there from Terraform: CloudWatch"
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "markdown": "Hi there from Terraform: CloudWatch"
+      }
     }
-  }]
+  ]
 }`
 
 	updatedWidget = `{
-  "widgets": [{
-    "type": "text",
-    "x": 0,
-    "y": 0,
-    "width": 6,
-    "height": 6,
-    "properties": {
-      "markdown": "Hi there from Terraform: CloudWatch - updated"
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "markdown": "Hi there from Terraform: CloudWatch - updated"
+      }
     }
-  }]
+  ]
 }`
 )
 
@@ -214,7 +218,7 @@ resource "aws_cloudwatch_dashboard" "test" {
 
   dashboard_body = <<EOF
   %s
-  EOF
+EOF
 }
 `, rInt, basicWidget)
 }
@@ -226,7 +230,7 @@ resource "aws_cloudwatch_dashboard" "test" {
 
   dashboard_body = <<EOF
   %s
-  EOF
+EOF
 }
 `, rInt, updatedWidget)
 }

@@ -13,6 +13,119 @@ import (
 	"github.com/aws/aws-sdk-go/private/protocol/restjson"
 )
 
+const opCreateGatewayRoute = "CreateGatewayRoute"
+
+// CreateGatewayRouteRequest generates a "aws/request.Request" representing the
+// client's request for the CreateGatewayRoute operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateGatewayRoute for more information on using the CreateGatewayRoute
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateGatewayRouteRequest method.
+//    req, resp := client.CreateGatewayRouteRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/CreateGatewayRoute
+func (c *AppMesh) CreateGatewayRouteRequest(input *CreateGatewayRouteInput) (req *request.Request, output *CreateGatewayRouteOutput) {
+	op := &request.Operation{
+		Name:       opCreateGatewayRoute,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes",
+	}
+
+	if input == nil {
+		input = &CreateGatewayRouteInput{}
+	}
+
+	output = &CreateGatewayRouteOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateGatewayRoute API operation for AWS App Mesh.
+//
+// Creates a gateway route.
+//
+// A gateway route is attached to a virtual gateway and routes traffic to an
+// existing virtual service. If a route matches a request, it can distribute
+// traffic to a target virtual service.
+//
+// For more information about gateway routes, see Gateway routes (https://docs.aws.amazon.com/app-mesh/latest/userguide/gateway-routes.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation CreateGatewayRoute for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ConflictException
+//   The request contains a client token that was used for a previous update resource
+//   call with different specifications. Try the request again with a new client
+//   token.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * LimitExceededException
+//   You have exceeded a service limit for your account. For more information,
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
+//   in the AWS App Mesh User Guide.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/CreateGatewayRoute
+func (c *AppMesh) CreateGatewayRoute(input *CreateGatewayRouteInput) (*CreateGatewayRouteOutput, error) {
+	req, out := c.CreateGatewayRouteRequest(input)
+	return out, req.Send()
+}
+
+// CreateGatewayRouteWithContext is the same as CreateGatewayRoute with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateGatewayRoute for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) CreateGatewayRouteWithContext(ctx aws.Context, input *CreateGatewayRouteInput, opts ...request.Option) (*CreateGatewayRouteOutput, error) {
+	req, out := c.CreateGatewayRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opCreateMesh = "CreateMesh"
 
 // CreateMeshRequest generates a "aws/request.Request" representing the
@@ -234,6 +347,121 @@ func (c *AppMesh) CreateRoute(input *CreateRouteInput) (*CreateRouteOutput, erro
 // for more information on using Contexts.
 func (c *AppMesh) CreateRouteWithContext(ctx aws.Context, input *CreateRouteInput, opts ...request.Option) (*CreateRouteOutput, error) {
 	req, out := c.CreateRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opCreateVirtualGateway = "CreateVirtualGateway"
+
+// CreateVirtualGatewayRequest generates a "aws/request.Request" representing the
+// client's request for the CreateVirtualGateway operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See CreateVirtualGateway for more information on using the CreateVirtualGateway
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the CreateVirtualGatewayRequest method.
+//    req, resp := client.CreateVirtualGatewayRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/CreateVirtualGateway
+func (c *AppMesh) CreateVirtualGatewayRequest(input *CreateVirtualGatewayInput) (req *request.Request, output *CreateVirtualGatewayOutput) {
+	op := &request.Operation{
+		Name:       opCreateVirtualGateway,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateways",
+	}
+
+	if input == nil {
+		input = &CreateVirtualGatewayInput{}
+	}
+
+	output = &CreateVirtualGatewayOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateVirtualGateway API operation for AWS App Mesh.
+//
+// Creates a virtual gateway.
+//
+// A virtual gateway allows resources outside your mesh to communicate to resources
+// that are inside your mesh. The virtual gateway represents an Envoy proxy
+// running in an Amazon ECS task, in a Kubernetes service, or on an Amazon EC2
+// instance. Unlike a virtual node, which represents an Envoy running with an
+// application, a virtual gateway represents Envoy deployed by itself.
+//
+// For more information about virtual gateways, see Virtual gateways (https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual_gateways.html).
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation CreateVirtualGateway for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ConflictException
+//   The request contains a client token that was used for a previous update resource
+//   call with different specifications. Try the request again with a new client
+//   token.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * LimitExceededException
+//   You have exceeded a service limit for your account. For more information,
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
+//   in the AWS App Mesh User Guide.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/CreateVirtualGateway
+func (c *AppMesh) CreateVirtualGateway(input *CreateVirtualGatewayInput) (*CreateVirtualGatewayOutput, error) {
+	req, out := c.CreateVirtualGatewayRequest(input)
+	return out, req.Send()
+}
+
+// CreateVirtualGatewayWithContext is the same as CreateVirtualGateway with the addition of
+// the ability to pass a context and additional request options.
+//
+// See CreateVirtualGateway for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) CreateVirtualGatewayWithContext(ctx aws.Context, input *CreateVirtualGatewayInput, opts ...request.Option) (*CreateVirtualGatewayOutput, error) {
+	req, out := c.CreateVirtualGatewayRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -599,6 +827,107 @@ func (c *AppMesh) CreateVirtualServiceWithContext(ctx aws.Context, input *Create
 	return out, req.Send()
 }
 
+const opDeleteGatewayRoute = "DeleteGatewayRoute"
+
+// DeleteGatewayRouteRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteGatewayRoute operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteGatewayRoute for more information on using the DeleteGatewayRoute
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteGatewayRouteRequest method.
+//    req, resp := client.DeleteGatewayRouteRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DeleteGatewayRoute
+func (c *AppMesh) DeleteGatewayRouteRequest(input *DeleteGatewayRouteInput) (req *request.Request, output *DeleteGatewayRouteOutput) {
+	op := &request.Operation{
+		Name:       opDeleteGatewayRoute,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}",
+	}
+
+	if input == nil {
+		input = &DeleteGatewayRouteInput{}
+	}
+
+	output = &DeleteGatewayRouteOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteGatewayRoute API operation for AWS App Mesh.
+//
+// Deletes an existing gateway route.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation DeleteGatewayRoute for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ResourceInUseException
+//   You can't delete the specified resource because it's in use or required by
+//   another resource.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DeleteGatewayRoute
+func (c *AppMesh) DeleteGatewayRoute(input *DeleteGatewayRouteInput) (*DeleteGatewayRouteOutput, error) {
+	req, out := c.DeleteGatewayRouteRequest(input)
+	return out, req.Send()
+}
+
+// DeleteGatewayRouteWithContext is the same as DeleteGatewayRoute with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteGatewayRoute for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) DeleteGatewayRouteWithContext(ctx aws.Context, input *DeleteGatewayRouteInput, opts ...request.Option) (*DeleteGatewayRouteOutput, error) {
+	req, out := c.DeleteGatewayRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteMesh = "DeleteMesh"
 
 // DeleteMeshRequest generates a "aws/request.Request" representing the
@@ -799,6 +1128,108 @@ func (c *AppMesh) DeleteRoute(input *DeleteRouteInput) (*DeleteRouteOutput, erro
 // for more information on using Contexts.
 func (c *AppMesh) DeleteRouteWithContext(ctx aws.Context, input *DeleteRouteInput, opts ...request.Option) (*DeleteRouteOutput, error) {
 	req, out := c.DeleteRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDeleteVirtualGateway = "DeleteVirtualGateway"
+
+// DeleteVirtualGatewayRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteVirtualGateway operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteVirtualGateway for more information on using the DeleteVirtualGateway
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteVirtualGatewayRequest method.
+//    req, resp := client.DeleteVirtualGatewayRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DeleteVirtualGateway
+func (c *AppMesh) DeleteVirtualGatewayRequest(input *DeleteVirtualGatewayInput) (req *request.Request, output *DeleteVirtualGatewayOutput) {
+	op := &request.Operation{
+		Name:       opDeleteVirtualGateway,
+		HTTPMethod: "DELETE",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}",
+	}
+
+	if input == nil {
+		input = &DeleteVirtualGatewayInput{}
+	}
+
+	output = &DeleteVirtualGatewayOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteVirtualGateway API operation for AWS App Mesh.
+//
+// Deletes an existing virtual gateway. You cannot delete a virtual gateway
+// if any gateway routes are associated to it.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation DeleteVirtualGateway for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ResourceInUseException
+//   You can't delete the specified resource because it's in use or required by
+//   another resource.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DeleteVirtualGateway
+func (c *AppMesh) DeleteVirtualGateway(input *DeleteVirtualGatewayInput) (*DeleteVirtualGatewayOutput, error) {
+	req, out := c.DeleteVirtualGatewayRequest(input)
+	return out, req.Send()
+}
+
+// DeleteVirtualGatewayWithContext is the same as DeleteVirtualGateway with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteVirtualGateway for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) DeleteVirtualGatewayWithContext(ctx aws.Context, input *DeleteVirtualGatewayInput, opts ...request.Option) (*DeleteVirtualGatewayOutput, error) {
+	req, out := c.DeleteVirtualGatewayRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1113,6 +1544,103 @@ func (c *AppMesh) DeleteVirtualServiceWithContext(ctx aws.Context, input *Delete
 	return out, req.Send()
 }
 
+const opDescribeGatewayRoute = "DescribeGatewayRoute"
+
+// DescribeGatewayRouteRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeGatewayRoute operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeGatewayRoute for more information on using the DescribeGatewayRoute
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeGatewayRouteRequest method.
+//    req, resp := client.DescribeGatewayRouteRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DescribeGatewayRoute
+func (c *AppMesh) DescribeGatewayRouteRequest(input *DescribeGatewayRouteInput) (req *request.Request, output *DescribeGatewayRouteOutput) {
+	op := &request.Operation{
+		Name:       opDescribeGatewayRoute,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}",
+	}
+
+	if input == nil {
+		input = &DescribeGatewayRouteInput{}
+	}
+
+	output = &DescribeGatewayRouteOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeGatewayRoute API operation for AWS App Mesh.
+//
+// Describes an existing gateway route.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation DescribeGatewayRoute for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DescribeGatewayRoute
+func (c *AppMesh) DescribeGatewayRoute(input *DescribeGatewayRouteInput) (*DescribeGatewayRouteOutput, error) {
+	req, out := c.DescribeGatewayRouteRequest(input)
+	return out, req.Send()
+}
+
+// DescribeGatewayRouteWithContext is the same as DescribeGatewayRoute with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeGatewayRoute for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) DescribeGatewayRouteWithContext(ctx aws.Context, input *DescribeGatewayRouteInput, opts ...request.Option) (*DescribeGatewayRouteOutput, error) {
+	req, out := c.DescribeGatewayRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDescribeMesh = "DescribeMesh"
 
 // DescribeMeshRequest generates a "aws/request.Request" representing the
@@ -1302,6 +1830,103 @@ func (c *AppMesh) DescribeRoute(input *DescribeRouteInput) (*DescribeRouteOutput
 // for more information on using Contexts.
 func (c *AppMesh) DescribeRouteWithContext(ctx aws.Context, input *DescribeRouteInput, opts ...request.Option) (*DescribeRouteOutput, error) {
 	req, out := c.DescribeRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opDescribeVirtualGateway = "DescribeVirtualGateway"
+
+// DescribeVirtualGatewayRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeVirtualGateway operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeVirtualGateway for more information on using the DescribeVirtualGateway
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeVirtualGatewayRequest method.
+//    req, resp := client.DescribeVirtualGatewayRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DescribeVirtualGateway
+func (c *AppMesh) DescribeVirtualGatewayRequest(input *DescribeVirtualGatewayInput) (req *request.Request, output *DescribeVirtualGatewayOutput) {
+	op := &request.Operation{
+		Name:       opDescribeVirtualGateway,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}",
+	}
+
+	if input == nil {
+		input = &DescribeVirtualGatewayInput{}
+	}
+
+	output = &DescribeVirtualGatewayOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeVirtualGateway API operation for AWS App Mesh.
+//
+// Describes an existing virtual gateway.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation DescribeVirtualGateway for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/DescribeVirtualGateway
+func (c *AppMesh) DescribeVirtualGateway(input *DescribeVirtualGatewayInput) (*DescribeVirtualGatewayOutput, error) {
+	req, out := c.DescribeVirtualGatewayRequest(input)
+	return out, req.Send()
+}
+
+// DescribeVirtualGatewayWithContext is the same as DescribeVirtualGateway with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeVirtualGateway for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) DescribeVirtualGatewayWithContext(ctx aws.Context, input *DescribeVirtualGatewayInput, opts ...request.Option) (*DescribeVirtualGatewayOutput, error) {
+	req, out := c.DescribeVirtualGatewayRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -1596,6 +2221,162 @@ func (c *AppMesh) DescribeVirtualServiceWithContext(ctx aws.Context, input *Desc
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opListGatewayRoutes = "ListGatewayRoutes"
+
+// ListGatewayRoutesRequest generates a "aws/request.Request" representing the
+// client's request for the ListGatewayRoutes operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListGatewayRoutes for more information on using the ListGatewayRoutes
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListGatewayRoutesRequest method.
+//    req, resp := client.ListGatewayRoutesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/ListGatewayRoutes
+func (c *AppMesh) ListGatewayRoutesRequest(input *ListGatewayRoutesInput) (req *request.Request, output *ListGatewayRoutesOutput) {
+	op := &request.Operation{
+		Name:       opListGatewayRoutes,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "limit",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListGatewayRoutesInput{}
+	}
+
+	output = &ListGatewayRoutesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListGatewayRoutes API operation for AWS App Mesh.
+//
+// Returns a list of existing gateway routes that are associated to a virtual
+// gateway.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation ListGatewayRoutes for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/ListGatewayRoutes
+func (c *AppMesh) ListGatewayRoutes(input *ListGatewayRoutesInput) (*ListGatewayRoutesOutput, error) {
+	req, out := c.ListGatewayRoutesRequest(input)
+	return out, req.Send()
+}
+
+// ListGatewayRoutesWithContext is the same as ListGatewayRoutes with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListGatewayRoutes for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) ListGatewayRoutesWithContext(ctx aws.Context, input *ListGatewayRoutesInput, opts ...request.Option) (*ListGatewayRoutesOutput, error) {
+	req, out := c.ListGatewayRoutesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListGatewayRoutesPages iterates over the pages of a ListGatewayRoutes operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListGatewayRoutes method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListGatewayRoutes operation.
+//    pageNum := 0
+//    err := client.ListGatewayRoutesPages(params,
+//        func(page *appmesh.ListGatewayRoutesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *AppMesh) ListGatewayRoutesPages(input *ListGatewayRoutesInput, fn func(*ListGatewayRoutesOutput, bool) bool) error {
+	return c.ListGatewayRoutesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListGatewayRoutesPagesWithContext same as ListGatewayRoutesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) ListGatewayRoutesPagesWithContext(ctx aws.Context, input *ListGatewayRoutesInput, fn func(*ListGatewayRoutesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListGatewayRoutesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListGatewayRoutesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListGatewayRoutesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListMeshes = "ListMeshes"
@@ -2056,6 +2837,161 @@ func (c *AppMesh) ListTagsForResourcePagesWithContext(ctx aws.Context, input *Li
 
 	for p.Next() {
 		if !fn(p.Page().(*ListTagsForResourceOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListVirtualGateways = "ListVirtualGateways"
+
+// ListVirtualGatewaysRequest generates a "aws/request.Request" representing the
+// client's request for the ListVirtualGateways operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListVirtualGateways for more information on using the ListVirtualGateways
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListVirtualGatewaysRequest method.
+//    req, resp := client.ListVirtualGatewaysRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/ListVirtualGateways
+func (c *AppMesh) ListVirtualGatewaysRequest(input *ListVirtualGatewaysInput) (req *request.Request, output *ListVirtualGatewaysOutput) {
+	op := &request.Operation{
+		Name:       opListVirtualGateways,
+		HTTPMethod: "GET",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateways",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "limit",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListVirtualGatewaysInput{}
+	}
+
+	output = &ListVirtualGatewaysOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListVirtualGateways API operation for AWS App Mesh.
+//
+// Returns a list of existing virtual gateways in a service mesh.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation ListVirtualGateways for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/ListVirtualGateways
+func (c *AppMesh) ListVirtualGateways(input *ListVirtualGatewaysInput) (*ListVirtualGatewaysOutput, error) {
+	req, out := c.ListVirtualGatewaysRequest(input)
+	return out, req.Send()
+}
+
+// ListVirtualGatewaysWithContext is the same as ListVirtualGateways with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListVirtualGateways for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) ListVirtualGatewaysWithContext(ctx aws.Context, input *ListVirtualGatewaysInput, opts ...request.Option) (*ListVirtualGatewaysOutput, error) {
+	req, out := c.ListVirtualGatewaysRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListVirtualGatewaysPages iterates over the pages of a ListVirtualGateways operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListVirtualGateways method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListVirtualGateways operation.
+//    pageNum := 0
+//    err := client.ListVirtualGatewaysPages(params,
+//        func(page *appmesh.ListVirtualGatewaysOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *AppMesh) ListVirtualGatewaysPages(input *ListVirtualGatewaysInput, fn func(*ListVirtualGatewaysOutput, bool) bool) error {
+	return c.ListVirtualGatewaysPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListVirtualGatewaysPagesWithContext same as ListVirtualGatewaysPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) ListVirtualGatewaysPagesWithContext(ctx aws.Context, input *ListVirtualGatewaysInput, fn func(*ListVirtualGatewaysOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListVirtualGatewaysInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListVirtualGatewaysRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListVirtualGatewaysOutput), !p.HasNextPage()) {
 			break
 		}
 	}
@@ -2732,6 +3668,114 @@ func (c *AppMesh) UntagResourceWithContext(ctx aws.Context, input *UntagResource
 	return out, req.Send()
 }
 
+const opUpdateGatewayRoute = "UpdateGatewayRoute"
+
+// UpdateGatewayRouteRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateGatewayRoute operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateGatewayRoute for more information on using the UpdateGatewayRoute
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateGatewayRouteRequest method.
+//    req, resp := client.UpdateGatewayRouteRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/UpdateGatewayRoute
+func (c *AppMesh) UpdateGatewayRouteRequest(input *UpdateGatewayRouteInput) (req *request.Request, output *UpdateGatewayRouteOutput) {
+	op := &request.Operation{
+		Name:       opUpdateGatewayRoute,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}",
+	}
+
+	if input == nil {
+		input = &UpdateGatewayRouteInput{}
+	}
+
+	output = &UpdateGatewayRouteOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateGatewayRoute API operation for AWS App Mesh.
+//
+// Updates an existing gateway route that is associated to a specified virtual
+// gateway in a service mesh.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation UpdateGatewayRoute for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ConflictException
+//   The request contains a client token that was used for a previous update resource
+//   call with different specifications. Try the request again with a new client
+//   token.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * LimitExceededException
+//   You have exceeded a service limit for your account. For more information,
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
+//   in the AWS App Mesh User Guide.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/UpdateGatewayRoute
+func (c *AppMesh) UpdateGatewayRoute(input *UpdateGatewayRouteInput) (*UpdateGatewayRouteOutput, error) {
+	req, out := c.UpdateGatewayRouteRequest(input)
+	return out, req.Send()
+}
+
+// UpdateGatewayRouteWithContext is the same as UpdateGatewayRoute with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateGatewayRoute for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) UpdateGatewayRouteWithContext(ctx aws.Context, input *UpdateGatewayRouteInput, opts ...request.Option) (*UpdateGatewayRouteOutput, error) {
+	req, out := c.UpdateGatewayRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opUpdateMesh = "UpdateMesh"
 
 // UpdateMeshRequest generates a "aws/request.Request" representing the
@@ -2936,6 +3980,113 @@ func (c *AppMesh) UpdateRoute(input *UpdateRouteInput) (*UpdateRouteOutput, erro
 // for more information on using Contexts.
 func (c *AppMesh) UpdateRouteWithContext(ctx aws.Context, input *UpdateRouteInput, opts ...request.Option) (*UpdateRouteOutput, error) {
 	req, out := c.UpdateRouteRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opUpdateVirtualGateway = "UpdateVirtualGateway"
+
+// UpdateVirtualGatewayRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateVirtualGateway operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See UpdateVirtualGateway for more information on using the UpdateVirtualGateway
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the UpdateVirtualGatewayRequest method.
+//    req, resp := client.UpdateVirtualGatewayRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/UpdateVirtualGateway
+func (c *AppMesh) UpdateVirtualGatewayRequest(input *UpdateVirtualGatewayInput) (req *request.Request, output *UpdateVirtualGatewayOutput) {
+	op := &request.Operation{
+		Name:       opUpdateVirtualGateway,
+		HTTPMethod: "PUT",
+		HTTPPath:   "/v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}",
+	}
+
+	if input == nil {
+		input = &UpdateVirtualGatewayInput{}
+	}
+
+	output = &UpdateVirtualGatewayOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateVirtualGateway API operation for AWS App Mesh.
+//
+// Updates an existing virtual gateway in a specified service mesh.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS App Mesh's
+// API operation UpdateVirtualGateway for usage and error information.
+//
+// Returned Error Types:
+//   * BadRequestException
+//   The request syntax was malformed. Check your request syntax and try again.
+//
+//   * ConflictException
+//   The request contains a client token that was used for a previous update resource
+//   call with different specifications. Try the request again with a new client
+//   token.
+//
+//   * ForbiddenException
+//   You don't have permissions to perform this action.
+//
+//   * InternalServerErrorException
+//   The request processing has failed because of an unknown error, exception,
+//   or failure.
+//
+//   * LimitExceededException
+//   You have exceeded a service limit for your account. For more information,
+//   see Service Limits (https://docs.aws.amazon.com/app-mesh/latest/userguide/service-quotas.html)
+//   in the AWS App Mesh User Guide.
+//
+//   * NotFoundException
+//   The specified resource doesn't exist. Check your request syntax and try again.
+//
+//   * ServiceUnavailableException
+//   The request has failed due to a temporary failure of the service.
+//
+//   * TooManyRequestsException
+//   The maximum request rate permitted by the App Mesh APIs has been exceeded
+//   for your account. For best results, use an increasing or variable sleep interval
+//   between requests.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/appmesh-2019-01-25/UpdateVirtualGateway
+func (c *AppMesh) UpdateVirtualGateway(input *UpdateVirtualGatewayInput) (*UpdateVirtualGatewayOutput, error) {
+	req, out := c.UpdateVirtualGatewayRequest(input)
+	return out, req.Send()
+}
+
+// UpdateVirtualGatewayWithContext is the same as UpdateVirtualGateway with the addition of
+// the ability to pass a context and additional request options.
+//
+// See UpdateVirtualGateway for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *AppMesh) UpdateVirtualGatewayWithContext(ctx aws.Context, input *UpdateVirtualGatewayInput, opts ...request.Option) (*UpdateVirtualGatewayOutput, error) {
+	req, out := c.UpdateVirtualGatewayRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3723,6 +4874,157 @@ func (s *ConflictException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+type CreateGatewayRouteInput struct {
+	_ struct{} `type:"structure"`
+
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// An object that represents a gateway route specification. Specify one gateway
+	// route type.
+	//
+	// Spec is a required field
+	Spec *GatewayRouteSpec `locationName:"spec" type:"structure" required:"true"`
+
+	Tags []*TagRef `locationName:"tags" type:"list"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateGatewayRouteInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGatewayRouteInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateGatewayRouteInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateGatewayRouteInput"}
+	if s.GatewayRouteName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayRouteName"))
+	}
+	if s.GatewayRouteName != nil && len(*s.GatewayRouteName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayRouteName", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.Spec == nil {
+		invalidParams.Add(request.NewErrParamRequired("Spec"))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+	if s.Spec != nil {
+		if err := s.Spec.Validate(); err != nil {
+			invalidParams.AddNested("Spec", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateGatewayRouteInput) SetClientToken(v string) *CreateGatewayRouteInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *CreateGatewayRouteInput) SetGatewayRouteName(v string) *CreateGatewayRouteInput {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *CreateGatewayRouteInput) SetMeshName(v string) *CreateGatewayRouteInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateGatewayRouteInput) SetMeshOwner(v string) *CreateGatewayRouteInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *CreateGatewayRouteInput) SetSpec(v *GatewayRouteSpec) *CreateGatewayRouteInput {
+	s.Spec = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateGatewayRouteInput) SetTags(v []*TagRef) *CreateGatewayRouteInput {
+	s.Tags = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *CreateGatewayRouteInput) SetVirtualGatewayName(v string) *CreateGatewayRouteInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type CreateGatewayRouteOutput struct {
+	_ struct{} `type:"structure" payload:"GatewayRoute"`
+
+	// An object that represents a gateway route returned by a describe operation.
+	//
+	// GatewayRoute is a required field
+	GatewayRoute *GatewayRouteData `locationName:"gatewayRoute" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateGatewayRouteOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateGatewayRouteOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRoute sets the GatewayRoute field's value.
+func (s *CreateGatewayRouteOutput) SetGatewayRoute(v *GatewayRouteData) *CreateGatewayRouteOutput {
+	s.GatewayRoute = v
+	return s
+}
+
 type CreateMeshInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3974,6 +5276,141 @@ func (s CreateRouteOutput) GoString() string {
 // SetRoute sets the Route field's value.
 func (s *CreateRouteOutput) SetRoute(v *RouteData) *CreateRouteOutput {
 	s.Route = v
+	return s
+}
+
+type CreateVirtualGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// An object that represents the specification of a service mesh resource.
+	//
+	// Spec is a required field
+	Spec *VirtualGatewaySpec `locationName:"spec" type:"structure" required:"true"`
+
+	Tags []*TagRef `locationName:"tags" type:"list"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateVirtualGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateVirtualGatewayInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateVirtualGatewayInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateVirtualGatewayInput"}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.Spec == nil {
+		invalidParams.Add(request.NewErrParamRequired("Spec"))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+	if s.Spec != nil {
+		if err := s.Spec.Validate(); err != nil {
+			invalidParams.AddNested("Spec", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *CreateVirtualGatewayInput) SetClientToken(v string) *CreateVirtualGatewayInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *CreateVirtualGatewayInput) SetMeshName(v string) *CreateVirtualGatewayInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *CreateVirtualGatewayInput) SetMeshOwner(v string) *CreateVirtualGatewayInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *CreateVirtualGatewayInput) SetSpec(v *VirtualGatewaySpec) *CreateVirtualGatewayInput {
+	s.Spec = v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *CreateVirtualGatewayInput) SetTags(v []*TagRef) *CreateVirtualGatewayInput {
+	s.Tags = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *CreateVirtualGatewayInput) SetVirtualGatewayName(v string) *CreateVirtualGatewayInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type CreateVirtualGatewayOutput struct {
+	_ struct{} `type:"structure" payload:"VirtualGateway"`
+
+	// An object that represents a virtual gateway returned by a describe operation.
+	//
+	// VirtualGateway is a required field
+	VirtualGateway *VirtualGatewayData `locationName:"virtualGateway" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s CreateVirtualGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateVirtualGatewayOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualGateway sets the VirtualGateway field's value.
+func (s *CreateVirtualGatewayOutput) SetVirtualGateway(v *VirtualGatewayData) *CreateVirtualGatewayOutput {
+	s.VirtualGateway = v
 	return s
 }
 
@@ -4379,6 +5816,111 @@ func (s *CreateVirtualServiceOutput) SetVirtualService(v *VirtualServiceData) *C
 	return s
 }
 
+type DeleteGatewayRouteInput struct {
+	_ struct{} `type:"structure"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `location:"uri" locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteGatewayRouteInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGatewayRouteInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteGatewayRouteInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteGatewayRouteInput"}
+	if s.GatewayRouteName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayRouteName"))
+	}
+	if s.GatewayRouteName != nil && len(*s.GatewayRouteName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayRouteName", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *DeleteGatewayRouteInput) SetGatewayRouteName(v string) *DeleteGatewayRouteInput {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *DeleteGatewayRouteInput) SetMeshName(v string) *DeleteGatewayRouteInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteGatewayRouteInput) SetMeshOwner(v string) *DeleteGatewayRouteInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *DeleteGatewayRouteInput) SetVirtualGatewayName(v string) *DeleteGatewayRouteInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type DeleteGatewayRouteOutput struct {
+	_ struct{} `type:"structure" payload:"GatewayRoute"`
+
+	// An object that represents a gateway route returned by a describe operation.
+	//
+	// GatewayRoute is a required field
+	GatewayRoute *GatewayRouteData `locationName:"gatewayRoute" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteGatewayRouteOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteGatewayRouteOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRoute sets the GatewayRoute field's value.
+func (s *DeleteGatewayRouteOutput) SetGatewayRoute(v *GatewayRouteData) *DeleteGatewayRouteOutput {
+	s.GatewayRoute = v
+	return s
+}
+
 type DeleteMeshInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4545,6 +6087,96 @@ func (s DeleteRouteOutput) GoString() string {
 // SetRoute sets the Route field's value.
 func (s *DeleteRouteOutput) SetRoute(v *RouteData) *DeleteRouteOutput {
 	s.Route = v
+	return s
+}
+
+type DeleteVirtualGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteVirtualGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteVirtualGatewayInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteVirtualGatewayInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteVirtualGatewayInput"}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *DeleteVirtualGatewayInput) SetMeshName(v string) *DeleteVirtualGatewayInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DeleteVirtualGatewayInput) SetMeshOwner(v string) *DeleteVirtualGatewayInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *DeleteVirtualGatewayInput) SetVirtualGatewayName(v string) *DeleteVirtualGatewayInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type DeleteVirtualGatewayOutput struct {
+	_ struct{} `type:"structure" payload:"VirtualGateway"`
+
+	// An object that represents a virtual gateway returned by a describe operation.
+	//
+	// VirtualGateway is a required field
+	VirtualGateway *VirtualGatewayData `locationName:"virtualGateway" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteVirtualGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteVirtualGatewayOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualGateway sets the VirtualGateway field's value.
+func (s *DeleteVirtualGatewayOutput) SetVirtualGateway(v *VirtualGatewayData) *DeleteVirtualGatewayOutput {
+	s.VirtualGateway = v
 	return s
 }
 
@@ -4818,6 +6450,111 @@ func (s *DeleteVirtualServiceOutput) SetVirtualService(v *VirtualServiceData) *D
 	return s
 }
 
+type DescribeGatewayRouteInput struct {
+	_ struct{} `type:"structure"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `location:"uri" locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeGatewayRouteInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGatewayRouteInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeGatewayRouteInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeGatewayRouteInput"}
+	if s.GatewayRouteName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayRouteName"))
+	}
+	if s.GatewayRouteName != nil && len(*s.GatewayRouteName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayRouteName", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *DescribeGatewayRouteInput) SetGatewayRouteName(v string) *DescribeGatewayRouteInput {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *DescribeGatewayRouteInput) SetMeshName(v string) *DescribeGatewayRouteInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeGatewayRouteInput) SetMeshOwner(v string) *DescribeGatewayRouteInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *DescribeGatewayRouteInput) SetVirtualGatewayName(v string) *DescribeGatewayRouteInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type DescribeGatewayRouteOutput struct {
+	_ struct{} `type:"structure" payload:"GatewayRoute"`
+
+	// An object that represents a gateway route returned by a describe operation.
+	//
+	// GatewayRoute is a required field
+	GatewayRoute *GatewayRouteData `locationName:"gatewayRoute" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeGatewayRouteOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeGatewayRouteOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRoute sets the GatewayRoute field's value.
+func (s *DescribeGatewayRouteOutput) SetGatewayRoute(v *GatewayRouteData) *DescribeGatewayRouteOutput {
+	s.GatewayRoute = v
+	return s
+}
+
 type DescribeMeshInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4995,6 +6732,96 @@ func (s DescribeRouteOutput) GoString() string {
 // SetRoute sets the Route field's value.
 func (s *DescribeRouteOutput) SetRoute(v *RouteData) *DescribeRouteOutput {
 	s.Route = v
+	return s
+}
+
+type DescribeVirtualGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeVirtualGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeVirtualGatewayInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeVirtualGatewayInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeVirtualGatewayInput"}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *DescribeVirtualGatewayInput) SetMeshName(v string) *DescribeVirtualGatewayInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *DescribeVirtualGatewayInput) SetMeshOwner(v string) *DescribeVirtualGatewayInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *DescribeVirtualGatewayInput) SetVirtualGatewayName(v string) *DescribeVirtualGatewayInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type DescribeVirtualGatewayOutput struct {
+	_ struct{} `type:"structure" payload:"VirtualGateway"`
+
+	// An object that represents a virtual gateway returned by a describe operation.
+	//
+	// VirtualGateway is a required field
+	VirtualGateway *VirtualGatewayData `locationName:"virtualGateway" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s DescribeVirtualGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeVirtualGatewayOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualGateway sets the VirtualGateway field's value.
+func (s *DescribeVirtualGatewayOutput) SetVirtualGateway(v *VirtualGatewayData) *DescribeVirtualGatewayOutput {
+	s.VirtualGateway = v
 	return s
 }
 
@@ -5470,6 +7297,479 @@ func (s *ForbiddenException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// An object that represents a gateway route returned by a describe operation.
+type GatewayRouteData struct {
+	_ struct{} `type:"structure"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	// An object that represents metadata for a resource.
+	//
+	// Metadata is a required field
+	Metadata *ResourceMetadata `locationName:"metadata" type:"structure" required:"true"`
+
+	// An object that represents a gateway route specification. Specify one gateway
+	// route type.
+	//
+	// Spec is a required field
+	Spec *GatewayRouteSpec `locationName:"spec" type:"structure" required:"true"`
+
+	// An object that represents the current status of a gateway route.
+	//
+	// Status is a required field
+	Status *GatewayRouteStatus `locationName:"status" type:"structure" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GatewayRouteData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteData) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *GatewayRouteData) SetGatewayRouteName(v string) *GatewayRouteData {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *GatewayRouteData) SetMeshName(v string) *GatewayRouteData {
+	s.MeshName = &v
+	return s
+}
+
+// SetMetadata sets the Metadata field's value.
+func (s *GatewayRouteData) SetMetadata(v *ResourceMetadata) *GatewayRouteData {
+	s.Metadata = v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *GatewayRouteData) SetSpec(v *GatewayRouteSpec) *GatewayRouteData {
+	s.Spec = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *GatewayRouteData) SetStatus(v *GatewayRouteStatus) *GatewayRouteData {
+	s.Status = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *GatewayRouteData) SetVirtualGatewayName(v string) *GatewayRouteData {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+// An object that represents a gateway route returned by a list operation.
+type GatewayRouteRef struct {
+	_ struct{} `type:"structure"`
+
+	// Arn is a required field
+	Arn *string `locationName:"arn" type:"string" required:"true"`
+
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GatewayRouteRef) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteRef) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *GatewayRouteRef) SetArn(v string) *GatewayRouteRef {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *GatewayRouteRef) SetCreatedAt(v time.Time) *GatewayRouteRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *GatewayRouteRef) SetGatewayRouteName(v string) *GatewayRouteRef {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *GatewayRouteRef) SetLastUpdatedAt(v time.Time) *GatewayRouteRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *GatewayRouteRef) SetMeshName(v string) *GatewayRouteRef {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *GatewayRouteRef) SetMeshOwner(v string) *GatewayRouteRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *GatewayRouteRef) SetResourceOwner(v string) *GatewayRouteRef {
+	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *GatewayRouteRef) SetVersion(v int64) *GatewayRouteRef {
+	s.Version = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *GatewayRouteRef) SetVirtualGatewayName(v string) *GatewayRouteRef {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+// An object that represents a gateway route specification. Specify one gateway
+// route type.
+type GatewayRouteSpec struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a gRPC gateway route.
+	GrpcRoute *GrpcGatewayRoute `locationName:"grpcRoute" type:"structure"`
+
+	// An object that represents an HTTP gateway route.
+	Http2Route *HttpGatewayRoute `locationName:"http2Route" type:"structure"`
+
+	// An object that represents an HTTP gateway route.
+	HttpRoute *HttpGatewayRoute `locationName:"httpRoute" type:"structure"`
+}
+
+// String returns the string representation
+func (s GatewayRouteSpec) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteSpec) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GatewayRouteSpec) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GatewayRouteSpec"}
+	if s.GrpcRoute != nil {
+		if err := s.GrpcRoute.Validate(); err != nil {
+			invalidParams.AddNested("GrpcRoute", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Http2Route != nil {
+		if err := s.Http2Route.Validate(); err != nil {
+			invalidParams.AddNested("Http2Route", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.HttpRoute != nil {
+		if err := s.HttpRoute.Validate(); err != nil {
+			invalidParams.AddNested("HttpRoute", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetGrpcRoute sets the GrpcRoute field's value.
+func (s *GatewayRouteSpec) SetGrpcRoute(v *GrpcGatewayRoute) *GatewayRouteSpec {
+	s.GrpcRoute = v
+	return s
+}
+
+// SetHttp2Route sets the Http2Route field's value.
+func (s *GatewayRouteSpec) SetHttp2Route(v *HttpGatewayRoute) *GatewayRouteSpec {
+	s.Http2Route = v
+	return s
+}
+
+// SetHttpRoute sets the HttpRoute field's value.
+func (s *GatewayRouteSpec) SetHttpRoute(v *HttpGatewayRoute) *GatewayRouteSpec {
+	s.HttpRoute = v
+	return s
+}
+
+// An object that represents the current status of a gateway route.
+type GatewayRouteStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Status is a required field
+	Status *string `locationName:"status" type:"string" required:"true" enum:"GatewayRouteStatusCode"`
+}
+
+// String returns the string representation
+func (s GatewayRouteStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteStatus) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *GatewayRouteStatus) SetStatus(v string) *GatewayRouteStatus {
+	s.Status = &v
+	return s
+}
+
+// An object that represents a gateway route target.
+type GatewayRouteTarget struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents the virtual service that traffic is routed to.
+	//
+	// VirtualService is a required field
+	VirtualService *GatewayRouteVirtualService `locationName:"virtualService" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s GatewayRouteTarget) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteTarget) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GatewayRouteTarget) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GatewayRouteTarget"}
+	if s.VirtualService == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualService"))
+	}
+	if s.VirtualService != nil {
+		if err := s.VirtualService.Validate(); err != nil {
+			invalidParams.AddNested("VirtualService", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetVirtualService sets the VirtualService field's value.
+func (s *GatewayRouteTarget) SetVirtualService(v *GatewayRouteVirtualService) *GatewayRouteTarget {
+	s.VirtualService = v
+	return s
+}
+
+// An object that represents the virtual service that traffic is routed to.
+type GatewayRouteVirtualService struct {
+	_ struct{} `type:"structure"`
+
+	// VirtualServiceName is a required field
+	VirtualServiceName *string `locationName:"virtualServiceName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GatewayRouteVirtualService) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GatewayRouteVirtualService) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GatewayRouteVirtualService) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GatewayRouteVirtualService"}
+	if s.VirtualServiceName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualServiceName"))
+	}
+	if s.VirtualServiceName != nil && len(*s.VirtualServiceName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualServiceName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetVirtualServiceName sets the VirtualServiceName field's value.
+func (s *GatewayRouteVirtualService) SetVirtualServiceName(v string) *GatewayRouteVirtualService {
+	s.VirtualServiceName = &v
+	return s
+}
+
+// An object that represents a gRPC gateway route.
+type GrpcGatewayRoute struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents the action to take if a match is determined.
+	//
+	// Action is a required field
+	Action *GrpcGatewayRouteAction `locationName:"action" type:"structure" required:"true"`
+
+	// An object that represents the criteria for determining a request match.
+	//
+	// Match is a required field
+	Match *GrpcGatewayRouteMatch `locationName:"match" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s GrpcGatewayRoute) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GrpcGatewayRoute) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GrpcGatewayRoute) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GrpcGatewayRoute"}
+	if s.Action == nil {
+		invalidParams.Add(request.NewErrParamRequired("Action"))
+	}
+	if s.Match == nil {
+		invalidParams.Add(request.NewErrParamRequired("Match"))
+	}
+	if s.Action != nil {
+		if err := s.Action.Validate(); err != nil {
+			invalidParams.AddNested("Action", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAction sets the Action field's value.
+func (s *GrpcGatewayRoute) SetAction(v *GrpcGatewayRouteAction) *GrpcGatewayRoute {
+	s.Action = v
+	return s
+}
+
+// SetMatch sets the Match field's value.
+func (s *GrpcGatewayRoute) SetMatch(v *GrpcGatewayRouteMatch) *GrpcGatewayRoute {
+	s.Match = v
+	return s
+}
+
+// An object that represents the action to take if a match is determined.
+type GrpcGatewayRouteAction struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a gateway route target.
+	//
+	// Target is a required field
+	Target *GatewayRouteTarget `locationName:"target" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s GrpcGatewayRouteAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GrpcGatewayRouteAction) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GrpcGatewayRouteAction) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GrpcGatewayRouteAction"}
+	if s.Target == nil {
+		invalidParams.Add(request.NewErrParamRequired("Target"))
+	}
+	if s.Target != nil {
+		if err := s.Target.Validate(); err != nil {
+			invalidParams.AddNested("Target", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTarget sets the Target field's value.
+func (s *GrpcGatewayRouteAction) SetTarget(v *GatewayRouteTarget) *GrpcGatewayRouteAction {
+	s.Target = v
+	return s
+}
+
+// An object that represents the criteria for determining a request match.
+type GrpcGatewayRouteMatch struct {
+	_ struct{} `type:"structure"`
+
+	ServiceName *string `locationName:"serviceName" type:"string"`
+}
+
+// String returns the string representation
+func (s GrpcGatewayRouteMatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GrpcGatewayRouteMatch) GoString() string {
+	return s.String()
+}
+
+// SetServiceName sets the ServiceName field's value.
+func (s *GrpcGatewayRouteMatch) SetServiceName(v string) *GrpcGatewayRouteMatch {
+	s.ServiceName = &v
+	return s
+}
+
 // An object that represents a retry policy. Specify at least one value for
 // at least one of the types of RetryEvents, a value for maxRetries, and a value
 // for perRetryTimeout.
@@ -5574,6 +7874,9 @@ type GrpcRoute struct {
 	// at least one of the types of RetryEvents, a value for maxRetries, and a value
 	// for perRetryTimeout.
 	RetryPolicy *GrpcRetryPolicy `locationName:"retryPolicy" type:"structure"`
+
+	// An object that represents types of timeouts.
+	Timeout *GrpcTimeout `locationName:"timeout" type:"structure"`
 }
 
 // String returns the string representation
@@ -5632,6 +7935,12 @@ func (s *GrpcRoute) SetMatch(v *GrpcRouteMatch) *GrpcRoute {
 // SetRetryPolicy sets the RetryPolicy field's value.
 func (s *GrpcRoute) SetRetryPolicy(v *GrpcRetryPolicy) *GrpcRoute {
 	s.RetryPolicy = v
+	return s
+}
+
+// SetTimeout sets the Timeout field's value.
+func (s *GrpcRoute) SetTimeout(v *GrpcTimeout) *GrpcRoute {
+	s.Timeout = v
 	return s
 }
 
@@ -5898,6 +8207,39 @@ func (s *GrpcRouteMetadataMatchMethod) SetSuffix(v string) *GrpcRouteMetadataMat
 	return s
 }
 
+// An object that represents types of timeouts.
+type GrpcTimeout struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a duration of time.
+	Idle *Duration `locationName:"idle" type:"structure"`
+
+	// An object that represents a duration of time.
+	PerRequest *Duration `locationName:"perRequest" type:"structure"`
+}
+
+// String returns the string representation
+func (s GrpcTimeout) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GrpcTimeout) GoString() string {
+	return s.String()
+}
+
+// SetIdle sets the Idle field's value.
+func (s *GrpcTimeout) SetIdle(v *Duration) *GrpcTimeout {
+	s.Idle = v
+	return s
+}
+
+// SetPerRequest sets the PerRequest field's value.
+func (s *GrpcTimeout) SetPerRequest(v *Duration) *GrpcTimeout {
+	s.PerRequest = v
+	return s
+}
+
 // An object that represents the method and value to match with the header value
 // sent in a request. Specify one match method.
 type HeaderMatchMethod struct {
@@ -6101,6 +8443,150 @@ func (s *HealthCheckPolicy) SetUnhealthyThreshold(v int64) *HealthCheckPolicy {
 	return s
 }
 
+// An object that represents an HTTP gateway route.
+type HttpGatewayRoute struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents the action to take if a match is determined.
+	//
+	// Action is a required field
+	Action *HttpGatewayRouteAction `locationName:"action" type:"structure" required:"true"`
+
+	// An object that represents the criteria for determining a request match.
+	//
+	// Match is a required field
+	Match *HttpGatewayRouteMatch `locationName:"match" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s HttpGatewayRoute) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpGatewayRoute) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpGatewayRoute) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpGatewayRoute"}
+	if s.Action == nil {
+		invalidParams.Add(request.NewErrParamRequired("Action"))
+	}
+	if s.Match == nil {
+		invalidParams.Add(request.NewErrParamRequired("Match"))
+	}
+	if s.Action != nil {
+		if err := s.Action.Validate(); err != nil {
+			invalidParams.AddNested("Action", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Match != nil {
+		if err := s.Match.Validate(); err != nil {
+			invalidParams.AddNested("Match", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAction sets the Action field's value.
+func (s *HttpGatewayRoute) SetAction(v *HttpGatewayRouteAction) *HttpGatewayRoute {
+	s.Action = v
+	return s
+}
+
+// SetMatch sets the Match field's value.
+func (s *HttpGatewayRoute) SetMatch(v *HttpGatewayRouteMatch) *HttpGatewayRoute {
+	s.Match = v
+	return s
+}
+
+// An object that represents the action to take if a match is determined.
+type HttpGatewayRouteAction struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a gateway route target.
+	//
+	// Target is a required field
+	Target *GatewayRouteTarget `locationName:"target" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s HttpGatewayRouteAction) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpGatewayRouteAction) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpGatewayRouteAction) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpGatewayRouteAction"}
+	if s.Target == nil {
+		invalidParams.Add(request.NewErrParamRequired("Target"))
+	}
+	if s.Target != nil {
+		if err := s.Target.Validate(); err != nil {
+			invalidParams.AddNested("Target", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTarget sets the Target field's value.
+func (s *HttpGatewayRouteAction) SetTarget(v *GatewayRouteTarget) *HttpGatewayRouteAction {
+	s.Target = v
+	return s
+}
+
+// An object that represents the criteria for determining a request match.
+type HttpGatewayRouteMatch struct {
+	_ struct{} `type:"structure"`
+
+	// Prefix is a required field
+	Prefix *string `locationName:"prefix" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s HttpGatewayRouteMatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpGatewayRouteMatch) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpGatewayRouteMatch) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpGatewayRouteMatch"}
+	if s.Prefix == nil {
+		invalidParams.Add(request.NewErrParamRequired("Prefix"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPrefix sets the Prefix field's value.
+func (s *HttpGatewayRouteMatch) SetPrefix(v string) *HttpGatewayRouteMatch {
+	s.Prefix = &v
+	return s
+}
+
 // An object that represents a retry policy. Specify at least one value for
 // at least one of the types of RetryEvents, a value for maxRetries, and a value
 // for perRetryTimeout.
@@ -6195,6 +8681,9 @@ type HttpRoute struct {
 	// at least one of the types of RetryEvents, a value for maxRetries, and a value
 	// for perRetryTimeout.
 	RetryPolicy *HttpRetryPolicy `locationName:"retryPolicy" type:"structure"`
+
+	// An object that represents types of timeouts.
+	Timeout *HttpTimeout `locationName:"timeout" type:"structure"`
 }
 
 // String returns the string representation
@@ -6253,6 +8742,12 @@ func (s *HttpRoute) SetMatch(v *HttpRouteMatch) *HttpRoute {
 // SetRetryPolicy sets the RetryPolicy field's value.
 func (s *HttpRoute) SetRetryPolicy(v *HttpRetryPolicy) *HttpRoute {
 	s.RetryPolicy = v
+	return s
+}
+
+// SetTimeout sets the Timeout field's value.
+func (s *HttpRoute) SetTimeout(v *HttpTimeout) *HttpRoute {
+	s.Timeout = v
 	return s
 }
 
@@ -6444,6 +8939,39 @@ func (s *HttpRouteMatch) SetScheme(v string) *HttpRouteMatch {
 	return s
 }
 
+// An object that represents types of timeouts.
+type HttpTimeout struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a duration of time.
+	Idle *Duration `locationName:"idle" type:"structure"`
+
+	// An object that represents a duration of time.
+	PerRequest *Duration `locationName:"perRequest" type:"structure"`
+}
+
+// String returns the string representation
+func (s HttpTimeout) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpTimeout) GoString() string {
+	return s.String()
+}
+
+// SetIdle sets the Idle field's value.
+func (s *HttpTimeout) SetIdle(v *Duration) *HttpTimeout {
+	s.Idle = v
+	return s
+}
+
+// SetPerRequest sets the PerRequest field's value.
+func (s *HttpTimeout) SetPerRequest(v *Duration) *HttpTimeout {
+	s.PerRequest = v
+	return s
+}
+
 // The request processing has failed because of an unknown error, exception,
 // or failure.
 type InternalServerErrorException struct {
@@ -6557,6 +9085,121 @@ func (s *LimitExceededException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *LimitExceededException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type ListGatewayRoutesInput struct {
+	_ struct{} `type:"structure"`
+
+	Limit *int64 `location:"querystring" locationName:"limit" min:"1" type:"integer"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s ListGatewayRoutesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGatewayRoutesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListGatewayRoutesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListGatewayRoutesInput"}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListGatewayRoutesInput) SetLimit(v int64) *ListGatewayRoutesInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *ListGatewayRoutesInput) SetMeshName(v string) *ListGatewayRoutesInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListGatewayRoutesInput) SetMeshOwner(v string) *ListGatewayRoutesInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGatewayRoutesInput) SetNextToken(v string) *ListGatewayRoutesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *ListGatewayRoutesInput) SetVirtualGatewayName(v string) *ListGatewayRoutesInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type ListGatewayRoutesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// GatewayRoutes is a required field
+	GatewayRoutes []*GatewayRouteRef `locationName:"gatewayRoutes" type:"list" required:"true"`
+
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListGatewayRoutesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListGatewayRoutesOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRoutes sets the GatewayRoutes field's value.
+func (s *ListGatewayRoutesOutput) SetGatewayRoutes(v []*GatewayRouteRef) *ListGatewayRoutesOutput {
+	s.GatewayRoutes = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListGatewayRoutesOutput) SetNextToken(v string) *ListGatewayRoutesOutput {
+	s.NextToken = &v
+	return s
 }
 
 type ListMeshesInput struct {
@@ -6831,6 +9474,106 @@ func (s *ListTagsForResourceOutput) SetNextToken(v string) *ListTagsForResourceO
 // SetTags sets the Tags field's value.
 func (s *ListTagsForResourceOutput) SetTags(v []*TagRef) *ListTagsForResourceOutput {
 	s.Tags = v
+	return s
+}
+
+type ListVirtualGatewaysInput struct {
+	_ struct{} `type:"structure"`
+
+	Limit *int64 `location:"querystring" locationName:"limit" min:"1" type:"integer"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListVirtualGatewaysInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListVirtualGatewaysInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListVirtualGatewaysInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListVirtualGatewaysInput"}
+	if s.Limit != nil && *s.Limit < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Limit", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetLimit sets the Limit field's value.
+func (s *ListVirtualGatewaysInput) SetLimit(v int64) *ListVirtualGatewaysInput {
+	s.Limit = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *ListVirtualGatewaysInput) SetMeshName(v string) *ListVirtualGatewaysInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *ListVirtualGatewaysInput) SetMeshOwner(v string) *ListVirtualGatewaysInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListVirtualGatewaysInput) SetNextToken(v string) *ListVirtualGatewaysInput {
+	s.NextToken = &v
+	return s
+}
+
+type ListVirtualGatewaysOutput struct {
+	_ struct{} `type:"structure"`
+
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// VirtualGateways is a required field
+	VirtualGateways []*VirtualGatewayRef `locationName:"virtualGateways" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s ListVirtualGatewaysOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListVirtualGatewaysOutput) GoString() string {
+	return s.String()
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListVirtualGatewaysOutput) SetNextToken(v string) *ListVirtualGatewaysOutput {
+	s.NextToken = &v
+	return s
+}
+
+// SetVirtualGateways sets the VirtualGateways field's value.
+func (s *ListVirtualGatewaysOutput) SetVirtualGateways(v []*VirtualGatewayRef) *ListVirtualGatewaysOutput {
+	s.VirtualGateways = v
 	return s
 }
 
@@ -7146,6 +9889,9 @@ type Listener struct {
 	// PortMapping is a required field
 	PortMapping *PortMapping `locationName:"portMapping" type:"structure" required:"true"`
 
+	// An object that represents timeouts for different protocols.
+	Timeout *ListenerTimeout `locationName:"timeout" type:"structure"`
+
 	// An object that represents the Transport Layer Security (TLS) properties for
 	// a listener.
 	Tls *ListenerTls `locationName:"tls" type:"structure"`
@@ -7201,9 +9947,66 @@ func (s *Listener) SetPortMapping(v *PortMapping) *Listener {
 	return s
 }
 
+// SetTimeout sets the Timeout field's value.
+func (s *Listener) SetTimeout(v *ListenerTimeout) *Listener {
+	s.Timeout = v
+	return s
+}
+
 // SetTls sets the Tls field's value.
 func (s *Listener) SetTls(v *ListenerTls) *Listener {
 	s.Tls = v
+	return s
+}
+
+// An object that represents timeouts for different protocols.
+type ListenerTimeout struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents types of timeouts.
+	Grpc *GrpcTimeout `locationName:"grpc" type:"structure"`
+
+	// An object that represents types of timeouts.
+	Http *HttpTimeout `locationName:"http" type:"structure"`
+
+	// An object that represents types of timeouts.
+	Http2 *HttpTimeout `locationName:"http2" type:"structure"`
+
+	// An object that represents types of timeouts.
+	Tcp *TcpTimeout `locationName:"tcp" type:"structure"`
+}
+
+// String returns the string representation
+func (s ListenerTimeout) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListenerTimeout) GoString() string {
+	return s.String()
+}
+
+// SetGrpc sets the Grpc field's value.
+func (s *ListenerTimeout) SetGrpc(v *GrpcTimeout) *ListenerTimeout {
+	s.Grpc = v
+	return s
+}
+
+// SetHttp sets the Http field's value.
+func (s *ListenerTimeout) SetHttp(v *HttpTimeout) *ListenerTimeout {
+	s.Http = v
+	return s
+}
+
+// SetHttp2 sets the Http2 field's value.
+func (s *ListenerTimeout) SetHttp2(v *HttpTimeout) *ListenerTimeout {
+	s.Http2 = v
+	return s
+}
+
+// SetTcp sets the Tcp field's value.
+func (s *ListenerTimeout) SetTcp(v *TcpTimeout) *ListenerTimeout {
+	s.Tcp = v
 	return s
 }
 
@@ -8471,6 +11274,9 @@ type TcpRoute struct {
 	//
 	// Action is a required field
 	Action *TcpRouteAction `locationName:"action" type:"structure" required:"true"`
+
+	// An object that represents types of timeouts.
+	Timeout *TcpTimeout `locationName:"timeout" type:"structure"`
 }
 
 // String returns the string representation
@@ -8504,6 +11310,12 @@ func (s *TcpRoute) Validate() error {
 // SetAction sets the Action field's value.
 func (s *TcpRoute) SetAction(v *TcpRouteAction) *TcpRoute {
 	s.Action = v
+	return s
+}
+
+// SetTimeout sets the Timeout field's value.
+func (s *TcpRoute) SetTimeout(v *TcpTimeout) *TcpRoute {
+	s.Timeout = v
 	return s
 }
 
@@ -8554,6 +11366,30 @@ func (s *TcpRouteAction) Validate() error {
 // SetWeightedTargets sets the WeightedTargets field's value.
 func (s *TcpRouteAction) SetWeightedTargets(v []*WeightedTarget) *TcpRouteAction {
 	s.WeightedTargets = v
+	return s
+}
+
+// An object that represents types of timeouts.
+type TcpTimeout struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a duration of time.
+	Idle *Duration `locationName:"idle" type:"structure"`
+}
+
+// String returns the string representation
+func (s TcpTimeout) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s TcpTimeout) GoString() string {
+	return s.String()
+}
+
+// SetIdle sets the Idle field's value.
+func (s *TcpTimeout) SetIdle(v *Duration) *TcpTimeout {
+	s.Idle = v
 	return s
 }
 
@@ -8918,6 +11754,139 @@ func (s UntagResourceOutput) GoString() string {
 	return s.String()
 }
 
+type UpdateGatewayRouteInput struct {
+	_ struct{} `type:"structure"`
+
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// GatewayRouteName is a required field
+	GatewayRouteName *string `location:"uri" locationName:"gatewayRouteName" min:"1" type:"string" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// An object that represents a gateway route specification. Specify one gateway
+	// route type.
+	//
+	// Spec is a required field
+	Spec *GatewayRouteSpec `locationName:"spec" type:"structure" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateGatewayRouteInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGatewayRouteInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateGatewayRouteInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateGatewayRouteInput"}
+	if s.GatewayRouteName == nil {
+		invalidParams.Add(request.NewErrParamRequired("GatewayRouteName"))
+	}
+	if s.GatewayRouteName != nil && len(*s.GatewayRouteName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("GatewayRouteName", 1))
+	}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.Spec == nil {
+		invalidParams.Add(request.NewErrParamRequired("Spec"))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+	if s.Spec != nil {
+		if err := s.Spec.Validate(); err != nil {
+			invalidParams.AddNested("Spec", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *UpdateGatewayRouteInput) SetClientToken(v string) *UpdateGatewayRouteInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetGatewayRouteName sets the GatewayRouteName field's value.
+func (s *UpdateGatewayRouteInput) SetGatewayRouteName(v string) *UpdateGatewayRouteInput {
+	s.GatewayRouteName = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *UpdateGatewayRouteInput) SetMeshName(v string) *UpdateGatewayRouteInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateGatewayRouteInput) SetMeshOwner(v string) *UpdateGatewayRouteInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *UpdateGatewayRouteInput) SetSpec(v *GatewayRouteSpec) *UpdateGatewayRouteInput {
+	s.Spec = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *UpdateGatewayRouteInput) SetVirtualGatewayName(v string) *UpdateGatewayRouteInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type UpdateGatewayRouteOutput struct {
+	_ struct{} `type:"structure" payload:"GatewayRoute"`
+
+	// An object that represents a gateway route returned by a describe operation.
+	//
+	// GatewayRoute is a required field
+	GatewayRoute *GatewayRouteData `locationName:"gatewayRoute" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateGatewayRouteOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateGatewayRouteOutput) GoString() string {
+	return s.String()
+}
+
+// SetGatewayRoute sets the GatewayRoute field's value.
+func (s *UpdateGatewayRouteOutput) SetGatewayRoute(v *GatewayRouteData) *UpdateGatewayRouteOutput {
+	s.GatewayRoute = v
+	return s
+}
+
 type UpdateMeshInput struct {
 	_ struct{} `type:"structure"`
 
@@ -9133,6 +12102,123 @@ func (s UpdateRouteOutput) GoString() string {
 // SetRoute sets the Route field's value.
 func (s *UpdateRouteOutput) SetRoute(v *RouteData) *UpdateRouteOutput {
 	s.Route = v
+	return s
+}
+
+type UpdateVirtualGatewayInput struct {
+	_ struct{} `type:"structure"`
+
+	ClientToken *string `locationName:"clientToken" type:"string" idempotencyToken:"true"`
+
+	// MeshName is a required field
+	MeshName *string `location:"uri" locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	MeshOwner *string `location:"querystring" locationName:"meshOwner" min:"12" type:"string"`
+
+	// An object that represents the specification of a service mesh resource.
+	//
+	// Spec is a required field
+	Spec *VirtualGatewaySpec `locationName:"spec" type:"structure" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `location:"uri" locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateVirtualGatewayInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateVirtualGatewayInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateVirtualGatewayInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateVirtualGatewayInput"}
+	if s.MeshName == nil {
+		invalidParams.Add(request.NewErrParamRequired("MeshName"))
+	}
+	if s.MeshName != nil && len(*s.MeshName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshName", 1))
+	}
+	if s.MeshOwner != nil && len(*s.MeshOwner) < 12 {
+		invalidParams.Add(request.NewErrParamMinLen("MeshOwner", 12))
+	}
+	if s.Spec == nil {
+		invalidParams.Add(request.NewErrParamRequired("Spec"))
+	}
+	if s.VirtualGatewayName == nil {
+		invalidParams.Add(request.NewErrParamRequired("VirtualGatewayName"))
+	}
+	if s.VirtualGatewayName != nil && len(*s.VirtualGatewayName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("VirtualGatewayName", 1))
+	}
+	if s.Spec != nil {
+		if err := s.Spec.Validate(); err != nil {
+			invalidParams.AddNested("Spec", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientToken sets the ClientToken field's value.
+func (s *UpdateVirtualGatewayInput) SetClientToken(v string) *UpdateVirtualGatewayInput {
+	s.ClientToken = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *UpdateVirtualGatewayInput) SetMeshName(v string) *UpdateVirtualGatewayInput {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *UpdateVirtualGatewayInput) SetMeshOwner(v string) *UpdateVirtualGatewayInput {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *UpdateVirtualGatewayInput) SetSpec(v *VirtualGatewaySpec) *UpdateVirtualGatewayInput {
+	s.Spec = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *UpdateVirtualGatewayInput) SetVirtualGatewayName(v string) *UpdateVirtualGatewayInput {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+type UpdateVirtualGatewayOutput struct {
+	_ struct{} `type:"structure" payload:"VirtualGateway"`
+
+	// An object that represents a virtual gateway returned by a describe operation.
+	//
+	// VirtualGateway is a required field
+	VirtualGateway *VirtualGatewayData `locationName:"virtualGateway" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s UpdateVirtualGatewayOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateVirtualGatewayOutput) GoString() string {
+	return s.String()
+}
+
+// SetVirtualGateway sets the VirtualGateway field's value.
+func (s *UpdateVirtualGatewayOutput) SetVirtualGateway(v *VirtualGatewayData) *UpdateVirtualGatewayOutput {
+	s.VirtualGateway = v
 	return s
 }
 
@@ -9484,6 +12570,1146 @@ func (s UpdateVirtualServiceOutput) GoString() string {
 // SetVirtualService sets the VirtualService field's value.
 func (s *UpdateVirtualServiceOutput) SetVirtualService(v *VirtualServiceData) *UpdateVirtualServiceOutput {
 	s.VirtualService = v
+	return s
+}
+
+// The access log configuration for a virtual gateway.
+type VirtualGatewayAccessLog struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents an access log file.
+	File *VirtualGatewayFileAccessLog `locationName:"file" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayAccessLog) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayAccessLog) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayAccessLog) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayAccessLog"}
+	if s.File != nil {
+		if err := s.File.Validate(); err != nil {
+			invalidParams.AddNested("File", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFile sets the File field's value.
+func (s *VirtualGatewayAccessLog) SetFile(v *VirtualGatewayFileAccessLog) *VirtualGatewayAccessLog {
+	s.File = v
+	return s
+}
+
+// An object that represents the default properties for a backend.
+type VirtualGatewayBackendDefaults struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a client policy.
+	ClientPolicy *VirtualGatewayClientPolicy `locationName:"clientPolicy" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayBackendDefaults) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayBackendDefaults) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayBackendDefaults) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayBackendDefaults"}
+	if s.ClientPolicy != nil {
+		if err := s.ClientPolicy.Validate(); err != nil {
+			invalidParams.AddNested("ClientPolicy", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetClientPolicy sets the ClientPolicy field's value.
+func (s *VirtualGatewayBackendDefaults) SetClientPolicy(v *VirtualGatewayClientPolicy) *VirtualGatewayBackendDefaults {
+	s.ClientPolicy = v
+	return s
+}
+
+// An object that represents a client policy.
+type VirtualGatewayClientPolicy struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a Transport Layer Security (TLS) client policy.
+	Tls *VirtualGatewayClientPolicyTls `locationName:"tls" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayClientPolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayClientPolicy) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayClientPolicy) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayClientPolicy"}
+	if s.Tls != nil {
+		if err := s.Tls.Validate(); err != nil {
+			invalidParams.AddNested("Tls", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTls sets the Tls field's value.
+func (s *VirtualGatewayClientPolicy) SetTls(v *VirtualGatewayClientPolicyTls) *VirtualGatewayClientPolicy {
+	s.Tls = v
+	return s
+}
+
+// An object that represents a Transport Layer Security (TLS) client policy.
+type VirtualGatewayClientPolicyTls struct {
+	_ struct{} `type:"structure"`
+
+	Enforce *bool `locationName:"enforce" type:"boolean"`
+
+	Ports []*int64 `locationName:"ports" type:"list"`
+
+	// An object that represents a Transport Layer Security (TLS) validation context.
+	//
+	// Validation is a required field
+	Validation *VirtualGatewayTlsValidationContext `locationName:"validation" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayClientPolicyTls) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayClientPolicyTls) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayClientPolicyTls) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayClientPolicyTls"}
+	if s.Validation == nil {
+		invalidParams.Add(request.NewErrParamRequired("Validation"))
+	}
+	if s.Validation != nil {
+		if err := s.Validation.Validate(); err != nil {
+			invalidParams.AddNested("Validation", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetEnforce sets the Enforce field's value.
+func (s *VirtualGatewayClientPolicyTls) SetEnforce(v bool) *VirtualGatewayClientPolicyTls {
+	s.Enforce = &v
+	return s
+}
+
+// SetPorts sets the Ports field's value.
+func (s *VirtualGatewayClientPolicyTls) SetPorts(v []*int64) *VirtualGatewayClientPolicyTls {
+	s.Ports = v
+	return s
+}
+
+// SetValidation sets the Validation field's value.
+func (s *VirtualGatewayClientPolicyTls) SetValidation(v *VirtualGatewayTlsValidationContext) *VirtualGatewayClientPolicyTls {
+	s.Validation = v
+	return s
+}
+
+// An object that represents a virtual gateway returned by a describe operation.
+type VirtualGatewayData struct {
+	_ struct{} `type:"structure"`
+
+	// MeshName is a required field
+	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	// An object that represents metadata for a resource.
+	//
+	// Metadata is a required field
+	Metadata *ResourceMetadata `locationName:"metadata" type:"structure" required:"true"`
+
+	// An object that represents the specification of a service mesh resource.
+	//
+	// Spec is a required field
+	Spec *VirtualGatewaySpec `locationName:"spec" type:"structure" required:"true"`
+
+	// An object that represents the status of the mesh resource.
+	//
+	// Status is a required field
+	Status *VirtualGatewayStatus `locationName:"status" type:"structure" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayData) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayData) GoString() string {
+	return s.String()
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *VirtualGatewayData) SetMeshName(v string) *VirtualGatewayData {
+	s.MeshName = &v
+	return s
+}
+
+// SetMetadata sets the Metadata field's value.
+func (s *VirtualGatewayData) SetMetadata(v *ResourceMetadata) *VirtualGatewayData {
+	s.Metadata = v
+	return s
+}
+
+// SetSpec sets the Spec field's value.
+func (s *VirtualGatewayData) SetSpec(v *VirtualGatewaySpec) *VirtualGatewayData {
+	s.Spec = v
+	return s
+}
+
+// SetStatus sets the Status field's value.
+func (s *VirtualGatewayData) SetStatus(v *VirtualGatewayStatus) *VirtualGatewayData {
+	s.Status = v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *VirtualGatewayData) SetVirtualGatewayName(v string) *VirtualGatewayData {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+// An object that represents an access log file.
+type VirtualGatewayFileAccessLog struct {
+	_ struct{} `type:"structure"`
+
+	// Path is a required field
+	Path *string `locationName:"path" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayFileAccessLog) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayFileAccessLog) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayFileAccessLog) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayFileAccessLog"}
+	if s.Path == nil {
+		invalidParams.Add(request.NewErrParamRequired("Path"))
+	}
+	if s.Path != nil && len(*s.Path) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Path", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPath sets the Path field's value.
+func (s *VirtualGatewayFileAccessLog) SetPath(v string) *VirtualGatewayFileAccessLog {
+	s.Path = &v
+	return s
+}
+
+// An object that represents the health check policy for a virtual gateway's
+// listener.
+type VirtualGatewayHealthCheckPolicy struct {
+	_ struct{} `type:"structure"`
+
+	// HealthyThreshold is a required field
+	HealthyThreshold *int64 `locationName:"healthyThreshold" min:"2" type:"integer" required:"true"`
+
+	// IntervalMillis is a required field
+	IntervalMillis *int64 `locationName:"intervalMillis" min:"5000" type:"long" required:"true"`
+
+	Path *string `locationName:"path" type:"string"`
+
+	Port *int64 `locationName:"port" min:"1" type:"integer"`
+
+	// Protocol is a required field
+	Protocol *string `locationName:"protocol" type:"string" required:"true" enum:"VirtualGatewayPortProtocol"`
+
+	// TimeoutMillis is a required field
+	TimeoutMillis *int64 `locationName:"timeoutMillis" min:"2000" type:"long" required:"true"`
+
+	// UnhealthyThreshold is a required field
+	UnhealthyThreshold *int64 `locationName:"unhealthyThreshold" min:"2" type:"integer" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayHealthCheckPolicy) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayHealthCheckPolicy) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayHealthCheckPolicy) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayHealthCheckPolicy"}
+	if s.HealthyThreshold == nil {
+		invalidParams.Add(request.NewErrParamRequired("HealthyThreshold"))
+	}
+	if s.HealthyThreshold != nil && *s.HealthyThreshold < 2 {
+		invalidParams.Add(request.NewErrParamMinValue("HealthyThreshold", 2))
+	}
+	if s.IntervalMillis == nil {
+		invalidParams.Add(request.NewErrParamRequired("IntervalMillis"))
+	}
+	if s.IntervalMillis != nil && *s.IntervalMillis < 5000 {
+		invalidParams.Add(request.NewErrParamMinValue("IntervalMillis", 5000))
+	}
+	if s.Port != nil && *s.Port < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Port", 1))
+	}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+	if s.TimeoutMillis == nil {
+		invalidParams.Add(request.NewErrParamRequired("TimeoutMillis"))
+	}
+	if s.TimeoutMillis != nil && *s.TimeoutMillis < 2000 {
+		invalidParams.Add(request.NewErrParamMinValue("TimeoutMillis", 2000))
+	}
+	if s.UnhealthyThreshold == nil {
+		invalidParams.Add(request.NewErrParamRequired("UnhealthyThreshold"))
+	}
+	if s.UnhealthyThreshold != nil && *s.UnhealthyThreshold < 2 {
+		invalidParams.Add(request.NewErrParamMinValue("UnhealthyThreshold", 2))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHealthyThreshold sets the HealthyThreshold field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetHealthyThreshold(v int64) *VirtualGatewayHealthCheckPolicy {
+	s.HealthyThreshold = &v
+	return s
+}
+
+// SetIntervalMillis sets the IntervalMillis field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetIntervalMillis(v int64) *VirtualGatewayHealthCheckPolicy {
+	s.IntervalMillis = &v
+	return s
+}
+
+// SetPath sets the Path field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetPath(v string) *VirtualGatewayHealthCheckPolicy {
+	s.Path = &v
+	return s
+}
+
+// SetPort sets the Port field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetPort(v int64) *VirtualGatewayHealthCheckPolicy {
+	s.Port = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetProtocol(v string) *VirtualGatewayHealthCheckPolicy {
+	s.Protocol = &v
+	return s
+}
+
+// SetTimeoutMillis sets the TimeoutMillis field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetTimeoutMillis(v int64) *VirtualGatewayHealthCheckPolicy {
+	s.TimeoutMillis = &v
+	return s
+}
+
+// SetUnhealthyThreshold sets the UnhealthyThreshold field's value.
+func (s *VirtualGatewayHealthCheckPolicy) SetUnhealthyThreshold(v int64) *VirtualGatewayHealthCheckPolicy {
+	s.UnhealthyThreshold = &v
+	return s
+}
+
+// An object that represents a listener for a virtual gateway.
+type VirtualGatewayListener struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents the health check policy for a virtual gateway's
+	// listener.
+	HealthCheck *VirtualGatewayHealthCheckPolicy `locationName:"healthCheck" type:"structure"`
+
+	// An object that represents a port mapping.
+	//
+	// PortMapping is a required field
+	PortMapping *VirtualGatewayPortMapping `locationName:"portMapping" type:"structure" required:"true"`
+
+	// An object that represents the Transport Layer Security (TLS) properties for
+	// a listener.
+	Tls *VirtualGatewayListenerTls `locationName:"tls" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayListener) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayListener) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayListener) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayListener"}
+	if s.PortMapping == nil {
+		invalidParams.Add(request.NewErrParamRequired("PortMapping"))
+	}
+	if s.HealthCheck != nil {
+		if err := s.HealthCheck.Validate(); err != nil {
+			invalidParams.AddNested("HealthCheck", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.PortMapping != nil {
+		if err := s.PortMapping.Validate(); err != nil {
+			invalidParams.AddNested("PortMapping", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Tls != nil {
+		if err := s.Tls.Validate(); err != nil {
+			invalidParams.AddNested("Tls", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetHealthCheck sets the HealthCheck field's value.
+func (s *VirtualGatewayListener) SetHealthCheck(v *VirtualGatewayHealthCheckPolicy) *VirtualGatewayListener {
+	s.HealthCheck = v
+	return s
+}
+
+// SetPortMapping sets the PortMapping field's value.
+func (s *VirtualGatewayListener) SetPortMapping(v *VirtualGatewayPortMapping) *VirtualGatewayListener {
+	s.PortMapping = v
+	return s
+}
+
+// SetTls sets the Tls field's value.
+func (s *VirtualGatewayListener) SetTls(v *VirtualGatewayListenerTls) *VirtualGatewayListener {
+	s.Tls = v
+	return s
+}
+
+// An object that represents the Transport Layer Security (TLS) properties for
+// a listener.
+type VirtualGatewayListenerTls struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a listener's Transport Layer Security (TLS) certificate.
+	//
+	// Certificate is a required field
+	Certificate *VirtualGatewayListenerTlsCertificate `locationName:"certificate" type:"structure" required:"true"`
+
+	// Mode is a required field
+	Mode *string `locationName:"mode" type:"string" required:"true" enum:"VirtualGatewayListenerTlsMode"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayListenerTls) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayListenerTls) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayListenerTls) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayListenerTls"}
+	if s.Certificate == nil {
+		invalidParams.Add(request.NewErrParamRequired("Certificate"))
+	}
+	if s.Mode == nil {
+		invalidParams.Add(request.NewErrParamRequired("Mode"))
+	}
+	if s.Certificate != nil {
+		if err := s.Certificate.Validate(); err != nil {
+			invalidParams.AddNested("Certificate", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificate sets the Certificate field's value.
+func (s *VirtualGatewayListenerTls) SetCertificate(v *VirtualGatewayListenerTlsCertificate) *VirtualGatewayListenerTls {
+	s.Certificate = v
+	return s
+}
+
+// SetMode sets the Mode field's value.
+func (s *VirtualGatewayListenerTls) SetMode(v string) *VirtualGatewayListenerTls {
+	s.Mode = &v
+	return s
+}
+
+// An object that represents an AWS Certicate Manager (ACM) certificate.
+type VirtualGatewayListenerTlsAcmCertificate struct {
+	_ struct{} `type:"structure"`
+
+	// CertificateArn is a required field
+	CertificateArn *string `locationName:"certificateArn" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayListenerTlsAcmCertificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayListenerTlsAcmCertificate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayListenerTlsAcmCertificate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayListenerTlsAcmCertificate"}
+	if s.CertificateArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateArn"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateArn sets the CertificateArn field's value.
+func (s *VirtualGatewayListenerTlsAcmCertificate) SetCertificateArn(v string) *VirtualGatewayListenerTlsAcmCertificate {
+	s.CertificateArn = &v
+	return s
+}
+
+// An object that represents a listener's Transport Layer Security (TLS) certificate.
+type VirtualGatewayListenerTlsCertificate struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents an AWS Certicate Manager (ACM) certificate.
+	Acm *VirtualGatewayListenerTlsAcmCertificate `locationName:"acm" type:"structure"`
+
+	// An object that represents a local file certificate. The certificate must
+	// meet specific requirements and you must have proxy authorization enabled.
+	// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/tls.html#virtual-node-tls-prerequisites).
+	File *VirtualGatewayListenerTlsFileCertificate `locationName:"file" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayListenerTlsCertificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayListenerTlsCertificate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayListenerTlsCertificate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayListenerTlsCertificate"}
+	if s.Acm != nil {
+		if err := s.Acm.Validate(); err != nil {
+			invalidParams.AddNested("Acm", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.File != nil {
+		if err := s.File.Validate(); err != nil {
+			invalidParams.AddNested("File", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAcm sets the Acm field's value.
+func (s *VirtualGatewayListenerTlsCertificate) SetAcm(v *VirtualGatewayListenerTlsAcmCertificate) *VirtualGatewayListenerTlsCertificate {
+	s.Acm = v
+	return s
+}
+
+// SetFile sets the File field's value.
+func (s *VirtualGatewayListenerTlsCertificate) SetFile(v *VirtualGatewayListenerTlsFileCertificate) *VirtualGatewayListenerTlsCertificate {
+	s.File = v
+	return s
+}
+
+// An object that represents a local file certificate. The certificate must
+// meet specific requirements and you must have proxy authorization enabled.
+// For more information, see Transport Layer Security (TLS) (https://docs.aws.amazon.com/app-mesh/latest/userguide/tls.html#virtual-node-tls-prerequisites).
+type VirtualGatewayListenerTlsFileCertificate struct {
+	_ struct{} `type:"structure"`
+
+	// CertificateChain is a required field
+	CertificateChain *string `locationName:"certificateChain" min:"1" type:"string" required:"true"`
+
+	// PrivateKey is a required field
+	PrivateKey *string `locationName:"privateKey" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayListenerTlsFileCertificate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayListenerTlsFileCertificate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayListenerTlsFileCertificate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayListenerTlsFileCertificate"}
+	if s.CertificateChain == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateChain"))
+	}
+	if s.CertificateChain != nil && len(*s.CertificateChain) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CertificateChain", 1))
+	}
+	if s.PrivateKey == nil {
+		invalidParams.Add(request.NewErrParamRequired("PrivateKey"))
+	}
+	if s.PrivateKey != nil && len(*s.PrivateKey) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("PrivateKey", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateChain sets the CertificateChain field's value.
+func (s *VirtualGatewayListenerTlsFileCertificate) SetCertificateChain(v string) *VirtualGatewayListenerTlsFileCertificate {
+	s.CertificateChain = &v
+	return s
+}
+
+// SetPrivateKey sets the PrivateKey field's value.
+func (s *VirtualGatewayListenerTlsFileCertificate) SetPrivateKey(v string) *VirtualGatewayListenerTlsFileCertificate {
+	s.PrivateKey = &v
+	return s
+}
+
+// An object that represents logging information.
+type VirtualGatewayLogging struct {
+	_ struct{} `type:"structure"`
+
+	// The access log configuration for a virtual gateway.
+	AccessLog *VirtualGatewayAccessLog `locationName:"accessLog" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayLogging) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayLogging) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayLogging) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayLogging"}
+	if s.AccessLog != nil {
+		if err := s.AccessLog.Validate(); err != nil {
+			invalidParams.AddNested("AccessLog", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAccessLog sets the AccessLog field's value.
+func (s *VirtualGatewayLogging) SetAccessLog(v *VirtualGatewayAccessLog) *VirtualGatewayLogging {
+	s.AccessLog = v
+	return s
+}
+
+// An object that represents a port mapping.
+type VirtualGatewayPortMapping struct {
+	_ struct{} `type:"structure"`
+
+	// Port is a required field
+	Port *int64 `locationName:"port" min:"1" type:"integer" required:"true"`
+
+	// Protocol is a required field
+	Protocol *string `locationName:"protocol" type:"string" required:"true" enum:"VirtualGatewayPortProtocol"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayPortMapping) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayPortMapping) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayPortMapping) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayPortMapping"}
+	if s.Port == nil {
+		invalidParams.Add(request.NewErrParamRequired("Port"))
+	}
+	if s.Port != nil && *s.Port < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("Port", 1))
+	}
+	if s.Protocol == nil {
+		invalidParams.Add(request.NewErrParamRequired("Protocol"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetPort sets the Port field's value.
+func (s *VirtualGatewayPortMapping) SetPort(v int64) *VirtualGatewayPortMapping {
+	s.Port = &v
+	return s
+}
+
+// SetProtocol sets the Protocol field's value.
+func (s *VirtualGatewayPortMapping) SetProtocol(v string) *VirtualGatewayPortMapping {
+	s.Protocol = &v
+	return s
+}
+
+// An object that represents a virtual gateway returned by a list operation.
+type VirtualGatewayRef struct {
+	_ struct{} `type:"structure"`
+
+	// Arn is a required field
+	Arn *string `locationName:"arn" type:"string" required:"true"`
+
+	// CreatedAt is a required field
+	CreatedAt *time.Time `locationName:"createdAt" type:"timestamp" required:"true"`
+
+	// LastUpdatedAt is a required field
+	LastUpdatedAt *time.Time `locationName:"lastUpdatedAt" type:"timestamp" required:"true"`
+
+	// MeshName is a required field
+	MeshName *string `locationName:"meshName" min:"1" type:"string" required:"true"`
+
+	// MeshOwner is a required field
+	MeshOwner *string `locationName:"meshOwner" min:"12" type:"string" required:"true"`
+
+	// ResourceOwner is a required field
+	ResourceOwner *string `locationName:"resourceOwner" min:"12" type:"string" required:"true"`
+
+	// Version is a required field
+	Version *int64 `locationName:"version" type:"long" required:"true"`
+
+	// VirtualGatewayName is a required field
+	VirtualGatewayName *string `locationName:"virtualGatewayName" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayRef) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayRef) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *VirtualGatewayRef) SetArn(v string) *VirtualGatewayRef {
+	s.Arn = &v
+	return s
+}
+
+// SetCreatedAt sets the CreatedAt field's value.
+func (s *VirtualGatewayRef) SetCreatedAt(v time.Time) *VirtualGatewayRef {
+	s.CreatedAt = &v
+	return s
+}
+
+// SetLastUpdatedAt sets the LastUpdatedAt field's value.
+func (s *VirtualGatewayRef) SetLastUpdatedAt(v time.Time) *VirtualGatewayRef {
+	s.LastUpdatedAt = &v
+	return s
+}
+
+// SetMeshName sets the MeshName field's value.
+func (s *VirtualGatewayRef) SetMeshName(v string) *VirtualGatewayRef {
+	s.MeshName = &v
+	return s
+}
+
+// SetMeshOwner sets the MeshOwner field's value.
+func (s *VirtualGatewayRef) SetMeshOwner(v string) *VirtualGatewayRef {
+	s.MeshOwner = &v
+	return s
+}
+
+// SetResourceOwner sets the ResourceOwner field's value.
+func (s *VirtualGatewayRef) SetResourceOwner(v string) *VirtualGatewayRef {
+	s.ResourceOwner = &v
+	return s
+}
+
+// SetVersion sets the Version field's value.
+func (s *VirtualGatewayRef) SetVersion(v int64) *VirtualGatewayRef {
+	s.Version = &v
+	return s
+}
+
+// SetVirtualGatewayName sets the VirtualGatewayName field's value.
+func (s *VirtualGatewayRef) SetVirtualGatewayName(v string) *VirtualGatewayRef {
+	s.VirtualGatewayName = &v
+	return s
+}
+
+// An object that represents the specification of a service mesh resource.
+type VirtualGatewaySpec struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents the default properties for a backend.
+	BackendDefaults *VirtualGatewayBackendDefaults `locationName:"backendDefaults" type:"structure"`
+
+	// Listeners is a required field
+	Listeners []*VirtualGatewayListener `locationName:"listeners" type:"list" required:"true"`
+
+	// An object that represents logging information.
+	Logging *VirtualGatewayLogging `locationName:"logging" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewaySpec) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewaySpec) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewaySpec) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewaySpec"}
+	if s.Listeners == nil {
+		invalidParams.Add(request.NewErrParamRequired("Listeners"))
+	}
+	if s.BackendDefaults != nil {
+		if err := s.BackendDefaults.Validate(); err != nil {
+			invalidParams.AddNested("BackendDefaults", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.Listeners != nil {
+		for i, v := range s.Listeners {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Listeners", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.Logging != nil {
+		if err := s.Logging.Validate(); err != nil {
+			invalidParams.AddNested("Logging", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBackendDefaults sets the BackendDefaults field's value.
+func (s *VirtualGatewaySpec) SetBackendDefaults(v *VirtualGatewayBackendDefaults) *VirtualGatewaySpec {
+	s.BackendDefaults = v
+	return s
+}
+
+// SetListeners sets the Listeners field's value.
+func (s *VirtualGatewaySpec) SetListeners(v []*VirtualGatewayListener) *VirtualGatewaySpec {
+	s.Listeners = v
+	return s
+}
+
+// SetLogging sets the Logging field's value.
+func (s *VirtualGatewaySpec) SetLogging(v *VirtualGatewayLogging) *VirtualGatewaySpec {
+	s.Logging = v
+	return s
+}
+
+// An object that represents the status of the mesh resource.
+type VirtualGatewayStatus struct {
+	_ struct{} `type:"structure"`
+
+	// Status is a required field
+	Status *string `locationName:"status" type:"string" required:"true" enum:"VirtualGatewayStatusCode"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayStatus) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayStatus) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *VirtualGatewayStatus) SetStatus(v string) *VirtualGatewayStatus {
+	s.Status = &v
+	return s
+}
+
+// An object that represents a Transport Layer Security (TLS) validation context.
+type VirtualGatewayTlsValidationContext struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a Transport Layer Security (TLS) validation context
+	// trust.
+	//
+	// Trust is a required field
+	Trust *VirtualGatewayTlsValidationContextTrust `locationName:"trust" type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayTlsValidationContext) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayTlsValidationContext) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayTlsValidationContext) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayTlsValidationContext"}
+	if s.Trust == nil {
+		invalidParams.Add(request.NewErrParamRequired("Trust"))
+	}
+	if s.Trust != nil {
+		if err := s.Trust.Validate(); err != nil {
+			invalidParams.AddNested("Trust", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetTrust sets the Trust field's value.
+func (s *VirtualGatewayTlsValidationContext) SetTrust(v *VirtualGatewayTlsValidationContextTrust) *VirtualGatewayTlsValidationContext {
+	s.Trust = v
+	return s
+}
+
+// An object that represents a TLS validation context trust for an AWS Certicate
+// Manager (ACM) certificate.
+type VirtualGatewayTlsValidationContextAcmTrust struct {
+	_ struct{} `type:"structure"`
+
+	// CertificateAuthorityArns is a required field
+	CertificateAuthorityArns []*string `locationName:"certificateAuthorityArns" min:"1" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayTlsValidationContextAcmTrust) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayTlsValidationContextAcmTrust) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayTlsValidationContextAcmTrust) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayTlsValidationContextAcmTrust"}
+	if s.CertificateAuthorityArns == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateAuthorityArns"))
+	}
+	if s.CertificateAuthorityArns != nil && len(s.CertificateAuthorityArns) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CertificateAuthorityArns", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateAuthorityArns sets the CertificateAuthorityArns field's value.
+func (s *VirtualGatewayTlsValidationContextAcmTrust) SetCertificateAuthorityArns(v []*string) *VirtualGatewayTlsValidationContextAcmTrust {
+	s.CertificateAuthorityArns = v
+	return s
+}
+
+// An object that represents a Transport Layer Security (TLS) validation context
+// trust for a local file.
+type VirtualGatewayTlsValidationContextFileTrust struct {
+	_ struct{} `type:"structure"`
+
+	// CertificateChain is a required field
+	CertificateChain *string `locationName:"certificateChain" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayTlsValidationContextFileTrust) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayTlsValidationContextFileTrust) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayTlsValidationContextFileTrust) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayTlsValidationContextFileTrust"}
+	if s.CertificateChain == nil {
+		invalidParams.Add(request.NewErrParamRequired("CertificateChain"))
+	}
+	if s.CertificateChain != nil && len(*s.CertificateChain) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("CertificateChain", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCertificateChain sets the CertificateChain field's value.
+func (s *VirtualGatewayTlsValidationContextFileTrust) SetCertificateChain(v string) *VirtualGatewayTlsValidationContextFileTrust {
+	s.CertificateChain = &v
+	return s
+}
+
+// An object that represents a Transport Layer Security (TLS) validation context
+// trust.
+type VirtualGatewayTlsValidationContextTrust struct {
+	_ struct{} `type:"structure"`
+
+	// An object that represents a TLS validation context trust for an AWS Certicate
+	// Manager (ACM) certificate.
+	Acm *VirtualGatewayTlsValidationContextAcmTrust `locationName:"acm" type:"structure"`
+
+	// An object that represents a Transport Layer Security (TLS) validation context
+	// trust for a local file.
+	File *VirtualGatewayTlsValidationContextFileTrust `locationName:"file" type:"structure"`
+}
+
+// String returns the string representation
+func (s VirtualGatewayTlsValidationContextTrust) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s VirtualGatewayTlsValidationContextTrust) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *VirtualGatewayTlsValidationContextTrust) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "VirtualGatewayTlsValidationContextTrust"}
+	if s.Acm != nil {
+		if err := s.Acm.Validate(); err != nil {
+			invalidParams.AddNested("Acm", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.File != nil {
+		if err := s.File.Validate(); err != nil {
+			invalidParams.AddNested("File", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAcm sets the Acm field's value.
+func (s *VirtualGatewayTlsValidationContextTrust) SetAcm(v *VirtualGatewayTlsValidationContextAcmTrust) *VirtualGatewayTlsValidationContextTrust {
+	s.Acm = v
+	return s
+}
+
+// SetFile sets the File field's value.
+func (s *VirtualGatewayTlsValidationContextTrust) SetFile(v *VirtualGatewayTlsValidationContextFileTrust) *VirtualGatewayTlsValidationContextTrust {
+	s.File = v
 	return s
 }
 
@@ -10499,6 +14725,14 @@ const (
 	DurationUnitS = "s"
 )
 
+// DurationUnit_Values returns all elements of the DurationUnit enum
+func DurationUnit_Values() []string {
+	return []string{
+		DurationUnitMs,
+		DurationUnitS,
+	}
+}
+
 const (
 	// EgressFilterTypeAllowAll is a EgressFilterType enum value
 	EgressFilterTypeAllowAll = "ALLOW_ALL"
@@ -10506,6 +14740,34 @@ const (
 	// EgressFilterTypeDropAll is a EgressFilterType enum value
 	EgressFilterTypeDropAll = "DROP_ALL"
 )
+
+// EgressFilterType_Values returns all elements of the EgressFilterType enum
+func EgressFilterType_Values() []string {
+	return []string{
+		EgressFilterTypeAllowAll,
+		EgressFilterTypeDropAll,
+	}
+}
+
+const (
+	// GatewayRouteStatusCodeActive is a GatewayRouteStatusCode enum value
+	GatewayRouteStatusCodeActive = "ACTIVE"
+
+	// GatewayRouteStatusCodeDeleted is a GatewayRouteStatusCode enum value
+	GatewayRouteStatusCodeDeleted = "DELETED"
+
+	// GatewayRouteStatusCodeInactive is a GatewayRouteStatusCode enum value
+	GatewayRouteStatusCodeInactive = "INACTIVE"
+)
+
+// GatewayRouteStatusCode_Values returns all elements of the GatewayRouteStatusCode enum
+func GatewayRouteStatusCode_Values() []string {
+	return []string{
+		GatewayRouteStatusCodeActive,
+		GatewayRouteStatusCodeDeleted,
+		GatewayRouteStatusCodeInactive,
+	}
+}
 
 const (
 	// GrpcRetryPolicyEventCancelled is a GrpcRetryPolicyEvent enum value
@@ -10523,6 +14785,17 @@ const (
 	// GrpcRetryPolicyEventUnavailable is a GrpcRetryPolicyEvent enum value
 	GrpcRetryPolicyEventUnavailable = "unavailable"
 )
+
+// GrpcRetryPolicyEvent_Values returns all elements of the GrpcRetryPolicyEvent enum
+func GrpcRetryPolicyEvent_Values() []string {
+	return []string{
+		GrpcRetryPolicyEventCancelled,
+		GrpcRetryPolicyEventDeadlineExceeded,
+		GrpcRetryPolicyEventInternal,
+		GrpcRetryPolicyEventResourceExhausted,
+		GrpcRetryPolicyEventUnavailable,
+	}
+}
 
 const (
 	// HttpMethodConnect is a HttpMethod enum value
@@ -10553,6 +14826,21 @@ const (
 	HttpMethodTrace = "TRACE"
 )
 
+// HttpMethod_Values returns all elements of the HttpMethod enum
+func HttpMethod_Values() []string {
+	return []string{
+		HttpMethodConnect,
+		HttpMethodDelete,
+		HttpMethodGet,
+		HttpMethodHead,
+		HttpMethodOptions,
+		HttpMethodPatch,
+		HttpMethodPost,
+		HttpMethodPut,
+		HttpMethodTrace,
+	}
+}
+
 const (
 	// HttpSchemeHttp is a HttpScheme enum value
 	HttpSchemeHttp = "http"
@@ -10560,6 +14848,14 @@ const (
 	// HttpSchemeHttps is a HttpScheme enum value
 	HttpSchemeHttps = "https"
 )
+
+// HttpScheme_Values returns all elements of the HttpScheme enum
+func HttpScheme_Values() []string {
+	return []string{
+		HttpSchemeHttp,
+		HttpSchemeHttps,
+	}
+}
 
 const (
 	// ListenerTlsModeDisabled is a ListenerTlsMode enum value
@@ -10572,6 +14868,15 @@ const (
 	ListenerTlsModeStrict = "STRICT"
 )
 
+// ListenerTlsMode_Values returns all elements of the ListenerTlsMode enum
+func ListenerTlsMode_Values() []string {
+	return []string{
+		ListenerTlsModeDisabled,
+		ListenerTlsModePermissive,
+		ListenerTlsModeStrict,
+	}
+}
+
 const (
 	// MeshStatusCodeActive is a MeshStatusCode enum value
 	MeshStatusCodeActive = "ACTIVE"
@@ -10582,6 +14887,15 @@ const (
 	// MeshStatusCodeInactive is a MeshStatusCode enum value
 	MeshStatusCodeInactive = "INACTIVE"
 )
+
+// MeshStatusCode_Values returns all elements of the MeshStatusCode enum
+func MeshStatusCode_Values() []string {
+	return []string{
+		MeshStatusCodeActive,
+		MeshStatusCodeDeleted,
+		MeshStatusCodeInactive,
+	}
+}
 
 const (
 	// PortProtocolGrpc is a PortProtocol enum value
@@ -10597,6 +14911,16 @@ const (
 	PortProtocolTcp = "tcp"
 )
 
+// PortProtocol_Values returns all elements of the PortProtocol enum
+func PortProtocol_Values() []string {
+	return []string{
+		PortProtocolGrpc,
+		PortProtocolHttp,
+		PortProtocolHttp2,
+		PortProtocolTcp,
+	}
+}
+
 const (
 	// RouteStatusCodeActive is a RouteStatusCode enum value
 	RouteStatusCodeActive = "ACTIVE"
@@ -10608,10 +14932,86 @@ const (
 	RouteStatusCodeInactive = "INACTIVE"
 )
 
+// RouteStatusCode_Values returns all elements of the RouteStatusCode enum
+func RouteStatusCode_Values() []string {
+	return []string{
+		RouteStatusCodeActive,
+		RouteStatusCodeDeleted,
+		RouteStatusCodeInactive,
+	}
+}
+
 const (
 	// TcpRetryPolicyEventConnectionError is a TcpRetryPolicyEvent enum value
 	TcpRetryPolicyEventConnectionError = "connection-error"
 )
+
+// TcpRetryPolicyEvent_Values returns all elements of the TcpRetryPolicyEvent enum
+func TcpRetryPolicyEvent_Values() []string {
+	return []string{
+		TcpRetryPolicyEventConnectionError,
+	}
+}
+
+const (
+	// VirtualGatewayListenerTlsModeDisabled is a VirtualGatewayListenerTlsMode enum value
+	VirtualGatewayListenerTlsModeDisabled = "DISABLED"
+
+	// VirtualGatewayListenerTlsModePermissive is a VirtualGatewayListenerTlsMode enum value
+	VirtualGatewayListenerTlsModePermissive = "PERMISSIVE"
+
+	// VirtualGatewayListenerTlsModeStrict is a VirtualGatewayListenerTlsMode enum value
+	VirtualGatewayListenerTlsModeStrict = "STRICT"
+)
+
+// VirtualGatewayListenerTlsMode_Values returns all elements of the VirtualGatewayListenerTlsMode enum
+func VirtualGatewayListenerTlsMode_Values() []string {
+	return []string{
+		VirtualGatewayListenerTlsModeDisabled,
+		VirtualGatewayListenerTlsModePermissive,
+		VirtualGatewayListenerTlsModeStrict,
+	}
+}
+
+const (
+	// VirtualGatewayPortProtocolGrpc is a VirtualGatewayPortProtocol enum value
+	VirtualGatewayPortProtocolGrpc = "grpc"
+
+	// VirtualGatewayPortProtocolHttp is a VirtualGatewayPortProtocol enum value
+	VirtualGatewayPortProtocolHttp = "http"
+
+	// VirtualGatewayPortProtocolHttp2 is a VirtualGatewayPortProtocol enum value
+	VirtualGatewayPortProtocolHttp2 = "http2"
+)
+
+// VirtualGatewayPortProtocol_Values returns all elements of the VirtualGatewayPortProtocol enum
+func VirtualGatewayPortProtocol_Values() []string {
+	return []string{
+		VirtualGatewayPortProtocolGrpc,
+		VirtualGatewayPortProtocolHttp,
+		VirtualGatewayPortProtocolHttp2,
+	}
+}
+
+const (
+	// VirtualGatewayStatusCodeActive is a VirtualGatewayStatusCode enum value
+	VirtualGatewayStatusCodeActive = "ACTIVE"
+
+	// VirtualGatewayStatusCodeDeleted is a VirtualGatewayStatusCode enum value
+	VirtualGatewayStatusCodeDeleted = "DELETED"
+
+	// VirtualGatewayStatusCodeInactive is a VirtualGatewayStatusCode enum value
+	VirtualGatewayStatusCodeInactive = "INACTIVE"
+)
+
+// VirtualGatewayStatusCode_Values returns all elements of the VirtualGatewayStatusCode enum
+func VirtualGatewayStatusCode_Values() []string {
+	return []string{
+		VirtualGatewayStatusCodeActive,
+		VirtualGatewayStatusCodeDeleted,
+		VirtualGatewayStatusCodeInactive,
+	}
+}
 
 const (
 	// VirtualNodeStatusCodeActive is a VirtualNodeStatusCode enum value
@@ -10624,6 +15024,15 @@ const (
 	VirtualNodeStatusCodeInactive = "INACTIVE"
 )
 
+// VirtualNodeStatusCode_Values returns all elements of the VirtualNodeStatusCode enum
+func VirtualNodeStatusCode_Values() []string {
+	return []string{
+		VirtualNodeStatusCodeActive,
+		VirtualNodeStatusCodeDeleted,
+		VirtualNodeStatusCodeInactive,
+	}
+}
+
 const (
 	// VirtualRouterStatusCodeActive is a VirtualRouterStatusCode enum value
 	VirtualRouterStatusCodeActive = "ACTIVE"
@@ -10635,6 +15044,15 @@ const (
 	VirtualRouterStatusCodeInactive = "INACTIVE"
 )
 
+// VirtualRouterStatusCode_Values returns all elements of the VirtualRouterStatusCode enum
+func VirtualRouterStatusCode_Values() []string {
+	return []string{
+		VirtualRouterStatusCodeActive,
+		VirtualRouterStatusCodeDeleted,
+		VirtualRouterStatusCodeInactive,
+	}
+}
+
 const (
 	// VirtualServiceStatusCodeActive is a VirtualServiceStatusCode enum value
 	VirtualServiceStatusCodeActive = "ACTIVE"
@@ -10645,3 +15063,12 @@ const (
 	// VirtualServiceStatusCodeInactive is a VirtualServiceStatusCode enum value
 	VirtualServiceStatusCodeInactive = "INACTIVE"
 )
+
+// VirtualServiceStatusCode_Values returns all elements of the VirtualServiceStatusCode enum
+func VirtualServiceStatusCode_Values() []string {
+	return []string{
+		VirtualServiceStatusCodeActive,
+		VirtualServiceStatusCodeDeleted,
+		VirtualServiceStatusCodeInactive,
+	}
+}

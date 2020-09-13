@@ -26,13 +26,13 @@ resource "aws_customer_gateway" "example" {
 }
 
 resource "aws_vpn_connection" "example" {
-  customer_gateway_id = "${aws_customer_gateway.example.id}"
-  transit_gateway_id  = "${aws_ec2_transit_gateway.example.id}"
-  type                = "${aws_customer_gateway.example.type}"
+  customer_gateway_id = aws_customer_gateway.example.id
+  transit_gateway_id  = aws_ec2_transit_gateway.example.id
+  type                = aws_customer_gateway.example.type
 }
 
 resource "aws_ec2_tag" "example" {
-  resource_id = "${aws_vpn_connection.example.transit_gateway_attachment_id}"
+  resource_id = aws_vpn_connection.example.transit_gateway_attachment_id
   key         = "Name"
   value       = "Hello World"
 }

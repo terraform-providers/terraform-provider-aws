@@ -7,15 +7,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayGatewayResponse_basic(t *testing.T) {
 	var conf apigateway.UpdateGatewayResponseOutput
 
 	rName := acctest.RandString(10)
+	resourceName := "aws_api_gateway_gateway_response.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,29 +26,52 @@ func TestAccAWSAPIGatewayGatewayResponse_basic(t *testing.T) {
 			{
 				Config: testAccAWSAPIGatewayGatewayResponseConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayGatewayResponseExists("aws_api_gateway_gateway_response.test", &conf),
-					resource.TestCheckResourceAttr("aws_api_gateway_gateway_response.test", "status_code", "401"),
-					resource.TestCheckResourceAttr("aws_api_gateway_gateway_response.test", "response_parameters.gatewayresponse.header.Authorization", "'Basic'"),
-					resource.TestCheckResourceAttr("aws_api_gateway_gateway_response.test", "response_templates.application/xml", "#set($inputRoot = $input.path('$'))\n{ }"),
-					resource.TestCheckNoResourceAttr("aws_api_gateway_gateway_response.test", "response_templates.application/json"),
+					testAccCheckAWSAPIGatewayGatewayResponseExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "status_code", "401"),
+					resource.TestCheckResourceAttr(resourceName, "response_parameters.gatewayresponse.header.Authorization", "'Basic'"),
+					resource.TestCheckResourceAttr(resourceName, "response_templates.application/xml", "#set($inputRoot = $input.path('$'))\n{ }"),
+					resource.TestCheckNoResourceAttr(resourceName, "response_templates.application/json"),
 				),
 			},
 
 			{
 				Config: testAccAWSAPIGatewayGatewayResponseConfigUpdate(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayGatewayResponseExists("aws_api_gateway_gateway_response.test", &conf),
-					resource.TestCheckResourceAttr("aws_api_gateway_gateway_response.test", "status_code", "477"),
-					resource.TestCheckResourceAttr("aws_api_gateway_gateway_response.test", "response_templates.application/json", "{'message':$context.error.messageString}"),
-					resource.TestCheckNoResourceAttr("aws_api_gateway_gateway_response.test", "response_templates.application/xml"),
-					resource.TestCheckNoResourceAttr("aws_api_gateway_gateway_response.test", "response_parameters.gatewayresponse.header.Authorization"),
+					testAccCheckAWSAPIGatewayGatewayResponseExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "status_code", "477"),
+					resource.TestCheckResourceAttr(resourceName, "response_templates.application/json", "{'message':$context.error.messageString}"),
+					resource.TestCheckNoResourceAttr(resourceName, "response_templates.application/xml"),
+					resource.TestCheckNoResourceAttr(resourceName, "response_parameters.gatewayresponse.header.Authorization"),
 				),
 			},
 			{
-				ResourceName:      "aws_api_gateway_gateway_response.test",
+				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccAWSAPIGatewayGatewayResponseImportStateIdFunc("aws_api_gateway_gateway_response.test"),
+				ImportStateIdFunc: testAccAWSAPIGatewayGatewayResponseImportStateIdFunc(resourceName),
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayGatewayResponse_disappears(t *testing.T) {
+	var conf apigateway.UpdateGatewayResponseOutput
+
+	rName := acctest.RandString(10)
+	resourceName := "aws_api_gateway_gateway_response.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayGatewayResponseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayGatewayResponseConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayGatewayResponseExists(resourceName, &conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayGatewayResponse(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -67,7 +91,7 @@ func testAccCheckAWSAPIGatewayGatewayResponseExists(n string, res *apigateway.Up
 		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetGatewayResponseInput{
-			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.main"].Primary.ID),
+			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 			ResponseType: aws.String(rs.Primary.Attributes["response_type"]),
 		}
 		describe, err := conn.GetGatewayResponse(req)
@@ -90,7 +114,7 @@ func testAccCheckAWSAPIGatewayGatewayResponseDestroy(s *terraform.State) error {
 		}
 
 		req := &apigateway.GetGatewayResponseInput{
-			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.main"].Primary.ID),
+			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 			ResponseType: aws.String(rs.Primary.Attributes["response_type"]),
 		}
 		_, err := conn.GetGatewayResponse(req)
@@ -126,12 +150,12 @@ func testAccAWSAPIGatewayGatewayResponseImportStateIdFunc(resourceName string) r
 
 func testAccAWSAPIGatewayGatewayResponseConfig(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "main" {
+resource "aws_api_gateway_rest_api" "test" {
   name = "%s"
 }
 
 resource "aws_api_gateway_gateway_response" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.main.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
   status_code   = "401"
   response_type = "UNAUTHORIZED"
 
@@ -148,12 +172,12 @@ resource "aws_api_gateway_gateway_response" "test" {
 
 func testAccAWSAPIGatewayGatewayResponseConfigUpdate(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "main" {
+resource "aws_api_gateway_rest_api" "test" {
   name = "%s"
 }
 
 resource "aws_api_gateway_gateway_response" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.main.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
   status_code   = "477"
   response_type = "UNAUTHORIZED"
 

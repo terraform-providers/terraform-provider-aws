@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsWafXssMatchSet() *schema.Resource {
@@ -47,32 +47,17 @@ func resourceAwsWafXssMatchSet() *schema.Resource {
 										Optional: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											waf.MatchFieldTypeUri,
-											waf.MatchFieldTypeSingleQueryArg,
-											waf.MatchFieldTypeQueryString,
-											waf.MatchFieldTypeMethod,
-											waf.MatchFieldTypeHeader,
-											waf.MatchFieldTypeBody,
-											waf.MatchFieldTypeAllQueryArgs,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.MatchFieldType_Values(), false),
 									},
 								},
 							},
 						},
 						"text_transformation": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								waf.TextTransformationUrlDecode,
-								waf.TextTransformationNone,
-								waf.TextTransformationHtmlEntityDecode,
-								waf.TextTransformationCompressWhiteSpace,
-								waf.TextTransformationCmdLine,
-								waf.TextTransformationLowercase,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(waf.TextTransformation_Values(), false),
 						},
 					},
 				},
@@ -100,12 +85,12 @@ func resourceAwsWafXssMatchSetCreate(d *schema.ResourceData, meta interface{}) e
 	}
 	resp := out.(*waf.CreateXssMatchSetOutput)
 
-	d.SetId(*resp.XssMatchSet.XssMatchSetId)
+	d.SetId(aws.StringValue(resp.XssMatchSet.XssMatchSetId))
 
 	if v, ok := d.GetOk("xss_match_tuples"); ok && v.(*schema.Set).Len() > 0 {
 		err := updateXssMatchSetResource(d.Id(), nil, v.(*schema.Set).List(), conn)
 		if err != nil {
-			return fmt.Errorf("Error setting WAF XSS Match Set tuples: %s", err)
+			return fmt.Errorf("Error setting WAF XSS Match Set tuples: %w", err)
 		}
 	}
 	return resourceAwsWafXssMatchSetRead(d, meta)
@@ -130,7 +115,9 @@ func resourceAwsWafXssMatchSetRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", resp.XssMatchSet.Name)
-	d.Set("xss_match_tuples", flattenWafXssMatchTuples(resp.XssMatchSet.XssMatchTuples))
+	if err := d.Set("xss_match_tuples", flattenWafXssMatchTuples(resp.XssMatchSet.XssMatchTuples)); err != nil {
+		return fmt.Errorf("error setting xss_match_tuples: %w", err)
+	}
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -152,7 +139,7 @@ func resourceAwsWafXssMatchSetUpdate(d *schema.ResourceData, meta interface{}) e
 
 		err := updateXssMatchSetResource(d.Id(), oldT, newT, conn)
 		if err != nil {
-			return fmt.Errorf("Error updating WAF XSS Match Set: %s", err)
+			return fmt.Errorf("Error updating WAF XSS Match Set: %w", err)
 		}
 	}
 
@@ -166,7 +153,7 @@ func resourceAwsWafXssMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 	if len(oldTuples) > 0 {
 		err := updateXssMatchSetResource(d.Id(), oldTuples, nil, conn)
 		if err != nil {
-			return fmt.Errorf("Error removing WAF XSS Match Set tuples: %s", err)
+			return fmt.Errorf("Error removing WAF XSS Match Set tuples: %w", err)
 		}
 	}
 
@@ -180,7 +167,7 @@ func resourceAwsWafXssMatchSetDelete(d *schema.ResourceData, meta interface{}) e
 		return conn.DeleteXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting WAF XSS Match Set: %s", err)
+		return fmt.Errorf("Error deleting WAF XSS Match Set: %w", err)
 	}
 
 	return nil
@@ -199,7 +186,7 @@ func updateXssMatchSetResource(id string, oldT, newT []interface{}, conn *waf.WA
 		return conn.UpdateXssMatchSet(req)
 	})
 	if err != nil {
-		return fmt.Errorf("Error updating WAF XSS Match Set: %s", err)
+		return fmt.Errorf("Error updating WAF XSS Match Set: %w", err)
 	}
 
 	return nil

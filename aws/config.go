@@ -119,6 +119,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/resourcegroups"
+	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
@@ -151,7 +152,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/aws/aws-sdk-go/service/xray"
 	awsbase "github.com/hashicorp/aws-sdk-go-base"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -164,10 +165,14 @@ type Config struct {
 	Region        string
 	MaxRetries    int
 
-	AssumeRoleARN         string
-	AssumeRoleExternalID  string
-	AssumeRoleSessionName string
-	AssumeRolePolicy      string
+	AssumeRoleARN               string
+	AssumeRoleDurationSeconds   int
+	AssumeRoleExternalID        string
+	AssumeRolePolicy            string
+	AssumeRolePolicyARNs        []string
+	AssumeRoleSessionName       string
+	AssumeRoleTags              map[string]string
+	AssumeRoleTransitiveTagKeys []string
 
 	AllowedAccountIds   []string
 	ForbiddenAccountIds []string
@@ -304,6 +309,7 @@ type AWSClient struct {
 	redshiftconn                        *redshift.Redshift
 	region                              string
 	resourcegroupsconn                  *resourcegroups.ResourceGroups
+	resourcegroupstaggingapiconn        *resourcegroupstaggingapi.ResourceGroupsTaggingAPI
 	route53domainsconn                  *route53domains.Route53Domains
 	route53resolverconn                 *route53resolver.Route53Resolver
 	s3conn                              *s3.S3
@@ -363,26 +369,31 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	}
 
-	log.Println("[INFO] Building AWS auth structure")
 	awsbaseConfig := &awsbase.Config{
-		AccessKey:               c.AccessKey,
-		AssumeRoleARN:           c.AssumeRoleARN,
-		AssumeRoleExternalID:    c.AssumeRoleExternalID,
-		AssumeRolePolicy:        c.AssumeRolePolicy,
-		AssumeRoleSessionName:   c.AssumeRoleSessionName,
-		CredsFilename:           c.CredsFilename,
-		DebugLogging:            logging.IsDebugOrHigher(),
-		IamEndpoint:             c.Endpoints["iam"],
-		Insecure:                c.Insecure,
-		MaxRetries:              c.MaxRetries,
-		Profile:                 c.Profile,
-		Region:                  c.Region,
-		SecretKey:               c.SecretKey,
-		SkipCredsValidation:     c.SkipCredsValidation,
-		SkipMetadataApiCheck:    c.SkipMetadataApiCheck,
-		SkipRequestingAccountId: c.SkipRequestingAccountId,
-		StsEndpoint:             c.Endpoints["sts"],
-		Token:                   c.Token,
+		AccessKey:                   c.AccessKey,
+		AssumeRoleARN:               c.AssumeRoleARN,
+		AssumeRoleDurationSeconds:   c.AssumeRoleDurationSeconds,
+		AssumeRoleExternalID:        c.AssumeRoleExternalID,
+		AssumeRolePolicy:            c.AssumeRolePolicy,
+		AssumeRolePolicyARNs:        c.AssumeRolePolicyARNs,
+		AssumeRoleSessionName:       c.AssumeRoleSessionName,
+		AssumeRoleTags:              c.AssumeRoleTags,
+		AssumeRoleTransitiveTagKeys: c.AssumeRoleTransitiveTagKeys,
+		CallerDocumentationURL:      "https://registry.terraform.io/providers/hashicorp/aws",
+		CallerName:                  "Terraform AWS Provider",
+		CredsFilename:               c.CredsFilename,
+		DebugLogging:                logging.IsDebugOrHigher(),
+		IamEndpoint:                 c.Endpoints["iam"],
+		Insecure:                    c.Insecure,
+		MaxRetries:                  c.MaxRetries,
+		Profile:                     c.Profile,
+		Region:                      c.Region,
+		SecretKey:                   c.SecretKey,
+		SkipCredsValidation:         c.SkipCredsValidation,
+		SkipMetadataApiCheck:        c.SkipMetadataApiCheck,
+		SkipRequestingAccountId:     c.SkipRequestingAccountId,
+		StsEndpoint:                 c.Endpoints["sts"],
+		Token:                       c.Token,
 		UserAgentProducts: []*awsbase.UserAgentProduct{
 			{Name: "APN", Version: "1.0"},
 			{Name: "HashiCorp", Version: "1.0"},
@@ -393,7 +404,7 @@ func (c *Config) Client() (interface{}, error) {
 
 	sess, accountID, partition, err := awsbase.GetSessionWithAccountIDAndPartition(awsbaseConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error configuring Terraform AWS Provider: %w", err)
 	}
 
 	if accountID == "" {
@@ -524,6 +535,7 @@ func (c *Config) Client() (interface{}, error) {
 		redshiftconn:                        redshift.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["redshift"])})),
 		region:                              c.Region,
 		resourcegroupsconn:                  resourcegroups.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["resourcegroups"])})),
+		resourcegroupstaggingapiconn:        resourcegroupstaggingapi.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["resourcegroupstaggingapi"])})),
 		route53domainsconn:                  route53domains.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["route53domains"])})),
 		route53resolverconn:                 route53resolver.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["route53resolver"])})),
 		s3controlconn:                       s3control.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["s3control"])})),
@@ -576,14 +588,6 @@ func (c *Config) Client() (interface{}, error) {
 
 	s3Config.DisableRestProtocolURICleaning = aws.Bool(true)
 	client.s3connUriCleaningDisabled = s3.New(sess.Copy(s3Config))
-
-	// Handle deprecated endpoint configurations
-	if c.Endpoints["kinesis_analytics"] != "" {
-		client.kinesisanalyticsconn = kinesisanalytics.New(sess.Copy(&aws.Config{Endpoint: aws.String(c.Endpoints["kinesis_analytics"])}))
-	}
-	if c.Endpoints["r53"] != "" {
-		route53Config.Endpoint = aws.String(c.Endpoints["r53"])
-	}
 
 	// Force "global" services to correct regions
 	switch partition {
@@ -723,6 +727,10 @@ func (c *Config) Client() (interface{}, error) {
 
 	client.wafv2conn.Handlers.Retry.PushBack(func(r *request.Request) {
 		if isAWSErr(r.Error, wafv2.ErrCodeWAFInternalErrorException, "Retry your request") {
+			r.Retryable = aws.Bool(true)
+		}
+
+		if isAWSErr(r.Error, wafv2.ErrCodeWAFServiceLinkedRoleErrorException, "Retry") {
 			r.Retryable = aws.Bool(true)
 		}
 

@@ -10943,6 +10943,17 @@ const (
 	DeploymentStatusEligible = "ELIGIBLE"
 )
 
+// DeploymentStatus_Values returns all elements of the DeploymentStatus enum
+func DeploymentStatus_Values() []string {
+	return []string{
+		DeploymentStatusPendingUpdate,
+		DeploymentStatusInProgress,
+		DeploymentStatusCompleted,
+		DeploymentStatusNotEligible,
+		DeploymentStatusEligible,
+	}
+}
+
 const (
 	// DescribePackagesFilterNamePackageId is a DescribePackagesFilterName enum value
 	DescribePackagesFilterNamePackageId = "PackageID"
@@ -10953,6 +10964,15 @@ const (
 	// DescribePackagesFilterNamePackageStatus is a DescribePackagesFilterName enum value
 	DescribePackagesFilterNamePackageStatus = "PackageStatus"
 )
+
+// DescribePackagesFilterName_Values returns all elements of the DescribePackagesFilterName enum
+func DescribePackagesFilterName_Values() []string {
+	return []string{
+		DescribePackagesFilterNamePackageId,
+		DescribePackagesFilterNamePackageName,
+		DescribePackagesFilterNamePackageStatus,
+	}
+}
 
 const (
 	// DomainPackageStatusAssociating is a DomainPackageStatus enum value
@@ -10970,6 +10990,17 @@ const (
 	// DomainPackageStatusDissociationFailed is a DomainPackageStatus enum value
 	DomainPackageStatusDissociationFailed = "DISSOCIATION_FAILED"
 )
+
+// DomainPackageStatus_Values returns all elements of the DomainPackageStatus enum
+func DomainPackageStatus_Values() []string {
+	return []string{
+		DomainPackageStatusAssociating,
+		DomainPackageStatusAssociationFailed,
+		DomainPackageStatusActive,
+		DomainPackageStatusDissociating,
+		DomainPackageStatusDissociationFailed,
+	}
+}
 
 const (
 	// ESPartitionInstanceTypeM3MediumElasticsearch is a ESPartitionInstanceType enum value
@@ -11147,6 +11178,70 @@ const (
 	ESPartitionInstanceTypeI316xlargeElasticsearch = "i3.16xlarge.elasticsearch"
 )
 
+// ESPartitionInstanceType_Values returns all elements of the ESPartitionInstanceType enum
+func ESPartitionInstanceType_Values() []string {
+	return []string{
+		ESPartitionInstanceTypeM3MediumElasticsearch,
+		ESPartitionInstanceTypeM3LargeElasticsearch,
+		ESPartitionInstanceTypeM3XlargeElasticsearch,
+		ESPartitionInstanceTypeM32xlargeElasticsearch,
+		ESPartitionInstanceTypeM4LargeElasticsearch,
+		ESPartitionInstanceTypeM4XlargeElasticsearch,
+		ESPartitionInstanceTypeM42xlargeElasticsearch,
+		ESPartitionInstanceTypeM44xlargeElasticsearch,
+		ESPartitionInstanceTypeM410xlargeElasticsearch,
+		ESPartitionInstanceTypeM5LargeElasticsearch,
+		ESPartitionInstanceTypeM5XlargeElasticsearch,
+		ESPartitionInstanceTypeM52xlargeElasticsearch,
+		ESPartitionInstanceTypeM54xlargeElasticsearch,
+		ESPartitionInstanceTypeM512xlargeElasticsearch,
+		ESPartitionInstanceTypeR5LargeElasticsearch,
+		ESPartitionInstanceTypeR5XlargeElasticsearch,
+		ESPartitionInstanceTypeR52xlargeElasticsearch,
+		ESPartitionInstanceTypeR54xlargeElasticsearch,
+		ESPartitionInstanceTypeR512xlargeElasticsearch,
+		ESPartitionInstanceTypeC5LargeElasticsearch,
+		ESPartitionInstanceTypeC5XlargeElasticsearch,
+		ESPartitionInstanceTypeC52xlargeElasticsearch,
+		ESPartitionInstanceTypeC54xlargeElasticsearch,
+		ESPartitionInstanceTypeC59xlargeElasticsearch,
+		ESPartitionInstanceTypeC518xlargeElasticsearch,
+		ESPartitionInstanceTypeUltrawarm1MediumElasticsearch,
+		ESPartitionInstanceTypeUltrawarm1LargeElasticsearch,
+		ESPartitionInstanceTypeT2MicroElasticsearch,
+		ESPartitionInstanceTypeT2SmallElasticsearch,
+		ESPartitionInstanceTypeT2MediumElasticsearch,
+		ESPartitionInstanceTypeR3LargeElasticsearch,
+		ESPartitionInstanceTypeR3XlargeElasticsearch,
+		ESPartitionInstanceTypeR32xlargeElasticsearch,
+		ESPartitionInstanceTypeR34xlargeElasticsearch,
+		ESPartitionInstanceTypeR38xlargeElasticsearch,
+		ESPartitionInstanceTypeI2XlargeElasticsearch,
+		ESPartitionInstanceTypeI22xlargeElasticsearch,
+		ESPartitionInstanceTypeD2XlargeElasticsearch,
+		ESPartitionInstanceTypeD22xlargeElasticsearch,
+		ESPartitionInstanceTypeD24xlargeElasticsearch,
+		ESPartitionInstanceTypeD28xlargeElasticsearch,
+		ESPartitionInstanceTypeC4LargeElasticsearch,
+		ESPartitionInstanceTypeC4XlargeElasticsearch,
+		ESPartitionInstanceTypeC42xlargeElasticsearch,
+		ESPartitionInstanceTypeC44xlargeElasticsearch,
+		ESPartitionInstanceTypeC48xlargeElasticsearch,
+		ESPartitionInstanceTypeR4LargeElasticsearch,
+		ESPartitionInstanceTypeR4XlargeElasticsearch,
+		ESPartitionInstanceTypeR42xlargeElasticsearch,
+		ESPartitionInstanceTypeR44xlargeElasticsearch,
+		ESPartitionInstanceTypeR48xlargeElasticsearch,
+		ESPartitionInstanceTypeR416xlargeElasticsearch,
+		ESPartitionInstanceTypeI3LargeElasticsearch,
+		ESPartitionInstanceTypeI3XlargeElasticsearch,
+		ESPartitionInstanceTypeI32xlargeElasticsearch,
+		ESPartitionInstanceTypeI34xlargeElasticsearch,
+		ESPartitionInstanceTypeI38xlargeElasticsearch,
+		ESPartitionInstanceTypeI316xlargeElasticsearch,
+	}
+}
+
 const (
 	// ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch is a ESWarmPartitionInstanceType enum value
 	ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch = "ultrawarm1.medium.elasticsearch"
@@ -11154,6 +11249,14 @@ const (
 	// ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch is a ESWarmPartitionInstanceType enum value
 	ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch = "ultrawarm1.large.elasticsearch"
 )
+
+// ESWarmPartitionInstanceType_Values returns all elements of the ESWarmPartitionInstanceType enum
+func ESWarmPartitionInstanceType_Values() []string {
+	return []string{
+		ESWarmPartitionInstanceTypeUltrawarm1MediumElasticsearch,
+		ESWarmPartitionInstanceTypeUltrawarm1LargeElasticsearch,
+	}
+}
 
 const (
 	// InboundCrossClusterSearchConnectionStatusCodePendingAcceptance is a InboundCrossClusterSearchConnectionStatusCode enum value
@@ -11174,6 +11277,18 @@ const (
 	// InboundCrossClusterSearchConnectionStatusCodeDeleted is a InboundCrossClusterSearchConnectionStatusCode enum value
 	InboundCrossClusterSearchConnectionStatusCodeDeleted = "DELETED"
 )
+
+// InboundCrossClusterSearchConnectionStatusCode_Values returns all elements of the InboundCrossClusterSearchConnectionStatusCode enum
+func InboundCrossClusterSearchConnectionStatusCode_Values() []string {
+	return []string{
+		InboundCrossClusterSearchConnectionStatusCodePendingAcceptance,
+		InboundCrossClusterSearchConnectionStatusCodeApproved,
+		InboundCrossClusterSearchConnectionStatusCodeRejecting,
+		InboundCrossClusterSearchConnectionStatusCodeRejected,
+		InboundCrossClusterSearchConnectionStatusCodeDeleting,
+		InboundCrossClusterSearchConnectionStatusCodeDeleted,
+	}
+}
 
 // Type of Log File, it can be one of the following:
 //    * INDEX_SLOW_LOGS: Index slow logs contain insert requests that took more
@@ -11196,6 +11311,15 @@ const (
 	LogTypeEsApplicationLogs = "ES_APPLICATION_LOGS"
 )
 
+// LogType_Values returns all elements of the LogType enum
+func LogType_Values() []string {
+	return []string{
+		LogTypeIndexSlowLogs,
+		LogTypeSearchSlowLogs,
+		LogTypeEsApplicationLogs,
+	}
+}
+
 // The state of a requested change. One of the following:
 //
 //    * Processing: The request change is still in-process.
@@ -11212,6 +11336,15 @@ const (
 	// OptionStateActive is a OptionState enum value
 	OptionStateActive = "Active"
 )
+
+// OptionState_Values returns all elements of the OptionState enum
+func OptionState_Values() []string {
+	return []string{
+		OptionStateRequiresIndexDocuments,
+		OptionStateProcessing,
+		OptionStateActive,
+	}
+}
 
 const (
 	// OutboundCrossClusterSearchConnectionStatusCodePendingAcceptance is a OutboundCrossClusterSearchConnectionStatusCode enum value
@@ -11239,6 +11372,20 @@ const (
 	OutboundCrossClusterSearchConnectionStatusCodeDeleted = "DELETED"
 )
 
+// OutboundCrossClusterSearchConnectionStatusCode_Values returns all elements of the OutboundCrossClusterSearchConnectionStatusCode enum
+func OutboundCrossClusterSearchConnectionStatusCode_Values() []string {
+	return []string{
+		OutboundCrossClusterSearchConnectionStatusCodePendingAcceptance,
+		OutboundCrossClusterSearchConnectionStatusCodeValidating,
+		OutboundCrossClusterSearchConnectionStatusCodeValidationFailed,
+		OutboundCrossClusterSearchConnectionStatusCodeProvisioning,
+		OutboundCrossClusterSearchConnectionStatusCodeActive,
+		OutboundCrossClusterSearchConnectionStatusCodeRejected,
+		OutboundCrossClusterSearchConnectionStatusCodeDeleting,
+		OutboundCrossClusterSearchConnectionStatusCodeDeleted,
+	}
+}
+
 const (
 	// PackageStatusCopying is a PackageStatus enum value
 	PackageStatusCopying = "COPYING"
@@ -11265,10 +11412,31 @@ const (
 	PackageStatusDeleteFailed = "DELETE_FAILED"
 )
 
+// PackageStatus_Values returns all elements of the PackageStatus enum
+func PackageStatus_Values() []string {
+	return []string{
+		PackageStatusCopying,
+		PackageStatusCopyFailed,
+		PackageStatusValidating,
+		PackageStatusValidationFailed,
+		PackageStatusAvailable,
+		PackageStatusDeleting,
+		PackageStatusDeleted,
+		PackageStatusDeleteFailed,
+	}
+}
+
 const (
 	// PackageTypeTxtDictionary is a PackageType enum value
 	PackageTypeTxtDictionary = "TXT-DICTIONARY"
 )
+
+// PackageType_Values returns all elements of the PackageType enum
+func PackageType_Values() []string {
+	return []string{
+		PackageTypeTxtDictionary,
+	}
+}
 
 const (
 	// ReservedElasticsearchInstancePaymentOptionAllUpfront is a ReservedElasticsearchInstancePaymentOption enum value
@@ -11281,6 +11449,15 @@ const (
 	ReservedElasticsearchInstancePaymentOptionNoUpfront = "NO_UPFRONT"
 )
 
+// ReservedElasticsearchInstancePaymentOption_Values returns all elements of the ReservedElasticsearchInstancePaymentOption enum
+func ReservedElasticsearchInstancePaymentOption_Values() []string {
+	return []string{
+		ReservedElasticsearchInstancePaymentOptionAllUpfront,
+		ReservedElasticsearchInstancePaymentOptionPartialUpfront,
+		ReservedElasticsearchInstancePaymentOptionNoUpfront,
+	}
+}
+
 const (
 	// TLSSecurityPolicyPolicyMinTls10201907 is a TLSSecurityPolicy enum value
 	TLSSecurityPolicyPolicyMinTls10201907 = "Policy-Min-TLS-1-0-2019-07"
@@ -11288,6 +11465,14 @@ const (
 	// TLSSecurityPolicyPolicyMinTls12201907 is a TLSSecurityPolicy enum value
 	TLSSecurityPolicyPolicyMinTls12201907 = "Policy-Min-TLS-1-2-2019-07"
 )
+
+// TLSSecurityPolicy_Values returns all elements of the TLSSecurityPolicy enum
+func TLSSecurityPolicy_Values() []string {
+	return []string{
+		TLSSecurityPolicyPolicyMinTls10201907,
+		TLSSecurityPolicyPolicyMinTls12201907,
+	}
+}
 
 const (
 	// UpgradeStatusInProgress is a UpgradeStatus enum value
@@ -11303,6 +11488,16 @@ const (
 	UpgradeStatusFailed = "FAILED"
 )
 
+// UpgradeStatus_Values returns all elements of the UpgradeStatus enum
+func UpgradeStatus_Values() []string {
+	return []string{
+		UpgradeStatusInProgress,
+		UpgradeStatusSucceeded,
+		UpgradeStatusSucceededWithIssues,
+		UpgradeStatusFailed,
+	}
+}
+
 const (
 	// UpgradeStepPreUpgradeCheck is a UpgradeStep enum value
 	UpgradeStepPreUpgradeCheck = "PRE_UPGRADE_CHECK"
@@ -11313,6 +11508,15 @@ const (
 	// UpgradeStepUpgrade is a UpgradeStep enum value
 	UpgradeStepUpgrade = "UPGRADE"
 )
+
+// UpgradeStep_Values returns all elements of the UpgradeStep enum
+func UpgradeStep_Values() []string {
+	return []string{
+		UpgradeStepPreUpgradeCheck,
+		UpgradeStepSnapshot,
+		UpgradeStepUpgrade,
+	}
+}
 
 // The type of EBS volume, standard, gp2, or io1. See Configuring EBS-based
 // Storage (http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-ebs)for
@@ -11327,3 +11531,12 @@ const (
 	// VolumeTypeIo1 is a VolumeType enum value
 	VolumeTypeIo1 = "io1"
 )
+
+// VolumeType_Values returns all elements of the VolumeType enum
+func VolumeType_Values() []string {
+	return []string{
+		VolumeTypeStandard,
+		VolumeTypeGp2,
+		VolumeTypeIo1,
+	}
+}

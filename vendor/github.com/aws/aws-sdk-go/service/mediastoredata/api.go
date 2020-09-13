@@ -1418,10 +1418,25 @@ const (
 	ItemTypeFolder = "FOLDER"
 )
 
+// ItemType_Values returns all elements of the ItemType enum
+func ItemType_Values() []string {
+	return []string{
+		ItemTypeObject,
+		ItemTypeFolder,
+	}
+}
+
 const (
 	// StorageClassTemporal is a StorageClass enum value
 	StorageClassTemporal = "TEMPORAL"
 )
+
+// StorageClass_Values returns all elements of the StorageClass enum
+func StorageClass_Values() []string {
+	return []string{
+		StorageClassTemporal,
+	}
+}
 
 const (
 	// UploadAvailabilityStandard is a UploadAvailability enum value
@@ -1430,3 +1445,11 @@ const (
 	// UploadAvailabilityStreaming is a UploadAvailability enum value
 	UploadAvailabilityStreaming = "STREAMING"
 )
+
+// UploadAvailability_Values returns all elements of the UploadAvailability enum
+func UploadAvailability_Values() []string {
+	return []string{
+		UploadAvailabilityStandard,
+		UploadAvailabilityStreaming,
+	}
+}

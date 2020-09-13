@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/appstream"
 	"github.com/aws/aws-sdk-go/service/appsync"
 	"github.com/aws/aws-sdk-go/service/athena"
+	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/backup"
 	"github.com/aws/aws-sdk-go/service/cloud9"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
@@ -101,6 +102,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/wafv2"
 	"github.com/aws/aws-sdk-go/service/worklink"
 	"github.com/aws/aws-sdk-go/service/workspaces"
+	"github.com/aws/aws-sdk-go/service/xray"
 )
 
 // AccessanalyzerListTags lists accessanalyzer service tags.
@@ -254,6 +256,28 @@ func AthenaListTags(conn *athena.Athena, identifier string) (KeyValueTags, error
 	}
 
 	return AthenaKeyValueTags(output.Tags), nil
+}
+
+// AutoscalingListTags lists autoscaling service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func AutoscalingListTags(conn *autoscaling.AutoScaling, identifier string, resourceType string) (KeyValueTags, error) {
+	input := &autoscaling.DescribeTagsInput{
+		Filters: []*autoscaling.Filter{
+			{
+				Name:   aws.String("auto-scaling-group"),
+				Values: []*string{aws.String(identifier)},
+			},
+		},
+	}
+
+	output, err := conn.DescribeTags(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return AutoscalingKeyValueTags(output.Tags, identifier, resourceType), nil
 }
 
 // BackupListTags lists backup service tags.
@@ -1757,4 +1781,21 @@ func WorkspacesListTags(conn *workspaces.WorkSpaces, identifier string) (KeyValu
 	}
 
 	return WorkspacesKeyValueTags(output.TagList), nil
+}
+
+// XrayListTags lists xray service tags.
+// The identifier is typically the Amazon Resource Name (ARN), although
+// it may also be a different identifier depending on the service.
+func XrayListTags(conn *xray.XRay, identifier string) (KeyValueTags, error) {
+	input := &xray.ListTagsForResourceInput{
+		ResourceARN: aws.String(identifier),
+	}
+
+	output, err := conn.ListTagsForResource(input)
+
+	if err != nil {
+		return New(nil), err
+	}
+
+	return XrayKeyValueTags(output.Tags), nil
 }

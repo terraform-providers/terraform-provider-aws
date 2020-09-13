@@ -4941,6 +4941,19 @@ const (
 	APINameGetClip = "GET_CLIP"
 )
 
+// APIName_Values returns all elements of the APIName enum
+func APIName_Values() []string {
+	return []string{
+		APINamePutMedia,
+		APINameGetMedia,
+		APINameListFragments,
+		APINameGetMediaForFragmentList,
+		APINameGetHlsStreamingSessionUrl,
+		APINameGetDashStreamingSessionUrl,
+		APINameGetClip,
+	}
+}
+
 const (
 	// ChannelProtocolWss is a ChannelProtocol enum value
 	ChannelProtocolWss = "WSS"
@@ -4948,6 +4961,14 @@ const (
 	// ChannelProtocolHttps is a ChannelProtocol enum value
 	ChannelProtocolHttps = "HTTPS"
 )
+
+// ChannelProtocol_Values returns all elements of the ChannelProtocol enum
+func ChannelProtocol_Values() []string {
+	return []string{
+		ChannelProtocolWss,
+		ChannelProtocolHttps,
+	}
+}
 
 const (
 	// ChannelRoleMaster is a ChannelRole enum value
@@ -4957,15 +4978,37 @@ const (
 	ChannelRoleViewer = "VIEWER"
 )
 
+// ChannelRole_Values returns all elements of the ChannelRole enum
+func ChannelRole_Values() []string {
+	return []string{
+		ChannelRoleMaster,
+		ChannelRoleViewer,
+	}
+}
+
 const (
 	// ChannelTypeSingleMaster is a ChannelType enum value
 	ChannelTypeSingleMaster = "SINGLE_MASTER"
 )
 
+// ChannelType_Values returns all elements of the ChannelType enum
+func ChannelType_Values() []string {
+	return []string{
+		ChannelTypeSingleMaster,
+	}
+}
+
 const (
 	// ComparisonOperatorBeginsWith is a ComparisonOperator enum value
 	ComparisonOperatorBeginsWith = "BEGINS_WITH"
 )
+
+// ComparisonOperator_Values returns all elements of the ComparisonOperator enum
+func ComparisonOperator_Values() []string {
+	return []string{
+		ComparisonOperatorBeginsWith,
+	}
+}
 
 const (
 	// StatusCreating is a Status enum value
@@ -4981,6 +5024,16 @@ const (
 	StatusDeleting = "DELETING"
 )
 
+// Status_Values returns all elements of the Status enum
+func Status_Values() []string {
+	return []string{
+		StatusCreating,
+		StatusActive,
+		StatusUpdating,
+		StatusDeleting,
+	}
+}
+
 const (
 	// UpdateDataRetentionOperationIncreaseDataRetention is a UpdateDataRetentionOperation enum value
 	UpdateDataRetentionOperationIncreaseDataRetention = "INCREASE_DATA_RETENTION"
@@ -4988,3 +5041,11 @@ const (
 	// UpdateDataRetentionOperationDecreaseDataRetention is a UpdateDataRetentionOperation enum value
 	UpdateDataRetentionOperationDecreaseDataRetention = "DECREASE_DATA_RETENTION"
 )
+
+// UpdateDataRetentionOperation_Values returns all elements of the UpdateDataRetentionOperation enum
+func UpdateDataRetentionOperation_Values() []string {
+	return []string{
+		UpdateDataRetentionOperationIncreaseDataRetention,
+		UpdateDataRetentionOperationDecreaseDataRetention,
+	}
+}

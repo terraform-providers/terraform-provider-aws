@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsLBSSLNegotiationPolicy() *schema.Resource {
@@ -110,7 +111,10 @@ func resourceAwsLBSSLNegotiationPolicyCreate(d *schema.ResourceData, meta interf
 func resourceAwsLBSSLNegotiationPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
 
-	lbName, lbPort, policyName := resourceAwsLBSSLNegotiationPolicyParseId(d.Id())
+	lbName, lbPort, policyName, err := resourceAwsLBSSLNegotiationPolicyParseId(d.Id())
+	if err != nil {
+		return err
+	}
 
 	request := &elb.DescribeLoadBalancerPoliciesInput{
 		LoadBalancerName: aws.String(lbName),
@@ -160,7 +164,10 @@ func resourceAwsLBSSLNegotiationPolicyRead(d *schema.ResourceData, meta interfac
 func resourceAwsLBSSLNegotiationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
 
-	lbName, _, policyName := resourceAwsLBSSLNegotiationPolicyParseId(d.Id())
+	lbName, _, policyName, err := resourceAwsLBSSLNegotiationPolicyParseId(d.Id())
+	if err != nil {
+		return err
+	}
 
 	// Perversely, if we Set an empty list of PolicyNames, we detach the
 	// policies attached to a listener, which is required to delete the
@@ -189,7 +196,16 @@ func resourceAwsLBSSLNegotiationPolicyDelete(d *schema.ResourceData, meta interf
 // resourceAwsLBSSLNegotiationPolicyParseId takes an ID and parses it into
 // it's constituent parts. You need three axes (LB name, policy name, and LB
 // port) to create or identify an SSL negotiation policy in AWS's API.
-func resourceAwsLBSSLNegotiationPolicyParseId(id string) (string, string, string) {
+func resourceAwsLBSSLNegotiationPolicyParseId(id string) (string, int, string, error) {
 	parts := strings.SplitN(id, ":", 3)
-	return parts[0], parts[1], parts[2]
+	if n := len(parts); n != 3 {
+		return "", 0, "", fmt.Errorf("incorrect format of SSL negotiation policy resource ID. Expected %d parts, got %d", 3, n)
+	}
+
+	port, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return "", 0, "", fmt.Errorf("error parsing SSL negotiation policy resource ID port: %w", err)
+	}
+
+	return parts[0], port, parts[2], nil
 }

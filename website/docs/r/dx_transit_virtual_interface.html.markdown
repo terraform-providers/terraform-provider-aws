@@ -20,9 +20,9 @@ resource "aws_dx_gateway" "example" {
 }
 
 resource "aws_dx_transit_virtual_interface" "example" {
-  connection_id = "${aws_dx_connection.example.id}"
+  connection_id = aws_dx_connection.example.id
 
-  dx_gateway_id  = "${aws_dx_gateway.example.id}"
+  dx_gateway_id  = aws_dx_gateway.example.id
   name           = "tf-transit-vif-example"
   vlan           = 4094
   address_family = "ipv4"

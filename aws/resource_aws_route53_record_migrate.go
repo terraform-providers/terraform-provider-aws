@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func resourceAwsRoute53RecordMigrateState(
@@ -44,12 +44,12 @@ func migrateRoute53RecordStateV1toV2(is *terraform.InstanceState) (*terraform.In
 	log.Printf("[DEBUG] Attributes before migration: %#v", is.Attributes)
 	if is.Attributes["weight"] != "" && is.Attributes["weight"] != "-1" {
 		is.Attributes["weighted_routing_policy.#"] = "1"
-		key := fmt.Sprintf("weighted_routing_policy.0.weight")
+		key := "weighted_routing_policy.0.weight"
 		is.Attributes[key] = is.Attributes["weight"]
 	}
 	if is.Attributes["failover"] != "" {
 		is.Attributes["failover_routing_policy.#"] = "1"
-		key := fmt.Sprintf("failover_routing_policy.0.type")
+		key := "failover_routing_policy.0.type"
 		is.Attributes[key] = is.Attributes["failover"]
 	}
 	delete(is.Attributes, "weight")

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSLambdaFunction_basic(t *testing.T) {
@@ -203,21 +203,21 @@ data "aws_partition" "current" {}
 
 resource "aws_iam_role_policy" "lambda" {
   name = %[1]q
-  role = "${aws_iam_role.lambda.id}"
+  role = aws_iam_role.lambda.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
-        },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
+    },
     {
       "Effect": "Allow",
       "Action": [
@@ -242,12 +242,12 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "exports.example"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
 }
 `, rName)
 }
@@ -259,12 +259,12 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   publish       = true
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
   qualifier     = 1
 }
 `, rName)
@@ -277,19 +277,19 @@ resource "aws_lambda_function" "test" {
   function_name = %[1]q
   handler       = "exports.example"
   publish       = true
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_alias" "test" {
   name             = "alias-name"
-  function_name    = "${aws_lambda_function.test.arn}"
+  function_name    = aws_lambda_function.test.arn
   function_version = "1"
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
-  qualifier     = "${aws_lambda_alias.test.name}"
+  function_name = aws_lambda_function.test.function_name
+  qualifier     = aws_lambda_alias.test.name
 }
 `, rName)
 }
@@ -306,13 +306,13 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "exports.example"
-  layers        = ["${aws_lambda_layer_version.test.arn}"]
-  role          = "${aws_iam_role.lambda.arn}"
+  layers        = [aws_lambda_layer_version.test.arn]
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
 }
 `, rName)
 }
@@ -323,29 +323,29 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-	Name = %[1]q
+    Name = %[1]q
   }
 }
 
 resource "aws_subnet" "test" {
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
   cidr_block = "10.0.1.0/24"
 
   tags = {
-	Name = %[1]q
+    Name = %[1]q
   }
 }
 
 resource "aws_security_group" "test" {
   name        = %[1]q
   description = "Terraform Acceptance Testing"
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
 
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
   }
 
   egress {
@@ -360,17 +360,17 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "exports.example"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 
   vpc_config {
-    security_group_ids = ["${aws_security_group.test.id}"]
-    subnet_ids         = ["${aws_subnet.test.id}"]
+    security_group_ids = [aws_security_group.test.id]
+    subnet_ids         = [aws_subnet.test.id]
   }
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
 }
 `, rName)
 }
@@ -381,7 +381,7 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "exports.example"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 
   environment {
@@ -393,7 +393,7 @@ resource "aws_lambda_function" "test" {
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
 }
 `, rName)
 }
@@ -404,29 +404,29 @@ resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-	Name = %[1]q
+    Name = %[1]q
   }
 }
 
 resource "aws_subnet" "test" {
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
   cidr_block = "10.0.1.0/24"
 
   tags = {
-	Name = %[1]q
+    Name = %[1]q
   }
 }
 
 resource "aws_security_group" "test" {
   name        = %[1]q
   description = "Terraform Acceptance Testing"
-  vpc_id      = "${aws_vpc.test.id}"
+  vpc_id      = aws_vpc.test.id
 
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
   }
 
   egress {
@@ -438,57 +438,57 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_efs_file_system" "efs_for_lambda" {
-	tags = {
-    	Name = "efs_for_lambda"
-  	}
+  tags = {
+    Name = "efs_for_lambda"
+  }
 }
 
 resource "aws_efs_mount_target" "alpha" {
-	file_system_id = "${aws_efs_file_system.efs_for_lambda.id}"
-	subnet_id      = "${aws_subnet.test.id}"
+  file_system_id = aws_efs_file_system.efs_for_lambda.id
+  subnet_id      = aws_subnet.test.id
 }
 
 resource "aws_efs_access_point" "access_point_1" {
-	file_system_id = "${aws_efs_file_system.efs_for_lambda.id}"
+  file_system_id = aws_efs_file_system.efs_for_lambda.id
 
-	root_directory {
-		path = "/lambda"
-		creation_info {
-			owner_gid   = 1000
-			owner_uid   = 1000
-			permissions = "777"
-		}
-	}
-	
-	posix_user {
-		gid = 1000
-		uid = 1000
-	}
+  root_directory {
+    path = "/lambda"
+
+    creation_info {
+      owner_gid   = 1000
+      owner_uid   = 1000
+      permissions = "777"
+    }
+  }
+
+  posix_user {
+    gid = 1000
+    uid = 1000
+  }
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "lambdatest.handler"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 
   vpc_config {
-   security_group_ids = ["${aws_security_group.test.id}"]
-   subnet_ids         = ["${aws_subnet.test.id}"]
+    security_group_ids = [aws_security_group.test.id]
+    subnet_ids         = [aws_subnet.test.id]
   }
 
-	
   file_system_config {
-	arn = "${aws_efs_access_point.access_point_1.arn}"
-	local_mount_path = "/mnt/lambda"
+    arn              = aws_efs_access_point.access_point_1.arn
+    local_mount_path = "/mnt/lambda"
   }
 
   depends_on = [aws_efs_mount_target.alpha]
 }
 
 data "aws_lambda_function" "test" {
-  function_name = "${aws_lambda_function.test.function_name}"
+  function_name = aws_lambda_function.test.function_name
 }
 `, rName)
 }

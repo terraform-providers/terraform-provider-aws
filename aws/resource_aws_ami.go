@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -56,7 +57,12 @@ func resourceAwsAmi() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "x86_64",
+				Default:  ec2.ArchitectureTypeX8664,
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.ArchitectureTypeX8664,
+					ec2.ArchitectureValuesI386,
+					ec2.ArchitectureValuesArm64,
+				}, false),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -113,10 +119,11 @@ func resourceAwsAmi() *schema.Resource {
 						},
 
 						"volume_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Default:  "standard",
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      ec2.VolumeTypeStandard,
+							ValidateFunc: validation.StringInSlice(ec2.VolumeType_Values(), false),
 						},
 					},
 				},
@@ -202,7 +209,15 @@ func resourceAwsAmi() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "paravirtual",
+				Default:  ec2.VirtualizationTypeParavirtual,
+				ValidateFunc: validation.StringInSlice([]string{
+					ec2.VirtualizationTypeParavirtual,
+					ec2.VirtualizationTypeHvm,
+				}, false),
+			},
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -311,8 +326,7 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 				if d.IsNewResource() {
 					return resource.RetryableError(err)
 				}
-
-				log.Printf("[DEBUG] %s no longer exists, so we'll drop it from the state", id)
+				log.Printf("[WARN] AMI (%s) not found, removing from state", d.Id())
 				d.SetId("")
 				return nil
 			}
@@ -329,6 +343,7 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(res.Images) != 1 {
+		log.Printf("[WARN] AMI (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -336,7 +351,7 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	image := res.Images[0]
 	state := *image.State
 
-	if state == "pending" {
+	if state == ec2.ImageStatePending {
 		// This could happen if a user manually adds an image we didn't create
 		// to the state. We'll wait for the image to become available
 		// before we continue. We should never take this branch in normal
@@ -349,12 +364,13 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 		state = *image.State
 	}
 
-	if state == "deregistered" {
+	if state == ec2.ImageStateDeregistered {
+		log.Printf("[WARN] AMI (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	if state != "available" {
+	if state != ec2.ImageStateAvailable {
 		return fmt.Errorf("AMI has become %s", state)
 	}
 
@@ -369,6 +385,15 @@ func resourceAwsAmiRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("sriov_net_support", image.SriovNetSupport)
 	d.Set("virtualization_type", image.VirtualizationType)
 	d.Set("ena_support", image.EnaSupport)
+
+	imageArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Region:    meta.(*AWSClient).region,
+		Resource:  fmt.Sprintf("image/%s", d.Id()),
+		Service:   "ec2",
+	}.String()
+
+	d.Set("arn", imageArn)
 
 	var ebsBlockDevs []map[string]interface{}
 	var ephemeralBlockDevs []map[string]interface{}
@@ -488,7 +513,7 @@ func AMIStateRefreshFunc(client *ec2.EC2, id string) resource.StateRefreshFunc {
 
 		resp, err := client.DescribeImages(&ec2.DescribeImagesInput{ImageIds: []*string{aws.String(id)}})
 		if err != nil {
-			if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "InvalidAMIID.NotFound" {
+			if isAWSErr(err, "InvalidAMIID.NotFound", "") {
 				return emptyResp, "destroyed", nil
 			} else if resp != nil && len(resp.Images) == 0 {
 				return emptyResp, "destroyed", nil
@@ -510,7 +535,7 @@ func resourceAwsAmiWaitForDestroy(timeout time.Duration, id string, client *ec2.
 	log.Printf("Waiting for AMI %s to be deleted...", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"available", "pending", "failed"},
+		Pending:    []string{ec2.ImageStateAvailable, ec2.ImageStatePending, ec2.ImageStateFailed},
 		Target:     []string{"destroyed"},
 		Refresh:    AMIStateRefreshFunc(client, id),
 		Timeout:    timeout,
@@ -530,8 +555,8 @@ func resourceAwsAmiWaitForAvailable(timeout time.Duration, id string, client *ec
 	log.Printf("Waiting for AMI %s to become available...", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"available"},
+		Pending:    []string{ec2.ImageStatePending},
+		Target:     []string{ec2.ImageStateAvailable},
 		Refresh:    AMIStateRefreshFunc(client, id),
 		Timeout:    timeout,
 		Delay:      AWSAMIRetryDelay,

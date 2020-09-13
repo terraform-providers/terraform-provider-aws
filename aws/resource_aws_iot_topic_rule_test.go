@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iot"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -542,6 +542,30 @@ func TestAccAWSIoTTopicRule_Tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSIoTTopicRule_errorAction(t *testing.T) {
+	rName := acctest.RandString(5)
+	resourceName := "aws_iot_topic_rule.rule"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSIoTTopicRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIoTTopicRule_errorAction(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSIoTTopicRuleExists("aws_iot_topic_rule.rule"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSIoTTopicRuleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).iotconn
 
@@ -597,53 +621,60 @@ func testAccCheckAWSIoTTopicRuleExists(name string) resource.TestCheckFunc {
 
 const testAccAWSIoTTopicRuleRole = `
 resource "aws_iam_role" "iot_role" {
-    name = "test_role_%[1]s"
-    assume_role_policy = <<EOF
+  name = "test_role_%[1]s"
+
+  assume_role_policy = <<EOF
 {
-    "Version":"2012-10-17",
-    "Statement":[{
-        "Effect": "Allow",
-        "Principal": {
-            "Service": "iot.amazonaws.com"
-        },
-        "Action": "sts:AssumeRole"
-    }]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "iot.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iam_policy" "policy" {
-    name = "test_policy_%[1]s"
-    path = "/"
-    description = "My test policy"
-    policy = <<EOF
+  name        = "test_policy_%[1]s"
+  path        = "/"
+  description = "My test policy"
+
+  policy = <<EOF
 {
-    "Version": "2012-10-17",
-    "Statement": [{
-        "Effect": "Allow",
-        "Action": "*",
-        "Resource": "*"
-    }]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*"
+    }
+  ]
 }
 EOF
+
 }
 
 resource "aws_iam_policy_attachment" "attach_policy" {
-    name = "test_policy_attachment_%[1]s"
-    roles = ["${aws_iam_role.iot_role.name}"]
-    policy_arn = "${aws_iam_policy.policy.arn}"
+  name       = "test_policy_attachment_%[1]s"
+  roles      = [aws_iam_role.iot_role.name]
+  policy_arn = aws_iam_policy.policy.arn
 }
 `
 
 func testAccAWSIoTTopicRule_basic(rName string) string {
 	return fmt.Sprintf(testAccAWSIoTTopicRuleRole+`
 resource "aws_iot_topic_rule" "rule" {
-  name = "test_rule_%[1]s"
+  name        = "test_rule_%[1]s"
   description = "Example rule"
-  enabled = true
-  sql = "SELECT * FROM 'topic/test'"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
   sql_version = "2015-10-08"
-
 }
 `, rName)
 }
@@ -659,7 +690,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   cloudwatch_alarm {
     alarm_name   = "myalarm"
-    role_arn     = "${aws_iam_role.iot_role.arn}"
+    role_arn     = aws_iam_role.iot_role.arn
     state_reason = "test"
     state_value  = "OK"
   }
@@ -681,7 +712,7 @@ resource "aws_iot_topic_rule" "rule" {
     metric_namespace = "FakeData"
     metric_value     = "FakeData"
     metric_unit      = "FakeData"
-    role_arn         = "${aws_iam_role.iot_role.arn}"
+    role_arn         = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -710,18 +741,18 @@ resource "aws_iot_topic_rule" "rule" {
 func testAccAWSIoTTopicRule_dynamodb(rName string) string {
 	return fmt.Sprintf(testAccAWSIoTTopicRuleRole+`
 resource "aws_iot_topic_rule" "rule" {
-  name = "test_rule_%[1]s"
+  name        = "test_rule_%[1]s"
   description = "Example rule"
-  enabled = true
-  sql = "SELECT * FROM 'topic/test'"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
   sql_version = "2015-10-08"
 
   dynamodb {
     hash_key_field = "hash_key_field"
     hash_key_value = "hash_key_value"
-    payload_field = "payload_field"
-    role_arn = "${aws_iam_role.iot_role.arn}"
-	table_name = "table_name"
+    payload_field  = "payload_field"
+    role_arn       = aws_iam_role.iot_role.arn
+    table_name     = "table_name"
   }
 }
 `, rName)
@@ -730,22 +761,22 @@ resource "aws_iot_topic_rule" "rule" {
 func testAccAWSIoTTopicRule_dynamodb_rangekeys(rName string) string {
 	return fmt.Sprintf(testAccAWSIoTTopicRuleRole+`
 resource "aws_iot_topic_rule" "rule" {
-  name = "test_rule_%[1]s"
+  name        = "test_rule_%[1]s"
   description = "Example rule"
-  enabled = true
-  sql = "SELECT * FROM 'topic/test'"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
   sql_version = "2015-10-08"
 
   dynamodb {
-    hash_key_field = "hash_key_field"
-    hash_key_value = "hash_key_value"
-    payload_field = "payload_field"
+    hash_key_field  = "hash_key_field"
+    hash_key_value  = "hash_key_value"
+    payload_field   = "payload_field"
     range_key_field = "range_key_field"
     range_key_value = "range_key_value"
     range_key_type  = "STRING"
-    role_arn = "${aws_iam_role.iot_role.arn}"
-	table_name = "table_name"
-	operation = "INSERT"
+    role_arn        = aws_iam_role.iot_role.arn
+    table_name      = "table_name"
+    operation       = "INSERT"
   }
 }
 `, rName)
@@ -767,7 +798,7 @@ resource "aws_iot_topic_rule" "rule" {
     id       = "myIdentifier"
     index    = "myindex"
     type     = "mydocument"
-    role_arn = "${aws_iam_role.iot_role.arn}"
+    role_arn = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -784,7 +815,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   firehose {
     delivery_stream_name = "mystream"
-    role_arn             = "${aws_iam_role.iot_role.arn}"
+    role_arn             = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -801,7 +832,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   firehose {
     delivery_stream_name = "mystream"
-    role_arn             = "${aws_iam_role.iot_role.arn}"
+    role_arn             = aws_iam_role.iot_role.arn
     separator            = %q
   }
 }
@@ -819,7 +850,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   kinesis {
     stream_name = "mystream"
-    role_arn    = "${aws_iam_role.iot_role.arn}"
+    role_arn    = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -851,7 +882,7 @@ resource "aws_iot_topic_rule" "rule" {
   sql_version = "2015-10-08"
 
   republish {
-    role_arn = "${aws_iam_role.iot_role.arn}"
+    role_arn = aws_iam_role.iot_role.arn
     topic    = "mytopic"
   }
 }
@@ -868,9 +899,9 @@ resource "aws_iot_topic_rule" "rule" {
   sql_version = "2015-10-08"
 
   republish {
-    role_arn = "${aws_iam_role.iot_role.arn}"
-	topic    = "mytopic"
-	qos = 1
+    role_arn = aws_iam_role.iot_role.arn
+    topic    = "mytopic"
+    qos      = 1
   }
 }
 `, rName)
@@ -888,7 +919,7 @@ resource "aws_iot_topic_rule" "rule" {
   s3 {
     bucket_name = "mybucket"
     key         = "mykey"
-    role_arn    = "${aws_iam_role.iot_role.arn}"
+    role_arn    = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -904,7 +935,7 @@ resource "aws_iot_topic_rule" "rule" {
   sql_version = "2015-10-08"
 
   sns {
-    role_arn = "${aws_iam_role.iot_role.arn}"
+    role_arn   = aws_iam_role.iot_role.arn
     target_arn = "arn:aws:sns:us-east-1:123456789012:my_corporate_topic"
   }
 }
@@ -921,8 +952,8 @@ resource "aws_iot_topic_rule" "rule" {
   sql_version = "2015-10-08"
 
   sqs {
-    queue_url = "fakedata"
-    role_arn  = "${aws_iam_role.iot_role.arn}"
+    queue_url  = "fakedata"
+    role_arn   = aws_iam_role.iot_role.arn
     use_base64 = false
   }
 }
@@ -940,8 +971,8 @@ resource "aws_iot_topic_rule" "rule" {
 
   step_functions {
     execution_name_prefix = "myprefix"
-    state_machine_name = "mystatemachine"
-    role_arn = "${aws_iam_role.iot_role.arn}"
+    state_machine_name    = "mystatemachine"
+    role_arn              = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -958,7 +989,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   iot_analytics {
     channel_name = "fakedata"
-    role_arn  = "${aws_iam_role.iot_role.arn}"
+    role_arn     = aws_iam_role.iot_role.arn
   }
 }
 `, rName)
@@ -975,7 +1006,7 @@ resource "aws_iot_topic_rule" "rule" {
 
   iot_events {
     input_name = "fake_input_name"
-    role_arn  = "${aws_iam_role.iot_role.arn}"
+    role_arn   = aws_iam_role.iot_role.arn
     message_id = "fake_message_id"
   }
 }
@@ -1011,4 +1042,28 @@ resource "aws_iot_topic_rule" "test" {
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccAWSIoTTopicRule_errorAction(rName string) string {
+	return fmt.Sprintf(testAccAWSIoTTopicRuleRole+`
+resource "aws_iot_topic_rule" "rule" {
+  name        = "test_rule_%[1]s"
+  description = "Example rule"
+  enabled     = true
+  sql         = "SELECT * FROM 'topic/test'"
+  sql_version = "2015-10-08"
+
+  kinesis {
+    stream_name = "mystream"
+    role_arn    = aws_iam_role.iot_role.arn
+  }
+
+  error_action {
+    kinesis {
+      stream_name = "mystream"
+      role_arn    = aws_iam_role.iot_role.arn
+    }
+  }
+}
+`, rName)
 }

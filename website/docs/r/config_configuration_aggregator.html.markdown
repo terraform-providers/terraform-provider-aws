@@ -29,13 +29,13 @@ resource "aws_config_configuration_aggregator" "account" {
 
 ```hcl
 resource "aws_config_configuration_aggregator" "organization" {
-  depends_on = ["aws_iam_role_policy_attachment.organization"]
+  depends_on = [aws_iam_role_policy_attachment.organization]
 
   name = "example" # Required
 
   organization_aggregation_source {
     all_regions = true
-    role_arn    = "${aws_iam_role.organization.arn}"
+    role_arn    = aws_iam_role.organization.arn
   }
 }
 
@@ -60,7 +60,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "organization" {
-  role       = "${aws_iam_role.organization.name}"
+  role       = aws_iam_role.organization.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations"
 }
 ```

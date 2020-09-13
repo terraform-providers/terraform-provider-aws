@@ -15,7 +15,7 @@ Provides a resource to create an organizational unit.
 ```hcl
 resource "aws_organizations_organizational_unit" "example" {
   name      = "example"
-  parent_id = "${aws_organizations_organization.example.roots.0.id}"
+  parent_id = aws_organizations_organization.example.roots[0].id
 }
 ```
 
@@ -31,10 +31,10 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `accounts` - List of child accounts for this Organizational Unit. Does not return account information for child Organizational Units. All elements have these attributes:
-  * `arn` - ARN of the account
-  * `email` - Email of the account
-  * `id` - Identifier of the account
-  * `name` - Name of the account
+    * `arn` - ARN of the account
+    * `email` - Email of the account
+    * `id` - Identifier of the account
+    * `name` - Name of the account
 * `arn` - ARN of the organizational unit
 * `id` - Identifier of the organization unit
 

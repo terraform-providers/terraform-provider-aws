@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsLambdaAlias() *schema.Resource {
@@ -207,16 +207,8 @@ func resourceAwsLambdaAliasImport(d *schema.ResourceData, meta interface{}) ([]*
 
 	functionName := idParts[0]
 	alias := idParts[1]
-	log.Printf("[DEBUG] Importing Lambda Alias %s for function name %s", alias, functionName)
 
-	conn := meta.(*AWSClient).lambdaconn
-
-	getFunctionOutput, err := conn.GetFunction(&lambda.GetFunctionInput{FunctionName: &functionName})
-	if err != nil {
-		return nil, err
-	}
-
-	d.Set("function_name", getFunctionOutput.Configuration.FunctionArn)
+	d.Set("function_name", functionName)
 	d.Set("name", alias)
 	return []*schema.ResourceData{d}, nil
 }

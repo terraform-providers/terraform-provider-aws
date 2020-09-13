@@ -52,7 +52,15 @@ Defaults to `$request.method $request.path`.
 * `target` - (Optional) Part of _quick create_. Quick create produces an API with an integration, a default catch-all route, and a default stage which is configured to automatically deploy changes.
 For HTTP integrations, specify a fully qualified URL. For Lambda integrations, specify a function ARN.
 The type of the integration will be `HTTP_PROXY` or `AWS_PROXY`, respectively. Applicable for HTTP APIs.
+* `body` - (Optional) An OpenAPI specification that defines the set of routes and integrations to create as part of the HTTP APIs. Supported only for HTTP APIs.
 * `version` - (Optional) A version identifier for the API.
+
+__Note__: If the `body` argument is provided, the OpenAPI specification will be used to configure the integrations and route for the HTTP API. If this argument is provided, the following resources should not be managed as separate ones, as updates may cause manual resource updates to be overwritten:
+
+* `aws_apigatewayv2_integration`
+* `aws_apigatewayv2_route`
+
+Further more, the `name`, `description`, `cors_configuration`, `tags` and `version` fields should be specified in the Terraform configuration and the values will override any values specified in the OpenAPI document.
 
 The `cors_configuration` object supports the following:
 

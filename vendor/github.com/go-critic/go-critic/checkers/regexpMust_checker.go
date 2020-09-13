@@ -4,28 +4,28 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astp"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "regexpMust"
 	info.Tags = []string{"style"}
 	info.Summary = "Detects `regexp.Compile*` that can be replaced with `regexp.MustCompile*`"
 	info.Before = `re, _ := regexp.Compile("const pattern")`
 	info.After = `re := regexp.MustCompile("const pattern")`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&regexpMustChecker{ctx: ctx})
 	})
 }
 
 type regexpMustChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *regexpMustChecker) VisitExpr(x ast.Expr) {

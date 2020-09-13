@@ -25456,10 +25456,25 @@ const (
 	ApiKeySourceTypeAuthorizer = "AUTHORIZER"
 )
 
+// ApiKeySourceType_Values returns all elements of the ApiKeySourceType enum
+func ApiKeySourceType_Values() []string {
+	return []string{
+		ApiKeySourceTypeHeader,
+		ApiKeySourceTypeAuthorizer,
+	}
+}
+
 const (
 	// ApiKeysFormatCsv is a ApiKeysFormat enum value
 	ApiKeysFormatCsv = "csv"
 )
+
+// ApiKeysFormat_Values returns all elements of the ApiKeysFormat enum
+func ApiKeysFormat_Values() []string {
+	return []string{
+		ApiKeysFormatCsv,
+	}
+}
 
 // The authorizer type. Valid values are TOKEN for a Lambda function using a
 // single authorization token submitted in a custom header, REQUEST for a Lambda
@@ -25475,6 +25490,15 @@ const (
 	// AuthorizerTypeCognitoUserPools is a AuthorizerType enum value
 	AuthorizerTypeCognitoUserPools = "COGNITO_USER_POOLS"
 )
+
+// AuthorizerType_Values returns all elements of the AuthorizerType enum
+func AuthorizerType_Values() []string {
+	return []string{
+		AuthorizerTypeToken,
+		AuthorizerTypeRequest,
+		AuthorizerTypeCognitoUserPools,
+	}
+}
 
 // Returns the size of the CacheCluster.
 const (
@@ -25503,6 +25527,20 @@ const (
 	CacheClusterSize237 = "237"
 )
 
+// CacheClusterSize_Values returns all elements of the CacheClusterSize enum
+func CacheClusterSize_Values() []string {
+	return []string{
+		CacheClusterSize05,
+		CacheClusterSize16,
+		CacheClusterSize61,
+		CacheClusterSize135,
+		CacheClusterSize284,
+		CacheClusterSize582,
+		CacheClusterSize118,
+		CacheClusterSize237,
+	}
+}
+
 // Returns the status of the CacheCluster.
 const (
 	// CacheClusterStatusCreateInProgress is a CacheClusterStatus enum value
@@ -25521,6 +25559,17 @@ const (
 	CacheClusterStatusFlushInProgress = "FLUSH_IN_PROGRESS"
 )
 
+// CacheClusterStatus_Values returns all elements of the CacheClusterStatus enum
+func CacheClusterStatus_Values() []string {
+	return []string{
+		CacheClusterStatusCreateInProgress,
+		CacheClusterStatusAvailable,
+		CacheClusterStatusDeleteInProgress,
+		CacheClusterStatusNotAvailable,
+		CacheClusterStatusFlushInProgress,
+	}
+}
+
 const (
 	// ConnectionTypeInternet is a ConnectionType enum value
 	ConnectionTypeInternet = "INTERNET"
@@ -25529,6 +25578,14 @@ const (
 	ConnectionTypeVpcLink = "VPC_LINK"
 )
 
+// ConnectionType_Values returns all elements of the ConnectionType enum
+func ConnectionType_Values() []string {
+	return []string{
+		ConnectionTypeInternet,
+		ConnectionTypeVpcLink,
+	}
+}
+
 const (
 	// ContentHandlingStrategyConvertToBinary is a ContentHandlingStrategy enum value
 	ContentHandlingStrategyConvertToBinary = "CONVERT_TO_BINARY"
@@ -25536,6 +25593,14 @@ const (
 	// ContentHandlingStrategyConvertToText is a ContentHandlingStrategy enum value
 	ContentHandlingStrategyConvertToText = "CONVERT_TO_TEXT"
 )
+
+// ContentHandlingStrategy_Values returns all elements of the ContentHandlingStrategy enum
+func ContentHandlingStrategy_Values() []string {
+	return []string{
+		ContentHandlingStrategyConvertToBinary,
+		ContentHandlingStrategyConvertToText,
+	}
+}
 
 const (
 	// DocumentationPartTypeApi is a DocumentationPartType enum value
@@ -25575,6 +25640,24 @@ const (
 	DocumentationPartTypeResponseBody = "RESPONSE_BODY"
 )
 
+// DocumentationPartType_Values returns all elements of the DocumentationPartType enum
+func DocumentationPartType_Values() []string {
+	return []string{
+		DocumentationPartTypeApi,
+		DocumentationPartTypeAuthorizer,
+		DocumentationPartTypeModel,
+		DocumentationPartTypeResource,
+		DocumentationPartTypeMethod,
+		DocumentationPartTypePathParameter,
+		DocumentationPartTypeQueryParameter,
+		DocumentationPartTypeRequestHeader,
+		DocumentationPartTypeRequestBody,
+		DocumentationPartTypeResponse,
+		DocumentationPartTypeResponseHeader,
+		DocumentationPartTypeResponseBody,
+	}
+}
+
 const (
 	// DomainNameStatusAvailable is a DomainNameStatus enum value
 	DomainNameStatusAvailable = "AVAILABLE"
@@ -25585,6 +25668,15 @@ const (
 	// DomainNameStatusPending is a DomainNameStatus enum value
 	DomainNameStatusPending = "PENDING"
 )
+
+// DomainNameStatus_Values returns all elements of the DomainNameStatus enum
+func DomainNameStatus_Values() []string {
+	return []string{
+		DomainNameStatusAvailable,
+		DomainNameStatusUpdating,
+		DomainNameStatusPending,
+	}
+}
 
 // The endpoint type. The valid values are EDGE for edge-optimized API setup,
 // most suitable for mobile applications; REGIONAL for regional API endpoint
@@ -25600,6 +25692,15 @@ const (
 	// EndpointTypePrivate is a EndpointType enum value
 	EndpointTypePrivate = "PRIVATE"
 )
+
+// EndpointType_Values returns all elements of the EndpointType enum
+func EndpointType_Values() []string {
+	return []string{
+		EndpointTypeRegional,
+		EndpointTypeEdge,
+		EndpointTypePrivate,
+	}
+}
 
 const (
 	// GatewayResponseTypeDefault4xx is a GatewayResponseType enum value
@@ -25663,6 +25764,32 @@ const (
 	GatewayResponseTypeQuotaExceeded = "QUOTA_EXCEEDED"
 )
 
+// GatewayResponseType_Values returns all elements of the GatewayResponseType enum
+func GatewayResponseType_Values() []string {
+	return []string{
+		GatewayResponseTypeDefault4xx,
+		GatewayResponseTypeDefault5xx,
+		GatewayResponseTypeResourceNotFound,
+		GatewayResponseTypeUnauthorized,
+		GatewayResponseTypeInvalidApiKey,
+		GatewayResponseTypeAccessDenied,
+		GatewayResponseTypeAuthorizerFailure,
+		GatewayResponseTypeAuthorizerConfigurationError,
+		GatewayResponseTypeInvalidSignature,
+		GatewayResponseTypeExpiredToken,
+		GatewayResponseTypeMissingAuthenticationToken,
+		GatewayResponseTypeIntegrationFailure,
+		GatewayResponseTypeIntegrationTimeout,
+		GatewayResponseTypeApiConfigurationError,
+		GatewayResponseTypeUnsupportedMediaType,
+		GatewayResponseTypeBadRequestParameters,
+		GatewayResponseTypeBadRequestBody,
+		GatewayResponseTypeRequestTooLarge,
+		GatewayResponseTypeThrottled,
+		GatewayResponseTypeQuotaExceeded,
+	}
+}
+
 // The integration type. The valid value is HTTP for integrating an API method
 // with an HTTP backend; AWS with any AWS service endpoints; MOCK for testing
 // without actually invoking the backend; HTTP_PROXY for integrating with the
@@ -25684,6 +25811,17 @@ const (
 	IntegrationTypeAwsProxy = "AWS_PROXY"
 )
 
+// IntegrationType_Values returns all elements of the IntegrationType enum
+func IntegrationType_Values() []string {
+	return []string{
+		IntegrationTypeHttp,
+		IntegrationTypeAws,
+		IntegrationTypeMock,
+		IntegrationTypeHttpProxy,
+		IntegrationTypeAwsProxy,
+	}
+}
+
 const (
 	// LocationStatusTypeDocumented is a LocationStatusType enum value
 	LocationStatusTypeDocumented = "DOCUMENTED"
@@ -25691,6 +25829,14 @@ const (
 	// LocationStatusTypeUndocumented is a LocationStatusType enum value
 	LocationStatusTypeUndocumented = "UNDOCUMENTED"
 )
+
+// LocationStatusType_Values returns all elements of the LocationStatusType enum
+func LocationStatusType_Values() []string {
+	return []string{
+		LocationStatusTypeDocumented,
+		LocationStatusTypeUndocumented,
+	}
+}
 
 const (
 	// OpAdd is a Op enum value
@@ -25712,6 +25858,18 @@ const (
 	OpTest = "test"
 )
 
+// Op_Values returns all elements of the Op enum
+func Op_Values() []string {
+	return []string{
+		OpAdd,
+		OpRemove,
+		OpReplace,
+		OpMove,
+		OpCopy,
+		OpTest,
+	}
+}
+
 const (
 	// PutModeMerge is a PutMode enum value
 	PutModeMerge = "merge"
@@ -25719,6 +25877,14 @@ const (
 	// PutModeOverwrite is a PutMode enum value
 	PutModeOverwrite = "overwrite"
 )
+
+// PutMode_Values returns all elements of the PutMode enum
+func PutMode_Values() []string {
+	return []string{
+		PutModeMerge,
+		PutModeOverwrite,
+	}
+}
 
 const (
 	// QuotaPeriodTypeDay is a QuotaPeriodType enum value
@@ -25731,6 +25897,15 @@ const (
 	QuotaPeriodTypeMonth = "MONTH"
 )
 
+// QuotaPeriodType_Values returns all elements of the QuotaPeriodType enum
+func QuotaPeriodType_Values() []string {
+	return []string{
+		QuotaPeriodTypeDay,
+		QuotaPeriodTypeWeek,
+		QuotaPeriodTypeMonth,
+	}
+}
+
 const (
 	// SecurityPolicyTls10 is a SecurityPolicy enum value
 	SecurityPolicyTls10 = "TLS_1_0"
@@ -25738,6 +25913,14 @@ const (
 	// SecurityPolicyTls12 is a SecurityPolicy enum value
 	SecurityPolicyTls12 = "TLS_1_2"
 )
+
+// SecurityPolicy_Values returns all elements of the SecurityPolicy enum
+func SecurityPolicy_Values() []string {
+	return []string{
+		SecurityPolicyTls10,
+		SecurityPolicyTls12,
+	}
+}
 
 const (
 	// UnauthorizedCacheControlHeaderStrategyFailWith403 is a UnauthorizedCacheControlHeaderStrategy enum value
@@ -25749,6 +25932,15 @@ const (
 	// UnauthorizedCacheControlHeaderStrategySucceedWithoutResponseHeader is a UnauthorizedCacheControlHeaderStrategy enum value
 	UnauthorizedCacheControlHeaderStrategySucceedWithoutResponseHeader = "SUCCEED_WITHOUT_RESPONSE_HEADER"
 )
+
+// UnauthorizedCacheControlHeaderStrategy_Values returns all elements of the UnauthorizedCacheControlHeaderStrategy enum
+func UnauthorizedCacheControlHeaderStrategy_Values() []string {
+	return []string{
+		UnauthorizedCacheControlHeaderStrategyFailWith403,
+		UnauthorizedCacheControlHeaderStrategySucceedWithResponseHeader,
+		UnauthorizedCacheControlHeaderStrategySucceedWithoutResponseHeader,
+	}
+}
 
 const (
 	// VpcLinkStatusAvailable is a VpcLinkStatus enum value
@@ -25763,3 +25955,13 @@ const (
 	// VpcLinkStatusFailed is a VpcLinkStatus enum value
 	VpcLinkStatusFailed = "FAILED"
 )
+
+// VpcLinkStatus_Values returns all elements of the VpcLinkStatus enum
+func VpcLinkStatus_Values() []string {
+	return []string{
+		VpcLinkStatusAvailable,
+		VpcLinkStatusPending,
+		VpcLinkStatusDeleting,
+		VpcLinkStatusFailed,
+	}
+}

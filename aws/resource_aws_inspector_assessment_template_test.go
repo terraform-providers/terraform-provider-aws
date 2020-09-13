@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSInspectorTemplate_basic(t *testing.T) {
@@ -204,7 +204,7 @@ resource "aws_inspector_resource_group" "test" {
 
 resource "aws_inspector_assessment_target" "test" {
   name               = %[1]q
-  resource_group_arn = "${aws_inspector_resource_group.test.arn}"
+  resource_group_arn = aws_inspector_resource_group.test.arn
 }
 `, rName)
 }
@@ -213,10 +213,10 @@ func testAccAWSInspectorTemplateAssessmentBasic(rName string) string {
 	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
 resource "aws_inspector_assessment_template" "test" {
   name       = %[1]q
-  target_arn = "${aws_inspector_assessment_target.test.arn}"
+  target_arn = aws_inspector_assessment_target.test.arn
   duration   = 3600
 
-  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
+  rules_package_arns = data.aws_inspector_rules_packages.available.arns
 }
 `, rName)
 }
@@ -225,10 +225,10 @@ func testAccAWSInspectorTemplateAssessmentTags1(rName, tagKey1, tagValue1 string
 	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
 resource "aws_inspector_assessment_template" "test" {
   name       = %[1]q
-  target_arn = "${aws_inspector_assessment_target.test.arn}"
+  target_arn = aws_inspector_assessment_target.test.arn
   duration   = 3600
 
-  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
+  rules_package_arns = data.aws_inspector_rules_packages.available.arns
 
   tags = {
     %[2]q = %[3]q
@@ -241,10 +241,10 @@ func testAccAWSInspectorTemplateAssessmentTags2(rName, tagKey1, tagValue1, tagKe
 	return testAccAWSInspectorTemplateAssessmentBase(rName) + fmt.Sprintf(`
 resource "aws_inspector_assessment_template" "test" {
   name       = %[1]q
-  target_arn = "${aws_inspector_assessment_target.test.arn}"
+  target_arn = aws_inspector_assessment_target.test.arn
   duration   = 3600
 
-  rules_package_arns = "${data.aws_inspector_rules_packages.available.arns}"
+  rules_package_arns = data.aws_inspector_rules_packages.available.arns
 
   tags = {
     %[2]q = %[3]q

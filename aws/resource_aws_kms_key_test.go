@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	awspolicy "github.com/jen20/awspolicyequivalence"
 )
 
@@ -479,8 +479,8 @@ resource "aws_iam_role" "test" {
 
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "ec2.${data.aws_partition.current.dns_suffix}"
       }
@@ -494,35 +494,37 @@ resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 
   policy = jsonencode({
-  Id = "kms-tf-1"
-  Statement = [
-    {
-      Action = "kms:*"
-      Effect = "Allow"
-      Principal = {
-        AWS = "*"
-      }
-      Resource = "*"
-      Sid= "Enable IAM User Permissions"
-    },
-    {
-      Action = [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey",
-      ]
-      Effect = "Allow"
-      Principal = {
-        AWS = [aws_iam_role.test.arn]
-      }
-      Resource = "*"
-      Sid = "Enable IAM User Permissions"
-    },
-  ]
-  Version = "2012-10-17"
-})
+    Id = "kms-tf-1"
+    Statement = [
+      {
+        Action = "kms:*"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+
+        Resource = "*"
+        Sid      = "Enable IAM User Permissions"
+      },
+      {
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = [aws_iam_role.test.arn]
+        }
+
+        Resource = "*"
+        Sid      = "Enable IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 `, rName)
 }
@@ -541,35 +543,37 @@ resource "aws_kms_key" "test" {
   deletion_window_in_days = 7
 
   policy = jsonencode({
-  Id = "kms-tf-1"
-  Statement = [
-    {
-      Action = "kms:*"
-      Effect = "Allow"
-      Principal = {
-        AWS = "*"
-      }
-      Resource = "*"
-      Sid= "Enable IAM User Permissions"
-    },
-    {
-      Action = [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey",
-      ]
-      Effect = "Allow"
-      Principal = {
-        AWS = [aws_iam_service_linked_role.test.arn]
-      }
-      Resource = "*"
-      Sid = "Enable IAM User Permissions"
-    },
-  ]
-  Version = "2012-10-17"
-})
+    Id = "kms-tf-1"
+    Statement = [
+      {
+        Action = "kms:*"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+
+        Resource = "*"
+        Sid      = "Enable IAM User Permissions"
+      },
+      {
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = [aws_iam_service_linked_role.test.arn]
+        }
+
+        Resource = "*"
+        Sid      = "Enable IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 `, rName)
 }

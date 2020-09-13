@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/gamelift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const testAccGameliftGameSessionQueuePrefix = "tfAccQueue-"
@@ -350,7 +350,7 @@ resource "aws_gamelift_game_session_queue" "test" {
 func testAccAWSGameliftGameSessionQueueBasicConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_game_session_queue" "test" {
-  name         = %[1]q 
+  name         = %[1]q
   destinations = []
 
   player_latency_policy {
@@ -374,7 +374,7 @@ resource "aws_gamelift_game_session_queue" "test" {
 func testAccAWSGameliftGameSessionQueueBasicConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_game_session_queue" "test" {
-  name         = %[1]q 
+  name         = %[1]q
   destinations = []
 
   player_latency_policy {

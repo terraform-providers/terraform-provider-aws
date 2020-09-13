@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/efs"
 
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -102,11 +102,12 @@ func TestAccAWSEFSMountTarget_basic(t *testing.T) {
 				Config: testAccAWSEFSMountTargetConfig(ct),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEfsMountTarget(resourceName, &mount),
-					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
-					testAccMatchResourceAttrRegionalARN(resourceName, "file_system_arn", "elasticfilesystem", regexp.MustCompile(`file-system/fs-.+`)),
-					resource.TestCheckResourceAttrSet(resourceName, "mount_target_dns_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_name"),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "dns_name", "efs", regexp.MustCompile(`fs-[^.]+`)),
+					testAccMatchResourceAttrRegionalARN(resourceName, "file_system_arn", "elasticfilesystem", regexp.MustCompile(`file-system/fs-.+`)),
+					resource.TestMatchResourceAttr(resourceName, "ip_address", regexp.MustCompile(`\d+\.\d+\.\d+\.\d+`)),
+					resource.TestCheckResourceAttrSet(resourceName, "mount_target_dns_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "network_interface_id"),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
@@ -146,6 +147,57 @@ func TestAccAWSEFSMountTarget_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsEfsMountTarget(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSEFSMountTarget_IpAddress(t *testing.T) {
+	var mount efs.MountTargetDescription
+	resourceName := "aws_efs_mount_target.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEfsMountTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEFSMountTargetConfigIpAddress("10.0.0.100"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					resource.TestCheckResourceAttr(resourceName, "ip_address", "10.0.0.100"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/13845
+func TestAccAWSEFSMountTarget_IpAddress_EmptyString(t *testing.T) {
+	var mount efs.MountTargetDescription
+	resourceName := "aws_efs_mount_target.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckEfsMountTargetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEFSMountTargetConfigIpAddress(""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckEfsMountTarget(resourceName, &mount),
+					resource.TestMatchResourceAttr(resourceName, "ip_address", regexp.MustCompile(`\d+\.\d+\.\d+\.\d+`)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -251,8 +303,8 @@ resource "aws_efs_file_system" "test" {
 }
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
-  subnet_id      = "${aws_subnet.test.id}"
+  file_system_id = aws_efs_file_system.test.id
+  subnet_id      = aws_subnet.test.id
 }
 
 resource "aws_vpc" "test" {
@@ -264,8 +316,8 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -295,13 +347,13 @@ resource "aws_efs_file_system" "test" {
 }
 
 resource "aws_efs_mount_target" "test" {
-  file_system_id = "${aws_efs_file_system.test.id}"
-  subnet_id      = "${aws_subnet.test.id}"
+  file_system_id = aws_efs_file_system.test.id
+  subnet_id      = aws_subnet.test.id
 }
 
 resource "aws_efs_mount_target" "test2" {
-  file_system_id = "${aws_efs_file_system.test.id}"
-  subnet_id      = "${aws_subnet.test2.id}"
+  file_system_id = aws_efs_file_system.test.id
+  subnet_id      = aws_subnet.test2.id
 }
 
 resource "aws_vpc" "test" {
@@ -313,8 +365,8 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -323,8 +375,8 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_subnet" "test2" {
-  vpc_id            = "${aws_vpc.test.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[1]
   cidr_block        = "10.0.2.0/24"
 
   tags = {
@@ -332,4 +384,47 @@ resource "aws_subnet" "test2" {
   }
 }
 `, ct)
+}
+
+func testAccAWSEFSMountTargetConfigIpAddress(ipAddress string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-efs-mount-target-test"
+  }
+}
+
+resource "aws_subnet" "test" {
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.0.0/24"
+
+  tags = {
+    Name = "tf-acc-efs-mount-target-test"
+  }
+}
+
+resource "aws_efs_file_system" "test" {
+  tags = {
+    Name = "tf-acc-efs-mount-target-test"
+  }
+}
+
+resource "aws_efs_mount_target" "test" {
+  file_system_id = aws_efs_file_system.test.id
+  ip_address     = %[1]q
+  subnet_id      = aws_subnet.test.id
+}
+`, ipAddress)
 }

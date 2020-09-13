@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisvideo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSKinesisVideoStream_basic(t *testing.T) {
@@ -255,44 +255,50 @@ func testAccCheckKinesisVideoStreamDestroy(s *terraform.State) error {
 func testAccKinesisVideoStreamConfig(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_kinesis_video_stream" "default" {
-	name = "terraform-kinesis-video-stream-test-%d"
-}`, rInt)
+  name = "terraform-kinesis-video-stream-test-%d"
+}
+`, rInt)
 }
 
 func testAccKinesisVideoStreamConfig_Options(rInt int, rName, mediaType string) string {
 	return fmt.Sprintf(`
 resource "aws_kms_key" "default" {
-	description             = "KMS key 1"
-	deletion_window_in_days = 7
+  description             = "KMS key 1"
+  deletion_window_in_days = 7
 }
 
 resource "aws_kinesis_video_stream" "default" {
-	name	= "terraform-kinesis-video-stream-test-%[1]d"
+  name = "terraform-kinesis-video-stream-test-%[1]d"
 
-	data_retention_in_hours = 1
-	device_name 			= "kinesis-video-device-name-%[2]s"
-	kms_key_id 				= "${aws_kms_key.default.id}"
-	media_type 				= "%[3]s"
-}`, rInt, rName, mediaType)
+  data_retention_in_hours = 1
+  device_name             = "kinesis-video-device-name-%[2]s"
+  kms_key_id              = aws_kms_key.default.id
+  media_type              = "%[3]s"
+}
+`, rInt, rName, mediaType)
 }
 
 func testAccKinesisVideoStreamConfig_Tags1(rInt int, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_kinesis_video_stream" "default" {
-	name = "terraform-kinesis-video-stream-test-%d"
-	tags = {
-		%[2]q = %[3]q
-	}
-}`, rInt, tagKey1, tagValue1)
+  name = "terraform-kinesis-video-stream-test-%d"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rInt, tagKey1, tagValue1)
 }
 
 func testAccKinesisVideoStreamConfig_Tags2(rInt int, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_kinesis_video_stream" "default" {
-	name = "terraform-kinesis-video-stream-test-%d"
-	tags = {
-		%[2]q = %[3]q
-		%[4]q = %[5]q
-	}
-}`, rInt, tagKey1, tagValue1, tagKey2, tagValue2)
+  name = "terraform-kinesis-video-stream-test-%d"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rInt, tagKey1, tagValue1, tagKey2, tagValue2)
 }

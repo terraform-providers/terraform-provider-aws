@@ -22,7 +22,7 @@ resource "aws_wafregional_regex_match_set" "example" {
       type = "HEADER"
     }
 
-    regex_pattern_set_id = "${aws_wafregional_regex_pattern_set.example.id}"
+    regex_pattern_set_id = aws_wafregional_regex_pattern_set.example.id
     text_transformation  = "NONE"
   }
 }
@@ -45,9 +45,9 @@ The following arguments are supported:
 
 #### `regex_match_tuple`
 
- * `field_to_match` - (Required) The part of a web request that you want to search, such as a specified header or a query string.
- * `regex_pattern_set_id` - (Required) The ID of a [Regex Pattern Set](/docs/providers/aws/r/waf_regex_pattern_set.html).
- * `text_transformation` - (Required) Text transformations used to eliminate unusual formatting that attackers use in web requests in an effort to bypass AWS WAF.
+* `field_to_match` - (Required) The part of a web request that you want to search, such as a specified header or a query string.
+* `regex_pattern_set_id` - (Required) The ID of a [Regex Pattern Set](/docs/providers/aws/r/waf_regex_pattern_set.html).
+* `text_transformation` - (Required) Text transformations used to eliminate unusual formatting that attackers use in web requests in an effort to bypass AWS WAF.
   e.g. `CMD_LINE`, `HTML_ENTITY_DECODE` or `NONE`.
   See [docs](http://docs.aws.amazon.com/waf/latest/APIReference/API_ByteMatchTuple.html#WAF-Type-ByteMatchTuple-TextTransformation)
   for all supported values.

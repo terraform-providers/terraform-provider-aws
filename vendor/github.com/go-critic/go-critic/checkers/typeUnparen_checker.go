@@ -3,30 +3,30 @@ package checkers
 import (
 	"go/ast"
 
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
 	"github.com/go-critic/go-critic/checkers/internal/lintutil"
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcopy"
 	"github.com/go-toolsmith/astp"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "typeUnparen"
 	info.Tags = []string{"style", "opinionated"}
 	info.Summary = "Detects unneded parenthesis inside type expressions and suggests to remove them"
 	info.Before = `type foo [](func([](func())))`
 	info.After = `type foo []func([]func())`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForTypeExpr(&typeUnparenChecker{ctx: ctx}, ctx.TypesInfo)
 	})
 }
 
 type typeUnparenChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *typeUnparenChecker) VisitTypeExpr(x ast.Expr) {

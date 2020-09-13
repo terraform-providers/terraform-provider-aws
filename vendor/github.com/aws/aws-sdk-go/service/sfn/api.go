@@ -2525,8 +2525,12 @@ type ActivityScheduledEventDetails struct {
 	// The maximum allowed duration between two heartbeats for the activity task.
 	HeartbeatInSeconds *int64 `locationName:"heartbeatInSeconds" type:"long"`
 
-	// The JSON data input to the activity task.
+	// The JSON data input to the activity task. Length constraints apply to the
+	// payload size, and are expressed as bytes in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
+
+	// Contains details about the input for an execution history event.
+	InputDetails *HistoryEventExecutionDataDetails `locationName:"inputDetails" type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the scheduled activity.
 	//
@@ -2556,6 +2560,12 @@ func (s *ActivityScheduledEventDetails) SetHeartbeatInSeconds(v int64) *Activity
 // SetInput sets the Input field's value.
 func (s *ActivityScheduledEventDetails) SetInput(v string) *ActivityScheduledEventDetails {
 	s.Input = &v
+	return s
+}
+
+// SetInputDetails sets the InputDetails field's value.
+func (s *ActivityScheduledEventDetails) SetInputDetails(v *HistoryEventExecutionDataDetails) *ActivityScheduledEventDetails {
+	s.InputDetails = v
 	return s
 }
 
@@ -2601,8 +2611,12 @@ func (s *ActivityStartedEventDetails) SetWorkerName(v string) *ActivityStartedEv
 type ActivitySucceededEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data output by the activity task.
+	// The JSON data output by the activity task. Length constraints apply to the
+	// payload size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 }
 
 // String returns the string representation
@@ -2618,6 +2632,12 @@ func (s ActivitySucceededEventDetails) GoString() string {
 // SetOutput sets the Output field's value.
 func (s *ActivitySucceededEventDetails) SetOutput(v string) *ActivitySucceededEventDetails {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *ActivitySucceededEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *ActivitySucceededEventDetails {
+	s.OutputDetails = v
 	return s
 }
 
@@ -2709,6 +2729,31 @@ func (s *ActivityWorkerLimitExceeded) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *ActivityWorkerLimitExceeded) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+// Provides details about execution input.
+type CloudWatchEventsExecutionDataDetails struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether input or output was included in the response. Always true
+	// for API calls, but may be false for CloudWatch Events.
+	Included *bool `locationName:"included" type:"boolean"`
+}
+
+// String returns the string representation
+func (s CloudWatchEventsExecutionDataDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CloudWatchEventsExecutionDataDetails) GoString() string {
+	return s.String()
+}
+
+// SetIncluded sets the Included field's value.
+func (s *CloudWatchEventsExecutionDataDetails) SetIncluded(v bool) *CloudWatchEventsExecutionDataDetails {
+	s.Included = &v
+	return s
 }
 
 type CloudWatchLogsLogGroup struct {
@@ -3315,10 +3360,12 @@ type DescribeExecutionOutput struct {
 	// ExecutionArn is a required field
 	ExecutionArn *string `locationName:"executionArn" min:"1" type:"string" required:"true"`
 
-	// The string that contains the JSON input data of the execution.
-	//
-	// Input is a required field
-	Input *string `locationName:"input" type:"string" required:"true" sensitive:"true"`
+	// The string that contains the JSON input data of the execution. Length constraints
+	// apply to the payload size, and are expressed as bytes in UTF-8 encoding.
+	Input *string `locationName:"input" type:"string" sensitive:"true"`
+
+	// Provides details about execution input.
+	InputDetails *CloudWatchEventsExecutionDataDetails `locationName:"inputDetails" type:"structure"`
 
 	// The name of the execution.
 	//
@@ -3338,11 +3385,15 @@ type DescribeExecutionOutput struct {
 	// A-Z, a-z, - and _.
 	Name *string `locationName:"name" min:"1" type:"string"`
 
-	// The JSON output data of the execution.
+	// The JSON output data of the execution. Length constraints apply to the payload
+	// size, and are expressed as bytes in UTF-8 encoding.
 	//
 	// This field is set only if the execution succeeds. If the execution fails,
 	// this field is null.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Provides details about execution input.
+	OutputDetails *CloudWatchEventsExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 
 	// The date the execution is started.
 	//
@@ -3385,6 +3436,12 @@ func (s *DescribeExecutionOutput) SetInput(v string) *DescribeExecutionOutput {
 	return s
 }
 
+// SetInputDetails sets the InputDetails field's value.
+func (s *DescribeExecutionOutput) SetInputDetails(v *CloudWatchEventsExecutionDataDetails) *DescribeExecutionOutput {
+	s.InputDetails = v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *DescribeExecutionOutput) SetName(v string) *DescribeExecutionOutput {
 	s.Name = &v
@@ -3394,6 +3451,12 @@ func (s *DescribeExecutionOutput) SetName(v string) *DescribeExecutionOutput {
 // SetOutput sets the Output field's value.
 func (s *DescribeExecutionOutput) SetOutput(v string) *DescribeExecutionOutput {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *DescribeExecutionOutput) SetOutputDetails(v *CloudWatchEventsExecutionDataDetails) *DescribeExecutionOutput {
+	s.OutputDetails = v
 	return s
 }
 
@@ -4036,8 +4099,12 @@ func (s *ExecutionListItem) SetStopDate(v time.Time) *ExecutionListItem {
 type ExecutionStartedEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data input to the execution.
+	// The JSON data input to the execution. Length constraints apply to the payload
+	// size, and are expressed as bytes in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
+
+	// Contains details about the input for an execution history event.
+	InputDetails *HistoryEventExecutionDataDetails `locationName:"inputDetails" type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the IAM role used for executing AWS Lambda
 	// tasks.
@@ -4060,6 +4127,12 @@ func (s *ExecutionStartedEventDetails) SetInput(v string) *ExecutionStartedEvent
 	return s
 }
 
+// SetInputDetails sets the InputDetails field's value.
+func (s *ExecutionStartedEventDetails) SetInputDetails(v *HistoryEventExecutionDataDetails) *ExecutionStartedEventDetails {
+	s.InputDetails = v
+	return s
+}
+
 // SetRoleArn sets the RoleArn field's value.
 func (s *ExecutionStartedEventDetails) SetRoleArn(v string) *ExecutionStartedEventDetails {
 	s.RoleArn = &v
@@ -4070,8 +4143,12 @@ func (s *ExecutionStartedEventDetails) SetRoleArn(v string) *ExecutionStartedEve
 type ExecutionSucceededEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data output by the execution.
+	// The JSON data output by the execution. Length constraints apply to the payload
+	// size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 }
 
 // String returns the string representation
@@ -4087,6 +4164,12 @@ func (s ExecutionSucceededEventDetails) GoString() string {
 // SetOutput sets the Output field's value.
 func (s *ExecutionSucceededEventDetails) SetOutput(v string) *ExecutionSucceededEventDetails {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *ExecutionSucceededEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *ExecutionSucceededEventDetails {
+	s.OutputDetails = v
 	return s
 }
 
@@ -4182,7 +4265,8 @@ func (s *GetActivityTaskInput) SetWorkerName(v string) *GetActivityTaskInput {
 type GetActivityTaskOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The string that contains the JSON input data for the task.
+	// The string that contains the JSON input data for the task. Length constraints
+	// apply to the payload size, and are expressed as bytes in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
 
 	// A token that identifies the scheduled task. This token must be copied and
@@ -4220,6 +4304,10 @@ type GetExecutionHistoryInput struct {
 	//
 	// ExecutionArn is a required field
 	ExecutionArn *string `locationName:"executionArn" min:"1" type:"string" required:"true"`
+
+	// You can select whether execution data (input or output of a history event)
+	// is returned. The default is true.
+	IncludeExecutionData *bool `locationName:"includeExecutionData" type:"boolean"`
 
 	// The maximum number of results that are returned per call. You can use nextToken
 	// to obtain further pages of results. The default is 100 and the maximum allowed
@@ -4272,6 +4360,12 @@ func (s *GetExecutionHistoryInput) Validate() error {
 // SetExecutionArn sets the ExecutionArn field's value.
 func (s *GetExecutionHistoryInput) SetExecutionArn(v string) *GetExecutionHistoryInput {
 	s.ExecutionArn = &v
+	return s
+}
+
+// SetIncludeExecutionData sets the IncludeExecutionData field's value.
+func (s *GetExecutionHistoryInput) SetIncludeExecutionData(v bool) *GetExecutionHistoryInput {
+	s.IncludeExecutionData = &v
 	return s
 }
 
@@ -4677,6 +4771,31 @@ func (s *HistoryEvent) SetTimestamp(v time.Time) *HistoryEvent {
 // SetType sets the Type field's value.
 func (s *HistoryEvent) SetType(v string) *HistoryEvent {
 	s.Type = &v
+	return s
+}
+
+// Contains details about the data from an execution's events. Always true for
+// API calls, but may be false for CloudWatch Logs.
+type HistoryEventExecutionDataDetails struct {
+	_ struct{} `type:"structure"`
+
+	// Indicates whether input or output was truncated in the response. Always false.
+	Truncated *bool `locationName:"truncated" type:"boolean"`
+}
+
+// String returns the string representation
+func (s HistoryEventExecutionDataDetails) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HistoryEventExecutionDataDetails) GoString() string {
+	return s.String()
+}
+
+// SetTruncated sets the Truncated field's value.
+func (s *HistoryEventExecutionDataDetails) SetTruncated(v bool) *HistoryEventExecutionDataDetails {
+	s.Truncated = &v
 	return s
 }
 
@@ -5142,8 +5261,12 @@ func (s *LambdaFunctionScheduleFailedEventDetails) SetError(v string) *LambdaFun
 type LambdaFunctionScheduledEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data input to the lambda function.
+	// The JSON data input to the lambda function. Length constraints apply to the
+	// payload size, and are expressed as bytes in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
+
+	// Contains details about input for an execution history event.
+	InputDetails *HistoryEventExecutionDataDetails `locationName:"inputDetails" type:"structure"`
 
 	// The Amazon Resource Name (ARN) of the scheduled lambda function.
 	//
@@ -5167,6 +5290,12 @@ func (s LambdaFunctionScheduledEventDetails) GoString() string {
 // SetInput sets the Input field's value.
 func (s *LambdaFunctionScheduledEventDetails) SetInput(v string) *LambdaFunctionScheduledEventDetails {
 	s.Input = &v
+	return s
+}
+
+// SetInputDetails sets the InputDetails field's value.
+func (s *LambdaFunctionScheduledEventDetails) SetInputDetails(v *HistoryEventExecutionDataDetails) *LambdaFunctionScheduledEventDetails {
+	s.InputDetails = v
 	return s
 }
 
@@ -5220,8 +5349,12 @@ func (s *LambdaFunctionStartFailedEventDetails) SetError(v string) *LambdaFuncti
 type LambdaFunctionSucceededEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data output by the lambda function.
+	// The JSON data output by the lambda function. Length constraints apply to
+	// the payload size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 }
 
 // String returns the string representation
@@ -5237,6 +5370,12 @@ func (s LambdaFunctionSucceededEventDetails) GoString() string {
 // SetOutput sets the Output field's value.
 func (s *LambdaFunctionSucceededEventDetails) SetOutput(v string) *LambdaFunctionSucceededEventDetails {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *LambdaFunctionSucceededEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *LambdaFunctionSucceededEventDetails {
+	s.OutputDetails = v
 	return s
 }
 
@@ -5687,7 +5826,7 @@ type LoggingConfiguration struct {
 	// be logged. Limited to size 1. Required, if your log level is not set to OFF.
 	Destinations []*LogDestination `locationName:"destinations" type:"list"`
 
-	// Determines whether execution data is included in your log. When set to FALSE,
+	// Determines whether execution data is included in your log. When set to false,
 	// data is excluded.
 	IncludeExecutionData *bool `locationName:"includeExecutionData" type:"boolean"`
 
@@ -6051,7 +6190,8 @@ func (s SendTaskHeartbeatOutput) GoString() string {
 type SendTaskSuccessInput struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON output of the task.
+	// The JSON output of the task. Length constraints apply to the payload size,
+	// and are expressed as bytes in UTF-8 encoding.
 	//
 	// Output is a required field
 	Output *string `locationName:"output" type:"string" required:"true" sensitive:"true"`
@@ -6128,6 +6268,9 @@ type StartExecutionInput struct {
 	//
 	// If you don't include any JSON input data, you still must include the two
 	// braces, for example: "input": "{}"
+	//
+	// Length constraints apply to the payload size, and are expressed as bytes
+	// in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
 
 	// The name of the execution. This name must be unique for your AWS account,
@@ -6244,8 +6387,12 @@ func (s *StartExecutionOutput) SetStartDate(v time.Time) *StartExecutionOutput {
 type StateEnteredEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The string that contains the JSON input data for the state.
+	// The string that contains the JSON input data for the state. Length constraints
+	// apply to the payload size, and are expressed as bytes in UTF-8 encoding.
 	Input *string `locationName:"input" type:"string" sensitive:"true"`
+
+	// Contains details about the input for an execution history event.
+	InputDetails *HistoryEventExecutionDataDetails `locationName:"inputDetails" type:"structure"`
 
 	// The name of the state.
 	//
@@ -6266,6 +6413,12 @@ func (s StateEnteredEventDetails) GoString() string {
 // SetInput sets the Input field's value.
 func (s *StateEnteredEventDetails) SetInput(v string) *StateEnteredEventDetails {
 	s.Input = &v
+	return s
+}
+
+// SetInputDetails sets the InputDetails field's value.
+func (s *StateEnteredEventDetails) SetInputDetails(v *HistoryEventExecutionDataDetails) *StateEnteredEventDetails {
+	s.InputDetails = v
 	return s
 }
 
@@ -6299,8 +6452,12 @@ type StateExitedEventDetails struct {
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
-	// The JSON output data of the state.
+	// The JSON output data of the state. Length constraints apply to the payload
+	// size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 }
 
 // String returns the string representation
@@ -6322,6 +6479,12 @@ func (s *StateExitedEventDetails) SetName(v string) *StateExitedEventDetails {
 // SetOutput sets the Output field's value.
 func (s *StateExitedEventDetails) SetOutput(v string) *StateExitedEventDetails {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *StateExitedEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *StateExitedEventDetails {
+	s.OutputDetails = v
 	return s
 }
 
@@ -7013,7 +7176,11 @@ func (s *TaskFailedEventDetails) SetResourceType(v string) *TaskFailedEventDetai
 type TaskScheduledEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The JSON data passed to the resource referenced in a task state.
+	// The maximum allowed duration between two heartbeats for the task.
+	HeartbeatInSeconds *int64 `locationName:"heartbeatInSeconds" type:"long"`
+
+	// The JSON data passed to the resource referenced in a task state. Length constraints
+	// apply to the payload size, and are expressed as bytes in UTF-8 encoding.
 	//
 	// Parameters is a required field
 	Parameters *string `locationName:"parameters" type:"string" required:"true" sensitive:"true"`
@@ -7045,6 +7212,12 @@ func (s TaskScheduledEventDetails) String() string {
 // GoString returns the string representation
 func (s TaskScheduledEventDetails) GoString() string {
 	return s.String()
+}
+
+// SetHeartbeatInSeconds sets the HeartbeatInSeconds field's value.
+func (s *TaskScheduledEventDetails) SetHeartbeatInSeconds(v int64) *TaskScheduledEventDetails {
+	s.HeartbeatInSeconds = &v
+	return s
 }
 
 // SetParameters sets the Parameters field's value.
@@ -7228,8 +7401,12 @@ func (s *TaskSubmitFailedEventDetails) SetResourceType(v string) *TaskSubmitFail
 type TaskSubmittedEventDetails struct {
 	_ struct{} `type:"structure"`
 
-	// The response from a resource when a task has started.
+	// The response from a resource when a task has started. Length constraints
+	// apply to the payload size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 
 	// The service name of the resource in a task state.
 	//
@@ -7258,6 +7435,12 @@ func (s *TaskSubmittedEventDetails) SetOutput(v string) *TaskSubmittedEventDetai
 	return s
 }
 
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *TaskSubmittedEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *TaskSubmittedEventDetails {
+	s.OutputDetails = v
+	return s
+}
+
 // SetResource sets the Resource field's value.
 func (s *TaskSubmittedEventDetails) SetResource(v string) *TaskSubmittedEventDetails {
 	s.Resource = &v
@@ -7275,8 +7458,12 @@ type TaskSucceededEventDetails struct {
 	_ struct{} `type:"structure"`
 
 	// The full JSON response from a resource when a task has succeeded. This response
-	// becomes the output of the related task.
+	// becomes the output of the related task. Length constraints apply to the payload
+	// size, and are expressed as bytes in UTF-8 encoding.
 	Output *string `locationName:"output" type:"string" sensitive:"true"`
+
+	// Contains details about the output of an execution history event.
+	OutputDetails *HistoryEventExecutionDataDetails `locationName:"outputDetails" type:"structure"`
 
 	// The service name of the resource in a task state.
 	//
@@ -7302,6 +7489,12 @@ func (s TaskSucceededEventDetails) GoString() string {
 // SetOutput sets the Output field's value.
 func (s *TaskSucceededEventDetails) SetOutput(v string) *TaskSucceededEventDetails {
 	s.Output = &v
+	return s
+}
+
+// SetOutputDetails sets the OutputDetails field's value.
+func (s *TaskSucceededEventDetails) SetOutputDetails(v *HistoryEventExecutionDataDetails) *TaskSucceededEventDetails {
+	s.OutputDetails = v
 	return s
 }
 
@@ -7678,6 +7871,17 @@ const (
 	ExecutionStatusAborted = "ABORTED"
 )
 
+// ExecutionStatus_Values returns all elements of the ExecutionStatus enum
+func ExecutionStatus_Values() []string {
+	return []string{
+		ExecutionStatusRunning,
+		ExecutionStatusSucceeded,
+		ExecutionStatusFailed,
+		ExecutionStatusTimedOut,
+		ExecutionStatusAborted,
+	}
+}
+
 const (
 	// HistoryEventTypeActivityFailed is a HistoryEventType enum value
 	HistoryEventTypeActivityFailed = "ActivityFailed"
@@ -7845,6 +8049,67 @@ const (
 	HistoryEventTypeWaitStateExited = "WaitStateExited"
 )
 
+// HistoryEventType_Values returns all elements of the HistoryEventType enum
+func HistoryEventType_Values() []string {
+	return []string{
+		HistoryEventTypeActivityFailed,
+		HistoryEventTypeActivityScheduled,
+		HistoryEventTypeActivityScheduleFailed,
+		HistoryEventTypeActivityStarted,
+		HistoryEventTypeActivitySucceeded,
+		HistoryEventTypeActivityTimedOut,
+		HistoryEventTypeChoiceStateEntered,
+		HistoryEventTypeChoiceStateExited,
+		HistoryEventTypeExecutionAborted,
+		HistoryEventTypeExecutionFailed,
+		HistoryEventTypeExecutionStarted,
+		HistoryEventTypeExecutionSucceeded,
+		HistoryEventTypeExecutionTimedOut,
+		HistoryEventTypeFailStateEntered,
+		HistoryEventTypeLambdaFunctionFailed,
+		HistoryEventTypeLambdaFunctionScheduled,
+		HistoryEventTypeLambdaFunctionScheduleFailed,
+		HistoryEventTypeLambdaFunctionStarted,
+		HistoryEventTypeLambdaFunctionStartFailed,
+		HistoryEventTypeLambdaFunctionSucceeded,
+		HistoryEventTypeLambdaFunctionTimedOut,
+		HistoryEventTypeMapIterationAborted,
+		HistoryEventTypeMapIterationFailed,
+		HistoryEventTypeMapIterationStarted,
+		HistoryEventTypeMapIterationSucceeded,
+		HistoryEventTypeMapStateAborted,
+		HistoryEventTypeMapStateEntered,
+		HistoryEventTypeMapStateExited,
+		HistoryEventTypeMapStateFailed,
+		HistoryEventTypeMapStateStarted,
+		HistoryEventTypeMapStateSucceeded,
+		HistoryEventTypeParallelStateAborted,
+		HistoryEventTypeParallelStateEntered,
+		HistoryEventTypeParallelStateExited,
+		HistoryEventTypeParallelStateFailed,
+		HistoryEventTypeParallelStateStarted,
+		HistoryEventTypeParallelStateSucceeded,
+		HistoryEventTypePassStateEntered,
+		HistoryEventTypePassStateExited,
+		HistoryEventTypeSucceedStateEntered,
+		HistoryEventTypeSucceedStateExited,
+		HistoryEventTypeTaskFailed,
+		HistoryEventTypeTaskScheduled,
+		HistoryEventTypeTaskStarted,
+		HistoryEventTypeTaskStartFailed,
+		HistoryEventTypeTaskStateAborted,
+		HistoryEventTypeTaskStateEntered,
+		HistoryEventTypeTaskStateExited,
+		HistoryEventTypeTaskSubmitFailed,
+		HistoryEventTypeTaskSubmitted,
+		HistoryEventTypeTaskSucceeded,
+		HistoryEventTypeTaskTimedOut,
+		HistoryEventTypeWaitStateAborted,
+		HistoryEventTypeWaitStateEntered,
+		HistoryEventTypeWaitStateExited,
+	}
+}
+
 const (
 	// LogLevelAll is a LogLevel enum value
 	LogLevelAll = "ALL"
@@ -7859,6 +8124,16 @@ const (
 	LogLevelOff = "OFF"
 )
 
+// LogLevel_Values returns all elements of the LogLevel enum
+func LogLevel_Values() []string {
+	return []string{
+		LogLevelAll,
+		LogLevelError,
+		LogLevelFatal,
+		LogLevelOff,
+	}
+}
+
 const (
 	// StateMachineStatusActive is a StateMachineStatus enum value
 	StateMachineStatusActive = "ACTIVE"
@@ -7867,6 +8142,14 @@ const (
 	StateMachineStatusDeleting = "DELETING"
 )
 
+// StateMachineStatus_Values returns all elements of the StateMachineStatus enum
+func StateMachineStatus_Values() []string {
+	return []string{
+		StateMachineStatusActive,
+		StateMachineStatusDeleting,
+	}
+}
+
 const (
 	// StateMachineTypeStandard is a StateMachineType enum value
 	StateMachineTypeStandard = "STANDARD"
@@ -7874,3 +8157,11 @@ const (
 	// StateMachineTypeExpress is a StateMachineType enum value
 	StateMachineTypeExpress = "EXPRESS"
 )
+
+// StateMachineType_Values returns all elements of the StateMachineType enum
+func StateMachineType_Values() []string {
+	return []string{
+		StateMachineTypeStandard,
+		StateMachineTypeExpress,
+	}
+}

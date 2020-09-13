@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEmrSecurityConfiguration_basic(t *testing.T) {
@@ -97,7 +97,7 @@ func testAccCheckEmrSecurityConfigurationExists(n string) resource.TestCheckFunc
 
 const testAccEmrSecurityConfigurationConfig = `
 resource "aws_emr_security_configuration" "test" {
-	configuration = <<EOF
+  configuration = <<EOF
 {
   "EncryptionConfiguration": {
     "AtRestEncryptionConfiguration": {

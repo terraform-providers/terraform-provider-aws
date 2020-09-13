@@ -7,11 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccAWSKinesisStreamDataSource(t *testing.T) {
+func TestAccAWSKinesisStreamDataSource_basic(t *testing.T) {
 	var stream kinesis.StreamDescription
 
 	sn := fmt.Sprintf("terraform-kinesis-test-%d", acctest.RandInt())
@@ -74,22 +74,25 @@ func TestAccAWSKinesisStreamDataSource(t *testing.T) {
 
 var testAccCheckAwsKinesisStreamDataSourceConfig = `
 resource "aws_kinesis_stream" "test_stream" {
-	name = "%s"
-	shard_count = 2
-	retention_period = 72
-	tags = {
-		Name = "tf-test"
-	}
-	shard_level_metrics = [
-		"IncomingBytes",
-		"OutgoingBytes"
-	]
-	lifecycle {
-		ignore_changes = ["shard_count"]
-	}
+  name             = "%s"
+  shard_count      = 2
+  retention_period = 72
+
+  tags = {
+    Name = "tf-test"
+  }
+
+  shard_level_metrics = [
+    "IncomingBytes",
+    "OutgoingBytes"
+  ]
+
+  lifecycle {
+    ignore_changes = ["shard_count"]
+  }
 }
 
 data "aws_kinesis_stream" "test_stream" {
-	name = "${aws_kinesis_stream.test_stream.name}"
+  name = aws_kinesis_stream.test_stream.name
 }
 `

@@ -8,7 +8,7 @@ description: |-
 
 # Resource: aws_devicefarm_project
 
-Provides a resource to manage AWS Device Farm Projects. 
+Provides a resource to manage AWS Device Farm Projects.
 Please keep in mind that this feature is only supported on the "us-west-2" region.
 This resource will error if you try to create a project in another region.
 

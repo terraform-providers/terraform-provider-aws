@@ -23,19 +23,22 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "tfWAFRule"
   metric_name = "tfWAFRule"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
 }
 
 resource "aws_waf_web_acl" "waf_acl" {
-  depends_on  = ["aws_waf_ipset.ipset", "aws_waf_rule.wafrule"]
+  depends_on = [
+    aws_waf_ipset.ipset,
+    aws_waf_rule.wafrule,
+  ]
   name        = "tfWebACL"
   metric_name = "tfWebACL"
 
@@ -49,7 +52,7 @@ resource "aws_waf_web_acl" "waf_acl" {
     }
 
     priority = 1
-    rule_id  = "${aws_waf_rule.wafrule.id}"
+    rule_id  = aws_waf_rule.wafrule.id
     type     = "REGULAR"
   }
 }
@@ -63,7 +66,7 @@ resource "aws_waf_web_acl" "waf_acl" {
 resource "aws_waf_web_acl" "example" {
   # ... other configuration ...
   logging_configuration {
-    log_destination = "${aws_kinesis_firehose_delivery_stream.example.arn}"
+    log_destination = aws_kinesis_firehose_delivery_stream.example.arn
 
     redacted_fields {
       field_to_match {
@@ -116,9 +119,9 @@ The following arguments are supported:
 See [docs](http://docs.aws.amazon.com/waf/latest/APIReference/API_ActivatedRule.html) for all details and supported values.
 
 * `action` - (Optional) The action that CloudFront or AWS WAF takes when a web request matches the conditions in the rule. Not used if `type` is `GROUP`.
-  * `type` - (Required) valid values are: `BLOCK`, `ALLOW`, or `COUNT`
+    * `type` - (Required) valid values are: `BLOCK`, `ALLOW`, or `COUNT`
 * `override_action` - (Optional) Override the action that a group requests CloudFront or AWS WAF takes when a web request matches the conditions in the rule. Only used if `type` is `GROUP`.
-  * `type` - (Required) valid values are: `NONE` or `COUNT`
+    * `type` - (Required) valid values are: `NONE` or `COUNT`
 * `priority` - (Required) Specifies the order in which the rules in a WebACL are evaluated.
   Rules with a lower value are evaluated before rules with a higher value.
 * `rule_id` - (Required) ID of the associated WAF (Global) rule (e.g. [`aws_waf_rule`](/docs/providers/aws/r/waf_rule.html)). WAF (Regional) rules cannot be used.

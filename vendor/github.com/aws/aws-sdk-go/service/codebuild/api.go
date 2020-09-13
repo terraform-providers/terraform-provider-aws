@@ -92,6 +92,85 @@ func (c *CodeBuild) BatchDeleteBuildsWithContext(ctx aws.Context, input *BatchDe
 	return out, req.Send()
 }
 
+const opBatchGetBuildBatches = "BatchGetBuildBatches"
+
+// BatchGetBuildBatchesRequest generates a "aws/request.Request" representing the
+// client's request for the BatchGetBuildBatches operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See BatchGetBuildBatches for more information on using the BatchGetBuildBatches
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the BatchGetBuildBatchesRequest method.
+//    req, resp := client.BatchGetBuildBatchesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetBuildBatches
+func (c *CodeBuild) BatchGetBuildBatchesRequest(input *BatchGetBuildBatchesInput) (req *request.Request, output *BatchGetBuildBatchesOutput) {
+	op := &request.Operation{
+		Name:       opBatchGetBuildBatches,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &BatchGetBuildBatchesInput{}
+	}
+
+	output = &BatchGetBuildBatchesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// BatchGetBuildBatches API operation for AWS CodeBuild.
+//
+// Retrieves information about one or more batch builds.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation BatchGetBuildBatches for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/BatchGetBuildBatches
+func (c *CodeBuild) BatchGetBuildBatches(input *BatchGetBuildBatchesInput) (*BatchGetBuildBatchesOutput, error) {
+	req, out := c.BatchGetBuildBatchesRequest(input)
+	return out, req.Send()
+}
+
+// BatchGetBuildBatchesWithContext is the same as BatchGetBuildBatches with the addition of
+// the ability to pass a context and additional request options.
+//
+// See BatchGetBuildBatches for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) BatchGetBuildBatchesWithContext(ctx aws.Context, input *BatchGetBuildBatchesInput, opts ...request.Option) (*BatchGetBuildBatchesOutput, error) {
+	req, out := c.BatchGetBuildBatchesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opBatchGetBuilds = "BatchGetBuilds"
 
 // BatchGetBuildsRequest generates a "aws/request.Request" representing the
@@ -680,6 +759,85 @@ func (c *CodeBuild) CreateWebhookWithContext(ctx aws.Context, input *CreateWebho
 	return out, req.Send()
 }
 
+const opDeleteBuildBatch = "DeleteBuildBatch"
+
+// DeleteBuildBatchRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteBuildBatch operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DeleteBuildBatch for more information on using the DeleteBuildBatch
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DeleteBuildBatchRequest method.
+//    req, resp := client.DeleteBuildBatchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteBuildBatch
+func (c *CodeBuild) DeleteBuildBatchRequest(input *DeleteBuildBatchInput) (req *request.Request, output *DeleteBuildBatchOutput) {
+	op := &request.Operation{
+		Name:       opDeleteBuildBatch,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteBuildBatchInput{}
+	}
+
+	output = &DeleteBuildBatchOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteBuildBatch API operation for AWS CodeBuild.
+//
+// Deletes a batch build.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DeleteBuildBatch for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DeleteBuildBatch
+func (c *CodeBuild) DeleteBuildBatch(input *DeleteBuildBatchInput) (*DeleteBuildBatchOutput, error) {
+	req, out := c.DeleteBuildBatchRequest(input)
+	return out, req.Send()
+}
+
+// DeleteBuildBatchWithContext is the same as DeleteBuildBatch with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DeleteBuildBatch for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DeleteBuildBatchWithContext(ctx aws.Context, input *DeleteBuildBatchInput, opts ...request.Option) (*DeleteBuildBatchOutput, error) {
+	req, out := c.DeleteBuildBatchRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opDeleteProject = "DeleteProject"
 
 // DeleteProjectRequest generates a "aws/request.Request" representing the
@@ -885,11 +1043,8 @@ func (c *CodeBuild) DeleteReportGroupRequest(input *DeleteReportGroupInput) (req
 
 // DeleteReportGroup API operation for AWS CodeBuild.
 //
-// DeleteReportGroup: Deletes a report group. Before you delete a report group,
-// you must delete its reports. Use ListReportsForReportGroup (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ListReportsForReportGroup.html)
-// to get the reports in a report group. Use DeleteReport (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_DeleteReport.html)
-// to delete the reports. If you call DeleteReportGroup for a report group that
-// contains one or more reports, an exception is thrown.
+// Deletes a report group. Before you delete a report group, you must delete
+// its reports.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1172,6 +1327,143 @@ func (c *CodeBuild) DeleteWebhookWithContext(ctx aws.Context, input *DeleteWebho
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opDescribeCodeCoverages = "DescribeCodeCoverages"
+
+// DescribeCodeCoveragesRequest generates a "aws/request.Request" representing the
+// client's request for the DescribeCodeCoverages operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See DescribeCodeCoverages for more information on using the DescribeCodeCoverages
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the DescribeCodeCoveragesRequest method.
+//    req, resp := client.DescribeCodeCoveragesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DescribeCodeCoverages
+func (c *CodeBuild) DescribeCodeCoveragesRequest(input *DescribeCodeCoveragesInput) (req *request.Request, output *DescribeCodeCoveragesOutput) {
+	op := &request.Operation{
+		Name:       opDescribeCodeCoverages,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &DescribeCodeCoveragesInput{}
+	}
+
+	output = &DescribeCodeCoveragesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DescribeCodeCoverages API operation for AWS CodeBuild.
+//
+// Retrieves one or more code coverage reports.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation DescribeCodeCoverages for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/DescribeCodeCoverages
+func (c *CodeBuild) DescribeCodeCoverages(input *DescribeCodeCoveragesInput) (*DescribeCodeCoveragesOutput, error) {
+	req, out := c.DescribeCodeCoveragesRequest(input)
+	return out, req.Send()
+}
+
+// DescribeCodeCoveragesWithContext is the same as DescribeCodeCoverages with the addition of
+// the ability to pass a context and additional request options.
+//
+// See DescribeCodeCoverages for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DescribeCodeCoveragesWithContext(ctx aws.Context, input *DescribeCodeCoveragesInput, opts ...request.Option) (*DescribeCodeCoveragesOutput, error) {
+	req, out := c.DescribeCodeCoveragesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// DescribeCodeCoveragesPages iterates over the pages of a DescribeCodeCoverages operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeCodeCoverages method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeCodeCoverages operation.
+//    pageNum := 0
+//    err := client.DescribeCodeCoveragesPages(params,
+//        func(page *codebuild.DescribeCodeCoveragesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CodeBuild) DescribeCodeCoveragesPages(input *DescribeCodeCoveragesInput, fn func(*DescribeCodeCoveragesOutput, bool) bool) error {
+	return c.DescribeCodeCoveragesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeCodeCoveragesPagesWithContext same as DescribeCodeCoveragesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) DescribeCodeCoveragesPagesWithContext(ctx aws.Context, input *DescribeCodeCoveragesInput, fn func(*DescribeCodeCoveragesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeCodeCoveragesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeCodeCoveragesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*DescribeCodeCoveragesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opDescribeTestCases = "DescribeTestCases"
@@ -1564,6 +1856,283 @@ func (c *CodeBuild) InvalidateProjectCacheWithContext(ctx aws.Context, input *In
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+const opListBuildBatches = "ListBuildBatches"
+
+// ListBuildBatchesRequest generates a "aws/request.Request" representing the
+// client's request for the ListBuildBatches operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListBuildBatches for more information on using the ListBuildBatches
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListBuildBatchesRequest method.
+//    req, resp := client.ListBuildBatchesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuildBatches
+func (c *CodeBuild) ListBuildBatchesRequest(input *ListBuildBatchesInput) (req *request.Request, output *ListBuildBatchesOutput) {
+	op := &request.Operation{
+		Name:       opListBuildBatches,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListBuildBatchesInput{}
+	}
+
+	output = &ListBuildBatchesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListBuildBatches API operation for AWS CodeBuild.
+//
+// Retrieves the identifiers of your build batches in the current region.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListBuildBatches for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuildBatches
+func (c *CodeBuild) ListBuildBatches(input *ListBuildBatchesInput) (*ListBuildBatchesOutput, error) {
+	req, out := c.ListBuildBatchesRequest(input)
+	return out, req.Send()
+}
+
+// ListBuildBatchesWithContext is the same as ListBuildBatches with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListBuildBatches for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListBuildBatchesWithContext(ctx aws.Context, input *ListBuildBatchesInput, opts ...request.Option) (*ListBuildBatchesOutput, error) {
+	req, out := c.ListBuildBatchesRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListBuildBatchesPages iterates over the pages of a ListBuildBatches operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListBuildBatches method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListBuildBatches operation.
+//    pageNum := 0
+//    err := client.ListBuildBatchesPages(params,
+//        func(page *codebuild.ListBuildBatchesOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CodeBuild) ListBuildBatchesPages(input *ListBuildBatchesInput, fn func(*ListBuildBatchesOutput, bool) bool) error {
+	return c.ListBuildBatchesPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListBuildBatchesPagesWithContext same as ListBuildBatchesPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListBuildBatchesPagesWithContext(ctx aws.Context, input *ListBuildBatchesInput, fn func(*ListBuildBatchesOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListBuildBatchesInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListBuildBatchesRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListBuildBatchesOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
+}
+
+const opListBuildBatchesForProject = "ListBuildBatchesForProject"
+
+// ListBuildBatchesForProjectRequest generates a "aws/request.Request" representing the
+// client's request for the ListBuildBatchesForProject operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See ListBuildBatchesForProject for more information on using the ListBuildBatchesForProject
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the ListBuildBatchesForProjectRequest method.
+//    req, resp := client.ListBuildBatchesForProjectRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuildBatchesForProject
+func (c *CodeBuild) ListBuildBatchesForProjectRequest(input *ListBuildBatchesForProjectInput) (req *request.Request, output *ListBuildBatchesForProjectOutput) {
+	op := &request.Operation{
+		Name:       opListBuildBatchesForProject,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"nextToken"},
+			OutputTokens:    []string{"nextToken"},
+			LimitToken:      "maxResults",
+			TruncationToken: "",
+		},
+	}
+
+	if input == nil {
+		input = &ListBuildBatchesForProjectInput{}
+	}
+
+	output = &ListBuildBatchesForProjectOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListBuildBatchesForProject API operation for AWS CodeBuild.
+//
+// Retrieves the identifiers of the build batches for a specific project.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation ListBuildBatchesForProject for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListBuildBatchesForProject
+func (c *CodeBuild) ListBuildBatchesForProject(input *ListBuildBatchesForProjectInput) (*ListBuildBatchesForProjectOutput, error) {
+	req, out := c.ListBuildBatchesForProjectRequest(input)
+	return out, req.Send()
+}
+
+// ListBuildBatchesForProjectWithContext is the same as ListBuildBatchesForProject with the addition of
+// the ability to pass a context and additional request options.
+//
+// See ListBuildBatchesForProject for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListBuildBatchesForProjectWithContext(ctx aws.Context, input *ListBuildBatchesForProjectInput, opts ...request.Option) (*ListBuildBatchesForProjectOutput, error) {
+	req, out := c.ListBuildBatchesForProjectRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+// ListBuildBatchesForProjectPages iterates over the pages of a ListBuildBatchesForProject operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See ListBuildBatchesForProject method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a ListBuildBatchesForProject operation.
+//    pageNum := 0
+//    err := client.ListBuildBatchesForProjectPages(params,
+//        func(page *codebuild.ListBuildBatchesForProjectOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *CodeBuild) ListBuildBatchesForProjectPages(input *ListBuildBatchesForProjectInput, fn func(*ListBuildBatchesForProjectOutput, bool) bool) error {
+	return c.ListBuildBatchesForProjectPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// ListBuildBatchesForProjectPagesWithContext same as ListBuildBatchesForProjectPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) ListBuildBatchesForProjectPagesWithContext(ctx aws.Context, input *ListBuildBatchesForProjectInput, fn func(*ListBuildBatchesForProjectOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *ListBuildBatchesForProjectInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.ListBuildBatchesForProjectRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	for p.Next() {
+		if !fn(p.Page().(*ListBuildBatchesForProjectOutput), !p.HasNextPage()) {
+			break
+		}
+	}
+
+	return p.Err()
 }
 
 const opListBuilds = "ListBuilds"
@@ -2796,6 +3365,11 @@ func (c *CodeBuild) ListSourceCredentialsRequest(input *ListSourceCredentialsInp
 //
 // See the AWS API reference guide for AWS CodeBuild's
 // API operation ListSourceCredentials for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
 // See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/ListSourceCredentials
 func (c *CodeBuild) ListSourceCredentials(input *ListSourceCredentialsInput) (*ListSourceCredentialsOutput, error) {
 	req, out := c.ListSourceCredentialsRequest(input)
@@ -2900,6 +3474,173 @@ func (c *CodeBuild) PutResourcePolicyWithContext(ctx aws.Context, input *PutReso
 	return out, req.Send()
 }
 
+const opRetryBuild = "RetryBuild"
+
+// RetryBuildRequest generates a "aws/request.Request" representing the
+// client's request for the RetryBuild operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RetryBuild for more information on using the RetryBuild
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RetryBuildRequest method.
+//    req, resp := client.RetryBuildRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/RetryBuild
+func (c *CodeBuild) RetryBuildRequest(input *RetryBuildInput) (req *request.Request, output *RetryBuildOutput) {
+	op := &request.Operation{
+		Name:       opRetryBuild,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RetryBuildInput{}
+	}
+
+	output = &RetryBuildOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RetryBuild API operation for AWS CodeBuild.
+//
+// Restarts a build.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation RetryBuild for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+//   * AccountLimitExceededException
+//   An AWS service limit was exceeded for the calling AWS account.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/RetryBuild
+func (c *CodeBuild) RetryBuild(input *RetryBuildInput) (*RetryBuildOutput, error) {
+	req, out := c.RetryBuildRequest(input)
+	return out, req.Send()
+}
+
+// RetryBuildWithContext is the same as RetryBuild with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RetryBuild for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) RetryBuildWithContext(ctx aws.Context, input *RetryBuildInput, opts ...request.Option) (*RetryBuildOutput, error) {
+	req, out := c.RetryBuildRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opRetryBuildBatch = "RetryBuildBatch"
+
+// RetryBuildBatchRequest generates a "aws/request.Request" representing the
+// client's request for the RetryBuildBatch operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See RetryBuildBatch for more information on using the RetryBuildBatch
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the RetryBuildBatchRequest method.
+//    req, resp := client.RetryBuildBatchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/RetryBuildBatch
+func (c *CodeBuild) RetryBuildBatchRequest(input *RetryBuildBatchInput) (req *request.Request, output *RetryBuildBatchOutput) {
+	op := &request.Operation{
+		Name:       opRetryBuildBatch,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &RetryBuildBatchInput{}
+	}
+
+	output = &RetryBuildBatchOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// RetryBuildBatch API operation for AWS CodeBuild.
+//
+// Restarts a batch build.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation RetryBuildBatch for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/RetryBuildBatch
+func (c *CodeBuild) RetryBuildBatch(input *RetryBuildBatchInput) (*RetryBuildBatchOutput, error) {
+	req, out := c.RetryBuildBatchRequest(input)
+	return out, req.Send()
+}
+
+// RetryBuildBatchWithContext is the same as RetryBuildBatch with the addition of
+// the ability to pass a context and additional request options.
+//
+// See RetryBuildBatch for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) RetryBuildBatchWithContext(ctx aws.Context, input *RetryBuildBatchInput, opts ...request.Option) (*RetryBuildBatchOutput, error) {
+	req, out := c.RetryBuildBatchRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStartBuild = "StartBuild"
 
 // StartBuildRequest generates a "aws/request.Request" representing the
@@ -2985,6 +3726,88 @@ func (c *CodeBuild) StartBuildWithContext(ctx aws.Context, input *StartBuildInpu
 	return out, req.Send()
 }
 
+const opStartBuildBatch = "StartBuildBatch"
+
+// StartBuildBatchRequest generates a "aws/request.Request" representing the
+// client's request for the StartBuildBatch operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StartBuildBatch for more information on using the StartBuildBatch
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StartBuildBatchRequest method.
+//    req, resp := client.StartBuildBatchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StartBuildBatch
+func (c *CodeBuild) StartBuildBatchRequest(input *StartBuildBatchInput) (req *request.Request, output *StartBuildBatchOutput) {
+	op := &request.Operation{
+		Name:       opStartBuildBatch,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StartBuildBatchInput{}
+	}
+
+	output = &StartBuildBatchOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StartBuildBatch API operation for AWS CodeBuild.
+//
+// Starts a batch build for a project.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation StartBuildBatch for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StartBuildBatch
+func (c *CodeBuild) StartBuildBatch(input *StartBuildBatchInput) (*StartBuildBatchOutput, error) {
+	req, out := c.StartBuildBatchRequest(input)
+	return out, req.Send()
+}
+
+// StartBuildBatchWithContext is the same as StartBuildBatch with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StartBuildBatch for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) StartBuildBatchWithContext(ctx aws.Context, input *StartBuildBatchInput, opts ...request.Option) (*StartBuildBatchOutput, error) {
+	req, out := c.StartBuildBatchRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
 const opStopBuild = "StopBuild"
 
 // StopBuildRequest generates a "aws/request.Request" representing the
@@ -3062,6 +3885,88 @@ func (c *CodeBuild) StopBuild(input *StopBuildInput) (*StopBuildOutput, error) {
 // for more information on using Contexts.
 func (c *CodeBuild) StopBuildWithContext(ctx aws.Context, input *StopBuildInput, opts ...request.Option) (*StopBuildOutput, error) {
 	req, out := c.StopBuildRequest(input)
+	req.SetContext(ctx)
+	req.ApplyOptions(opts...)
+	return out, req.Send()
+}
+
+const opStopBuildBatch = "StopBuildBatch"
+
+// StopBuildBatchRequest generates a "aws/request.Request" representing the
+// client's request for the StopBuildBatch operation. The "output" return
+// value will be populated with the request's response once the request completes
+// successfully.
+//
+// Use "Send" method on the returned Request to send the API call to the service.
+// the "output" return value is not valid until after Send returns without error.
+//
+// See StopBuildBatch for more information on using the StopBuildBatch
+// API call, and error handling.
+//
+// This method is useful when you want to inject custom logic or configuration
+// into the SDK's request lifecycle. Such as custom headers, or retry logic.
+//
+//
+//    // Example sending a request using the StopBuildBatchRequest method.
+//    req, resp := client.StopBuildBatchRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StopBuildBatch
+func (c *CodeBuild) StopBuildBatchRequest(input *StopBuildBatchInput) (req *request.Request, output *StopBuildBatchOutput) {
+	op := &request.Operation{
+		Name:       opStopBuildBatch,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &StopBuildBatchInput{}
+	}
+
+	output = &StopBuildBatchOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// StopBuildBatch API operation for AWS CodeBuild.
+//
+// Stops a running batch build.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS CodeBuild's
+// API operation StopBuildBatch for usage and error information.
+//
+// Returned Error Types:
+//   * InvalidInputException
+//   The input value that was provided is not valid.
+//
+//   * ResourceNotFoundException
+//   The specified AWS resource cannot be found.
+//
+// See also, https://docs.aws.amazon.com/goto/WebAPI/codebuild-2016-10-06/StopBuildBatch
+func (c *CodeBuild) StopBuildBatch(input *StopBuildBatchInput) (*StopBuildBatchOutput, error) {
+	req, out := c.StopBuildBatchRequest(input)
+	return out, req.Send()
+}
+
+// StopBuildBatchWithContext is the same as StopBuildBatch with the addition of
+// the ability to pass a context and additional request options.
+//
+// See StopBuildBatch for details on how to use this API operation.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *CodeBuild) StopBuildBatchWithContext(ctx aws.Context, input *StopBuildBatchInput, opts ...request.Option) (*StopBuildBatchOutput, error) {
+	req, out := c.StopBuildBatchRequest(input)
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
@@ -3447,6 +4352,76 @@ func (s *BatchDeleteBuildsOutput) SetBuildsNotDeleted(v []*BuildNotDeleted) *Bat
 	return s
 }
 
+type BatchGetBuildBatchesInput struct {
+	_ struct{} `type:"structure"`
+
+	// An array that contains the batch build identifiers to retrieve.
+	//
+	// Ids is a required field
+	Ids []*string `locationName:"ids" type:"list" required:"true"`
+}
+
+// String returns the string representation
+func (s BatchGetBuildBatchesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetBuildBatchesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *BatchGetBuildBatchesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "BatchGetBuildBatchesInput"}
+	if s.Ids == nil {
+		invalidParams.Add(request.NewErrParamRequired("Ids"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIds sets the Ids field's value.
+func (s *BatchGetBuildBatchesInput) SetIds(v []*string) *BatchGetBuildBatchesInput {
+	s.Ids = v
+	return s
+}
+
+type BatchGetBuildBatchesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of BuildBatch objects that represent the retrieved batch builds.
+	BuildBatches []*BuildBatch `locationName:"buildBatches" type:"list"`
+
+	// An array that contains the identifiers of any batch builds that are not found.
+	BuildBatchesNotFound []*string `locationName:"buildBatchesNotFound" type:"list"`
+}
+
+// String returns the string representation
+func (s BatchGetBuildBatchesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchGetBuildBatchesOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuildBatches sets the BuildBatches field's value.
+func (s *BatchGetBuildBatchesOutput) SetBuildBatches(v []*BuildBatch) *BatchGetBuildBatchesOutput {
+	s.BuildBatches = v
+	return s
+}
+
+// SetBuildBatchesNotFound sets the BuildBatchesNotFound field's value.
+func (s *BatchGetBuildBatchesOutput) SetBuildBatchesNotFound(v []*string) *BatchGetBuildBatchesOutput {
+	s.BuildBatchesNotFound = v
+	return s
+}
+
 type BatchGetBuildsInput struct {
 	_ struct{} `type:"structure"`
 
@@ -3743,6 +4718,41 @@ func (s *BatchGetReportsOutput) SetReportsNotFound(v []*string) *BatchGetReports
 	return s
 }
 
+// Specifies restrictions for the batch build.
+type BatchRestrictions struct {
+	_ struct{} `type:"structure"`
+
+	// An array of strings that specify the compute types that are allowed for the
+	// batch build. See Build environment compute types (https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html)
+	// in the AWS CodeBuild User Guide for these values.
+	ComputeTypesAllowed []*string `locationName:"computeTypesAllowed" type:"list"`
+
+	// Specifies the maximum number of builds allowed.
+	MaximumBuildsAllowed *int64 `locationName:"maximumBuildsAllowed" type:"integer"`
+}
+
+// String returns the string representation
+func (s BatchRestrictions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BatchRestrictions) GoString() string {
+	return s.String()
+}
+
+// SetComputeTypesAllowed sets the ComputeTypesAllowed field's value.
+func (s *BatchRestrictions) SetComputeTypesAllowed(v []*string) *BatchRestrictions {
+	s.ComputeTypesAllowed = v
+	return s
+}
+
+// SetMaximumBuildsAllowed sets the MaximumBuildsAllowed field's value.
+func (s *BatchRestrictions) SetMaximumBuildsAllowed(v int64) *BatchRestrictions {
+	s.MaximumBuildsAllowed = &v
+	return s
+}
+
 // Information about a build.
 type Build struct {
 	_ struct{} `type:"structure"`
@@ -3752,6 +4762,9 @@ type Build struct {
 
 	// Information about the output artifacts for the build.
 	Artifacts *BuildArtifacts `locationName:"artifacts" type:"structure"`
+
+	// The ARN of the batch build that this build is a member of, if applicable.
+	BuildBatchArn *string `locationName:"buildBatchArn" type:"string"`
 
 	// Whether the build is complete. True if complete; otherwise, false.
 	BuildComplete *bool `locationName:"buildComplete" type:"boolean"`
@@ -3782,6 +4795,9 @@ type Build struct {
 	// The current build phase.
 	CurrentPhase *string `locationName:"currentPhase" type:"string"`
 
+	// Contains information about the debug session for this build.
+	DebugSession *DebugSession `locationName:"debugSession" type:"structure"`
+
 	// The AWS Key Management Service (AWS KMS) customer master key (CMK) to be
 	// used for encrypting the build output artifacts.
 	//
@@ -3789,7 +4805,7 @@ type Build struct {
 	// if your service role has permission to that key.
 	//
 	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
-	// the CMK's alias (using the format alias/alias-name ).
+	// the CMK's alias (using the format alias/<alias-name>).
 	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
 
 	// When the build process ended, expressed in Unix time format.
@@ -3927,6 +4943,12 @@ func (s *Build) SetArtifacts(v *BuildArtifacts) *Build {
 	return s
 }
 
+// SetBuildBatchArn sets the BuildBatchArn field's value.
+func (s *Build) SetBuildBatchArn(v string) *Build {
+	s.BuildBatchArn = &v
+	return s
+}
+
 // SetBuildComplete sets the BuildComplete field's value.
 func (s *Build) SetBuildComplete(v bool) *Build {
 	s.BuildComplete = &v
@@ -3954,6 +4976,12 @@ func (s *Build) SetCache(v *ProjectCache) *Build {
 // SetCurrentPhase sets the CurrentPhase field's value.
 func (s *Build) SetCurrentPhase(v string) *Build {
 	s.CurrentPhase = &v
+	return s
+}
+
+// SetDebugSession sets the DebugSession field's value.
+func (s *Build) SetDebugSession(v *DebugSession) *Build {
+	s.DebugSession = v
 	return s
 }
 
@@ -4179,6 +5207,549 @@ func (s *BuildArtifacts) SetSha256sum(v string) *BuildArtifacts {
 	return s
 }
 
+// Contains information about a batch build.
+type BuildBatch struct {
+	_ struct{} `type:"structure"`
+
+	// The ARN of the batch build.
+	Arn *string `locationName:"arn" min:"1" type:"string"`
+
+	// A BuildArtifacts object the defines the build artifacts for this batch build.
+	Artifacts *BuildArtifacts `locationName:"artifacts" type:"structure"`
+
+	// Contains configuration information about a batch build project.
+	BuildBatchConfig *ProjectBuildBatchConfig `locationName:"buildBatchConfig" type:"structure"`
+
+	// The number of the batch build. For each project, the buildBatchNumber of
+	// its first batch build is 1. The buildBatchNumber of each subsequent batch
+	// build is incremented by 1. If a batch build is deleted, the buildBatchNumber
+	// of other batch builds does not change.
+	BuildBatchNumber *int64 `locationName:"buildBatchNumber" type:"long"`
+
+	// The status of the batch build.
+	BuildBatchStatus *string `locationName:"buildBatchStatus" type:"string" enum:"StatusType"`
+
+	// An array of BuildGroup objects that define the build groups for the batch
+	// build.
+	BuildGroups []*BuildGroup `locationName:"buildGroups" type:"list"`
+
+	// Specifies the maximum amount of time, in minutes, that the build in a batch
+	// must be completed in.
+	BuildTimeoutInMinutes *int64 `locationName:"buildTimeoutInMinutes" type:"integer"`
+
+	// Information about the cache for the build project.
+	Cache *ProjectCache `locationName:"cache" type:"structure"`
+
+	// Indicates if the batch build is complete.
+	Complete *bool `locationName:"complete" type:"boolean"`
+
+	// The current phase of the batch build.
+	CurrentPhase *string `locationName:"currentPhase" type:"string"`
+
+	// The AWS Key Management Service (AWS KMS) customer master key (CMK) to be
+	// used for encrypting the batch build output artifacts.
+	//
+	// You can use a cross-account KMS key to encrypt the build output artifacts
+	// if your service role has permission to that key.
+	//
+	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
+	// the CMK's alias (using the format alias/<alias-name>).
+	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
+
+	// The date and time that the batch build ended.
+	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
+
+	// Information about the build environment of the build project.
+	Environment *ProjectEnvironment `locationName:"environment" type:"structure"`
+
+	// An array of ProjectFileSystemLocation objects for the batch build project.
+	// A ProjectFileSystemLocation object specifies the identifier, location, mountOptions,
+	// mountPoint, and type of a file system created using Amazon Elastic File System.
+	FileSystemLocations []*ProjectFileSystemLocation `locationName:"fileSystemLocations" type:"list"`
+
+	// The identifier of the batch build.
+	Id *string `locationName:"id" min:"1" type:"string"`
+
+	// The entity that started the batch build. Valid values include:
+	//
+	//    * If AWS CodePipeline started the build, the pipeline's name (for example,
+	//    codepipeline/my-demo-pipeline).
+	//
+	//    * If an AWS Identity and Access Management (IAM) user started the build,
+	//    the user's name.
+	//
+	//    * If the Jenkins plugin for AWS CodeBuild started the build, the string
+	//    CodeBuild-Jenkins-Plugin.
+	Initiator *string `locationName:"initiator" type:"string"`
+
+	// Information about logs for a build project. These can be logs in Amazon CloudWatch
+	// Logs, built in a specified S3 bucket, or both.
+	LogConfig *LogsConfig `locationName:"logConfig" type:"structure"`
+
+	// An array of BuildBatchPhase objects the specify the phases of the batch build.
+	Phases []*BuildBatchPhase `locationName:"phases" type:"list"`
+
+	// The name of the batch build project.
+	ProjectName *string `locationName:"projectName" min:"1" type:"string"`
+
+	// Specifies the amount of time, in minutes, that the batch build is allowed
+	// to be queued before it times out.
+	QueuedTimeoutInMinutes *int64 `locationName:"queuedTimeoutInMinutes" type:"integer"`
+
+	// The identifier of the resolved version of this batch build's source code.
+	//
+	//    * For AWS CodeCommit, GitHub, GitHub Enterprise, and BitBucket, the commit
+	//    ID.
+	//
+	//    * For AWS CodePipeline, the source revision provided by AWS CodePipeline.
+	//
+	//    * For Amazon Simple Storage Service (Amazon S3), this does not apply.
+	ResolvedSourceVersion *string `locationName:"resolvedSourceVersion" min:"1" type:"string"`
+
+	// An array of BuildArtifacts objects the define the build artifacts for this
+	// batch build.
+	SecondaryArtifacts []*BuildArtifacts `locationName:"secondaryArtifacts" type:"list"`
+
+	// An array of ProjectSourceVersion objects. Each ProjectSourceVersion must
+	// be one of:
+	//
+	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
+	//
+	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
+	//    that corresponds to the version of the source code you want to build.
+	//    If a pull request ID is specified, it must use the format pr/pull-request-ID
+	//    (for example, pr/25). If a branch name is specified, the branch's HEAD
+	//    commit ID is used. If not specified, the default branch's HEAD commit
+	//    ID is used.
+	//
+	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
+	//    to the version of the source code you want to build. If a branch name
+	//    is specified, the branch's HEAD commit ID is used. If not specified, the
+	//    default branch's HEAD commit ID is used.
+	//
+	//    * For Amazon Simple Storage Service (Amazon S3): the version ID of the
+	//    object that represents the build input ZIP file to use.
+	SecondarySourceVersions []*ProjectSourceVersion `locationName:"secondarySourceVersions" type:"list"`
+
+	// An array of ProjectSource objects that define the sources for the batch build.
+	SecondarySources []*ProjectSource `locationName:"secondarySources" type:"list"`
+
+	// The name of a service role used for builds in the batch.
+	ServiceRole *string `locationName:"serviceRole" min:"1" type:"string"`
+
+	// Information about the build input source code for the build project.
+	Source *ProjectSource `locationName:"source" type:"structure"`
+
+	// The identifier of the version of the source code to be built.
+	SourceVersion *string `locationName:"sourceVersion" min:"1" type:"string"`
+
+	// The date and time that the batch build started.
+	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+
+	// Information about the VPC configuration that AWS CodeBuild accesses.
+	VpcConfig *VpcConfig `locationName:"vpcConfig" type:"structure"`
+}
+
+// String returns the string representation
+func (s BuildBatch) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildBatch) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *BuildBatch) SetArn(v string) *BuildBatch {
+	s.Arn = &v
+	return s
+}
+
+// SetArtifacts sets the Artifacts field's value.
+func (s *BuildBatch) SetArtifacts(v *BuildArtifacts) *BuildBatch {
+	s.Artifacts = v
+	return s
+}
+
+// SetBuildBatchConfig sets the BuildBatchConfig field's value.
+func (s *BuildBatch) SetBuildBatchConfig(v *ProjectBuildBatchConfig) *BuildBatch {
+	s.BuildBatchConfig = v
+	return s
+}
+
+// SetBuildBatchNumber sets the BuildBatchNumber field's value.
+func (s *BuildBatch) SetBuildBatchNumber(v int64) *BuildBatch {
+	s.BuildBatchNumber = &v
+	return s
+}
+
+// SetBuildBatchStatus sets the BuildBatchStatus field's value.
+func (s *BuildBatch) SetBuildBatchStatus(v string) *BuildBatch {
+	s.BuildBatchStatus = &v
+	return s
+}
+
+// SetBuildGroups sets the BuildGroups field's value.
+func (s *BuildBatch) SetBuildGroups(v []*BuildGroup) *BuildBatch {
+	s.BuildGroups = v
+	return s
+}
+
+// SetBuildTimeoutInMinutes sets the BuildTimeoutInMinutes field's value.
+func (s *BuildBatch) SetBuildTimeoutInMinutes(v int64) *BuildBatch {
+	s.BuildTimeoutInMinutes = &v
+	return s
+}
+
+// SetCache sets the Cache field's value.
+func (s *BuildBatch) SetCache(v *ProjectCache) *BuildBatch {
+	s.Cache = v
+	return s
+}
+
+// SetComplete sets the Complete field's value.
+func (s *BuildBatch) SetComplete(v bool) *BuildBatch {
+	s.Complete = &v
+	return s
+}
+
+// SetCurrentPhase sets the CurrentPhase field's value.
+func (s *BuildBatch) SetCurrentPhase(v string) *BuildBatch {
+	s.CurrentPhase = &v
+	return s
+}
+
+// SetEncryptionKey sets the EncryptionKey field's value.
+func (s *BuildBatch) SetEncryptionKey(v string) *BuildBatch {
+	s.EncryptionKey = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *BuildBatch) SetEndTime(v time.Time) *BuildBatch {
+	s.EndTime = &v
+	return s
+}
+
+// SetEnvironment sets the Environment field's value.
+func (s *BuildBatch) SetEnvironment(v *ProjectEnvironment) *BuildBatch {
+	s.Environment = v
+	return s
+}
+
+// SetFileSystemLocations sets the FileSystemLocations field's value.
+func (s *BuildBatch) SetFileSystemLocations(v []*ProjectFileSystemLocation) *BuildBatch {
+	s.FileSystemLocations = v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *BuildBatch) SetId(v string) *BuildBatch {
+	s.Id = &v
+	return s
+}
+
+// SetInitiator sets the Initiator field's value.
+func (s *BuildBatch) SetInitiator(v string) *BuildBatch {
+	s.Initiator = &v
+	return s
+}
+
+// SetLogConfig sets the LogConfig field's value.
+func (s *BuildBatch) SetLogConfig(v *LogsConfig) *BuildBatch {
+	s.LogConfig = v
+	return s
+}
+
+// SetPhases sets the Phases field's value.
+func (s *BuildBatch) SetPhases(v []*BuildBatchPhase) *BuildBatch {
+	s.Phases = v
+	return s
+}
+
+// SetProjectName sets the ProjectName field's value.
+func (s *BuildBatch) SetProjectName(v string) *BuildBatch {
+	s.ProjectName = &v
+	return s
+}
+
+// SetQueuedTimeoutInMinutes sets the QueuedTimeoutInMinutes field's value.
+func (s *BuildBatch) SetQueuedTimeoutInMinutes(v int64) *BuildBatch {
+	s.QueuedTimeoutInMinutes = &v
+	return s
+}
+
+// SetResolvedSourceVersion sets the ResolvedSourceVersion field's value.
+func (s *BuildBatch) SetResolvedSourceVersion(v string) *BuildBatch {
+	s.ResolvedSourceVersion = &v
+	return s
+}
+
+// SetSecondaryArtifacts sets the SecondaryArtifacts field's value.
+func (s *BuildBatch) SetSecondaryArtifacts(v []*BuildArtifacts) *BuildBatch {
+	s.SecondaryArtifacts = v
+	return s
+}
+
+// SetSecondarySourceVersions sets the SecondarySourceVersions field's value.
+func (s *BuildBatch) SetSecondarySourceVersions(v []*ProjectSourceVersion) *BuildBatch {
+	s.SecondarySourceVersions = v
+	return s
+}
+
+// SetSecondarySources sets the SecondarySources field's value.
+func (s *BuildBatch) SetSecondarySources(v []*ProjectSource) *BuildBatch {
+	s.SecondarySources = v
+	return s
+}
+
+// SetServiceRole sets the ServiceRole field's value.
+func (s *BuildBatch) SetServiceRole(v string) *BuildBatch {
+	s.ServiceRole = &v
+	return s
+}
+
+// SetSource sets the Source field's value.
+func (s *BuildBatch) SetSource(v *ProjectSource) *BuildBatch {
+	s.Source = v
+	return s
+}
+
+// SetSourceVersion sets the SourceVersion field's value.
+func (s *BuildBatch) SetSourceVersion(v string) *BuildBatch {
+	s.SourceVersion = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *BuildBatch) SetStartTime(v time.Time) *BuildBatch {
+	s.StartTime = &v
+	return s
+}
+
+// SetVpcConfig sets the VpcConfig field's value.
+func (s *BuildBatch) SetVpcConfig(v *VpcConfig) *BuildBatch {
+	s.VpcConfig = v
+	return s
+}
+
+// Specifies filters when retrieving batch builds.
+type BuildBatchFilter struct {
+	_ struct{} `type:"structure"`
+
+	// The status of the batch builds to retrieve. Only batch builds that have this
+	// status will be retrieved.
+	Status *string `locationName:"status" type:"string" enum:"StatusType"`
+}
+
+// String returns the string representation
+func (s BuildBatchFilter) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildBatchFilter) GoString() string {
+	return s.String()
+}
+
+// SetStatus sets the Status field's value.
+func (s *BuildBatchFilter) SetStatus(v string) *BuildBatchFilter {
+	s.Status = &v
+	return s
+}
+
+// Contains information about a stage for a batch build.
+type BuildBatchPhase struct {
+	_ struct{} `type:"structure"`
+
+	// Additional information about the batch build phase. Especially to help troubleshoot
+	// a failed btach build.
+	Contexts []*PhaseContext `locationName:"contexts" type:"list"`
+
+	// How long, in seconds, between the starting and ending times of the batch
+	// build's phase.
+	DurationInSeconds *int64 `locationName:"durationInSeconds" type:"long"`
+
+	// When the batch build phase ended, expressed in Unix time format.
+	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
+
+	// The current status of the batch build phase. Valid values include:
+	//
+	// FAILED
+	//
+	// The build phase failed.
+	//
+	// FAULT
+	//
+	// The build phase faulted.
+	//
+	// IN_PROGRESS
+	//
+	// The build phase is still in progress.
+	//
+	// QUEUED
+	//
+	// The build has been submitted and is queued behind other submitted builds.
+	//
+	// STOPPED
+	//
+	// The build phase stopped.
+	//
+	// SUCCEEDED
+	//
+	// The build phase succeeded.
+	//
+	// TIMED_OUT
+	//
+	// The build phase timed out.
+	PhaseStatus *string `locationName:"phaseStatus" type:"string" enum:"StatusType"`
+
+	// The name of the batch build phase. Valid values include:
+	//
+	// COMBINE_ARTIFACTS
+	//
+	// Build output artifacts are being combined and uploaded to the output location.
+	//
+	// DOWNLOAD_BATCHSPEC
+	//
+	// The batch build specification is being downloaded.
+	//
+	// FAILED
+	//
+	// One or more of the builds failed.
+	//
+	// IN_PROGRESS
+	//
+	// The batch build is in progress.
+	//
+	// STOPPED
+	//
+	// The batch build was stopped.
+	//
+	// SUBMITTED
+	//
+	// The btach build has been submitted.
+	//
+	// SUCCEEDED
+	//
+	// The batch build succeeded.
+	PhaseType *string `locationName:"phaseType" type:"string" enum:"BuildBatchPhaseType"`
+
+	// When the batch build phase started, expressed in Unix time format.
+	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+}
+
+// String returns the string representation
+func (s BuildBatchPhase) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildBatchPhase) GoString() string {
+	return s.String()
+}
+
+// SetContexts sets the Contexts field's value.
+func (s *BuildBatchPhase) SetContexts(v []*PhaseContext) *BuildBatchPhase {
+	s.Contexts = v
+	return s
+}
+
+// SetDurationInSeconds sets the DurationInSeconds field's value.
+func (s *BuildBatchPhase) SetDurationInSeconds(v int64) *BuildBatchPhase {
+	s.DurationInSeconds = &v
+	return s
+}
+
+// SetEndTime sets the EndTime field's value.
+func (s *BuildBatchPhase) SetEndTime(v time.Time) *BuildBatchPhase {
+	s.EndTime = &v
+	return s
+}
+
+// SetPhaseStatus sets the PhaseStatus field's value.
+func (s *BuildBatchPhase) SetPhaseStatus(v string) *BuildBatchPhase {
+	s.PhaseStatus = &v
+	return s
+}
+
+// SetPhaseType sets the PhaseType field's value.
+func (s *BuildBatchPhase) SetPhaseType(v string) *BuildBatchPhase {
+	s.PhaseType = &v
+	return s
+}
+
+// SetStartTime sets the StartTime field's value.
+func (s *BuildBatchPhase) SetStartTime(v time.Time) *BuildBatchPhase {
+	s.StartTime = &v
+	return s
+}
+
+// Contains information about a batch build build group. Build groups are used
+// to combine builds that can run in parallel, while still being able to set
+// dependencies on other build groups.
+type BuildGroup struct {
+	_ struct{} `type:"structure"`
+
+	// A BuildSummary object that contains a summary of the current build group.
+	CurrentBuildSummary *BuildSummary `locationName:"currentBuildSummary" type:"structure"`
+
+	// An array of strings that contain the identifiers of the build groups that
+	// this build group depends on.
+	DependsOn []*string `locationName:"dependsOn" type:"list"`
+
+	// Contains the identifier of the build group.
+	Identifier *string `locationName:"identifier" type:"string"`
+
+	// Specifies if failures in this build group can be ignored.
+	IgnoreFailure *bool `locationName:"ignoreFailure" type:"boolean"`
+
+	// An array of BuildSummary objects that contain summaries of previous build
+	// groups.
+	PriorBuildSummaryList []*BuildSummary `locationName:"priorBuildSummaryList" type:"list"`
+}
+
+// String returns the string representation
+func (s BuildGroup) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildGroup) GoString() string {
+	return s.String()
+}
+
+// SetCurrentBuildSummary sets the CurrentBuildSummary field's value.
+func (s *BuildGroup) SetCurrentBuildSummary(v *BuildSummary) *BuildGroup {
+	s.CurrentBuildSummary = v
+	return s
+}
+
+// SetDependsOn sets the DependsOn field's value.
+func (s *BuildGroup) SetDependsOn(v []*string) *BuildGroup {
+	s.DependsOn = v
+	return s
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *BuildGroup) SetIdentifier(v string) *BuildGroup {
+	s.Identifier = &v
+	return s
+}
+
+// SetIgnoreFailure sets the IgnoreFailure field's value.
+func (s *BuildGroup) SetIgnoreFailure(v bool) *BuildGroup {
+	s.IgnoreFailure = &v
+	return s
+}
+
+// SetPriorBuildSummaryList sets the PriorBuildSummaryList field's value.
+func (s *BuildGroup) SetPriorBuildSummaryList(v []*BuildSummary) *BuildGroup {
+	s.PriorBuildSummaryList = v
+	return s
+}
+
 // Information about a build that could not be successfully deleted.
 type BuildNotDeleted struct {
 	_ struct{} `type:"structure"`
@@ -4229,20 +5800,33 @@ type BuildPhase struct {
 
 	// The current status of the build phase. Valid values include:
 	//
-	//    * FAILED: The build phase failed.
+	// FAILED
 	//
-	//    * FAULT: The build phase faulted.
+	// The build phase failed.
 	//
-	//    * IN_PROGRESS: The build phase is still in progress.
+	// FAULT
 	//
-	//    * QUEUED: The build has been submitted and is queued behind other submitted
-	//    builds.
+	// The build phase faulted.
 	//
-	//    * STOPPED: The build phase stopped.
+	// IN_PROGRESS
 	//
-	//    * SUCCEEDED: The build phase succeeded.
+	// The build phase is still in progress.
 	//
-	//    * TIMED_OUT: The build phase timed out.
+	// QUEUED
+	//
+	// The build has been submitted and is queued behind other submitted builds.
+	//
+	// STOPPED
+	//
+	// The build phase stopped.
+	//
+	// SUCCEEDED
+	//
+	// The build phase succeeded.
+	//
+	// TIMED_OUT
+	//
+	// The build phase timed out.
 	PhaseStatus *string `locationName:"phaseStatus" type:"string" enum:"StatusType"`
 
 	// The name of the build phase. Valid values include:
@@ -4322,6 +5906,152 @@ func (s *BuildPhase) SetStartTime(v time.Time) *BuildPhase {
 	return s
 }
 
+// Contains information that defines how the AWS CodeBuild build project reports
+// the build status to the source provider.
+type BuildStatusConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the context of the build status CodeBuild sends to the source provider.
+	// The usage of this parameter depends on the source provider.
+	//
+	// Bitbucket
+	//
+	// This parameter is used for the name parameter in the Bitbucket commit status.
+	// For more information, see build (https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/commit/%7Bnode%7D/statuses/build)
+	// in the Bitbucket API documentation.
+	//
+	// GitHub/GitHub Enterprise Server
+	//
+	// This parameter is used for the context parameter in the GitHub commit status.
+	// For more information, see Create a commit status (https://developer.github.com/v3/repos/statuses/#create-a-commit-status)
+	// in the GitHub developer guide.
+	Context *string `locationName:"context" type:"string"`
+
+	// Specifies the target url of the build status CodeBuild sends to the source
+	// provider. The usage of this parameter depends on the source provider.
+	//
+	// Bitbucket
+	//
+	// This parameter is used for the url parameter in the Bitbucket commit status.
+	// For more information, see build (https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D/commit/%7Bnode%7D/statuses/build)
+	// in the Bitbucket API documentation.
+	//
+	// GitHub/GitHub Enterprise Server
+	//
+	// This parameter is used for the target_url parameter in the GitHub commit
+	// status. For more information, see Create a commit status (https://developer.github.com/v3/repos/statuses/#create-a-commit-status)
+	// in the GitHub developer guide.
+	TargetUrl *string `locationName:"targetUrl" type:"string"`
+}
+
+// String returns the string representation
+func (s BuildStatusConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildStatusConfig) GoString() string {
+	return s.String()
+}
+
+// SetContext sets the Context field's value.
+func (s *BuildStatusConfig) SetContext(v string) *BuildStatusConfig {
+	s.Context = &v
+	return s
+}
+
+// SetTargetUrl sets the TargetUrl field's value.
+func (s *BuildStatusConfig) SetTargetUrl(v string) *BuildStatusConfig {
+	s.TargetUrl = &v
+	return s
+}
+
+// Contains summary information about a batch build group.
+type BuildSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The batch build ARN.
+	Arn *string `locationName:"arn" type:"string"`
+
+	// The status of the build group.
+	//
+	// FAILED
+	//
+	// The build group failed.
+	//
+	// FAULT
+	//
+	// The build group faulted.
+	//
+	// IN_PROGRESS
+	//
+	// The build group is still in progress.
+	//
+	// STOPPED
+	//
+	// The build group stopped.
+	//
+	// SUCCEEDED
+	//
+	// The build group succeeded.
+	//
+	// TIMED_OUT
+	//
+	// The build group timed out.
+	BuildStatus *string `locationName:"buildStatus" type:"string" enum:"StatusType"`
+
+	// A ResolvedArtifact object that represents the primary build artifacts for
+	// the build group.
+	PrimaryArtifact *ResolvedArtifact `locationName:"primaryArtifact" type:"structure"`
+
+	// When the build was started, expressed in Unix time format.
+	RequestedOn *time.Time `locationName:"requestedOn" type:"timestamp"`
+
+	// An array of ResolvedArtifact objects that represents the secondary build
+	// artifacts for the build group.
+	SecondaryArtifacts []*ResolvedArtifact `locationName:"secondaryArtifacts" type:"list"`
+}
+
+// String returns the string representation
+func (s BuildSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s BuildSummary) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *BuildSummary) SetArn(v string) *BuildSummary {
+	s.Arn = &v
+	return s
+}
+
+// SetBuildStatus sets the BuildStatus field's value.
+func (s *BuildSummary) SetBuildStatus(v string) *BuildSummary {
+	s.BuildStatus = &v
+	return s
+}
+
+// SetPrimaryArtifact sets the PrimaryArtifact field's value.
+func (s *BuildSummary) SetPrimaryArtifact(v *ResolvedArtifact) *BuildSummary {
+	s.PrimaryArtifact = v
+	return s
+}
+
+// SetRequestedOn sets the RequestedOn field's value.
+func (s *BuildSummary) SetRequestedOn(v time.Time) *BuildSummary {
+	s.RequestedOn = &v
+	return s
+}
+
+// SetSecondaryArtifacts sets the SecondaryArtifacts field's value.
+func (s *BuildSummary) SetSecondaryArtifacts(v []*ResolvedArtifact) *BuildSummary {
+	s.SecondaryArtifacts = v
+	return s
+}
+
 // Information about Amazon CloudWatch Logs for a build project.
 type CloudWatchLogsConfig struct {
 	_ struct{} `type:"structure"`
@@ -4386,6 +6116,192 @@ func (s *CloudWatchLogsConfig) SetStreamName(v string) *CloudWatchLogsConfig {
 	return s
 }
 
+// Contains code coverage report information.
+//
+// Line coverage measures how many statements your tests cover. A statement
+// is a single instruction, not including comments, conditionals, etc.
+//
+// Branch coverage determines if your tests cover every possible branch of a
+// control structure, such as an if or case statement.
+type CodeCoverage struct {
+	_ struct{} `type:"structure"`
+
+	// The percentage of branches that are covered by your tests.
+	BranchCoveragePercentage *float64 `locationName:"branchCoveragePercentage" type:"double"`
+
+	// The number of conditional branches that are covered by your tests.
+	BranchesCovered *int64 `locationName:"branchesCovered" type:"integer"`
+
+	// The number of conditional branches that are not covered by your tests.
+	BranchesMissed *int64 `locationName:"branchesMissed" type:"integer"`
+
+	// The date and time that the tests were run.
+	Expired *time.Time `locationName:"expired" type:"timestamp"`
+
+	// The path of the test report file.
+	FilePath *string `locationName:"filePath" min:"1" type:"string"`
+
+	// The identifier of the code coverage report.
+	Id *string `locationName:"id" min:"1" type:"string"`
+
+	// The percentage of lines that are covered by your tests.
+	LineCoveragePercentage *float64 `locationName:"lineCoveragePercentage" type:"double"`
+
+	// The number of lines that are covered by your tests.
+	LinesCovered *int64 `locationName:"linesCovered" type:"integer"`
+
+	// The number of lines that are not covered by your tests.
+	LinesMissed *int64 `locationName:"linesMissed" type:"integer"`
+
+	// The ARN of the report.
+	ReportARN *string `locationName:"reportARN" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s CodeCoverage) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CodeCoverage) GoString() string {
+	return s.String()
+}
+
+// SetBranchCoveragePercentage sets the BranchCoveragePercentage field's value.
+func (s *CodeCoverage) SetBranchCoveragePercentage(v float64) *CodeCoverage {
+	s.BranchCoveragePercentage = &v
+	return s
+}
+
+// SetBranchesCovered sets the BranchesCovered field's value.
+func (s *CodeCoverage) SetBranchesCovered(v int64) *CodeCoverage {
+	s.BranchesCovered = &v
+	return s
+}
+
+// SetBranchesMissed sets the BranchesMissed field's value.
+func (s *CodeCoverage) SetBranchesMissed(v int64) *CodeCoverage {
+	s.BranchesMissed = &v
+	return s
+}
+
+// SetExpired sets the Expired field's value.
+func (s *CodeCoverage) SetExpired(v time.Time) *CodeCoverage {
+	s.Expired = &v
+	return s
+}
+
+// SetFilePath sets the FilePath field's value.
+func (s *CodeCoverage) SetFilePath(v string) *CodeCoverage {
+	s.FilePath = &v
+	return s
+}
+
+// SetId sets the Id field's value.
+func (s *CodeCoverage) SetId(v string) *CodeCoverage {
+	s.Id = &v
+	return s
+}
+
+// SetLineCoveragePercentage sets the LineCoveragePercentage field's value.
+func (s *CodeCoverage) SetLineCoveragePercentage(v float64) *CodeCoverage {
+	s.LineCoveragePercentage = &v
+	return s
+}
+
+// SetLinesCovered sets the LinesCovered field's value.
+func (s *CodeCoverage) SetLinesCovered(v int64) *CodeCoverage {
+	s.LinesCovered = &v
+	return s
+}
+
+// SetLinesMissed sets the LinesMissed field's value.
+func (s *CodeCoverage) SetLinesMissed(v int64) *CodeCoverage {
+	s.LinesMissed = &v
+	return s
+}
+
+// SetReportARN sets the ReportARN field's value.
+func (s *CodeCoverage) SetReportARN(v string) *CodeCoverage {
+	s.ReportARN = &v
+	return s
+}
+
+// Contains a summary of a code coverage report.
+//
+// Line coverage measures how many statements your tests cover. A statement
+// is a single instruction, not including comments, conditionals, etc.
+//
+// Branch coverage determines if your tests cover every possible branch of a
+// control structure, such as an if or case statement.
+type CodeCoverageReportSummary struct {
+	_ struct{} `type:"structure"`
+
+	// The percentage of branches that are covered by your tests.
+	BranchCoveragePercentage *float64 `locationName:"branchCoveragePercentage" type:"double"`
+
+	// The number of conditional branches that are covered by your tests.
+	BranchesCovered *int64 `locationName:"branchesCovered" type:"integer"`
+
+	// The number of conditional branches that are not covered by your tests.
+	BranchesMissed *int64 `locationName:"branchesMissed" type:"integer"`
+
+	// The percentage of lines that are covered by your tests.
+	LineCoveragePercentage *float64 `locationName:"lineCoveragePercentage" type:"double"`
+
+	// The number of lines that are covered by your tests.
+	LinesCovered *int64 `locationName:"linesCovered" type:"integer"`
+
+	// The number of lines that are not covered by your tests.
+	LinesMissed *int64 `locationName:"linesMissed" type:"integer"`
+}
+
+// String returns the string representation
+func (s CodeCoverageReportSummary) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CodeCoverageReportSummary) GoString() string {
+	return s.String()
+}
+
+// SetBranchCoveragePercentage sets the BranchCoveragePercentage field's value.
+func (s *CodeCoverageReportSummary) SetBranchCoveragePercentage(v float64) *CodeCoverageReportSummary {
+	s.BranchCoveragePercentage = &v
+	return s
+}
+
+// SetBranchesCovered sets the BranchesCovered field's value.
+func (s *CodeCoverageReportSummary) SetBranchesCovered(v int64) *CodeCoverageReportSummary {
+	s.BranchesCovered = &v
+	return s
+}
+
+// SetBranchesMissed sets the BranchesMissed field's value.
+func (s *CodeCoverageReportSummary) SetBranchesMissed(v int64) *CodeCoverageReportSummary {
+	s.BranchesMissed = &v
+	return s
+}
+
+// SetLineCoveragePercentage sets the LineCoveragePercentage field's value.
+func (s *CodeCoverageReportSummary) SetLineCoveragePercentage(v float64) *CodeCoverageReportSummary {
+	s.LineCoveragePercentage = &v
+	return s
+}
+
+// SetLinesCovered sets the LinesCovered field's value.
+func (s *CodeCoverageReportSummary) SetLinesCovered(v int64) *CodeCoverageReportSummary {
+	s.LinesCovered = &v
+	return s
+}
+
+// SetLinesMissed sets the LinesMissed field's value.
+func (s *CodeCoverageReportSummary) SetLinesMissed(v int64) *CodeCoverageReportSummary {
+	s.LinesMissed = &v
+	return s
+}
+
 type CreateProjectInput struct {
 	_ struct{} `type:"structure"`
 
@@ -4397,6 +6313,10 @@ type CreateProjectInput struct {
 	// Set this to true to generate a publicly accessible URL for your project's
 	// build badge.
 	BadgeEnabled *bool `locationName:"badgeEnabled" type:"boolean"`
+
+	// A ProjectBuildBatchConfig object that defines the batch build options for
+	// the project.
+	BuildBatchConfig *ProjectBuildBatchConfig `locationName:"buildBatchConfig" type:"structure"`
 
 	// Stores recently used information so that it can be quickly accessed at a
 	// later time.
@@ -4412,7 +6332,7 @@ type CreateProjectInput struct {
 	// if your service role has permission to that key.
 	//
 	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
-	// the CMK's alias (using the format alias/alias-name ).
+	// the CMK's alias (using the format alias/<alias-name>).
 	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
 
 	// Information about the build environment for the build project.
@@ -4550,6 +6470,11 @@ func (s *CreateProjectInput) Validate() error {
 			invalidParams.AddNested("Artifacts", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.BuildBatchConfig != nil {
+		if err := s.BuildBatchConfig.Validate(); err != nil {
+			invalidParams.AddNested("BuildBatchConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.Cache != nil {
 		if err := s.Cache.Validate(); err != nil {
 			invalidParams.AddNested("Cache", err.(request.ErrInvalidParams))
@@ -4631,6 +6556,12 @@ func (s *CreateProjectInput) SetArtifacts(v *ProjectArtifacts) *CreateProjectInp
 // SetBadgeEnabled sets the BadgeEnabled field's value.
 func (s *CreateProjectInput) SetBadgeEnabled(v bool) *CreateProjectInput {
 	s.BadgeEnabled = &v
+	return s
+}
+
+// SetBuildBatchConfig sets the BuildBatchConfig field's value.
+func (s *CreateProjectInput) SetBuildBatchConfig(v *ProjectBuildBatchConfig) *CreateProjectInput {
+	s.BuildBatchConfig = v
 	return s
 }
 
@@ -4890,6 +6821,9 @@ type CreateWebhookInput struct {
 	// It is recommended that you use filterGroups instead of branchFilter.
 	BranchFilter *string `locationName:"branchFilter" type:"string"`
 
+	// Specifies the type of build this webhook will trigger.
+	BuildType *string `locationName:"buildType" type:"string" enum:"WebhookBuildType"`
+
 	// An array of arrays of WebhookFilter objects used to determine which webhooks
 	// are triggered. At least one WebhookFilter in the array must specify EVENT
 	// as its type.
@@ -4936,6 +6870,12 @@ func (s *CreateWebhookInput) SetBranchFilter(v string) *CreateWebhookInput {
 	return s
 }
 
+// SetBuildType sets the BuildType field's value.
+func (s *CreateWebhookInput) SetBuildType(v string) *CreateWebhookInput {
+	s.BuildType = &v
+	return s
+}
+
 // SetFilterGroups sets the FilterGroups field's value.
 func (s *CreateWebhookInput) SetFilterGroups(v [][]*WebhookFilter) *CreateWebhookInput {
 	s.FilterGroups = v
@@ -4969,6 +6909,126 @@ func (s CreateWebhookOutput) GoString() string {
 // SetWebhook sets the Webhook field's value.
 func (s *CreateWebhookOutput) SetWebhook(v *Webhook) *CreateWebhookOutput {
 	s.Webhook = v
+	return s
+}
+
+// Contains information about the debug session for a build. For more information,
+// see Viewing a running build in Session Manager (https://docs.aws.amazon.com/codebuild/latest/userguide/session-manager.html).
+type DebugSession struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies if session debugging is enabled for this build.
+	SessionEnabled *bool `locationName:"sessionEnabled" type:"boolean"`
+
+	// Contains the identifier of the Session Manager session used for the build.
+	// To work with the paused build, you open this session to examine, control,
+	// and resume the build.
+	SessionTarget *string `locationName:"sessionTarget" min:"1" type:"string"`
+}
+
+// String returns the string representation
+func (s DebugSession) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DebugSession) GoString() string {
+	return s.String()
+}
+
+// SetSessionEnabled sets the SessionEnabled field's value.
+func (s *DebugSession) SetSessionEnabled(v bool) *DebugSession {
+	s.SessionEnabled = &v
+	return s
+}
+
+// SetSessionTarget sets the SessionTarget field's value.
+func (s *DebugSession) SetSessionTarget(v string) *DebugSession {
+	s.SessionTarget = &v
+	return s
+}
+
+type DeleteBuildBatchInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the batch build to delete.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteBuildBatchInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteBuildBatchInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteBuildBatchInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteBuildBatchInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *DeleteBuildBatchInput) SetId(v string) *DeleteBuildBatchInput {
+	s.Id = &v
+	return s
+}
+
+type DeleteBuildBatchOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of strings that contain the identifiers of the builds that were
+	// deleted.
+	BuildsDeleted []*string `locationName:"buildsDeleted" min:"1" type:"list"`
+
+	// An array of BuildNotDeleted objects that specify the builds that could not
+	// be deleted.
+	BuildsNotDeleted []*BuildNotDeleted `locationName:"buildsNotDeleted" type:"list"`
+
+	// The status code.
+	StatusCode *string `locationName:"statusCode" type:"string"`
+}
+
+// String returns the string representation
+func (s DeleteBuildBatchOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteBuildBatchOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuildsDeleted sets the BuildsDeleted field's value.
+func (s *DeleteBuildBatchOutput) SetBuildsDeleted(v []*string) *DeleteBuildBatchOutput {
+	s.BuildsDeleted = v
+	return s
+}
+
+// SetBuildsNotDeleted sets the BuildsNotDeleted field's value.
+func (s *DeleteBuildBatchOutput) SetBuildsNotDeleted(v []*BuildNotDeleted) *DeleteBuildBatchOutput {
+	s.BuildsNotDeleted = v
+	return s
+}
+
+// SetStatusCode sets the StatusCode field's value.
+func (s *DeleteBuildBatchOutput) SetStatusCode(v string) *DeleteBuildBatchOutput {
+	s.StatusCode = &v
 	return s
 }
 
@@ -5034,6 +7094,16 @@ type DeleteReportGroupInput struct {
 	//
 	// Arn is a required field
 	Arn *string `locationName:"arn" min:"1" type:"string" required:"true"`
+
+	// If true, deletes any reports that belong to a report group before deleting
+	// the report group.
+	//
+	// If false, you must delete any reports in the report group. Use ListReportsForReportGroup
+	// (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ListReportsForReportGroup.html)
+	// to get the reports in a report group. Use DeleteReport (https://docs.aws.amazon.com/codebuild/latest/APIReference/API_DeleteReport.html)
+	// to delete the reports. If you call DeleteReportGroup for a report group that
+	// contains one or more reports, an exception is thrown.
+	DeleteReports *bool `locationName:"deleteReports" type:"boolean"`
 }
 
 // String returns the string representation
@@ -5065,6 +7135,12 @@ func (s *DeleteReportGroupInput) Validate() error {
 // SetArn sets the Arn field's value.
 func (s *DeleteReportGroupInput) SetArn(v string) *DeleteReportGroupInput {
 	s.Arn = &v
+	return s
+}
+
+// SetDeleteReports sets the DeleteReports field's value.
+func (s *DeleteReportGroupInput) SetDeleteReports(v bool) *DeleteReportGroupInput {
+	s.DeleteReports = &v
 	return s
 }
 
@@ -5311,6 +7387,147 @@ func (s DeleteWebhookOutput) GoString() string {
 	return s.String()
 }
 
+type DescribeCodeCoveragesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The maximum line coverage percentage to report.
+	MaxLineCoveragePercentage *float64 `locationName:"maxLineCoveragePercentage" type:"double"`
+
+	// The maximum number of results to return.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The minimum line coverage percentage to report.
+	MinLineCoveragePercentage *float64 `locationName:"minLineCoveragePercentage" type:"double"`
+
+	// The nextToken value returned from a previous call to DescribeCodeCoverages.
+	// This specifies the next item to return. To return the beginning of the list,
+	// exclude this parameter.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The ARN of the report for which test cases are returned.
+	//
+	// ReportArn is a required field
+	ReportArn *string `locationName:"reportArn" min:"1" type:"string" required:"true"`
+
+	// Specifies how the results are sorted. Possible values are:
+	//
+	// FILE_PATH
+	//
+	// The results are sorted by file path.
+	//
+	// LINE_COVERAGE_PERCENTAGE
+	//
+	// The results are sorted by the percentage of lines that are covered.
+	SortBy *string `locationName:"sortBy" type:"string" enum:"ReportCodeCoverageSortByType"`
+
+	// Specifies if the results are sorted in ascending or descending order.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s DescribeCodeCoveragesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeCodeCoveragesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DescribeCodeCoveragesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DescribeCodeCoveragesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ReportArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ReportArn"))
+	}
+	if s.ReportArn != nil && len(*s.ReportArn) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ReportArn", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetMaxLineCoveragePercentage sets the MaxLineCoveragePercentage field's value.
+func (s *DescribeCodeCoveragesInput) SetMaxLineCoveragePercentage(v float64) *DescribeCodeCoveragesInput {
+	s.MaxLineCoveragePercentage = &v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *DescribeCodeCoveragesInput) SetMaxResults(v int64) *DescribeCodeCoveragesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetMinLineCoveragePercentage sets the MinLineCoveragePercentage field's value.
+func (s *DescribeCodeCoveragesInput) SetMinLineCoveragePercentage(v float64) *DescribeCodeCoveragesInput {
+	s.MinLineCoveragePercentage = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeCodeCoveragesInput) SetNextToken(v string) *DescribeCodeCoveragesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetReportArn sets the ReportArn field's value.
+func (s *DescribeCodeCoveragesInput) SetReportArn(v string) *DescribeCodeCoveragesInput {
+	s.ReportArn = &v
+	return s
+}
+
+// SetSortBy sets the SortBy field's value.
+func (s *DescribeCodeCoveragesInput) SetSortBy(v string) *DescribeCodeCoveragesInput {
+	s.SortBy = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *DescribeCodeCoveragesInput) SetSortOrder(v string) *DescribeCodeCoveragesInput {
+	s.SortOrder = &v
+	return s
+}
+
+type DescribeCodeCoveragesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of CodeCoverage objects that contain the results.
+	CodeCoverages []*CodeCoverage `locationName:"codeCoverages" type:"list"`
+
+	// If there are more items to return, this contains a token that is passed to
+	// a subsequent call to DescribeCodeCoverages to retrieve the next set of items.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s DescribeCodeCoveragesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DescribeCodeCoveragesOutput) GoString() string {
+	return s.String()
+}
+
+// SetCodeCoverages sets the CodeCoverages field's value.
+func (s *DescribeCodeCoveragesOutput) SetCodeCoverages(v []*CodeCoverage) *DescribeCodeCoveragesOutput {
+	s.CodeCoverages = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *DescribeCodeCoveragesOutput) SetNextToken(v string) *DescribeCodeCoveragesOutput {
+	s.NextToken = &v
+	return s
+}
+
 type DescribeTestCasesInput struct {
 	_ struct{} `type:"structure"`
 
@@ -5548,14 +7765,16 @@ type EnvironmentVariable struct {
 	//
 	//    * PARAMETER_STORE: An environment variable stored in Amazon EC2 Systems
 	//    Manager Parameter Store. To learn how to specify a parameter store environment
-	//    variable, see parameter store reference-key in the buildspec file (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#parameter-store-build-spec).
+	//    variable, see env/parameter-store (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec.env.parameter-store)
+	//    in the AWS CodeBuild User Guide.
 	//
 	//    * PLAINTEXT: An environment variable in plain text format. This is the
 	//    default value.
 	//
 	//    * SECRETS_MANAGER: An environment variable stored in AWS Secrets Manager.
-	//    To learn how to specify a secrets manager environment variable, see secrets
-	//    manager reference-key in the buildspec file (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#secrets-manager-build-spec).
+	//    To learn how to specify a secrets manager environment variable, see env/secrets-manager
+	//    (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec.env.secrets-manager)
+	//    in the AWS CodeBuild User Guide.
 	Type *string `locationName:"type" type:"string" enum:"EnvironmentVariableType"`
 
 	// The value of the environment variable.
@@ -5987,6 +8206,225 @@ func (s InvalidateProjectCacheOutput) String() string {
 // GoString returns the string representation
 func (s InvalidateProjectCacheOutput) GoString() string {
 	return s.String()
+}
+
+type ListBuildBatchesForProjectInput struct {
+	_ struct{} `type:"structure"`
+
+	// A BuildBatchFilter object that specifies the filters for the search.
+	Filter *BuildBatchFilter `locationName:"filter" type:"structure"`
+
+	// The maximum number of results to return.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The nextToken value returned from a previous call to ListBuildBatchesForProject.
+	// This specifies the next item to return. To return the beginning of the list,
+	// exclude this parameter.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// The name of the project.
+	ProjectName *string `locationName:"projectName" min:"1" type:"string"`
+
+	// Specifies the sort order of the returned items. Valid values include:
+	//
+	//    * ASCENDING: List the batch build identifiers in ascending order by identifier.
+	//
+	//    * DESCENDING: List the batch build identifiers in descending order by
+	//    identifier.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListBuildBatchesForProjectInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListBuildBatchesForProjectInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListBuildBatchesForProjectInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListBuildBatchesForProjectInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+	if s.ProjectName != nil && len(*s.ProjectName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProjectName", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilter sets the Filter field's value.
+func (s *ListBuildBatchesForProjectInput) SetFilter(v *BuildBatchFilter) *ListBuildBatchesForProjectInput {
+	s.Filter = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListBuildBatchesForProjectInput) SetMaxResults(v int64) *ListBuildBatchesForProjectInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListBuildBatchesForProjectInput) SetNextToken(v string) *ListBuildBatchesForProjectInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetProjectName sets the ProjectName field's value.
+func (s *ListBuildBatchesForProjectInput) SetProjectName(v string) *ListBuildBatchesForProjectInput {
+	s.ProjectName = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListBuildBatchesForProjectInput) SetSortOrder(v string) *ListBuildBatchesForProjectInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListBuildBatchesForProjectOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of strings that contains the batch build identifiers.
+	Ids []*string `locationName:"ids" type:"list"`
+
+	// If there are more items to return, this contains a token that is passed to
+	// a subsequent call to ListBuildBatchesForProject to retrieve the next set
+	// of items.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListBuildBatchesForProjectOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListBuildBatchesForProjectOutput) GoString() string {
+	return s.String()
+}
+
+// SetIds sets the Ids field's value.
+func (s *ListBuildBatchesForProjectOutput) SetIds(v []*string) *ListBuildBatchesForProjectOutput {
+	s.Ids = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListBuildBatchesForProjectOutput) SetNextToken(v string) *ListBuildBatchesForProjectOutput {
+	s.NextToken = &v
+	return s
+}
+
+type ListBuildBatchesInput struct {
+	_ struct{} `type:"structure"`
+
+	// A BuildBatchFilter object that specifies the filters for the search.
+	Filter *BuildBatchFilter `locationName:"filter" type:"structure"`
+
+	// The maximum number of results to return.
+	MaxResults *int64 `locationName:"maxResults" min:"1" type:"integer"`
+
+	// The nextToken value returned from a previous call to ListBuildBatches. This
+	// specifies the next item to return. To return the beginning of the list, exclude
+	// this parameter.
+	NextToken *string `locationName:"nextToken" type:"string"`
+
+	// Specifies the sort order of the returned items. Valid values include:
+	//
+	//    * ASCENDING: List the batch build identifiers in ascending order by identifier.
+	//
+	//    * DESCENDING: List the batch build identifiers in descending order by
+	//    identifier.
+	SortOrder *string `locationName:"sortOrder" type:"string" enum:"SortOrderType"`
+}
+
+// String returns the string representation
+func (s ListBuildBatchesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListBuildBatchesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListBuildBatchesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListBuildBatchesInput"}
+	if s.MaxResults != nil && *s.MaxResults < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("MaxResults", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetFilter sets the Filter field's value.
+func (s *ListBuildBatchesInput) SetFilter(v *BuildBatchFilter) *ListBuildBatchesInput {
+	s.Filter = v
+	return s
+}
+
+// SetMaxResults sets the MaxResults field's value.
+func (s *ListBuildBatchesInput) SetMaxResults(v int64) *ListBuildBatchesInput {
+	s.MaxResults = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListBuildBatchesInput) SetNextToken(v string) *ListBuildBatchesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetSortOrder sets the SortOrder field's value.
+func (s *ListBuildBatchesInput) SetSortOrder(v string) *ListBuildBatchesInput {
+	s.SortOrder = &v
+	return s
+}
+
+type ListBuildBatchesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of strings that contains the batch build identifiers.
+	Ids []*string `locationName:"ids" type:"list"`
+
+	// If there are more items to return, this contains a token that is passed to
+	// a subsequent call to ListBuildBatches to retrieve the next set of items.
+	NextToken *string `locationName:"nextToken" type:"string"`
+}
+
+// String returns the string representation
+func (s ListBuildBatchesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListBuildBatchesOutput) GoString() string {
+	return s.String()
+}
+
+// SetIds sets the Ids field's value.
+func (s *ListBuildBatchesOutput) SetIds(v []*string) *ListBuildBatchesOutput {
+	s.Ids = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListBuildBatchesOutput) SetNextToken(v string) *ListBuildBatchesOutput {
+	s.NextToken = &v
+	return s
 }
 
 type ListBuildsForProjectInput struct {
@@ -6532,7 +8970,7 @@ type ListReportsForReportGroupOutput struct {
 	// returned.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
-	// The list of returned report group ARNs.
+	// The list of report ARNs.
 	Reports []*string `locationName:"reports" min:"1" type:"list"`
 }
 
@@ -7237,6 +9675,10 @@ type Project struct {
 	// Information about the build badge for the build project.
 	Badge *ProjectBadge `locationName:"badge" type:"structure"`
 
+	// A ProjectBuildBatchConfig object that defines the batch build options for
+	// the project.
+	BuildBatchConfig *ProjectBuildBatchConfig `locationName:"buildBatchConfig" type:"structure"`
+
 	// Information about the cache for the build project.
 	Cache *ProjectCache `locationName:"cache" type:"structure"`
 
@@ -7253,7 +9695,7 @@ type Project struct {
 	// if your service role has permission to that key.
 	//
 	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
-	// the CMK's alias (using the format alias/alias-name ).
+	// the CMK's alias (using the format alias/<alias-name>).
 	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
 
 	// Information about the build environment for this build project.
@@ -7368,6 +9810,12 @@ func (s *Project) SetArtifacts(v *ProjectArtifacts) *Project {
 // SetBadge sets the Badge field's value.
 func (s *Project) SetBadge(v *ProjectBadge) *Project {
 	s.Badge = v
+	return s
+}
+
+// SetBuildBatchConfig sets the BuildBatchConfig field's value.
+func (s *Project) SetBuildBatchConfig(v *ProjectBuildBatchConfig) *Project {
+	s.BuildBatchConfig = v
 	return s
 }
 
@@ -7533,13 +9981,13 @@ type ProjectArtifacts struct {
 	// For example:
 	//
 	//    * If path is set to MyArtifacts, namespaceType is set to BUILD_ID, and
-	//    name is set to MyArtifact.zip, then the output artifact is stored in MyArtifacts/build-ID/MyArtifact.zip.
+	//    name is set to MyArtifact.zip, then the output artifact is stored in MyArtifacts/<build-ID>/MyArtifact.zip.
 	//
 	//    * If path is empty, namespaceType is set to NONE, and name is set to "/",
 	//    the output artifact is stored in the root of the output bucket.
 	//
 	//    * If path is set to MyArtifacts, namespaceType is set to BUILD_ID, and
-	//    name is set to "/", the output artifact is stored in MyArtifacts/build-ID .
+	//    name is set to "/", the output artifact is stored in MyArtifacts/<build-ID>.
 	Name *string `locationName:"name" type:"string"`
 
 	// Along with path and name, the pattern that AWS CodeBuild uses to determine
@@ -7557,7 +10005,7 @@ type ProjectArtifacts struct {
 	//    the build ID. This is the default if namespaceType is not specified.
 	//
 	// For example, if path is set to MyArtifacts, namespaceType is set to BUILD_ID,
-	// and name is set to MyArtifact.zip, the output artifact is stored in MyArtifacts/build-ID/MyArtifact.zip.
+	// and name is set to MyArtifact.zip, the output artifact is stored in MyArtifacts/<build-ID>/MyArtifact.zip.
 	NamespaceType *string `locationName:"namespaceType" type:"string" enum:"ArtifactNamespace"`
 
 	// If this flag is set, a name specified in the buildspec file overrides the
@@ -7728,6 +10176,73 @@ func (s *ProjectBadge) SetBadgeRequestUrl(v string) *ProjectBadge {
 	return s
 }
 
+// Contains configuration information about a batch build project.
+type ProjectBuildBatchConfig struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies if the build artifacts for the batch build should be combined into
+	// a single artifact location.
+	CombineArtifacts *bool `locationName:"combineArtifacts" type:"boolean"`
+
+	// A BatchRestrictions object that specifies the restrictions for the batch
+	// build.
+	Restrictions *BatchRestrictions `locationName:"restrictions" type:"structure"`
+
+	// Specifies the service role ARN for the batch build project.
+	ServiceRole *string `locationName:"serviceRole" min:"1" type:"string"`
+
+	// Specifies the maximum amount of time, in minutes, that the batch build must
+	// be completed in.
+	TimeoutInMins *int64 `locationName:"timeoutInMins" type:"integer"`
+}
+
+// String returns the string representation
+func (s ProjectBuildBatchConfig) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ProjectBuildBatchConfig) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ProjectBuildBatchConfig) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ProjectBuildBatchConfig"}
+	if s.ServiceRole != nil && len(*s.ServiceRole) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceRole", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCombineArtifacts sets the CombineArtifacts field's value.
+func (s *ProjectBuildBatchConfig) SetCombineArtifacts(v bool) *ProjectBuildBatchConfig {
+	s.CombineArtifacts = &v
+	return s
+}
+
+// SetRestrictions sets the Restrictions field's value.
+func (s *ProjectBuildBatchConfig) SetRestrictions(v *BatchRestrictions) *ProjectBuildBatchConfig {
+	s.Restrictions = v
+	return s
+}
+
+// SetServiceRole sets the ServiceRole field's value.
+func (s *ProjectBuildBatchConfig) SetServiceRole(v string) *ProjectBuildBatchConfig {
+	s.ServiceRole = &v
+	return s
+}
+
+// SetTimeoutInMins sets the TimeoutInMins field's value.
+func (s *ProjectBuildBatchConfig) SetTimeoutInMins(v int64) *ProjectBuildBatchConfig {
+	s.TimeoutInMins = &v
+	return s
+}
+
 // Information about the cache for the build project.
 type ProjectCache struct {
 	_ struct{} `type:"structure"`
@@ -7866,12 +10381,14 @@ type ProjectEnvironment struct {
 	// The image tag or image digest that identifies the Docker image to use for
 	// this build project. Use the following formats:
 	//
-	//    * For an image tag: registry/repository:tag. For example, to specify an
-	//    image with the tag "latest," use registry/repository:latest.
+	//    * For an image tag: <registry>/<repository>:<tag>. For example, in the
+	//    Docker repository that CodeBuild uses to manage its Docker images, this
+	//    would be aws/codebuild/standard:4.0. To specify the latest version of
+	//    this image, this would be aws/codebuild/standard:latest.
 	//
-	//    * For an image digest: registry/repository@digest. For example, to specify
-	//    an image with the digest "sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf,"
-	//    use registry/repository@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf.
+	//    * For an image digest: <registry>/<repository>@<digest>. For example,
+	//    to specify an image with the digest "sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf,"
+	//    use <registry>/<repository>@sha256:cbbf2f9a99b47fc460d422812b6a5adff7dfee951d8fa2e4a98caa0382cfbdbf.
 	//
 	// Image is a required field
 	Image *string `locationName:"image" min:"1" type:"string" required:"true"`
@@ -8124,6 +10641,11 @@ type ProjectSource struct {
 	// not get or set this information directly.
 	Auth *SourceAuth `locationName:"auth" type:"structure"`
 
+	// Contains information that defines how the build project reports the build
+	// status to the source provider. This option is only used when the source provider
+	// is GITHUB, GITHUB_ENTERPRISE, or BITBUCKET.
+	BuildStatusConfig *BuildStatusConfig `locationName:"buildStatusConfig" type:"structure"`
+
 	// The buildspec file declaration to use for the builds in this build project.
 	//
 	// If this value is set, it can be either an inline buildspec definition, the
@@ -8156,13 +10678,12 @@ type ProjectSource struct {
 	//
 	//    * For source code in an AWS CodeCommit repository, the HTTPS clone URL
 	//    to the repository that contains the source code and the buildspec file
-	//    (for example, https://git-codecommit.region-ID.amazonaws.com/v1/repos/repo-name
-	//    ).
+	//    (for example, https://git-codecommit.<region-ID>.amazonaws.com/v1/repos/<repo-name>).
 	//
 	//    * For source code in an Amazon Simple Storage Service (Amazon S3) input
 	//    bucket, one of the following. The path to the ZIP file that contains the
-	//    source code (for example, bucket-name/path/to/object-name.zip). The path
-	//    to the folder that contains the source code (for example, bucket-name/path/to/source-code/folder/).
+	//    source code (for example, <bucket-name>/<path>/<object-name>.zip). The
+	//    path to the folder that contains the source code (for example, <bucket-name>/<path-to-source-code>/<folder>/).
 	//
 	//    * For source code in a GitHub repository, the HTTPS clone URL to the repository
 	//    that contains the source and the buildspec file. You must connect your
@@ -8210,9 +10731,10 @@ type ProjectSource struct {
 	//    * CODEPIPELINE: The source code settings are specified in the source action
 	//    of a pipeline in AWS CodePipeline.
 	//
-	//    * GITHUB: The source code is in a GitHub repository.
+	//    * GITHUB: The source code is in a GitHub or GitHub Enterprise Cloud repository.
 	//
-	//    * GITHUB_ENTERPRISE: The source code is in a GitHub Enterprise repository.
+	//    * GITHUB_ENTERPRISE: The source code is in a GitHub Enterprise Server
+	//    repository.
 	//
 	//    * NO_SOURCE: The project does not have input source code.
 	//
@@ -8259,6 +10781,12 @@ func (s *ProjectSource) Validate() error {
 // SetAuth sets the Auth field's value.
 func (s *ProjectSource) SetAuth(v *SourceAuth) *ProjectSource {
 	s.Auth = v
+	return s
+}
+
+// SetBuildStatusConfig sets the BuildStatusConfig field's value.
+func (s *ProjectSource) SetBuildStatusConfig(v *BuildStatusConfig) *ProjectSource {
+	s.BuildStatusConfig = v
 	return s
 }
 
@@ -8550,6 +11078,10 @@ type Report struct {
 	// The ARN of the report run.
 	Arn *string `locationName:"arn" min:"1" type:"string"`
 
+	// A CodeCoverageReportSummary object that contains a code coverage summary
+	// for this report.
+	CodeCoverageSummary *CodeCoverageReportSummary `locationName:"codeCoverageSummary" type:"structure"`
+
 	// The date and time this report run occurred.
 	Created *time.Time `locationName:"created" type:"timestamp"`
 
@@ -8580,6 +11112,14 @@ type Report struct {
 	Truncated *bool `locationName:"truncated" type:"boolean"`
 
 	// The type of the report that was run.
+	//
+	// CODE_COVERAGE
+	//
+	// A code coverage report.
+	//
+	// TEST
+	//
+	// A test report.
 	Type *string `locationName:"type" type:"string" enum:"ReportType"`
 }
 
@@ -8596,6 +11136,12 @@ func (s Report) GoString() string {
 // SetArn sets the Arn field's value.
 func (s *Report) SetArn(v string) *Report {
 	s.Arn = &v
+	return s
+}
+
+// SetCodeCoverageSummary sets the CodeCoverageSummary field's value.
+func (s *Report) SetCodeCoverageSummary(v *CodeCoverageReportSummary) *Report {
+	s.CodeCoverageSummary = v
 	return s
 }
 
@@ -8822,6 +11368,50 @@ func (s *ReportGroup) SetType(v string) *ReportGroup {
 	return s
 }
 
+// Represents a resolved build artifact. A resolve artifact is an artifact that
+// is built and deployed to the destination, such as Amazon Simple Storage Service
+// (Amazon S3).
+type ResolvedArtifact struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the artifact.
+	Identifier *string `locationName:"identifier" type:"string"`
+
+	// The location of the artifact.
+	Location *string `locationName:"location" type:"string"`
+
+	// Specifies the type of artifact.
+	Type *string `locationName:"type" type:"string" enum:"ArtifactsType"`
+}
+
+// String returns the string representation
+func (s ResolvedArtifact) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ResolvedArtifact) GoString() string {
+	return s.String()
+}
+
+// SetIdentifier sets the Identifier field's value.
+func (s *ResolvedArtifact) SetIdentifier(v string) *ResolvedArtifact {
+	s.Identifier = &v
+	return s
+}
+
+// SetLocation sets the Location field's value.
+func (s *ResolvedArtifact) SetLocation(v string) *ResolvedArtifact {
+	s.Location = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ResolvedArtifact) SetType(v string) *ResolvedArtifact {
+	s.Type = &v
+	return s
+}
+
 // The specified AWS resource cannot be created, because an AWS resource with
 // the same settings already exists.
 type ResourceAlreadyExistsException struct {
@@ -8933,6 +11523,159 @@ func (s *ResourceNotFoundException) StatusCode() int {
 // RequestID returns the service's response RequestID for request.
 func (s *ResourceNotFoundException) RequestID() string {
 	return s.RespMetadata.RequestID
+}
+
+type RetryBuildBatchInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the identifier of the batch build to restart.
+	Id *string `locationName:"id" min:"1" type:"string"`
+
+	// A unique, case sensitive identifier you provide to ensure the idempotency
+	// of the RetryBuildBatch request. The token is included in the RetryBuildBatch
+	// request and is valid for five minutes. If you repeat the RetryBuildBatch
+	// request with the same token, but change a parameter, AWS CodeBuild returns
+	// a parameter mismatch error.
+	IdempotencyToken *string `locationName:"idempotencyToken" type:"string"`
+
+	// Specifies the type of retry to perform.
+	RetryType *string `locationName:"retryType" type:"string" enum:"RetryBuildBatchType"`
+}
+
+// String returns the string representation
+func (s RetryBuildBatchInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetryBuildBatchInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RetryBuildBatchInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RetryBuildBatchInput"}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *RetryBuildBatchInput) SetId(v string) *RetryBuildBatchInput {
+	s.Id = &v
+	return s
+}
+
+// SetIdempotencyToken sets the IdempotencyToken field's value.
+func (s *RetryBuildBatchInput) SetIdempotencyToken(v string) *RetryBuildBatchInput {
+	s.IdempotencyToken = &v
+	return s
+}
+
+// SetRetryType sets the RetryType field's value.
+func (s *RetryBuildBatchInput) SetRetryType(v string) *RetryBuildBatchInput {
+	s.RetryType = &v
+	return s
+}
+
+type RetryBuildBatchOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains information about a batch build.
+	BuildBatch *BuildBatch `locationName:"buildBatch" type:"structure"`
+}
+
+// String returns the string representation
+func (s RetryBuildBatchOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetryBuildBatchOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuildBatch sets the BuildBatch field's value.
+func (s *RetryBuildBatchOutput) SetBuildBatch(v *BuildBatch) *RetryBuildBatchOutput {
+	s.BuildBatch = v
+	return s
+}
+
+type RetryBuildInput struct {
+	_ struct{} `type:"structure"`
+
+	// Specifies the identifier of the build to restart.
+	Id *string `locationName:"id" min:"1" type:"string"`
+
+	// A unique, case sensitive identifier you provide to ensure the idempotency
+	// of the RetryBuild request. The token is included in the RetryBuild request
+	// and is valid for five minutes. If you repeat the RetryBuild request with
+	// the same token, but change a parameter, AWS CodeBuild returns a parameter
+	// mismatch error.
+	IdempotencyToken *string `locationName:"idempotencyToken" type:"string"`
+}
+
+// String returns the string representation
+func (s RetryBuildInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetryBuildInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *RetryBuildInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "RetryBuildInput"}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *RetryBuildInput) SetId(v string) *RetryBuildInput {
+	s.Id = &v
+	return s
+}
+
+// SetIdempotencyToken sets the IdempotencyToken field's value.
+func (s *RetryBuildInput) SetIdempotencyToken(v string) *RetryBuildInput {
+	s.IdempotencyToken = &v
+	return s
+}
+
+type RetryBuildOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Information about a build.
+	Build *Build `locationName:"build" type:"structure"`
+}
+
+// String returns the string representation
+func (s RetryBuildOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s RetryBuildOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuild sets the Build field's value.
+func (s *RetryBuildOutput) SetBuild(v *Build) *RetryBuildOutput {
+	s.Build = v
+	return s
 }
 
 // Information about S3 logs for a build project.
@@ -9182,12 +11925,530 @@ func (s *SourceCredentialsInfo) SetServerType(v string) *SourceCredentialsInfo {
 	return s
 }
 
+type StartBuildBatchInput struct {
+	_ struct{} `type:"structure"`
+
+	// An array of ProjectArtifacts objects that contains information about the
+	// build output artifact overrides for the build project.
+	ArtifactsOverride *ProjectArtifacts `locationName:"artifactsOverride" type:"structure"`
+
+	// A BuildBatchConfigOverride object that contains batch build configuration
+	// overrides.
+	BuildBatchConfigOverride *ProjectBuildBatchConfig `locationName:"buildBatchConfigOverride" type:"structure"`
+
+	// Overrides the build timeout specified in the batch build project.
+	BuildTimeoutInMinutesOverride *int64 `locationName:"buildTimeoutInMinutesOverride" min:"5" type:"integer"`
+
+	// A buildspec file declaration that overrides, for this build only, the latest
+	// one already defined in the build project.
+	//
+	// If this value is set, it can be either an inline buildspec definition, the
+	// path to an alternate buildspec file relative to the value of the built-in
+	// CODEBUILD_SRC_DIR environment variable, or the path to an S3 bucket. The
+	// bucket must be in the same AWS Region as the build project. Specify the buildspec
+	// file using its ARN (for example, arn:aws:s3:::my-codebuild-sample2/buildspec.yml).
+	// If this value is not provided or is set to an empty string, the source code
+	// must contain a buildspec file in its root directory. For more information,
+	// see Buildspec File Name and Storage Location (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage).
+	BuildspecOverride *string `locationName:"buildspecOverride" type:"string"`
+
+	// A ProjectCache object that specifies cache overrides.
+	CacheOverride *ProjectCache `locationName:"cacheOverride" type:"structure"`
+
+	// The name of a certificate for this batch build that overrides the one specified
+	// in the batch build project.
+	CertificateOverride *string `locationName:"certificateOverride" type:"string"`
+
+	// The name of a compute type for this batch build that overrides the one specified
+	// in the batch build project.
+	ComputeTypeOverride *string `locationName:"computeTypeOverride" type:"string" enum:"ComputeType"`
+
+	// The AWS Key Management Service (AWS KMS) customer master key (CMK) that overrides
+	// the one specified in the batch build project. The CMK key encrypts the build
+	// output artifacts.
+	//
+	// You can use a cross-account KMS key to encrypt the build output artifacts
+	// if your service role has permission to that key.
+	//
+	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
+	// the CMK's alias (using the format alias/<alias-name>).
+	EncryptionKeyOverride *string `locationName:"encryptionKeyOverride" min:"1" type:"string"`
+
+	// A container type for this batch build that overrides the one specified in
+	// the batch build project.
+	EnvironmentTypeOverride *string `locationName:"environmentTypeOverride" type:"string" enum:"EnvironmentType"`
+
+	// An array of EnvironmentVariable objects that override, or add to, the environment
+	// variables defined in the batch build project.
+	EnvironmentVariablesOverride []*EnvironmentVariable `locationName:"environmentVariablesOverride" type:"list"`
+
+	// The user-defined depth of history, with a minimum value of 0, that overrides,
+	// for this batch build only, any previous depth of history defined in the batch
+	// build project.
+	GitCloneDepthOverride *int64 `locationName:"gitCloneDepthOverride" type:"integer"`
+
+	// A GitSubmodulesConfig object that overrides the Git submodules configuration
+	// for this batch build.
+	GitSubmodulesConfigOverride *GitSubmodulesConfig `locationName:"gitSubmodulesConfigOverride" type:"structure"`
+
+	// A unique, case sensitive identifier you provide to ensure the idempotency
+	// of the StartBuildBatch request. The token is included in the StartBuildBatch
+	// request and is valid for five minutes. If you repeat the StartBuildBatch
+	// request with the same token, but change a parameter, AWS CodeBuild returns
+	// a parameter mismatch error.
+	IdempotencyToken *string `locationName:"idempotencyToken" type:"string"`
+
+	// The name of an image for this batch build that overrides the one specified
+	// in the batch build project.
+	ImageOverride *string `locationName:"imageOverride" min:"1" type:"string"`
+
+	// The type of credentials AWS CodeBuild uses to pull images in your batch build.
+	// There are two valid values:
+	//
+	// CODEBUILD
+	//
+	// Specifies that AWS CodeBuild uses its own credentials. This requires that
+	// you modify your ECR repository policy to trust AWS CodeBuild's service principal.
+	//
+	// SERVICE_ROLE
+	//
+	// Specifies that AWS CodeBuild uses your build project's service role.
+	//
+	// When using a cross-account or private registry image, you must use SERVICE_ROLE
+	// credentials. When using an AWS CodeBuild curated image, you must use CODEBUILD
+	// credentials.
+	ImagePullCredentialsTypeOverride *string `locationName:"imagePullCredentialsTypeOverride" type:"string" enum:"ImagePullCredentialsType"`
+
+	// Enable this flag to override the insecure SSL setting that is specified in
+	// the batch build project. The insecure SSL setting determines whether to ignore
+	// SSL warnings while connecting to the project source code. This override applies
+	// only if the build's source is GitHub Enterprise.
+	InsecureSslOverride *bool `locationName:"insecureSslOverride" type:"boolean"`
+
+	// A LogsConfig object that override the log settings defined in the batch build
+	// project.
+	LogsConfigOverride *LogsConfig `locationName:"logsConfigOverride" type:"structure"`
+
+	// Enable this flag to override privileged mode in the batch build project.
+	PrivilegedModeOverride *bool `locationName:"privilegedModeOverride" type:"boolean"`
+
+	// The name of the project.
+	//
+	// ProjectName is a required field
+	ProjectName *string `locationName:"projectName" min:"1" type:"string" required:"true"`
+
+	// The number of minutes a batch build is allowed to be queued before it times
+	// out.
+	QueuedTimeoutInMinutesOverride *int64 `locationName:"queuedTimeoutInMinutesOverride" min:"5" type:"integer"`
+
+	// A RegistryCredential object that overrides credentials for access to a private
+	// registry.
+	RegistryCredentialOverride *RegistryCredential `locationName:"registryCredentialOverride" type:"structure"`
+
+	// Set to true to report to your source provider the status of a batch build's
+	// start and completion. If you use this option with a source provider other
+	// than GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is
+	// thrown.
+	//
+	// The status of a build triggered by a webhook is always reported to your source
+	// provider.
+	ReportBuildBatchStatusOverride *bool `locationName:"reportBuildBatchStatusOverride" type:"boolean"`
+
+	// An array of ProjectArtifacts objects that override the secondary artifacts
+	// defined in the batch build project.
+	SecondaryArtifactsOverride []*ProjectArtifacts `locationName:"secondaryArtifactsOverride" type:"list"`
+
+	// An array of ProjectSource objects that override the secondary sources defined
+	// in the batch build project.
+	SecondarySourcesOverride []*ProjectSource `locationName:"secondarySourcesOverride" type:"list"`
+
+	// An array of ProjectSourceVersion objects that override the secondary source
+	// versions in the batch build project.
+	SecondarySourcesVersionOverride []*ProjectSourceVersion `locationName:"secondarySourcesVersionOverride" type:"list"`
+
+	// The name of a service role for this batch build that overrides the one specified
+	// in the batch build project.
+	ServiceRoleOverride *string `locationName:"serviceRoleOverride" min:"1" type:"string"`
+
+	// A SourceAuth object that overrides the one defined in the batch build project.
+	// This override applies only if the build project's source is BitBucket or
+	// GitHub.
+	SourceAuthOverride *SourceAuth `locationName:"sourceAuthOverride" type:"structure"`
+
+	// A location that overrides, for this batch build, the source location defined
+	// in the batch build project.
+	SourceLocationOverride *string `locationName:"sourceLocationOverride" type:"string"`
+
+	// The source input type that overrides the source input defined in the batch
+	// build project.
+	SourceTypeOverride *string `locationName:"sourceTypeOverride" type:"string" enum:"SourceType"`
+
+	// The version of the batch build input to be built, for this build only. If
+	// not specified, the latest version is used. If specified, the contents depends
+	// on the source provider:
+	//
+	// AWS CodeCommit
+	//
+	// The commit ID, branch, or Git tag to use.
+	//
+	// GitHub
+	//
+	// The commit ID, pull request ID, branch name, or tag name that corresponds
+	// to the version of the source code you want to build. If a pull request ID
+	// is specified, it must use the format pr/pull-request-ID (for example pr/25).
+	// If a branch name is specified, the branch's HEAD commit ID is used. If not
+	// specified, the default branch's HEAD commit ID is used.
+	//
+	// Bitbucket
+	//
+	// The commit ID, branch name, or tag name that corresponds to the version of
+	// the source code you want to build. If a branch name is specified, the branch's
+	// HEAD commit ID is used. If not specified, the default branch's HEAD commit
+	// ID is used.
+	//
+	// Amazon Simple Storage Service (Amazon S3)
+	//
+	// The version ID of the object that represents the build input ZIP file to
+	// use.
+	//
+	// If sourceVersion is specified at the project level, then this sourceVersion
+	// (at the build level) takes precedence.
+	//
+	// For more information, see Source Version Sample with CodeBuild (https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html)
+	// in the AWS CodeBuild User Guide.
+	SourceVersion *string `locationName:"sourceVersion" type:"string"`
+}
+
+// String returns the string representation
+func (s StartBuildBatchInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartBuildBatchInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StartBuildBatchInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StartBuildBatchInput"}
+	if s.BuildTimeoutInMinutesOverride != nil && *s.BuildTimeoutInMinutesOverride < 5 {
+		invalidParams.Add(request.NewErrParamMinValue("BuildTimeoutInMinutesOverride", 5))
+	}
+	if s.EncryptionKeyOverride != nil && len(*s.EncryptionKeyOverride) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("EncryptionKeyOverride", 1))
+	}
+	if s.ImageOverride != nil && len(*s.ImageOverride) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ImageOverride", 1))
+	}
+	if s.ProjectName == nil {
+		invalidParams.Add(request.NewErrParamRequired("ProjectName"))
+	}
+	if s.ProjectName != nil && len(*s.ProjectName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ProjectName", 1))
+	}
+	if s.QueuedTimeoutInMinutesOverride != nil && *s.QueuedTimeoutInMinutesOverride < 5 {
+		invalidParams.Add(request.NewErrParamMinValue("QueuedTimeoutInMinutesOverride", 5))
+	}
+	if s.ServiceRoleOverride != nil && len(*s.ServiceRoleOverride) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("ServiceRoleOverride", 1))
+	}
+	if s.ArtifactsOverride != nil {
+		if err := s.ArtifactsOverride.Validate(); err != nil {
+			invalidParams.AddNested("ArtifactsOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.BuildBatchConfigOverride != nil {
+		if err := s.BuildBatchConfigOverride.Validate(); err != nil {
+			invalidParams.AddNested("BuildBatchConfigOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.CacheOverride != nil {
+		if err := s.CacheOverride.Validate(); err != nil {
+			invalidParams.AddNested("CacheOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.EnvironmentVariablesOverride != nil {
+		for i, v := range s.EnvironmentVariablesOverride {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "EnvironmentVariablesOverride", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.GitSubmodulesConfigOverride != nil {
+		if err := s.GitSubmodulesConfigOverride.Validate(); err != nil {
+			invalidParams.AddNested("GitSubmodulesConfigOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.LogsConfigOverride != nil {
+		if err := s.LogsConfigOverride.Validate(); err != nil {
+			invalidParams.AddNested("LogsConfigOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RegistryCredentialOverride != nil {
+		if err := s.RegistryCredentialOverride.Validate(); err != nil {
+			invalidParams.AddNested("RegistryCredentialOverride", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.SecondaryArtifactsOverride != nil {
+		for i, v := range s.SecondaryArtifactsOverride {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SecondaryArtifactsOverride", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.SecondarySourcesOverride != nil {
+		for i, v := range s.SecondarySourcesOverride {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SecondarySourcesOverride", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.SecondarySourcesVersionOverride != nil {
+		for i, v := range s.SecondarySourcesVersionOverride {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "SecondarySourcesVersionOverride", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+	if s.SourceAuthOverride != nil {
+		if err := s.SourceAuthOverride.Validate(); err != nil {
+			invalidParams.AddNested("SourceAuthOverride", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArtifactsOverride sets the ArtifactsOverride field's value.
+func (s *StartBuildBatchInput) SetArtifactsOverride(v *ProjectArtifacts) *StartBuildBatchInput {
+	s.ArtifactsOverride = v
+	return s
+}
+
+// SetBuildBatchConfigOverride sets the BuildBatchConfigOverride field's value.
+func (s *StartBuildBatchInput) SetBuildBatchConfigOverride(v *ProjectBuildBatchConfig) *StartBuildBatchInput {
+	s.BuildBatchConfigOverride = v
+	return s
+}
+
+// SetBuildTimeoutInMinutesOverride sets the BuildTimeoutInMinutesOverride field's value.
+func (s *StartBuildBatchInput) SetBuildTimeoutInMinutesOverride(v int64) *StartBuildBatchInput {
+	s.BuildTimeoutInMinutesOverride = &v
+	return s
+}
+
+// SetBuildspecOverride sets the BuildspecOverride field's value.
+func (s *StartBuildBatchInput) SetBuildspecOverride(v string) *StartBuildBatchInput {
+	s.BuildspecOverride = &v
+	return s
+}
+
+// SetCacheOverride sets the CacheOverride field's value.
+func (s *StartBuildBatchInput) SetCacheOverride(v *ProjectCache) *StartBuildBatchInput {
+	s.CacheOverride = v
+	return s
+}
+
+// SetCertificateOverride sets the CertificateOverride field's value.
+func (s *StartBuildBatchInput) SetCertificateOverride(v string) *StartBuildBatchInput {
+	s.CertificateOverride = &v
+	return s
+}
+
+// SetComputeTypeOverride sets the ComputeTypeOverride field's value.
+func (s *StartBuildBatchInput) SetComputeTypeOverride(v string) *StartBuildBatchInput {
+	s.ComputeTypeOverride = &v
+	return s
+}
+
+// SetEncryptionKeyOverride sets the EncryptionKeyOverride field's value.
+func (s *StartBuildBatchInput) SetEncryptionKeyOverride(v string) *StartBuildBatchInput {
+	s.EncryptionKeyOverride = &v
+	return s
+}
+
+// SetEnvironmentTypeOverride sets the EnvironmentTypeOverride field's value.
+func (s *StartBuildBatchInput) SetEnvironmentTypeOverride(v string) *StartBuildBatchInput {
+	s.EnvironmentTypeOverride = &v
+	return s
+}
+
+// SetEnvironmentVariablesOverride sets the EnvironmentVariablesOverride field's value.
+func (s *StartBuildBatchInput) SetEnvironmentVariablesOverride(v []*EnvironmentVariable) *StartBuildBatchInput {
+	s.EnvironmentVariablesOverride = v
+	return s
+}
+
+// SetGitCloneDepthOverride sets the GitCloneDepthOverride field's value.
+func (s *StartBuildBatchInput) SetGitCloneDepthOverride(v int64) *StartBuildBatchInput {
+	s.GitCloneDepthOverride = &v
+	return s
+}
+
+// SetGitSubmodulesConfigOverride sets the GitSubmodulesConfigOverride field's value.
+func (s *StartBuildBatchInput) SetGitSubmodulesConfigOverride(v *GitSubmodulesConfig) *StartBuildBatchInput {
+	s.GitSubmodulesConfigOverride = v
+	return s
+}
+
+// SetIdempotencyToken sets the IdempotencyToken field's value.
+func (s *StartBuildBatchInput) SetIdempotencyToken(v string) *StartBuildBatchInput {
+	s.IdempotencyToken = &v
+	return s
+}
+
+// SetImageOverride sets the ImageOverride field's value.
+func (s *StartBuildBatchInput) SetImageOverride(v string) *StartBuildBatchInput {
+	s.ImageOverride = &v
+	return s
+}
+
+// SetImagePullCredentialsTypeOverride sets the ImagePullCredentialsTypeOverride field's value.
+func (s *StartBuildBatchInput) SetImagePullCredentialsTypeOverride(v string) *StartBuildBatchInput {
+	s.ImagePullCredentialsTypeOverride = &v
+	return s
+}
+
+// SetInsecureSslOverride sets the InsecureSslOverride field's value.
+func (s *StartBuildBatchInput) SetInsecureSslOverride(v bool) *StartBuildBatchInput {
+	s.InsecureSslOverride = &v
+	return s
+}
+
+// SetLogsConfigOverride sets the LogsConfigOverride field's value.
+func (s *StartBuildBatchInput) SetLogsConfigOverride(v *LogsConfig) *StartBuildBatchInput {
+	s.LogsConfigOverride = v
+	return s
+}
+
+// SetPrivilegedModeOverride sets the PrivilegedModeOverride field's value.
+func (s *StartBuildBatchInput) SetPrivilegedModeOverride(v bool) *StartBuildBatchInput {
+	s.PrivilegedModeOverride = &v
+	return s
+}
+
+// SetProjectName sets the ProjectName field's value.
+func (s *StartBuildBatchInput) SetProjectName(v string) *StartBuildBatchInput {
+	s.ProjectName = &v
+	return s
+}
+
+// SetQueuedTimeoutInMinutesOverride sets the QueuedTimeoutInMinutesOverride field's value.
+func (s *StartBuildBatchInput) SetQueuedTimeoutInMinutesOverride(v int64) *StartBuildBatchInput {
+	s.QueuedTimeoutInMinutesOverride = &v
+	return s
+}
+
+// SetRegistryCredentialOverride sets the RegistryCredentialOverride field's value.
+func (s *StartBuildBatchInput) SetRegistryCredentialOverride(v *RegistryCredential) *StartBuildBatchInput {
+	s.RegistryCredentialOverride = v
+	return s
+}
+
+// SetReportBuildBatchStatusOverride sets the ReportBuildBatchStatusOverride field's value.
+func (s *StartBuildBatchInput) SetReportBuildBatchStatusOverride(v bool) *StartBuildBatchInput {
+	s.ReportBuildBatchStatusOverride = &v
+	return s
+}
+
+// SetSecondaryArtifactsOverride sets the SecondaryArtifactsOverride field's value.
+func (s *StartBuildBatchInput) SetSecondaryArtifactsOverride(v []*ProjectArtifacts) *StartBuildBatchInput {
+	s.SecondaryArtifactsOverride = v
+	return s
+}
+
+// SetSecondarySourcesOverride sets the SecondarySourcesOverride field's value.
+func (s *StartBuildBatchInput) SetSecondarySourcesOverride(v []*ProjectSource) *StartBuildBatchInput {
+	s.SecondarySourcesOverride = v
+	return s
+}
+
+// SetSecondarySourcesVersionOverride sets the SecondarySourcesVersionOverride field's value.
+func (s *StartBuildBatchInput) SetSecondarySourcesVersionOverride(v []*ProjectSourceVersion) *StartBuildBatchInput {
+	s.SecondarySourcesVersionOverride = v
+	return s
+}
+
+// SetServiceRoleOverride sets the ServiceRoleOverride field's value.
+func (s *StartBuildBatchInput) SetServiceRoleOverride(v string) *StartBuildBatchInput {
+	s.ServiceRoleOverride = &v
+	return s
+}
+
+// SetSourceAuthOverride sets the SourceAuthOverride field's value.
+func (s *StartBuildBatchInput) SetSourceAuthOverride(v *SourceAuth) *StartBuildBatchInput {
+	s.SourceAuthOverride = v
+	return s
+}
+
+// SetSourceLocationOverride sets the SourceLocationOverride field's value.
+func (s *StartBuildBatchInput) SetSourceLocationOverride(v string) *StartBuildBatchInput {
+	s.SourceLocationOverride = &v
+	return s
+}
+
+// SetSourceTypeOverride sets the SourceTypeOverride field's value.
+func (s *StartBuildBatchInput) SetSourceTypeOverride(v string) *StartBuildBatchInput {
+	s.SourceTypeOverride = &v
+	return s
+}
+
+// SetSourceVersion sets the SourceVersion field's value.
+func (s *StartBuildBatchInput) SetSourceVersion(v string) *StartBuildBatchInput {
+	s.SourceVersion = &v
+	return s
+}
+
+type StartBuildBatchOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A BuildBatch object that contains information about the batch build.
+	BuildBatch *BuildBatch `locationName:"buildBatch" type:"structure"`
+}
+
+// String returns the string representation
+func (s StartBuildBatchOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StartBuildBatchOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuildBatch sets the BuildBatch field's value.
+func (s *StartBuildBatchOutput) SetBuildBatch(v *BuildBatch) *StartBuildBatchOutput {
+	s.BuildBatch = v
+	return s
+}
+
 type StartBuildInput struct {
 	_ struct{} `type:"structure"`
 
 	// Build output artifact settings that override, for this build only, the latest
 	// ones already defined in the build project.
 	ArtifactsOverride *ProjectArtifacts `locationName:"artifactsOverride" type:"structure"`
+
+	// Contains information that defines how the build project reports the build
+	// status to the source provider. This option is only used when the source provider
+	// is GITHUB, GITHUB_ENTERPRISE, or BITBUCKET.
+	BuildStatusConfigOverride *BuildStatusConfig `locationName:"buildStatusConfigOverride" type:"structure"`
 
 	// A buildspec file declaration that overrides, for this build only, the latest
 	// one already defined in the build project.
@@ -9214,6 +12475,10 @@ type StartBuildInput struct {
 	// in the build project.
 	ComputeTypeOverride *string `locationName:"computeTypeOverride" type:"string" enum:"ComputeType"`
 
+	// Specifies if session debugging is enabled for this build. For more information,
+	// see Viewing a running build in Session Manager (https://docs.aws.amazon.com/codebuild/latest/userguide/session-manager.html).
+	DebugSessionEnabled *bool `locationName:"debugSessionEnabled" type:"boolean"`
+
 	// The AWS Key Management Service (AWS KMS) customer master key (CMK) that overrides
 	// the one specified in the build project. The CMK key encrypts the build output
 	// artifacts.
@@ -9222,7 +12487,7 @@ type StartBuildInput struct {
 	// if your service role has permission to that key.
 	//
 	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
-	// the CMK's alias (using the format alias/alias-name ).
+	// the CMK's alias (using the format alias/<alias-name>).
 	EncryptionKeyOverride *string `locationName:"encryptionKeyOverride" min:"1" type:"string"`
 
 	// A container type for this build that overrides the one specified in the build
@@ -9243,7 +12508,7 @@ type StartBuildInput struct {
 
 	// A unique, case sensitive identifier you provide to ensure the idempotency
 	// of the StartBuild request. The token is included in the StartBuild request
-	// and is valid for 12 hours. If you repeat the StartBuild request with the
+	// and is valid for 5 minutes. If you repeat the StartBuild request with the
 	// same token, but change a parameter, AWS CodeBuild returns a parameter mismatch
 	// error.
 	IdempotencyToken *string `locationName:"idempotencyToken" type:"string"`
@@ -9255,12 +12520,14 @@ type StartBuildInput struct {
 	// The type of credentials AWS CodeBuild uses to pull images in your build.
 	// There are two valid values:
 	//
-	//    * CODEBUILD specifies that AWS CodeBuild uses its own credentials. This
-	//    requires that you modify your ECR repository policy to trust AWS CodeBuild's
-	//    service principal.
+	// CODEBUILD
 	//
-	//    * SERVICE_ROLE specifies that AWS CodeBuild uses your build project's
-	//    service role.
+	// Specifies that AWS CodeBuild uses its own credentials. This requires that
+	// you modify your ECR repository policy to trust AWS CodeBuild's service principal.
+	//
+	// SERVICE_ROLE
+	//
+	// Specifies that AWS CodeBuild uses your build project's service role.
 	//
 	// When using a cross-account or private registry image, you must use SERVICE_ROLE
 	// credentials. When using an AWS CodeBuild curated image, you must use CODEBUILD
@@ -9326,25 +12593,33 @@ type StartBuildInput struct {
 	// in the build project.
 	SourceTypeOverride *string `locationName:"sourceTypeOverride" type:"string" enum:"SourceType"`
 
-	// A version of the build input to be built, for this build only. If not specified,
-	// the latest version is used. If specified, must be one of:
+	// The version of the build input to be built, for this build only. If not specified,
+	// the latest version is used. If specified, the contents depends on the source
+	// provider:
 	//
-	//    * For AWS CodeCommit: the commit ID, branch, or Git tag to use.
+	// AWS CodeCommit
 	//
-	//    * For GitHub: the commit ID, pull request ID, branch name, or tag name
-	//    that corresponds to the version of the source code you want to build.
-	//    If a pull request ID is specified, it must use the format pr/pull-request-ID
-	//    (for example pr/25). If a branch name is specified, the branch's HEAD
-	//    commit ID is used. If not specified, the default branch's HEAD commit
-	//    ID is used.
+	// The commit ID, branch, or Git tag to use.
 	//
-	//    * For Bitbucket: the commit ID, branch name, or tag name that corresponds
-	//    to the version of the source code you want to build. If a branch name
-	//    is specified, the branch's HEAD commit ID is used. If not specified, the
-	//    default branch's HEAD commit ID is used.
+	// GitHub
 	//
-	//    * For Amazon Simple Storage Service (Amazon S3): the version ID of the
-	//    object that represents the build input ZIP file to use.
+	// The commit ID, pull request ID, branch name, or tag name that corresponds
+	// to the version of the source code you want to build. If a pull request ID
+	// is specified, it must use the format pr/pull-request-ID (for example pr/25).
+	// If a branch name is specified, the branch's HEAD commit ID is used. If not
+	// specified, the default branch's HEAD commit ID is used.
+	//
+	// Bitbucket
+	//
+	// The commit ID, branch name, or tag name that corresponds to the version of
+	// the source code you want to build. If a branch name is specified, the branch's
+	// HEAD commit ID is used. If not specified, the default branch's HEAD commit
+	// ID is used.
+	//
+	// Amazon Simple Storage Service (Amazon S3)
+	//
+	// The version ID of the object that represents the build input ZIP file to
+	// use.
 	//
 	// If sourceVersion is specified at the project level, then this sourceVersion
 	// (at the build level) takes precedence.
@@ -9475,6 +12750,12 @@ func (s *StartBuildInput) SetArtifactsOverride(v *ProjectArtifacts) *StartBuildI
 	return s
 }
 
+// SetBuildStatusConfigOverride sets the BuildStatusConfigOverride field's value.
+func (s *StartBuildInput) SetBuildStatusConfigOverride(v *BuildStatusConfig) *StartBuildInput {
+	s.BuildStatusConfigOverride = v
+	return s
+}
+
 // SetBuildspecOverride sets the BuildspecOverride field's value.
 func (s *StartBuildInput) SetBuildspecOverride(v string) *StartBuildInput {
 	s.BuildspecOverride = &v
@@ -9496,6 +12777,12 @@ func (s *StartBuildInput) SetCertificateOverride(v string) *StartBuildInput {
 // SetComputeTypeOverride sets the ComputeTypeOverride field's value.
 func (s *StartBuildInput) SetComputeTypeOverride(v string) *StartBuildInput {
 	s.ComputeTypeOverride = &v
+	return s
+}
+
+// SetDebugSessionEnabled sets the DebugSessionEnabled field's value.
+func (s *StartBuildInput) SetDebugSessionEnabled(v bool) *StartBuildInput {
+	s.DebugSessionEnabled = &v
 	return s
 }
 
@@ -9663,6 +12950,70 @@ func (s StartBuildOutput) GoString() string {
 // SetBuild sets the Build field's value.
 func (s *StartBuildOutput) SetBuild(v *Build) *StartBuildOutput {
 	s.Build = v
+	return s
+}
+
+type StopBuildBatchInput struct {
+	_ struct{} `type:"structure"`
+
+	// The identifier of the batch build to stop.
+	//
+	// Id is a required field
+	Id *string `locationName:"id" min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s StopBuildBatchInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopBuildBatchInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *StopBuildBatchInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "StopBuildBatchInput"}
+	if s.Id == nil {
+		invalidParams.Add(request.NewErrParamRequired("Id"))
+	}
+	if s.Id != nil && len(*s.Id) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Id", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetId sets the Id field's value.
+func (s *StopBuildBatchInput) SetId(v string) *StopBuildBatchInput {
+	s.Id = &v
+	return s
+}
+
+type StopBuildBatchOutput struct {
+	_ struct{} `type:"structure"`
+
+	// Contains information about a batch build.
+	BuildBatch *BuildBatch `locationName:"buildBatch" type:"structure"`
+}
+
+// String returns the string representation
+func (s StopBuildBatchOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s StopBuildBatchOutput) GoString() string {
+	return s.String()
+}
+
+// SetBuildBatch sets the BuildBatch field's value.
+func (s *StopBuildBatchOutput) SetBuildBatch(v *BuildBatch) *StopBuildBatchOutput {
+	s.BuildBatch = v
 	return s
 }
 
@@ -9870,12 +13221,28 @@ func (s *TestCase) SetTestRawDataPath(v string) *TestCase {
 	return s
 }
 
-// A filter used to return specific types of test cases.
+// A filter used to return specific types of test cases. In order to pass the
+// filter, the report must meet all of the filter properties.
 type TestCaseFilter struct {
 	_ struct{} `type:"structure"`
 
-	// The status used to filter test cases. Valid statuses are SUCCEEDED, FAILED,
-	// ERROR, SKIPPED, and UNKNOWN. A TestCaseFilter can have one status.
+	// A keyword that is used to filter on the name or the prefix of the test cases.
+	// Only test cases where the keyword is a substring of the name or the prefix
+	// will be returned.
+	Keyword *string `locationName:"keyword" type:"string"`
+
+	// The status used to filter test cases. A TestCaseFilter can have one status.
+	// Valid values are:
+	//
+	//    * SUCCEEDED
+	//
+	//    * FAILED
+	//
+	//    * ERROR
+	//
+	//    * SKIPPED
+	//
+	//    * UNKNOWN
 	Status *string `locationName:"status" type:"string"`
 }
 
@@ -9887,6 +13254,12 @@ func (s TestCaseFilter) String() string {
 // GoString returns the string representation
 func (s TestCaseFilter) GoString() string {
 	return s.String()
+}
+
+// SetKeyword sets the Keyword field's value.
+func (s *TestCaseFilter) SetKeyword(v string) *TestCaseFilter {
+	s.Keyword = &v
+	return s
 }
 
 // SetStatus sets the Status field's value.
@@ -9956,6 +13329,9 @@ type UpdateProjectInput struct {
 	// build badge.
 	BadgeEnabled *bool `locationName:"badgeEnabled" type:"boolean"`
 
+	// Contains configuration information about a batch build project.
+	BuildBatchConfig *ProjectBuildBatchConfig `locationName:"buildBatchConfig" type:"structure"`
+
 	// Stores recently used information so that it can be quickly accessed at a
 	// later time.
 	Cache *ProjectCache `locationName:"cache" type:"structure"`
@@ -9970,7 +13346,7 @@ type UpdateProjectInput struct {
 	// if your service role has permission to that key.
 	//
 	// You can specify either the Amazon Resource Name (ARN) of the CMK or, if available,
-	// the CMK's alias (using the format alias/alias-name ).
+	// the CMK's alias (using the format alias/<alias-name>).
 	EncryptionKey *string `locationName:"encryptionKey" min:"1" type:"string"`
 
 	// Information to be changed about the build environment for the build project.
@@ -10092,6 +13468,11 @@ func (s *UpdateProjectInput) Validate() error {
 			invalidParams.AddNested("Artifacts", err.(request.ErrInvalidParams))
 		}
 	}
+	if s.BuildBatchConfig != nil {
+		if err := s.BuildBatchConfig.Validate(); err != nil {
+			invalidParams.AddNested("BuildBatchConfig", err.(request.ErrInvalidParams))
+		}
+	}
 	if s.Cache != nil {
 		if err := s.Cache.Validate(); err != nil {
 			invalidParams.AddNested("Cache", err.(request.ErrInvalidParams))
@@ -10173,6 +13554,12 @@ func (s *UpdateProjectInput) SetArtifacts(v *ProjectArtifacts) *UpdateProjectInp
 // SetBadgeEnabled sets the BadgeEnabled field's value.
 func (s *UpdateProjectInput) SetBadgeEnabled(v bool) *UpdateProjectInput {
 	s.BadgeEnabled = &v
+	return s
+}
+
+// SetBuildBatchConfig sets the BuildBatchConfig field's value.
+func (s *UpdateProjectInput) SetBuildBatchConfig(v *ProjectBuildBatchConfig) *UpdateProjectInput {
+	s.BuildBatchConfig = v
 	return s
 }
 
@@ -10416,6 +13803,9 @@ type UpdateWebhookInput struct {
 	// It is recommended that you use filterGroups instead of branchFilter.
 	BranchFilter *string `locationName:"branchFilter" type:"string"`
 
+	// Specifies the type of build this webhook will trigger.
+	BuildType *string `locationName:"buildType" type:"string" enum:"WebhookBuildType"`
+
 	// An array of arrays of WebhookFilter objects used to determine if a webhook
 	// event can trigger a build. A filter group must contain at least one EVENT
 	// WebhookFilter.
@@ -10461,6 +13851,12 @@ func (s *UpdateWebhookInput) Validate() error {
 // SetBranchFilter sets the BranchFilter field's value.
 func (s *UpdateWebhookInput) SetBranchFilter(v string) *UpdateWebhookInput {
 	s.BranchFilter = &v
+	return s
+}
+
+// SetBuildType sets the BuildType field's value.
+func (s *UpdateWebhookInput) SetBuildType(v string) *UpdateWebhookInput {
+	s.BuildType = &v
 	return s
 }
 
@@ -10574,6 +13970,9 @@ type Webhook struct {
 	// It is recommended that you use filterGroups instead of branchFilter.
 	BranchFilter *string `locationName:"branchFilter" type:"string"`
 
+	// Specifies the type of build this webhook will trigger.
+	BuildType *string `locationName:"buildType" type:"string" enum:"WebhookBuildType"`
+
 	// An array of arrays of WebhookFilter objects used to determine which webhooks
 	// are triggered. At least one WebhookFilter in the array must specify EVENT
 	// as its type.
@@ -10611,6 +14010,12 @@ func (s Webhook) GoString() string {
 // SetBranchFilter sets the BranchFilter field's value.
 func (s *Webhook) SetBranchFilter(v string) *Webhook {
 	s.BranchFilter = &v
+	return s
+}
+
+// SetBuildType sets the BuildType field's value.
+func (s *Webhook) SetBuildType(v string) *Webhook {
+	s.BuildType = &v
 	return s
 }
 
@@ -10667,8 +14072,8 @@ type WebhookFilter struct {
 	// Pattern is a required field
 	Pattern *string `locationName:"pattern" type:"string" required:"true"`
 
-	// The type of webhook filter. There are five webhook filter types: EVENT, ACTOR_ACCOUNT_ID,
-	// HEAD_REF, BASE_REF, and FILE_PATH.
+	// The type of webhook filter. There are six webhook filter types: EVENT, ACTOR_ACCOUNT_ID,
+	// HEAD_REF, BASE_REF, FILE_PATH, and COMMIT_MESSAGE.
 	//
 	// EVENT
 	//
@@ -10705,7 +14110,18 @@ type WebhookFilter struct {
 	// A webhook triggers a build when the path of a changed file matches the regular
 	// expression pattern.
 	//
-	// Works with GitHub and GitHub Enterprise push events only.
+	// Works with GitHub and Bitbucket events push and pull requests events. Also
+	// works with GitHub Enterprise push events, but does not work with GitHub Enterprise
+	// pull request events.
+	//
+	// COMMIT_MESSAGE
+	//
+	// A webhook triggers a build when the head commit message matches the regular
+	// expression pattern.
+	//
+	// Works with GitHub and Bitbucket events push and pull requests events. Also
+	// works with GitHub Enterprise push events, but does not work with GitHub Enterprise
+	// pull request events.
 	//
 	// Type is a required field
 	Type *string `locationName:"type" type:"string" required:"true" enum:"WebhookFilterType"`
@@ -10747,6 +14163,14 @@ const (
 	ArtifactNamespaceBuildId = "BUILD_ID"
 )
 
+// ArtifactNamespace_Values returns all elements of the ArtifactNamespace enum
+func ArtifactNamespace_Values() []string {
+	return []string{
+		ArtifactNamespaceNone,
+		ArtifactNamespaceBuildId,
+	}
+}
+
 const (
 	// ArtifactPackagingNone is a ArtifactPackaging enum value
 	ArtifactPackagingNone = "NONE"
@@ -10754,6 +14178,14 @@ const (
 	// ArtifactPackagingZip is a ArtifactPackaging enum value
 	ArtifactPackagingZip = "ZIP"
 )
+
+// ArtifactPackaging_Values returns all elements of the ArtifactPackaging enum
+func ArtifactPackaging_Values() []string {
+	return []string{
+		ArtifactPackagingNone,
+		ArtifactPackagingZip,
+	}
+}
 
 const (
 	// ArtifactsTypeCodepipeline is a ArtifactsType enum value
@@ -10766,6 +14198,15 @@ const (
 	ArtifactsTypeNoArtifacts = "NO_ARTIFACTS"
 )
 
+// ArtifactsType_Values returns all elements of the ArtifactsType enum
+func ArtifactsType_Values() []string {
+	return []string{
+		ArtifactsTypeCodepipeline,
+		ArtifactsTypeS3,
+		ArtifactsTypeNoArtifacts,
+	}
+}
+
 const (
 	// AuthTypeOauth is a AuthType enum value
 	AuthTypeOauth = "OAUTH"
@@ -10776,6 +14217,51 @@ const (
 	// AuthTypePersonalAccessToken is a AuthType enum value
 	AuthTypePersonalAccessToken = "PERSONAL_ACCESS_TOKEN"
 )
+
+// AuthType_Values returns all elements of the AuthType enum
+func AuthType_Values() []string {
+	return []string{
+		AuthTypeOauth,
+		AuthTypeBasicAuth,
+		AuthTypePersonalAccessToken,
+	}
+}
+
+const (
+	// BuildBatchPhaseTypeSubmitted is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeSubmitted = "SUBMITTED"
+
+	// BuildBatchPhaseTypeDownloadBatchspec is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeDownloadBatchspec = "DOWNLOAD_BATCHSPEC"
+
+	// BuildBatchPhaseTypeInProgress is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeInProgress = "IN_PROGRESS"
+
+	// BuildBatchPhaseTypeCombineArtifacts is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeCombineArtifacts = "COMBINE_ARTIFACTS"
+
+	// BuildBatchPhaseTypeSucceeded is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeSucceeded = "SUCCEEDED"
+
+	// BuildBatchPhaseTypeFailed is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeFailed = "FAILED"
+
+	// BuildBatchPhaseTypeStopped is a BuildBatchPhaseType enum value
+	BuildBatchPhaseTypeStopped = "STOPPED"
+)
+
+// BuildBatchPhaseType_Values returns all elements of the BuildBatchPhaseType enum
+func BuildBatchPhaseType_Values() []string {
+	return []string{
+		BuildBatchPhaseTypeSubmitted,
+		BuildBatchPhaseTypeDownloadBatchspec,
+		BuildBatchPhaseTypeInProgress,
+		BuildBatchPhaseTypeCombineArtifacts,
+		BuildBatchPhaseTypeSucceeded,
+		BuildBatchPhaseTypeFailed,
+		BuildBatchPhaseTypeStopped,
+	}
+}
 
 const (
 	// BuildPhaseTypeSubmitted is a BuildPhaseType enum value
@@ -10812,6 +14298,23 @@ const (
 	BuildPhaseTypeCompleted = "COMPLETED"
 )
 
+// BuildPhaseType_Values returns all elements of the BuildPhaseType enum
+func BuildPhaseType_Values() []string {
+	return []string{
+		BuildPhaseTypeSubmitted,
+		BuildPhaseTypeQueued,
+		BuildPhaseTypeProvisioning,
+		BuildPhaseTypeDownloadSource,
+		BuildPhaseTypeInstall,
+		BuildPhaseTypePreBuild,
+		BuildPhaseTypeBuild,
+		BuildPhaseTypePostBuild,
+		BuildPhaseTypeUploadArtifacts,
+		BuildPhaseTypeFinalizing,
+		BuildPhaseTypeCompleted,
+	}
+}
+
 const (
 	// CacheModeLocalDockerLayerCache is a CacheMode enum value
 	CacheModeLocalDockerLayerCache = "LOCAL_DOCKER_LAYER_CACHE"
@@ -10823,6 +14326,15 @@ const (
 	CacheModeLocalCustomCache = "LOCAL_CUSTOM_CACHE"
 )
 
+// CacheMode_Values returns all elements of the CacheMode enum
+func CacheMode_Values() []string {
+	return []string{
+		CacheModeLocalDockerLayerCache,
+		CacheModeLocalSourceCache,
+		CacheModeLocalCustomCache,
+	}
+}
+
 const (
 	// CacheTypeNoCache is a CacheType enum value
 	CacheTypeNoCache = "NO_CACHE"
@@ -10833,6 +14345,15 @@ const (
 	// CacheTypeLocal is a CacheType enum value
 	CacheTypeLocal = "LOCAL"
 )
+
+// CacheType_Values returns all elements of the CacheType enum
+func CacheType_Values() []string {
+	return []string{
+		CacheTypeNoCache,
+		CacheTypeS3,
+		CacheTypeLocal,
+	}
+}
 
 const (
 	// ComputeTypeBuildGeneral1Small is a ComputeType enum value
@@ -10848,10 +14369,27 @@ const (
 	ComputeTypeBuildGeneral12xlarge = "BUILD_GENERAL1_2XLARGE"
 )
 
+// ComputeType_Values returns all elements of the ComputeType enum
+func ComputeType_Values() []string {
+	return []string{
+		ComputeTypeBuildGeneral1Small,
+		ComputeTypeBuildGeneral1Medium,
+		ComputeTypeBuildGeneral1Large,
+		ComputeTypeBuildGeneral12xlarge,
+	}
+}
+
 const (
 	// CredentialProviderTypeSecretsManager is a CredentialProviderType enum value
 	CredentialProviderTypeSecretsManager = "SECRETS_MANAGER"
 )
+
+// CredentialProviderType_Values returns all elements of the CredentialProviderType enum
+func CredentialProviderType_Values() []string {
+	return []string{
+		CredentialProviderTypeSecretsManager,
+	}
+}
 
 const (
 	// EnvironmentTypeWindowsContainer is a EnvironmentType enum value
@@ -10865,7 +14403,21 @@ const (
 
 	// EnvironmentTypeArmContainer is a EnvironmentType enum value
 	EnvironmentTypeArmContainer = "ARM_CONTAINER"
+
+	// EnvironmentTypeWindowsServer2019Container is a EnvironmentType enum value
+	EnvironmentTypeWindowsServer2019Container = "WINDOWS_SERVER_2019_CONTAINER"
 )
+
+// EnvironmentType_Values returns all elements of the EnvironmentType enum
+func EnvironmentType_Values() []string {
+	return []string{
+		EnvironmentTypeWindowsContainer,
+		EnvironmentTypeLinuxContainer,
+		EnvironmentTypeLinuxGpuContainer,
+		EnvironmentTypeArmContainer,
+		EnvironmentTypeWindowsServer2019Container,
+	}
+}
 
 const (
 	// EnvironmentVariableTypePlaintext is a EnvironmentVariableType enum value
@@ -10878,10 +14430,26 @@ const (
 	EnvironmentVariableTypeSecretsManager = "SECRETS_MANAGER"
 )
 
+// EnvironmentVariableType_Values returns all elements of the EnvironmentVariableType enum
+func EnvironmentVariableType_Values() []string {
+	return []string{
+		EnvironmentVariableTypePlaintext,
+		EnvironmentVariableTypeParameterStore,
+		EnvironmentVariableTypeSecretsManager,
+	}
+}
+
 const (
 	// FileSystemTypeEfs is a FileSystemType enum value
 	FileSystemTypeEfs = "EFS"
 )
+
+// FileSystemType_Values returns all elements of the FileSystemType enum
+func FileSystemType_Values() []string {
+	return []string{
+		FileSystemTypeEfs,
+	}
+}
 
 const (
 	// ImagePullCredentialsTypeCodebuild is a ImagePullCredentialsType enum value
@@ -10890,6 +14458,14 @@ const (
 	// ImagePullCredentialsTypeServiceRole is a ImagePullCredentialsType enum value
 	ImagePullCredentialsTypeServiceRole = "SERVICE_ROLE"
 )
+
+// ImagePullCredentialsType_Values returns all elements of the ImagePullCredentialsType enum
+func ImagePullCredentialsType_Values() []string {
+	return []string{
+		ImagePullCredentialsTypeCodebuild,
+		ImagePullCredentialsTypeServiceRole,
+	}
+}
 
 const (
 	// LanguageTypeJava is a LanguageType enum value
@@ -10923,6 +14499,22 @@ const (
 	LanguageTypePhp = "PHP"
 )
 
+// LanguageType_Values returns all elements of the LanguageType enum
+func LanguageType_Values() []string {
+	return []string{
+		LanguageTypeJava,
+		LanguageTypePython,
+		LanguageTypeNodeJs,
+		LanguageTypeRuby,
+		LanguageTypeGolang,
+		LanguageTypeDocker,
+		LanguageTypeAndroid,
+		LanguageTypeDotnet,
+		LanguageTypeBase,
+		LanguageTypePhp,
+	}
+}
+
 const (
 	// LogsConfigStatusTypeEnabled is a LogsConfigStatusType enum value
 	LogsConfigStatusTypeEnabled = "ENABLED"
@@ -10930,6 +14522,14 @@ const (
 	// LogsConfigStatusTypeDisabled is a LogsConfigStatusType enum value
 	LogsConfigStatusTypeDisabled = "DISABLED"
 )
+
+// LogsConfigStatusType_Values returns all elements of the LogsConfigStatusType enum
+func LogsConfigStatusType_Values() []string {
+	return []string{
+		LogsConfigStatusTypeEnabled,
+		LogsConfigStatusTypeDisabled,
+	}
+}
 
 const (
 	// PlatformTypeDebian is a PlatformType enum value
@@ -10945,6 +14545,16 @@ const (
 	PlatformTypeWindowsServer = "WINDOWS_SERVER"
 )
 
+// PlatformType_Values returns all elements of the PlatformType enum
+func PlatformType_Values() []string {
+	return []string{
+		PlatformTypeDebian,
+		PlatformTypeAmazonLinux,
+		PlatformTypeUbuntu,
+		PlatformTypeWindowsServer,
+	}
+}
+
 const (
 	// ProjectSortByTypeName is a ProjectSortByType enum value
 	ProjectSortByTypeName = "NAME"
@@ -10956,6 +14566,31 @@ const (
 	ProjectSortByTypeLastModifiedTime = "LAST_MODIFIED_TIME"
 )
 
+// ProjectSortByType_Values returns all elements of the ProjectSortByType enum
+func ProjectSortByType_Values() []string {
+	return []string{
+		ProjectSortByTypeName,
+		ProjectSortByTypeCreatedTime,
+		ProjectSortByTypeLastModifiedTime,
+	}
+}
+
+const (
+	// ReportCodeCoverageSortByTypeLineCoveragePercentage is a ReportCodeCoverageSortByType enum value
+	ReportCodeCoverageSortByTypeLineCoveragePercentage = "LINE_COVERAGE_PERCENTAGE"
+
+	// ReportCodeCoverageSortByTypeFilePath is a ReportCodeCoverageSortByType enum value
+	ReportCodeCoverageSortByTypeFilePath = "FILE_PATH"
+)
+
+// ReportCodeCoverageSortByType_Values returns all elements of the ReportCodeCoverageSortByType enum
+func ReportCodeCoverageSortByType_Values() []string {
+	return []string{
+		ReportCodeCoverageSortByTypeLineCoveragePercentage,
+		ReportCodeCoverageSortByTypeFilePath,
+	}
+}
+
 const (
 	// ReportExportConfigTypeS3 is a ReportExportConfigType enum value
 	ReportExportConfigTypeS3 = "S3"
@@ -10963,6 +14598,14 @@ const (
 	// ReportExportConfigTypeNoExport is a ReportExportConfigType enum value
 	ReportExportConfigTypeNoExport = "NO_EXPORT"
 )
+
+// ReportExportConfigType_Values returns all elements of the ReportExportConfigType enum
+func ReportExportConfigType_Values() []string {
+	return []string{
+		ReportExportConfigTypeS3,
+		ReportExportConfigTypeNoExport,
+	}
+}
 
 const (
 	// ReportGroupSortByTypeName is a ReportGroupSortByType enum value
@@ -10975,6 +14618,15 @@ const (
 	ReportGroupSortByTypeLastModifiedTime = "LAST_MODIFIED_TIME"
 )
 
+// ReportGroupSortByType_Values returns all elements of the ReportGroupSortByType enum
+func ReportGroupSortByType_Values() []string {
+	return []string{
+		ReportGroupSortByTypeName,
+		ReportGroupSortByTypeCreatedTime,
+		ReportGroupSortByTypeLastModifiedTime,
+	}
+}
+
 const (
 	// ReportPackagingTypeZip is a ReportPackagingType enum value
 	ReportPackagingTypeZip = "ZIP"
@@ -10982,6 +14634,14 @@ const (
 	// ReportPackagingTypeNone is a ReportPackagingType enum value
 	ReportPackagingTypeNone = "NONE"
 )
+
+// ReportPackagingType_Values returns all elements of the ReportPackagingType enum
+func ReportPackagingType_Values() []string {
+	return []string{
+		ReportPackagingTypeZip,
+		ReportPackagingTypeNone,
+	}
+}
 
 const (
 	// ReportStatusTypeGenerating is a ReportStatusType enum value
@@ -11000,10 +14660,48 @@ const (
 	ReportStatusTypeDeleting = "DELETING"
 )
 
+// ReportStatusType_Values returns all elements of the ReportStatusType enum
+func ReportStatusType_Values() []string {
+	return []string{
+		ReportStatusTypeGenerating,
+		ReportStatusTypeSucceeded,
+		ReportStatusTypeFailed,
+		ReportStatusTypeIncomplete,
+		ReportStatusTypeDeleting,
+	}
+}
+
 const (
 	// ReportTypeTest is a ReportType enum value
 	ReportTypeTest = "TEST"
+
+	// ReportTypeCodeCoverage is a ReportType enum value
+	ReportTypeCodeCoverage = "CODE_COVERAGE"
 )
+
+// ReportType_Values returns all elements of the ReportType enum
+func ReportType_Values() []string {
+	return []string{
+		ReportTypeTest,
+		ReportTypeCodeCoverage,
+	}
+}
+
+const (
+	// RetryBuildBatchTypeRetryAllBuilds is a RetryBuildBatchType enum value
+	RetryBuildBatchTypeRetryAllBuilds = "RETRY_ALL_BUILDS"
+
+	// RetryBuildBatchTypeRetryFailedBuilds is a RetryBuildBatchType enum value
+	RetryBuildBatchTypeRetryFailedBuilds = "RETRY_FAILED_BUILDS"
+)
+
+// RetryBuildBatchType_Values returns all elements of the RetryBuildBatchType enum
+func RetryBuildBatchType_Values() []string {
+	return []string{
+		RetryBuildBatchTypeRetryAllBuilds,
+		RetryBuildBatchTypeRetryFailedBuilds,
+	}
+}
 
 const (
 	// ServerTypeGithub is a ServerType enum value
@@ -11016,6 +14714,15 @@ const (
 	ServerTypeGithubEnterprise = "GITHUB_ENTERPRISE"
 )
 
+// ServerType_Values returns all elements of the ServerType enum
+func ServerType_Values() []string {
+	return []string{
+		ServerTypeGithub,
+		ServerTypeBitbucket,
+		ServerTypeGithubEnterprise,
+	}
+}
+
 const (
 	// SharedResourceSortByTypeArn is a SharedResourceSortByType enum value
 	SharedResourceSortByTypeArn = "ARN"
@@ -11023,6 +14730,14 @@ const (
 	// SharedResourceSortByTypeModifiedTime is a SharedResourceSortByType enum value
 	SharedResourceSortByTypeModifiedTime = "MODIFIED_TIME"
 )
+
+// SharedResourceSortByType_Values returns all elements of the SharedResourceSortByType enum
+func SharedResourceSortByType_Values() []string {
+	return []string{
+		SharedResourceSortByTypeArn,
+		SharedResourceSortByTypeModifiedTime,
+	}
+}
 
 const (
 	// SortOrderTypeAscending is a SortOrderType enum value
@@ -11032,10 +14747,25 @@ const (
 	SortOrderTypeDescending = "DESCENDING"
 )
 
+// SortOrderType_Values returns all elements of the SortOrderType enum
+func SortOrderType_Values() []string {
+	return []string{
+		SortOrderTypeAscending,
+		SortOrderTypeDescending,
+	}
+}
+
 const (
 	// SourceAuthTypeOauth is a SourceAuthType enum value
 	SourceAuthTypeOauth = "OAUTH"
 )
+
+// SourceAuthType_Values returns all elements of the SourceAuthType enum
+func SourceAuthType_Values() []string {
+	return []string{
+		SourceAuthTypeOauth,
+	}
+}
 
 const (
 	// SourceTypeCodecommit is a SourceType enum value
@@ -11060,6 +14790,19 @@ const (
 	SourceTypeNoSource = "NO_SOURCE"
 )
 
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeCodecommit,
+		SourceTypeCodepipeline,
+		SourceTypeGithub,
+		SourceTypeS3,
+		SourceTypeBitbucket,
+		SourceTypeGithubEnterprise,
+		SourceTypeNoSource,
+	}
+}
+
 const (
 	// StatusTypeSucceeded is a StatusType enum value
 	StatusTypeSucceeded = "SUCCEEDED"
@@ -11080,6 +14823,34 @@ const (
 	StatusTypeStopped = "STOPPED"
 )
 
+// StatusType_Values returns all elements of the StatusType enum
+func StatusType_Values() []string {
+	return []string{
+		StatusTypeSucceeded,
+		StatusTypeFailed,
+		StatusTypeFault,
+		StatusTypeTimedOut,
+		StatusTypeInProgress,
+		StatusTypeStopped,
+	}
+}
+
+const (
+	// WebhookBuildTypeBuild is a WebhookBuildType enum value
+	WebhookBuildTypeBuild = "BUILD"
+
+	// WebhookBuildTypeBuildBatch is a WebhookBuildType enum value
+	WebhookBuildTypeBuildBatch = "BUILD_BATCH"
+)
+
+// WebhookBuildType_Values returns all elements of the WebhookBuildType enum
+func WebhookBuildType_Values() []string {
+	return []string{
+		WebhookBuildTypeBuild,
+		WebhookBuildTypeBuildBatch,
+	}
+}
+
 const (
 	// WebhookFilterTypeEvent is a WebhookFilterType enum value
 	WebhookFilterTypeEvent = "EVENT"
@@ -11099,3 +14870,15 @@ const (
 	// WebhookFilterTypeCommitMessage is a WebhookFilterType enum value
 	WebhookFilterTypeCommitMessage = "COMMIT_MESSAGE"
 )
+
+// WebhookFilterType_Values returns all elements of the WebhookFilterType enum
+func WebhookFilterType_Values() []string {
+	return []string{
+		WebhookFilterTypeEvent,
+		WebhookFilterTypeBaseRef,
+		WebhookFilterTypeHeadRef,
+		WebhookFilterTypeActorAccountId,
+		WebhookFilterTypeFilePath,
+		WebhookFilterTypeCommitMessage,
+	}
+}

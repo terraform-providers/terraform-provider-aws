@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceAwsRegions_Basic(t *testing.T) {
+func TestAccDataSourceAwsRegions_basic(t *testing.T) {
 	resourceName := "data.aws_regions.empty"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -100,7 +100,7 @@ data "aws_regions" "empty" {}
 func testAccDataSourceAwsRegionsConfig_allRegions() string {
 	return `
 data "aws_regions" "all_regions" {
-	all_regions = "true"
+  all_regions = "true"
 }
 `
 }
@@ -108,10 +108,10 @@ data "aws_regions" "all_regions" {
 func testAccDataSourceAwsRegionsConfig_allRegionsFiltered(filter string) string {
 	return fmt.Sprintf(`
 data "aws_regions" "opt_in_status" {
-	filter {
-       name   = "opt-in-status"
-       values = ["%s"]
-    }
+  filter {
+    name   = "opt-in-status"
+    values = ["%s"]
+  }
 }
 `, filter)
 }

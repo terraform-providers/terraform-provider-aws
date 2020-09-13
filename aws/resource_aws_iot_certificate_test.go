@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iot"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIoTCertificate_csr(t *testing.T) {
@@ -89,7 +89,7 @@ func testAccCheckAWSIoTCertificateDestroy_basic(s *terraform.State) error {
 
 var testAccAWSIoTCertificate_csr = `
 resource "aws_iot_certificate" "foo_cert" {
-  csr = "${file("test-fixtures/iot-csr.pem")}"
+  csr    = file("test-fixtures/iot-csr.pem")
   active = true
 }
 `

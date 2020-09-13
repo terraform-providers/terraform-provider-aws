@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpnGatewayAttachment_basic(t *testing.T) {
@@ -143,27 +143,29 @@ func testAccCheckVpnGatewayAttachmentDestroy(s *terraform.State) error {
 
 const testAccNoVpnGatewayAttachmentConfig = `
 resource "aws_vpc" "test" {
-	cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-vpn-gateway-attachment-basic"
-	}
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpn-gateway-attachment-basic"
+  }
 }
 
-resource "aws_vpn_gateway" "test" { }
+resource "aws_vpn_gateway" "test" {}
 `
 
 const testAccVpnGatewayAttachmentConfig = `
 resource "aws_vpc" "test" {
-	cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-vpn-gateway-attachment-deleted"
-	}
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpn-gateway-attachment-deleted"
+  }
 }
 
-resource "aws_vpn_gateway" "test" { }
+resource "aws_vpn_gateway" "test" {}
 
 resource "aws_vpn_gateway_attachment" "test" {
-	vpc_id = "${aws_vpc.test.id}"
-	vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpc_id         = aws_vpc.test.id
+  vpn_gateway_id = aws_vpn_gateway.test.id
 }
 `

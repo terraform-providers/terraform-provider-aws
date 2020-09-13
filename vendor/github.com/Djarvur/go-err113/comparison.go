@@ -99,5 +99,5 @@ func asImportedName(ex ast.Expr, info *types.Info) (string, bool) {
 		return "", false
 	}
 
-	return ep.Imported().Name(), true
+	return ep.Imported().Path(), true
 }

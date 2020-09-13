@@ -16607,6 +16607,16 @@ const (
 	ActivityTaskTimeoutTypeHeartbeat = "HEARTBEAT"
 )
 
+// ActivityTaskTimeoutType_Values returns all elements of the ActivityTaskTimeoutType enum
+func ActivityTaskTimeoutType_Values() []string {
+	return []string{
+		ActivityTaskTimeoutTypeStartToClose,
+		ActivityTaskTimeoutTypeScheduleToStart,
+		ActivityTaskTimeoutTypeScheduleToClose,
+		ActivityTaskTimeoutTypeHeartbeat,
+	}
+}
+
 const (
 	// CancelTimerFailedCauseTimerIdUnknown is a CancelTimerFailedCause enum value
 	CancelTimerFailedCauseTimerIdUnknown = "TIMER_ID_UNKNOWN"
@@ -16615,6 +16625,14 @@ const (
 	CancelTimerFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// CancelTimerFailedCause_Values returns all elements of the CancelTimerFailedCause enum
+func CancelTimerFailedCause_Values() []string {
+	return []string{
+		CancelTimerFailedCauseTimerIdUnknown,
+		CancelTimerFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// CancelWorkflowExecutionFailedCauseUnhandledDecision is a CancelWorkflowExecutionFailedCause enum value
 	CancelWorkflowExecutionFailedCauseUnhandledDecision = "UNHANDLED_DECISION"
@@ -16622,6 +16640,14 @@ const (
 	// CancelWorkflowExecutionFailedCauseOperationNotPermitted is a CancelWorkflowExecutionFailedCause enum value
 	CancelWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// CancelWorkflowExecutionFailedCause_Values returns all elements of the CancelWorkflowExecutionFailedCause enum
+func CancelWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		CancelWorkflowExecutionFailedCauseUnhandledDecision,
+		CancelWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// ChildPolicyTerminate is a ChildPolicy enum value
@@ -16633,6 +16659,15 @@ const (
 	// ChildPolicyAbandon is a ChildPolicy enum value
 	ChildPolicyAbandon = "ABANDON"
 )
+
+// ChildPolicy_Values returns all elements of the ChildPolicy enum
+func ChildPolicy_Values() []string {
+	return []string{
+		ChildPolicyTerminate,
+		ChildPolicyRequestCancel,
+		ChildPolicyAbandon,
+	}
+}
 
 const (
 	// CloseStatusCompleted is a CloseStatus enum value
@@ -16654,6 +16689,18 @@ const (
 	CloseStatusTimedOut = "TIMED_OUT"
 )
 
+// CloseStatus_Values returns all elements of the CloseStatus enum
+func CloseStatus_Values() []string {
+	return []string{
+		CloseStatusCompleted,
+		CloseStatusFailed,
+		CloseStatusCanceled,
+		CloseStatusTerminated,
+		CloseStatusContinuedAsNew,
+		CloseStatusTimedOut,
+	}
+}
+
 const (
 	// CompleteWorkflowExecutionFailedCauseUnhandledDecision is a CompleteWorkflowExecutionFailedCause enum value
 	CompleteWorkflowExecutionFailedCauseUnhandledDecision = "UNHANDLED_DECISION"
@@ -16661,6 +16708,14 @@ const (
 	// CompleteWorkflowExecutionFailedCauseOperationNotPermitted is a CompleteWorkflowExecutionFailedCause enum value
 	CompleteWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// CompleteWorkflowExecutionFailedCause_Values returns all elements of the CompleteWorkflowExecutionFailedCause enum
+func CompleteWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		CompleteWorkflowExecutionFailedCauseUnhandledDecision,
+		CompleteWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// ContinueAsNewWorkflowExecutionFailedCauseUnhandledDecision is a ContinueAsNewWorkflowExecutionFailedCause enum value
@@ -16691,10 +16746,32 @@ const (
 	ContinueAsNewWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// ContinueAsNewWorkflowExecutionFailedCause_Values returns all elements of the ContinueAsNewWorkflowExecutionFailedCause enum
+func ContinueAsNewWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		ContinueAsNewWorkflowExecutionFailedCauseUnhandledDecision,
+		ContinueAsNewWorkflowExecutionFailedCauseWorkflowTypeDeprecated,
+		ContinueAsNewWorkflowExecutionFailedCauseWorkflowTypeDoesNotExist,
+		ContinueAsNewWorkflowExecutionFailedCauseDefaultExecutionStartToCloseTimeoutUndefined,
+		ContinueAsNewWorkflowExecutionFailedCauseDefaultTaskStartToCloseTimeoutUndefined,
+		ContinueAsNewWorkflowExecutionFailedCauseDefaultTaskListUndefined,
+		ContinueAsNewWorkflowExecutionFailedCauseDefaultChildPolicyUndefined,
+		ContinueAsNewWorkflowExecutionFailedCauseContinueAsNewWorkflowExecutionRateExceeded,
+		ContinueAsNewWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// DecisionTaskTimeoutTypeStartToClose is a DecisionTaskTimeoutType enum value
 	DecisionTaskTimeoutTypeStartToClose = "START_TO_CLOSE"
 )
+
+// DecisionTaskTimeoutType_Values returns all elements of the DecisionTaskTimeoutType enum
+func DecisionTaskTimeoutType_Values() []string {
+	return []string{
+		DecisionTaskTimeoutTypeStartToClose,
+	}
+}
 
 const (
 	// DecisionTypeScheduleActivityTask is a DecisionType enum value
@@ -16736,6 +16813,25 @@ const (
 	// DecisionTypeScheduleLambdaFunction is a DecisionType enum value
 	DecisionTypeScheduleLambdaFunction = "ScheduleLambdaFunction"
 )
+
+// DecisionType_Values returns all elements of the DecisionType enum
+func DecisionType_Values() []string {
+	return []string{
+		DecisionTypeScheduleActivityTask,
+		DecisionTypeRequestCancelActivityTask,
+		DecisionTypeCompleteWorkflowExecution,
+		DecisionTypeFailWorkflowExecution,
+		DecisionTypeCancelWorkflowExecution,
+		DecisionTypeContinueAsNewWorkflowExecution,
+		DecisionTypeRecordMarker,
+		DecisionTypeStartTimer,
+		DecisionTypeCancelTimer,
+		DecisionTypeSignalExternalWorkflowExecution,
+		DecisionTypeRequestCancelExternalWorkflowExecution,
+		DecisionTypeStartChildWorkflowExecution,
+		DecisionTypeScheduleLambdaFunction,
+	}
+}
 
 const (
 	// EventTypeWorkflowExecutionStarted is a EventType enum value
@@ -16901,6 +16997,66 @@ const (
 	EventTypeStartLambdaFunctionFailed = "StartLambdaFunctionFailed"
 )
 
+// EventType_Values returns all elements of the EventType enum
+func EventType_Values() []string {
+	return []string{
+		EventTypeWorkflowExecutionStarted,
+		EventTypeWorkflowExecutionCancelRequested,
+		EventTypeWorkflowExecutionCompleted,
+		EventTypeCompleteWorkflowExecutionFailed,
+		EventTypeWorkflowExecutionFailed,
+		EventTypeFailWorkflowExecutionFailed,
+		EventTypeWorkflowExecutionTimedOut,
+		EventTypeWorkflowExecutionCanceled,
+		EventTypeCancelWorkflowExecutionFailed,
+		EventTypeWorkflowExecutionContinuedAsNew,
+		EventTypeContinueAsNewWorkflowExecutionFailed,
+		EventTypeWorkflowExecutionTerminated,
+		EventTypeDecisionTaskScheduled,
+		EventTypeDecisionTaskStarted,
+		EventTypeDecisionTaskCompleted,
+		EventTypeDecisionTaskTimedOut,
+		EventTypeActivityTaskScheduled,
+		EventTypeScheduleActivityTaskFailed,
+		EventTypeActivityTaskStarted,
+		EventTypeActivityTaskCompleted,
+		EventTypeActivityTaskFailed,
+		EventTypeActivityTaskTimedOut,
+		EventTypeActivityTaskCanceled,
+		EventTypeActivityTaskCancelRequested,
+		EventTypeRequestCancelActivityTaskFailed,
+		EventTypeWorkflowExecutionSignaled,
+		EventTypeMarkerRecorded,
+		EventTypeRecordMarkerFailed,
+		EventTypeTimerStarted,
+		EventTypeStartTimerFailed,
+		EventTypeTimerFired,
+		EventTypeTimerCanceled,
+		EventTypeCancelTimerFailed,
+		EventTypeStartChildWorkflowExecutionInitiated,
+		EventTypeStartChildWorkflowExecutionFailed,
+		EventTypeChildWorkflowExecutionStarted,
+		EventTypeChildWorkflowExecutionCompleted,
+		EventTypeChildWorkflowExecutionFailed,
+		EventTypeChildWorkflowExecutionTimedOut,
+		EventTypeChildWorkflowExecutionCanceled,
+		EventTypeChildWorkflowExecutionTerminated,
+		EventTypeSignalExternalWorkflowExecutionInitiated,
+		EventTypeSignalExternalWorkflowExecutionFailed,
+		EventTypeExternalWorkflowExecutionSignaled,
+		EventTypeRequestCancelExternalWorkflowExecutionInitiated,
+		EventTypeRequestCancelExternalWorkflowExecutionFailed,
+		EventTypeExternalWorkflowExecutionCancelRequested,
+		EventTypeLambdaFunctionScheduled,
+		EventTypeLambdaFunctionStarted,
+		EventTypeLambdaFunctionCompleted,
+		EventTypeLambdaFunctionFailed,
+		EventTypeLambdaFunctionTimedOut,
+		EventTypeScheduleLambdaFunctionFailed,
+		EventTypeStartLambdaFunctionFailed,
+	}
+}
+
 const (
 	// ExecutionStatusOpen is a ExecutionStatus enum value
 	ExecutionStatusOpen = "OPEN"
@@ -16908,6 +17064,14 @@ const (
 	// ExecutionStatusClosed is a ExecutionStatus enum value
 	ExecutionStatusClosed = "CLOSED"
 )
+
+// ExecutionStatus_Values returns all elements of the ExecutionStatus enum
+func ExecutionStatus_Values() []string {
+	return []string{
+		ExecutionStatusOpen,
+		ExecutionStatusClosed,
+	}
+}
 
 const (
 	// FailWorkflowExecutionFailedCauseUnhandledDecision is a FailWorkflowExecutionFailedCause enum value
@@ -16917,15 +17081,37 @@ const (
 	FailWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// FailWorkflowExecutionFailedCause_Values returns all elements of the FailWorkflowExecutionFailedCause enum
+func FailWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		FailWorkflowExecutionFailedCauseUnhandledDecision,
+		FailWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// LambdaFunctionTimeoutTypeStartToClose is a LambdaFunctionTimeoutType enum value
 	LambdaFunctionTimeoutTypeStartToClose = "START_TO_CLOSE"
 )
 
+// LambdaFunctionTimeoutType_Values returns all elements of the LambdaFunctionTimeoutType enum
+func LambdaFunctionTimeoutType_Values() []string {
+	return []string{
+		LambdaFunctionTimeoutTypeStartToClose,
+	}
+}
+
 const (
 	// RecordMarkerFailedCauseOperationNotPermitted is a RecordMarkerFailedCause enum value
 	RecordMarkerFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// RecordMarkerFailedCause_Values returns all elements of the RecordMarkerFailedCause enum
+func RecordMarkerFailedCause_Values() []string {
+	return []string{
+		RecordMarkerFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// RegistrationStatusRegistered is a RegistrationStatus enum value
@@ -16935,6 +17121,14 @@ const (
 	RegistrationStatusDeprecated = "DEPRECATED"
 )
 
+// RegistrationStatus_Values returns all elements of the RegistrationStatus enum
+func RegistrationStatus_Values() []string {
+	return []string{
+		RegistrationStatusRegistered,
+		RegistrationStatusDeprecated,
+	}
+}
+
 const (
 	// RequestCancelActivityTaskFailedCauseActivityIdUnknown is a RequestCancelActivityTaskFailedCause enum value
 	RequestCancelActivityTaskFailedCauseActivityIdUnknown = "ACTIVITY_ID_UNKNOWN"
@@ -16942,6 +17136,14 @@ const (
 	// RequestCancelActivityTaskFailedCauseOperationNotPermitted is a RequestCancelActivityTaskFailedCause enum value
 	RequestCancelActivityTaskFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// RequestCancelActivityTaskFailedCause_Values returns all elements of the RequestCancelActivityTaskFailedCause enum
+func RequestCancelActivityTaskFailedCause_Values() []string {
+	return []string{
+		RequestCancelActivityTaskFailedCauseActivityIdUnknown,
+		RequestCancelActivityTaskFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// RequestCancelExternalWorkflowExecutionFailedCauseUnknownExternalWorkflowExecution is a RequestCancelExternalWorkflowExecutionFailedCause enum value
@@ -16953,6 +17155,15 @@ const (
 	// RequestCancelExternalWorkflowExecutionFailedCauseOperationNotPermitted is a RequestCancelExternalWorkflowExecutionFailedCause enum value
 	RequestCancelExternalWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// RequestCancelExternalWorkflowExecutionFailedCause_Values returns all elements of the RequestCancelExternalWorkflowExecutionFailedCause enum
+func RequestCancelExternalWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		RequestCancelExternalWorkflowExecutionFailedCauseUnknownExternalWorkflowExecution,
+		RequestCancelExternalWorkflowExecutionFailedCauseRequestCancelExternalWorkflowExecutionRateExceeded,
+		RequestCancelExternalWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// ScheduleActivityTaskFailedCauseActivityTypeDeprecated is a ScheduleActivityTaskFailedCause enum value
@@ -16989,6 +17200,23 @@ const (
 	ScheduleActivityTaskFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// ScheduleActivityTaskFailedCause_Values returns all elements of the ScheduleActivityTaskFailedCause enum
+func ScheduleActivityTaskFailedCause_Values() []string {
+	return []string{
+		ScheduleActivityTaskFailedCauseActivityTypeDeprecated,
+		ScheduleActivityTaskFailedCauseActivityTypeDoesNotExist,
+		ScheduleActivityTaskFailedCauseActivityIdAlreadyInUse,
+		ScheduleActivityTaskFailedCauseOpenActivitiesLimitExceeded,
+		ScheduleActivityTaskFailedCauseActivityCreationRateExceeded,
+		ScheduleActivityTaskFailedCauseDefaultScheduleToCloseTimeoutUndefined,
+		ScheduleActivityTaskFailedCauseDefaultTaskListUndefined,
+		ScheduleActivityTaskFailedCauseDefaultScheduleToStartTimeoutUndefined,
+		ScheduleActivityTaskFailedCauseDefaultStartToCloseTimeoutUndefined,
+		ScheduleActivityTaskFailedCauseDefaultHeartbeatTimeoutUndefined,
+		ScheduleActivityTaskFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// ScheduleLambdaFunctionFailedCauseIdAlreadyInUse is a ScheduleLambdaFunctionFailedCause enum value
 	ScheduleLambdaFunctionFailedCauseIdAlreadyInUse = "ID_ALREADY_IN_USE"
@@ -17003,6 +17231,16 @@ const (
 	ScheduleLambdaFunctionFailedCauseLambdaServiceNotAvailableInRegion = "LAMBDA_SERVICE_NOT_AVAILABLE_IN_REGION"
 )
 
+// ScheduleLambdaFunctionFailedCause_Values returns all elements of the ScheduleLambdaFunctionFailedCause enum
+func ScheduleLambdaFunctionFailedCause_Values() []string {
+	return []string{
+		ScheduleLambdaFunctionFailedCauseIdAlreadyInUse,
+		ScheduleLambdaFunctionFailedCauseOpenLambdaFunctionsLimitExceeded,
+		ScheduleLambdaFunctionFailedCauseLambdaFunctionCreationRateExceeded,
+		ScheduleLambdaFunctionFailedCauseLambdaServiceNotAvailableInRegion,
+	}
+}
+
 const (
 	// SignalExternalWorkflowExecutionFailedCauseUnknownExternalWorkflowExecution is a SignalExternalWorkflowExecutionFailedCause enum value
 	SignalExternalWorkflowExecutionFailedCauseUnknownExternalWorkflowExecution = "UNKNOWN_EXTERNAL_WORKFLOW_EXECUTION"
@@ -17013,6 +17251,15 @@ const (
 	// SignalExternalWorkflowExecutionFailedCauseOperationNotPermitted is a SignalExternalWorkflowExecutionFailedCause enum value
 	SignalExternalWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
+
+// SignalExternalWorkflowExecutionFailedCause_Values returns all elements of the SignalExternalWorkflowExecutionFailedCause enum
+func SignalExternalWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		SignalExternalWorkflowExecutionFailedCauseUnknownExternalWorkflowExecution,
+		SignalExternalWorkflowExecutionFailedCauseSignalExternalWorkflowExecutionRateExceeded,
+		SignalExternalWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
 
 const (
 	// StartChildWorkflowExecutionFailedCauseWorkflowTypeDoesNotExist is a StartChildWorkflowExecutionFailedCause enum value
@@ -17049,10 +17296,34 @@ const (
 	StartChildWorkflowExecutionFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// StartChildWorkflowExecutionFailedCause_Values returns all elements of the StartChildWorkflowExecutionFailedCause enum
+func StartChildWorkflowExecutionFailedCause_Values() []string {
+	return []string{
+		StartChildWorkflowExecutionFailedCauseWorkflowTypeDoesNotExist,
+		StartChildWorkflowExecutionFailedCauseWorkflowTypeDeprecated,
+		StartChildWorkflowExecutionFailedCauseOpenChildrenLimitExceeded,
+		StartChildWorkflowExecutionFailedCauseOpenWorkflowsLimitExceeded,
+		StartChildWorkflowExecutionFailedCauseChildCreationRateExceeded,
+		StartChildWorkflowExecutionFailedCauseWorkflowAlreadyRunning,
+		StartChildWorkflowExecutionFailedCauseDefaultExecutionStartToCloseTimeoutUndefined,
+		StartChildWorkflowExecutionFailedCauseDefaultTaskListUndefined,
+		StartChildWorkflowExecutionFailedCauseDefaultTaskStartToCloseTimeoutUndefined,
+		StartChildWorkflowExecutionFailedCauseDefaultChildPolicyUndefined,
+		StartChildWorkflowExecutionFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// StartLambdaFunctionFailedCauseAssumeRoleFailed is a StartLambdaFunctionFailedCause enum value
 	StartLambdaFunctionFailedCauseAssumeRoleFailed = "ASSUME_ROLE_FAILED"
 )
+
+// StartLambdaFunctionFailedCause_Values returns all elements of the StartLambdaFunctionFailedCause enum
+func StartLambdaFunctionFailedCause_Values() []string {
+	return []string{
+		StartLambdaFunctionFailedCauseAssumeRoleFailed,
+	}
+}
 
 const (
 	// StartTimerFailedCauseTimerIdAlreadyInUse is a StartTimerFailedCause enum value
@@ -17068,10 +17339,27 @@ const (
 	StartTimerFailedCauseOperationNotPermitted = "OPERATION_NOT_PERMITTED"
 )
 
+// StartTimerFailedCause_Values returns all elements of the StartTimerFailedCause enum
+func StartTimerFailedCause_Values() []string {
+	return []string{
+		StartTimerFailedCauseTimerIdAlreadyInUse,
+		StartTimerFailedCauseOpenTimersLimitExceeded,
+		StartTimerFailedCauseTimerCreationRateExceeded,
+		StartTimerFailedCauseOperationNotPermitted,
+	}
+}
+
 const (
 	// WorkflowExecutionCancelRequestedCauseChildPolicyApplied is a WorkflowExecutionCancelRequestedCause enum value
 	WorkflowExecutionCancelRequestedCauseChildPolicyApplied = "CHILD_POLICY_APPLIED"
 )
+
+// WorkflowExecutionCancelRequestedCause_Values returns all elements of the WorkflowExecutionCancelRequestedCause enum
+func WorkflowExecutionCancelRequestedCause_Values() []string {
+	return []string{
+		WorkflowExecutionCancelRequestedCauseChildPolicyApplied,
+	}
+}
 
 const (
 	// WorkflowExecutionTerminatedCauseChildPolicyApplied is a WorkflowExecutionTerminatedCause enum value
@@ -17084,7 +17372,23 @@ const (
 	WorkflowExecutionTerminatedCauseOperatorInitiated = "OPERATOR_INITIATED"
 )
 
+// WorkflowExecutionTerminatedCause_Values returns all elements of the WorkflowExecutionTerminatedCause enum
+func WorkflowExecutionTerminatedCause_Values() []string {
+	return []string{
+		WorkflowExecutionTerminatedCauseChildPolicyApplied,
+		WorkflowExecutionTerminatedCauseEventLimitExceeded,
+		WorkflowExecutionTerminatedCauseOperatorInitiated,
+	}
+}
+
 const (
 	// WorkflowExecutionTimeoutTypeStartToClose is a WorkflowExecutionTimeoutType enum value
 	WorkflowExecutionTimeoutTypeStartToClose = "START_TO_CLOSE"
 )
+
+// WorkflowExecutionTimeoutType_Values returns all elements of the WorkflowExecutionTimeoutType enum
+func WorkflowExecutionTimeoutType_Values() []string {
+	return []string{
+		WorkflowExecutionTimeoutTypeStartToClose,
+	}
+}

@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEMRInstanceGroup_basic(t *testing.T) {
@@ -344,8 +344,8 @@ func testAccAWSEMRInstanceGroupRecreated(t *testing.T, before, after *emr.Instan
 const testAccAWSEmrInstanceGroupBase = `
 data "aws_availability_zones" "available" {
   # Many instance types are not available in this availability zone
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -358,7 +358,7 @@ data "aws_partition" "current" {}
 resource "aws_security_group" "allow_all" {
   name        = "allow_all"
   description = "Allow all inbound traffic"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 0
@@ -374,7 +374,7 @@ resource "aws_security_group" "allow_all" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  depends_on = ["aws_subnet.main"]
+  depends_on = [aws_subnet.main]
 
   lifecycle {
     ignore_changes = ["ingress", "egress"]
@@ -393,21 +393,21 @@ resource "aws_subnet" "main" {
 }
 
 resource "aws_internet_gateway" "gw" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 }
 
 resource "aws_route_table" "r" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gw.id}"
+    gateway_id = aws_internet_gateway.gw.id
   }
 }
 
 resource "aws_main_route_table_association" "a" {
-  vpc_id         = "${aws_vpc.main.id}"
-  route_table_id = "${aws_route_table.r.id}"
+  vpc_id         = aws_vpc.main.id
+  route_table_id = aws_route_table.r.id
 }
 
 ## EMR Cluster Configuration
@@ -464,8 +464,8 @@ EOT
 }
 
 resource "aws_iam_role_policy_attachment" "service-attach" {
-  role       = "${aws_iam_role.iam_emr_default_role.id}"
-  policy_arn = "${aws_iam_policy.iam_emr_default_policy.arn}"
+  role       = aws_iam_role.iam_emr_default_role.id
+  policy_arn = aws_iam_policy.iam_emr_default_policy.arn
 }
 
 resource "aws_iam_policy" "iam_emr_default_policy" {
@@ -560,12 +560,12 @@ EOT
 
 resource "aws_iam_instance_profile" "emr_profile" {
   name  = "emr_profile_%[1]d"
-  role = "${aws_iam_role.iam_emr_profile_role.name}"
+  role = aws_iam_role.iam_emr_profile_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "profile-attach" {
-  role       = "${aws_iam_role.iam_emr_profile_role.id}"
-  policy_arn = "${aws_iam_policy.iam_emr_profile_policy.arn}"
+  role       = aws_iam_role.iam_emr_profile_role.id
+  policy_arn = aws_iam_policy.iam_emr_profile_policy.arn
 }
 
 resource "aws_iam_policy" "iam_emr_profile_policy" {
@@ -609,7 +609,7 @@ EOT
 # IAM Role for autoscaling
 resource "aws_iam_role" "emr-autoscaling-role" {
   name               = "EMR_AutoScaling_DefaultRole_%[1]d"
-  assume_role_policy = "${data.aws_iam_policy_document.emr-autoscaling-role-policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.emr-autoscaling-role-policy.json
 }
 
 data "aws_iam_policy_document" "emr-autoscaling-role-policy" {
@@ -624,39 +624,39 @@ data "aws_iam_policy_document" "emr-autoscaling-role-policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "emr-autoscaling-role" {
-  role       = "${aws_iam_role.emr-autoscaling-role.name}"
+  role       = aws_iam_role.emr-autoscaling-role.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
 `
 
 func testAccAWSEmrInstanceGroupConfig_basic(r int) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-	resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    instance_count = 1
-    instance_type  = "c4.large"
-  }
+resource "aws_emr_instance_group" "task" {
+  cluster_id     = aws_emr_cluster.tf-test-cluster.id
+  instance_count = 1
+  instance_type  = "c4.large"
+}
 `, r)
 }
 
 func testAccAWSEmrInstanceGroupConfig_BidPrice(r int) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-	resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    bid_price			 = "0.30"
-    instance_count = 1
-    instance_type  = "c4.large"
-  }
+resource "aws_emr_instance_group" "task" {
+  cluster_id     = aws_emr_cluster.tf-test-cluster.id
+  bid_price      = "0.30"
+  instance_count = 1
+  instance_type  = "c4.large"
+}
 `, r)
 }
 
 func testAccAWSEmrInstanceGroupConfig_ConfigurationsJson(r int, name string) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-	resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    instance_count = 1
-    instance_type  = "c4.large"
-    configurations_json =  <<EOF
+resource "aws_emr_instance_group" "task" {
+  cluster_id          = aws_emr_cluster.tf-test-cluster.id
+  instance_count      = 1
+  instance_type       = "c4.large"
+  configurations_json =  <<EOF
     [
       {
         "Classification": "yarn-site",
@@ -667,17 +667,17 @@ func testAccAWSEmrInstanceGroupConfig_ConfigurationsJson(r int, name string) str
       }
     ]
 EOF
-  }
+}
 `, r, name)
 }
 
 func testAccAWSEmrInstanceGroupConfig_AutoScalingPolicy(r, min, max int) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-	resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    instance_count = 1
-    instance_type  = "c4.large"
-    autoscaling_policy = <<EOT
+resource "aws_emr_instance_group" "task" {
+  cluster_id         = aws_emr_cluster.tf-test-cluster.id
+  instance_count     = 1
+  instance_type      = "c4.large"
+  autoscaling_policy = <<EOT
 {
   "Constraints": {
     "MinCapacity": %d,
@@ -716,25 +716,26 @@ EOT
 
 func testAccAWSEmrInstanceGroupConfig_ebsConfig(r int, o bool) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-		resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    instance_count = 1
-    instance_type  = "c4.large"
-    ebs_optimized = %t
-    ebs_config {
-      size = 10
-      type = "gp2"
-    }
+resource "aws_emr_instance_group" "task" {
+  cluster_id     = aws_emr_cluster.tf-test-cluster.id
+  instance_count = 1
+  instance_type  = "c4.large"
+  ebs_optimized  = %t
+
+  ebs_config {
+    size = 10
+    type = "gp2"
   }
+}
 `, r, o)
 }
 
 func testAccAWSEmrInstanceGroupConfig_zeroCount(r int) string {
 	return fmt.Sprintf(testAccAWSEmrInstanceGroupBase+`
-	resource "aws_emr_instance_group" "task" {
-    cluster_id     = "${aws_emr_cluster.tf-test-cluster.id}"
-    instance_count = 0
-    instance_type  = "c4.large"
-  }
+resource "aws_emr_instance_group" "task" {
+  cluster_id     = aws_emr_cluster.tf-test-cluster.id
+  instance_count = 0
+  instance_type  = "c4.large"
+}
 `, r)
 }

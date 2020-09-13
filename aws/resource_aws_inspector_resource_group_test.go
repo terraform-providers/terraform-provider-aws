@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSInspectorResourceGroup_basic(t *testing.T) {
@@ -82,13 +82,15 @@ func testAccCheckAWSInspectorResourceGroupRecreated(v1, v2 *inspector.ResourceGr
 var testAccAWSInspectorResourceGroup = `
 resource "aws_inspector_resource_group" "test" {
   tags = {
-    Name  = "foo"
+    Name = "foo"
   }
-}`
+}
+`
 
 var testAccCheckAWSInspectorResourceGroupModified = `
 resource "aws_inspector_resource_group" "test" {
   tags = {
-    Name  = "bar"
+    Name = "bar"
   }
-}`
+}
+`

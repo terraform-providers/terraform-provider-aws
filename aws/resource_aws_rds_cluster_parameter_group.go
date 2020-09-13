@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -221,16 +221,33 @@ func resourceAwsRDSClusterParameterGroupUpdate(d *schema.ResourceData, meta inte
 			}
 		}
 
+		toRemove := map[string]*rds.Parameter{}
+
+		for _, p := range expandParameters(os.List()) {
+			if p.ParameterName != nil {
+				toRemove[*p.ParameterName] = p
+			}
+		}
+
+		for _, p := range expandParameters(ns.List()) {
+			if p.ParameterName != nil {
+				delete(toRemove, *p.ParameterName)
+			}
+		}
+
 		// Reset parameters that have been removed
-		parameters = expandParameters(os.Difference(ns).List())
-		if len(parameters) > 0 {
-			for parameters != nil {
+		var resetParameters []*rds.Parameter
+		for _, v := range toRemove {
+			resetParameters = append(resetParameters, v)
+		}
+		if len(resetParameters) > 0 {
+			for resetParameters != nil {
 				parameterGroupName := d.Get("name").(string)
 				var paramsToReset []*rds.Parameter
-				if len(parameters) <= rdsClusterParameterGroupMaxParamsBulkEdit {
-					paramsToReset, parameters = parameters[:], nil
+				if len(resetParameters) <= rdsClusterParameterGroupMaxParamsBulkEdit {
+					paramsToReset, resetParameters = resetParameters[:], nil
 				} else {
-					paramsToReset, parameters = parameters[:rdsClusterParameterGroupMaxParamsBulkEdit], parameters[rdsClusterParameterGroupMaxParamsBulkEdit:]
+					paramsToReset, resetParameters = resetParameters[:rdsClusterParameterGroupMaxParamsBulkEdit], resetParameters[rdsClusterParameterGroupMaxParamsBulkEdit:]
 				}
 
 				resetOpts := rds.ResetDBClusterParameterGroupInput{

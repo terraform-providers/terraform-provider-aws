@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCognitoResourceServer_basic(t *testing.T) {
@@ -171,7 +171,7 @@ func testAccAWSCognitoResourceServerConfig_basic(identifier string, name string,
 resource "aws_cognito_resource_server" "main" {
   identifier   = "%s"
   name         = "%s"
-  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  user_pool_id = aws_cognito_user_pool.main.id
 }
 
 resource "aws_cognito_user_pool" "main" {
@@ -196,7 +196,7 @@ resource "aws_cognito_resource_server" "main" {
     scope_description = "scope_2_description"
   }
 
-  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  user_pool_id = aws_cognito_user_pool.main.id
 }
 
 resource "aws_cognito_user_pool" "main" {
@@ -216,7 +216,7 @@ resource "aws_cognito_resource_server" "main" {
     scope_description = "scope_1_description"
   }
 
-  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  user_pool_id = aws_cognito_user_pool.main.id
 }
 
 resource "aws_cognito_user_pool" "main" {

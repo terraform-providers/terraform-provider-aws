@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSBackupPlanDataSource_basic(t *testing.T) {
@@ -37,8 +37,9 @@ func TestAccAWSBackupPlanDataSource_basic(t *testing.T) {
 
 const testAccAwsBackupPlanDataSourceConfig_nonExistent = `
 data "aws_backup_plan" "test" {
-	plan_id = "tf-acc-test-does-not-exist"
-}`
+  plan_id = "tf-acc-test-does-not-exist"
+}
+`
 
 func testAccAwsBackupPlanDataSourceConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
@@ -51,7 +52,7 @@ resource "aws_backup_plan" "test" {
 
   rule {
     rule_name         = "tf_acc_test_backup_rule_%[1]d"
-    target_vault_name = "${aws_backup_vault.test.name}"
+    target_vault_name = aws_backup_vault.test.name
     schedule          = "cron(0 12 * * ? *)"
   }
 

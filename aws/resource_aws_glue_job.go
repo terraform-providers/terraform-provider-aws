@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -23,14 +23,6 @@ func resourceAwsGlueJob() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"allocated_capacity": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"max_capacity", "number_of_workers", "worker_type"},
-				Deprecated:    "Please use attribute `max_capacity' instead. This attribute might be removed in future releases.",
-				ValidateFunc:  validation.IntAtLeast(2),
-			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -98,7 +90,7 @@ func resourceAwsGlueJob() *schema.Resource {
 				Type:          schema.TypeFloat,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"allocated_capacity", "number_of_workers", "worker_type"},
+				ConflictsWith: []string{"number_of_workers", "worker_type"},
 			},
 			"max_retries": {
 				Type:         schema.TypeInt,
@@ -144,7 +136,7 @@ func resourceAwsGlueJob() *schema.Resource {
 			"worker_type": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"allocated_capacity", "max_capacity"},
+				ConflictsWith: []string{"max_capacity"},
 				ValidateFunc: validation.StringInSlice([]string{
 					glue.WorkerTypeG1x,
 					glue.WorkerTypeG2x,
@@ -154,7 +146,7 @@ func resourceAwsGlueJob() *schema.Resource {
 			"number_of_workers": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ConflictsWith: []string{"allocated_capacity", "max_capacity"},
+				ConflictsWith: []string{"max_capacity"},
 				ValidateFunc:  validation.IntAtLeast(2),
 			},
 		},
@@ -175,11 +167,6 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("max_capacity"); ok {
 		input.MaxCapacity = aws.Float64(v.(float64))
-	} else {
-		if v, ok := d.GetOk("allocated_capacity"); ok {
-			input.MaxCapacity = aws.Float64(float64(v.(int)))
-			log.Printf("[WARN] Using deprecated `allocated_capacity' attribute.")
-		}
 	}
 
 	if v, ok := d.GetOk("connections"); ok {
@@ -314,16 +301,13 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("worker_type", job.WorkerType)
 	d.Set("number_of_workers", int(aws.Int64Value(job.NumberOfWorkers)))
 
-	// TODO: Deprecated fields - remove in next major version
-	d.Set("allocated_capacity", int(aws.Int64Value(job.AllocatedCapacity)))
-
 	return nil
 }
 
 func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
 
-	if d.HasChanges("allocated_capacity", "command", "connections", "default_arguments", "description",
+	if d.HasChanges("command", "connections", "default_arguments", "description",
 		"execution_property", "glue_version", "max_capacity", "max_retries", "notification_property", "number_of_workers",
 		"role_arn", "security_configuration", "timeout", "worker_type") {
 		jobUpdate := &glue.JobUpdate{
@@ -337,10 +321,6 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		} else {
 			if v, ok := d.GetOk("max_capacity"); ok {
 				jobUpdate.MaxCapacity = aws.Float64(v.(float64))
-			}
-			if d.HasChange("allocated_capacity") {
-				jobUpdate.MaxCapacity = aws.Float64(float64(d.Get("allocated_capacity").(int)))
-				log.Printf("[WARN] Using deprecated `allocated_capacity' attribute.")
 			}
 		}
 

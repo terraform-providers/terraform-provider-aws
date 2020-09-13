@@ -2,11 +2,11 @@ package aws
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSBackupVaultDataSource_basic(t *testing.T) {
@@ -38,7 +38,7 @@ func TestAccAWSBackupVaultDataSource_basic(t *testing.T) {
 
 const testAccAwsBackupVaultDataSourceConfig_nonExistent = `
 data "aws_backup_vault" "test" {
-	name = "tf-acc-test-does-not-exist"
+  name = "tf-acc-test-does-not-exist"
 }
 `
 

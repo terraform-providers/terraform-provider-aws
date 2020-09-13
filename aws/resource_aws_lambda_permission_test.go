@@ -12,9 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestLambdaPermissionUnmarshalling(t *testing.T) {
@@ -934,31 +934,32 @@ EOF
 
 var testAccAWSLambdaPermissionConfig_multiplePerms_tpl = `
 resource "aws_lambda_permission" "first" {
-    statement_id = "AllowExecutionFirst"
-    action = "lambda:InvokeFunction"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "AllowExecutionFirst"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 
 resource "aws_lambda_permission" "%s" {
-    statement_id = "%s"
-    action = "lambda:*"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "%s"
+  action        = "lambda:*"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 %s
 
 resource "aws_lambda_function" "test" {
-    filename = "test-fixtures/lambdatest.zip"
-    function_name = "%s"
-    role = aws_iam_role.iam_for_lambda.arn
-    handler = "exports.handler"
-    runtime = "nodejs12.x"
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "%s"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.handler"
+  runtime       = "nodejs12.x"
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-    name = "%s"
-    assume_role_policy = <<EOF
+  name = "%s"
+
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -985,10 +986,10 @@ func testAccAWSLambdaPermissionConfig_multiplePermsModified(funcName, roleName s
 	return fmt.Sprintf(testAccAWSLambdaPermissionConfig_multiplePerms_tpl,
 		"sec0nd", "AllowExecutionSec0nd", `
 resource "aws_lambda_permission" "third" {
-    statement_id = "AllowExecutionThird"
-    action = "lambda:*"
-    function_name = aws_lambda_function.test.arn
-    principal = "events.amazonaws.com"
+  statement_id  = "AllowExecutionThird"
+  action        = "lambda:*"
+  function_name = aws_lambda_function.test.arn
+  principal     = "events.amazonaws.com"
 }
 `, funcName, roleName)
 }
@@ -1128,19 +1129,26 @@ EOF
 }
 
 var testLambdaPolicy = []byte(`{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Condition": {
-				"StringEquals": {"AWS:SourceAccount": "319201112229", "lambda:EventSourceToken": "test-event-source-token"},
-				"ArnLike":{"AWS:SourceArn":"arn:aws:events:eu-west-1:319201112229:rule/RunDaily"}
-			},
-			"Action": "lambda:InvokeFunction",
-			"Resource": "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",
-			"Effect": "Allow",
-			"Principal": {"Service":"events.amazonaws.com"},
-			"Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
-		}
-	],
-	"Id":"default"
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceAccount": "319201112229",
+          "lambda:EventSourceToken": "test-event-source-token"
+        },
+        "ArnLike": {
+          "AWS:SourceArn": "arn:aws:events:eu-west-1:319201112229:rule/RunDaily"
+        }
+      },
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:eu-west-1:319201112229:function:myCustomFunction",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "events.amazonaws.com"
+      },
+      "Sid": "36fe77d9-a4ae-13fb-8beb-5dc6821d5291"
+    }
+  ],
+  "Id": "default"
 }`)

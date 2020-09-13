@@ -10,19 +10,19 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
-	resource.AddTestSweepers("aws_workspace", &resource.Sweeper{
-		Name: "aws_workspace",
-		F:    testSweepWorkspaces,
+	resource.AddTestSweepers("aws_workspaces_workspace", &resource.Sweeper{
+		Name: "aws_workspaces_workspace",
+		F:    testSweepWorkspacesWorkspace,
 	})
 }
 
-func testSweepWorkspaces(region string) error {
+func testSweepWorkspacesWorkspace(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
 		return fmt.Errorf("error getting client: %w", err)
@@ -198,6 +198,40 @@ func TestAccAwsWorkspacesWorkspace_workspaceProperties(t *testing.T) {
 	})
 }
 
+// TestAccAwsWorkspacesWorkspace_workspaceProperties_runningModeAlwaysOn
+// validates workspace resource creation/import when workspace_properties.running_mode is set to ALWAYS_ON
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/13558
+func TestAccAwsWorkspacesWorkspace_workspaceProperties_runningModeAlwaysOn(t *testing.T) {
+	var v1 workspaces.Workspace
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_workspaces_workspace.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsWorkspacesWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWorkspacesWorkspaceConfig_WorkspacePropertiesB(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAwsWorkspacesWorkspaceExists(resourceName, &v1),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.0.compute_type_name", workspaces.ComputeValue),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.0.root_volume_size_gib", "80"),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.0.running_mode", workspaces.RunningModeAlwaysOn),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.0.running_mode_auto_stop_timeout_in_minutes", "0"),
+					resource.TestCheckResourceAttr(resourceName, "workspace_properties.0.user_volume_size_gib", "10"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAwsWorkspacesWorkspace_validateRootVolumeSize(t *testing.T) {
 	rName := acctest.RandString(8)
 
@@ -234,7 +268,7 @@ func testAccCheckAwsWorkspacesWorkspaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).workspacesconn
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_workspace" {
+		if rs.Type != "aws_workspaces_workspace" {
 			continue
 		}
 
@@ -286,35 +320,35 @@ func testAccCheckAwsWorkspacesWorkspaceExists(n string, v *workspaces.Workspace)
 func testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName string) string {
 	return composeConfig(
 		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
-		fmt.Sprintf(`
+		`
 data "aws_workspaces_bundle" "test" {
   bundle_id = "wsb-bh8rsxt14" # Value with Windows 10 (English)
 }
 
 resource "aws_workspaces_directory" "test" {
-  directory_id = "${aws_directory_service_directory.main.id}"
+  directory_id = aws_directory_service_directory.main.id
 }
-`))
+`)
 }
 
 func testAccWorkspacesWorkspaceConfig(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
   user_name = "Administrator"
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_TagsA(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id  = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
@@ -325,14 +359,14 @@ resource "aws_workspaces_workspace" "test" {
     Alpha                    = 1
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_TagsB(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
@@ -343,14 +377,14 @@ resource "aws_workspaces_workspace" "test" {
     Beta                     = 2
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_TagsC(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
@@ -360,22 +394,22 @@ resource "aws_workspaces_workspace" "test" {
     TerraformProviderAwsTest = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_WorkspacePropertiesA(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
   user_name = "Administrator"
-  
+
   workspace_properties {
     # NOTE: Compute type and volume size update not allowed within 6 hours after creation.
-    running_mode = "AUTO_STOP"
+    running_mode                              = "AUTO_STOP"
     running_mode_auto_stop_timeout_in_minutes = 120
   }
 
@@ -383,36 +417,36 @@ resource "aws_workspaces_workspace" "test" {
     TerraformProviderAwsTest = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_WorkspacePropertiesB(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
-  user_name = "Administrator" 
+  user_name = "Administrator"
 
   workspace_properties {
     # NOTE: Compute type and volume size update not allowed within 6 hours after creation.
     running_mode = "ALWAYS_ON"
   }
-  
+
   tags = {
     TerraformProviderAwsTest = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_WorkspacePropertiesC(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
@@ -421,19 +455,19 @@ resource "aws_workspaces_workspace" "test" {
   workspace_properties {
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_validateRootVolumeSize(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
-  user_name = "Administrator" 
- 
+  user_name = "Administrator"
+
   workspace_properties {
     root_volume_size_gib = 90
     user_volume_size_gib = 50
@@ -443,19 +477,19 @@ resource "aws_workspaces_workspace" "test" {
     TerraformProviderAwsTest = true
   }
 }
-`)
+`
 }
 
 func testAccWorkspacesWorkspaceConfig_validateUserVolumeSize(rName string) string {
-	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + fmt.Sprintf(`
+	return testAccAwsWorkspacesWorkspaceConfig_Prerequisites(rName) + `
 resource "aws_workspaces_workspace" "test" {
-  bundle_id    = "${data.aws_workspaces_bundle.test.id}"
-  directory_id = "${aws_workspaces_directory.test.id}"
+  bundle_id    = data.aws_workspaces_bundle.test.id
+  directory_id = aws_workspaces_directory.test.id
 
   # NOTE: WorkSpaces API doesn't allow creating users in the directory.
   # However, "Administrator"" user is always present in a bare directory.
-  user_name = "Administrator" 
- 
+  user_name = "Administrator"
+
   workspace_properties {
     root_volume_size_gib = 80
     user_volume_size_gib = 60
@@ -465,7 +499,7 @@ resource "aws_workspaces_workspace" "test" {
     TerraformProviderAwsTest = true
   }
 }
-`)
+`
 }
 
 func TestExpandWorkspaceProperties(t *testing.T) {

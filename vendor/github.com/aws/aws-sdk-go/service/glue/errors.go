@@ -38,6 +38,12 @@ const (
 	// A specified condition was not satisfied.
 	ErrCodeConditionCheckFailureException = "ConditionCheckFailureException"
 
+	// ErrCodeConflictException for service response error code
+	// "ConflictException".
+	//
+	// The CreatePartitions API was called on a table that has indexes enabled.
+	ErrCodeConflictException = "ConflictException"
+
 	// ErrCodeCrawlerNotRunningException for service response error code
 	// "CrawlerNotRunningException".
 	//
@@ -153,6 +159,7 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"ConcurrentModificationException":      newErrorConcurrentModificationException,
 	"ConcurrentRunsExceededException":      newErrorConcurrentRunsExceededException,
 	"ConditionCheckFailureException":       newErrorConditionCheckFailureException,
+	"ConflictException":                    newErrorConflictException,
 	"CrawlerNotRunningException":           newErrorCrawlerNotRunningException,
 	"CrawlerRunningException":              newErrorCrawlerRunningException,
 	"CrawlerStoppingException":             newErrorCrawlerStoppingException,

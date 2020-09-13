@@ -19,11 +19,11 @@ See [ECS Services section in AWS developer guide](https://docs.aws.amazon.com/Am
 ```hcl
 resource "aws_ecs_service" "mongo" {
   name            = "mongodb"
-  cluster         = "${aws_ecs_cluster.foo.id}"
-  task_definition = "${aws_ecs_task_definition.mongo.arn}"
+  cluster         = aws_ecs_cluster.foo.id
+  task_definition = aws_ecs_task_definition.mongo.arn
   desired_count   = 3
-  iam_role        = "${aws_iam_role.foo.arn}"
-  depends_on      = ["aws_iam_role_policy.foo"]
+  iam_role        = aws_iam_role.foo.arn
+  depends_on      = [aws_iam_role_policy.foo]
 
   ordered_placement_strategy {
     type  = "binpack"
@@ -31,7 +31,7 @@ resource "aws_ecs_service" "mongo" {
   }
 
   load_balancer {
-    target_group_arn = "${aws_lb_target_group.foo.arn}"
+    target_group_arn = aws_lb_target_group.foo.arn
     container_name   = "mongo"
     container_port   = 8080
   }
@@ -56,7 +56,7 @@ resource "aws_ecs_service" "example" {
 
   # Optional: Allow external changes without Terraform plan difference
   lifecycle {
-    ignore_changes = ["desired_count"]
+    ignore_changes = [desired_count]
   }
 }
 ```
@@ -66,9 +66,22 @@ resource "aws_ecs_service" "example" {
 ```hcl
 resource "aws_ecs_service" "bar" {
   name                = "bar"
-  cluster             = "${aws_ecs_cluster.foo.id}"
-  task_definition     = "${aws_ecs_task_definition.bar.arn}"
+  cluster             = aws_ecs_cluster.foo.id
+  task_definition     = aws_ecs_task_definition.bar.arn
   scheduling_strategy = "DAEMON"
+}
+```
+
+### External Deployment Controller
+
+```hcl
+resource "aws_ecs_service" "example" {
+  name    = "example"
+  cluster = aws_ecs_cluster.example.id
+
+  deployment_controller {
+    type = "EXTERNAL"
+  }
 }
 ```
 
@@ -94,10 +107,10 @@ The following arguments are supported:
 * `placement_constraints` - (Optional) rules that are taken into consideration during task placement. Updates to this configuration will take effect next task deployment unless `force_new_deployment` is enabled. Maximum number of `placement_constraints` is `10`. Defined below.
 * `platform_version` - (Optional) The platform version on which to run your service. Only applicable for `launch_type` set to `FARGATE`. Defaults to `LATEST`. More information about Fargate platform versions can be found in the [AWS ECS User Guide](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/platform_versions.html).
 * `propagate_tags` - (Optional) Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are `SERVICE` and `TASK_DEFINITION`.
-* `scheduling_strategy` - (Optional) The scheduling strategy to use for the service. The valid values are `REPLICA` and `DAEMON`. Defaults to `REPLICA`. Note that [*Fargate tasks do not support the `DAEMON` scheduling strategy*](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html).
+* `scheduling_strategy` - (Optional) The scheduling strategy to use for the service. The valid values are `REPLICA` and `DAEMON`. Defaults to `REPLICA`. Note that [*Tasks using the Fargate launch type or the `CODE_DEPLOY` or `EXTERNAL` deployment controller types don't support the `DAEMON` scheduling strategy*](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_CreateService.html).
 * `service_registries` - (Optional) The service discovery registries for the service. The maximum number of `service_registries` blocks is `1`.
 * `tags` - (Optional) Key-value map of resource tags
-* `task_definition` - (Required) The family and revision (`family:revision`) or full ARN of the task definition that you want to run in your service.
+* `task_definition` - (Optional) The family and revision (`family:revision`) or full ARN of the task definition that you want to run in your service. Required unless using the `EXTERNAL` deployment controller. If a revision is not specified, the latest `ACTIVE` revision is used.
 
 ## capacity_provider_strategy
 
@@ -111,7 +124,7 @@ The `capacity_provider_strategy` configuration block supports the following:
 
 The `deployment_controller` configuration block supports the following:
 
-* `type` - (Optional) Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`. Default: `ECS`.
+* `type` - (Optional) Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`, `EXTERNAL`. Default: `ECS`.
 
 ## load_balancer
 
@@ -175,6 +188,13 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster` - The Amazon Resource Name (ARN) of cluster which the service runs on
 * `iam_role` - The ARN of IAM role used for ELB
 * `desired_count` - The number of instances of the task definition
+
+## Timeouts
+
+`aws_ecs_service` provides the following
+[Timeouts](/docs/configuration/resources.html#operation-timeouts) configuration options:
+
+- `delete` - (Default `20 minutes`)
 
 ## Import
 

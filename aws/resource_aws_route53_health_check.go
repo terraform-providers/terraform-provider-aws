@@ -6,9 +6,9 @@ import (
 	"net"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -148,6 +148,12 @@ func resourceAwsRoute53HealthCheck() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"disabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -211,6 +217,10 @@ func resourceAwsRoute53HealthCheckUpdate(d *schema.ResourceData, meta interface{
 
 	if d.HasChange("regions") {
 		updateHealthCheck.Regions = expandStringList(d.Get("regions").(*schema.Set).List())
+	}
+
+	if d.HasChange("disabled") {
+		updateHealthCheck.Disabled = aws.Bool(d.Get("disabled").(bool))
 	}
 
 	_, err := conn.UpdateHealthCheck(updateHealthCheck)
@@ -315,6 +325,10 @@ func resourceAwsRoute53HealthCheckCreate(d *schema.ResourceData, meta interface{
 		callerRef = fmt.Sprintf("%s-%s", v.(string), callerRef)
 	}
 
+	if v, ok := d.GetOk("disabled"); ok {
+		healthConfig.Disabled = aws.Bool(v.(bool))
+	}
+
 	input := &route53.CreateHealthCheckInput{
 		CallerReference:   aws.String(callerRef),
 		HealthCheckConfig: healthConfig,
@@ -364,6 +378,7 @@ func resourceAwsRoute53HealthCheckRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_path", updated.ResourcePath)
 	d.Set("measure_latency", updated.MeasureLatency)
 	d.Set("invert_healthcheck", updated.Inverted)
+	d.Set("disabled", updated.Disabled)
 
 	if err := d.Set("child_healthchecks", flattenStringList(updated.ChildHealthChecks)); err != nil {
 		return fmt.Errorf("error setting child_healthchecks: %s", err)

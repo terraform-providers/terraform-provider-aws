@@ -4956,6 +4956,17 @@ const (
 	OperatorTypeBetween = "BETWEEN"
 )
 
+// OperatorType_Values returns all elements of the OperatorType enum
+func OperatorType_Values() []string {
+	return []string{
+		OperatorTypeEq,
+		OperatorTypeRefEq,
+		OperatorTypeLe,
+		OperatorTypeGe,
+		OperatorTypeBetween,
+	}
+}
+
 const (
 	// TaskStatusFinished is a TaskStatus enum value
 	TaskStatusFinished = "FINISHED"
@@ -4966,3 +4977,12 @@ const (
 	// TaskStatusFalse is a TaskStatus enum value
 	TaskStatusFalse = "FALSE"
 )
+
+// TaskStatus_Values returns all elements of the TaskStatus enum
+func TaskStatus_Values() []string {
+	return []string{
+		TaskStatusFinished,
+		TaskStatusFailed,
+		TaskStatusFalse,
+	}
+}

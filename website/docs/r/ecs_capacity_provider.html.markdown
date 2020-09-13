@@ -10,9 +10,20 @@ description: |-
 
 Provides an ECS cluster capacity provider. More information can be found on the [ECS Developer Guide](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cluster-capacity-providers.html).
 
+~> **NOTE:** Associating an ECS Capacity Provider to an Auto Scaling Group will automatically add the `AmazonECSManaged` tag to the Auto Scaling Group. This tag should be included in the `aws_autoscaling_group` resource configuration to prevent Terraform from removing it in subsequent executions as well as ensuring the `AmazonECSManaged` tag is propagated to all EC2 Instances in the Auto Scaling Group if `min_size` is above 0 on creation. Any EC2 Instances in the Auto Scaling Group without this tag must be manually be updated, otherwise they may cause unexpected scaling behavior and metrics.
+
 ## Example Usage
 
 ```hcl
+resource "aws_autoscaling_group" "test" {
+  # ... other configuration, including potentially other tags ...
+
+  tag {
+    key                 = "AmazonECSManaged"
+    propagate_at_launch = true
+  }
+}
+
 resource "aws_ecs_capacity_provider" "test" {
   name = "test"
 

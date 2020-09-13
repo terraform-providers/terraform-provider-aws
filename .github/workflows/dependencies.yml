@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - master
+      - 'release/**'
   pull_request:
     paths:
+      - awsproviderlint/** # go/analysis/analysistest requires vendoring
       - go.mod
       - go.sum
       - vendor/**
@@ -15,7 +17,7 @@ env:
 
 jobs:
   comment:
-    if: github.event_name == 'pull_request' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "renovate[bot]"]'), github.actor)
+    if: github.event_name == 'pull_request' && !contains(fromJSON('["anGie44", "bflad", "breathingdust", "DrFaust92", "ewbankkit", "gdavison", "maryelizbeth", "YakDriver", "renovate[bot]"]'), github.actor)
     name: Comment
     runs-on: ubuntu-latest
     steps:
@@ -27,10 +29,10 @@ jobs:
           check_duplicate_msg: true
           msg: |-
             Thank you for your contribution! :rocket:
-            
+
             Please note that typically Go dependency changes are handled in this repository by Renovate Bot or the maintainers. This is to prevent pull request merge conflicts and further delay reviews of contributions. Remove any changes to the `go.mod`, `go.sum`, and `vendor/` files and commit them into this pull request.
 
-            Addtional details:
+            Additional details:
 
             * Check [open pull requests with the `dependencies` label](https://github.com/terraform-providers/terraform-provider-aws/pulls?q=is%3Aopen+is%3Apr+label%3Adependencies) to view other dependency updates.
             * If this pull request includes an update the AWS Go SDK (or any other dependency) version, only updates submitted via Renovate Bot will be merged. This pull request will need to remove these changes and will need to be rebased after the existing dependency update via Renovate Bot has been merged for this pull request to be reviewed.

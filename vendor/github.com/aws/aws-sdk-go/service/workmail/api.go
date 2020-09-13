@@ -10462,6 +10462,14 @@ const (
 	AccessControlRuleEffectDeny = "DENY"
 )
 
+// AccessControlRuleEffect_Values returns all elements of the AccessControlRuleEffect enum
+func AccessControlRuleEffect_Values() []string {
+	return []string{
+		AccessControlRuleEffectAllow,
+		AccessControlRuleEffectDeny,
+	}
+}
+
 const (
 	// EntityStateEnabled is a EntityState enum value
 	EntityStateEnabled = "ENABLED"
@@ -10472,6 +10480,15 @@ const (
 	// EntityStateDeleted is a EntityState enum value
 	EntityStateDeleted = "DELETED"
 )
+
+// EntityState_Values returns all elements of the EntityState enum
+func EntityState_Values() []string {
+	return []string{
+		EntityStateEnabled,
+		EntityStateDisabled,
+		EntityStateDeleted,
+	}
+}
 
 const (
 	// FolderNameInbox is a FolderName enum value
@@ -10490,6 +10507,17 @@ const (
 	FolderNameJunkEmail = "JUNK_EMAIL"
 )
 
+// FolderName_Values returns all elements of the FolderName enum
+func FolderName_Values() []string {
+	return []string{
+		FolderNameInbox,
+		FolderNameDeletedItems,
+		FolderNameSentItems,
+		FolderNameDrafts,
+		FolderNameJunkEmail,
+	}
+}
+
 const (
 	// MemberTypeGroup is a MemberType enum value
 	MemberTypeGroup = "GROUP"
@@ -10497,6 +10525,14 @@ const (
 	// MemberTypeUser is a MemberType enum value
 	MemberTypeUser = "USER"
 )
+
+// MemberType_Values returns all elements of the MemberType enum
+func MemberType_Values() []string {
+	return []string{
+		MemberTypeGroup,
+		MemberTypeUser,
+	}
+}
 
 const (
 	// PermissionTypeFullAccess is a PermissionType enum value
@@ -10509,6 +10545,15 @@ const (
 	PermissionTypeSendOnBehalf = "SEND_ON_BEHALF"
 )
 
+// PermissionType_Values returns all elements of the PermissionType enum
+func PermissionType_Values() []string {
+	return []string{
+		PermissionTypeFullAccess,
+		PermissionTypeSendAs,
+		PermissionTypeSendOnBehalf,
+	}
+}
+
 const (
 	// ResourceTypeRoom is a ResourceType enum value
 	ResourceTypeRoom = "ROOM"
@@ -10516,6 +10561,14 @@ const (
 	// ResourceTypeEquipment is a ResourceType enum value
 	ResourceTypeEquipment = "EQUIPMENT"
 )
+
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeRoom,
+		ResourceTypeEquipment,
+	}
+}
 
 const (
 	// RetentionActionNone is a RetentionAction enum value
@@ -10528,6 +10581,15 @@ const (
 	RetentionActionPermanentlyDelete = "PERMANENTLY_DELETE"
 )
 
+// RetentionAction_Values returns all elements of the RetentionAction enum
+func RetentionAction_Values() []string {
+	return []string{
+		RetentionActionNone,
+		RetentionActionDelete,
+		RetentionActionPermanentlyDelete,
+	}
+}
+
 const (
 	// UserRoleUser is a UserRole enum value
 	UserRoleUser = "USER"
@@ -10538,3 +10600,12 @@ const (
 	// UserRoleSystemUser is a UserRole enum value
 	UserRoleSystemUser = "SYSTEM_USER"
 )
+
+// UserRole_Values returns all elements of the UserRole enum
+func UserRole_Values() []string {
+	return []string{
+		UserRoleUser,
+		UserRoleResource,
+		UserRoleSystemUser,
+	}
+}

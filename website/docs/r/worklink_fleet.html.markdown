@@ -25,9 +25,9 @@ resource "aws_worklink_fleet" "example" {
   name = "terraform-example"
 
   network {
-    vpc_id             = "${aws_vpc.test.id}"
-    subnet_ids         = ["${aws_subnet.test.*.id}"]
-    security_group_ids = ["${aws_security_group.test.id}"]
+    vpc_id             = aws_vpc.test.id
+    subnet_ids         = [aws_subnet.test.*.id]
+    security_group_ids = [aws_security_group.test.id]
   }
 }
 ```
@@ -36,11 +36,11 @@ Identity Provider Configuration Usage:
 
 ```hcl
 resource "aws_worklink_fleet" "test" {
-  name = "tf-worklink-fleet-%s"
+  name = "tf-worklink-fleet"
 
   identity_provider {
     type          = "SAML"
-    saml_metadata = "${file("saml-metadata.xml")}"
+    saml_metadata = file("saml-metadata.xml")
   }
 }
 ```
@@ -51,7 +51,7 @@ resource "aws_worklink_fleet" "test" {
 The following arguments are supported:
 
 * `name` - (Required) A region-unique name for the AMI.
-* `audit_stream_arn` - (Optional) The ARN of the Amazon Kinesis data stream that receives the audit events.
+* `audit_stream_arn` - (Optional) The ARN of the Amazon Kinesis data stream that receives the audit events. Kinesis data stream name must begin with `"AmazonWorkLink-"`.
 * `device_ca_certificate` - (Optional) The certificate chain, including intermediate certificates and the root certificate authority certificate used to issue device certificates.
 * `identity_provider` - (Optional) Provide this to allow manage the identity provider configuration for the fleet. Fields documented below.
 * `display_name` - (Optional) The name of the fleet.

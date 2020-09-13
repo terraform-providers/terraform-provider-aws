@@ -8,7 +8,7 @@ import (
 )
 
 func SideNavigationLinkCheck(opts *SideNavigationOptions) error {
-	if opts == nil || opts.ProviderName == "" {
+	if opts == nil || opts.ProviderName == "" || !opts.Require {
 		return nil
 	}
 

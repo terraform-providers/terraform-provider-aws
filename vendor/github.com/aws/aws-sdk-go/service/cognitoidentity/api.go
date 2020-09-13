@@ -5240,6 +5240,14 @@ const (
 	AmbiguousRoleResolutionTypeDeny = "Deny"
 )
 
+// AmbiguousRoleResolutionType_Values returns all elements of the AmbiguousRoleResolutionType enum
+func AmbiguousRoleResolutionType_Values() []string {
+	return []string{
+		AmbiguousRoleResolutionTypeAuthenticatedRole,
+		AmbiguousRoleResolutionTypeDeny,
+	}
+}
+
 const (
 	// ErrorCodeAccessDenied is a ErrorCode enum value
 	ErrorCodeAccessDenied = "AccessDenied"
@@ -5247,6 +5255,14 @@ const (
 	// ErrorCodeInternalServerError is a ErrorCode enum value
 	ErrorCodeInternalServerError = "InternalServerError"
 )
+
+// ErrorCode_Values returns all elements of the ErrorCode enum
+func ErrorCode_Values() []string {
+	return []string{
+		ErrorCodeAccessDenied,
+		ErrorCodeInternalServerError,
+	}
+}
 
 const (
 	// MappingRuleMatchTypeEquals is a MappingRuleMatchType enum value
@@ -5262,6 +5278,16 @@ const (
 	MappingRuleMatchTypeNotEqual = "NotEqual"
 )
 
+// MappingRuleMatchType_Values returns all elements of the MappingRuleMatchType enum
+func MappingRuleMatchType_Values() []string {
+	return []string{
+		MappingRuleMatchTypeEquals,
+		MappingRuleMatchTypeContains,
+		MappingRuleMatchTypeStartsWith,
+		MappingRuleMatchTypeNotEqual,
+	}
+}
+
 const (
 	// RoleMappingTypeToken is a RoleMappingType enum value
 	RoleMappingTypeToken = "Token"
@@ -5269,3 +5295,11 @@ const (
 	// RoleMappingTypeRules is a RoleMappingType enum value
 	RoleMappingTypeRules = "Rules"
 )
+
+// RoleMappingType_Values returns all elements of the RoleMappingType enum
+func RoleMappingType_Values() []string {
+	return []string{
+		RoleMappingTypeToken,
+		RoleMappingTypeRules,
+	}
+}

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func TestAccAWSEc2Tag_basic(t *testing.T) {
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_ec2_tag.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +37,7 @@ func TestAccAWSEc2Tag_basic(t *testing.T) {
 }
 
 func TestAccAWSEc2Tag_disappears(t *testing.T) {
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_ec2_tag.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +58,7 @@ func TestAccAWSEc2Tag_disappears(t *testing.T) {
 }
 
 func TestAccAWSEc2Tag_Value(t *testing.T) {
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_ec2_tag.test"
 
 	resource.ParallelTest(t, resource.TestCase{

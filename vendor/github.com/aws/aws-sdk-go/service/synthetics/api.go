@@ -3774,6 +3774,15 @@ const (
 	CanaryRunStateFailed = "FAILED"
 )
 
+// CanaryRunState_Values returns all elements of the CanaryRunState enum
+func CanaryRunState_Values() []string {
+	return []string{
+		CanaryRunStateRunning,
+		CanaryRunStatePassed,
+		CanaryRunStateFailed,
+	}
+}
+
 const (
 	// CanaryRunStateReasonCodeCanaryFailure is a CanaryRunStateReasonCode enum value
 	CanaryRunStateReasonCodeCanaryFailure = "CANARY_FAILURE"
@@ -3781,6 +3790,14 @@ const (
 	// CanaryRunStateReasonCodeExecutionFailure is a CanaryRunStateReasonCode enum value
 	CanaryRunStateReasonCodeExecutionFailure = "EXECUTION_FAILURE"
 )
+
+// CanaryRunStateReasonCode_Values returns all elements of the CanaryRunStateReasonCode enum
+func CanaryRunStateReasonCode_Values() []string {
+	return []string{
+		CanaryRunStateReasonCodeCanaryFailure,
+		CanaryRunStateReasonCodeExecutionFailure,
+	}
+}
 
 const (
 	// CanaryStateCreating is a CanaryState enum value
@@ -3811,7 +3828,29 @@ const (
 	CanaryStateDeleting = "DELETING"
 )
 
+// CanaryState_Values returns all elements of the CanaryState enum
+func CanaryState_Values() []string {
+	return []string{
+		CanaryStateCreating,
+		CanaryStateReady,
+		CanaryStateStarting,
+		CanaryStateRunning,
+		CanaryStateUpdating,
+		CanaryStateStopping,
+		CanaryStateStopped,
+		CanaryStateError,
+		CanaryStateDeleting,
+	}
+}
+
 const (
 	// CanaryStateReasonCodeInvalidPermissions is a CanaryStateReasonCode enum value
 	CanaryStateReasonCodeInvalidPermissions = "INVALID_PERMISSIONS"
 )
+
+// CanaryStateReasonCode_Values returns all elements of the CanaryStateReasonCode enum
+func CanaryStateReasonCode_Values() []string {
+	return []string{
+		CanaryStateReasonCodeInvalidPermissions,
+	}
+}

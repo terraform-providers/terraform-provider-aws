@@ -2946,6 +2946,16 @@ const (
 	ForecastDataTypeScheduledActionMaxCapacity = "ScheduledActionMaxCapacity"
 )
 
+// ForecastDataType_Values returns all elements of the ForecastDataType enum
+func ForecastDataType_Values() []string {
+	return []string{
+		ForecastDataTypeCapacityForecast,
+		ForecastDataTypeLoadForecast,
+		ForecastDataTypeScheduledActionMinCapacity,
+		ForecastDataTypeScheduledActionMaxCapacity,
+	}
+}
+
 const (
 	// LoadMetricTypeAsgtotalCpuutilization is a LoadMetricType enum value
 	LoadMetricTypeAsgtotalCpuutilization = "ASGTotalCPUUtilization"
@@ -2959,6 +2969,16 @@ const (
 	// LoadMetricTypeAlbtargetGroupRequestCount is a LoadMetricType enum value
 	LoadMetricTypeAlbtargetGroupRequestCount = "ALBTargetGroupRequestCount"
 )
+
+// LoadMetricType_Values returns all elements of the LoadMetricType enum
+func LoadMetricType_Values() []string {
+	return []string{
+		LoadMetricTypeAsgtotalCpuutilization,
+		LoadMetricTypeAsgtotalNetworkIn,
+		LoadMetricTypeAsgtotalNetworkOut,
+		LoadMetricTypeAlbtargetGroupRequestCount,
+	}
+}
 
 const (
 	// MetricStatisticAverage is a MetricStatistic enum value
@@ -2977,10 +2997,28 @@ const (
 	MetricStatisticSum = "Sum"
 )
 
+// MetricStatistic_Values returns all elements of the MetricStatistic enum
+func MetricStatistic_Values() []string {
+	return []string{
+		MetricStatisticAverage,
+		MetricStatisticMinimum,
+		MetricStatisticMaximum,
+		MetricStatisticSampleCount,
+		MetricStatisticSum,
+	}
+}
+
 const (
 	// PolicyTypeTargetTrackingScaling is a PolicyType enum value
 	PolicyTypeTargetTrackingScaling = "TargetTrackingScaling"
 )
+
+// PolicyType_Values returns all elements of the PolicyType enum
+func PolicyType_Values() []string {
+	return []string{
+		PolicyTypeTargetTrackingScaling,
+	}
+}
 
 const (
 	// PredictiveScalingMaxCapacityBehaviorSetForecastCapacityToMaxCapacity is a PredictiveScalingMaxCapacityBehavior enum value
@@ -2993,6 +3031,15 @@ const (
 	PredictiveScalingMaxCapacityBehaviorSetMaxCapacityAboveForecastCapacity = "SetMaxCapacityAboveForecastCapacity"
 )
 
+// PredictiveScalingMaxCapacityBehavior_Values returns all elements of the PredictiveScalingMaxCapacityBehavior enum
+func PredictiveScalingMaxCapacityBehavior_Values() []string {
+	return []string{
+		PredictiveScalingMaxCapacityBehaviorSetForecastCapacityToMaxCapacity,
+		PredictiveScalingMaxCapacityBehaviorSetMaxCapacityToForecastCapacity,
+		PredictiveScalingMaxCapacityBehaviorSetMaxCapacityAboveForecastCapacity,
+	}
+}
+
 const (
 	// PredictiveScalingModeForecastAndScale is a PredictiveScalingMode enum value
 	PredictiveScalingModeForecastAndScale = "ForecastAndScale"
@@ -3000,6 +3047,14 @@ const (
 	// PredictiveScalingModeForecastOnly is a PredictiveScalingMode enum value
 	PredictiveScalingModeForecastOnly = "ForecastOnly"
 )
+
+// PredictiveScalingMode_Values returns all elements of the PredictiveScalingMode enum
+func PredictiveScalingMode_Values() []string {
+	return []string{
+		PredictiveScalingModeForecastAndScale,
+		PredictiveScalingModeForecastOnly,
+	}
+}
 
 const (
 	// ScalableDimensionAutoscalingAutoScalingGroupDesiredCapacity is a ScalableDimension enum value
@@ -3026,6 +3081,20 @@ const (
 	// ScalableDimensionDynamodbIndexWriteCapacityUnits is a ScalableDimension enum value
 	ScalableDimensionDynamodbIndexWriteCapacityUnits = "dynamodb:index:WriteCapacityUnits"
 )
+
+// ScalableDimension_Values returns all elements of the ScalableDimension enum
+func ScalableDimension_Values() []string {
+	return []string{
+		ScalableDimensionAutoscalingAutoScalingGroupDesiredCapacity,
+		ScalableDimensionEcsServiceDesiredCount,
+		ScalableDimensionEc2SpotFleetRequestTargetCapacity,
+		ScalableDimensionRdsClusterReadReplicaCount,
+		ScalableDimensionDynamodbTableReadCapacityUnits,
+		ScalableDimensionDynamodbTableWriteCapacityUnits,
+		ScalableDimensionDynamodbIndexReadCapacityUnits,
+		ScalableDimensionDynamodbIndexWriteCapacityUnits,
+	}
+}
 
 const (
 	// ScalingMetricTypeAsgaverageCpuutilization is a ScalingMetricType enum value
@@ -3068,6 +3137,25 @@ const (
 	ScalingMetricTypeEc2spotFleetRequestAverageNetworkOut = "EC2SpotFleetRequestAverageNetworkOut"
 )
 
+// ScalingMetricType_Values returns all elements of the ScalingMetricType enum
+func ScalingMetricType_Values() []string {
+	return []string{
+		ScalingMetricTypeAsgaverageCpuutilization,
+		ScalingMetricTypeAsgaverageNetworkIn,
+		ScalingMetricTypeAsgaverageNetworkOut,
+		ScalingMetricTypeDynamoDbreadCapacityUtilization,
+		ScalingMetricTypeDynamoDbwriteCapacityUtilization,
+		ScalingMetricTypeEcsserviceAverageCpuutilization,
+		ScalingMetricTypeEcsserviceAverageMemoryUtilization,
+		ScalingMetricTypeAlbrequestCountPerTarget,
+		ScalingMetricTypeRdsreaderAverageCpuutilization,
+		ScalingMetricTypeRdsreaderAverageDatabaseConnections,
+		ScalingMetricTypeEc2spotFleetRequestAverageCpuutilization,
+		ScalingMetricTypeEc2spotFleetRequestAverageNetworkIn,
+		ScalingMetricTypeEc2spotFleetRequestAverageNetworkOut,
+	}
+}
+
 const (
 	// ScalingPlanStatusCodeActive is a ScalingPlanStatusCode enum value
 	ScalingPlanStatusCodeActive = "Active"
@@ -3094,6 +3182,20 @@ const (
 	ScalingPlanStatusCodeUpdateFailed = "UpdateFailed"
 )
 
+// ScalingPlanStatusCode_Values returns all elements of the ScalingPlanStatusCode enum
+func ScalingPlanStatusCode_Values() []string {
+	return []string{
+		ScalingPlanStatusCodeActive,
+		ScalingPlanStatusCodeActiveWithProblems,
+		ScalingPlanStatusCodeCreationInProgress,
+		ScalingPlanStatusCodeCreationFailed,
+		ScalingPlanStatusCodeDeletionInProgress,
+		ScalingPlanStatusCodeDeletionFailed,
+		ScalingPlanStatusCodeUpdateInProgress,
+		ScalingPlanStatusCodeUpdateFailed,
+	}
+}
+
 const (
 	// ScalingPolicyUpdateBehaviorKeepExternalPolicies is a ScalingPolicyUpdateBehavior enum value
 	ScalingPolicyUpdateBehaviorKeepExternalPolicies = "KeepExternalPolicies"
@@ -3101,6 +3203,14 @@ const (
 	// ScalingPolicyUpdateBehaviorReplaceExternalPolicies is a ScalingPolicyUpdateBehavior enum value
 	ScalingPolicyUpdateBehaviorReplaceExternalPolicies = "ReplaceExternalPolicies"
 )
+
+// ScalingPolicyUpdateBehavior_Values returns all elements of the ScalingPolicyUpdateBehavior enum
+func ScalingPolicyUpdateBehavior_Values() []string {
+	return []string{
+		ScalingPolicyUpdateBehaviorKeepExternalPolicies,
+		ScalingPolicyUpdateBehaviorReplaceExternalPolicies,
+	}
+}
 
 const (
 	// ScalingStatusCodeInactive is a ScalingStatusCode enum value
@@ -3112,6 +3222,15 @@ const (
 	// ScalingStatusCodeActive is a ScalingStatusCode enum value
 	ScalingStatusCodeActive = "Active"
 )
+
+// ScalingStatusCode_Values returns all elements of the ScalingStatusCode enum
+func ScalingStatusCode_Values() []string {
+	return []string{
+		ScalingStatusCodeInactive,
+		ScalingStatusCodePartiallyActive,
+		ScalingStatusCodeActive,
+	}
+}
 
 const (
 	// ServiceNamespaceAutoscaling is a ServiceNamespace enum value
@@ -3129,3 +3248,14 @@ const (
 	// ServiceNamespaceDynamodb is a ServiceNamespace enum value
 	ServiceNamespaceDynamodb = "dynamodb"
 )
+
+// ServiceNamespace_Values returns all elements of the ServiceNamespace enum
+func ServiceNamespace_Values() []string {
+	return []string{
+		ServiceNamespaceAutoscaling,
+		ServiceNamespaceEcs,
+		ServiceNamespaceEc2,
+		ServiceNamespaceRds,
+		ServiceNamespaceDynamodb,
+	}
+}

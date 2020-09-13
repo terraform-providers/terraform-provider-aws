@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -117,6 +117,7 @@ func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) e
 			setDHCPOption("netbios-node-type"),
 			setDHCPOption("netbios-name-servers"),
 		},
+		TagSpecifications: ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeDhcpOptions),
 	}
 
 	resp, err := conn.CreateDhcpOptions(createOpts)
@@ -140,12 +141,6 @@ func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf(
 			"Error waiting for DHCP Options (%s) to become available: %s",
 			d.Id(), err)
-	}
-
-	if v, ok := d.GetOk("tags"); ok {
-		if err := keyvaluetags.Ec2CreateTags(conn, d.Id(), v.(map[string]interface{})); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
 	}
 
 	return resourceAwsVpcDhcpOptionsRead(d, meta)

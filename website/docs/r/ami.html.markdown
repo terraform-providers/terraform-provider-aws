@@ -74,7 +74,7 @@ Nested `ebs_block_device` blocks have the following structure:
 * `delete_on_termination` - (Optional) Boolean controlling whether the EBS volumes created to
   support each created instance will be deleted once that instance is terminated.
 * `encrypted` - (Optional) Boolean controlling whether the created EBS volumes will be encrypted. Can't be used with `snapshot_id`.
-* `iops` - (Required only when `volume_type` is "io1") Number of I/O operations per second the
+* `iops` - (Required only when `volume_type` is "io1/io2") Number of I/O operations per second the
   created volumes will support.
 * `snapshot_id` - (Optional) The id of an EBS snapshot that will be used to initialize the created
   EBS volumes. If set, the `volume_size` attribute must be at least as large as the referenced
@@ -83,7 +83,7 @@ Nested `ebs_block_device` blocks have the following structure:
   If `snapshot_id` is set and `volume_size` is omitted then the volume will have the same size
   as the selected snapshot.
 * `volume_type` - (Optional) The type of EBS volume to create. Can be one of "standard" (the
-  default), "io1" or "gp2".
+  default), "io1", "io2" or "gp2".
 * `kms_key_id` - (Optional) The full ARN of the AWS Key Management Service (AWS KMS) CMK to use when encrypting the snapshots of
 an image during a copy operation. This parameter is only required if you want to use a non-default CMK;
 if this parameter is not specified, the default CMK for EBS is used
@@ -108,6 +108,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the AMI.
 * `id` - The ID of the created AMI.
 * `root_snapshot_id` - The Snapshot ID for the root volume (for EBS-backed AMIs)
 

@@ -72,9 +72,9 @@ In addition to all arguments above, the following attributes are exported:
 * `kernel_id` - The kernel ID.
 * `key_name` - The key name to use for the instance.
 * `metadata_options` - The metadata options for the instance.
-  * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
-  * `http_tokens` - If session tokens are required: `optional`, `required`.
-  * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
+    * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+    * `http_tokens` - If session tokens are required: `optional`, `required`.
+    * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 * `monitoring` - The monitoring option for the instance.
 * `network_interfaces` - Customize network interfaces to be attached at instance boot time. See [Network
   Interfaces](#network-interfaces) below for more details.

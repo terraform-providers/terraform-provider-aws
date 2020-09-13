@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceS3Bucket_basic(t *testing.T) {
@@ -60,7 +60,7 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 data "aws_s3_bucket" "bucket" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 }
 `, bucketName)
 }
@@ -78,7 +78,7 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 data "aws_s3_bucket" "bucket" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 }
 `, bucketName)
 }

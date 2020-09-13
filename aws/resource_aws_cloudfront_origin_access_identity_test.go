@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCloudFrontOriginAccessIdentity_basic(t *testing.T) {
@@ -141,7 +141,7 @@ func testAccCheckCloudFrontOriginAccessIdentityExistence(r string, origin *cloud
 
 const testAccAWSCloudFrontOriginAccessIdentityConfig = `
 resource "aws_cloudfront_origin_access_identity" "test" {
-	comment = "some comment"
+  comment = "some comment"
 }
 `
 

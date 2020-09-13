@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsApiGatewayModel() *schema.Resource {
@@ -118,7 +117,7 @@ func resourceAwsApiGatewayModelRead(d *schema.ResourceData, meta interface{}) er
 		RestApiId: aws.String(d.Get("rest_api_id").(string)),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
+		if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 			log.Printf("[WARN] API Gateway Model (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -141,14 +140,14 @@ func resourceAwsApiGatewayModelUpdate(d *schema.ResourceData, meta interface{}) 
 	operations := make([]*apigateway.PatchOperation, 0)
 	if d.HasChange("description") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/description"),
 			Value: aws.String(d.Get("description").(string)),
 		})
 	}
 	if d.HasChange("schema") {
 		operations = append(operations, &apigateway.PatchOperation{
-			Op:    aws.String("replace"),
+			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/schema"),
 			Value: aws.String(d.Get("schema").(string)),
 		})
@@ -178,7 +177,7 @@ func resourceAwsApiGatewayModelDelete(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] schema is %#v", d)
 	_, err := conn.DeleteModel(input)
 
-	if isAWSErr(err, "NotFoundException", "") {
+	if isAWSErr(err, apigateway.ErrCodeNotFoundException, "") {
 		return nil
 	}
 

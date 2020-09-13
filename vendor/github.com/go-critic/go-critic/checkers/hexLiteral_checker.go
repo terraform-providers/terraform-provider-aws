@@ -5,13 +5,13 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 	"github.com/go-toolsmith/astcast"
 )
 
 func init() {
-	var info lintpack.CheckerInfo
+	var info linter.CheckerInfo
 	info.Name = "hexLiteral"
 	info.Tags = []string{"style", "experimental"}
 	info.Summary = "Detects hex literals that have mixed case letter digits"
@@ -25,14 +25,14 @@ y := 0xff
 // (B)
 y := 0xFF`
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForExpr(&hexLiteralChecker{ctx: ctx})
 	})
 }
 
 type hexLiteralChecker struct {
 	astwalk.WalkHandler
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 }
 
 func (c *hexLiteralChecker) warn0X(lit *ast.BasicLit) {

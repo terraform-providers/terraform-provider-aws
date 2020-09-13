@@ -5178,6 +5178,14 @@ const (
 	AttackLayerApplication = "APPLICATION"
 )
 
+// AttackLayer_Values returns all elements of the AttackLayer enum
+func AttackLayer_Values() []string {
+	return []string{
+		AttackLayerNetwork,
+		AttackLayerApplication,
+	}
+}
+
 const (
 	// AttackPropertyIdentifierDestinationUrl is a AttackPropertyIdentifier enum value
 	AttackPropertyIdentifierDestinationUrl = "DESTINATION_URL"
@@ -5204,6 +5212,20 @@ const (
 	AttackPropertyIdentifierWordpressPingbackSource = "WORDPRESS_PINGBACK_SOURCE"
 )
 
+// AttackPropertyIdentifier_Values returns all elements of the AttackPropertyIdentifier enum
+func AttackPropertyIdentifier_Values() []string {
+	return []string{
+		AttackPropertyIdentifierDestinationUrl,
+		AttackPropertyIdentifierReferrer,
+		AttackPropertyIdentifierSourceAsn,
+		AttackPropertyIdentifierSourceCountry,
+		AttackPropertyIdentifierSourceIpAddress,
+		AttackPropertyIdentifierSourceUserAgent,
+		AttackPropertyIdentifierWordpressPingbackReflector,
+		AttackPropertyIdentifierWordpressPingbackSource,
+	}
+}
+
 const (
 	// AutoRenewEnabled is a AutoRenew enum value
 	AutoRenewEnabled = "ENABLED"
@@ -5211,6 +5233,14 @@ const (
 	// AutoRenewDisabled is a AutoRenew enum value
 	AutoRenewDisabled = "DISABLED"
 )
+
+// AutoRenew_Values returns all elements of the AutoRenew enum
+func AutoRenew_Values() []string {
+	return []string{
+		AutoRenewEnabled,
+		AutoRenewDisabled,
+	}
+}
 
 const (
 	// ProactiveEngagementStatusEnabled is a ProactiveEngagementStatus enum value
@@ -5223,6 +5253,15 @@ const (
 	ProactiveEngagementStatusPending = "PENDING"
 )
 
+// ProactiveEngagementStatus_Values returns all elements of the ProactiveEngagementStatus enum
+func ProactiveEngagementStatus_Values() []string {
+	return []string{
+		ProactiveEngagementStatusEnabled,
+		ProactiveEngagementStatusDisabled,
+		ProactiveEngagementStatusPending,
+	}
+}
+
 const (
 	// SubResourceTypeIp is a SubResourceType enum value
 	SubResourceTypeIp = "IP"
@@ -5231,6 +5270,14 @@ const (
 	SubResourceTypeUrl = "URL"
 )
 
+// SubResourceType_Values returns all elements of the SubResourceType enum
+func SubResourceType_Values() []string {
+	return []string{
+		SubResourceTypeIp,
+		SubResourceTypeUrl,
+	}
+}
+
 const (
 	// SubscriptionStateActive is a SubscriptionState enum value
 	SubscriptionStateActive = "ACTIVE"
@@ -5238,6 +5285,14 @@ const (
 	// SubscriptionStateInactive is a SubscriptionState enum value
 	SubscriptionStateInactive = "INACTIVE"
 )
+
+// SubscriptionState_Values returns all elements of the SubscriptionState enum
+func SubscriptionState_Values() []string {
+	return []string{
+		SubscriptionStateActive,
+		SubscriptionStateInactive,
+	}
+}
 
 const (
 	// UnitBits is a Unit enum value
@@ -5252,3 +5307,13 @@ const (
 	// UnitRequests is a Unit enum value
 	UnitRequests = "REQUESTS"
 )
+
+// Unit_Values returns all elements of the Unit enum
+func Unit_Values() []string {
+	return []string{
+		UnitBits,
+		UnitBytes,
+		UnitPackets,
+		UnitRequests,
+	}
+}

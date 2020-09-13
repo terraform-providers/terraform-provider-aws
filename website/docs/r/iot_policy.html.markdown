@@ -48,3 +48,11 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - The name of this policy.
 * `default_version_id` - The default version of this policy.
 * `policy` - The policy document.
+
+## Import
+
+IoT policies can be imported using the `name`, e.g.
+
+```
+$ terraform import aws_iot_policy.pubsub PubSubToAnyTopic
+```

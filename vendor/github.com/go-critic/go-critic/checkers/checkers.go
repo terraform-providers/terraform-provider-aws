@@ -2,9 +2,18 @@
 package checkers
 
 import (
-	"github.com/go-lintpack/lintpack"
+	"os"
+
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
-var collection = &lintpack.CheckerCollection{
+var collection = &linter.CheckerCollection{
 	URL: "https://github.com/go-critic/go-critic/checkers",
 }
+
+var debug = func() func() bool {
+	v := os.Getenv("DEBUG") != ""
+	return func() bool {
+		return v
+	}
+}()

@@ -3,7 +3,6 @@ package sidenavigation
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"regexp"
 	"strings"
 
@@ -48,7 +47,7 @@ func FindFile(path string) (*SideNavigation, error) {
 	fileContents, err := ioutil.ReadFile(path)
 
 	if err != nil {
-		log.Fatalf("error opening file (%s): %s", path, err)
+		return nil, fmt.Errorf("error opening file (%s): %w", path, err)
 	}
 
 	return FindString(string(fileContents))

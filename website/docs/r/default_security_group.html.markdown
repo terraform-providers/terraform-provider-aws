@@ -46,7 +46,7 @@ resource "aws_vpc" "mainvpc" {
 }
 
 resource "aws_default_security_group" "default" {
-  vpc_id = "${aws_vpc.mainvpc.id}"
+  vpc_id = aws_vpc.mainvpc.id
 
   ingress {
     protocol  = -1
@@ -75,7 +75,7 @@ resource "aws_vpc" "mainvpc" {
 }
 
 resource "aws_default_security_group" "default" {
-  vpc_id = "${aws_vpc.mainvpc.id}"
+  vpc_id = aws_vpc.mainvpc.id
 
   ingress {
     protocol  = -1
@@ -92,14 +92,34 @@ The arguments of an `aws_default_security_group` differ slightly from `aws_secur
 resources. Namely, the `name` argument is computed, and the `name_prefix` attribute
 removed. The following arguments are still supported:
 
-* `ingress` - (Optional) Can be specified multiple times for each
-   ingress rule. Each ingress block supports fields documented below.
-* `egress` - (Optional, VPC only) Can be specified multiple times for each
-      egress rule. Each egress block supports fields documented below.
-* `vpc_id` - (Optional, Forces new resource) The VPC ID. **Note that changing
-the `vpc_id` will _not_ restore any default security group rules that were
-modified, added, or removed.** It will be left in its current state
+* `ingress` - (Optional) Can be specified multiple times for each ingress rule. Each ingress block supports fields documented [below](#ingress-blocks).
+* `egress` - (Optional, VPC only) Can be specified multiple times for each egress rule. Each egress block supports fields documented [below](#egress-blocks).
+* `vpc_id` - (Optional, Forces new resource) The VPC ID. **Note that changing the `vpc_id` will _not_ restore any default security group rules that were modified, added, or removed.** It will be left in its current state
 * `tags` - (Optional) A map of tags to assign to the resource.
+
+### `ingress` Block
+
+* `cidr_blocks` - (Optional) List of CIDR blocks.
+* `description` - (Optional) Description of this ingress rule.
+* `from_port` - (Required) The start port (or ICMP type number if protocol is "icmp" or "icmpv6")
+* `ipv6_cidr_blocks` - (Optional) List of IPv6 CIDR blocks.
+* `prefix_list_ids` - (Optional) List of prefix list IDs.
+* `protocol` - (Required) The protocol. If you select a protocol of "-1" (semantically equivalent to `"all"`, which is not a valid value here), you must specify a "from_port" and "to_port" equal to 0. If not icmp, icmpv6, tcp, udp, or "-1" use the [protocol number](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+* `security_groups` - (Optional) List of security group Group Names if using EC2-Classic, or Group IDs if using a VPC.
+* `self` - (Optional) If true, the security group itself will be added as a source to this ingress rule.
+* `to_port` - (Required) The end range port (or ICMP code if protocol is "icmp").
+
+### `egress` Block
+
+* `cidr_blocks` - (Optional) List of CIDR blocks.
+* `description` - (Optional) Description of this egress rule.
+* `from_port` - (Required) The start port (or ICMP type number if protocol is "icmp")
+* `ipv6_cidr_blocks` - (Optional) List of IPv6 CIDR blocks.
+* `prefix_list_ids` - (Optional) List of prefix list IDs (for allowing access to VPC endpoints)
+* `protocol` - (Required) The protocol. If you select a protocol of "-1" (semantically equivalent to `"all"`, which is not a valid value here), you must specify a "from_port" and "to_port" equal to 0. If not icmp, tcp, udp, or "-1" use the [protocol number](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+* `security_groups` - (Optional) List of security group Group Names if using EC2-Classic, or Group IDs if using a VPC.
+* `self` - (Optional) If true, the security group itself will be added as a source to this egress rule.
+* `to_port` - (Required) The end range port (or ICMP code if protocol is "icmp").
 
 
 ## Usage
@@ -122,11 +142,10 @@ they are at the time of removal. You can resume managing them via the AWS Consol
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the security group
+* `arn` - The ARN of the security group
 * `vpc_id` - The VPC ID.
 * `owner_id` - The owner ID.
 * `name` - The name of the security group
 * `description` - The description of the security group
-* `ingress` - The ingress rules. See above for more.
-* `egress` - The egress rules. See above for more.
 
 [aws-default-security-groups]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#default-security-group

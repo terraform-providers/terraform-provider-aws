@@ -5,12 +5,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-lintpack/lintpack"
-	"github.com/go-lintpack/lintpack/astwalk"
+	"github.com/go-critic/go-critic/checkers/internal/astwalk"
+	"github.com/go-critic/go-critic/framework/linter"
 )
 
 func init() {
-	info := lintpack.CheckerInfo{
+	info := linter.CheckerInfo{
 		Name:    "whyNoLint",
 		Tags:    []string{"style", "experimental"},
 		Summary: "Ensures that `//nolint` comments include an explanation",
@@ -19,7 +19,7 @@ func init() {
 	}
 	re := regexp.MustCompile(`^// *nolint(?::[^ ]+)? *(.*)$`)
 
-	collection.AddChecker(&info, func(ctx *lintpack.CheckerContext) lintpack.FileWalker {
+	collection.AddChecker(&info, func(ctx *linter.CheckerContext) linter.FileWalker {
 		return astwalk.WalkerForComment(&whyNoLintChecker{
 			ctx: ctx,
 			re:  re,
@@ -30,7 +30,7 @@ func init() {
 type whyNoLintChecker struct {
 	astwalk.WalkHandler
 
-	ctx *lintpack.CheckerContext
+	ctx *linter.CheckerContext
 	re  *regexp.Regexp
 }
 

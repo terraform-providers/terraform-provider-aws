@@ -533,6 +533,7 @@ func (c *ELBV2) CreateRuleRequest(input *CreateRuleInput) (req *request.Request,
 // Creates a rule for the specified listener. The listener must be associated
 // with an Application Load Balancer.
 //
+// Each rule consists of a priority, one or more actions, and one or more conditions.
 // Rules are evaluated in priority order, from the lowest value to the highest
 // value. When the conditions for a rule are met, its actions are performed.
 // If the conditions for no rules are met, the actions for the default rule
@@ -946,6 +947,8 @@ func (c *ELBV2) DeleteRuleRequest(input *DeleteRuleInput) (req *request.Request,
 // DeleteRule API operation for Elastic Load Balancing.
 //
 // Deletes the specified rule.
+//
+// You can't delete the default rule.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3432,6 +3435,9 @@ func (c *ELBV2) SetSubnetsWithContext(ctx aws.Context, input *SetSubnetsInput, o
 }
 
 // Information about an action.
+//
+// Each rule must include exactly one of the following types of actions: forward,
+// fixed-response, or redirect, and it must be the last action to be performed.
 type Action struct {
 	_ struct{} `type:"structure"`
 
@@ -3455,9 +3461,7 @@ type Action struct {
 	ForwardConfig *ForwardActionConfig `type:"structure"`
 
 	// The order for the action. This value is required for rules with multiple
-	// actions. The action with the lowest value for order is performed first. The
-	// last action to be performed must be one of the following types of actions:
-	// a forward, fixed-response, or redirect.
+	// actions. The action with the lowest value for order is performed first.
 	Order *int64 `min:"1" type:"integer"`
 
 	// [Application Load Balancer] Information for creating a redirect action. Specify
@@ -4042,6 +4046,9 @@ type AvailabilityZone struct {
 	// a private IP address from the IPv4 range of the subnet.
 	LoadBalancerAddresses []*LoadBalancerAddress `type:"list"`
 
+	// [Application Load Balancers on Outposts] The ID of the Outpost.
+	OutpostId *string `type:"string"`
+
 	// The ID of the subnet. You can specify one subnet per Availability Zone.
 	SubnetId *string `type:"string"`
 
@@ -4062,6 +4069,12 @@ func (s AvailabilityZone) GoString() string {
 // SetLoadBalancerAddresses sets the LoadBalancerAddresses field's value.
 func (s *AvailabilityZone) SetLoadBalancerAddresses(v []*LoadBalancerAddress) *AvailabilityZone {
 	s.LoadBalancerAddresses = v
+	return s
+}
+
+// SetOutpostId sets the OutpostId field's value.
+func (s *AvailabilityZone) SetOutpostId(v string) *AvailabilityZone {
+	s.OutpostId = &v
 	return s
 }
 
@@ -4353,6 +4366,10 @@ func (s *CreateListenerOutput) SetListeners(v []*Listener) *CreateListenerOutput
 type CreateLoadBalancerInput struct {
 	_ struct{} `type:"structure"`
 
+	// [Application Load Balancers on Outposts] The ID of the customer-owned address
+	// pool (CoIP pool).
+	CustomerOwnedIpv4Pool *string `type:"string"`
+
 	// [Application Load Balancers] The type of IP addresses used by the subnets
 	// for your load balancer. The possible values are ipv4 (for IPv4 addresses)
 	// and dualstack (for IPv4 and IPv6 addresses). Internal load balancers must
@@ -4391,6 +4408,11 @@ type CreateLoadBalancerInput struct {
 	// [Application Load Balancers] You must specify subnets from at least two Availability
 	// Zones. You cannot specify Elastic IP addresses for your subnets.
 	//
+	// [Application Load Balancers on Outposts] You must specify one Outpost subnet.
+	//
+	// [Application Load Balancers on Local Zones] You can specify subnets from
+	// one or more Local Zones.
+	//
 	// [Network Load Balancers] You can specify subnets from one or more Availability
 	// Zones. You can specify one Elastic IP address per subnet if you need static
 	// IP addresses for your internet-facing load balancer. For internal load balancers,
@@ -4403,6 +4425,11 @@ type CreateLoadBalancerInput struct {
 	//
 	// [Application Load Balancers] You must specify subnets from at least two Availability
 	// Zones.
+	//
+	// [Application Load Balancers on Outposts] You must specify one Outpost subnet.
+	//
+	// [Application Load Balancers on Local Zones] You can specify subnets from
+	// one or more Local Zones.
 	//
 	// [Network Load Balancers] You can specify subnets from one or more Availability
 	// Zones.
@@ -4449,6 +4476,12 @@ func (s *CreateLoadBalancerInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetCustomerOwnedIpv4Pool sets the CustomerOwnedIpv4Pool field's value.
+func (s *CreateLoadBalancerInput) SetCustomerOwnedIpv4Pool(v string) *CreateLoadBalancerInput {
+	s.CustomerOwnedIpv4Pool = &v
+	return s
 }
 
 // SetIpAddressType sets the IpAddressType field's value.
@@ -4549,9 +4582,10 @@ type CreateRuleInput struct {
 	// Actions is a required field
 	Actions []*Action `type:"list" required:"true"`
 
-	// The conditions. Each rule can include zero or one of the following conditions:
-	// http-request-method, host-header, path-pattern, and source-ip, and zero or
-	// more of the following conditions: http-header and query-string.
+	// The conditions. Each rule can optionally include up to one of each of the
+	// following conditions: http-request-method, host-header, path-pattern, and
+	// source-ip. Each rule can also optionally include one or more of each of the
+	// following conditions: http-header and query-string.
 	//
 	// Conditions is a required field
 	Conditions []*RuleCondition `type:"list" required:"true"`
@@ -4734,8 +4768,7 @@ type CreateTargetGroupInput struct {
 	// one target type.
 	//
 	//    * instance - Targets are specified by instance ID. This is the default
-	//    value. If the target group protocol is UDP or TCP_UDP, the target type
-	//    must be instance.
+	//    value.
 	//
 	//    * ip - Targets are specified by IP address. You can specify IP addresses
 	//    from the subnets of the virtual private cloud (VPC) for the target group,
@@ -6478,7 +6511,7 @@ func (s *Listener) SetSslPolicy(v string) *Listener {
 type LoadBalancer struct {
 	_ struct{} `type:"structure"`
 
-	// The Availability Zones for the load balancer.
+	// The subnets for the load balancer.
 	AvailabilityZones []*AvailabilityZone `type:"list"`
 
 	// The ID of the Amazon Route 53 hosted zone associated with the load balancer.
@@ -6486,6 +6519,10 @@ type LoadBalancer struct {
 
 	// The date and time the load balancer was created.
 	CreatedTime *time.Time `type:"timestamp"`
+
+	// [Application Load Balancers on Outposts] The ID of the customer-owned address
+	// pool.
+	CustomerOwnedIpv4Pool *string `type:"string"`
 
 	// The public DNS name of the load balancer.
 	DNSName *string `type:"string"`
@@ -6550,6 +6587,12 @@ func (s *LoadBalancer) SetCanonicalHostedZoneId(v string) *LoadBalancer {
 // SetCreatedTime sets the CreatedTime field's value.
 func (s *LoadBalancer) SetCreatedTime(v time.Time) *LoadBalancer {
 	s.CreatedTime = &v
+	return s
+}
+
+// SetCustomerOwnedIpv4Pool sets the CustomerOwnedIpv4Pool field's value.
+func (s *LoadBalancer) SetCustomerOwnedIpv4Pool(v string) *LoadBalancer {
+	s.CustomerOwnedIpv4Pool = &v
 	return s
 }
 
@@ -6677,6 +6720,11 @@ type LoadBalancerAttribute struct {
 	//
 	//    * idle_timeout.timeout_seconds - The idle timeout value, in seconds. The
 	//    valid range is 1-4000 seconds. The default is 60 seconds.
+	//
+	//    * routing.http.desync_mitigation_mode - Determines how the load balancer
+	//    handles requests that might pose a security risk to your application.
+	//    The possible values are monitor, defensive, and strictest. The default
+	//    is defensive.
 	//
 	//    * routing.http.drop_invalid_header_fields.enabled - Indicates whether
 	//    HTTP headers with invalid header fields are removed by the load balancer
@@ -7286,7 +7334,9 @@ type ModifyTargetGroupInput struct {
 	HealthyThresholdCount *int64 `min:"2" type:"integer"`
 
 	// [HTTP/HTTPS health checks] The HTTP codes to use when checking for a successful
-	// response from a target.
+	// response from a target. The possible values are from 200 to 499. You can
+	// specify multiple values (for example, "200,202") or a range of values (for
+	// example, "200-299"). The default is 200.
 	//
 	// With Network Load Balancers, you can't modify this setting.
 	Matcher *Matcher `type:"structure"`
@@ -7925,6 +7975,11 @@ func (s *Rule) SetRuleArn(v string) *Rule {
 }
 
 // Information about a condition for a rule.
+//
+// Each rule can optionally include up to one of each of the following conditions:
+// http-request-method, host-header, path-pattern, and source-ip. Each rule
+// can also optionally include one or more of each of the following conditions:
+// http-header and query-string.
 type RuleCondition struct {
 	_ struct{} `type:"structure"`
 
@@ -7961,13 +8016,14 @@ type RuleCondition struct {
 	// Information for a source IP condition. Specify only when Field is source-ip.
 	SourceIpConfig *SourceIpConditionConfig `type:"structure"`
 
-	// The condition value. You can use Values if the rule contains only host-header
-	// and path-pattern conditions. Otherwise, you can use HostHeaderConfig for
-	// host-header conditions and PathPatternConfig for path-pattern conditions.
+	// The condition value. Specify only when Field is host-header or path-pattern.
+	// Alternatively, to specify multiple host names or multiple path patterns,
+	// use HostHeaderConfig or PathPatternConfig.
 	//
-	// If Field is host-header, you can specify a single host name (for example,
-	// my.example.com). A host name is case insensitive, can be up to 128 characters
-	// in length, and can contain any of the following characters.
+	// If Field is host-header and you are not using HostHeaderConfig, you can specify
+	// a single host name (for example, my.example.com) in Values. A host name is
+	// case insensitive, can be up to 128 characters in length, and can contain
+	// any of the following characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -7977,9 +8033,10 @@ type RuleCondition struct {
 	//
 	//    * ? (matches exactly 1 character)
 	//
-	// If Field is path-pattern, you can specify a single path pattern (for example,
-	// /img/*). A path pattern is case-sensitive, can be up to 128 characters in
-	// length, and can contain any of the following characters.
+	// If Field is path-pattern and you are not using PathPatternConfig, you can
+	// specify a single path pattern (for example, /img/*) in Values. A path pattern
+	// is case-sensitive, can be up to 128 characters in length, and can contain
+	// any of the following characters.
 	//
 	//    * A-Z, a-z, 0-9
 	//
@@ -8391,7 +8448,7 @@ func (s *SetSubnetsInput) SetSubnets(v []*string) *SetSubnetsInput {
 type SetSubnetsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Information about the subnet and Availability Zone.
+	// Information about the subnets.
 	AvailabilityZones []*AvailabilityZone `type:"list"`
 }
 
@@ -8892,8 +8949,8 @@ type TargetGroupAttribute struct {
 	//    * slow_start.duration_seconds - The time period, in seconds, during which
 	//    a newly registered target receives an increasing share of the traffic
 	//    to the target group. After this time period ends, the target receives
-	//    its full share of traffic. The range is 30-900 seconds (15 minutes). Slow
-	//    start mode is disabled by default.
+	//    its full share of traffic. The range is 30-900 seconds (15 minutes). The
+	//    default is 0 seconds (disabled).
 	//
 	//    * stickiness.lb_cookie.duration_seconds - The time period, in seconds,
 	//    during which requests from a client should be routed to the same target.
@@ -9168,6 +9225,17 @@ const (
 	ActionTypeEnumFixedResponse = "fixed-response"
 )
 
+// ActionTypeEnum_Values returns all elements of the ActionTypeEnum enum
+func ActionTypeEnum_Values() []string {
+	return []string{
+		ActionTypeEnumForward,
+		ActionTypeEnumAuthenticateOidc,
+		ActionTypeEnumAuthenticateCognito,
+		ActionTypeEnumRedirect,
+		ActionTypeEnumFixedResponse,
+	}
+}
+
 const (
 	// AuthenticateCognitoActionConditionalBehaviorEnumDeny is a AuthenticateCognitoActionConditionalBehaviorEnum enum value
 	AuthenticateCognitoActionConditionalBehaviorEnumDeny = "deny"
@@ -9178,6 +9246,15 @@ const (
 	// AuthenticateCognitoActionConditionalBehaviorEnumAuthenticate is a AuthenticateCognitoActionConditionalBehaviorEnum enum value
 	AuthenticateCognitoActionConditionalBehaviorEnumAuthenticate = "authenticate"
 )
+
+// AuthenticateCognitoActionConditionalBehaviorEnum_Values returns all elements of the AuthenticateCognitoActionConditionalBehaviorEnum enum
+func AuthenticateCognitoActionConditionalBehaviorEnum_Values() []string {
+	return []string{
+		AuthenticateCognitoActionConditionalBehaviorEnumDeny,
+		AuthenticateCognitoActionConditionalBehaviorEnumAllow,
+		AuthenticateCognitoActionConditionalBehaviorEnumAuthenticate,
+	}
+}
 
 const (
 	// AuthenticateOidcActionConditionalBehaviorEnumDeny is a AuthenticateOidcActionConditionalBehaviorEnum enum value
@@ -9190,6 +9267,15 @@ const (
 	AuthenticateOidcActionConditionalBehaviorEnumAuthenticate = "authenticate"
 )
 
+// AuthenticateOidcActionConditionalBehaviorEnum_Values returns all elements of the AuthenticateOidcActionConditionalBehaviorEnum enum
+func AuthenticateOidcActionConditionalBehaviorEnum_Values() []string {
+	return []string{
+		AuthenticateOidcActionConditionalBehaviorEnumDeny,
+		AuthenticateOidcActionConditionalBehaviorEnumAllow,
+		AuthenticateOidcActionConditionalBehaviorEnumAuthenticate,
+	}
+}
+
 const (
 	// IpAddressTypeIpv4 is a IpAddressType enum value
 	IpAddressTypeIpv4 = "ipv4"
@@ -9198,6 +9284,14 @@ const (
 	IpAddressTypeDualstack = "dualstack"
 )
 
+// IpAddressType_Values returns all elements of the IpAddressType enum
+func IpAddressType_Values() []string {
+	return []string{
+		IpAddressTypeIpv4,
+		IpAddressTypeDualstack,
+	}
+}
+
 const (
 	// LoadBalancerSchemeEnumInternetFacing is a LoadBalancerSchemeEnum enum value
 	LoadBalancerSchemeEnumInternetFacing = "internet-facing"
@@ -9205,6 +9299,14 @@ const (
 	// LoadBalancerSchemeEnumInternal is a LoadBalancerSchemeEnum enum value
 	LoadBalancerSchemeEnumInternal = "internal"
 )
+
+// LoadBalancerSchemeEnum_Values returns all elements of the LoadBalancerSchemeEnum enum
+func LoadBalancerSchemeEnum_Values() []string {
+	return []string{
+		LoadBalancerSchemeEnumInternetFacing,
+		LoadBalancerSchemeEnumInternal,
+	}
+}
 
 const (
 	// LoadBalancerStateEnumActive is a LoadBalancerStateEnum enum value
@@ -9220,6 +9322,16 @@ const (
 	LoadBalancerStateEnumFailed = "failed"
 )
 
+// LoadBalancerStateEnum_Values returns all elements of the LoadBalancerStateEnum enum
+func LoadBalancerStateEnum_Values() []string {
+	return []string{
+		LoadBalancerStateEnumActive,
+		LoadBalancerStateEnumProvisioning,
+		LoadBalancerStateEnumActiveImpaired,
+		LoadBalancerStateEnumFailed,
+	}
+}
+
 const (
 	// LoadBalancerTypeEnumApplication is a LoadBalancerTypeEnum enum value
 	LoadBalancerTypeEnumApplication = "application"
@@ -9227,6 +9339,14 @@ const (
 	// LoadBalancerTypeEnumNetwork is a LoadBalancerTypeEnum enum value
 	LoadBalancerTypeEnumNetwork = "network"
 )
+
+// LoadBalancerTypeEnum_Values returns all elements of the LoadBalancerTypeEnum enum
+func LoadBalancerTypeEnum_Values() []string {
+	return []string{
+		LoadBalancerTypeEnumApplication,
+		LoadBalancerTypeEnumNetwork,
+	}
+}
 
 const (
 	// ProtocolEnumHttp is a ProtocolEnum enum value
@@ -9248,6 +9368,18 @@ const (
 	ProtocolEnumTcpUdp = "TCP_UDP"
 )
 
+// ProtocolEnum_Values returns all elements of the ProtocolEnum enum
+func ProtocolEnum_Values() []string {
+	return []string{
+		ProtocolEnumHttp,
+		ProtocolEnumHttps,
+		ProtocolEnumTcp,
+		ProtocolEnumTls,
+		ProtocolEnumUdp,
+		ProtocolEnumTcpUdp,
+	}
+}
+
 const (
 	// RedirectActionStatusCodeEnumHttp301 is a RedirectActionStatusCodeEnum enum value
 	RedirectActionStatusCodeEnumHttp301 = "HTTP_301"
@@ -9255,6 +9387,14 @@ const (
 	// RedirectActionStatusCodeEnumHttp302 is a RedirectActionStatusCodeEnum enum value
 	RedirectActionStatusCodeEnumHttp302 = "HTTP_302"
 )
+
+// RedirectActionStatusCodeEnum_Values returns all elements of the RedirectActionStatusCodeEnum enum
+func RedirectActionStatusCodeEnum_Values() []string {
+	return []string{
+		RedirectActionStatusCodeEnumHttp301,
+		RedirectActionStatusCodeEnumHttp302,
+	}
+}
 
 const (
 	// TargetHealthReasonEnumElbRegistrationInProgress is a TargetHealthReasonEnum enum value
@@ -9294,6 +9434,24 @@ const (
 	TargetHealthReasonEnumElbInternalError = "Elb.InternalError"
 )
 
+// TargetHealthReasonEnum_Values returns all elements of the TargetHealthReasonEnum enum
+func TargetHealthReasonEnum_Values() []string {
+	return []string{
+		TargetHealthReasonEnumElbRegistrationInProgress,
+		TargetHealthReasonEnumElbInitialHealthChecking,
+		TargetHealthReasonEnumTargetResponseCodeMismatch,
+		TargetHealthReasonEnumTargetTimeout,
+		TargetHealthReasonEnumTargetFailedHealthChecks,
+		TargetHealthReasonEnumTargetNotRegistered,
+		TargetHealthReasonEnumTargetNotInUse,
+		TargetHealthReasonEnumTargetDeregistrationInProgress,
+		TargetHealthReasonEnumTargetInvalidState,
+		TargetHealthReasonEnumTargetIpUnusable,
+		TargetHealthReasonEnumTargetHealthCheckDisabled,
+		TargetHealthReasonEnumElbInternalError,
+	}
+}
+
 const (
 	// TargetHealthStateEnumInitial is a TargetHealthStateEnum enum value
 	TargetHealthStateEnumInitial = "initial"
@@ -9314,6 +9472,18 @@ const (
 	TargetHealthStateEnumUnavailable = "unavailable"
 )
 
+// TargetHealthStateEnum_Values returns all elements of the TargetHealthStateEnum enum
+func TargetHealthStateEnum_Values() []string {
+	return []string{
+		TargetHealthStateEnumInitial,
+		TargetHealthStateEnumHealthy,
+		TargetHealthStateEnumUnhealthy,
+		TargetHealthStateEnumUnused,
+		TargetHealthStateEnumDraining,
+		TargetHealthStateEnumUnavailable,
+	}
+}
+
 const (
 	// TargetTypeEnumInstance is a TargetTypeEnum enum value
 	TargetTypeEnumInstance = "instance"
@@ -9324,3 +9494,12 @@ const (
 	// TargetTypeEnumLambda is a TargetTypeEnum enum value
 	TargetTypeEnumLambda = "lambda"
 )
+
+// TargetTypeEnum_Values returns all elements of the TargetTypeEnum enum
+func TargetTypeEnum_Values() []string {
+	return []string{
+		TargetTypeEnumInstance,
+		TargetTypeEnumIp,
+		TargetTypeEnumLambda,
+	}
+}

@@ -696,11 +696,8 @@ func (c *Firehose) PutRecordBatchRequest(input *PutRecordBatchInput) (req *reque
 // To write single data records into a delivery stream, use PutRecord. Applications
 // using these operations are referred to as producers.
 //
-// By default, each delivery stream can take in up to 2,000 transactions per
-// second, 5,000 records per second, or 5 MB per second. If you use PutRecord
-// and PutRecordBatch, the limits are an aggregate across these two operations
-// for each delivery stream. For more information about limits, see Amazon Kinesis
-// Data Firehose Limits (https://docs.aws.amazon.com/firehose/latest/dev/limits.html).
+// For information about service quota, see Amazon Kinesis Data Firehose Quota
+// (https://docs.aws.amazon.com/firehose/latest/dev/limits.html).
 //
 // Each PutRecordBatch request supports up to 500 records. Each record in the
 // request can be as large as 1,000 KB (before 64-bit encoding), up to a limit
@@ -1637,6 +1634,10 @@ type CreateDeliveryStreamInput struct {
 	// The destination in Amazon S3. You can specify only one destination.
 	ExtendedS3DestinationConfiguration *ExtendedS3DestinationConfiguration `type:"structure"`
 
+	// Enables configuring Kinesis Firehose to deliver data to any HTTP endpoint
+	// destination. You can specify only one destination.
+	HttpEndpointDestinationConfiguration *HttpEndpointDestinationConfiguration `type:"structure"`
+
 	// When a Kinesis data stream is used as the source for the delivery stream,
 	// a KinesisStreamSourceConfiguration containing the Kinesis data stream Amazon
 	// Resource Name (ARN) and the role ARN for the source stream.
@@ -1699,6 +1700,11 @@ func (s *CreateDeliveryStreamInput) Validate() error {
 	if s.ExtendedS3DestinationConfiguration != nil {
 		if err := s.ExtendedS3DestinationConfiguration.Validate(); err != nil {
 			invalidParams.AddNested("ExtendedS3DestinationConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.HttpEndpointDestinationConfiguration != nil {
+		if err := s.HttpEndpointDestinationConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("HttpEndpointDestinationConfiguration", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.KinesisStreamSourceConfiguration != nil {
@@ -1765,6 +1771,12 @@ func (s *CreateDeliveryStreamInput) SetElasticsearchDestinationConfiguration(v *
 // SetExtendedS3DestinationConfiguration sets the ExtendedS3DestinationConfiguration field's value.
 func (s *CreateDeliveryStreamInput) SetExtendedS3DestinationConfiguration(v *ExtendedS3DestinationConfiguration) *CreateDeliveryStreamInput {
 	s.ExtendedS3DestinationConfiguration = v
+	return s
+}
+
+// SetHttpEndpointDestinationConfiguration sets the HttpEndpointDestinationConfiguration field's value.
+func (s *CreateDeliveryStreamInput) SetHttpEndpointDestinationConfiguration(v *HttpEndpointDestinationConfiguration) *CreateDeliveryStreamInput {
+	s.HttpEndpointDestinationConfiguration = v
 	return s
 }
 
@@ -2418,6 +2430,9 @@ type DestinationDescription struct {
 	// The destination in Amazon S3.
 	ExtendedS3DestinationDescription *ExtendedS3DestinationDescription `type:"structure"`
 
+	// Describes the specified HTTP endpoint destination.
+	HttpEndpointDestinationDescription *HttpEndpointDestinationDescription `type:"structure"`
+
 	// The destination in Amazon Redshift.
 	RedshiftDestinationDescription *RedshiftDestinationDescription `type:"structure"`
 
@@ -2453,6 +2468,12 @@ func (s *DestinationDescription) SetElasticsearchDestinationDescription(v *Elast
 // SetExtendedS3DestinationDescription sets the ExtendedS3DestinationDescription field's value.
 func (s *DestinationDescription) SetExtendedS3DestinationDescription(v *ExtendedS3DestinationDescription) *DestinationDescription {
 	s.ExtendedS3DestinationDescription = v
+	return s
+}
+
+// SetHttpEndpointDestinationDescription sets the HttpEndpointDestinationDescription field's value.
+func (s *DestinationDescription) SetHttpEndpointDestinationDescription(v *HttpEndpointDestinationDescription) *DestinationDescription {
+	s.HttpEndpointDestinationDescription = v
 	return s
 }
 
@@ -2588,6 +2609,8 @@ type ElasticsearchDestinationConfiguration struct {
 	// with elasticsearch-failed/ appended to the prefix. For more information,
 	// see Amazon S3 Backup for the Amazon ES Destination (https://docs.aws.amazon.com/firehose/latest/dev/basic-deliver.html#es-s3-backup).
 	// Default value is FailedDocumentsOnly.
+	//
+	// You can't change this backup mode after you create the delivery stream.
 	S3BackupMode *string `type:"string" enum:"ElasticsearchS3BackupMode"`
 
 	// The configuration for the backup Amazon S3 location.
@@ -3187,7 +3210,9 @@ type ExtendedS3DestinationConfiguration struct {
 	// The configuration for backup in Amazon S3.
 	S3BackupConfiguration *S3DestinationConfiguration `type:"structure"`
 
-	// The Amazon S3 backup mode.
+	// The Amazon S3 backup mode. After you create a delivery stream, you can update
+	// it to enable Amazon S3 backup if it is disabled. If backup is enabled, you
+	// can't update the delivery stream to disable it.
 	S3BackupMode *string `type:"string" enum:"S3BackupMode"`
 }
 
@@ -3505,7 +3530,8 @@ type ExtendedS3DestinationUpdate struct {
 	// see Amazon Resource Names (ARNs) and AWS Service Namespaces (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
 	RoleARN *string `min:"1" type:"string"`
 
-	// Enables or disables Amazon S3 backup mode.
+	// You can update a delivery stream to enable Amazon S3 backup if it is disabled.
+	// If backup is enabled, you can't update the delivery stream to disable it.
 	S3BackupMode *string `type:"string" enum:"S3BackupMode"`
 
 	// The Amazon S3 destination for backup.
@@ -3705,6 +3731,711 @@ func (s HiveJsonSerDe) GoString() string {
 // SetTimestampFormats sets the TimestampFormats field's value.
 func (s *HiveJsonSerDe) SetTimestampFormats(v []*string) *HiveJsonSerDe {
 	s.TimestampFormats = v
+	return s
+}
+
+// Describes the buffering options that can be applied before data is delivered
+// to the HTTP endpoint destination. Kinesis Data Firehose treats these options
+// as hints, and it might choose to use more optimal values. The SizeInMBs and
+// IntervalInSeconds parameters are optional. However, if specify a value for
+// one of them, you must also provide a value for the other.
+type HttpEndpointBufferingHints struct {
+	_ struct{} `type:"structure"`
+
+	// Buffer incoming data for the specified period of time, in seconds, before
+	// delivering it to the destination. The default value is 300 (5 minutes).
+	IntervalInSeconds *int64 `min:"60" type:"integer"`
+
+	// Buffer incoming data to the specified size, in MBs, before delivering it
+	// to the destination. The default value is 5.
+	//
+	// We recommend setting this parameter to a value greater than the amount of
+	// data you typically ingest into the delivery stream in 10 seconds. For example,
+	// if you typically ingest data at 1 MB/sec, the value should be 10 MB or higher.
+	SizeInMBs *int64 `min:"1" type:"integer"`
+}
+
+// String returns the string representation
+func (s HttpEndpointBufferingHints) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointBufferingHints) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointBufferingHints) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointBufferingHints"}
+	if s.IntervalInSeconds != nil && *s.IntervalInSeconds < 60 {
+		invalidParams.Add(request.NewErrParamMinValue("IntervalInSeconds", 60))
+	}
+	if s.SizeInMBs != nil && *s.SizeInMBs < 1 {
+		invalidParams.Add(request.NewErrParamMinValue("SizeInMBs", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetIntervalInSeconds sets the IntervalInSeconds field's value.
+func (s *HttpEndpointBufferingHints) SetIntervalInSeconds(v int64) *HttpEndpointBufferingHints {
+	s.IntervalInSeconds = &v
+	return s
+}
+
+// SetSizeInMBs sets the SizeInMBs field's value.
+func (s *HttpEndpointBufferingHints) SetSizeInMBs(v int64) *HttpEndpointBufferingHints {
+	s.SizeInMBs = &v
+	return s
+}
+
+// Describes the metadata that's delivered to the specified HTTP endpoint destination.
+type HttpEndpointCommonAttribute struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the HTTP endpoint common attribute.
+	//
+	// AttributeName is a required field
+	AttributeName *string `min:"1" type:"string" required:"true" sensitive:"true"`
+
+	// The value of the HTTP endpoint common attribute.
+	//
+	// AttributeValue is a required field
+	AttributeValue *string `type:"string" required:"true" sensitive:"true"`
+}
+
+// String returns the string representation
+func (s HttpEndpointCommonAttribute) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointCommonAttribute) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointCommonAttribute) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointCommonAttribute"}
+	if s.AttributeName == nil {
+		invalidParams.Add(request.NewErrParamRequired("AttributeName"))
+	}
+	if s.AttributeName != nil && len(*s.AttributeName) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("AttributeName", 1))
+	}
+	if s.AttributeValue == nil {
+		invalidParams.Add(request.NewErrParamRequired("AttributeValue"))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAttributeName sets the AttributeName field's value.
+func (s *HttpEndpointCommonAttribute) SetAttributeName(v string) *HttpEndpointCommonAttribute {
+	s.AttributeName = &v
+	return s
+}
+
+// SetAttributeValue sets the AttributeValue field's value.
+func (s *HttpEndpointCommonAttribute) SetAttributeValue(v string) *HttpEndpointCommonAttribute {
+	s.AttributeValue = &v
+	return s
+}
+
+// Describes the configuration of the HTTP endpoint to which Kinesis Firehose
+// delivers data.
+type HttpEndpointConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The access key required for Kinesis Firehose to authenticate with the HTTP
+	// endpoint selected as the destination.
+	AccessKey *string `type:"string" sensitive:"true"`
+
+	// The name of the HTTP endpoint selected as the destination.
+	Name *string `min:"1" type:"string"`
+
+	// The URL of the HTTP endpoint selected as the destination.
+	//
+	// Url is a required field
+	Url *string `min:"1" type:"string" required:"true" sensitive:"true"`
+}
+
+// String returns the string representation
+func (s HttpEndpointConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointConfiguration"}
+	if s.Name != nil && len(*s.Name) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Name", 1))
+	}
+	if s.Url == nil {
+		invalidParams.Add(request.NewErrParamRequired("Url"))
+	}
+	if s.Url != nil && len(*s.Url) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Url", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAccessKey sets the AccessKey field's value.
+func (s *HttpEndpointConfiguration) SetAccessKey(v string) *HttpEndpointConfiguration {
+	s.AccessKey = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *HttpEndpointConfiguration) SetName(v string) *HttpEndpointConfiguration {
+	s.Name = &v
+	return s
+}
+
+// SetUrl sets the Url field's value.
+func (s *HttpEndpointConfiguration) SetUrl(v string) *HttpEndpointConfiguration {
+	s.Url = &v
+	return s
+}
+
+// Describes the HTTP endpoint selected as the destination.
+type HttpEndpointDescription struct {
+	_ struct{} `type:"structure"`
+
+	// The name of the HTTP endpoint selected as the destination.
+	Name *string `min:"1" type:"string"`
+
+	// The URL of the HTTP endpoint selected as the destination.
+	Url *string `min:"1" type:"string" sensitive:"true"`
+}
+
+// String returns the string representation
+func (s HttpEndpointDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointDescription) GoString() string {
+	return s.String()
+}
+
+// SetName sets the Name field's value.
+func (s *HttpEndpointDescription) SetName(v string) *HttpEndpointDescription {
+	s.Name = &v
+	return s
+}
+
+// SetUrl sets the Url field's value.
+func (s *HttpEndpointDescription) SetUrl(v string) *HttpEndpointDescription {
+	s.Url = &v
+	return s
+}
+
+// Describes the configuration of the HTTP endpoint destination.
+type HttpEndpointDestinationConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The buffering options that can be used before data is delivered to the specified
+	// destination. Kinesis Data Firehose treats these options as hints, and it
+	// might choose to use more optimal values. The SizeInMBs and IntervalInSeconds
+	// parameters are optional. However, if you specify a value for one of them,
+	// you must also provide a value for the other.
+	BufferingHints *HttpEndpointBufferingHints `type:"structure"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// The configuration of the HTTP endpoint selected as the destination.
+	//
+	// EndpointConfiguration is a required field
+	EndpointConfiguration *HttpEndpointConfiguration `type:"structure" required:"true"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The configuration of the requeste sent to the HTTP endpoint specified as
+	// the destination.
+	RequestConfiguration *HttpEndpointRequestConfiguration `type:"structure"`
+
+	// Describes the retry behavior in case Kinesis Data Firehose is unable to deliver
+	// data to the specified HTTP endpoint destination, or if it doesn't receive
+	// a valid acknowledgment of receipt from the specified HTTP endpoint destination.
+	RetryOptions *HttpEndpointRetryOptions `type:"structure"`
+
+	// Kinesis Data Firehose uses this IAM role for all the permissions that the
+	// delivery stream needs.
+	RoleARN *string `min:"1" type:"string"`
+
+	// Describes the S3 bucket backup options for the data that Kinesis Data Firehose
+	// delivers to the HTTP endpoint destination. You can back up all documents
+	// (AllData) or only the documents that Kinesis Data Firehose could not deliver
+	// to the specified HTTP endpoint destination (FailedDataOnly).
+	S3BackupMode *string `type:"string" enum:"HttpEndpointS3BackupMode"`
+
+	// Describes the configuration of a destination in Amazon S3.
+	//
+	// S3Configuration is a required field
+	S3Configuration *S3DestinationConfiguration `type:"structure" required:"true"`
+}
+
+// String returns the string representation
+func (s HttpEndpointDestinationConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointDestinationConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointDestinationConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointDestinationConfiguration"}
+	if s.EndpointConfiguration == nil {
+		invalidParams.Add(request.NewErrParamRequired("EndpointConfiguration"))
+	}
+	if s.RoleARN != nil && len(*s.RoleARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleARN", 1))
+	}
+	if s.S3Configuration == nil {
+		invalidParams.Add(request.NewErrParamRequired("S3Configuration"))
+	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.EndpointConfiguration != nil {
+		if err := s.EndpointConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("EndpointConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ProcessingConfiguration != nil {
+		if err := s.ProcessingConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("ProcessingConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RequestConfiguration != nil {
+		if err := s.RequestConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("RequestConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.S3Configuration != nil {
+		if err := s.S3Configuration.Validate(); err != nil {
+			invalidParams.AddNested("S3Configuration", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *HttpEndpointDestinationConfiguration) SetBufferingHints(v *HttpEndpointBufferingHints) *HttpEndpointDestinationConfiguration {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *HttpEndpointDestinationConfiguration) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *HttpEndpointDestinationConfiguration {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetEndpointConfiguration sets the EndpointConfiguration field's value.
+func (s *HttpEndpointDestinationConfiguration) SetEndpointConfiguration(v *HttpEndpointConfiguration) *HttpEndpointDestinationConfiguration {
+	s.EndpointConfiguration = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *HttpEndpointDestinationConfiguration) SetProcessingConfiguration(v *ProcessingConfiguration) *HttpEndpointDestinationConfiguration {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRequestConfiguration sets the RequestConfiguration field's value.
+func (s *HttpEndpointDestinationConfiguration) SetRequestConfiguration(v *HttpEndpointRequestConfiguration) *HttpEndpointDestinationConfiguration {
+	s.RequestConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *HttpEndpointDestinationConfiguration) SetRetryOptions(v *HttpEndpointRetryOptions) *HttpEndpointDestinationConfiguration {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *HttpEndpointDestinationConfiguration) SetRoleARN(v string) *HttpEndpointDestinationConfiguration {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *HttpEndpointDestinationConfiguration) SetS3BackupMode(v string) *HttpEndpointDestinationConfiguration {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3Configuration sets the S3Configuration field's value.
+func (s *HttpEndpointDestinationConfiguration) SetS3Configuration(v *S3DestinationConfiguration) *HttpEndpointDestinationConfiguration {
+	s.S3Configuration = v
+	return s
+}
+
+// Describes the HTTP endpoint destination.
+type HttpEndpointDestinationDescription struct {
+	_ struct{} `type:"structure"`
+
+	// Describes buffering options that can be applied to the data before it is
+	// delivered to the HTTPS endpoint destination. Kinesis Data Firehose teats
+	// these options as hints, and it might choose to use more optimal values. The
+	// SizeInMBs and IntervalInSeconds parameters are optional. However, if specify
+	// a value for one of them, you must also provide a value for the other.
+	BufferingHints *HttpEndpointBufferingHints `type:"structure"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// The configuration of the specified HTTP endpoint destination.
+	EndpointConfiguration *HttpEndpointDescription `type:"structure"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The configuration of request sent to the HTTP endpoint specified as the destination.
+	RequestConfiguration *HttpEndpointRequestConfiguration `type:"structure"`
+
+	// Describes the retry behavior in case Kinesis Data Firehose is unable to deliver
+	// data to the specified HTTP endpoint destination, or if it doesn't receive
+	// a valid acknowledgment of receipt from the specified HTTP endpoint destination.
+	RetryOptions *HttpEndpointRetryOptions `type:"structure"`
+
+	// Kinesis Data Firehose uses this IAM role for all the permissions that the
+	// delivery stream needs.
+	RoleARN *string `min:"1" type:"string"`
+
+	// Describes the S3 bucket backup options for the data that Kinesis Firehose
+	// delivers to the HTTP endpoint destination. You can back up all documents
+	// (AllData) or only the documents that Kinesis Data Firehose could not deliver
+	// to the specified HTTP endpoint destination (FailedDataOnly).
+	S3BackupMode *string `type:"string" enum:"HttpEndpointS3BackupMode"`
+
+	// Describes a destination in Amazon S3.
+	S3DestinationDescription *S3DestinationDescription `type:"structure"`
+}
+
+// String returns the string representation
+func (s HttpEndpointDestinationDescription) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointDestinationDescription) GoString() string {
+	return s.String()
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *HttpEndpointDestinationDescription) SetBufferingHints(v *HttpEndpointBufferingHints) *HttpEndpointDestinationDescription {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *HttpEndpointDestinationDescription) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *HttpEndpointDestinationDescription {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetEndpointConfiguration sets the EndpointConfiguration field's value.
+func (s *HttpEndpointDestinationDescription) SetEndpointConfiguration(v *HttpEndpointDescription) *HttpEndpointDestinationDescription {
+	s.EndpointConfiguration = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *HttpEndpointDestinationDescription) SetProcessingConfiguration(v *ProcessingConfiguration) *HttpEndpointDestinationDescription {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRequestConfiguration sets the RequestConfiguration field's value.
+func (s *HttpEndpointDestinationDescription) SetRequestConfiguration(v *HttpEndpointRequestConfiguration) *HttpEndpointDestinationDescription {
+	s.RequestConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *HttpEndpointDestinationDescription) SetRetryOptions(v *HttpEndpointRetryOptions) *HttpEndpointDestinationDescription {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *HttpEndpointDestinationDescription) SetRoleARN(v string) *HttpEndpointDestinationDescription {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *HttpEndpointDestinationDescription) SetS3BackupMode(v string) *HttpEndpointDestinationDescription {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3DestinationDescription sets the S3DestinationDescription field's value.
+func (s *HttpEndpointDestinationDescription) SetS3DestinationDescription(v *S3DestinationDescription) *HttpEndpointDestinationDescription {
+	s.S3DestinationDescription = v
+	return s
+}
+
+// Updates the specified HTTP endpoint destination.
+type HttpEndpointDestinationUpdate struct {
+	_ struct{} `type:"structure"`
+
+	// Describes buffering options that can be applied to the data before it is
+	// delivered to the HTTPS endpoint destination. Kinesis Data Firehose teats
+	// these options as hints, and it might choose to use more optimal values. The
+	// SizeInMBs and IntervalInSeconds parameters are optional. However, if specify
+	// a value for one of them, you must also provide a value for the other.
+	BufferingHints *HttpEndpointBufferingHints `type:"structure"`
+
+	// Describes the Amazon CloudWatch logging options for your delivery stream.
+	CloudWatchLoggingOptions *CloudWatchLoggingOptions `type:"structure"`
+
+	// Describes the configuration of the HTTP endpoint destination.
+	EndpointConfiguration *HttpEndpointConfiguration `type:"structure"`
+
+	// Describes a data processing configuration.
+	ProcessingConfiguration *ProcessingConfiguration `type:"structure"`
+
+	// The configuration of the request sent to the HTTP endpoint specified as the
+	// destination.
+	RequestConfiguration *HttpEndpointRequestConfiguration `type:"structure"`
+
+	// Describes the retry behavior in case Kinesis Data Firehose is unable to deliver
+	// data to the specified HTTP endpoint destination, or if it doesn't receive
+	// a valid acknowledgment of receipt from the specified HTTP endpoint destination.
+	RetryOptions *HttpEndpointRetryOptions `type:"structure"`
+
+	// Kinesis Data Firehose uses this IAM role for all the permissions that the
+	// delivery stream needs.
+	RoleARN *string `min:"1" type:"string"`
+
+	// Describes the S3 bucket backup options for the data that Kinesis Firehose
+	// delivers to the HTTP endpoint destination. You can back up all documents
+	// (AllData) or only the documents that Kinesis Data Firehose could not deliver
+	// to the specified HTTP endpoint destination (FailedDataOnly).
+	S3BackupMode *string `type:"string" enum:"HttpEndpointS3BackupMode"`
+
+	// Describes an update for a destination in Amazon S3.
+	S3Update *S3DestinationUpdate `type:"structure"`
+}
+
+// String returns the string representation
+func (s HttpEndpointDestinationUpdate) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointDestinationUpdate) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointDestinationUpdate) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointDestinationUpdate"}
+	if s.RoleARN != nil && len(*s.RoleARN) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("RoleARN", 1))
+	}
+	if s.BufferingHints != nil {
+		if err := s.BufferingHints.Validate(); err != nil {
+			invalidParams.AddNested("BufferingHints", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.EndpointConfiguration != nil {
+		if err := s.EndpointConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("EndpointConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.ProcessingConfiguration != nil {
+		if err := s.ProcessingConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("ProcessingConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.RequestConfiguration != nil {
+		if err := s.RequestConfiguration.Validate(); err != nil {
+			invalidParams.AddNested("RequestConfiguration", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.S3Update != nil {
+		if err := s.S3Update.Validate(); err != nil {
+			invalidParams.AddNested("S3Update", err.(request.ErrInvalidParams))
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetBufferingHints sets the BufferingHints field's value.
+func (s *HttpEndpointDestinationUpdate) SetBufferingHints(v *HttpEndpointBufferingHints) *HttpEndpointDestinationUpdate {
+	s.BufferingHints = v
+	return s
+}
+
+// SetCloudWatchLoggingOptions sets the CloudWatchLoggingOptions field's value.
+func (s *HttpEndpointDestinationUpdate) SetCloudWatchLoggingOptions(v *CloudWatchLoggingOptions) *HttpEndpointDestinationUpdate {
+	s.CloudWatchLoggingOptions = v
+	return s
+}
+
+// SetEndpointConfiguration sets the EndpointConfiguration field's value.
+func (s *HttpEndpointDestinationUpdate) SetEndpointConfiguration(v *HttpEndpointConfiguration) *HttpEndpointDestinationUpdate {
+	s.EndpointConfiguration = v
+	return s
+}
+
+// SetProcessingConfiguration sets the ProcessingConfiguration field's value.
+func (s *HttpEndpointDestinationUpdate) SetProcessingConfiguration(v *ProcessingConfiguration) *HttpEndpointDestinationUpdate {
+	s.ProcessingConfiguration = v
+	return s
+}
+
+// SetRequestConfiguration sets the RequestConfiguration field's value.
+func (s *HttpEndpointDestinationUpdate) SetRequestConfiguration(v *HttpEndpointRequestConfiguration) *HttpEndpointDestinationUpdate {
+	s.RequestConfiguration = v
+	return s
+}
+
+// SetRetryOptions sets the RetryOptions field's value.
+func (s *HttpEndpointDestinationUpdate) SetRetryOptions(v *HttpEndpointRetryOptions) *HttpEndpointDestinationUpdate {
+	s.RetryOptions = v
+	return s
+}
+
+// SetRoleARN sets the RoleARN field's value.
+func (s *HttpEndpointDestinationUpdate) SetRoleARN(v string) *HttpEndpointDestinationUpdate {
+	s.RoleARN = &v
+	return s
+}
+
+// SetS3BackupMode sets the S3BackupMode field's value.
+func (s *HttpEndpointDestinationUpdate) SetS3BackupMode(v string) *HttpEndpointDestinationUpdate {
+	s.S3BackupMode = &v
+	return s
+}
+
+// SetS3Update sets the S3Update field's value.
+func (s *HttpEndpointDestinationUpdate) SetS3Update(v *S3DestinationUpdate) *HttpEndpointDestinationUpdate {
+	s.S3Update = v
+	return s
+}
+
+// The configuration of the HTTP endpoint request.
+type HttpEndpointRequestConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// Describes the metadata sent to the HTTP endpoint destination.
+	CommonAttributes []*HttpEndpointCommonAttribute `type:"list"`
+
+	// Kinesis Data Firehose uses the content encoding to compress the body of a
+	// request before sending the request to the destination. For more information,
+	// see Content-Encoding (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding)
+	// in MDN Web Docs, the official Mozilla documentation.
+	ContentEncoding *string `type:"string" enum:"ContentEncoding"`
+}
+
+// String returns the string representation
+func (s HttpEndpointRequestConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointRequestConfiguration) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *HttpEndpointRequestConfiguration) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "HttpEndpointRequestConfiguration"}
+	if s.CommonAttributes != nil {
+		for i, v := range s.CommonAttributes {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "CommonAttributes", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetCommonAttributes sets the CommonAttributes field's value.
+func (s *HttpEndpointRequestConfiguration) SetCommonAttributes(v []*HttpEndpointCommonAttribute) *HttpEndpointRequestConfiguration {
+	s.CommonAttributes = v
+	return s
+}
+
+// SetContentEncoding sets the ContentEncoding field's value.
+func (s *HttpEndpointRequestConfiguration) SetContentEncoding(v string) *HttpEndpointRequestConfiguration {
+	s.ContentEncoding = &v
+	return s
+}
+
+// Describes the retry behavior in case Kinesis Data Firehose is unable to deliver
+// data to the specified HTTP endpoint destination, or if it doesn't receive
+// a valid acknowledgment of receipt from the specified HTTP endpoint destination.
+type HttpEndpointRetryOptions struct {
+	_ struct{} `type:"structure"`
+
+	// The total amount of time that Kinesis Data Firehose spends on retries. This
+	// duration starts after the initial attempt to send data to the custom destination
+	// via HTTPS endpoint fails. It doesn't include the periods during which Kinesis
+	// Data Firehose waits for acknowledgment from the specified destination after
+	// each attempt.
+	DurationInSeconds *int64 `type:"integer"`
+}
+
+// String returns the string representation
+func (s HttpEndpointRetryOptions) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s HttpEndpointRetryOptions) GoString() string {
+	return s.String()
+}
+
+// SetDurationInSeconds sets the DurationInSeconds field's value.
+func (s *HttpEndpointRetryOptions) SetDurationInSeconds(v int64) *HttpEndpointRetryOptions {
+	s.DurationInSeconds = &v
 	return s
 }
 
@@ -5120,7 +5851,9 @@ type RedshiftDestinationConfiguration struct {
 	// The configuration for backup in Amazon S3.
 	S3BackupConfiguration *S3DestinationConfiguration `type:"structure"`
 
-	// The Amazon S3 backup mode.
+	// The Amazon S3 backup mode. After you create a delivery stream, you can update
+	// it to enable Amazon S3 backup if it is disabled. If backup is enabled, you
+	// can't update the delivery stream to disable it.
 	S3BackupMode *string `type:"string" enum:"RedshiftS3BackupMode"`
 
 	// The configuration for the intermediate Amazon S3 location from which Amazon
@@ -5419,7 +6152,8 @@ type RedshiftDestinationUpdate struct {
 	// see Amazon Resource Names (ARNs) and AWS Service Namespaces (https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
 	RoleARN *string `min:"1" type:"string"`
 
-	// The Amazon S3 backup mode.
+	// You can update a delivery stream to enable Amazon S3 backup if it is disabled.
+	// If backup is enabled, you can't update the delivery stream to disable it.
 	S3BackupMode *string `type:"string" enum:"RedshiftS3BackupMode"`
 
 	// The Amazon S3 destination for backup.
@@ -6352,11 +7086,14 @@ type SplunkDestinationConfiguration struct {
 	// to Splunk, or if it doesn't receive an acknowledgment of receipt from Splunk.
 	RetryOptions *SplunkRetryOptions `type:"structure"`
 
-	// Defines how documents should be delivered to Amazon S3. When set to FailedDocumentsOnly,
+	// Defines how documents should be delivered to Amazon S3. When set to FailedEventsOnly,
 	// Kinesis Data Firehose writes any data that could not be indexed to the configured
-	// Amazon S3 destination. When set to AllDocuments, Kinesis Data Firehose delivers
+	// Amazon S3 destination. When set to AllEvents, Kinesis Data Firehose delivers
 	// all incoming records to Amazon S3, and also writes failed documents to Amazon
-	// S3. Default value is FailedDocumentsOnly.
+	// S3. The default value is FailedEventsOnly.
+	//
+	// You can update this backup mode from FailedEventsOnly to AllEvents. You can't
+	// update it from AllEvents to FailedEventsOnly.
 	S3BackupMode *string `type:"string" enum:"SplunkS3BackupMode"`
 
 	// The configuration for the backup Amazon S3 location.
@@ -6600,11 +7337,14 @@ type SplunkDestinationUpdate struct {
 	// to Splunk or if it doesn't receive an acknowledgment of receipt from Splunk.
 	RetryOptions *SplunkRetryOptions `type:"structure"`
 
-	// Defines how documents should be delivered to Amazon S3. When set to FailedDocumentsOnly,
-	// Kinesis Data Firehose writes any data that could not be indexed to the configured
-	// Amazon S3 destination. When set to AllDocuments, Kinesis Data Firehose delivers
-	// all incoming records to Amazon S3, and also writes failed documents to Amazon
-	// S3. Default value is FailedDocumentsOnly.
+	// Specifies how you want Kinesis Data Firehose to back up documents to Amazon
+	// S3. When set to FailedDocumentsOnly, Kinesis Data Firehose writes any data
+	// that could not be indexed to the configured Amazon S3 destination. When set
+	// to AllEvents, Kinesis Data Firehose delivers all incoming records to Amazon
+	// S3, and also writes failed documents to Amazon S3. The default value is FailedEventsOnly.
+	//
+	// You can update this backup mode from FailedEventsOnly to AllEvents. You can't
+	// update it from AllEvents to FailedEventsOnly.
 	S3BackupMode *string `type:"string" enum:"SplunkS3BackupMode"`
 
 	// Your update to the configuration of the backup Amazon S3 location.
@@ -7091,6 +7831,9 @@ type UpdateDestinationInput struct {
 	// Describes an update for a destination in Amazon S3.
 	ExtendedS3DestinationUpdate *ExtendedS3DestinationUpdate `type:"structure"`
 
+	// Describes an update to the specified HTTP endpoint destination.
+	HttpEndpointDestinationUpdate *HttpEndpointDestinationUpdate `type:"structure"`
+
 	// Describes an update for a destination in Amazon Redshift.
 	RedshiftDestinationUpdate *RedshiftDestinationUpdate `type:"structure"`
 
@@ -7142,6 +7885,11 @@ func (s *UpdateDestinationInput) Validate() error {
 	if s.ExtendedS3DestinationUpdate != nil {
 		if err := s.ExtendedS3DestinationUpdate.Validate(); err != nil {
 			invalidParams.AddNested("ExtendedS3DestinationUpdate", err.(request.ErrInvalidParams))
+		}
+	}
+	if s.HttpEndpointDestinationUpdate != nil {
+		if err := s.HttpEndpointDestinationUpdate.Validate(); err != nil {
+			invalidParams.AddNested("HttpEndpointDestinationUpdate", err.(request.ErrInvalidParams))
 		}
 	}
 	if s.RedshiftDestinationUpdate != nil {
@@ -7196,6 +7944,12 @@ func (s *UpdateDestinationInput) SetExtendedS3DestinationUpdate(v *ExtendedS3Des
 	return s
 }
 
+// SetHttpEndpointDestinationUpdate sets the HttpEndpointDestinationUpdate field's value.
+func (s *UpdateDestinationInput) SetHttpEndpointDestinationUpdate(v *HttpEndpointDestinationUpdate) *UpdateDestinationInput {
+	s.HttpEndpointDestinationUpdate = v
+	return s
+}
+
 // SetRedshiftDestinationUpdate sets the RedshiftDestinationUpdate field's value.
 func (s *UpdateDestinationInput) SetRedshiftDestinationUpdate(v *RedshiftDestinationUpdate) *UpdateDestinationInput {
 	s.RedshiftDestinationUpdate = v
@@ -7233,13 +7987,45 @@ type VpcConfiguration struct {
 	_ struct{} `type:"structure"`
 
 	// The ARN of the IAM role that you want the delivery stream to use to create
-	// endpoints in the destination VPC.
+	// endpoints in the destination VPC. You can use your existing Kinesis Data
+	// Firehose delivery role or you can specify a new role. In either case, make
+	// sure that the role trusts the Kinesis Data Firehose service principal and
+	// that it grants the following permissions:
+	//
+	//    * ec2:DescribeVpcs
+	//
+	//    * ec2:DescribeVpcAttribute
+	//
+	//    * ec2:DescribeSubnets
+	//
+	//    * ec2:DescribeSecurityGroups
+	//
+	//    * ec2:DescribeNetworkInterfaces
+	//
+	//    * ec2:CreateNetworkInterface
+	//
+	//    * ec2:CreateNetworkInterfacePermission
+	//
+	//    * ec2:DeleteNetworkInterface
+	//
+	// If you revoke these permissions after you create the delivery stream, Kinesis
+	// Data Firehose can't scale out by creating more ENIs when necessary. You might
+	// therefore see a degradation in performance.
 	//
 	// RoleARN is a required field
 	RoleARN *string `min:"1" type:"string" required:"true"`
 
 	// The IDs of the security groups that you want Kinesis Data Firehose to use
-	// when it creates ENIs in the VPC of the Amazon ES destination.
+	// when it creates ENIs in the VPC of the Amazon ES destination. You can use
+	// the same security group that the Amazon ES domain uses or different ones.
+	// If you specify different security groups here, ensure that they allow outbound
+	// HTTPS traffic to the Amazon ES domain's security group. Also ensure that
+	// the Amazon ES domain's security group allows HTTPS traffic from the security
+	// groups specified here. If you use the same security group for both your delivery
+	// stream and the Amazon ES domain, make sure the security group inbound rule
+	// allows HTTPS traffic. For more information about security group rules, see
+	// Security group rules (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#SecurityGroupRules)
+	// in the Amazon VPC documentation.
 	//
 	// SecurityGroupIds is a required field
 	SecurityGroupIds []*string `min:"1" type:"list" required:"true"`
@@ -7324,14 +8110,46 @@ func (s *VpcConfiguration) SetSubnetIds(v []*string) *VpcConfiguration {
 type VpcConfigurationDescription struct {
 	_ struct{} `type:"structure"`
 
-	// The ARN of the IAM role that you want the delivery stream uses to create
-	// endpoints in the destination VPC.
+	// The ARN of the IAM role that the delivery stream uses to create endpoints
+	// in the destination VPC. You can use your existing Kinesis Data Firehose delivery
+	// role or you can specify a new role. In either case, make sure that the role
+	// trusts the Kinesis Data Firehose service principal and that it grants the
+	// following permissions:
+	//
+	//    * ec2:DescribeVpcs
+	//
+	//    * ec2:DescribeVpcAttribute
+	//
+	//    * ec2:DescribeSubnets
+	//
+	//    * ec2:DescribeSecurityGroups
+	//
+	//    * ec2:DescribeNetworkInterfaces
+	//
+	//    * ec2:CreateNetworkInterface
+	//
+	//    * ec2:CreateNetworkInterfacePermission
+	//
+	//    * ec2:DeleteNetworkInterface
+	//
+	// If you revoke these permissions after you create the delivery stream, Kinesis
+	// Data Firehose can't scale out by creating more ENIs when necessary. You might
+	// therefore see a degradation in performance.
 	//
 	// RoleARN is a required field
 	RoleARN *string `min:"1" type:"string" required:"true"`
 
 	// The IDs of the security groups that Kinesis Data Firehose uses when it creates
-	// ENIs in the VPC of the Amazon ES destination.
+	// ENIs in the VPC of the Amazon ES destination. You can use the same security
+	// group that the Amazon ES domain uses or different ones. If you specify different
+	// security groups, ensure that they allow outbound HTTPS traffic to the Amazon
+	// ES domain's security group. Also ensure that the Amazon ES domain's security
+	// group allows HTTPS traffic from the security groups specified here. If you
+	// use the same security group for both your delivery stream and the Amazon
+	// ES domain, make sure the security group inbound rule allows HTTPS traffic.
+	// For more information about security group rules, see Security group rules
+	// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#SecurityGroupRules)
+	// in the Amazon VPC documentation.
 	//
 	// SecurityGroupIds is a required field
 	SecurityGroupIds []*string `min:"1" type:"list" required:"true"`
@@ -7412,6 +8230,33 @@ const (
 	CompressionFormatHadoopSnappy = "HADOOP_SNAPPY"
 )
 
+// CompressionFormat_Values returns all elements of the CompressionFormat enum
+func CompressionFormat_Values() []string {
+	return []string{
+		CompressionFormatUncompressed,
+		CompressionFormatGzip,
+		CompressionFormatZip,
+		CompressionFormatSnappy,
+		CompressionFormatHadoopSnappy,
+	}
+}
+
+const (
+	// ContentEncodingNone is a ContentEncoding enum value
+	ContentEncodingNone = "NONE"
+
+	// ContentEncodingGzip is a ContentEncoding enum value
+	ContentEncodingGzip = "GZIP"
+)
+
+// ContentEncoding_Values returns all elements of the ContentEncoding enum
+func ContentEncoding_Values() []string {
+	return []string{
+		ContentEncodingNone,
+		ContentEncodingGzip,
+	}
+}
+
 const (
 	// DeliveryStreamEncryptionStatusEnabled is a DeliveryStreamEncryptionStatus enum value
 	DeliveryStreamEncryptionStatusEnabled = "ENABLED"
@@ -7431,6 +8276,18 @@ const (
 	// DeliveryStreamEncryptionStatusDisablingFailed is a DeliveryStreamEncryptionStatus enum value
 	DeliveryStreamEncryptionStatusDisablingFailed = "DISABLING_FAILED"
 )
+
+// DeliveryStreamEncryptionStatus_Values returns all elements of the DeliveryStreamEncryptionStatus enum
+func DeliveryStreamEncryptionStatus_Values() []string {
+	return []string{
+		DeliveryStreamEncryptionStatusEnabled,
+		DeliveryStreamEncryptionStatusEnabling,
+		DeliveryStreamEncryptionStatusEnablingFailed,
+		DeliveryStreamEncryptionStatusDisabled,
+		DeliveryStreamEncryptionStatusDisabling,
+		DeliveryStreamEncryptionStatusDisablingFailed,
+	}
+}
 
 const (
 	// DeliveryStreamFailureTypeRetireKmsGrantFailed is a DeliveryStreamFailureType enum value
@@ -7479,6 +8336,27 @@ const (
 	DeliveryStreamFailureTypeUnknownError = "UNKNOWN_ERROR"
 )
 
+// DeliveryStreamFailureType_Values returns all elements of the DeliveryStreamFailureType enum
+func DeliveryStreamFailureType_Values() []string {
+	return []string{
+		DeliveryStreamFailureTypeRetireKmsGrantFailed,
+		DeliveryStreamFailureTypeCreateKmsGrantFailed,
+		DeliveryStreamFailureTypeKmsAccessDenied,
+		DeliveryStreamFailureTypeDisabledKmsKey,
+		DeliveryStreamFailureTypeInvalidKmsKey,
+		DeliveryStreamFailureTypeKmsKeyNotFound,
+		DeliveryStreamFailureTypeKmsOptInRequired,
+		DeliveryStreamFailureTypeCreateEniFailed,
+		DeliveryStreamFailureTypeDeleteEniFailed,
+		DeliveryStreamFailureTypeSubnetNotFound,
+		DeliveryStreamFailureTypeSecurityGroupNotFound,
+		DeliveryStreamFailureTypeEniAccessDenied,
+		DeliveryStreamFailureTypeSubnetAccessDenied,
+		DeliveryStreamFailureTypeSecurityGroupAccessDenied,
+		DeliveryStreamFailureTypeUnknownError,
+	}
+}
+
 const (
 	// DeliveryStreamStatusCreating is a DeliveryStreamStatus enum value
 	DeliveryStreamStatusCreating = "CREATING"
@@ -7496,6 +8374,17 @@ const (
 	DeliveryStreamStatusActive = "ACTIVE"
 )
 
+// DeliveryStreamStatus_Values returns all elements of the DeliveryStreamStatus enum
+func DeliveryStreamStatus_Values() []string {
+	return []string{
+		DeliveryStreamStatusCreating,
+		DeliveryStreamStatusCreatingFailed,
+		DeliveryStreamStatusDeleting,
+		DeliveryStreamStatusDeletingFailed,
+		DeliveryStreamStatusActive,
+	}
+}
+
 const (
 	// DeliveryStreamTypeDirectPut is a DeliveryStreamType enum value
 	DeliveryStreamTypeDirectPut = "DirectPut"
@@ -7503,6 +8392,14 @@ const (
 	// DeliveryStreamTypeKinesisStreamAsSource is a DeliveryStreamType enum value
 	DeliveryStreamTypeKinesisStreamAsSource = "KinesisStreamAsSource"
 )
+
+// DeliveryStreamType_Values returns all elements of the DeliveryStreamType enum
+func DeliveryStreamType_Values() []string {
+	return []string{
+		DeliveryStreamTypeDirectPut,
+		DeliveryStreamTypeKinesisStreamAsSource,
+	}
+}
 
 const (
 	// ElasticsearchIndexRotationPeriodNoRotation is a ElasticsearchIndexRotationPeriod enum value
@@ -7521,6 +8418,17 @@ const (
 	ElasticsearchIndexRotationPeriodOneMonth = "OneMonth"
 )
 
+// ElasticsearchIndexRotationPeriod_Values returns all elements of the ElasticsearchIndexRotationPeriod enum
+func ElasticsearchIndexRotationPeriod_Values() []string {
+	return []string{
+		ElasticsearchIndexRotationPeriodNoRotation,
+		ElasticsearchIndexRotationPeriodOneHour,
+		ElasticsearchIndexRotationPeriodOneDay,
+		ElasticsearchIndexRotationPeriodOneWeek,
+		ElasticsearchIndexRotationPeriodOneMonth,
+	}
+}
+
 const (
 	// ElasticsearchS3BackupModeFailedDocumentsOnly is a ElasticsearchS3BackupMode enum value
 	ElasticsearchS3BackupModeFailedDocumentsOnly = "FailedDocumentsOnly"
@@ -7528,6 +8436,14 @@ const (
 	// ElasticsearchS3BackupModeAllDocuments is a ElasticsearchS3BackupMode enum value
 	ElasticsearchS3BackupModeAllDocuments = "AllDocuments"
 )
+
+// ElasticsearchS3BackupMode_Values returns all elements of the ElasticsearchS3BackupMode enum
+func ElasticsearchS3BackupMode_Values() []string {
+	return []string{
+		ElasticsearchS3BackupModeFailedDocumentsOnly,
+		ElasticsearchS3BackupModeAllDocuments,
+	}
+}
 
 const (
 	// HECEndpointTypeRaw is a HECEndpointType enum value
@@ -7537,6 +8453,30 @@ const (
 	HECEndpointTypeEvent = "Event"
 )
 
+// HECEndpointType_Values returns all elements of the HECEndpointType enum
+func HECEndpointType_Values() []string {
+	return []string{
+		HECEndpointTypeRaw,
+		HECEndpointTypeEvent,
+	}
+}
+
+const (
+	// HttpEndpointS3BackupModeFailedDataOnly is a HttpEndpointS3BackupMode enum value
+	HttpEndpointS3BackupModeFailedDataOnly = "FailedDataOnly"
+
+	// HttpEndpointS3BackupModeAllData is a HttpEndpointS3BackupMode enum value
+	HttpEndpointS3BackupModeAllData = "AllData"
+)
+
+// HttpEndpointS3BackupMode_Values returns all elements of the HttpEndpointS3BackupMode enum
+func HttpEndpointS3BackupMode_Values() []string {
+	return []string{
+		HttpEndpointS3BackupModeFailedDataOnly,
+		HttpEndpointS3BackupModeAllData,
+	}
+}
+
 const (
 	// KeyTypeAwsOwnedCmk is a KeyType enum value
 	KeyTypeAwsOwnedCmk = "AWS_OWNED_CMK"
@@ -7545,10 +8485,25 @@ const (
 	KeyTypeCustomerManagedCmk = "CUSTOMER_MANAGED_CMK"
 )
 
+// KeyType_Values returns all elements of the KeyType enum
+func KeyType_Values() []string {
+	return []string{
+		KeyTypeAwsOwnedCmk,
+		KeyTypeCustomerManagedCmk,
+	}
+}
+
 const (
 	// NoEncryptionConfigNoEncryption is a NoEncryptionConfig enum value
 	NoEncryptionConfigNoEncryption = "NoEncryption"
 )
+
+// NoEncryptionConfig_Values returns all elements of the NoEncryptionConfig enum
+func NoEncryptionConfig_Values() []string {
+	return []string{
+		NoEncryptionConfigNoEncryption,
+	}
+}
 
 const (
 	// OrcCompressionNone is a OrcCompression enum value
@@ -7561,6 +8516,15 @@ const (
 	OrcCompressionSnappy = "SNAPPY"
 )
 
+// OrcCompression_Values returns all elements of the OrcCompression enum
+func OrcCompression_Values() []string {
+	return []string{
+		OrcCompressionNone,
+		OrcCompressionZlib,
+		OrcCompressionSnappy,
+	}
+}
+
 const (
 	// OrcFormatVersionV011 is a OrcFormatVersion enum value
 	OrcFormatVersionV011 = "V0_11"
@@ -7568,6 +8532,14 @@ const (
 	// OrcFormatVersionV012 is a OrcFormatVersion enum value
 	OrcFormatVersionV012 = "V0_12"
 )
+
+// OrcFormatVersion_Values returns all elements of the OrcFormatVersion enum
+func OrcFormatVersion_Values() []string {
+	return []string{
+		OrcFormatVersionV011,
+		OrcFormatVersionV012,
+	}
+}
 
 const (
 	// ParquetCompressionUncompressed is a ParquetCompression enum value
@@ -7580,6 +8552,15 @@ const (
 	ParquetCompressionSnappy = "SNAPPY"
 )
 
+// ParquetCompression_Values returns all elements of the ParquetCompression enum
+func ParquetCompression_Values() []string {
+	return []string{
+		ParquetCompressionUncompressed,
+		ParquetCompressionGzip,
+		ParquetCompressionSnappy,
+	}
+}
+
 const (
 	// ParquetWriterVersionV1 is a ParquetWriterVersion enum value
 	ParquetWriterVersionV1 = "V1"
@@ -7587,6 +8568,14 @@ const (
 	// ParquetWriterVersionV2 is a ParquetWriterVersion enum value
 	ParquetWriterVersionV2 = "V2"
 )
+
+// ParquetWriterVersion_Values returns all elements of the ParquetWriterVersion enum
+func ParquetWriterVersion_Values() []string {
+	return []string{
+		ParquetWriterVersionV1,
+		ParquetWriterVersionV2,
+	}
+}
 
 const (
 	// ProcessorParameterNameLambdaArn is a ProcessorParameterName enum value
@@ -7605,10 +8594,28 @@ const (
 	ProcessorParameterNameBufferIntervalInSeconds = "BufferIntervalInSeconds"
 )
 
+// ProcessorParameterName_Values returns all elements of the ProcessorParameterName enum
+func ProcessorParameterName_Values() []string {
+	return []string{
+		ProcessorParameterNameLambdaArn,
+		ProcessorParameterNameNumberOfRetries,
+		ProcessorParameterNameRoleArn,
+		ProcessorParameterNameBufferSizeInMbs,
+		ProcessorParameterNameBufferIntervalInSeconds,
+	}
+}
+
 const (
 	// ProcessorTypeLambda is a ProcessorType enum value
 	ProcessorTypeLambda = "Lambda"
 )
+
+// ProcessorType_Values returns all elements of the ProcessorType enum
+func ProcessorType_Values() []string {
+	return []string{
+		ProcessorTypeLambda,
+	}
+}
 
 const (
 	// RedshiftS3BackupModeDisabled is a RedshiftS3BackupMode enum value
@@ -7618,6 +8625,14 @@ const (
 	RedshiftS3BackupModeEnabled = "Enabled"
 )
 
+// RedshiftS3BackupMode_Values returns all elements of the RedshiftS3BackupMode enum
+func RedshiftS3BackupMode_Values() []string {
+	return []string{
+		RedshiftS3BackupModeDisabled,
+		RedshiftS3BackupModeEnabled,
+	}
+}
+
 const (
 	// S3BackupModeDisabled is a S3BackupMode enum value
 	S3BackupModeDisabled = "Disabled"
@@ -7626,6 +8641,14 @@ const (
 	S3BackupModeEnabled = "Enabled"
 )
 
+// S3BackupMode_Values returns all elements of the S3BackupMode enum
+func S3BackupMode_Values() []string {
+	return []string{
+		S3BackupModeDisabled,
+		S3BackupModeEnabled,
+	}
+}
+
 const (
 	// SplunkS3BackupModeFailedEventsOnly is a SplunkS3BackupMode enum value
 	SplunkS3BackupModeFailedEventsOnly = "FailedEventsOnly"
@@ -7633,3 +8656,11 @@ const (
 	// SplunkS3BackupModeAllEvents is a SplunkS3BackupMode enum value
 	SplunkS3BackupModeAllEvents = "AllEvents"
 )
+
+// SplunkS3BackupMode_Values returns all elements of the SplunkS3BackupMode enum
+func SplunkS3BackupMode_Values() []string {
+	return []string{
+		SplunkS3BackupModeFailedEventsOnly,
+		SplunkS3BackupModeAllEvents,
+	}
+}

@@ -1,2 +1,33 @@
 # Default owner for all pull requests
 *    @terraform-providers/aws-provider
+
+# Service specific owners
+/aws/*apigatewayv2*    @ewbankkit @terraform-providers/aws-provider
+/website/**/apigatewayv2*    @ewbankkit @terraform-providers/aws-provider
+
+/aws/*appmesh*    @ewbankkit @terraform-providers/aws-provider
+/website/**/appmesh*    @ewbankkit @terraform-providers/aws-provider
+
+/aws/*backup*    @ewbankkit @terraform-providers/aws-provider
+/website/**/backup*    @ewbankkit @terraform-providers/aws-provider
+
+/aws/*_aws_codeartifact_*.go     @DrFaust92 @terraform-providers/aws-provider
+/website/**/codeartifact*        @DrFaust92 @terraform-providers/aws-provider
+
+/aws/*_aws_fsx_*.go     @DrFaust92 @terraform-providers/aws-provider
+/website/**/fsx*        @DrFaust92 @terraform-providers/aws-provider
+
+/aws/*globalaccelerator*    @ewbankkit @terraform-providers/aws-provider
+/website/**/globalaccelerator*    @ewbankkit @terraform-providers/aws-provider
+
+/aws/*_aws_glue_*.go     @DrFaust92 @terraform-providers/aws-provider
+/website/**/glue*        @DrFaust92 @terraform-providers/aws-provider
+
+/aws/*route53_resolver*    @ewbankkit @terraform-providers/aws-provider
+/website/**/route53_resolver*    @ewbankkit @terraform-providers/aws-provider
+
+/aws/*_aws_storagegateway_*.go     @DrFaust92 @terraform-providers/aws-provider
+/website/**/storagegateway*        @DrFaust92 @terraform-providers/aws-provider
+
+/aws/*_aws_sagemaker_*.go     @DrFaust92 @terraform-providers/aws-provider
+/website/**/sagemaker*        @DrFaust92 @terraform-providers/aws-provider

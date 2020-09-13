@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_basic(t *testing.T) {
@@ -193,8 +193,8 @@ func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName string) s
 	return testAccAlternateAccountProviderConfig() + fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   # IncorrectState: Transit Gateway is not available in availability zone us-west-2d
-  blacklisted_zone_ids = ["usw2-az4"]
-  state                = "available"
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
 
   filter {
     name   = "opt-in-status"
@@ -217,22 +217,22 @@ resource "aws_ram_resource_share" "test" {
 }
 
 resource "aws_ram_resource_association" "test" {
-  resource_arn       = "${aws_ec2_transit_gateway.test.arn}"
-  resource_share_arn = "${aws_ram_resource_share.test.id}"
+  resource_arn       = aws_ec2_transit_gateway.test.arn
+  resource_share_arn = aws_ram_resource_share.test.id
 }
 
 resource "aws_ram_principal_association" "test" {
-  principal          = "${data.aws_caller_identity.creator.account_id}"
-  resource_share_arn = "${aws_ram_resource_share.test.id}"
+  principal          = data.aws_caller_identity.creator.account_id
+  resource_share_arn = aws_ram_resource_share.test.id
 }
 
 # VPC attachment creator.
 data "aws_caller_identity" "creator" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 }
 
 resource "aws_vpc" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   cidr_block = "10.0.0.0/16"
 
@@ -242,11 +242,11 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.0.0/24"
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -254,13 +254,13 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  depends_on = ["aws_ram_principal_association.test", "aws_ram_resource_association.test"]
+  depends_on = [aws_ram_principal_association.test, aws_ram_resource_association.test]
 
-  subnet_ids         = ["${aws_subnet.test.id}"]
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
-  vpc_id             = "${aws_vpc.test.id}"
+  subnet_ids         = [aws_subnet.test.id]
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
+  vpc_id             = aws_vpc.test.id
 
   tags = {
     Name = %[1]q
@@ -271,17 +271,17 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
 }
 
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_basic(rName string) string {
-	return testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName) + fmt.Sprintf(`
+	return testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName) + `
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
-  transit_gateway_attachment_id = "${aws_ec2_transit_gateway_vpc_attachment.test.id}"
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.test.id
 }
-`)
+`
 }
 
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_tags(rName string) string {
 	return testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName) + fmt.Sprintf(`
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
-  transit_gateway_attachment_id = "${aws_ec2_transit_gateway_vpc_attachment.test.id}"
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.test.id
 
   tags = {
     Name = %[1]q
@@ -296,7 +296,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_tagsUpdated(rName string) string {
 	return testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName) + fmt.Sprintf(`
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
-  transit_gateway_attachment_id = "${aws_ec2_transit_gateway_vpc_attachment.test.id}"
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.test.id
 
   tags = {
     Name = %[1]q
@@ -311,7 +311,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_defaultRouteTableAssociationAndPropagation(rName string, association, propagation bool) string {
 	return testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName) + fmt.Sprintf(`
 resource "aws_ec2_transit_gateway_vpc_attachment_accepter" "test" {
-  transit_gateway_attachment_id = "${aws_ec2_transit_gateway_vpc_attachment.test.id}"
+  transit_gateway_attachment_id = aws_ec2_transit_gateway_vpc_attachment.test.id
 
   tags = {
     Name = %[1]q

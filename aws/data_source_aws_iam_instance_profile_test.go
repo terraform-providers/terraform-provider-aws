@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMInstanceProfile_basic(t *testing.T) {
@@ -41,12 +41,12 @@ resource "aws_iam_role" "test" {
 
 resource "aws_iam_instance_profile" "test" {
   name = "%s"
-  role = "${aws_iam_role.test.name}"
+  role = aws_iam_role.test.name
   path = "/testpath/"
 }
 
 data "aws_iam_instance_profile" "test" {
-  name = "${aws_iam_instance_profile.test.name}"
+  name = aws_iam_instance_profile.test.name
 }
 `, roleName, profileName)
 }

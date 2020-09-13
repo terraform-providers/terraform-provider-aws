@@ -9032,8 +9032,9 @@ func (c *Redshift) ResizeClusterRequest(input *ResizeClusterInput) (req *request
 //
 // Elastic resize operations have the following restrictions:
 //
-//    * You can only resize clusters of the following types: dc2.large dc2.8xlarge
-//    ds2.xlarge ds2.8xlarge ra3.4xlarge ra3.16xlarge
+//    * You can only resize clusters of the following types: dc1.large (if your
+//    cluster is in a VPC) dc1.8xlarge (if your cluster is in a VPC) dc2.large
+//    dc2.8xlarge ds2.xlarge ds2.8xlarge ra3.4xlarge ra3.16xlarge
 //
 //    * The type of nodes that you add must match the node type for the cluster.
 //
@@ -10400,8 +10401,7 @@ type CancelResizeOutput struct {
 
 	// The type of encryption for the cluster after the resize is complete.
 	//
-	// Possible values are KMS and None. In the China region possible values are:
-	// Legacy and None.
+	// Possible values are KMS and None.
 	TargetEncryptionType *string `type:"string"`
 
 	// The node type that the cluster will have after the resize operation is complete.
@@ -17322,8 +17322,7 @@ type DescribeResizeOutput struct {
 
 	// The type of encryption for the cluster after the resize is complete.
 	//
-	// Possible values are KMS and None. In the China region possible values are:
-	// Legacy and None.
+	// Possible values are KMS and None.
 	TargetEncryptionType *string `type:"string"`
 
 	// The node type that the cluster will have after the resize operation is complete.
@@ -19835,8 +19834,7 @@ type ModifyClusterInput struct {
 	// Indicates whether the cluster is encrypted. If the value is encrypted (true)
 	// and you provide a value for the KmsKeyId parameter, we encrypt the cluster
 	// with the provided KmsKeyId. If you don't provide a KmsKeyId, we encrypt with
-	// the default key. In the China region we use legacy encryption if you specify
-	// that the cluster is encrypted.
+	// the default key.
 	//
 	// If the value is not encrypted (false), then the cluster is decrypted.
 	Encrypted *bool `type:"boolean"`
@@ -20257,6 +20255,7 @@ func (s *ModifyClusterOutput) SetCluster(v *Cluster) *ModifyClusterOutput {
 	return s
 }
 
+// Describes a modify cluster parameter group operation.
 type ModifyClusterParameterGroupInput struct {
 	_ struct{} `type:"structure"`
 
@@ -21572,6 +21571,8 @@ func (s *Parameter) SetSource(v string) *Parameter {
 	return s
 }
 
+// Describes a pause cluster operation. For example, a scheduled action to run
+// the PauseCluster API operation.
 type PauseClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -21610,6 +21611,8 @@ func (s *PauseClusterInput) SetClusterIdentifier(v string) *PauseClusterInput {
 	return s
 }
 
+// Describes a pause cluster operation. For example, a scheduled action to run
+// the PauseCluster API operation.
 type PauseClusterMessage struct {
 	_ struct{} `type:"structure"`
 
@@ -21688,8 +21691,7 @@ type PendingModifiedValues struct {
 	// The pending or in-progress change of the service version.
 	ClusterVersion *string `type:"string"`
 
-	// The encryption type for a cluster. Possible values are: KMS and None. For
-	// the China region the possible values are None, and Legacy.
+	// The encryption type for a cluster. Possible values are: KMS and None.
 	EncryptionType *string `type:"string"`
 
 	// An option that specifies whether to create the cluster with enhanced VPC
@@ -22276,6 +22278,8 @@ func (s *ResetClusterParameterGroupInput) SetResetAllParameters(v bool) *ResetCl
 	return s
 }
 
+// Describes a resize cluster operation. For example, a scheduled action to
+// run the ResizeCluster API operation.
 type ResizeClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -22296,7 +22300,8 @@ type ResizeClusterInput struct {
 	// current node type is used.
 	NodeType *string `type:"string"`
 
-	// The new number of nodes for the cluster.
+	// The new number of nodes for the cluster. If not specified, the cluster's
+	// current number of nodes is used.
 	NumberOfNodes *int64 `type:"integer"`
 }
 
@@ -22353,6 +22358,8 @@ func (s *ResizeClusterInput) SetNumberOfNodes(v int64) *ResizeClusterInput {
 	return s
 }
 
+// Describes a resize cluster operation. For example, a scheduled action to
+// run the ResizeCluster API operation.
 type ResizeClusterMessage struct {
 	_ struct{} `type:"structure"`
 
@@ -22373,7 +22380,8 @@ type ResizeClusterMessage struct {
 	// current node type is used.
 	NodeType *string `type:"string"`
 
-	// The new number of nodes for the cluster.
+	// The new number of nodes for the cluster. If not specified, the cluster's
+	// current number of nodes is used.
 	NumberOfNodes *int64 `type:"integer"`
 }
 
@@ -23113,6 +23121,8 @@ func (s *RestoreTableFromClusterSnapshotOutput) SetTableRestoreStatus(v *TableRe
 	return s
 }
 
+// Describes a resume cluster operation. For example, a scheduled action to
+// run the ResumeCluster API operation.
 type ResumeClusterInput struct {
 	_ struct{} `type:"structure"`
 
@@ -23151,6 +23161,8 @@ func (s *ResumeClusterInput) SetClusterIdentifier(v string) *ResumeClusterInput 
 	return s
 }
 
+// Describes a resume cluster operation. For example, a scheduled action to
+// run the ResumeCluster API operation.
 type ResumeClusterMessage struct {
 	_ struct{} `type:"structure"`
 
@@ -24830,6 +24842,15 @@ const (
 	ActionTypeResizeCluster = "resize-cluster"
 )
 
+// ActionType_Values returns all elements of the ActionType enum
+func ActionType_Values() []string {
+	return []string{
+		ActionTypeRestoreCluster,
+		ActionTypeRecommendNodeConfig,
+		ActionTypeResizeCluster,
+	}
+}
+
 const (
 	// ModeStandard is a Mode enum value
 	ModeStandard = "standard"
@@ -24837,6 +24858,14 @@ const (
 	// ModeHighPerformance is a Mode enum value
 	ModeHighPerformance = "high-performance"
 )
+
+// Mode_Values returns all elements of the Mode enum
+func Mode_Values() []string {
+	return []string{
+		ModeStandard,
+		ModeHighPerformance,
+	}
+}
 
 const (
 	// NodeConfigurationOptionsFilterNameNodeType is a NodeConfigurationOptionsFilterName enum value
@@ -24851,6 +24880,16 @@ const (
 	// NodeConfigurationOptionsFilterNameMode is a NodeConfigurationOptionsFilterName enum value
 	NodeConfigurationOptionsFilterNameMode = "Mode"
 )
+
+// NodeConfigurationOptionsFilterName_Values returns all elements of the NodeConfigurationOptionsFilterName enum
+func NodeConfigurationOptionsFilterName_Values() []string {
+	return []string{
+		NodeConfigurationOptionsFilterNameNodeType,
+		NodeConfigurationOptionsFilterNameNumberOfNodes,
+		NodeConfigurationOptionsFilterNameEstimatedDiskUtilizationPercent,
+		NodeConfigurationOptionsFilterNameMode,
+	}
+}
 
 const (
 	// OperatorTypeEq is a OperatorType enum value
@@ -24875,6 +24914,19 @@ const (
 	OperatorTypeBetween = "between"
 )
 
+// OperatorType_Values returns all elements of the OperatorType enum
+func OperatorType_Values() []string {
+	return []string{
+		OperatorTypeEq,
+		OperatorTypeLt,
+		OperatorTypeGt,
+		OperatorTypeLe,
+		OperatorTypeGe,
+		OperatorTypeIn,
+		OperatorTypeBetween,
+	}
+}
+
 const (
 	// ParameterApplyTypeStatic is a ParameterApplyType enum value
 	ParameterApplyTypeStatic = "static"
@@ -24883,6 +24935,14 @@ const (
 	ParameterApplyTypeDynamic = "dynamic"
 )
 
+// ParameterApplyType_Values returns all elements of the ParameterApplyType enum
+func ParameterApplyType_Values() []string {
+	return []string{
+		ParameterApplyTypeStatic,
+		ParameterApplyTypeDynamic,
+	}
+}
+
 const (
 	// ReservedNodeOfferingTypeRegular is a ReservedNodeOfferingType enum value
 	ReservedNodeOfferingTypeRegular = "Regular"
@@ -24890,6 +24950,14 @@ const (
 	// ReservedNodeOfferingTypeUpgradable is a ReservedNodeOfferingType enum value
 	ReservedNodeOfferingTypeUpgradable = "Upgradable"
 )
+
+// ReservedNodeOfferingType_Values returns all elements of the ReservedNodeOfferingType enum
+func ReservedNodeOfferingType_Values() []string {
+	return []string{
+		ReservedNodeOfferingTypeRegular,
+		ReservedNodeOfferingTypeUpgradable,
+	}
+}
 
 const (
 	// ScheduleStateModifying is a ScheduleState enum value
@@ -24902,6 +24970,15 @@ const (
 	ScheduleStateFailed = "FAILED"
 )
 
+// ScheduleState_Values returns all elements of the ScheduleState enum
+func ScheduleState_Values() []string {
+	return []string{
+		ScheduleStateModifying,
+		ScheduleStateActive,
+		ScheduleStateFailed,
+	}
+}
+
 const (
 	// ScheduledActionFilterNameClusterIdentifier is a ScheduledActionFilterName enum value
 	ScheduledActionFilterNameClusterIdentifier = "cluster-identifier"
@@ -24910,6 +24987,14 @@ const (
 	ScheduledActionFilterNameIamRole = "iam-role"
 )
 
+// ScheduledActionFilterName_Values returns all elements of the ScheduledActionFilterName enum
+func ScheduledActionFilterName_Values() []string {
+	return []string{
+		ScheduledActionFilterNameClusterIdentifier,
+		ScheduledActionFilterNameIamRole,
+	}
+}
+
 const (
 	// ScheduledActionStateActive is a ScheduledActionState enum value
 	ScheduledActionStateActive = "ACTIVE"
@@ -24917,6 +25002,14 @@ const (
 	// ScheduledActionStateDisabled is a ScheduledActionState enum value
 	ScheduledActionStateDisabled = "DISABLED"
 )
+
+// ScheduledActionState_Values returns all elements of the ScheduledActionState enum
+func ScheduledActionState_Values() []string {
+	return []string{
+		ScheduledActionStateActive,
+		ScheduledActionStateDisabled,
+	}
+}
 
 const (
 	// ScheduledActionTypeValuesResizeCluster is a ScheduledActionTypeValues enum value
@@ -24929,6 +25022,15 @@ const (
 	ScheduledActionTypeValuesResumeCluster = "ResumeCluster"
 )
 
+// ScheduledActionTypeValues_Values returns all elements of the ScheduledActionTypeValues enum
+func ScheduledActionTypeValues_Values() []string {
+	return []string{
+		ScheduledActionTypeValuesResizeCluster,
+		ScheduledActionTypeValuesPauseCluster,
+		ScheduledActionTypeValuesResumeCluster,
+	}
+}
+
 const (
 	// SnapshotAttributeToSortBySourceType is a SnapshotAttributeToSortBy enum value
 	SnapshotAttributeToSortBySourceType = "SOURCE_TYPE"
@@ -24940,6 +25042,15 @@ const (
 	SnapshotAttributeToSortByCreateTime = "CREATE_TIME"
 )
 
+// SnapshotAttributeToSortBy_Values returns all elements of the SnapshotAttributeToSortBy enum
+func SnapshotAttributeToSortBy_Values() []string {
+	return []string{
+		SnapshotAttributeToSortBySourceType,
+		SnapshotAttributeToSortByTotalSize,
+		SnapshotAttributeToSortByCreateTime,
+	}
+}
+
 const (
 	// SortByOrderAsc is a SortByOrder enum value
 	SortByOrderAsc = "ASC"
@@ -24947,6 +25058,14 @@ const (
 	// SortByOrderDesc is a SortByOrder enum value
 	SortByOrderDesc = "DESC"
 )
+
+// SortByOrder_Values returns all elements of the SortByOrder enum
+func SortByOrder_Values() []string {
+	return []string{
+		SortByOrderAsc,
+		SortByOrderDesc,
+	}
+}
 
 const (
 	// SourceTypeCluster is a SourceType enum value
@@ -24965,6 +25084,17 @@ const (
 	SourceTypeScheduledAction = "scheduled-action"
 )
 
+// SourceType_Values returns all elements of the SourceType enum
+func SourceType_Values() []string {
+	return []string{
+		SourceTypeCluster,
+		SourceTypeClusterParameterGroup,
+		SourceTypeClusterSecurityGroup,
+		SourceTypeClusterSnapshot,
+		SourceTypeScheduledAction,
+	}
+}
+
 const (
 	// TableRestoreStatusTypePending is a TableRestoreStatusType enum value
 	TableRestoreStatusTypePending = "PENDING"
@@ -24982,6 +25112,17 @@ const (
 	TableRestoreStatusTypeCanceled = "CANCELED"
 )
 
+// TableRestoreStatusType_Values returns all elements of the TableRestoreStatusType enum
+func TableRestoreStatusType_Values() []string {
+	return []string{
+		TableRestoreStatusTypePending,
+		TableRestoreStatusTypeInProgress,
+		TableRestoreStatusTypeSucceeded,
+		TableRestoreStatusTypeFailed,
+		TableRestoreStatusTypeCanceled,
+	}
+}
+
 const (
 	// UsageLimitBreachActionLog is a UsageLimitBreachAction enum value
 	UsageLimitBreachActionLog = "log"
@@ -24993,6 +25134,15 @@ const (
 	UsageLimitBreachActionDisable = "disable"
 )
 
+// UsageLimitBreachAction_Values returns all elements of the UsageLimitBreachAction enum
+func UsageLimitBreachAction_Values() []string {
+	return []string{
+		UsageLimitBreachActionLog,
+		UsageLimitBreachActionEmitMetric,
+		UsageLimitBreachActionDisable,
+	}
+}
+
 const (
 	// UsageLimitFeatureTypeSpectrum is a UsageLimitFeatureType enum value
 	UsageLimitFeatureTypeSpectrum = "spectrum"
@@ -25001,6 +25151,14 @@ const (
 	UsageLimitFeatureTypeConcurrencyScaling = "concurrency-scaling"
 )
 
+// UsageLimitFeatureType_Values returns all elements of the UsageLimitFeatureType enum
+func UsageLimitFeatureType_Values() []string {
+	return []string{
+		UsageLimitFeatureTypeSpectrum,
+		UsageLimitFeatureTypeConcurrencyScaling,
+	}
+}
+
 const (
 	// UsageLimitLimitTypeTime is a UsageLimitLimitType enum value
 	UsageLimitLimitTypeTime = "time"
@@ -25008,6 +25166,14 @@ const (
 	// UsageLimitLimitTypeDataScanned is a UsageLimitLimitType enum value
 	UsageLimitLimitTypeDataScanned = "data-scanned"
 )
+
+// UsageLimitLimitType_Values returns all elements of the UsageLimitLimitType enum
+func UsageLimitLimitType_Values() []string {
+	return []string{
+		UsageLimitLimitTypeTime,
+		UsageLimitLimitTypeDataScanned,
+	}
+}
 
 const (
 	// UsageLimitPeriodDaily is a UsageLimitPeriod enum value
@@ -25019,3 +25185,12 @@ const (
 	// UsageLimitPeriodMonthly is a UsageLimitPeriod enum value
 	UsageLimitPeriodMonthly = "monthly"
 )
+
+// UsageLimitPeriod_Values returns all elements of the UsageLimitPeriod enum
+func UsageLimitPeriod_Values() []string {
+	return []string{
+		UsageLimitPeriodDaily,
+		UsageLimitPeriodWeekly,
+		UsageLimitPeriodMonthly,
+	}
+}

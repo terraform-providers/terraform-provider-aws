@@ -16,19 +16,19 @@ without having to hard code the ARN as input.
 ## Example Usage
 
 ```hcl
-data "aws_kms_key" "foo" {
+data "aws_kms_key" "by_alias" {
   key_id = "alias/my-key"
 }
 
-data "aws_kms_key" "foo" {
+data "aws_kms_key" "by_id" {
   key_id = "1234abcd-12ab-34cd-56ef-1234567890ab"
 }
 
-data "aws_kms_key" "foo" {
+data "aws_kms_key" "by_alias_arn" {
   key_id = "arn:aws:kms:us-east-1:111122223333:alias/my-key"
 }
 
-data "aws_kms_key" "foo" {
+data "aws_kms_key" "by_key_arn" {
   key_id = "arn:aws:kms:us-east-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
 }
 ```
@@ -36,10 +36,10 @@ data "aws_kms_key" "foo" {
 ## Argument Reference
 
 * `key_id` - (Required) Key identifier which can be one of the following format:
-  * Key ID. E.g: `1234abcd-12ab-34cd-56ef-1234567890ab`
-  * Key ARN. E.g.: `arn:aws:kms:us-east-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab`
-  * Alias name. E.g.: `alias/my-key`
-  * Alias ARN: E.g.: `arn:aws:kms:us-east-1:111122223333:alias/my-key`
+    * Key ID. E.g: `1234abcd-12ab-34cd-56ef-1234567890ab`
+    * Key ARN. E.g.: `arn:aws:kms:us-east-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab`
+    * Alias name. E.g.: `alias/my-key`
+    * Alias ARN: E.g.: `arn:aws:kms:us-east-1:111122223333:alias/my-key`
 * `grant_tokens` - (Optional) List of grant tokens
 
 ## Attributes Reference

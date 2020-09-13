@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNeptuneClusterInstance_basic(t *testing.T) {
@@ -43,7 +43,7 @@ func TestAccAWSNeptuneClusterInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "engine", "neptune"),
 					resource.TestCheckResourceAttrSet(resourceName, "engine_version"),
 					resource.TestCheckResourceAttr(resourceName, "identifier", clusterInstanceName),
-					resource.TestCheckResourceAttr(resourceName, "instance_class", "db.r4.large"),
+					resource.TestCheckResourceAttrPair(resourceName, "instance_class", "data.aws_neptune_orderable_db_instance.test", "instance_class"),
 					resource.TestCheckResourceAttr(resourceName, "kms_key_arn", ""),
 					resource.TestCheckResourceAttrPair(resourceName, "neptune_parameter_group_name", parameterGroupResourceName, "name"),
 					resource.TestCheckResourceAttr(resourceName, "neptune_subnet_group_name", "default"),
@@ -221,7 +221,6 @@ func testAccCheckAWSNeptuneClusterInstanceExists(n string, v *neptune.DBInstance
 
 func testAccCheckAWSNeptuneClusterInstanceAttributes(v *neptune.DBInstance) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		if aws.StringValue(v.Engine) != "neptune" {
 			return fmt.Errorf("Incorrect engine, expected \"neptune\": %#v", aws.StringValue(v.Engine))
 		}
@@ -256,13 +255,21 @@ func testAccCheckNeptuneClusterAddress(v *neptune.DBInstance, resourceName strin
 
 func testAccAWSNeptuneClusterInstanceConfig(instanceName string, n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = %[1]q
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
-  instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  cluster_identifier           = aws_neptune_cluster.default.id
+  instance_class               = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version               = data.aws_neptune_orderable_db_instance.test.engine_version
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   promotion_tier               = "3"
 }
 
@@ -270,6 +277,7 @@ resource "aws_neptune_cluster" "default" {
   cluster_identifier  = "tf-neptune-cluster-test-%[2]d"
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
+  engine_version      = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_parameter_group" "test" {
@@ -290,13 +298,21 @@ resource "aws_neptune_parameter_group" "test" {
 
 func testAccAWSNeptuneClusterInstanceConfigModified(instanceName string, n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = %[1]q
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
-  instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  cluster_identifier           = aws_neptune_cluster.default.id
+  instance_class               = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version               = data.aws_neptune_orderable_db_instance.test.engine_version
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   auto_minor_version_upgrade   = false
   promotion_tier               = "3"
 }
@@ -305,6 +321,7 @@ resource "aws_neptune_cluster" "default" {
   cluster_identifier  = "tf-neptune-cluster-test-%[2]d"
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
+  engine_version      = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_parameter_group" "test" {
@@ -325,13 +342,21 @@ resource "aws_neptune_parameter_group" "test" {
 
 func testAccAWSNeptuneClusterInstanceConfig_az(n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = "tf-cluster-instance-%[1]d"
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
-  instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  cluster_identifier           = aws_neptune_cluster.default.id
+  instance_class               = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version               = data.aws_neptune_orderable_db_instance.test.engine_version
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
   promotion_tier               = "3"
   availability_zone            = data.aws_availability_zones.available.names[0]
 }
@@ -340,6 +365,7 @@ resource "aws_neptune_cluster" "default" {
   cluster_identifier  = "tf-neptune-cluster-test-%[1]d"
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
+  engine_version      = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_parameter_group" "test" {
@@ -360,18 +386,27 @@ resource "aws_neptune_parameter_group" "test" {
 
 func testAccAWSNeptuneClusterInstanceConfig_withSubnetGroup(n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "test" {
   identifier         = "tf-cluster-instance-%[1]d"
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
-  instance_class     = "db.r4.large"
+  cluster_identifier = aws_neptune_cluster.test.id
+  instance_class     = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version     = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[1]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
+  engine_version            = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_vpc" "test" {
@@ -383,9 +418,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-a"
@@ -393,9 +428,9 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-b"
@@ -404,25 +439,34 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[1]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n))
 }
 
 func testAccAWSNeptuneClusterInstanceConfig_namePrefix(namePrefix string, n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "test" {
   identifier_prefix  = %[1]q
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
-  instance_class     = "db.r4.large"
+  cluster_identifier = aws_neptune_cluster.test.id
+  instance_class     = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version     = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[2]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
+  engine_version            = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_vpc" "test" {
@@ -434,9 +478,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-a"
@@ -444,9 +488,9 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-b"
@@ -455,24 +499,33 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[2]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, namePrefix, n))
 }
 
 func testAccAWSNeptuneClusterInstanceConfig_generatedName(n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster_instance" "test" {
-  cluster_identifier = "${aws_neptune_cluster.test.id}"
-  instance_class     = "db.r4.large"
+  cluster_identifier = aws_neptune_cluster.test.id
+  instance_class     = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version     = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_cluster" "test" {
   cluster_identifier        = "tf-neptune-cluster-%[1]d"
-  neptune_subnet_group_name = "${aws_neptune_subnet_group.test.name}"
+  neptune_subnet_group_name = aws_neptune_subnet_group.test.name
   skip_final_snapshot       = true
+  engine_version            = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_vpc" "test" {
@@ -484,9 +537,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "a" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.0.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-a"
@@ -494,9 +547,9 @@ resource "aws_subnet" "a" {
 }
 
 resource "aws_subnet" "b" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-neptune-cluster-instance-name-prefix-b"
@@ -505,14 +558,14 @@ resource "aws_subnet" "b" {
 
 resource "aws_neptune_subnet_group" "test" {
   name       = "tf-test-%[1]d"
-  subnet_ids = ["${aws_subnet.a.id}", "${aws_subnet.b.id}"]
+  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]
 }
 `, n))
 }
 
 func testAccAWSNeptuneClusterInstanceConfigKmsKey(n int) string {
 	return composeConfig(
-		testAccAWSNeptuneClusterConfigBase,
+		testAccAWSNeptuneClusterConfigBase(),
 		fmt.Sprintf(`
 resource "aws_kms_key" "test" {
   description = "Terraform acc test %[1]d"
@@ -536,19 +589,28 @@ resource "aws_kms_key" "test" {
 POLICY
 }
 
+data "aws_neptune_orderable_db_instance" "test" {
+  engine         = "neptune"
+  license_model  = "amazon-license"
+
+  preferred_instance_classes = ["db.t3.medium", "db.r5.large", "db.r4.large"]
+}
+
 resource "aws_neptune_cluster" "default" {
   cluster_identifier  = "tf-neptune-cluster-test-%[1]d"
   availability_zones  = local.availability_zone_names
   skip_final_snapshot = true
   storage_encrypted   = true
-  kms_key_arn         = "${aws_kms_key.test.arn}"
+  kms_key_arn         = aws_kms_key.test.arn
+  engine_version      = data.aws_neptune_orderable_db_instance.test.engine_version
 }
 
 resource "aws_neptune_cluster_instance" "cluster_instances" {
   identifier                   = "tf-cluster-instance-%[1]d"
-  cluster_identifier           = "${aws_neptune_cluster.default.id}"
-  instance_class               = "db.r4.large"
-  neptune_parameter_group_name = "${aws_neptune_parameter_group.test.name}"
+  cluster_identifier           = aws_neptune_cluster.default.id
+  instance_class               = data.aws_neptune_orderable_db_instance.test.instance_class
+  engine_version               = data.aws_neptune_orderable_db_instance.test.engine_version
+  neptune_parameter_group_name = aws_neptune_parameter_group.test.name
 }
 
 resource "aws_neptune_parameter_group" "test" {

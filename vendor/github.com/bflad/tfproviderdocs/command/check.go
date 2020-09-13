@@ -36,6 +36,7 @@ type CheckCommandConfig struct {
 	ProvidersSchemaJson              string
 	RequireGuideSubcategory          bool
 	RequireResourceSubcategory       bool
+	RequireSideNavigation            bool
 }
 
 // CheckCommand is a Command implementation
@@ -55,12 +56,13 @@ func (*CheckCommand) Help() string {
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-mismatch-resources", "Comma separated list of resources to ignore mismatched/extra files.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-missing-data-sources", "Comma separated list of data sources to ignore missing files.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-file-missing-resources", "Comma separated list of resources to ignore missing files.")
-	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-data-sources", "Comma separated list of data sources to ignore side navigation validation.")
-	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-resources", "Comma separated list of resources to ignore side navigation validation.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-data-sources", "Comma separated list of data sources to ignore side navigation (legacy terraform.io ERB file) validation.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-ignore-side-navigation-resources", "Comma separated list of resources to ignore side navigation (legacy terraform.io ERB file) validation.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-provider-name", "Terraform Provider name. Automatically determined if current working directory or provided path is prefixed with terraform-provider-*.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-providers-schema-json", "Path to terraform providers schema -json file. Enables enhanced validations.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-require-guide-subcategory", "Require guide frontmatter subcategory.")
 	fmt.Fprintf(opts, CommandHelpOptionFormat, "-require-resource-subcategory", "Require data source and resource frontmatter subcategory.")
+	fmt.Fprintf(opts, CommandHelpOptionFormat, "-require-side-navigation", "Require side navigation (legacy terraform.io ERB file).")
 	opts.Flush()
 
 	helpText := fmt.Sprintf(`
@@ -98,6 +100,7 @@ func (c *CheckCommand) Run(args []string) int {
 	flags.StringVar(&config.ProvidersSchemaJson, "providers-schema-json", "", "")
 	flags.BoolVar(&config.RequireGuideSubcategory, "require-guide-subcategory", false, "")
 	flags.BoolVar(&config.RequireResourceSubcategory, "require-resource-subcategory", false, "")
+	flags.BoolVar(&config.RequireSideNavigation, "require-side-navigation", false, "")
 
 	if err := flags.Parse(args); err != nil {
 		flags.Usage()
@@ -295,6 +298,7 @@ Check that the current working directory or provided path is prefixed with terra
 			FileOptions:       fileOpts,
 			IgnoreDataSources: ignoreSideNavigationDataSources,
 			IgnoreResources:   ignoreSideNavigationResources,
+			Require:           config.RequireSideNavigation,
 			ProviderName:      config.ProviderName,
 		},
 	}

@@ -9,9 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
@@ -179,22 +180,25 @@ func TestAccAWSCognitoIdentityPool_cognitoIdentityProviders(t *testing.T) {
 	resourceName := "aws_cognito_identity_pool.main"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:            func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
-		Providers:           testAccProviders,
-		CheckDestroy:        testAccCheckAWSCognitoIdentityPoolDestroy,
-		DisableBinaryDriver: true,
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentity(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSCognitoIdentityPoolConfig_cognitoIdentityProviders(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.66456389.client_id", "7lhlkkfbfb4q5kpp90urffao"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.66456389.provider_name", "cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.66456389.server_side_token_check", "false"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3571192419.client_id", "7lhlkkfbfb4q5kpp90urffao"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3571192419.provider_name", "cognito-idp.us-east-1.amazonaws.com/us-east-1_Ab129faBb"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3571192419.server_side_token_check", "false"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "cognito_identity_providers.*", map[string]string{
+						"client_id":               "7lhlkkfbfb4q5kpp90urffao",
+						"provider_name":           "cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu",
+						"server_side_token_check": "false",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "cognito_identity_providers.*", map[string]string{
+						"client_id":               "7lhlkkfbfb4q5kpp90urffao",
+						"provider_name":           "cognito-idp.us-east-1.amazonaws.com/us-east-1_Ab129faBb",
+						"server_side_token_check": "false",
+					}),
 				),
 			},
 			{
@@ -207,9 +211,11 @@ func TestAccAWSCognitoIdentityPool_cognitoIdentityProviders(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3661724441.client_id", "6lhlkkfbfb4q5kpp90urffae"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3661724441.provider_name", "cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu"),
-					resource.TestCheckResourceAttr(resourceName, "cognito_identity_providers.3661724441.server_side_token_check", "false"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "cognito_identity_providers.*", map[string]string{
+						"client_id":               "6lhlkkfbfb4q5kpp90urffae",
+						"provider_name":           "cognito-idp.us-east-1.amazonaws.com/us-east-1_Zr231apJu",
+						"server_side_token_check": "false",
+					}),
 				),
 			},
 			{
@@ -435,14 +441,14 @@ func testAccAWSCognitoIdentityPoolConfig_samlProviderArns(name string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_saml_provider" "default" {
   name                   = "myprovider-%s"
-  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
+  saml_metadata_document = file("./test-fixtures/saml-metadata.xml")
 }
 
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity pool %s"
   allow_unauthenticated_identities = false
 
-  saml_provider_arns = ["${aws_iam_saml_provider.default.arn}"]
+  saml_provider_arns = [aws_iam_saml_provider.default.arn]
 }
 `, name, name)
 }
@@ -451,19 +457,19 @@ func testAccAWSCognitoIdentityPoolConfig_samlProviderArnsModified(name string) s
 	return fmt.Sprintf(`
 resource "aws_iam_saml_provider" "default" {
   name                   = "default-%s"
-  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
+  saml_metadata_document = file("./test-fixtures/saml-metadata.xml")
 }
 
 resource "aws_iam_saml_provider" "secondary" {
   name                   = "secondary-%s"
-  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
+  saml_metadata_document = file("./test-fixtures/saml-metadata.xml")
 }
 
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity pool %s"
   allow_unauthenticated_identities = false
 
-  saml_provider_arns = ["${aws_iam_saml_provider.secondary.arn}"]
+  saml_provider_arns = [aws_iam_saml_provider.secondary.arn]
 }
 `, name, name, name)
 }

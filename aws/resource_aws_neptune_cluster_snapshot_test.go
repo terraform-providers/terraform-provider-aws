@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/neptune"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNeptuneClusterSnapshot_basic(t *testing.T) {
@@ -118,7 +118,7 @@ resource "aws_neptune_cluster" "test" {
 }
 
 resource "aws_neptune_cluster_snapshot" "test" {
-  db_cluster_identifier          = "${aws_neptune_cluster.test.id}"
+  db_cluster_identifier          = aws_neptune_cluster.test.id
   db_cluster_snapshot_identifier = %[1]q
 }
 `, rName)

@@ -20220,6 +20220,18 @@ const (
 	AgentUpdateStatusFailed = "FAILED"
 )
 
+// AgentUpdateStatus_Values returns all elements of the AgentUpdateStatus enum
+func AgentUpdateStatus_Values() []string {
+	return []string{
+		AgentUpdateStatusPending,
+		AgentUpdateStatusStaging,
+		AgentUpdateStatusStaged,
+		AgentUpdateStatusUpdating,
+		AgentUpdateStatusUpdated,
+		AgentUpdateStatusFailed,
+	}
+}
+
 const (
 	// AssignPublicIpEnabled is a AssignPublicIp enum value
 	AssignPublicIpEnabled = "ENABLED"
@@ -20228,10 +20240,25 @@ const (
 	AssignPublicIpDisabled = "DISABLED"
 )
 
+// AssignPublicIp_Values returns all elements of the AssignPublicIp enum
+func AssignPublicIp_Values() []string {
+	return []string{
+		AssignPublicIpEnabled,
+		AssignPublicIpDisabled,
+	}
+}
+
 const (
 	// CapacityProviderFieldTags is a CapacityProviderField enum value
 	CapacityProviderFieldTags = "TAGS"
 )
+
+// CapacityProviderField_Values returns all elements of the CapacityProviderField enum
+func CapacityProviderField_Values() []string {
+	return []string{
+		CapacityProviderFieldTags,
+	}
+}
 
 const (
 	// CapacityProviderStatusActive is a CapacityProviderStatus enum value
@@ -20240,6 +20267,14 @@ const (
 	// CapacityProviderStatusInactive is a CapacityProviderStatus enum value
 	CapacityProviderStatusInactive = "INACTIVE"
 )
+
+// CapacityProviderStatus_Values returns all elements of the CapacityProviderStatus enum
+func CapacityProviderStatus_Values() []string {
+	return []string{
+		CapacityProviderStatusActive,
+		CapacityProviderStatusInactive,
+	}
+}
 
 const (
 	// CapacityProviderUpdateStatusDeleteInProgress is a CapacityProviderUpdateStatus enum value
@@ -20251,6 +20286,15 @@ const (
 	// CapacityProviderUpdateStatusDeleteFailed is a CapacityProviderUpdateStatus enum value
 	CapacityProviderUpdateStatusDeleteFailed = "DELETE_FAILED"
 )
+
+// CapacityProviderUpdateStatus_Values returns all elements of the CapacityProviderUpdateStatus enum
+func CapacityProviderUpdateStatus_Values() []string {
+	return []string{
+		CapacityProviderUpdateStatusDeleteInProgress,
+		CapacityProviderUpdateStatusDeleteComplete,
+		CapacityProviderUpdateStatusDeleteFailed,
+	}
+}
 
 const (
 	// ClusterFieldAttachments is a ClusterField enum value
@@ -20266,10 +20310,27 @@ const (
 	ClusterFieldTags = "TAGS"
 )
 
+// ClusterField_Values returns all elements of the ClusterField enum
+func ClusterField_Values() []string {
+	return []string{
+		ClusterFieldAttachments,
+		ClusterFieldSettings,
+		ClusterFieldStatistics,
+		ClusterFieldTags,
+	}
+}
+
 const (
 	// ClusterSettingNameContainerInsights is a ClusterSettingName enum value
 	ClusterSettingNameContainerInsights = "containerInsights"
 )
+
+// ClusterSettingName_Values returns all elements of the ClusterSettingName enum
+func ClusterSettingName_Values() []string {
+	return []string{
+		ClusterSettingNameContainerInsights,
+	}
+}
 
 const (
 	// CompatibilityEc2 is a Compatibility enum value
@@ -20279,6 +20340,14 @@ const (
 	CompatibilityFargate = "FARGATE"
 )
 
+// Compatibility_Values returns all elements of the Compatibility enum
+func Compatibility_Values() []string {
+	return []string{
+		CompatibilityEc2,
+		CompatibilityFargate,
+	}
+}
+
 const (
 	// ConnectivityConnected is a Connectivity enum value
 	ConnectivityConnected = "CONNECTED"
@@ -20286,6 +20355,14 @@ const (
 	// ConnectivityDisconnected is a Connectivity enum value
 	ConnectivityDisconnected = "DISCONNECTED"
 )
+
+// Connectivity_Values returns all elements of the Connectivity enum
+func Connectivity_Values() []string {
+	return []string{
+		ConnectivityConnected,
+		ConnectivityDisconnected,
+	}
+}
 
 const (
 	// ContainerConditionStart is a ContainerCondition enum value
@@ -20301,10 +20378,27 @@ const (
 	ContainerConditionHealthy = "HEALTHY"
 )
 
+// ContainerCondition_Values returns all elements of the ContainerCondition enum
+func ContainerCondition_Values() []string {
+	return []string{
+		ContainerConditionStart,
+		ContainerConditionComplete,
+		ContainerConditionSuccess,
+		ContainerConditionHealthy,
+	}
+}
+
 const (
 	// ContainerInstanceFieldTags is a ContainerInstanceField enum value
 	ContainerInstanceFieldTags = "TAGS"
 )
+
+// ContainerInstanceField_Values returns all elements of the ContainerInstanceField enum
+func ContainerInstanceField_Values() []string {
+	return []string{
+		ContainerInstanceFieldTags,
+	}
+}
 
 const (
 	// ContainerInstanceStatusActive is a ContainerInstanceStatus enum value
@@ -20323,6 +20417,17 @@ const (
 	ContainerInstanceStatusRegistrationFailed = "REGISTRATION_FAILED"
 )
 
+// ContainerInstanceStatus_Values returns all elements of the ContainerInstanceStatus enum
+func ContainerInstanceStatus_Values() []string {
+	return []string{
+		ContainerInstanceStatusActive,
+		ContainerInstanceStatusDraining,
+		ContainerInstanceStatusRegistering,
+		ContainerInstanceStatusDeregistering,
+		ContainerInstanceStatusRegistrationFailed,
+	}
+}
+
 const (
 	// DeploymentControllerTypeEcs is a DeploymentControllerType enum value
 	DeploymentControllerTypeEcs = "ECS"
@@ -20333,6 +20438,15 @@ const (
 	// DeploymentControllerTypeExternal is a DeploymentControllerType enum value
 	DeploymentControllerTypeExternal = "EXTERNAL"
 )
+
+// DeploymentControllerType_Values returns all elements of the DeploymentControllerType enum
+func DeploymentControllerType_Values() []string {
+	return []string{
+		DeploymentControllerTypeEcs,
+		DeploymentControllerTypeCodeDeploy,
+		DeploymentControllerTypeExternal,
+	}
+}
 
 const (
 	// DesiredStatusRunning is a DesiredStatus enum value
@@ -20345,6 +20459,15 @@ const (
 	DesiredStatusStopped = "STOPPED"
 )
 
+// DesiredStatus_Values returns all elements of the DesiredStatus enum
+func DesiredStatus_Values() []string {
+	return []string{
+		DesiredStatusRunning,
+		DesiredStatusPending,
+		DesiredStatusStopped,
+	}
+}
+
 const (
 	// DeviceCgroupPermissionRead is a DeviceCgroupPermission enum value
 	DeviceCgroupPermissionRead = "read"
@@ -20356,6 +20479,15 @@ const (
 	DeviceCgroupPermissionMknod = "mknod"
 )
 
+// DeviceCgroupPermission_Values returns all elements of the DeviceCgroupPermission enum
+func DeviceCgroupPermission_Values() []string {
+	return []string{
+		DeviceCgroupPermissionRead,
+		DeviceCgroupPermissionWrite,
+		DeviceCgroupPermissionMknod,
+	}
+}
+
 const (
 	// EFSAuthorizationConfigIAMEnabled is a EFSAuthorizationConfigIAM enum value
 	EFSAuthorizationConfigIAMEnabled = "ENABLED"
@@ -20363,6 +20495,14 @@ const (
 	// EFSAuthorizationConfigIAMDisabled is a EFSAuthorizationConfigIAM enum value
 	EFSAuthorizationConfigIAMDisabled = "DISABLED"
 )
+
+// EFSAuthorizationConfigIAM_Values returns all elements of the EFSAuthorizationConfigIAM enum
+func EFSAuthorizationConfigIAM_Values() []string {
+	return []string{
+		EFSAuthorizationConfigIAMEnabled,
+		EFSAuthorizationConfigIAMDisabled,
+	}
+}
 
 const (
 	// EFSTransitEncryptionEnabled is a EFSTransitEncryption enum value
@@ -20372,10 +20512,25 @@ const (
 	EFSTransitEncryptionDisabled = "DISABLED"
 )
 
+// EFSTransitEncryption_Values returns all elements of the EFSTransitEncryption enum
+func EFSTransitEncryption_Values() []string {
+	return []string{
+		EFSTransitEncryptionEnabled,
+		EFSTransitEncryptionDisabled,
+	}
+}
+
 const (
 	// EnvironmentFileTypeS3 is a EnvironmentFileType enum value
 	EnvironmentFileTypeS3 = "s3"
 )
+
+// EnvironmentFileType_Values returns all elements of the EnvironmentFileType enum
+func EnvironmentFileType_Values() []string {
+	return []string{
+		EnvironmentFileTypeS3,
+	}
+}
 
 const (
 	// FirelensConfigurationTypeFluentd is a FirelensConfigurationType enum value
@@ -20384,6 +20539,14 @@ const (
 	// FirelensConfigurationTypeFluentbit is a FirelensConfigurationType enum value
 	FirelensConfigurationTypeFluentbit = "fluentbit"
 )
+
+// FirelensConfigurationType_Values returns all elements of the FirelensConfigurationType enum
+func FirelensConfigurationType_Values() []string {
+	return []string{
+		FirelensConfigurationTypeFluentd,
+		FirelensConfigurationTypeFluentbit,
+	}
+}
 
 const (
 	// HealthStatusHealthy is a HealthStatus enum value
@@ -20396,6 +20559,15 @@ const (
 	HealthStatusUnknown = "UNKNOWN"
 )
 
+// HealthStatus_Values returns all elements of the HealthStatus enum
+func HealthStatus_Values() []string {
+	return []string{
+		HealthStatusHealthy,
+		HealthStatusUnhealthy,
+		HealthStatusUnknown,
+	}
+}
+
 const (
 	// IpcModeHost is a IpcMode enum value
 	IpcModeHost = "host"
@@ -20407,6 +20579,15 @@ const (
 	IpcModeNone = "none"
 )
 
+// IpcMode_Values returns all elements of the IpcMode enum
+func IpcMode_Values() []string {
+	return []string{
+		IpcModeHost,
+		IpcModeTask,
+		IpcModeNone,
+	}
+}
+
 const (
 	// LaunchTypeEc2 is a LaunchType enum value
 	LaunchTypeEc2 = "EC2"
@@ -20414,6 +20595,14 @@ const (
 	// LaunchTypeFargate is a LaunchType enum value
 	LaunchTypeFargate = "FARGATE"
 )
+
+// LaunchType_Values returns all elements of the LaunchType enum
+func LaunchType_Values() []string {
+	return []string{
+		LaunchTypeEc2,
+		LaunchTypeFargate,
+	}
+}
 
 const (
 	// LogDriverJsonFile is a LogDriver enum value
@@ -20441,6 +20630,20 @@ const (
 	LogDriverAwsfirelens = "awsfirelens"
 )
 
+// LogDriver_Values returns all elements of the LogDriver enum
+func LogDriver_Values() []string {
+	return []string{
+		LogDriverJsonFile,
+		LogDriverSyslog,
+		LogDriverJournald,
+		LogDriverGelf,
+		LogDriverFluentd,
+		LogDriverAwslogs,
+		LogDriverSplunk,
+		LogDriverAwsfirelens,
+	}
+}
+
 const (
 	// ManagedScalingStatusEnabled is a ManagedScalingStatus enum value
 	ManagedScalingStatusEnabled = "ENABLED"
@@ -20449,6 +20652,14 @@ const (
 	ManagedScalingStatusDisabled = "DISABLED"
 )
 
+// ManagedScalingStatus_Values returns all elements of the ManagedScalingStatus enum
+func ManagedScalingStatus_Values() []string {
+	return []string{
+		ManagedScalingStatusEnabled,
+		ManagedScalingStatusDisabled,
+	}
+}
+
 const (
 	// ManagedTerminationProtectionEnabled is a ManagedTerminationProtection enum value
 	ManagedTerminationProtectionEnabled = "ENABLED"
@@ -20456,6 +20667,14 @@ const (
 	// ManagedTerminationProtectionDisabled is a ManagedTerminationProtection enum value
 	ManagedTerminationProtectionDisabled = "DISABLED"
 )
+
+// ManagedTerminationProtection_Values returns all elements of the ManagedTerminationProtection enum
+func ManagedTerminationProtection_Values() []string {
+	return []string{
+		ManagedTerminationProtectionEnabled,
+		ManagedTerminationProtectionDisabled,
+	}
+}
 
 const (
 	// NetworkModeBridge is a NetworkMode enum value
@@ -20471,6 +20690,16 @@ const (
 	NetworkModeNone = "none"
 )
 
+// NetworkMode_Values returns all elements of the NetworkMode enum
+func NetworkMode_Values() []string {
+	return []string{
+		NetworkModeBridge,
+		NetworkModeHost,
+		NetworkModeAwsvpc,
+		NetworkModeNone,
+	}
+}
+
 const (
 	// PidModeHost is a PidMode enum value
 	PidModeHost = "host"
@@ -20479,6 +20708,14 @@ const (
 	PidModeTask = "task"
 )
 
+// PidMode_Values returns all elements of the PidMode enum
+func PidMode_Values() []string {
+	return []string{
+		PidModeHost,
+		PidModeTask,
+	}
+}
+
 const (
 	// PlacementConstraintTypeDistinctInstance is a PlacementConstraintType enum value
 	PlacementConstraintTypeDistinctInstance = "distinctInstance"
@@ -20486,6 +20723,14 @@ const (
 	// PlacementConstraintTypeMemberOf is a PlacementConstraintType enum value
 	PlacementConstraintTypeMemberOf = "memberOf"
 )
+
+// PlacementConstraintType_Values returns all elements of the PlacementConstraintType enum
+func PlacementConstraintType_Values() []string {
+	return []string{
+		PlacementConstraintTypeDistinctInstance,
+		PlacementConstraintTypeMemberOf,
+	}
+}
 
 const (
 	// PlacementStrategyTypeRandom is a PlacementStrategyType enum value
@@ -20498,10 +20743,26 @@ const (
 	PlacementStrategyTypeBinpack = "binpack"
 )
 
+// PlacementStrategyType_Values returns all elements of the PlacementStrategyType enum
+func PlacementStrategyType_Values() []string {
+	return []string{
+		PlacementStrategyTypeRandom,
+		PlacementStrategyTypeSpread,
+		PlacementStrategyTypeBinpack,
+	}
+}
+
 const (
 	// PlatformDeviceTypeGpu is a PlatformDeviceType enum value
 	PlatformDeviceTypeGpu = "GPU"
 )
+
+// PlatformDeviceType_Values returns all elements of the PlatformDeviceType enum
+func PlatformDeviceType_Values() []string {
+	return []string{
+		PlatformDeviceTypeGpu,
+	}
+}
 
 const (
 	// PropagateTagsTaskDefinition is a PropagateTags enum value
@@ -20511,10 +20772,25 @@ const (
 	PropagateTagsService = "SERVICE"
 )
 
+// PropagateTags_Values returns all elements of the PropagateTags enum
+func PropagateTags_Values() []string {
+	return []string{
+		PropagateTagsTaskDefinition,
+		PropagateTagsService,
+	}
+}
+
 const (
 	// ProxyConfigurationTypeAppmesh is a ProxyConfigurationType enum value
 	ProxyConfigurationTypeAppmesh = "APPMESH"
 )
+
+// ProxyConfigurationType_Values returns all elements of the ProxyConfigurationType enum
+func ProxyConfigurationType_Values() []string {
+	return []string{
+		ProxyConfigurationTypeAppmesh,
+	}
+}
 
 const (
 	// ResourceTypeGpu is a ResourceType enum value
@@ -20524,10 +20800,25 @@ const (
 	ResourceTypeInferenceAccelerator = "InferenceAccelerator"
 )
 
+// ResourceType_Values returns all elements of the ResourceType enum
+func ResourceType_Values() []string {
+	return []string{
+		ResourceTypeGpu,
+		ResourceTypeInferenceAccelerator,
+	}
+}
+
 const (
 	// ScaleUnitPercent is a ScaleUnit enum value
 	ScaleUnitPercent = "PERCENT"
 )
+
+// ScaleUnit_Values returns all elements of the ScaleUnit enum
+func ScaleUnit_Values() []string {
+	return []string{
+		ScaleUnitPercent,
+	}
+}
 
 const (
 	// SchedulingStrategyReplica is a SchedulingStrategy enum value
@@ -20537,6 +20828,14 @@ const (
 	SchedulingStrategyDaemon = "DAEMON"
 )
 
+// SchedulingStrategy_Values returns all elements of the SchedulingStrategy enum
+func SchedulingStrategy_Values() []string {
+	return []string{
+		SchedulingStrategyReplica,
+		SchedulingStrategyDaemon,
+	}
+}
+
 const (
 	// ScopeTask is a Scope enum value
 	ScopeTask = "task"
@@ -20545,10 +20844,25 @@ const (
 	ScopeShared = "shared"
 )
 
+// Scope_Values returns all elements of the Scope enum
+func Scope_Values() []string {
+	return []string{
+		ScopeTask,
+		ScopeShared,
+	}
+}
+
 const (
 	// ServiceFieldTags is a ServiceField enum value
 	ServiceFieldTags = "TAGS"
 )
+
+// ServiceField_Values returns all elements of the ServiceField enum
+func ServiceField_Values() []string {
+	return []string{
+		ServiceFieldTags,
+	}
+}
 
 const (
 	// SettingNameServiceLongArnFormat is a SettingName enum value
@@ -20567,6 +20881,17 @@ const (
 	SettingNameContainerInsights = "containerInsights"
 )
 
+// SettingName_Values returns all elements of the SettingName enum
+func SettingName_Values() []string {
+	return []string{
+		SettingNameServiceLongArnFormat,
+		SettingNameTaskLongArnFormat,
+		SettingNameContainerInstanceLongArnFormat,
+		SettingNameAwsvpcTrunking,
+		SettingNameContainerInsights,
+	}
+}
+
 const (
 	// SortOrderAsc is a SortOrder enum value
 	SortOrderAsc = "ASC"
@@ -20574,6 +20899,14 @@ const (
 	// SortOrderDesc is a SortOrder enum value
 	SortOrderDesc = "DESC"
 )
+
+// SortOrder_Values returns all elements of the SortOrder enum
+func SortOrder_Values() []string {
+	return []string{
+		SortOrderAsc,
+		SortOrderDesc,
+	}
+}
 
 const (
 	// StabilityStatusSteadyState is a StabilityStatus enum value
@@ -20583,10 +20916,25 @@ const (
 	StabilityStatusStabilizing = "STABILIZING"
 )
 
+// StabilityStatus_Values returns all elements of the StabilityStatus enum
+func StabilityStatus_Values() []string {
+	return []string{
+		StabilityStatusSteadyState,
+		StabilityStatusStabilizing,
+	}
+}
+
 const (
 	// TargetTypeContainerInstance is a TargetType enum value
 	TargetTypeContainerInstance = "container-instance"
 )
+
+// TargetType_Values returns all elements of the TargetType enum
+func TargetType_Values() []string {
+	return []string{
+		TargetTypeContainerInstance,
+	}
+}
 
 const (
 	// TaskDefinitionFamilyStatusActive is a TaskDefinitionFamilyStatus enum value
@@ -20599,15 +20947,38 @@ const (
 	TaskDefinitionFamilyStatusAll = "ALL"
 )
 
+// TaskDefinitionFamilyStatus_Values returns all elements of the TaskDefinitionFamilyStatus enum
+func TaskDefinitionFamilyStatus_Values() []string {
+	return []string{
+		TaskDefinitionFamilyStatusActive,
+		TaskDefinitionFamilyStatusInactive,
+		TaskDefinitionFamilyStatusAll,
+	}
+}
+
 const (
 	// TaskDefinitionFieldTags is a TaskDefinitionField enum value
 	TaskDefinitionFieldTags = "TAGS"
 )
 
+// TaskDefinitionField_Values returns all elements of the TaskDefinitionField enum
+func TaskDefinitionField_Values() []string {
+	return []string{
+		TaskDefinitionFieldTags,
+	}
+}
+
 const (
 	// TaskDefinitionPlacementConstraintTypeMemberOf is a TaskDefinitionPlacementConstraintType enum value
 	TaskDefinitionPlacementConstraintTypeMemberOf = "memberOf"
 )
+
+// TaskDefinitionPlacementConstraintType_Values returns all elements of the TaskDefinitionPlacementConstraintType enum
+func TaskDefinitionPlacementConstraintType_Values() []string {
+	return []string{
+		TaskDefinitionPlacementConstraintTypeMemberOf,
+	}
+}
 
 const (
 	// TaskDefinitionStatusActive is a TaskDefinitionStatus enum value
@@ -20617,15 +20988,37 @@ const (
 	TaskDefinitionStatusInactive = "INACTIVE"
 )
 
+// TaskDefinitionStatus_Values returns all elements of the TaskDefinitionStatus enum
+func TaskDefinitionStatus_Values() []string {
+	return []string{
+		TaskDefinitionStatusActive,
+		TaskDefinitionStatusInactive,
+	}
+}
+
 const (
 	// TaskFieldTags is a TaskField enum value
 	TaskFieldTags = "TAGS"
 )
 
+// TaskField_Values returns all elements of the TaskField enum
+func TaskField_Values() []string {
+	return []string{
+		TaskFieldTags,
+	}
+}
+
 const (
 	// TaskSetFieldTags is a TaskSetField enum value
 	TaskSetFieldTags = "TAGS"
 )
+
+// TaskSetField_Values returns all elements of the TaskSetField enum
+func TaskSetField_Values() []string {
+	return []string{
+		TaskSetFieldTags,
+	}
+}
 
 const (
 	// TaskStopCodeTaskFailedToStart is a TaskStopCode enum value
@@ -20638,6 +21031,15 @@ const (
 	TaskStopCodeUserInitiated = "UserInitiated"
 )
 
+// TaskStopCode_Values returns all elements of the TaskStopCode enum
+func TaskStopCode_Values() []string {
+	return []string{
+		TaskStopCodeTaskFailedToStart,
+		TaskStopCodeEssentialContainerExited,
+		TaskStopCodeUserInitiated,
+	}
+}
+
 const (
 	// TransportProtocolTcp is a TransportProtocol enum value
 	TransportProtocolTcp = "tcp"
@@ -20645,6 +21047,14 @@ const (
 	// TransportProtocolUdp is a TransportProtocol enum value
 	TransportProtocolUdp = "udp"
 )
+
+// TransportProtocol_Values returns all elements of the TransportProtocol enum
+func TransportProtocol_Values() []string {
+	return []string{
+		TransportProtocolTcp,
+		TransportProtocolUdp,
+	}
+}
 
 const (
 	// UlimitNameCore is a UlimitName enum value
@@ -20692,3 +21102,24 @@ const (
 	// UlimitNameStack is a UlimitName enum value
 	UlimitNameStack = "stack"
 )
+
+// UlimitName_Values returns all elements of the UlimitName enum
+func UlimitName_Values() []string {
+	return []string{
+		UlimitNameCore,
+		UlimitNameCpu,
+		UlimitNameData,
+		UlimitNameFsize,
+		UlimitNameLocks,
+		UlimitNameMemlock,
+		UlimitNameMsgqueue,
+		UlimitNameNice,
+		UlimitNameNofile,
+		UlimitNameNproc,
+		UlimitNameRss,
+		UlimitNameRtprio,
+		UlimitNameRttime,
+		UlimitNameSigpending,
+		UlimitNameStack,
+	}
+}

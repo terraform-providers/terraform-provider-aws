@@ -15,7 +15,7 @@ the infrastructure that runs those applications.
 This resource creates a Beanstalk Application Version that can be deployed to a Beanstalk
 Environment.
 
-~> **NOTE on Application Version Resource:**  When using the Application Version resource with multiple 
+~> **NOTE on Application Version Resource:**  When using the Application Version resource with multiple
 [Elastic Beanstalk Environments](elastic_beanstalk_environment.html) it is possible that an error may be returned
 when attempting to delete an Application Version while it is still in use by a different environment.
 To work around this you can either create each environment in a separate AWS account or create your `aws_elastic_beanstalk_application_version` resources with a unique names in your Elastic Beanstalk Application. For example &lt;revision&gt;-&lt;environment&gt;.
@@ -28,7 +28,7 @@ resource "aws_s3_bucket" "default" {
 }
 
 resource "aws_s3_bucket_object" "default" {
-  bucket = "${aws_s3_bucket.default.id}"
+  bucket = aws_s3_bucket.default.id
   key    = "beanstalk/go-v1.zip"
   source = "go-v1.zip"
 }
@@ -42,8 +42,8 @@ resource "aws_elastic_beanstalk_application_version" "default" {
   name        = "tf-test-version-label"
   application = "tf-test-name"
   description = "application version created by terraform"
-  bucket      = "${aws_s3_bucket.default.id}"
-  key         = "${aws_s3_bucket_object.default.id}"
+  bucket      = aws_s3_bucket.default.id
+  key         = aws_s3_bucket_object.default.id
 }
 ```
 

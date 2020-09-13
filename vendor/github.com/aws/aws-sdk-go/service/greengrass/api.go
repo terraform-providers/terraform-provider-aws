@@ -17704,6 +17704,18 @@ const (
 	BulkDeploymentStatusFailed = "Failed"
 )
 
+// BulkDeploymentStatus_Values returns all elements of the BulkDeploymentStatus enum
+func BulkDeploymentStatus_Values() []string {
+	return []string{
+		BulkDeploymentStatusInitializing,
+		BulkDeploymentStatusRunning,
+		BulkDeploymentStatusCompleted,
+		BulkDeploymentStatusStopping,
+		BulkDeploymentStatusStopped,
+		BulkDeploymentStatusFailed,
+	}
+}
+
 // The type of deployment. When used for ''CreateDeployment'', only ''NewDeployment''
 // and ''Redeployment'' are valid.
 const (
@@ -17720,6 +17732,16 @@ const (
 	DeploymentTypeForceResetDeployment = "ForceResetDeployment"
 )
 
+// DeploymentType_Values returns all elements of the DeploymentType enum
+func DeploymentType_Values() []string {
+	return []string{
+		DeploymentTypeNewDeployment,
+		DeploymentTypeRedeployment,
+		DeploymentTypeResetDeployment,
+		DeploymentTypeForceResetDeployment,
+	}
+}
+
 const (
 	// EncodingTypeBinary is a EncodingType enum value
 	EncodingTypeBinary = "binary"
@@ -17727,6 +17749,14 @@ const (
 	// EncodingTypeJson is a EncodingType enum value
 	EncodingTypeJson = "json"
 )
+
+// EncodingType_Values returns all elements of the EncodingType enum
+func EncodingType_Values() []string {
+	return []string{
+		EncodingTypeBinary,
+		EncodingTypeJson,
+	}
+}
 
 // Specifies whether the Lambda function runs in a Greengrass container (default)
 // or without containerization. Unless your scenario requires that you run without
@@ -17741,6 +17771,14 @@ const (
 	FunctionIsolationModeNoContainer = "NoContainer"
 )
 
+// FunctionIsolationMode_Values returns all elements of the FunctionIsolationMode enum
+func FunctionIsolationMode_Values() []string {
+	return []string{
+		FunctionIsolationModeGreengrassContainer,
+		FunctionIsolationModeNoContainer,
+	}
+}
+
 const (
 	// LoggerComponentGreengrassSystem is a LoggerComponent enum value
 	LoggerComponentGreengrassSystem = "GreengrassSystem"
@@ -17748,6 +17786,14 @@ const (
 	// LoggerComponentLambda is a LoggerComponent enum value
 	LoggerComponentLambda = "Lambda"
 )
+
+// LoggerComponent_Values returns all elements of the LoggerComponent enum
+func LoggerComponent_Values() []string {
+	return []string{
+		LoggerComponentGreengrassSystem,
+		LoggerComponentLambda,
+	}
+}
 
 const (
 	// LoggerLevelDebug is a LoggerLevel enum value
@@ -17766,6 +17812,17 @@ const (
 	LoggerLevelFatal = "FATAL"
 )
 
+// LoggerLevel_Values returns all elements of the LoggerLevel enum
+func LoggerLevel_Values() []string {
+	return []string{
+		LoggerLevelDebug,
+		LoggerLevelInfo,
+		LoggerLevelWarn,
+		LoggerLevelError,
+		LoggerLevelFatal,
+	}
+}
+
 const (
 	// LoggerTypeFileSystem is a LoggerType enum value
 	LoggerTypeFileSystem = "FileSystem"
@@ -17773,6 +17830,14 @@ const (
 	// LoggerTypeAwscloudWatch is a LoggerType enum value
 	LoggerTypeAwscloudWatch = "AWSCloudWatch"
 )
+
+// LoggerType_Values returns all elements of the LoggerType enum
+func LoggerType_Values() []string {
+	return []string{
+		LoggerTypeFileSystem,
+		LoggerTypeAwscloudWatch,
+	}
+}
 
 // The type of permission a function has to access a resource.
 const (
@@ -17783,6 +17848,14 @@ const (
 	PermissionRw = "rw"
 )
 
+// Permission_Values returns all elements of the Permission enum
+func Permission_Values() []string {
+	return []string{
+		PermissionRo,
+		PermissionRw,
+	}
+}
+
 // The piece of software on the Greengrass core that will be updated.
 const (
 	// SoftwareToUpdateCore is a SoftwareToUpdate enum value
@@ -17791,6 +17864,14 @@ const (
 	// SoftwareToUpdateOtaAgent is a SoftwareToUpdate enum value
 	SoftwareToUpdateOtaAgent = "ota_agent"
 )
+
+// SoftwareToUpdate_Values returns all elements of the SoftwareToUpdate enum
+func SoftwareToUpdate_Values() []string {
+	return []string{
+		SoftwareToUpdateCore,
+		SoftwareToUpdateOtaAgent,
+	}
+}
 
 // The minimum level of log statements that should be logged by the OTA Agent
 // during an update.
@@ -17820,6 +17901,20 @@ const (
 	UpdateAgentLogLevelFatal = "FATAL"
 )
 
+// UpdateAgentLogLevel_Values returns all elements of the UpdateAgentLogLevel enum
+func UpdateAgentLogLevel_Values() []string {
+	return []string{
+		UpdateAgentLogLevelNone,
+		UpdateAgentLogLevelTrace,
+		UpdateAgentLogLevelDebug,
+		UpdateAgentLogLevelVerbose,
+		UpdateAgentLogLevelInfo,
+		UpdateAgentLogLevelWarn,
+		UpdateAgentLogLevelError,
+		UpdateAgentLogLevelFatal,
+	}
+}
+
 // The architecture of the cores which are the targets of an update.
 const (
 	// UpdateTargetsArchitectureArmv6l is a UpdateTargetsArchitecture enum value
@@ -17835,6 +17930,16 @@ const (
 	UpdateTargetsArchitectureAarch64 = "aarch64"
 )
 
+// UpdateTargetsArchitecture_Values returns all elements of the UpdateTargetsArchitecture enum
+func UpdateTargetsArchitecture_Values() []string {
+	return []string{
+		UpdateTargetsArchitectureArmv6l,
+		UpdateTargetsArchitectureArmv7l,
+		UpdateTargetsArchitectureX8664,
+		UpdateTargetsArchitectureAarch64,
+	}
+}
+
 // The operating system of the cores which are the targets of an update.
 const (
 	// UpdateTargetsOperatingSystemUbuntu is a UpdateTargetsOperatingSystem enum value
@@ -17849,3 +17954,13 @@ const (
 	// UpdateTargetsOperatingSystemOpenwrt is a UpdateTargetsOperatingSystem enum value
 	UpdateTargetsOperatingSystemOpenwrt = "openwrt"
 )
+
+// UpdateTargetsOperatingSystem_Values returns all elements of the UpdateTargetsOperatingSystem enum
+func UpdateTargetsOperatingSystem_Values() []string {
+	return []string{
+		UpdateTargetsOperatingSystemUbuntu,
+		UpdateTargetsOperatingSystemRaspbian,
+		UpdateTargetsOperatingSystemAmazonLinux,
+		UpdateTargetsOperatingSystemOpenwrt,
+	}
+}

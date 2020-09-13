@@ -31,7 +31,7 @@ func NewGodot() *goanalysis.Linter {
 		settings := godot.Settings{CheckAll: cfg.CheckAll}
 
 		analyzer.Run = func(pass *analysis.Pass) (interface{}, error) {
-			var issues []godot.Message
+			var issues []godot.Issue
 			for _, file := range pass.Files {
 				issues = append(issues, godot.Run(file, pass.Fset, settings)...)
 			}
@@ -43,10 +43,12 @@ func NewGodot() *goanalysis.Linter {
 			res := make([]goanalysis.Issue, len(issues))
 			for k, i := range issues {
 				issue := result.Issue{
-					Pos:         i.Pos,
-					Text:        i.Message,
-					FromLinter:  godotName,
-					Replacement: &result.Replacement{},
+					Pos:        i.Pos,
+					Text:       i.Message,
+					FromLinter: godotName,
+					Replacement: &result.Replacement{
+						NewLines: []string{i.Replacement},
+					},
 				}
 
 				res[k] = goanalysis.NewIssue(&issue, pass)

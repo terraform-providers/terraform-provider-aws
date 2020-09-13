@@ -189,6 +189,13 @@ const (
 	// ErrCodeUnsupportedAvailabilityZone for service response error code
 	// "UnsupportedAvailabilityZone".
 	ErrCodeUnsupportedAvailabilityZone = "UnsupportedAvailabilityZone"
+
+	// ErrCodeValidationException for service response error code
+	// "ValidationException".
+	//
+	// Returned if the AWS Backup service is not available in the region that the
+	// request was made.
+	ErrCodeValidationException = "ValidationException"
 )
 
 var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
@@ -218,4 +225,5 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"ThroughputLimitExceeded":           newErrorThroughputLimitExceeded,
 	"TooManyRequests":                   newErrorTooManyRequests,
 	"UnsupportedAvailabilityZone":       newErrorUnsupportedAvailabilityZone,
+	"ValidationException":               newErrorValidationException,
 }

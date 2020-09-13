@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/outposts"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsOutpostsOutpost() *schema.Resource {
@@ -14,8 +14,10 @@ func dataSourceAwsOutpostsOutpost() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateArn,
 			},
 			"availability_zone": {
 				Type:     schema.TypeString,
@@ -73,6 +75,10 @@ func dataSourceAwsOutpostsOutpostRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			if v, ok := d.GetOk("name"); ok && v.(string) != aws.StringValue(outpost.Name) {
+				continue
+			}
+
+			if v, ok := d.GetOk("arn"); ok && v.(string) != aws.StringValue(outpost.OutpostArn) {
 				continue
 			}
 

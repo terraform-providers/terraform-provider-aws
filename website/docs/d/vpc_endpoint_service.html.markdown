@@ -28,8 +28,8 @@ resource "aws_vpc" "foo" {
 
 # Create a VPC endpoint
 resource "aws_vpc_endpoint" "ep" {
-  vpc_id       = "${aws_vpc.foo.id}"
-  service_name = "${data.aws_vpc_endpoint_service.s3.service_name}"
+  vpc_id       = aws_vpc.foo.id
+  service_name = data.aws_vpc_endpoint_service.s3.service_name
 }
 ```
 
@@ -76,6 +76,7 @@ The following arguments are supported by the `filter` configuration block:
 In addition to all arguments above, the following attributes are exported:
 
 * `acceptance_required` - Whether or not VPC endpoint connection requests to the service must be accepted by the service owner - `true` or `false`.
+* `arn` - The Amazon Resource Name (ARN) of the VPC endpoint service.
 * `availability_zones` - The Availability Zones in which the service is available.
 * `base_endpoint_dns_names` - The DNS names for the service.
 * `manages_vpc_endpoints` - Whether or not the service manages its VPC endpoints - `true` or `false`.

@@ -6724,6 +6724,13 @@ const (
 	AuthorizationProviderTypeSaml = "SAML"
 )
 
+// AuthorizationProviderType_Values returns all elements of the AuthorizationProviderType enum
+func AuthorizationProviderType_Values() []string {
+	return []string{
+		AuthorizationProviderTypeSaml,
+	}
+}
+
 const (
 	// DeviceStatusActive is a DeviceStatus enum value
 	DeviceStatusActive = "ACTIVE"
@@ -6731,6 +6738,14 @@ const (
 	// DeviceStatusSignedOut is a DeviceStatus enum value
 	DeviceStatusSignedOut = "SIGNED_OUT"
 )
+
+// DeviceStatus_Values returns all elements of the DeviceStatus enum
+func DeviceStatus_Values() []string {
+	return []string{
+		DeviceStatusActive,
+		DeviceStatusSignedOut,
+	}
+}
 
 const (
 	// DomainStatusPendingValidation is a DomainStatus enum value
@@ -6758,6 +6773,20 @@ const (
 	DomainStatusFailedToDisassociate = "FAILED_TO_DISASSOCIATE"
 )
 
+// DomainStatus_Values returns all elements of the DomainStatus enum
+func DomainStatus_Values() []string {
+	return []string{
+		DomainStatusPendingValidation,
+		DomainStatusAssociating,
+		DomainStatusActive,
+		DomainStatusInactive,
+		DomainStatusDisassociating,
+		DomainStatusDisassociated,
+		DomainStatusFailedToAssociate,
+		DomainStatusFailedToDisassociate,
+	}
+}
+
 const (
 	// FleetStatusCreating is a FleetStatus enum value
 	FleetStatusCreating = "CREATING"
@@ -6778,7 +6807,26 @@ const (
 	FleetStatusFailedToDelete = "FAILED_TO_DELETE"
 )
 
+// FleetStatus_Values returns all elements of the FleetStatus enum
+func FleetStatus_Values() []string {
+	return []string{
+		FleetStatusCreating,
+		FleetStatusActive,
+		FleetStatusDeleting,
+		FleetStatusDeleted,
+		FleetStatusFailedToCreate,
+		FleetStatusFailedToDelete,
+	}
+}
+
 const (
 	// IdentityProviderTypeSaml is a IdentityProviderType enum value
 	IdentityProviderTypeSaml = "SAML"
 )
+
+// IdentityProviderType_Values returns all elements of the IdentityProviderType enum
+func IdentityProviderType_Values() []string {
+	return []string{
+		IdentityProviderTypeSaml,
+	}
+}

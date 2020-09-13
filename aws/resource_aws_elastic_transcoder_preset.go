@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsElasticTranscoderPreset() *schema.Resource {
@@ -215,7 +215,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"max_frame_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "30",
+							Computed: true,
 							ForceNew: true,
 						},
 						"max_height": {
@@ -361,7 +361,7 @@ func expandETThumbnails(d *schema.ResourceData) *elastictranscoder.Thumbnails {
 	}
 
 	l := list.([]interface{})
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 	t := l[0].(map[string]interface{})
@@ -410,7 +410,7 @@ func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParamet
 	}
 
 	l := list.([]interface{})
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 	audio := l[0].(map[string]interface{})
@@ -427,7 +427,7 @@ func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParamet
 
 func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioCodecOptions {
 	l := d.Get("audio_codec_options").([]interface{})
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
@@ -456,7 +456,7 @@ func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioC
 
 func expandETVideoParams(d *schema.ResourceData) *elastictranscoder.VideoParameters {
 	l := d.Get("video").([]interface{})
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 	p := l[0].(map[string]interface{})
@@ -541,6 +541,10 @@ func expandETVideoWatermarks(d *schema.ResourceData) []*elastictranscoder.Preset
 	var watermarks []*elastictranscoder.PresetWatermark
 
 	for _, w := range s.List() {
+		if w == nil {
+			continue
+		}
+
 		p := w.(map[string]interface{})
 		watermark := &elastictranscoder.PresetWatermark{
 			HorizontalAlign:  aws.String(p["horizontal_align"].(string)),

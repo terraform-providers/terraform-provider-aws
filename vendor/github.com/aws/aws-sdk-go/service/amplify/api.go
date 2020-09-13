@@ -57,7 +57,7 @@ func (c *Amplify) CreateAppRequest(input *CreateAppInput) (req *request.Request,
 
 // CreateApp API operation for AWS Amplify.
 //
-// Creates a new Amplify App.
+// Creates a new Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -68,22 +68,19 @@ func (c *Amplify) CreateAppRequest(input *CreateAppInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateApp
 func (c *Amplify) CreateApp(input *CreateAppInput) (*CreateAppOutput, error) {
@@ -151,7 +148,7 @@ func (c *Amplify) CreateBackendEnvironmentRequest(input *CreateBackendEnvironmen
 
 // CreateBackendEnvironment API operation for AWS Amplify.
 //
-// Creates a new backend environment for an Amplify App.
+// Creates a new backend environment for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -162,21 +159,19 @@ func (c *Amplify) CreateBackendEnvironmentRequest(input *CreateBackendEnvironmen
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateBackendEnvironment
 func (c *Amplify) CreateBackendEnvironment(input *CreateBackendEnvironmentInput) (*CreateBackendEnvironmentOutput, error) {
@@ -244,7 +239,7 @@ func (c *Amplify) CreateBranchRequest(input *CreateBranchInput) (req *request.Re
 
 // CreateBranch API operation for AWS Amplify.
 //
-// Creates a new Branch for an Amplify App.
+// Creates a new branch for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -255,25 +250,22 @@ func (c *Amplify) CreateBranchRequest(input *CreateBranchInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateBranch
 func (c *Amplify) CreateBranch(input *CreateBranchInput) (*CreateBranchOutput, error) {
@@ -341,7 +333,8 @@ func (c *Amplify) CreateDeploymentRequest(input *CreateDeploymentInput) (req *re
 
 // CreateDeployment API operation for AWS Amplify.
 //
-// Create a deployment for manual deploy apps. (Apps are not connected to repository)
+// Creates a deployment for a manually deployed Amplify app. Manually deployed
+// apps are not connected to a repository.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -352,18 +345,16 @@ func (c *Amplify) CreateDeploymentRequest(input *CreateDeploymentInput) (req *re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateDeployment
 func (c *Amplify) CreateDeployment(input *CreateDeploymentInput) (*CreateDeploymentOutput, error) {
@@ -431,7 +422,8 @@ func (c *Amplify) CreateDomainAssociationRequest(input *CreateDomainAssociationI
 
 // CreateDomainAssociation API operation for AWS Amplify.
 //
-// Create a new DomainAssociation on an App
+// Creates a new domain association for an Amplify app. This action associates
+// a custom domain with the Amplify app
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -442,25 +434,22 @@ func (c *Amplify) CreateDomainAssociationRequest(input *CreateDomainAssociationI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateDomainAssociation
 func (c *Amplify) CreateDomainAssociation(input *CreateDomainAssociationInput) (*CreateDomainAssociationOutput, error) {
@@ -528,7 +517,7 @@ func (c *Amplify) CreateWebhookRequest(input *CreateWebhookInput) (req *request.
 
 // CreateWebhook API operation for AWS Amplify.
 //
-// Create a new webhook on an App.
+// Creates a new webhook on an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -539,25 +528,22 @@ func (c *Amplify) CreateWebhookRequest(input *CreateWebhookInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/CreateWebhook
 func (c *Amplify) CreateWebhook(input *CreateWebhookInput) (*CreateWebhookOutput, error) {
@@ -625,7 +611,7 @@ func (c *Amplify) DeleteAppRequest(input *DeleteAppInput) (req *request.Request,
 
 // DeleteApp API operation for AWS Amplify.
 //
-// Delete an existing Amplify App by appId.
+// Deletes an existing Amplify app specified by an app ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -636,21 +622,19 @@ func (c *Amplify) DeleteAppRequest(input *DeleteAppInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteApp
 func (c *Amplify) DeleteApp(input *DeleteAppInput) (*DeleteAppOutput, error) {
@@ -718,7 +702,7 @@ func (c *Amplify) DeleteBackendEnvironmentRequest(input *DeleteBackendEnvironmen
 
 // DeleteBackendEnvironment API operation for AWS Amplify.
 //
-// Delete backend environment for an Amplify App.
+// Deletes a backend environment for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -729,21 +713,19 @@ func (c *Amplify) DeleteBackendEnvironmentRequest(input *DeleteBackendEnvironmen
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteBackendEnvironment
 func (c *Amplify) DeleteBackendEnvironment(input *DeleteBackendEnvironmentInput) (*DeleteBackendEnvironmentOutput, error) {
@@ -811,7 +793,7 @@ func (c *Amplify) DeleteBranchRequest(input *DeleteBranchInput) (req *request.Re
 
 // DeleteBranch API operation for AWS Amplify.
 //
-// Deletes a branch for an Amplify App.
+// Deletes a branch for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -822,21 +804,19 @@ func (c *Amplify) DeleteBranchRequest(input *DeleteBranchInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteBranch
 func (c *Amplify) DeleteBranch(input *DeleteBranchInput) (*DeleteBranchOutput, error) {
@@ -904,7 +884,7 @@ func (c *Amplify) DeleteDomainAssociationRequest(input *DeleteDomainAssociationI
 
 // DeleteDomainAssociation API operation for AWS Amplify.
 //
-// Deletes a DomainAssociation.
+// Deletes a domain association for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -915,21 +895,19 @@ func (c *Amplify) DeleteDomainAssociationRequest(input *DeleteDomainAssociationI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteDomainAssociation
 func (c *Amplify) DeleteDomainAssociation(input *DeleteDomainAssociationInput) (*DeleteDomainAssociationOutput, error) {
@@ -997,7 +975,7 @@ func (c *Amplify) DeleteJobRequest(input *DeleteJobInput) (req *request.Request,
 
 // DeleteJob API operation for AWS Amplify.
 //
-// Delete a job, for an Amplify branch, part of Amplify App.
+// Deletes a job for a branch of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1008,21 +986,19 @@ func (c *Amplify) DeleteJobRequest(input *DeleteJobInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteJob
 func (c *Amplify) DeleteJob(input *DeleteJobInput) (*DeleteJobOutput, error) {
@@ -1101,21 +1077,19 @@ func (c *Amplify) DeleteWebhookRequest(input *DeleteWebhookInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/DeleteWebhook
 func (c *Amplify) DeleteWebhook(input *DeleteWebhookInput) (*DeleteWebhookOutput, error) {
@@ -1183,7 +1157,8 @@ func (c *Amplify) GenerateAccessLogsRequest(input *GenerateAccessLogsInput) (req
 
 // GenerateAccessLogs API operation for AWS Amplify.
 //
-// Retrieve website access logs for a specific time range via a pre-signed URL.
+// Returns the website access logs for a specific time range using a presigned
+// URL.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1194,17 +1169,16 @@ func (c *Amplify) GenerateAccessLogsRequest(input *GenerateAccessLogsInput) (req
 //
 // Returned Error Types:
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GenerateAccessLogs
 func (c *Amplify) GenerateAccessLogs(input *GenerateAccessLogsInput) (*GenerateAccessLogsOutput, error) {
@@ -1272,7 +1246,7 @@ func (c *Amplify) GetAppRequest(input *GetAppInput) (req *request.Request, outpu
 
 // GetApp API operation for AWS Amplify.
 //
-// Retrieves an existing Amplify App by appId.
+// Returns an existing Amplify app by appID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1283,17 +1257,16 @@ func (c *Amplify) GetAppRequest(input *GetAppInput) (req *request.Request, outpu
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetApp
 func (c *Amplify) GetApp(input *GetAppInput) (*GetAppOutput, error) {
@@ -1361,7 +1334,7 @@ func (c *Amplify) GetArtifactUrlRequest(input *GetArtifactUrlInput) (req *reques
 
 // GetArtifactUrl API operation for AWS Amplify.
 //
-// Retrieves artifact info that corresponds to a artifactId.
+// Returns the artifact info that corresponds to an artifact id.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1372,21 +1345,19 @@ func (c *Amplify) GetArtifactUrlRequest(input *GetArtifactUrlInput) (req *reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetArtifactUrl
 func (c *Amplify) GetArtifactUrl(input *GetArtifactUrlInput) (*GetArtifactUrlOutput, error) {
@@ -1454,7 +1425,7 @@ func (c *Amplify) GetBackendEnvironmentRequest(input *GetBackendEnvironmentInput
 
 // GetBackendEnvironment API operation for AWS Amplify.
 //
-// Retrieves a backend environment for an Amplify App.
+// Returns a backend environment for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1465,17 +1436,16 @@ func (c *Amplify) GetBackendEnvironmentRequest(input *GetBackendEnvironmentInput
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetBackendEnvironment
 func (c *Amplify) GetBackendEnvironment(input *GetBackendEnvironmentInput) (*GetBackendEnvironmentOutput, error) {
@@ -1543,7 +1513,7 @@ func (c *Amplify) GetBranchRequest(input *GetBranchInput) (req *request.Request,
 
 // GetBranch API operation for AWS Amplify.
 //
-// Retrieves a branch for an Amplify App.
+// Returns a branch for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1554,17 +1524,16 @@ func (c *Amplify) GetBranchRequest(input *GetBranchInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetBranch
 func (c *Amplify) GetBranch(input *GetBranchInput) (*GetBranchOutput, error) {
@@ -1632,7 +1601,7 @@ func (c *Amplify) GetDomainAssociationRequest(input *GetDomainAssociationInput) 
 
 // GetDomainAssociation API operation for AWS Amplify.
 //
-// Retrieves domain info that corresponds to an appId and domainName.
+// Returns the domain information for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1643,17 +1612,16 @@ func (c *Amplify) GetDomainAssociationRequest(input *GetDomainAssociationInput) 
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetDomainAssociation
 func (c *Amplify) GetDomainAssociation(input *GetDomainAssociationInput) (*GetDomainAssociationOutput, error) {
@@ -1721,7 +1689,7 @@ func (c *Amplify) GetJobRequest(input *GetJobInput) (req *request.Request, outpu
 
 // GetJob API operation for AWS Amplify.
 //
-// Get a job for a branch, part of an Amplify App.
+// Returns a job for a branch of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1732,21 +1700,19 @@ func (c *Amplify) GetJobRequest(input *GetJobInput) (req *request.Request, outpu
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetJob
 func (c *Amplify) GetJob(input *GetJobInput) (*GetJobOutput, error) {
@@ -1814,7 +1780,7 @@ func (c *Amplify) GetWebhookRequest(input *GetWebhookInput) (req *request.Reques
 
 // GetWebhook API operation for AWS Amplify.
 //
-// Retrieves webhook info that corresponds to a webhookId.
+// Returns the webhook information that corresponds to a specified webhook ID.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1825,21 +1791,19 @@ func (c *Amplify) GetWebhookRequest(input *GetWebhookInput) (req *request.Reques
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/GetWebhook
 func (c *Amplify) GetWebhook(input *GetWebhookInput) (*GetWebhookOutput, error) {
@@ -1907,7 +1871,7 @@ func (c *Amplify) ListAppsRequest(input *ListAppsInput) (req *request.Request, o
 
 // ListApps API operation for AWS Amplify.
 //
-// Lists existing Amplify Apps.
+// Returns a list of the existing Amplify apps.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -1918,14 +1882,13 @@ func (c *Amplify) ListAppsRequest(input *ListAppsInput) (req *request.Request, o
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListApps
 func (c *Amplify) ListApps(input *ListAppsInput) (*ListAppsOutput, error) {
@@ -1993,7 +1956,7 @@ func (c *Amplify) ListArtifactsRequest(input *ListArtifactsInput) (req *request.
 
 // ListArtifacts API operation for AWS Amplify.
 //
-// List artifacts with an app, a branch, a job and an artifact type.
+// Returns a list of artifacts for a specified app, branch, and job.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2004,18 +1967,16 @@ func (c *Amplify) ListArtifactsRequest(input *ListArtifactsInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListArtifacts
 func (c *Amplify) ListArtifacts(input *ListArtifactsInput) (*ListArtifactsOutput, error) {
@@ -2083,7 +2044,7 @@ func (c *Amplify) ListBackendEnvironmentsRequest(input *ListBackendEnvironmentsI
 
 // ListBackendEnvironments API operation for AWS Amplify.
 //
-// Lists backend environments for an Amplify App.
+// Lists the backend environments for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2094,14 +2055,13 @@ func (c *Amplify) ListBackendEnvironmentsRequest(input *ListBackendEnvironmentsI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListBackendEnvironments
 func (c *Amplify) ListBackendEnvironments(input *ListBackendEnvironmentsInput) (*ListBackendEnvironmentsOutput, error) {
@@ -2169,7 +2129,7 @@ func (c *Amplify) ListBranchesRequest(input *ListBranchesInput) (req *request.Re
 
 // ListBranches API operation for AWS Amplify.
 //
-// Lists branches for an Amplify App.
+// Lists the branches of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2180,14 +2140,13 @@ func (c *Amplify) ListBranchesRequest(input *ListBranchesInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListBranches
 func (c *Amplify) ListBranches(input *ListBranchesInput) (*ListBranchesOutput, error) {
@@ -2255,7 +2214,7 @@ func (c *Amplify) ListDomainAssociationsRequest(input *ListDomainAssociationsInp
 
 // ListDomainAssociations API operation for AWS Amplify.
 //
-// List domains with an app
+// Returns the domain associations for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2266,14 +2225,13 @@ func (c *Amplify) ListDomainAssociationsRequest(input *ListDomainAssociationsInp
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListDomainAssociations
 func (c *Amplify) ListDomainAssociations(input *ListDomainAssociationsInput) (*ListDomainAssociationsOutput, error) {
@@ -2341,7 +2299,7 @@ func (c *Amplify) ListJobsRequest(input *ListJobsInput) (req *request.Request, o
 
 // ListJobs API operation for AWS Amplify.
 //
-// List Jobs for a branch, part of an Amplify App.
+// Lists the jobs for a branch of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2352,18 +2310,16 @@ func (c *Amplify) ListJobsRequest(input *ListJobsInput) (req *request.Request, o
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListJobs
 func (c *Amplify) ListJobs(input *ListJobsInput) (*ListJobsOutput, error) {
@@ -2431,7 +2387,7 @@ func (c *Amplify) ListTagsForResourceRequest(input *ListTagsForResourceInput) (r
 
 // ListTagsForResource API operation for AWS Amplify.
 //
-// List tags for resource.
+// Returns a list of tags for a specified Amazon Resource Name (ARN).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2442,14 +2398,13 @@ func (c *Amplify) ListTagsForResourceRequest(input *ListTagsForResourceInput) (r
 //
 // Returned Error Types:
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * ResourceNotFoundException
-//   Exception thrown when an operation fails due to non-existent resource.
+//   An operation failed due to a non-existent resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListTagsForResource
 func (c *Amplify) ListTagsForResource(input *ListTagsForResourceInput) (*ListTagsForResourceOutput, error) {
@@ -2517,7 +2472,7 @@ func (c *Amplify) ListWebhooksRequest(input *ListWebhooksInput) (req *request.Re
 
 // ListWebhooks API operation for AWS Amplify.
 //
-// List webhooks with an app.
+// Returns a list of webhooks for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2528,18 +2483,16 @@ func (c *Amplify) ListWebhooksRequest(input *ListWebhooksInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/ListWebhooks
 func (c *Amplify) ListWebhooks(input *ListWebhooksInput) (*ListWebhooksOutput, error) {
@@ -2607,7 +2560,8 @@ func (c *Amplify) StartDeploymentRequest(input *StartDeploymentInput) (req *requ
 
 // StartDeployment API operation for AWS Amplify.
 //
-// Start a deployment for manual deploy apps. (Apps are not connected to repository)
+// Starts a deployment for a manually deployed app. Manually deployed apps are
+// not connected to a repository.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2618,21 +2572,19 @@ func (c *Amplify) StartDeploymentRequest(input *StartDeploymentInput) (req *requ
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/StartDeployment
 func (c *Amplify) StartDeployment(input *StartDeploymentInput) (*StartDeploymentOutput, error) {
@@ -2700,7 +2652,7 @@ func (c *Amplify) StartJobRequest(input *StartJobInput) (req *request.Request, o
 
 // StartJob API operation for AWS Amplify.
 //
-// Starts a new job for a branch, part of an Amplify App.
+// Starts a new job for a branch of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2711,21 +2663,19 @@ func (c *Amplify) StartJobRequest(input *StartJobInput) (req *request.Request, o
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/StartJob
 func (c *Amplify) StartJob(input *StartJobInput) (*StartJobOutput, error) {
@@ -2793,7 +2743,7 @@ func (c *Amplify) StopJobRequest(input *StopJobInput) (req *request.Request, out
 
 // StopJob API operation for AWS Amplify.
 //
-// Stop a job that is in progress, for an Amplify branch, part of Amplify App.
+// Stops a job that is in progress for a branch of an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2804,21 +2754,19 @@ func (c *Amplify) StopJobRequest(input *StopJobInput) (req *request.Request, out
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * LimitExceededException
-//   Exception thrown when a resource could not be created because of service
-//   limits.
+//   A resource could not be created because service quotas were exceeded.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/StopJob
 func (c *Amplify) StopJob(input *StopJobInput) (*StopJobOutput, error) {
@@ -2887,7 +2835,7 @@ func (c *Amplify) TagResourceRequest(input *TagResourceInput) (req *request.Requ
 
 // TagResource API operation for AWS Amplify.
 //
-// Tag resource with tag key and value.
+// Tags the resource with a tag key and value.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2898,14 +2846,13 @@ func (c *Amplify) TagResourceRequest(input *TagResourceInput) (req *request.Requ
 //
 // Returned Error Types:
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * ResourceNotFoundException
-//   Exception thrown when an operation fails due to non-existent resource.
+//   An operation failed due to a non-existent resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/TagResource
 func (c *Amplify) TagResource(input *TagResourceInput) (*TagResourceOutput, error) {
@@ -2974,7 +2921,7 @@ func (c *Amplify) UntagResourceRequest(input *UntagResourceInput) (req *request.
 
 // UntagResource API operation for AWS Amplify.
 //
-// Untag resource with resourceArn.
+// Untags a resource with a specified Amazon Resource Name (ARN).
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -2985,14 +2932,13 @@ func (c *Amplify) UntagResourceRequest(input *UntagResourceInput) (req *request.
 //
 // Returned Error Types:
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * ResourceNotFoundException
-//   Exception thrown when an operation fails due to non-existent resource.
+//   An operation failed due to a non-existent resource.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/UntagResource
 func (c *Amplify) UntagResource(input *UntagResourceInput) (*UntagResourceOutput, error) {
@@ -3060,7 +3006,7 @@ func (c *Amplify) UpdateAppRequest(input *UpdateAppInput) (req *request.Request,
 
 // UpdateApp API operation for AWS Amplify.
 //
-// Updates an existing Amplify App.
+// Updates an existing Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3071,17 +3017,16 @@ func (c *Amplify) UpdateAppRequest(input *UpdateAppInput) (req *request.Request,
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/UpdateApp
 func (c *Amplify) UpdateApp(input *UpdateAppInput) (*UpdateAppOutput, error) {
@@ -3149,7 +3094,7 @@ func (c *Amplify) UpdateBranchRequest(input *UpdateBranchInput) (req *request.Re
 
 // UpdateBranch API operation for AWS Amplify.
 //
-// Updates a branch for an Amplify App.
+// Updates a branch for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3160,21 +3105,19 @@ func (c *Amplify) UpdateBranchRequest(input *UpdateBranchInput) (req *request.Re
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/UpdateBranch
 func (c *Amplify) UpdateBranch(input *UpdateBranchInput) (*UpdateBranchOutput, error) {
@@ -3242,7 +3185,7 @@ func (c *Amplify) UpdateDomainAssociationRequest(input *UpdateDomainAssociationI
 
 // UpdateDomainAssociation API operation for AWS Amplify.
 //
-// Create a new DomainAssociation on an App
+// Creates a new domain association for an Amplify app.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3253,21 +3196,19 @@ func (c *Amplify) UpdateDomainAssociationRequest(input *UpdateDomainAssociationI
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/UpdateDomainAssociation
 func (c *Amplify) UpdateDomainAssociation(input *UpdateDomainAssociationInput) (*UpdateDomainAssociationOutput, error) {
@@ -3335,7 +3276,7 @@ func (c *Amplify) UpdateWebhookRequest(input *UpdateWebhookInput) (req *request.
 
 // UpdateWebhook API operation for AWS Amplify.
 //
-// Update a webhook.
+// Updates a webhook.
 //
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
@@ -3346,21 +3287,19 @@ func (c *Amplify) UpdateWebhookRequest(input *UpdateWebhookInput) (req *request.
 //
 // Returned Error Types:
 //   * BadRequestException
-//   Exception thrown when a request contains unexpected data.
+//   A request contains unexpected data.
 //
 //   * UnauthorizedException
-//   Exception thrown when an operation fails due to a lack of access.
+//   An operation failed due to a lack of access.
 //
 //   * NotFoundException
-//   Exception thrown when an entity has not been found during an operation.
+//   An entity was not found during an operation.
 //
 //   * InternalFailureException
-//   Exception thrown when the service fails to perform an operation due to an
-//   internal issue.
+//   The service failed to perform an operation due to an internal issue.
 //
 //   * DependentServiceFailureException
-//   Exception thrown when an operation fails due to a dependent service throwing
-//   an exception.
+//   An operation failed because a dependent service threw an exception.
 //
 // See also, https://docs.aws.amazon.com/goto/WebAPI/amplify-2017-07-25/UpdateWebhook
 func (c *Amplify) UpdateWebhook(input *UpdateWebhookInput) (*UpdateWebhookOutput, error) {
@@ -3384,94 +3323,100 @@ func (c *Amplify) UpdateWebhookWithContext(ctx aws.Context, input *UpdateWebhook
 	return out, req.Send()
 }
 
-// Amplify App represents different branches of a repository for building, deploying,
-// and hosting.
+// Represents the different branches of a repository for building, deploying,
+// and hosting an Amplify app.
 type App struct {
 	_ struct{} `type:"structure"`
 
-	// ARN for the Amplify App.
+	// The Amazon Resource Name (ARN) of the Amplify app.
 	//
 	// AppArn is a required field
 	AppArn *string `locationName:"appArn" type:"string" required:"true"`
 
-	// Unique Id for the Amplify App.
+	// The unique ID of the Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Automated branch creation config for the Amplify App.
+	// Describes the automated branch creation configuration for the Amplify app.
 	AutoBranchCreationConfig *AutoBranchCreationConfig `locationName:"autoBranchCreationConfig" type:"structure"`
 
-	// Automated branch creation glob patterns for the Amplify App.
+	// Describes the automated branch creation glob patterns for the Amplify app.
 	AutoBranchCreationPatterns []*string `locationName:"autoBranchCreationPatterns" type:"list"`
 
-	// Basic Authorization credentials for branches for the Amplify App.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for branches for the Amplify app.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// BuildSpec content for Amplify App.
+	// Describes the content of the build specification (build spec) for the Amplify
+	// app.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Create date / time for the Amplify App.
+	// Creates a date and time for the Amplify app.
 	//
 	// CreateTime is a required field
 	CreateTime *time.Time `locationName:"createTime" type:"timestamp" required:"true"`
 
-	// Custom redirect / rewrite rules for the Amplify App.
+	// Describes the custom redirect and rewrite rules for the Amplify app.
 	CustomRules []*CustomRule `locationName:"customRules" type:"list"`
 
-	// Default domain for the Amplify App.
+	// The default domain for the Amplify app.
 	//
 	// DefaultDomain is a required field
 	DefaultDomain *string `locationName:"defaultDomain" min:"1" type:"string" required:"true"`
 
-	// Description for the Amplify App.
+	// The description for the Amplify app.
 	//
 	// Description is a required field
 	Description *string `locationName:"description" type:"string" required:"true"`
 
-	// Enables automated branch creation for the Amplify App.
+	// Enables automated branch creation for the Amplify app.
 	EnableAutoBranchCreation *bool `locationName:"enableAutoBranchCreation" type:"boolean"`
 
-	// Enables Basic Authorization for branches for the Amplify App.
+	// Enables basic authorization for the Amplify app's branches.
 	//
 	// EnableBasicAuth is a required field
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean" required:"true"`
 
-	// Enables auto-building of branches for the Amplify App.
+	// Enables the auto-building of branches for the Amplify app.
 	//
 	// EnableBranchAutoBuild is a required field
 	EnableBranchAutoBuild *bool `locationName:"enableBranchAutoBuild" type:"boolean" required:"true"`
 
-	// Environment Variables for the Amplify App.
+	// Automatically disconnect a branch in the Amplify Console when you delete
+	// a branch from your Git repository.
+	EnableBranchAutoDeletion *bool `locationName:"enableBranchAutoDeletion" type:"boolean"`
+
+	// The environment variables for the Amplify app.
 	//
 	// EnvironmentVariables is a required field
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map" required:"true"`
 
-	// IAM service role ARN for the Amplify App.
+	// The AWS Identity and Access Management (IAM) service role for the Amazon
+	// Resource Name (ARN) of the Amplify app.
 	IamServiceRoleArn *string `locationName:"iamServiceRoleArn" min:"1" type:"string"`
 
-	// Name for the Amplify App.
+	// The name for the Amplify app.
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
-	// Platform for the Amplify App.
+	// The platform for the Amplify app.
 	//
 	// Platform is a required field
 	Platform *string `locationName:"platform" type:"string" required:"true" enum:"Platform"`
 
-	// Structure with Production Branch information.
+	// Describes the information about a production branch of the Amplify app.
 	ProductionBranch *ProductionBranch `locationName:"productionBranch" type:"structure"`
 
-	// Repository for the Amplify App.
+	// The repository for the Amplify app.
 	//
 	// Repository is a required field
 	Repository *string `locationName:"repository" type:"string" required:"true"`
 
-	// Tag for Amplify App.
+	// The tag for the Amplify app.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// Update date / time for the Amplify App.
+	// Updates the date and time for the Amplify app.
 	//
 	// UpdateTime is a required field
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" required:"true"`
@@ -3565,6 +3510,12 @@ func (s *App) SetEnableBranchAutoBuild(v bool) *App {
 	return s
 }
 
+// SetEnableBranchAutoDeletion sets the EnableBranchAutoDeletion field's value.
+func (s *App) SetEnableBranchAutoDeletion(v bool) *App {
+	s.EnableBranchAutoDeletion = &v
+	return s
+}
+
 // SetEnvironmentVariables sets the EnvironmentVariables field's value.
 func (s *App) SetEnvironmentVariables(v map[string]*string) *App {
 	s.EnvironmentVariables = v
@@ -3613,16 +3564,16 @@ func (s *App) SetUpdateTime(v time.Time) *App {
 	return s
 }
 
-// Structure for artifact.
+// Describes an artifact.
 type Artifact struct {
 	_ struct{} `type:"structure"`
 
-	// File name for the artifact.
+	// The file name for the artifact.
 	//
 	// ArtifactFileName is a required field
 	ArtifactFileName *string `locationName:"artifactFileName" type:"string" required:"true"`
 
-	// Unique Id for a artifact.
+	// The unique ID for the artifact.
 	//
 	// ArtifactId is a required field
 	ArtifactId *string `locationName:"artifactId" type:"string" required:"true"`
@@ -3650,35 +3601,35 @@ func (s *Artifact) SetArtifactId(v string) *Artifact {
 	return s
 }
 
-// Structure with auto branch creation config.
+// Describes the automated branch creation configuration.
 type AutoBranchCreationConfig struct {
 	_ struct{} `type:"structure"`
 
-	// Basic Authorization credentials for the auto created branch.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for the autocreated branch.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// BuildSpec for the auto created branch.
+	// The build specification (build spec) for the autocreated branch.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Enables auto building for the auto created branch.
+	// Enables auto building for the autocreated branch.
 	EnableAutoBuild *bool `locationName:"enableAutoBuild" type:"boolean"`
 
-	// Enables Basic Auth for the auto created branch.
+	// Enables basic authorization for the autocreated branch.
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean"`
 
-	// Enables Pull Request Preview for auto created branch.
+	// Enables pull request preview for the autocreated branch.
 	EnablePullRequestPreview *bool `locationName:"enablePullRequestPreview" type:"boolean"`
 
-	// Environment Variables for the auto created branch.
+	// The environment variables for the autocreated branch.
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map"`
 
-	// Framework for the auto created branch.
+	// The framework for the autocreated branch.
 	Framework *string `locationName:"framework" type:"string"`
 
-	// The Amplify Environment name for the pull request.
+	// The Amplify environment name for the pull request.
 	PullRequestEnvironmentName *string `locationName:"pullRequestEnvironmentName" type:"string"`
 
-	// Stage for the auto created branch.
+	// Describes the current stage for the autocreated branch.
 	Stage *string `locationName:"stage" type:"string" enum:"Stage"`
 }
 
@@ -3759,33 +3710,35 @@ func (s *AutoBranchCreationConfig) SetStage(v string) *AutoBranchCreationConfig 
 	return s
 }
 
-// Backend environment for an Amplify App.
+// Describes the backend environment for an Amplify app.
 type BackendEnvironment struct {
 	_ struct{} `type:"structure"`
 
-	// Arn for a backend environment, part of an Amplify App.
+	// The Amazon Resource Name (ARN) for a backend environment that is part of
+	// an Amplify app.
 	//
 	// BackendEnvironmentArn is a required field
 	BackendEnvironmentArn *string `locationName:"backendEnvironmentArn" min:"1" type:"string" required:"true"`
 
-	// Creation date and time for a backend environment, part of an Amplify App.
+	// The creation date and time for a backend environment that is part of an Amplify
+	// app.
 	//
 	// CreateTime is a required field
 	CreateTime *time.Time `locationName:"createTime" type:"timestamp" required:"true"`
 
-	// Name of deployment artifacts.
+	// The name of deployment artifacts.
 	DeploymentArtifacts *string `locationName:"deploymentArtifacts" min:"1" type:"string"`
 
-	// Name for a backend environment, part of an Amplify App.
+	// The name for a backend environment that is part of an Amplify app.
 	//
 	// EnvironmentName is a required field
 	EnvironmentName *string `locationName:"environmentName" min:"1" type:"string" required:"true"`
 
-	// CloudFormation stack name of backend environment.
+	// The AWS CloudFormation stack name of a backend environment.
 	StackName *string `locationName:"stackName" min:"1" type:"string"`
 
-	// Last updated date and time for a backend environment, part of an Amplify
-	// App.
+	// The last updated date and time for a backend environment that is part of
+	// an Amplify app.
 	//
 	// UpdateTime is a required field
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" required:"true"`
@@ -3837,7 +3790,7 @@ func (s *BackendEnvironment) SetUpdateTime(v time.Time) *BackendEnvironment {
 	return s
 }
 
-// Exception thrown when a request contains unexpected data.
+// A request contains unexpected data.
 type BadRequestException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -3893,48 +3846,50 @@ func (s *BadRequestException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Branch for an Amplify App, which maps to a 3rd party repository branch.
+// The branch for an Amplify app, which maps to a third-party repository branch.
 type Branch struct {
 	_ struct{} `type:"structure"`
 
-	// Id of the active job for a branch, part of an Amplify App.
+	// The ID of the active job for a branch of an Amplify app.
 	//
 	// ActiveJobId is a required field
 	ActiveJobId *string `locationName:"activeJobId" type:"string" required:"true"`
 
-	// List of custom resources that are linked to this branch.
+	// A list of custom resources that are linked to this branch.
 	AssociatedResources []*string `locationName:"associatedResources" type:"list"`
 
-	// ARN for a Backend Environment, part of an Amplify App.
+	// The Amazon Resource Name (ARN) for a backend environment that is part of
+	// an Amplify app.
 	BackendEnvironmentArn *string `locationName:"backendEnvironmentArn" min:"1" type:"string"`
 
-	// Basic Authorization credentials for a branch, part of an Amplify App.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for a branch of an Amplify app.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// ARN for a branch, part of an Amplify App.
+	// The Amazon Resource Name (ARN) for a branch that is part of an Amplify app.
 	//
 	// BranchArn is a required field
 	BranchArn *string `locationName:"branchArn" type:"string" required:"true"`
 
-	// Name for a branch, part of an Amplify App.
+	// The name for the branch that is part of an Amplify app.
 	//
 	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// BuildSpec content for branch for Amplify App.
+	// The build specification (build spec) content for the branch of an Amplify
+	// app.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Creation date and time for a branch, part of an Amplify App.
+	// The creation date and time for a branch that is part of an Amplify app.
 	//
 	// CreateTime is a required field
 	CreateTime *time.Time `locationName:"createTime" type:"timestamp" required:"true"`
 
-	// Custom domains for a branch, part of an Amplify App.
+	// The custom domains for a branch of an Amplify app.
 	//
 	// CustomDomains is a required field
 	CustomDomains []*string `locationName:"customDomains" type:"list" required:"true"`
 
-	// Description for a branch, part of an Amplify App.
+	// The description for the branch that is part of an Amplify app.
 	//
 	// Description is a required field
 	Description *string `locationName:"description" type:"string" required:"true"`
@@ -3942,69 +3897,69 @@ type Branch struct {
 	// The destination branch if the branch is a pull request branch.
 	DestinationBranch *string `locationName:"destinationBranch" min:"1" type:"string"`
 
-	// Display name for a branch, will use as the default domain prefix.
+	// The display name for the branch. This is used as the default domain prefix.
 	//
 	// DisplayName is a required field
 	DisplayName *string `locationName:"displayName" type:"string" required:"true"`
 
-	// Enables auto-building on push for a branch, part of an Amplify App.
+	// Enables auto-building on push for a branch of an Amplify app.
 	//
 	// EnableAutoBuild is a required field
 	EnableAutoBuild *bool `locationName:"enableAutoBuild" type:"boolean" required:"true"`
 
-	// Enables Basic Authorization for a branch, part of an Amplify App.
+	// Enables basic authorization for a branch of an Amplify app.
 	//
 	// EnableBasicAuth is a required field
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean" required:"true"`
 
-	// Enables notifications for a branch, part of an Amplify App.
+	// Enables notifications for a branch that is part of an Amplify app.
 	//
 	// EnableNotification is a required field
 	EnableNotification *bool `locationName:"enableNotification" type:"boolean" required:"true"`
 
-	// Enables Pull Request Preview for this branch.
+	// Enables pull request preview for the branch.
 	//
 	// EnablePullRequestPreview is a required field
 	EnablePullRequestPreview *bool `locationName:"enablePullRequestPreview" type:"boolean" required:"true"`
 
-	// Environment Variables specific to a branch, part of an Amplify App.
+	// The environment variables specific to a branch of an Amplify app.
 	//
 	// EnvironmentVariables is a required field
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map" required:"true"`
 
-	// Framework for a branch, part of an Amplify App.
+	// The framework for a branch of an Amplify app.
 	//
 	// Framework is a required field
 	Framework *string `locationName:"framework" type:"string" required:"true"`
 
-	// The Amplify Environment name for the pull request.
+	// The Amplify environment name for the pull request.
 	PullRequestEnvironmentName *string `locationName:"pullRequestEnvironmentName" type:"string"`
 
 	// The source branch if the branch is a pull request branch.
 	SourceBranch *string `locationName:"sourceBranch" min:"1" type:"string"`
 
-	// Stage for a branch, part of an Amplify App.
+	// The current stage for the branch that is part of an Amplify app.
 	//
 	// Stage is a required field
 	Stage *string `locationName:"stage" type:"string" required:"true" enum:"Stage"`
 
-	// Tag for branch for Amplify App.
+	// The tag for the branch of an Amplify app.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// Thumbnail URL for the branch.
+	// The thumbnail URL for the branch of an Amplify app.
 	ThumbnailUrl *string `locationName:"thumbnailUrl" min:"1" type:"string"`
 
-	// Total number of Jobs part of an Amplify App.
+	// The total number of jobs that are part of an Amplify app.
 	//
 	// TotalNumberOfJobs is a required field
 	TotalNumberOfJobs *string `locationName:"totalNumberOfJobs" type:"string" required:"true"`
 
-	// The content TTL for the website in seconds.
+	// The content Time to Live (TTL) for the website in seconds.
 	//
 	// Ttl is a required field
 	Ttl *string `locationName:"ttl" type:"string" required:"true"`
 
-	// Last updated date and time for a branch, part of an Amplify App.
+	// The last updated date and time for a branch that is part of an Amplify app.
 	//
 	// UpdateTime is a required field
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" required:"true"`
@@ -4176,64 +4131,71 @@ func (s *Branch) SetUpdateTime(v time.Time) *Branch {
 	return s
 }
 
-// Request structure used to create Apps in Amplify.
+// The request structure used to create apps in Amplify.
 type CreateAppInput struct {
 	_ struct{} `type:"structure"`
 
-	// Personal Access token for 3rd party source control system for an Amplify
-	// App, used to create webhook and read-only deploy key. Token is not stored.
-	AccessToken *string `locationName:"accessToken" min:"1" type:"string"`
+	// The personal access token for a third-party source control system for an
+	// Amplify app. The personal access token is used to create a webhook and a
+	// read-only deploy key. The token is not stored.
+	AccessToken *string `locationName:"accessToken" min:"1" type:"string" sensitive:"true"`
 
-	// Automated branch creation config for the Amplify App.
+	// The automated branch creation configuration for the Amplify app.
 	AutoBranchCreationConfig *AutoBranchCreationConfig `locationName:"autoBranchCreationConfig" type:"structure"`
 
-	// Automated branch creation glob patterns for the Amplify App.
+	// The automated branch creation glob patterns for the Amplify app.
 	AutoBranchCreationPatterns []*string `locationName:"autoBranchCreationPatterns" type:"list"`
 
-	// Credentials for Basic Authorization for an Amplify App.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The credentials for basic authorization for an Amplify app.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// BuildSpec for an Amplify App
+	// The build specification (build spec) for an Amplify app.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Custom rewrite / redirect rules for an Amplify App.
+	// The custom rewrite and redirect rules for an Amplify app.
 	CustomRules []*CustomRule `locationName:"customRules" type:"list"`
 
-	// Description for an Amplify App
+	// The description for an Amplify app.
 	Description *string `locationName:"description" type:"string"`
 
-	// Enables automated branch creation for the Amplify App.
+	// Enables automated branch creation for the Amplify app.
 	EnableAutoBranchCreation *bool `locationName:"enableAutoBranchCreation" type:"boolean"`
 
-	// Enable Basic Authorization for an Amplify App, this will apply to all branches
-	// part of this App.
+	// Enables basic authorization for an Amplify app. This will apply to all branches
+	// that are part of this app.
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean"`
 
-	// Enable the auto building of branches for an Amplify App.
+	// Enables the auto building of branches for an Amplify app.
 	EnableBranchAutoBuild *bool `locationName:"enableBranchAutoBuild" type:"boolean"`
 
-	// Environment variables map for an Amplify App.
+	// Automatically disconnects a branch in the Amplify Console when you delete
+	// a branch from your Git repository.
+	EnableBranchAutoDeletion *bool `locationName:"enableBranchAutoDeletion" type:"boolean"`
+
+	// The environment variables map for an Amplify app.
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map"`
 
-	// AWS IAM service role for an Amplify App
+	// The AWS Identity and Access Management (IAM) service role for an Amplify
+	// app.
 	IamServiceRoleArn *string `locationName:"iamServiceRoleArn" min:"1" type:"string"`
 
-	// Name for the Amplify App
+	// The name for the Amplify app.
 	//
 	// Name is a required field
 	Name *string `locationName:"name" min:"1" type:"string" required:"true"`
 
-	// OAuth token for 3rd party source control system for an Amplify App, used
-	// to create webhook and read-only deploy key. OAuth token is not stored.
-	OauthToken *string `locationName:"oauthToken" type:"string"`
+	// The OAuth token for a third-party source control system for an Amplify app.
+	// The OAuth token is used to create a webhook and a read-only deploy key. The
+	// OAuth token is not stored.
+	OauthToken *string `locationName:"oauthToken" type:"string" sensitive:"true"`
 
-	// Platform / framework for an Amplify App
+	// The platform or framework for an Amplify app.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
 
-	// Repository for an Amplify App
+	// The repository for an Amplify app.
 	Repository *string `locationName:"repository" type:"string"`
 
-	// Tag for an Amplify App
+	// The tag for an Amplify app.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
 
@@ -4350,6 +4312,12 @@ func (s *CreateAppInput) SetEnableBranchAutoBuild(v bool) *CreateAppInput {
 	return s
 }
 
+// SetEnableBranchAutoDeletion sets the EnableBranchAutoDeletion field's value.
+func (s *CreateAppInput) SetEnableBranchAutoDeletion(v bool) *CreateAppInput {
+	s.EnableBranchAutoDeletion = &v
+	return s
+}
+
 // SetEnvironmentVariables sets the EnvironmentVariables field's value.
 func (s *CreateAppInput) SetEnvironmentVariables(v map[string]*string) *CreateAppInput {
 	s.EnvironmentVariables = v
@@ -4395,8 +4363,8 @@ func (s *CreateAppInput) SetTags(v map[string]*string) *CreateAppInput {
 type CreateAppOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Amplify App represents different branches of a repository for building, deploying,
-	// and hosting.
+	// Represents the different branches of a repository for building, deploying,
+	// and hosting an Amplify app.
 	//
 	// App is a required field
 	App *App `locationName:"app" type:"structure" required:"true"`
@@ -4418,24 +4386,24 @@ func (s *CreateAppOutput) SetApp(v *App) *CreateAppOutput {
 	return s
 }
 
-// Request structure for a backend environment create request.
+// The request structure for the backend environment create request.
 type CreateBackendEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of deployment artifacts.
+	// The name of deployment artifacts.
 	DeploymentArtifacts *string `locationName:"deploymentArtifacts" min:"1" type:"string"`
 
-	// Name for the backend environment.
+	// The name for the backend environment.
 	//
 	// EnvironmentName is a required field
 	EnvironmentName *string `locationName:"environmentName" min:"1" type:"string" required:"true"`
 
-	// CloudFormation stack name of backend environment.
+	// The AWS CloudFormation stack name of a backend environment.
 	StackName *string `locationName:"stackName" min:"1" type:"string"`
 }
 
@@ -4501,11 +4469,11 @@ func (s *CreateBackendEnvironmentInput) SetStackName(v string) *CreateBackendEnv
 	return s
 }
 
-// Result structure for create backend environment.
+// The result structure for the create backend environment request.
 type CreateBackendEnvironmentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Backend environment structure for an amplify App.
+	// Describes the backend environment for an Amplify app.
 	//
 	// BackendEnvironment is a required field
 	BackendEnvironment *BackendEnvironment `locationName:"backendEnvironment" type:"structure" required:"true"`
@@ -4527,63 +4495,64 @@ func (s *CreateBackendEnvironmentOutput) SetBackendEnvironment(v *BackendEnviron
 	return s
 }
 
-// Request structure for a branch create request.
+// The request structure for the create branch request.
 type CreateBranchInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// ARN for a Backend Environment, part of an Amplify App.
+	// The Amazon Resource Name (ARN) for a backend environment that is part of
+	// an Amplify app.
 	BackendEnvironmentArn *string `locationName:"backendEnvironmentArn" min:"1" type:"string"`
 
-	// Basic Authorization credentials for the branch.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for the branch.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// Name for the branch.
+	// The name for the branch.
 	//
 	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// BuildSpec for the branch.
+	// The build specification (build spec) for the branch.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Description for the branch.
+	// The description for the branch.
 	Description *string `locationName:"description" type:"string"`
 
-	// Display name for a branch, will use as the default domain prefix.
+	// The display name for a branch. This is used as the default domain prefix.
 	DisplayName *string `locationName:"displayName" type:"string"`
 
 	// Enables auto building for the branch.
 	EnableAutoBuild *bool `locationName:"enableAutoBuild" type:"boolean"`
 
-	// Enables Basic Auth for the branch.
+	// Enables basic authorization for the branch.
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean"`
 
 	// Enables notifications for the branch.
 	EnableNotification *bool `locationName:"enableNotification" type:"boolean"`
 
-	// Enables Pull Request Preview for this branch.
+	// Enables pull request preview for this branch.
 	EnablePullRequestPreview *bool `locationName:"enablePullRequestPreview" type:"boolean"`
 
-	// Environment Variables for the branch.
+	// The environment variables for the branch.
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map"`
 
-	// Framework for the branch.
+	// The framework for the branch.
 	Framework *string `locationName:"framework" type:"string"`
 
-	// The Amplify Environment name for the pull request.
+	// The Amplify environment name for the pull request.
 	PullRequestEnvironmentName *string `locationName:"pullRequestEnvironmentName" type:"string"`
 
-	// Stage for the branch.
+	// Describes the current stage for the branch.
 	Stage *string `locationName:"stage" type:"string" enum:"Stage"`
 
-	// Tag for the branch.
+	// The tag for the branch.
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 
-	// The content TTL for the website in seconds.
+	// The content Time To Live (TTL) for the website in seconds.
 	Ttl *string `locationName:"ttl" type:"string"`
 }
 
@@ -4730,11 +4699,12 @@ func (s *CreateBranchInput) SetTtl(v string) *CreateBranchInput {
 	return s
 }
 
-// Result structure for create branch request.
+// The result structure for create branch request.
 type CreateBranchOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Branch structure for an Amplify App.
+	// Describes the branch for an Amplify app, which maps to a third-party repository
+	// branch.
 	//
 	// Branch is a required field
 	Branch *Branch `locationName:"branch" type:"structure" required:"true"`
@@ -4756,24 +4726,24 @@ func (s *CreateBranchOutput) SetBranch(v *Branch) *CreateBranchOutput {
 	return s
 }
 
-// Request structure for create a new deployment.
+// The request structure for the create a new deployment request.
 type CreateDeploymentInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The name for the branch, for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Optional file map that contains file name as the key and file content md5
-	// hash as the value. If this argument is provided, the service will generate
-	// different upload url per file. Otherwise, the service will only generate
-	// a single upload url for the zipped files.
+	// An optional file map that contains the file name as the key and the file
+	// content md5 hash as the value. If this argument is provided, the service
+	// will generate a unique upload URL per file. Otherwise, the service will only
+	// generate a single upload URL for the zipped files.
 	FileMap map[string]*string `locationName:"fileMap" type:"map"`
 }
 
@@ -4827,20 +4797,21 @@ func (s *CreateDeploymentInput) SetFileMap(v map[string]*string) *CreateDeployme
 	return s
 }
 
-// Result structure for create a new deployment.
+// The result structure for the create a new deployment request.
 type CreateDeploymentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// When the fileMap argument is provided in the request, the fileUploadUrls
-	// will contain a map of file names to upload url.
+	// When the fileMap argument is provided in the request, fileUploadUrls will
+	// contain a map of file names to upload URLs.
 	//
 	// FileUploadUrls is a required field
 	FileUploadUrls map[string]*string `locationName:"fileUploadUrls" type:"map" required:"true"`
 
-	// The jobId for this deployment, will supply to start deployment api.
+	// The job ID for this deployment. will supply to start deployment api.
 	JobId *string `locationName:"jobId" type:"string"`
 
-	// When the fileMap argument is NOT provided. This zipUploadUrl will be returned.
+	// When the fileMap argument is not provided in the request, this zipUploadUrl
+	// is returned.
 	//
 	// ZipUploadUrl is a required field
 	ZipUploadUrl *string `locationName:"zipUploadUrl" type:"string" required:"true"`
@@ -4874,24 +4845,31 @@ func (s *CreateDeploymentOutput) SetZipUploadUrl(v string) *CreateDeploymentOutp
 	return s
 }
 
-// Request structure for create Domain Association request.
+// The request structure for the create domain association request.
 type CreateDomainAssociationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Domain name for the Domain Association.
+	// Sets the branch patterns for automatic subdomain creation.
+	AutoSubDomainCreationPatterns []*string `locationName:"autoSubDomainCreationPatterns" type:"list"`
+
+	// The required AWS Identity and Access Management (IAM) service role for the
+	// Amazon Resource Name (ARN) for automatically creating subdomains.
+	AutoSubDomainIAMRole *string `locationName:"autoSubDomainIAMRole" type:"string"`
+
+	// The domain name for the domain association.
 	//
 	// DomainName is a required field
 	DomainName *string `locationName:"domainName" type:"string" required:"true"`
 
-	// Enables automated creation of Subdomains for branches. (Currently not supported)
+	// Enables the automated creation of subdomains for branches.
 	EnableAutoSubDomain *bool `locationName:"enableAutoSubDomain" type:"boolean"`
 
-	// Setting structure for the Subdomain.
+	// The setting for the subdomain.
 	//
 	// SubDomainSettings is a required field
 	SubDomainSettings []*SubDomainSetting `locationName:"subDomainSettings" type:"list" required:"true"`
@@ -4945,6 +4923,18 @@ func (s *CreateDomainAssociationInput) SetAppId(v string) *CreateDomainAssociati
 	return s
 }
 
+// SetAutoSubDomainCreationPatterns sets the AutoSubDomainCreationPatterns field's value.
+func (s *CreateDomainAssociationInput) SetAutoSubDomainCreationPatterns(v []*string) *CreateDomainAssociationInput {
+	s.AutoSubDomainCreationPatterns = v
+	return s
+}
+
+// SetAutoSubDomainIAMRole sets the AutoSubDomainIAMRole field's value.
+func (s *CreateDomainAssociationInput) SetAutoSubDomainIAMRole(v string) *CreateDomainAssociationInput {
+	s.AutoSubDomainIAMRole = &v
+	return s
+}
+
 // SetDomainName sets the DomainName field's value.
 func (s *CreateDomainAssociationInput) SetDomainName(v string) *CreateDomainAssociationInput {
 	s.DomainName = &v
@@ -4963,11 +4953,12 @@ func (s *CreateDomainAssociationInput) SetSubDomainSettings(v []*SubDomainSettin
 	return s
 }
 
-// Result structure for the create Domain Association request.
+// The result structure for the create domain association request.
 type CreateDomainAssociationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Domain Association structure.
+	// Describes the structure of a domain association, which associates a custom
+	// domain with an Amplify app.
 	//
 	// DomainAssociation is a required field
 	DomainAssociation *DomainAssociation `locationName:"domainAssociation" type:"structure" required:"true"`
@@ -4989,21 +4980,21 @@ func (s *CreateDomainAssociationOutput) SetDomainAssociation(v *DomainAssociatio
 	return s
 }
 
-// Request structure for create webhook request.
+// The request structure for the create webhook request.
 type CreateWebhookInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for a branch, part of an Amplify App.
+	// The name for a branch that is part of an Amplify app.
 	//
 	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Description for a webhook.
+	// The description for a webhook.
 	Description *string `locationName:"description" type:"string"`
 }
 
@@ -5057,11 +5048,11 @@ func (s *CreateWebhookInput) SetDescription(v string) *CreateWebhookInput {
 	return s
 }
 
-// Result structure for the create webhook request.
+// The result structure for the create webhook request.
 type CreateWebhookOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Webhook structure.
+	// Describes a webhook that connects repository events to an Amplify app.
 	//
 	// Webhook is a required field
 	Webhook *Webhook `locationName:"webhook" type:"structure" required:"true"`
@@ -5083,11 +5074,11 @@ func (s *CreateWebhookOutput) SetWebhook(v *Webhook) *CreateWebhookOutput {
 	return s
 }
 
-// Custom rewrite / redirect rule.
+// Describes a custom rewrite or redirect rule.
 type CustomRule struct {
 	_ struct{} `type:"structure"`
 
-	// The condition for a URL rewrite or redirect rule, e.g. country code.
+	// The condition for a URL rewrite or redirect rule, such as a country code.
 	Condition *string `locationName:"condition" min:"1" type:"string"`
 
 	// The source pattern for a URL rewrite or redirect rule.
@@ -5166,11 +5157,11 @@ func (s *CustomRule) SetTarget(v string) *CustomRule {
 	return s
 }
 
-// Request structure for an Amplify App delete request.
+// Describes the request structure for the delete app request.
 type DeleteAppInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
@@ -5208,12 +5199,12 @@ func (s *DeleteAppInput) SetAppId(v string) *DeleteAppInput {
 	return s
 }
 
-// Result structure for an Amplify App delete request.
+// The result structure for the delete app request.
 type DeleteAppOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Amplify App represents different branches of a repository for building, deploying,
-	// and hosting.
+	// Represents the different branches of a repository for building, deploying,
+	// and hosting an Amplify app.
 	//
 	// App is a required field
 	App *App `locationName:"app" type:"structure" required:"true"`
@@ -5235,16 +5226,16 @@ func (s *DeleteAppOutput) SetApp(v *App) *DeleteAppOutput {
 	return s
 }
 
-// Request structure for delete backend environment request.
+// The request structure for the delete backend environment request.
 type DeleteBackendEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id of an Amplify App.
+	// The unique ID of an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of a backend environment of an Amplify App.
+	// The name of a backend environment of an Amplify app.
 	//
 	// EnvironmentName is a required field
 	EnvironmentName *string `location:"uri" locationName:"environmentName" min:"1" type:"string" required:"true"`
@@ -5294,11 +5285,11 @@ func (s *DeleteBackendEnvironmentInput) SetEnvironmentName(v string) *DeleteBack
 	return s
 }
 
-// Result structure of a delete backend environment result.
+// The result structure of the delete backend environment result.
 type DeleteBackendEnvironmentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Backend environment structure for an Amplify App.
+	// Describes the backend environment for an Amplify app.
 	//
 	// BackendEnvironment is a required field
 	BackendEnvironment *BackendEnvironment `locationName:"backendEnvironment" type:"structure" required:"true"`
@@ -5320,16 +5311,16 @@ func (s *DeleteBackendEnvironmentOutput) SetBackendEnvironment(v *BackendEnviron
 	return s
 }
 
-// Request structure for delete branch request.
+// The request structure for the delete branch request.
 type DeleteBranchInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch.
+	// The name for the branch.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
@@ -5379,11 +5370,11 @@ func (s *DeleteBranchInput) SetBranchName(v string) *DeleteBranchInput {
 	return s
 }
 
-// Result structure for delete branch request.
+// The result structure for the delete branch request.
 type DeleteBranchOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Branch structure for an Amplify App.
+	// The branch for an Amplify app, which maps to a third-party repository branch.
 	//
 	// Branch is a required field
 	Branch *Branch `locationName:"branch" type:"structure" required:"true"`
@@ -5405,16 +5396,16 @@ func (s *DeleteBranchOutput) SetBranch(v *Branch) *DeleteBranchOutput {
 	return s
 }
 
-// Request structure for the delete Domain Association request.
+// The request structure for the delete domain association request.
 type DeleteDomainAssociationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique id for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of the domain.
+	// The name of the domain.
 	//
 	// DomainName is a required field
 	DomainName *string `location:"uri" locationName:"domainName" type:"string" required:"true"`
@@ -5467,8 +5458,8 @@ func (s *DeleteDomainAssociationInput) SetDomainName(v string) *DeleteDomainAsso
 type DeleteDomainAssociationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Structure for Domain Association, which associates a custom domain with an
-	// Amplify App.
+	// Describes a domain association that associates a custom domain with an Amplify
+	// app.
 	//
 	// DomainAssociation is a required field
 	DomainAssociation *DomainAssociation `locationName:"domainAssociation" type:"structure" required:"true"`
@@ -5490,21 +5481,21 @@ func (s *DeleteDomainAssociationOutput) SetDomainAssociation(v *DomainAssociatio
 	return s
 }
 
-// Request structure for delete job request.
+// The request structure for the delete job request.
 type DeleteJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The name for the branch, for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Unique Id for the Job.
+	// The unique ID for the job.
 	//
 	// JobId is a required field
 	JobId *string `location:"uri" locationName:"jobId" type:"string" required:"true"`
@@ -5566,11 +5557,11 @@ func (s *DeleteJobInput) SetJobId(v string) *DeleteJobInput {
 	return s
 }
 
-// Result structure for the delete job request.
+// The result structure for the delete job request.
 type DeleteJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Structure for the summary of a Job.
+	// Describes the summary for an execution job for an Amplify app.
 	//
 	// JobSummary is a required field
 	JobSummary *JobSummary `locationName:"jobSummary" type:"structure" required:"true"`
@@ -5592,11 +5583,11 @@ func (s *DeleteJobOutput) SetJobSummary(v *JobSummary) *DeleteJobOutput {
 	return s
 }
 
-// Request structure for the delete webhook request.
+// The request structure for the delete webhook request.
 type DeleteWebhookInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for a webhook.
+	// The unique ID for a webhook.
 	//
 	// WebhookId is a required field
 	WebhookId *string `location:"uri" locationName:"webhookId" type:"string" required:"true"`
@@ -5634,11 +5625,11 @@ func (s *DeleteWebhookInput) SetWebhookId(v string) *DeleteWebhookInput {
 	return s
 }
 
-// Result structure for the delete webhook request.
+// The result structure for the delete webhook request.
 type DeleteWebhookOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Webhook structure.
+	// Describes a webhook that connects repository events to an Amplify app.
 	//
 	// Webhook is a required field
 	Webhook *Webhook `locationName:"webhook" type:"structure" required:"true"`
@@ -5660,8 +5651,7 @@ func (s *DeleteWebhookOutput) SetWebhook(v *Webhook) *DeleteWebhookOutput {
 	return s
 }
 
-// Exception thrown when an operation fails due to a dependent service throwing
-// an exception.
+// An operation failed because a dependent service threw an exception.
 type DependentServiceFailureException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -5717,40 +5707,47 @@ func (s *DependentServiceFailureException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Structure for Domain Association, which associates a custom domain with an
-// Amplify App.
+// Describes a domain association that associates a custom domain with an Amplify
+// app.
 type DomainAssociation struct {
 	_ struct{} `type:"structure"`
 
-	// DNS Record for certificate verification.
+	// Sets branch patterns for automatic subdomain creation.
+	AutoSubDomainCreationPatterns []*string `locationName:"autoSubDomainCreationPatterns" type:"list"`
+
+	// The required AWS Identity and Access Management (IAM) service role for the
+	// Amazon Resource Name (ARN) for automatically creating subdomains.
+	AutoSubDomainIAMRole *string `locationName:"autoSubDomainIAMRole" type:"string"`
+
+	// The DNS record for certificate verification.
 	CertificateVerificationDNSRecord *string `locationName:"certificateVerificationDNSRecord" type:"string"`
 
-	// ARN for the Domain Association.
+	// The Amazon Resource Name (ARN) for the domain association.
 	//
 	// DomainAssociationArn is a required field
 	DomainAssociationArn *string `locationName:"domainAssociationArn" type:"string" required:"true"`
 
-	// Name of the domain.
+	// The name of the domain.
 	//
 	// DomainName is a required field
 	DomainName *string `locationName:"domainName" type:"string" required:"true"`
 
-	// Status fo the Domain Association.
+	// The current status of the domain association.
 	//
 	// DomainStatus is a required field
 	DomainStatus *string `locationName:"domainStatus" type:"string" required:"true" enum:"DomainStatus"`
 
-	// Enables automated creation of Subdomains for branches. (Currently not supported)
+	// Enables the automated creation of subdomains for branches.
 	//
 	// EnableAutoSubDomain is a required field
 	EnableAutoSubDomain *bool `locationName:"enableAutoSubDomain" type:"boolean" required:"true"`
 
-	// Reason for the current status of the Domain Association.
+	// The reason for the current status of the domain association.
 	//
 	// StatusReason is a required field
 	StatusReason *string `locationName:"statusReason" type:"string" required:"true"`
 
-	// Subdomains for the Domain Association.
+	// The subdomains for the domain association.
 	//
 	// SubDomains is a required field
 	SubDomains []*SubDomain `locationName:"subDomains" type:"list" required:"true"`
@@ -5764,6 +5761,18 @@ func (s DomainAssociation) String() string {
 // GoString returns the string representation
 func (s DomainAssociation) GoString() string {
 	return s.String()
+}
+
+// SetAutoSubDomainCreationPatterns sets the AutoSubDomainCreationPatterns field's value.
+func (s *DomainAssociation) SetAutoSubDomainCreationPatterns(v []*string) *DomainAssociation {
+	s.AutoSubDomainCreationPatterns = v
+	return s
+}
+
+// SetAutoSubDomainIAMRole sets the AutoSubDomainIAMRole field's value.
+func (s *DomainAssociation) SetAutoSubDomainIAMRole(v string) *DomainAssociation {
+	s.AutoSubDomainIAMRole = &v
+	return s
 }
 
 // SetCertificateVerificationDNSRecord sets the CertificateVerificationDNSRecord field's value.
@@ -5808,24 +5817,26 @@ func (s *DomainAssociation) SetSubDomains(v []*SubDomain) *DomainAssociation {
 	return s
 }
 
-// Request structure for the generate access logs request.
+// The request structure for the generate access logs request.
 type GenerateAccessLogsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of the domain.
+	// The name of the domain.
 	//
 	// DomainName is a required field
 	DomainName *string `locationName:"domainName" type:"string" required:"true"`
 
-	// The time at which the logs should end, inclusive.
+	// The time at which the logs should end. The time range specified is inclusive
+	// of the end time.
 	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
 
-	// The time at which the logs should start, inclusive.
+	// The time at which the logs should start. The time range specified is inclusive
+	// of the start time.
 	StartTime *time.Time `locationName:"startTime" type:"timestamp"`
 }
 
@@ -5882,11 +5893,11 @@ func (s *GenerateAccessLogsInput) SetStartTime(v time.Time) *GenerateAccessLogsI
 	return s
 }
 
-// Result structure for the generate access logs request.
+// The result structure for the generate access logs request.
 type GenerateAccessLogsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Pre-signed URL for the requested access logs.
+	// The pre-signed URL for the requested access logs.
 	LogUrl *string `locationName:"logUrl" type:"string"`
 }
 
@@ -5906,11 +5917,11 @@ func (s *GenerateAccessLogsOutput) SetLogUrl(v string) *GenerateAccessLogsOutput
 	return s
 }
 
-// Request structure for get App request.
+// The request structure for the get app request.
 type GetAppInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
@@ -5951,8 +5962,8 @@ func (s *GetAppInput) SetAppId(v string) *GetAppInput {
 type GetAppOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Amplify App represents different branches of a repository for building, deploying,
-	// and hosting.
+	// Represents the different branches of a repository for building, deploying,
+	// and hosting an Amplify app.
 	//
 	// App is a required field
 	App *App `locationName:"app" type:"structure" required:"true"`
@@ -5974,11 +5985,11 @@ func (s *GetAppOutput) SetApp(v *App) *GetAppOutput {
 	return s
 }
 
-// Request structure for the get artifact request.
+// Returns the request structure for the get artifact request.
 type GetArtifactUrlInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for a artifact.
+	// The unique ID for an artifact.
 	//
 	// ArtifactId is a required field
 	ArtifactId *string `location:"uri" locationName:"artifactId" type:"string" required:"true"`
@@ -6016,16 +6027,16 @@ func (s *GetArtifactUrlInput) SetArtifactId(v string) *GetArtifactUrlInput {
 	return s
 }
 
-// Result structure for the get artifact request.
+// Returns the result structure for the get artifact request.
 type GetArtifactUrlOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for a artifact.
+	// The unique ID for an artifact.
 	//
 	// ArtifactId is a required field
 	ArtifactId *string `locationName:"artifactId" type:"string" required:"true"`
 
-	// Presigned url for the artifact.
+	// The presigned URL for the artifact.
 	//
 	// ArtifactUrl is a required field
 	ArtifactUrl *string `locationName:"artifactUrl" type:"string" required:"true"`
@@ -6053,16 +6064,16 @@ func (s *GetArtifactUrlOutput) SetArtifactUrl(v string) *GetArtifactUrlOutput {
 	return s
 }
 
-// Request structure for get backend environment request.
+// The request structure for the get backend environment request.
 type GetBackendEnvironmentInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique id for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the backend environment.
+	// The name for the backend environment.
 	//
 	// EnvironmentName is a required field
 	EnvironmentName *string `location:"uri" locationName:"environmentName" min:"1" type:"string" required:"true"`
@@ -6112,11 +6123,11 @@ func (s *GetBackendEnvironmentInput) SetEnvironmentName(v string) *GetBackendEnv
 	return s
 }
 
-// Result structure for get backend environment result.
+// The result structure for the get backend environment result.
 type GetBackendEnvironmentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Backend environment structure for an an Amplify App.
+	// Describes the backend environment for an Amplify app.
 	//
 	// BackendEnvironment is a required field
 	BackendEnvironment *BackendEnvironment `locationName:"backendEnvironment" type:"structure" required:"true"`
@@ -6138,16 +6149,16 @@ func (s *GetBackendEnvironmentOutput) SetBackendEnvironment(v *BackendEnvironmen
 	return s
 }
 
-// Request structure for get branch request.
+// The request structure for the get branch request.
 type GetBranchInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch.
+	// The name for the branch.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
@@ -6200,7 +6211,7 @@ func (s *GetBranchInput) SetBranchName(v string) *GetBranchInput {
 type GetBranchOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Branch for an Amplify App, which maps to a 3rd party repository branch.
+	// The branch for an Amplify app, which maps to a third-party repository branch.
 	//
 	// Branch is a required field
 	Branch *Branch `locationName:"branch" type:"structure" required:"true"`
@@ -6222,16 +6233,16 @@ func (s *GetBranchOutput) SetBranch(v *Branch) *GetBranchOutput {
 	return s
 }
 
-// Request structure for the get Domain Association request.
+// The request structure for the get domain association request.
 type GetDomainAssociationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique id for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of the domain.
+	// The name of the domain.
 	//
 	// DomainName is a required field
 	DomainName *string `location:"uri" locationName:"domainName" type:"string" required:"true"`
@@ -6281,11 +6292,12 @@ func (s *GetDomainAssociationInput) SetDomainName(v string) *GetDomainAssociatio
 	return s
 }
 
-// Result structure for the get Domain Association request.
+// The result structure for the get domain association request.
 type GetDomainAssociationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Domain Association structure.
+	// Describes the structure of a domain association, which associates a custom
+	// domain with an Amplify app.
 	//
 	// DomainAssociation is a required field
 	DomainAssociation *DomainAssociation `locationName:"domainAssociation" type:"structure" required:"true"`
@@ -6307,21 +6319,21 @@ func (s *GetDomainAssociationOutput) SetDomainAssociation(v *DomainAssociation) 
 	return s
 }
 
-// Request structure for get job request.
+// The request structure for the get job request.
 type GetJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The branch name for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Unique Id for the Job.
+	// The unique ID for the job.
 	//
 	// JobId is a required field
 	JobId *string `location:"uri" locationName:"jobId" type:"string" required:"true"`
@@ -6386,7 +6398,7 @@ func (s *GetJobInput) SetJobId(v string) *GetJobInput {
 type GetJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Structure for an execution job for an Amplify App.
+	// Describes an execution job for an Amplify app.
 	//
 	// Job is a required field
 	Job *Job `locationName:"job" type:"structure" required:"true"`
@@ -6408,11 +6420,11 @@ func (s *GetJobOutput) SetJob(v *Job) *GetJobOutput {
 	return s
 }
 
-// Request structure for the get webhook request.
+// The request structure for the get webhook request.
 type GetWebhookInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for a webhook.
+	// The unique ID for a webhook.
 	//
 	// WebhookId is a required field
 	WebhookId *string `location:"uri" locationName:"webhookId" type:"string" required:"true"`
@@ -6450,11 +6462,11 @@ func (s *GetWebhookInput) SetWebhookId(v string) *GetWebhookInput {
 	return s
 }
 
-// Result structure for the get webhook request.
+// The result structure for the get webhook request.
 type GetWebhookOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Webhook structure.
+	// Describes the structure of a webhook.
 	//
 	// Webhook is a required field
 	Webhook *Webhook `locationName:"webhook" type:"structure" required:"true"`
@@ -6476,8 +6488,7 @@ func (s *GetWebhookOutput) SetWebhook(v *Webhook) *GetWebhookOutput {
 	return s
 }
 
-// Exception thrown when the service fails to perform an operation due to an
-// internal issue.
+// The service failed to perform an operation due to an internal issue.
 type InternalFailureException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -6533,16 +6544,16 @@ func (s *InternalFailureException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Structure for an execution job for an Amplify App.
+// Describes an execution job for an Amplify app.
 type Job struct {
 	_ struct{} `type:"structure"`
 
-	// Execution steps for an execution job, for an Amplify App.
+	// The execution steps for an execution job, for an Amplify app.
 	//
 	// Steps is a required field
 	Steps []*Step `locationName:"steps" type:"list" required:"true"`
 
-	// Summary for an execution job for an Amplify App.
+	// Describes the summary for an execution job for an Amplify app.
 	//
 	// Summary is a required field
 	Summary *JobSummary `locationName:"summary" type:"structure" required:"true"`
@@ -6570,51 +6581,52 @@ func (s *Job) SetSummary(v *JobSummary) *Job {
 	return s
 }
 
-// Structure for the summary of a Job.
+// Describes the summary for an execution job for an Amplify app.
 type JobSummary struct {
 	_ struct{} `type:"structure"`
 
-	// Commit Id from 3rd party repository provider for the Job.
+	// The commit ID from a third-party repository provider for the job.
 	//
 	// CommitId is a required field
 	CommitId *string `locationName:"commitId" type:"string" required:"true"`
 
-	// Commit message from 3rd party repository provider for the Job.
+	// The commit message from a third-party repository provider for the job.
 	//
 	// CommitMessage is a required field
 	CommitMessage *string `locationName:"commitMessage" type:"string" required:"true"`
 
-	// Commit date / time for the Job.
+	// The commit date and time for the job.
 	//
 	// CommitTime is a required field
 	CommitTime *time.Time `locationName:"commitTime" type:"timestamp" required:"true"`
 
-	// End date / time for the Job.
+	// The end date and time for the job.
 	EndTime *time.Time `locationName:"endTime" type:"timestamp"`
 
-	// Arn for the Job.
+	// The Amazon Resource Name (ARN) for the job.
 	//
 	// JobArn is a required field
 	JobArn *string `locationName:"jobArn" type:"string" required:"true"`
 
-	// Unique Id for the Job.
+	// The unique ID for the job.
 	//
 	// JobId is a required field
 	JobId *string `locationName:"jobId" type:"string" required:"true"`
 
-	// Type for the Job. \n "RELEASE": Manually released from source by using StartJob
-	// API. "RETRY": Manually retried by using StartJob API. "WEB_HOOK": Automatically
-	// triggered by WebHooks.
+	// The type for the job. If the value is RELEASE, the job was manually released
+	// from its source by using the StartJob API. If the value is RETRY, the job
+	// was manually retried using the StartJob API. If the value is WEB_HOOK, the
+	// job was automatically triggered by webhooks.
 	//
 	// JobType is a required field
 	JobType *string `locationName:"jobType" type:"string" required:"true" enum:"JobType"`
 
-	// Start date / time for the Job.
+	// The start date and time for the job.
 	//
 	// StartTime is a required field
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
 
-	// Status for the Job.
+	// The current status for the job.
 	//
 	// Status is a required field
 	Status *string `locationName:"status" type:"string" required:"true" enum:"JobStatus"`
@@ -6684,8 +6696,7 @@ func (s *JobSummary) SetStatus(v string) *JobSummary {
 	return s
 }
 
-// Exception thrown when a resource could not be created because of service
-// limits.
+// A resource could not be created because service quotas were exceeded.
 type LimitExceededException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -6741,15 +6752,15 @@ func (s *LimitExceededException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Request structure for an Amplify App list request.
+// The request structure for the list apps request.
 type ListAppsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If non-null, the pagination token is returned in a result.
+	// Pass its value in another request to retrieve more entries.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -6788,18 +6799,18 @@ func (s *ListAppsInput) SetNextToken(v string) *ListAppsInput {
 	return s
 }
 
-// Result structure for an Amplify App list request.
+// The result structure for an Amplify app list request.
 type ListAppsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of Amplify Apps.
+	// A list of Amplify apps.
 	//
 	// Apps is a required field
 	Apps []*App `locationName:"apps" type:"list" required:"true"`
 
-	// Pagination token. Set to null to start listing Apps from start. If non-null
-	// pagination token is returned in a result, then pass its value in here to
-	// list more projects.
+	// A pagination token. Set to null to start listing apps from start. If non-null,
+	// the pagination token is returned in a result. Pass its value in here to list
+	// more projects.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -6825,31 +6836,31 @@ func (s *ListAppsOutput) SetNextToken(v string) *ListAppsOutput {
 	return s
 }
 
-// Request structure for the list artifacts request.
+// Describes the request structure for the list artifacts request.
 type ListArtifactsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for a branch, part of an Amplify App.
+	// The name of a branch that is part of an Amplify app.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Unique Id for an Job.
+	// The unique ID for a job.
 	//
 	// JobId is a required field
 	JobId *string `location:"uri" locationName:"jobId" type:"string" required:"true"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing artifacts from start. If non-null
-	// pagination token is returned in a result, then pass its value in here to
-	// list more artifacts.
+	// A pagination token. Set to null to start listing artifacts from start. If
+	// a non-null pagination token is returned in a result, pass its value in here
+	// to list more artifacts.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -6924,17 +6935,17 @@ func (s *ListArtifactsInput) SetNextToken(v string) *ListArtifactsInput {
 	return s
 }
 
-// Result structure for the list artifacts request.
+// The result structure for the list artifacts request.
 type ListArtifactsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of artifacts.
+	// A list of artifacts.
 	//
 	// Artifacts is a required field
 	Artifacts []*Artifact `locationName:"artifacts" type:"list" required:"true"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If a non-null pagination token is returned in a result,
+	// pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -6960,24 +6971,24 @@ func (s *ListArtifactsOutput) SetNextToken(v string) *ListArtifactsOutput {
 	return s
 }
 
-// Request structure for list backend environments request.
+// The request structure for the list backend environments request.
 type ListBackendEnvironmentsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of the backend environment
-	EnvironmentName *string `locationName:"environmentName" min:"1" type:"string"`
+	// The name of the backend environment
+	EnvironmentName *string `location:"querystring" locationName:"environmentName" min:"1" type:"string"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing backen environments from start.
-	// If a non-null pagination token is returned in a result, then pass its value
-	// in here to list more backend environments.
+	// A pagination token. Set to null to start listing backend environments from
+	// the start. If a non-null pagination token is returned in a result, pass its
+	// value in here to list more backend environments.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -7037,17 +7048,17 @@ func (s *ListBackendEnvironmentsInput) SetNextToken(v string) *ListBackendEnviro
 	return s
 }
 
-// Result structure for list backend environments result.
+// The result structure for the list backend environments result.
 type ListBackendEnvironmentsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of backend environments for an Amplify App.
+	// The list of backend environments for an Amplify app.
 	//
 	// BackendEnvironments is a required field
 	BackendEnvironments []*BackendEnvironment `locationName:"backendEnvironments" type:"list" required:"true"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If a non-null pagination token is returned in a result,
+	// pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -7073,20 +7084,20 @@ func (s *ListBackendEnvironmentsOutput) SetNextToken(v string) *ListBackendEnvir
 	return s
 }
 
-// Request structure for list branches request.
+// The request structure for the list branches request.
 type ListBranchesInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing branches from start. If a
-	// non-null pagination token is returned in a result, then pass its value in
+	// A pagination token. Set to null to start listing branches from the start.
+	// If a non-null pagination token is returned in a result, pass its value in
 	// here to list more branches.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
@@ -7138,17 +7149,17 @@ func (s *ListBranchesInput) SetNextToken(v string) *ListBranchesInput {
 	return s
 }
 
-// Result structure for list branches request.
+// The result structure for the list branches request.
 type ListBranchesOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of branches for an Amplify App.
+	// A list of branches for an Amplify app.
 	//
 	// Branches is a required field
 	Branches []*Branch `locationName:"branches" type:"list" required:"true"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If a non-null pagination token is returned in a result,
+	// pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -7174,21 +7185,21 @@ func (s *ListBranchesOutput) SetNextToken(v string) *ListBranchesOutput {
 	return s
 }
 
-// Request structure for the list Domain Associations request.
+// The request structure for the list domain associations request.
 type ListDomainAssociationsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing Apps from start. If non-null
-	// pagination token is returned in a result, then pass its value in here to
-	// list more projects.
+	// A pagination token. Set to null to start listing apps from the start. If
+	// non-null, a pagination token is returned in a result. Pass its value in here
+	// to list more projects.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -7239,17 +7250,17 @@ func (s *ListDomainAssociationsInput) SetNextToken(v string) *ListDomainAssociat
 	return s
 }
 
-// Result structure for the list Domain Association request.
+// The result structure for the list domain association request.
 type ListDomainAssociationsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// List of Domain Associations.
+	// A list of domain associations.
 	//
 	// DomainAssociations is a required field
 	DomainAssociations []*DomainAssociation `locationName:"domainAssociations" type:"list" required:"true"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If non-null, a pagination token is returned in a result.
+	// Pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -7275,26 +7286,26 @@ func (s *ListDomainAssociationsOutput) SetNextToken(v string) *ListDomainAssocia
 	return s
 }
 
-// Request structure for list job request.
+// The request structure for the list jobs request.
 type ListJobsInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for a branch.
+	// The name for a branch.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing steps from start. If a non-null
-	// pagination token is returned in a result, then pass its value in here to
-	// list more steps.
+	// A pagination token. Set to null to start listing steps from the start. If
+	// a non-null pagination token is returned in a result, pass its value in here
+	// to list more steps.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -7357,17 +7368,17 @@ func (s *ListJobsInput) SetNextToken(v string) *ListJobsInput {
 	return s
 }
 
-// Maximum number of records to list in a single response.
+// The maximum number of records to list in a single response.
 type ListJobsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Result structure for list job result request.
+	// The result structure for the list job result request.
 	//
 	// JobSummaries is a required field
 	JobSummaries []*JobSummary `locationName:"jobSummaries" type:"list" required:"true"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If non-null the pagination token is returned in a result.
+	// Pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 }
 
@@ -7393,11 +7404,11 @@ func (s *ListJobsOutput) SetNextToken(v string) *ListJobsOutput {
 	return s
 }
 
-// Request structure used to list tags for resource.
+// The request structure to use to list tags for a resource.
 type ListTagsForResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Resource arn used to list tags.
+	// The Amazon Resource Name (ARN) to use to list tags.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
@@ -7435,11 +7446,11 @@ func (s *ListTagsForResourceInput) SetResourceArn(v string) *ListTagsForResource
 	return s
 }
 
-// Response for list tags.
+// The response for the list tags for resource request.
 type ListTagsForResourceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Tags result for response.
+	// A list of tags for the specified The Amazon Resource Name (ARN).
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map"`
 }
 
@@ -7459,21 +7470,21 @@ func (s *ListTagsForResourceOutput) SetTags(v map[string]*string) *ListTagsForRe
 	return s
 }
 
-// Request structure for the list webhooks request.
+// The request structure for the list webhooks request.
 type ListWebhooksInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Maximum number of records to list in a single response.
+	// The maximum number of records to list in a single response.
 	MaxResults *int64 `location:"querystring" locationName:"maxResults" min:"1" type:"integer"`
 
-	// Pagination token. Set to null to start listing webhooks from start. If non-null
-	// pagination token is returned in a result, then pass its value in here to
-	// list more webhooks.
+	// A pagination token. Set to null to start listing webhooks from the start.
+	// If non-null,the pagination token is returned in a result. Pass its value
+	// in here to list more webhooks.
 	NextToken *string `location:"querystring" locationName:"nextToken" type:"string"`
 }
 
@@ -7524,15 +7535,15 @@ func (s *ListWebhooksInput) SetNextToken(v string) *ListWebhooksInput {
 	return s
 }
 
-// Result structure for the list webhooks request.
+// The result structure for the list webhooks request.
 type ListWebhooksOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Pagination token. If non-null pagination token is returned in a result, then
-	// pass its value in another request to fetch more entries.
+	// A pagination token. If non-null, the pagination token is returned in a result.
+	// Pass its value in another request to retrieve more entries.
 	NextToken *string `locationName:"nextToken" type:"string"`
 
-	// List of webhooks.
+	// A list of webhooks.
 	//
 	// Webhooks is a required field
 	Webhooks []*Webhook `locationName:"webhooks" type:"list" required:"true"`
@@ -7560,7 +7571,7 @@ func (s *ListWebhooksOutput) SetWebhooks(v []*Webhook) *ListWebhooksOutput {
 	return s
 }
 
-// Exception thrown when an entity has not been found during an operation.
+// An entity was not found during an operation.
 type NotFoundException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -7616,20 +7627,20 @@ func (s *NotFoundException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Structure with Production Branch information.
+// Describes the information about a production branch for an Amplify app.
 type ProductionBranch struct {
 	_ struct{} `type:"structure"`
 
-	// Branch Name for Production Branch.
+	// The branch name for the production branch.
 	BranchName *string `locationName:"branchName" min:"1" type:"string"`
 
-	// Last Deploy Time of Production Branch.
+	// The last deploy time of the production branch.
 	LastDeployTime *time.Time `locationName:"lastDeployTime" type:"timestamp"`
 
-	// Status of Production Branch.
+	// The status of the production branch.
 	Status *string `locationName:"status" min:"3" type:"string"`
 
-	// Thumbnail URL for Production Branch.
+	// The thumbnail URL for the production branch.
 	ThumbnailUrl *string `locationName:"thumbnailUrl" min:"1" type:"string"`
 }
 
@@ -7667,7 +7678,7 @@ func (s *ProductionBranch) SetThumbnailUrl(v string) *ProductionBranch {
 	return s
 }
 
-// Exception thrown when an operation fails due to non-existent resource.
+// An operation failed due to a non-existent resource.
 type ResourceNotFoundException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -7725,26 +7736,26 @@ func (s *ResourceNotFoundException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Request structure for start a deployment.
+// The request structure for the start a deployment request.
 type StartDeploymentInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The name for the branch, for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// The job id for this deployment, generated by create deployment request.
+	// The job ID for this deployment, generated by the create deployment request.
 	JobId *string `locationName:"jobId" type:"string"`
 
-	// The sourceUrl for this deployment, used when calling start deployment without
-	// create deployment. SourceUrl can be any HTTP GET url that is public accessible
-	// and downloads a single zip.
+	// The source URL for this deployment, used when calling start deployment without
+	// create deployment. The source URL can be any HTTP GET URL that is publicly
+	// accessible and downloads a single .zip file.
 	SourceUrl *string `locationName:"sourceUrl" type:"string"`
 }
 
@@ -7804,11 +7815,11 @@ func (s *StartDeploymentInput) SetSourceUrl(v string) *StartDeploymentInput {
 	return s
 }
 
-// Result structure for start a deployment.
+// The result structure for the start a deployment request.
 type StartDeploymentOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Summary for the Job.
+	// The summary for the job.
 	//
 	// JobSummary is a required field
 	JobSummary *JobSummary `locationName:"jobSummary" type:"structure" required:"true"`
@@ -7830,39 +7841,40 @@ func (s *StartDeploymentOutput) SetJobSummary(v *JobSummary) *StartDeploymentOut
 	return s
 }
 
-// Request structure for Start job request.
+// The request structure for the start job request.
 type StartJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The branch name for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Commit Id from 3rd party repository provider for the Job.
+	// The commit ID from a third-party repository provider for the job.
 	CommitId *string `locationName:"commitId" type:"string"`
 
-	// Commit message from 3rd party repository provider for the Job.
+	// The commit message from a third-party repository provider for the job.
 	CommitMessage *string `locationName:"commitMessage" type:"string"`
 
-	// Commit date / time for the Job.
+	// The commit date and time for the job.
 	CommitTime *time.Time `locationName:"commitTime" type:"timestamp"`
 
-	// Unique Id for an existing job. Required for "RETRY" JobType.
+	// The unique ID for an existing job. This is required if the value of jobType
+	// is RETRY.
 	JobId *string `locationName:"jobId" type:"string"`
 
-	// Descriptive reason for starting this job.
+	// A descriptive reason for starting this job.
 	JobReason *string `locationName:"jobReason" type:"string"`
 
-	// Type for the Job. Available JobTypes are: \n "RELEASE": Start a new job with
-	// the latest change from the specified branch. Only available for apps that
-	// have connected to a repository. "RETRY": Retry an existing job. JobId is
-	// required for this type of job.
+	// Describes the type for the job. The job type RELEASE starts a new job with
+	// the latest change from the specified branch. This value is available only
+	// for apps that are connected to a repository. The job type RETRY retries an
+	// existing job. If the job type value is RETRY, the jobId is also required.
 	//
 	// JobType is a required field
 	JobType *string `locationName:"jobType" type:"string" required:"true" enum:"JobType"`
@@ -7951,11 +7963,11 @@ func (s *StartJobInput) SetJobType(v string) *StartJobInput {
 	return s
 }
 
-// Result structure for run job request.
+// The result structure for the run job request.
 type StartJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Summary for the Job.
+	// The summary for the job.
 	//
 	// JobSummary is a required field
 	JobSummary *JobSummary `locationName:"jobSummary" type:"structure" required:"true"`
@@ -7977,49 +7989,49 @@ func (s *StartJobOutput) SetJobSummary(v *JobSummary) *StartJobOutput {
 	return s
 }
 
-// Structure for an execution step for an execution job, for an Amplify App.
+// Describes an execution step, for an execution job, for an Amplify app.
 type Step struct {
 	_ struct{} `type:"structure"`
 
-	// URL to the artifact for the execution step.
+	// The URL to the artifact for the execution step.
 	ArtifactsUrl *string `locationName:"artifactsUrl" type:"string"`
 
-	// The context for current step, will include build image if step is build.
+	// The context for the current step. Includes a build image if the step is build.
 	Context *string `locationName:"context" type:"string"`
 
-	// End date/ time of the execution step.
+	// The end date and time of the execution step.
 	//
 	// EndTime is a required field
 	EndTime *time.Time `locationName:"endTime" type:"timestamp" required:"true"`
 
-	// URL to the logs for the execution step.
+	// The URL to the logs for the execution step.
 	LogUrl *string `locationName:"logUrl" type:"string"`
 
-	// List of screenshot URLs for the execution step, if relevant.
+	// The list of screenshot URLs for the execution step, if relevant.
 	Screenshots map[string]*string `locationName:"screenshots" type:"map"`
 
-	// Start date/ time of the execution step.
+	// The start date and time of the execution step.
 	//
 	// StartTime is a required field
 	StartTime *time.Time `locationName:"startTime" type:"timestamp" required:"true"`
 
-	// Status of the execution step.
+	// The status of the execution step.
 	//
 	// Status is a required field
 	Status *string `locationName:"status" type:"string" required:"true" enum:"JobStatus"`
 
-	// The reason for current step status.
+	// The reason for the current step status.
 	StatusReason *string `locationName:"statusReason" type:"string"`
 
-	// Name of the execution step.
+	// The name of the execution step.
 	//
 	// StepName is a required field
 	StepName *string `locationName:"stepName" type:"string" required:"true"`
 
-	// URL to the test artifact for the execution step.
+	// The URL to the test artifact for the execution step.
 	TestArtifactsUrl *string `locationName:"testArtifactsUrl" type:"string"`
 
-	// URL to the test config for the execution step.
+	// The URL to the test configuration for the execution step.
 	TestConfigUrl *string `locationName:"testConfigUrl" type:"string"`
 }
 
@@ -8099,21 +8111,21 @@ func (s *Step) SetTestConfigUrl(v string) *Step {
 	return s
 }
 
-// Request structure for stop job request.
+// The request structure for the stop job request.
 type StopJobInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name for the branch, for the Job.
+	// The name for the branch, for the job.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Unique Id for the Job.
+	// The unique id for the job.
 	//
 	// JobId is a required field
 	JobId *string `location:"uri" locationName:"jobId" type:"string" required:"true"`
@@ -8175,11 +8187,11 @@ func (s *StopJobInput) SetJobId(v string) *StopJobInput {
 	return s
 }
 
-// Result structure for the stop job request.
+// The result structure for the stop job request.
 type StopJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Summary for the Job.
+	// The summary for the job.
 	//
 	// JobSummary is a required field
 	JobSummary *JobSummary `locationName:"jobSummary" type:"structure" required:"true"`
@@ -8201,21 +8213,21 @@ func (s *StopJobOutput) SetJobSummary(v *JobSummary) *StopJobOutput {
 	return s
 }
 
-// Subdomain for the Domain Association.
+// The subdomain for the domain association.
 type SubDomain struct {
 	_ struct{} `type:"structure"`
 
-	// DNS record for the Subdomain.
+	// The DNS record for the subdomain.
 	//
 	// DnsRecord is a required field
 	DnsRecord *string `locationName:"dnsRecord" type:"string" required:"true"`
 
-	// Setting structure for the Subdomain.
+	// Describes the settings for the subdomain.
 	//
 	// SubDomainSetting is a required field
 	SubDomainSetting *SubDomainSetting `locationName:"subDomainSetting" type:"structure" required:"true"`
 
-	// Verified status of the Subdomain
+	// The verified status of the subdomain
 	//
 	// Verified is a required field
 	Verified *bool `locationName:"verified" type:"boolean" required:"true"`
@@ -8249,16 +8261,16 @@ func (s *SubDomain) SetVerified(v bool) *SubDomain {
 	return s
 }
 
-// Setting for the Subdomain.
+// Describes the settings for the subdomain.
 type SubDomainSetting struct {
 	_ struct{} `type:"structure"`
 
-	// Branch name setting for the Subdomain.
+	// The branch name setting for the subdomain.
 	//
 	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Prefix setting for the Subdomain.
+	// The prefix setting for the subdomain.
 	//
 	// Prefix is a required field
 	Prefix *string `locationName:"prefix" type:"string" required:"true"`
@@ -8305,16 +8317,16 @@ func (s *SubDomainSetting) SetPrefix(v string) *SubDomainSetting {
 	return s
 }
 
-// Request structure used to tag resource.
+// The request structure to tag a resource with a tag key and value.
 type TagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Resource arn used to tag resource.
+	// The Amazon Resource Name (ARN) to use to tag a resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
 
-	// Tags used to tag resource.
+	// The tags used to tag the resource.
 	//
 	// Tags is a required field
 	Tags map[string]*string `locationName:"tags" min:"1" type:"map" required:"true"`
@@ -8364,7 +8376,7 @@ func (s *TagResourceInput) SetTags(v map[string]*string) *TagResourceInput {
 	return s
 }
 
-// Response for tag resource.
+// The response for the tag resource request.
 type TagResourceOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -8379,7 +8391,7 @@ func (s TagResourceOutput) GoString() string {
 	return s.String()
 }
 
-// Exception thrown when an operation fails due to a lack of access.
+// An operation failed due to a lack of access.
 type UnauthorizedException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -8435,16 +8447,16 @@ func (s *UnauthorizedException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
-// Request structure used to untag resource.
+// The request structure for the untag resource request.
 type UntagResourceInput struct {
 	_ struct{} `type:"structure"`
 
-	// Resource arn used to untag resource.
+	// The Amazon Resource Name (ARN) to use to untag a resource.
 	//
 	// ResourceArn is a required field
 	ResourceArn *string `location:"uri" locationName:"resourceArn" type:"string" required:"true"`
 
-	// Tag keys used to untag resource.
+	// The tag keys to use to untag a resource.
 	//
 	// TagKeys is a required field
 	TagKeys []*string `location:"querystring" locationName:"tagKeys" min:"1" type:"list" required:"true"`
@@ -8494,7 +8506,7 @@ func (s *UntagResourceInput) SetTagKeys(v []*string) *UntagResourceInput {
 	return s
 }
 
-// Response for untag resource.
+// The response for the untag resource request.
 type UntagResourceOutput struct {
 	_ struct{} `type:"structure"`
 }
@@ -8509,63 +8521,70 @@ func (s UntagResourceOutput) GoString() string {
 	return s.String()
 }
 
-// Request structure for update App request.
+// The request structure for the update app request.
 type UpdateAppInput struct {
 	_ struct{} `type:"structure"`
 
-	// Personal Access token for 3rd party source control system for an Amplify
-	// App, used to create webhook and read-only deploy key. Token is not stored.
-	AccessToken *string `locationName:"accessToken" min:"1" type:"string"`
+	// The personal access token for a third-party source control system for an
+	// Amplify app. The token is used to create webhook and a read-only deploy key.
+	// The token is not stored.
+	AccessToken *string `locationName:"accessToken" min:"1" type:"string" sensitive:"true"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Automated branch creation branchConfig for the Amplify App.
+	// The automated branch creation configuration for the Amplify app.
 	AutoBranchCreationConfig *AutoBranchCreationConfig `locationName:"autoBranchCreationConfig" type:"structure"`
 
-	// Automated branch creation glob patterns for the Amplify App.
+	// Describes the automated branch creation glob patterns for the Amplify app.
 	AutoBranchCreationPatterns []*string `locationName:"autoBranchCreationPatterns" type:"list"`
 
-	// Basic Authorization credentials for an Amplify App.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for an Amplify app.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// BuildSpec for an Amplify App.
+	// The build specification (build spec) for an Amplify app.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Custom redirect / rewrite rules for an Amplify App.
+	// The custom redirect and rewrite rules for an Amplify app.
 	CustomRules []*CustomRule `locationName:"customRules" type:"list"`
 
-	// Description for an Amplify App.
+	// The description for an Amplify app.
 	Description *string `locationName:"description" type:"string"`
 
-	// Enables automated branch creation for the Amplify App.
+	// Enables automated branch creation for the Amplify app.
 	EnableAutoBranchCreation *bool `locationName:"enableAutoBranchCreation" type:"boolean"`
 
-	// Enables Basic Authorization for an Amplify App.
+	// Enables basic authorization for an Amplify app.
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean"`
 
-	// Enables branch auto-building for an Amplify App.
+	// Enables branch auto-building for an Amplify app.
 	EnableBranchAutoBuild *bool `locationName:"enableBranchAutoBuild" type:"boolean"`
 
-	// Environment Variables for an Amplify App.
+	// Automatically disconnects a branch in the Amplify Console when you delete
+	// a branch from your Git repository.
+	EnableBranchAutoDeletion *bool `locationName:"enableBranchAutoDeletion" type:"boolean"`
+
+	// The environment variables for an Amplify app.
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map"`
 
-	// IAM service role for an Amplify App.
+	// The AWS Identity and Access Management (IAM) service role for an Amplify
+	// app.
 	IamServiceRoleArn *string `locationName:"iamServiceRoleArn" min:"1" type:"string"`
 
-	// Name for an Amplify App.
+	// The name for an Amplify app.
 	Name *string `locationName:"name" min:"1" type:"string"`
 
-	// OAuth token for 3rd party source control system for an Amplify App, used
-	// to create webhook and read-only deploy key. OAuth token is not stored.
-	OauthToken *string `locationName:"oauthToken" type:"string"`
+	// The OAuth token for a third-party source control system for an Amplify app.
+	// The token is used to create a webhook and a read-only deploy key. The OAuth
+	// token is not stored.
+	OauthToken *string `locationName:"oauthToken" type:"string" sensitive:"true"`
 
-	// Platform for an Amplify App.
+	// The platform for an Amplify app.
 	Platform *string `locationName:"platform" type:"string" enum:"Platform"`
 
-	// Repository for an Amplify App
+	// The name of the repository for an Amplify app
 	Repository *string `locationName:"repository" type:"string"`
 }
 
@@ -8688,6 +8707,12 @@ func (s *UpdateAppInput) SetEnableBranchAutoBuild(v bool) *UpdateAppInput {
 	return s
 }
 
+// SetEnableBranchAutoDeletion sets the EnableBranchAutoDeletion field's value.
+func (s *UpdateAppInput) SetEnableBranchAutoDeletion(v bool) *UpdateAppInput {
+	s.EnableBranchAutoDeletion = &v
+	return s
+}
+
 // SetEnvironmentVariables sets the EnvironmentVariables field's value.
 func (s *UpdateAppInput) SetEnvironmentVariables(v map[string]*string) *UpdateAppInput {
 	s.EnvironmentVariables = v
@@ -8724,11 +8749,11 @@ func (s *UpdateAppInput) SetRepository(v string) *UpdateAppInput {
 	return s
 }
 
-// Result structure for an Amplify App update request.
+// The result structure for an Amplify app update request.
 type UpdateAppOutput struct {
 	_ struct{} `type:"structure"`
 
-	// App structure for the updated App.
+	// Represents the updated Amplify app.
 	//
 	// App is a required field
 	App *App `locationName:"app" type:"structure" required:"true"`
@@ -8750,60 +8775,61 @@ func (s *UpdateAppOutput) SetApp(v *App) *UpdateAppOutput {
 	return s
 }
 
-// Request structure for update branch request.
+// The request structure for the update branch request.
 type UpdateBranchInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// ARN for a Backend Environment, part of an Amplify App.
+	// The Amazon Resource Name (ARN) for a backend environment that is part of
+	// an Amplify app.
 	BackendEnvironmentArn *string `locationName:"backendEnvironmentArn" min:"1" type:"string"`
 
-	// Basic Authorization credentials for the branch.
-	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string"`
+	// The basic authorization credentials for the branch.
+	BasicAuthCredentials *string `locationName:"basicAuthCredentials" type:"string" sensitive:"true"`
 
-	// Name for the branch.
+	// The name for the branch.
 	//
 	// BranchName is a required field
 	BranchName *string `location:"uri" locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// BuildSpec for the branch.
+	// The build specification (build spec) for the branch.
 	BuildSpec *string `locationName:"buildSpec" min:"1" type:"string"`
 
-	// Description for the branch.
+	// The description for the branch.
 	Description *string `locationName:"description" type:"string"`
 
-	// Display name for a branch, will use as the default domain prefix.
+	// The display name for a branch. This is used as the default domain prefix.
 	DisplayName *string `locationName:"displayName" type:"string"`
 
 	// Enables auto building for the branch.
 	EnableAutoBuild *bool `locationName:"enableAutoBuild" type:"boolean"`
 
-	// Enables Basic Auth for the branch.
+	// Enables basic authorization for the branch.
 	EnableBasicAuth *bool `locationName:"enableBasicAuth" type:"boolean"`
 
 	// Enables notifications for the branch.
 	EnableNotification *bool `locationName:"enableNotification" type:"boolean"`
 
-	// Enables Pull Request Preview for this branch.
+	// Enables pull request preview for this branch.
 	EnablePullRequestPreview *bool `locationName:"enablePullRequestPreview" type:"boolean"`
 
-	// Environment Variables for the branch.
+	// The environment variables for the branch.
 	EnvironmentVariables map[string]*string `locationName:"environmentVariables" type:"map"`
 
-	// Framework for the branch.
+	// The framework for the branch.
 	Framework *string `locationName:"framework" type:"string"`
 
-	// The Amplify Environment name for the pull request.
+	// The Amplify environment name for the pull request.
 	PullRequestEnvironmentName *string `locationName:"pullRequestEnvironmentName" type:"string"`
 
-	// Stage for the branch.
+	// Describes the current stage for the branch.
 	Stage *string `locationName:"stage" type:"string" enum:"Stage"`
 
-	// The content TTL for the website in seconds.
+	// The content Time to Live (TTL) for the website in seconds.
 	Ttl *string `locationName:"ttl" type:"string"`
 }
 
@@ -8941,11 +8967,11 @@ func (s *UpdateBranchInput) SetTtl(v string) *UpdateBranchInput {
 	return s
 }
 
-// Result structure for update branch request.
+// The result structure for the update branch request.
 type UpdateBranchOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Branch structure for an Amplify App.
+	// The branch for an Amplify app, which maps to a third-party repository branch.
 	//
 	// Branch is a required field
 	Branch *Branch `locationName:"branch" type:"structure" required:"true"`
@@ -8967,24 +8993,31 @@ func (s *UpdateBranchOutput) SetBranch(v *Branch) *UpdateBranchOutput {
 	return s
 }
 
-// Request structure for update Domain Association request.
+// The request structure for the update domain association request.
 type UpdateDomainAssociationInput struct {
 	_ struct{} `type:"structure"`
 
-	// Unique Id for an Amplify App.
+	// The unique ID for an Amplify app.
 	//
 	// AppId is a required field
 	AppId *string `location:"uri" locationName:"appId" min:"1" type:"string" required:"true"`
 
-	// Name of the domain.
+	// Sets the branch patterns for automatic subdomain creation.
+	AutoSubDomainCreationPatterns []*string `locationName:"autoSubDomainCreationPatterns" type:"list"`
+
+	// The required AWS Identity and Access Management (IAM) service role for the
+	// Amazon Resource Name (ARN) for automatically creating subdomains.
+	AutoSubDomainIAMRole *string `locationName:"autoSubDomainIAMRole" type:"string"`
+
+	// The name of the domain.
 	//
 	// DomainName is a required field
 	DomainName *string `location:"uri" locationName:"domainName" type:"string" required:"true"`
 
-	// Enables automated creation of Subdomains for branches. (Currently not supported)
+	// Enables the automated creation of subdomains for branches.
 	EnableAutoSubDomain *bool `locationName:"enableAutoSubDomain" type:"boolean"`
 
-	// Setting structure for the Subdomain.
+	// Describes the settings for the subdomain.
 	//
 	// SubDomainSettings is a required field
 	SubDomainSettings []*SubDomainSetting `locationName:"subDomainSettings" type:"list" required:"true"`
@@ -9041,6 +9074,18 @@ func (s *UpdateDomainAssociationInput) SetAppId(v string) *UpdateDomainAssociati
 	return s
 }
 
+// SetAutoSubDomainCreationPatterns sets the AutoSubDomainCreationPatterns field's value.
+func (s *UpdateDomainAssociationInput) SetAutoSubDomainCreationPatterns(v []*string) *UpdateDomainAssociationInput {
+	s.AutoSubDomainCreationPatterns = v
+	return s
+}
+
+// SetAutoSubDomainIAMRole sets the AutoSubDomainIAMRole field's value.
+func (s *UpdateDomainAssociationInput) SetAutoSubDomainIAMRole(v string) *UpdateDomainAssociationInput {
+	s.AutoSubDomainIAMRole = &v
+	return s
+}
+
 // SetDomainName sets the DomainName field's value.
 func (s *UpdateDomainAssociationInput) SetDomainName(v string) *UpdateDomainAssociationInput {
 	s.DomainName = &v
@@ -9059,11 +9104,12 @@ func (s *UpdateDomainAssociationInput) SetSubDomainSettings(v []*SubDomainSettin
 	return s
 }
 
-// Result structure for the update Domain Association request.
+// The result structure for the update domain association request.
 type UpdateDomainAssociationOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Domain Association structure.
+	// Describes a domain association, which associates a custom domain with an
+	// Amplify app.
 	//
 	// DomainAssociation is a required field
 	DomainAssociation *DomainAssociation `locationName:"domainAssociation" type:"structure" required:"true"`
@@ -9085,17 +9131,17 @@ func (s *UpdateDomainAssociationOutput) SetDomainAssociation(v *DomainAssociatio
 	return s
 }
 
-// Request structure for update webhook request.
+// The request structure for the update webhook request.
 type UpdateWebhookInput struct {
 	_ struct{} `type:"structure"`
 
-	// Name for a branch, part of an Amplify App.
+	// The name for a branch that is part of an Amplify app.
 	BranchName *string `locationName:"branchName" min:"1" type:"string"`
 
-	// Description for a webhook.
+	// The description for a webhook.
 	Description *string `locationName:"description" type:"string"`
 
-	// Unique Id for a webhook.
+	// The unique ID for a webhook.
 	//
 	// WebhookId is a required field
 	WebhookId *string `location:"uri" locationName:"webhookId" type:"string" required:"true"`
@@ -9148,11 +9194,11 @@ func (s *UpdateWebhookInput) SetWebhookId(v string) *UpdateWebhookInput {
 	return s
 }
 
-// Result structure for the update webhook request.
+// The result structure for the update webhook request.
 type UpdateWebhookOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Webhook structure.
+	// Describes a webhook that connects repository events to an Amplify app.
 	//
 	// Webhook is a required field
 	Webhook *Webhook `locationName:"webhook" type:"structure" required:"true"`
@@ -9174,41 +9220,41 @@ func (s *UpdateWebhookOutput) SetWebhook(v *Webhook) *UpdateWebhookOutput {
 	return s
 }
 
-// Structure for webhook, which associates a webhook with an Amplify App.
+// Describes a webhook that connects repository events to an Amplify app.
 type Webhook struct {
 	_ struct{} `type:"structure"`
 
-	// Name for a branch, part of an Amplify App.
+	// The name for a branch that is part of an Amplify app.
 	//
 	// BranchName is a required field
 	BranchName *string `locationName:"branchName" min:"1" type:"string" required:"true"`
 
-	// Create date / time for a webhook.
+	// The create date and time for a webhook.
 	//
 	// CreateTime is a required field
 	CreateTime *time.Time `locationName:"createTime" type:"timestamp" required:"true"`
 
-	// Description for a webhook.
+	// The description for a webhook.
 	//
 	// Description is a required field
 	Description *string `locationName:"description" type:"string" required:"true"`
 
-	// Update date / time for a webhook.
+	// Updates the date and time for a webhook.
 	//
 	// UpdateTime is a required field
 	UpdateTime *time.Time `locationName:"updateTime" type:"timestamp" required:"true"`
 
-	// ARN for the webhook.
+	// The Amazon Resource Name (ARN) for the webhook.
 	//
 	// WebhookArn is a required field
 	WebhookArn *string `locationName:"webhookArn" type:"string" required:"true"`
 
-	// Id of the webhook.
+	// The ID of the webhook.
 	//
 	// WebhookId is a required field
 	WebhookId *string `locationName:"webhookId" type:"string" required:"true"`
 
-	// Url of the webhook.
+	// The URL of the webhook.
 	//
 	// WebhookUrl is a required field
 	WebhookUrl *string `locationName:"webhookUrl" type:"string" required:"true"`
@@ -9292,6 +9338,20 @@ const (
 	DomainStatusUpdating = "UPDATING"
 )
 
+// DomainStatus_Values returns all elements of the DomainStatus enum
+func DomainStatus_Values() []string {
+	return []string{
+		DomainStatusPendingVerification,
+		DomainStatusInProgress,
+		DomainStatusAvailable,
+		DomainStatusPendingDeployment,
+		DomainStatusFailed,
+		DomainStatusCreating,
+		DomainStatusRequestingCertificate,
+		DomainStatusUpdating,
+	}
+}
+
 const (
 	// JobStatusPending is a JobStatus enum value
 	JobStatusPending = "PENDING"
@@ -9315,6 +9375,19 @@ const (
 	JobStatusCancelled = "CANCELLED"
 )
 
+// JobStatus_Values returns all elements of the JobStatus enum
+func JobStatus_Values() []string {
+	return []string{
+		JobStatusPending,
+		JobStatusProvisioning,
+		JobStatusRunning,
+		JobStatusFailed,
+		JobStatusSucceed,
+		JobStatusCancelling,
+		JobStatusCancelled,
+	}
+}
+
 const (
 	// JobTypeRelease is a JobType enum value
 	JobTypeRelease = "RELEASE"
@@ -9329,10 +9402,27 @@ const (
 	JobTypeWebHook = "WEB_HOOK"
 )
 
+// JobType_Values returns all elements of the JobType enum
+func JobType_Values() []string {
+	return []string{
+		JobTypeRelease,
+		JobTypeRetry,
+		JobTypeManual,
+		JobTypeWebHook,
+	}
+}
+
 const (
 	// PlatformWeb is a Platform enum value
 	PlatformWeb = "WEB"
 )
+
+// Platform_Values returns all elements of the Platform enum
+func Platform_Values() []string {
+	return []string{
+		PlatformWeb,
+	}
+}
 
 const (
 	// StageProduction is a Stage enum value
@@ -9350,3 +9440,14 @@ const (
 	// StagePullRequest is a Stage enum value
 	StagePullRequest = "PULL_REQUEST"
 )
+
+// Stage_Values returns all elements of the Stage enum
+func Stage_Values() []string {
+	return []string{
+		StageProduction,
+		StageBeta,
+		StageDevelopment,
+		StageExperimental,
+		StagePullRequest,
+	}
+}
