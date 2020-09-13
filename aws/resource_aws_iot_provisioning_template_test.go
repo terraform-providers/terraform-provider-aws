@@ -139,8 +139,7 @@ resource "aws_iot_provisioning_template" "fleet" {
 
   template_body = jsonencode({
     Parameters = {
-      "AWS::IoT::Certificate::Id" = { Type = "String" }
-      SerialNumber                = { Type = "String" }
+      SerialNumber = { Type = "String" }
     }
 
     Resources = {

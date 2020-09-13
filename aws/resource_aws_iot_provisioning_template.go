@@ -70,11 +70,15 @@ func resourceAwsIotProvisioningTemplateCreate(d *schema.ResourceData, meta inter
 			TemplateName:        aws.String(d.Get("template_name").(string)),
 		})
 
-		// Handle IoT not detecting the provisioning role's assume role policy immediately.
-		if isAWSErr(err, iot.ErrCodeInvalidRequestException, "The provisioning role cannot be assumed by AWS IoT") {
-			return resource.RetryableError(err)
+		if err != nil {
+			// Handle IoT not detecting the provisioning role's assume role policy immediately.
+			if isAWSErr(err, iot.ErrCodeInvalidRequestException, "The provisioning role cannot be assumed by AWS IoT") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+
+		return nil
 	})
 
 	if err != nil {
@@ -135,11 +139,15 @@ func resourceAwsIotProvisioningTemplateUpdate(d *schema.ResourceData, meta inter
 				TemplateName:        aws.String(d.Id()),
 			})
 
-			// Handle IoT not detecting the provisioning role's assume role policy immediately.
-			if isAWSErr(err, iot.ErrCodeInvalidRequestException, "The provisioning role cannot be assumed by AWS IoT") {
-				return resource.RetryableError(err)
+			if err != nil {
+				// Handle IoT not detecting the provisioning role's assume role policy immediately.
+				if isAWSErr(err, iot.ErrCodeInvalidRequestException, "The provisioning role cannot be assumed by AWS IoT") {
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
 			}
-			return resource.NonRetryableError(err)
+
+			return nil
 		})
 
 		if err != nil {
