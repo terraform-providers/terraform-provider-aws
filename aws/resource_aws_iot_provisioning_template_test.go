@@ -99,25 +99,25 @@ func testAccAWSIoTProvisioningTemplateCheckVersionExists(templateName string, nu
 func testAccAWSIoTProvisioningTemplateConfigInitialState(rName string) string {
 	return fmt.Sprintf(`
 data "aws_iam_policy_document" "iot_assume_role_policy" {
-	statement {
-		actions = ["sts:AssumeRole"]
+  statement {
+    actions = ["sts:AssumeRole"]
 
-		principals {
-			type        = "Service"
-			identifiers = ["iot.amazonaws.com"]
-		}
-	}
+    principals {
+      type        = "Service"
+      identifiers = ["iot.amazonaws.com"]
+    }
+  }
 }
 
 resource "aws_iam_role" "iot_fleet_provisioning" {
-	name               = "IoTProvisioningServiceRole"
-	path               = "/service-role/"
-	assume_role_policy = data.aws_iam_policy_document.iot_assume_role_policy.json
+  name               = "IoTProvisioningServiceRole"
+  path               = "/service-role/"
+  assume_role_policy = data.aws_iam_policy_document.iot_assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "iot_fleet_provisioning_registration" {
-	role       = aws_iam_role.iot_fleet_provisioning.name
-	policy_arn = "arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration"
+  role       = aws_iam_role.iot_fleet_provisioning.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration"
 }
 
 data "aws_iam_policy_document" "device_policy" {
@@ -133,15 +133,15 @@ resource "aws_iot_policy" "device_policy" {
 }
 
 resource "aws_iot_provisioning_template" "fleet" {
-	template_name         = "%s"
-	description           = "My provisioning template"
-	provisioning_role_arn = aws_iam_role.iot_fleet_provisioning.arn
+  template_name         = "%s"
+  description           = "My provisioning template"
+  provisioning_role_arn = aws_iam_role.iot_fleet_provisioning.arn
 
   template_body = jsonencode({
     Parameters = {
       "AWS::IoT::Certificate::Id" = { Type = "String" }
       SerialNumber                = { Type = "String" }
-		}
+    }
 
     Resources = {
       certificate = {
