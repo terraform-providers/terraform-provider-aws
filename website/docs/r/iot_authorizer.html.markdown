@@ -20,7 +20,7 @@ resource "aws_iot_authorizer" "example" {
   status                  = "ACTIVE"
   token_key_name          = "Token-Header"
   token_signing_public_keys = {
-    Key1 = "${file("test-fixtures/iot-authroizer-signing-key.pem")}"
+    Key1 = "${file("test-fixtures/iot-authorizer-signing-key.pem")}"
   }
 }
 ```

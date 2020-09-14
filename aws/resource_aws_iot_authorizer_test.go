@@ -170,7 +170,7 @@ resource "aws_iot_authorizer" "test" {
   status                    = "ACTIVE"
   token_key_name            = "Token-Header"
   token_signing_public_keys = {
-    Key1 = "${file("test-fixtures/iot-authroizer-signing-key.pem")}"
+    Key1 = "${file("test-fixtures/iot-authorizer-signing-key.pem")}"
   }
 }
 `, rName)
@@ -185,8 +185,8 @@ resource "aws_iot_authorizer" "test" {
   token_key_name            = "Token-Header"
   status                    = "INACTIVE"
   token_signing_public_keys = {
-    Key1 = "${file("test-fixtures/iot-authroizer-signing-key.pem")}"
-    Key2 = "${file("test-fixtures/iot-authroizer-signing-key.pem")}"
+    Key1 = "${file("test-fixtures/iot-authorizer-signing-key.pem")}"
+    Key2 = "${file("test-fixtures/iot-authorizer-signing-key.pem")}"
   }
 }
 `, rName)
@@ -200,7 +200,7 @@ resource "aws_iot_authorizer" "test" {
   signing_disabled          = false
   token_key_name            = "Token-Header"
   token_signing_public_keys = {
-    Key1 = "${file("test-fixtures/iot-authroizer-signing-key.pem")}"
+    Key1 = "${file("test-fixtures/iot-authorizer-signing-key.pem")}"
   }
 }
 `, rName)
