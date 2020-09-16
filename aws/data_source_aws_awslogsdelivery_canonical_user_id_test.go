@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAwslogsdeliveryCanonicalUserId(t *testing.T) {
+func TestAccAwslogsdeliveryCanonicalUserId(t *testing.T) {
 	dataSourceName := "data.aws_awslogsdelivery_canonical_user_id.main"
 
 	resource.ParallelTest(t, resource.TestCase{
