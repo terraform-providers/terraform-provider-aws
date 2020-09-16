@@ -488,6 +488,7 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/s3" = [
       "aws_canonical_user_id",
+      "aws_awslogsdelivery_canonical_user_id",
       "aws_s3_bucket",
     ],
     "service/s3control" = [

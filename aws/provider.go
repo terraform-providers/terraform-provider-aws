@@ -187,6 +187,7 @@ func Provider() *schema.Provider {
 			"aws_billing_service_account":                    dataSourceAwsBillingServiceAccount(),
 			"aws_caller_identity":                            dataSourceAwsCallerIdentity(),
 			"aws_canonical_user_id":                          dataSourceAwsCanonicalUserId(),
+			"aws_awslogsdelivery_canonical_user_id":          dataSourceAwsAwslogsdeliveryCanonicalId(),
 			"aws_cloudformation_export":                      dataSourceAwsCloudFormationExport(),
 			"aws_cloudformation_stack":                       dataSourceAwsCloudFormationStack(),
 			"aws_cloudfront_distribution":                    dataSourceAwsCloudFrontDistribution(),
