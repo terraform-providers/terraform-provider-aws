@@ -108,7 +108,8 @@ resource "aws_security_group" "elb_test" {
 }
 
 data "aws_elb" "elb_test" {
-  name = aws_elb.elb_test.name
+  name       = aws_elb.elb_test.name
+  depends_on = [aws_elb.elb_test]
 }
 `, rName, testName)
 }

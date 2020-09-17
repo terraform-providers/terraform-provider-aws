@@ -128,6 +128,17 @@ func resourceAwsElb() *schema.Resource {
 				Default:  300,
 			},
 
+			"desync_mitigation_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "defensive",
+				ValidateFunc: validation.StringInSlice([]string{
+					"monitor",
+					"defensive",
+					"strictest",
+				}, false),
+			},
+
 			"access_logs": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -448,6 +459,13 @@ func flattenAwsELbResource(d *schema.ResourceData, ec2conn *ec2.EC2, elbconn *el
 		}
 	}
 
+	for _, attr := range lbAttrs.AdditionalAttributes {
+		switch aws.StringValue(attr.Key) {
+		case "elb.http.desyncmitigationmode":
+			d.Set("desync_mitigation_mode", aws.StringValue(attr.Value))
+		}
+	}
+
 	tags, err := keyvaluetags.ElbListTags(elbconn, d.Id())
 
 	if err != nil {
@@ -569,10 +587,16 @@ func resourceAwsElbUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChanges("cross_zone_load_balancing", "idle_timeout", "access_logs") {
+	if d.HasChanges("cross_zone_load_balancing", "idle_timeout", "access_logs", "desync_mitigation_mode") {
 		attrs := elb.ModifyLoadBalancerAttributesInput{
 			LoadBalancerName: aws.String(d.Get("name").(string)),
 			LoadBalancerAttributes: &elb.LoadBalancerAttributes{
+				AdditionalAttributes: []*elb.AdditionalAttribute{
+					{
+						Key:   aws.String("elb.http.desyncmitigationmode"),
+						Value: aws.String(d.Get("desync_mitigation_mode").(string)),
+					},
+				},
 				CrossZoneLoadBalancing: &elb.CrossZoneLoadBalancing{
 					Enabled: aws.Bool(d.Get("cross_zone_load_balancing").(bool)),
 				},

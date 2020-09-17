@@ -71,6 +71,11 @@ func dataSourceAwsElb() *schema.Resource {
 				Computed: true,
 			},
 
+			"desync_mitigation_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"dns_name": {
 				Type:     schema.TypeString,
 				Computed: true,
