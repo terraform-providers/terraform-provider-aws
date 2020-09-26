@@ -60,6 +60,10 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"encrypted_ses_smtp_password_v4": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -82,6 +86,11 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*createResp.AccessKey.AccessKeyId)
 
+	sesSMTPPasswordV4, err := sesSmtpPasswordFromSecretKeySigV4(createResp.AccessKey.SecretAccessKey, meta.(*AWSClient).region)
+	if err != nil {
+		return fmt.Errorf("error getting SES SigV4 SMTP Password from Secret Access Key: %s", err)
+	}
+
 	if createResp.AccessKey == nil || createResp.AccessKey.SecretAccessKey == nil {
 		return fmt.Errorf("CreateAccessKey response did not contain a Secret Access Key as expected")
 	}
@@ -99,17 +108,22 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("key_fingerprint", fingerprint)
 		d.Set("encrypted_secret", encrypted)
+
+		_, encryptedSMTPPasswordV4, err := encryption.EncryptValue(encryptionKey, sesSMTPPasswordV4, "SES SMTP Password v4")
+		if err != nil {
+			return err
+		}
+
+		d.Set("encrypted_ses_smtp_password_v4", encryptedSMTPPasswordV4)
+
 	} else {
 		if err := d.Set("secret", createResp.AccessKey.SecretAccessKey); err != nil {
 			return err
 		}
-	}
 
-	sesSMTPPasswordV4, err := sesSmtpPasswordFromSecretKeySigV4(createResp.AccessKey.SecretAccessKey, meta.(*AWSClient).region)
-	if err != nil {
-		return fmt.Errorf("error getting SES SigV4 SMTP Password from Secret Access Key: %s", err)
+		d.Set("ses_smtp_password_v4", sesSMTPPasswordV4)
+
 	}
-	d.Set("ses_smtp_password_v4", sesSMTPPasswordV4)
 
 	return resourceAwsIamAccessKeyReadResult(d, &iam.AccessKeyMetadata{
 		AccessKeyId: createResp.AccessKey.AccessKeyId,

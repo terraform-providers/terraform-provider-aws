@@ -56,6 +56,8 @@ func TestAccAWSAccessKey_encrypted(t *testing.T) {
 					resource.TestCheckResourceAttrSet(
 						"aws_iam_access_key.a_key", "encrypted_secret"),
 					resource.TestCheckResourceAttrSet(
+						"aws_iam_access_key.a_key", "encrypted_ses_smtp_password_v4"),
+					resource.TestCheckResourceAttrSet(
 						"aws_iam_access_key.a_key", "key_fingerprint"),
 				),
 			},
