@@ -93,4 +93,6 @@ the use of the secret key in automation.
 * `ses_smtp_password_v4` - The secret access key converted into an SES SMTP
   password by applying [AWS's documented Sigv4 conversion
   algorithm](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/smtp-credentials.html#smtp-credentials-convert).
-  As SigV4 is region specific, valid Provider regions are `ap-south-1`, `ap-southeast-2`, `eu-central-1`, `eu-west-1`, `us-east-1` and `us-west-2`. See current [AWS SES regions](https://docs.aws.amazon.com/general/latest/gr/rande.html#ses_region)
+  As SigV4 is region specific, valid Provider regions are `ap-south-1`, `ap-southeast-2`, `eu-central-1`, `eu-west-1`, `us-east-1` and `us-west-2`. See current [AWS SES regions](https://docs.aws.amazon.com/general/latest/gr/rande.html#ses_region). Note that this will be written to the state file in plain text. Alternatively, you may supply a `pgp_key` instead, which will prevent the password from being stored in plaintext.
+* `encrypted_ses_smtp_password_v4` - The SES SMTP password in encrypted form, base64 encoded, if `pgp_key` was specified.
+~> **NOTE:** The encrypted password may be decrypted using the command line, for example: `terraform output encrypted_ses_smtp_password_v4 | base64 --decode | keybase pgp decrypt`.
