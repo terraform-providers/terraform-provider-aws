@@ -203,6 +203,7 @@ github.com/aws/aws-sdk-go/service/servicecatalog
 github.com/aws/aws-sdk-go/service/servicediscovery
 github.com/aws/aws-sdk-go/service/servicequotas
 github.com/aws/aws-sdk-go/service/ses
+github.com/aws/aws-sdk-go/service/sesv2
 github.com/aws/aws-sdk-go/service/sfn
 github.com/aws/aws-sdk-go/service/shield
 github.com/aws/aws-sdk-go/service/simpledb
