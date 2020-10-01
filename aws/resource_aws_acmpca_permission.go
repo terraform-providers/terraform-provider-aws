@@ -43,7 +43,6 @@ func resourceAwsAcmpcaPermission() *schema.Resource {
 			},
 			"policy": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Computed: true,
 			},
 			"principal": {
