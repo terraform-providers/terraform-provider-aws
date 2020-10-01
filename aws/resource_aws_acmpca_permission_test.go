@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acmpca"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsAcmpcaPermission_Valid(t *testing.T) {
@@ -40,7 +40,7 @@ func TestAccAwsAcmpcaPermission_InvalidPrincipal(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAwsAcmpcaPermissionConfig_InvalidPrincipal(),
-				ExpectError: regexp.MustCompile("config is invalid: expected principal to be one of .*, got .*"),
+				ExpectError: regexp.MustCompile("Error: expected principal to be one of .*, got .*"),
 			},
 		},
 	})
@@ -54,7 +54,7 @@ func TestAccAwsAcmpcaPermission_InvalidActionsEntry(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry(),
-				ExpectError: regexp.MustCompile("config is invalid: expected actions.1 to be one of .*, got .*"),
+				ExpectError: regexp.MustCompile("Error: expected actions.1 to be one of .*, got .*"),
 			},
 		},
 	})
@@ -139,37 +139,37 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 func testAccAwsAcmpcaPermissionConfig_Valid() string {
-	return fmt.Sprintf(`
-%s
-
+	return composeConfig(
+		testAccAwsAcmpcaCertificateAuthority(),
+		`
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
-	principal                 = "acm.amazonaws.com"
-	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
+  certificate_authority_arn = aws_acmpca_certificate_authority.test.arn
+  principal                 = "acm.amazonaws.com"
+  actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
-`, testAccAwsAcmpcaCertificateAuthority())
+`)
 }
 
 func testAccAwsAcmpcaPermissionConfig_InvalidPrincipal() string {
-	return fmt.Sprintf(`
-%s
-
+	return composeConfig(
+		testAccAwsAcmpcaCertificateAuthority(),
+		`
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
-	principal                 = "notacm.amazonaws.com"
-	actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
+  certificate_authority_arn = aws_acmpca_certificate_authority.test.arn
+  principal                 = "notacm.amazonaws.com"
+  actions                   = ["IssueCertificate", "GetCertificate", "ListPermissions"]
 }
-`, testAccAwsAcmpcaCertificateAuthority())
+`)
 }
 
 func testAccAwsAcmpcaPermissionConfig_InvalidActionsEntry() string {
-	return fmt.Sprintf(`
-%s
-
+	return composeConfig(
+		testAccAwsAcmpcaCertificateAuthority(),
+		`
 resource "aws_acmpca_permission" "test" {
-	certificate_authority_arn = "${aws_acmpca_certificate_authority.test.arn}"
-	principal                 = "acm.amazonaws.com"
-	actions                   = ["IssueCert", "GetCertificate", "ListPermissions"]
+  certificate_authority_arn = aws_acmpca_certificate_authority.test.arn
+  principal                 = "acm.amazonaws.com"
+  actions                   = ["IssueCert", "GetCertificate", "ListPermissions"]
 }
-`, testAccAwsAcmpcaCertificateAuthority())
+`)
 }
