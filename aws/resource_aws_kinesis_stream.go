@@ -143,10 +143,10 @@ func resourceAwsKinesisStreamCreate(d *schema.ResourceData, meta interface{}) er
 			sn, err)
 	}
 
-	s := streamRaw.(*kinesisStreamState)
+	s := streamRaw.(*kinesisStreamSummary)
 	d.SetId(s.arn)
 	d.Set("arn", s.arn)
-	d.Set("shard_count", len(s.openShards))
+	d.Set("shard_count", s.openShardsCount)
 
 	return resourceAwsKinesisStreamUpdate(d, meta)
 }
@@ -187,7 +187,7 @@ func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) erro
 
 	sn := d.Get("name").(string)
 
-	state, err := readKinesisStreamState(conn, sn)
+	state, err := readKinesisStreamSummary(conn, sn)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == kinesis.ErrCodeResourceNotFoundException {
@@ -201,7 +201,7 @@ func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.SetId(state.arn)
 	d.Set("arn", state.arn)
-	d.Set("shard_count", len(state.openShards))
+	d.Set("shard_count", state.openShardsCount)
 	d.Set("retention_period", state.retentionPeriod)
 
 	d.Set("encryption_type", state.encryptionType)
@@ -443,47 +443,90 @@ func updateKinesisShardLevelMetrics(conn *kinesis.Kinesis, d *schema.ResourceDat
 	return nil
 }
 
-type kinesisStreamState struct {
+type kinesisStreamSummary struct {
 	arn               string
+	name              string
 	creationTimestamp int64
 	status            string
 	retentionPeriod   int64
-	openShards        []string
-	closedShards      []string
 	shardLevelMetrics []string
 	encryptionType    string
 	keyId             string
+	openShardsCount   int64
+	consumersCount    int64
 }
 
-func readKinesisStreamState(conn *kinesis.Kinesis, sn string) (*kinesisStreamState, error) {
-	describeOpts := &kinesis.DescribeStreamInput{
+func readKinesisStreamSummary(conn *kinesis.Kinesis, sn string) (*kinesisStreamSummary, error) {
+	describeOpts := &kinesis.DescribeStreamSummaryInput{
 		StreamName: aws.String(sn),
 	}
 
-	state := &kinesisStreamState{}
-	err := conn.DescribeStreamPages(describeOpts, func(page *kinesis.DescribeStreamOutput, lastPage bool) (shouldContinue bool) {
-		state.arn = aws.StringValue(page.StreamDescription.StreamARN)
-		state.creationTimestamp = aws.TimeValue(page.StreamDescription.StreamCreationTimestamp).Unix()
-		state.status = aws.StringValue(page.StreamDescription.StreamStatus)
-		state.retentionPeriod = aws.Int64Value(page.StreamDescription.RetentionPeriodHours)
-		state.openShards = append(state.openShards, flattenShards(openShards(page.StreamDescription.Shards))...)
-		state.closedShards = append(state.closedShards, flattenShards(closedShards(page.StreamDescription.Shards))...)
-		state.shardLevelMetrics = flattenKinesisShardLevelMetrics(page.StreamDescription.EnhancedMonitoring)
-		// EncryptionType can be nil in certain APIs, e.g. AWS China
-		if page.StreamDescription.EncryptionType != nil {
-			state.encryptionType = aws.StringValue(page.StreamDescription.EncryptionType)
-		} else {
-			state.encryptionType = kinesis.EncryptionTypeNone
+	streamSummaryResponse, err := conn.DescribeStreamSummary(describeOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	streamSummaryDescription := streamSummaryResponse.StreamDescriptionSummary
+
+	return &kinesisStreamSummary{
+		arn:               aws.StringValue(streamSummaryDescription.StreamARN),
+		name:              aws.StringValue(streamSummaryDescription.StreamName),
+		creationTimestamp: aws.TimeValue(streamSummaryDescription.StreamCreationTimestamp).Unix(),
+		status:            aws.StringValue(streamSummaryDescription.StreamStatus),
+		retentionPeriod:   aws.Int64Value(streamSummaryDescription.RetentionPeriodHours),
+		shardLevelMetrics: flattenKinesisShardLevelMetrics(streamSummaryDescription.EnhancedMonitoring),
+		encryptionType:    aws.StringValue(streamSummaryDescription.EncryptionType),
+		keyId:             aws.StringValue(streamSummaryDescription.KeyId),
+		openShardsCount:   aws.Int64Value(streamSummaryDescription.OpenShardCount),
+		consumersCount:    aws.Int64Value(streamSummaryDescription.ConsumerCount),
+	}, nil
+}
+
+type kinesisStream struct {
+	kinesisStreamSummary
+	openShards   []string
+	closedShards []string
+}
+
+func readKinesisStreamState(conn *kinesis.Kinesis, sn string) (*kinesisStream, error) {
+	streamSummary, err := readKinesisStreamSummary(conn, sn)
+	if err != nil {
+		return nil, err
+	}
+
+	fullStream := &kinesisStream{
+		kinesisStreamSummary: *streamSummary,
+	}
+
+	nextToken := aws.String("")
+	listShardsOpts := &kinesis.ListShardsInput{
+		StreamName: aws.String(sn),
+	}
+
+	for nextToken != nil {
+		if *nextToken != "" {
+			listShardsOpts = &kinesis.ListShardsInput{
+				NextToken: nextToken,
+			}
 		}
-		state.keyId = aws.StringValue(page.StreamDescription.KeyId)
-		return !lastPage
-	})
-	return state, err
+
+		listShardsResponse, err := conn.ListShards(listShardsOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		fullStream.openShards = append(fullStream.openShards, flattenShards(openShards(listShardsResponse.Shards))...)
+		fullStream.closedShards = append(fullStream.closedShards, flattenShards(closedShards(listShardsResponse.Shards))...)
+
+		nextToken = listShardsResponse.NextToken
+	}
+
+	return fullStream, nil
 }
 
 func streamStateRefreshFunc(conn *kinesis.Kinesis, sn string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		state, err := readKinesisStreamState(conn, sn)
+		state, err := readKinesisStreamSummary(conn, sn)
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
 				if awsErr.Code() == kinesis.ErrCodeResourceNotFoundException {
