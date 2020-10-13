@@ -46,6 +46,20 @@ func resourceAwsSagemakerNotebookInstance() *schema.Resource {
 				Required: true,
 			},
 
+			"elastic_inference_accelerator": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"subnet_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -99,6 +113,48 @@ func resourceAwsSagemakerNotebookInstance() *schema.Resource {
 	}
 }
 
+func flattenEc2LaunchTemplateElasticInferenceAcceleratorResponse(accelerators []*ec2.LaunchTemplateElasticInferenceAcceleratorResponse) []interface{} {
+	l := []interface{}{}
+
+	for _, accelerator := range accelerators {
+		if accelerator == nil {
+			continue
+		}
+
+		m := map[string]interface{}{
+			"type": aws.StringValue(accelerator.Type),
+		}
+
+		l = append(l, m)
+	}
+
+	return l
+}
+
+func expandEc2LaunchTemplateElasticInferenceAccelerators(l []interface{}) []*ec2.LaunchTemplateElasticInferenceAccelerator {
+	if len(l) == 0 {
+		return nil
+	}
+
+	var accelerators []*ec2.LaunchTemplateElasticInferenceAccelerator
+
+	for _, lRaw := range l {
+		m, ok := lRaw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		accelerator := &ec2.LaunchTemplateElasticInferenceAccelerator{
+			Type: aws.String(m["type"].(string)),
+		}
+
+		accelerators = append(accelerators, accelerator)
+	}
+
+	return accelerators
+}
+
 func resourceAwsSagemakerNotebookInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).sagemakerconn
 
@@ -133,6 +189,10 @@ func resourceAwsSagemakerNotebookInstanceCreate(d *schema.ResourceData, meta int
 
 	if v, ok := d.GetOk("tags"); ok {
 		createOpts.Tags = keyvaluetags.New(v.(map[string]interface{})).IgnoreAws().SagemakerTags()
+	}
+
+	if e, ok := d.GetOk("elastic_inference_accelerator"); ok {
+		createOpts.ElasticInferenceAccelerators = expandEc2LaunchTemplateElasticInferenceAccelerators(e.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] sagemaker notebook instance create config: %#v", *createOpts)
@@ -191,6 +251,9 @@ func resourceAwsSagemakerNotebookInstanceRead(d *schema.ResourceData, meta inter
 	}
 	if err := d.Set("instance_type", notebookInstance.InstanceType); err != nil {
 		return fmt.Errorf("error setting instance_type for sagemaker notebook instance (%s): %s", d.Id(), err)
+	}
+	if err := d.Set("elastic_inference_accelerator", flattenEc2LaunchTemplateElasticInferenceAcceleratorResponse(notebookInstance.ElasticInferenceAccelerators)); err != nil {
+		return fmt.Errorf("error setting elastic_inference_accelerator: %s", err)
 	}
 	if err := d.Set("subnet_id", notebookInstance.SubnetId); err != nil {
 		return fmt.Errorf("error setting subnet_id for sagemaker notebook instance (%s): %s", d.Id(), err)
@@ -253,6 +316,11 @@ func resourceAwsSagemakerNotebookInstanceUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("instance_type") {
 		updateOpts.InstanceType = aws.String(d.Get("instance_type").(string))
+		hasChanged = true
+	}
+
+	if d.HasChange("elastic_inference_accelerator") {
+		updateOpts.ElasticInferenceAccelerators = expandEc2LaunchTemplateElasticInferenceAccelerators(v.([]interface{}))
 		hasChanged = true
 	}
 
