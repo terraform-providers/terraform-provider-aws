@@ -31,13 +31,11 @@ resource "aws_gamelift_script" "test" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the script
-* `storage_location` - (Required) Information indicating where your game script files are stored. See below.
+* `storage_location` - (Required) Information indicating where your game script files are stored. See (Storage Location)[#storage-location].
 * `version` - (Optional) Version that is associated with this script.
 * `tags` - (Optional) Key-value mapping of resource tags
 
-### Nested Fields
-
-#### `storage_location`
+### Storage Location
 
 * `bucket` - (Required) Name of your S3 bucket.
 * `key` - (Required) Name of the zip file containing your script files.
@@ -49,7 +47,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Gamelift Script ID.
 * `arn` - Gamelift Script ARN.
-
 
 ## Import
 
