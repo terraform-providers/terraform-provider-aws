@@ -31,7 +31,7 @@ resource "aws_gamelift_script" "test" {
 The following arguments are supported:
 
 * `name` - (Required) Name of the script
-* `storage_location` - (Required) Information indicating where your game script files are stored. See (Storage Location)[#storage-location].
+* `storage_location` - (Required) Information indicating where your game script files are stored. See [Storage Location](#storage-location) details below.
 * `version` - (Optional) Version that is associated with this script.
 * `tags` - (Optional) Key-value mapping of resource tags
 
