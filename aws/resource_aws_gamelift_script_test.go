@@ -49,8 +49,8 @@ func testSweepGameliftScripts(region string) error {
 			ScriptId: script.ScriptId,
 		})
 		if err != nil {
-			return fmt.Errorf("Error deleting Gamelift Script (%s): %s",
-				*script.ScriptId, err)
+			return fmt.Errorf("Error deleting Gamelift Script (%s): %w",
+				aws.StringValue(script.ScriptId), err)
 		}
 	}
 
@@ -245,7 +245,7 @@ func testAccCheckAWSGameliftScriptExists(n string, res *gamelift.Script) resourc
 
 		b := out.Script
 
-		if *b.ScriptId != rs.Primary.ID {
+		if aws.StringValue(b.ScriptId) != rs.Primary.ID {
 			return fmt.Errorf("Gamelift Script not found")
 		}
 

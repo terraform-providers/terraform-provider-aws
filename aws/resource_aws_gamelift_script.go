@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/gamelift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -69,21 +69,22 @@ func resourceAwsGameliftScript() *schema.Resource {
 func resourceAwsGameliftScriptCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
 
-	sl := expandGameliftStorageLocation(d.Get("storage_location").([]interface{}))
 	input := gamelift.CreateScriptInput{
 		Name:            aws.String(d.Get("name").(string)),
-		StorageLocation: sl,
+		StorageLocation: expandGameliftStorageLocation(d.Get("storage_location").([]interface{})),
 		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GameliftTags(),
 	}
+
 	if v, ok := d.GetOk("version"); ok {
 		input.Version = aws.String(v.(string))
 	}
+
 	log.Printf("[INFO] Creating Gamelift Script: %s", input)
 	out, err := conn.CreateScript(&input)
 	if err != nil {
-		return fmt.Errorf("Error creating Gamelift Script: %s", err)
+		return fmt.Errorf("Error creating Gamelift Script: %w", err)
 	}
-	d.SetId(*out.Script.ScriptId)
+	d.SetId(aws.StringValue(out.Script.ScriptId))
 
 	return resourceAwsGameliftScriptRead(d, meta)
 }
@@ -115,11 +116,11 @@ func resourceAwsGameliftScriptRead(d *schema.ResourceData, meta interface{}) err
 	tags, err := keyvaluetags.GameliftListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for Game Lift Script (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for Game Lift Script (%s): %w", arn, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil
@@ -141,7 +142,7 @@ func resourceAwsGameliftScriptUpdate(d *schema.ResourceData, meta interface{}) e
 
 	_, err := conn.UpdateScript(&input)
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating Game Lift Script (%s): %w", err)
 	}
 
 	arn := d.Get("arn").(string)
@@ -149,7 +150,7 @@ func resourceAwsGameliftScriptUpdate(d *schema.ResourceData, meta interface{}) e
 		o, n := d.GetChange("tags")
 
 		if err := keyvaluetags.GameliftUpdateTags(conn, arn, o, n); err != nil {
-			return fmt.Errorf("error updating Game Lift Script (%s) tags: %s", arn, err)
+			return fmt.Errorf("error updating Game Lift Script (%s) tags: %w", arn, err)
 		}
 	}
 
