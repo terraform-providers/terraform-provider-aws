@@ -107,7 +107,7 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 				Config: testAccAWSGameliftScriptBasicConfig(rNameUpdated, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
-					resource.TestCheckResourceAttr(resourceName, "name", uScriptName),
+					resource.TestCheckResourceAttr(resourceName, "name", rNameUpdated),
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "gamelift", regexp.MustCompile(`script/script-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "storage_location.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "storage_location.0.bucket", bucketName),
