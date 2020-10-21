@@ -142,7 +142,7 @@ func resourceAwsGameliftScriptUpdate(d *schema.ResourceData, meta interface{}) e
 
 	_, err := conn.UpdateScript(&input)
 	if err != nil {
-		return fmt.Errorf("error updating Game Lift Script (%s): %w", err)
+		return fmt.Errorf("error updating Game Lift Script: %w", err)
 	}
 
 	arn := d.Get("arn").(string)
