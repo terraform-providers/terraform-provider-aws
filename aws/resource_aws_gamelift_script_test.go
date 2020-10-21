@@ -61,9 +61,8 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 	var conf gamelift.Script
 
 	resourceName := "aws_gamelift_script.test"
-
-	rName := acctest.RandomWithPrefix("acc-test-script")
-	uScriptName := acctest.RandomWithPrefix("acc-test-script-upd")
+	rName := acctest.RandomWithPrefix("acc-test-test")
+	rNameUpdated := acctest.RandomWithPrefix("acc-test-test")
 
 	region := testAccGetRegion()
 	g, err := testAccAWSGameliftSampleGame(region)
@@ -105,7 +104,7 @@ func TestAccAWSGameliftScript_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSGameliftScriptBasicConfig(uScriptName, bucketName, key, roleArn),
+				Config: testAccAWSGameliftScriptBasicConfig(rNameUpdated, bucketName, key, roleArn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "name", uScriptName),
@@ -125,8 +124,8 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 	var conf gamelift.Script
 
 	resourceName := "aws_gamelift_script.test"
+	rName := acctest.RandomWithPrefix("acc-test-test")
 
-	rName := acctest.RandomWithPrefix("acc-test-script")
 	region := testAccGetRegion()
 	g, err := testAccAWSGameliftSampleGame(region)
 
@@ -149,7 +148,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 		CheckDestroy: testAccCheckAWSGameliftScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSGameliftScriptBasicConfigTags1(rName, bucketName, key, roleArn, "key1", "value1"),
+				Config: testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -162,7 +161,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSGameliftScriptBasicConfigTags2(rName, bucketName, key, roleArn, "key1", "value1updated", "key2", "value2"),
+				Config: testAccAWSGameliftScriptConfigTags2(rName, bucketName, key, roleArn, "key1", "value1updated", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -171,7 +170,7 @@ func TestAccAWSGameliftScript_tags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSGameliftScriptBasicConfigTags1(rName, bucketName, key, roleArn, "key2", "value2"),
+				Config: testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSGameliftScriptExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -186,7 +185,6 @@ func TestAccAWSGameliftScript_disappears(t *testing.T) {
 	var conf gamelift.Script
 
 	resourceName := "aws_gamelift_script.test"
-
 	rName := acctest.RandomWithPrefix("acc-test-script")
 
 	region := testAccGetRegion()
@@ -301,7 +299,7 @@ func testAccPreCheckAWSGameliftScripts(t *testing.T) {
 func testAccAWSGameliftScriptBasicConfig(rName, bucketName, key, roleArn string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name             = "%s"
+  name = "%s"
 
   storage_location {
     bucket   = "%s"
@@ -312,10 +310,10 @@ resource "aws_gamelift_script" "test" {
 `, rName, bucketName, key, roleArn)
 }
 
-func testAccAWSGameliftScriptBasicConfigTags1(rName, bucketName, key, roleArn, tagKey1, tagValue1 string) string {
+func testAccAWSGameliftScriptConfigTags1(rName, bucketName, key, roleArn, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name             = %[1]q
+  name = %[1]q
 
   storage_location {
     bucket   = %[2]q
@@ -330,10 +328,10 @@ resource "aws_gamelift_script" "test" {
 `, rName, bucketName, key, roleArn, tagKey1, tagValue1)
 }
 
-func testAccAWSGameliftScriptBasicConfigTags2(rName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+func testAccAWSGameliftScriptConfigTags2(rName, bucketName, key, roleArn, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_gamelift_script" "test" {
-  name             = %[1]q
+  name = %[1]q
 
   storage_location {
     bucket   = %[2]q
