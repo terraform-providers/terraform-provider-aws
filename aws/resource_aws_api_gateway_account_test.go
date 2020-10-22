@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayAccount_basic(t *testing.T) {
@@ -122,7 +122,7 @@ resource "aws_api_gateway_account" "test" {
 func testAccAWSAPIGatewayAccountConfig_updated(randName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_account" "test" {
-  cloudwatch_role_arn = "${aws_iam_role.cloudwatch.arn}"
+  cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
 }
 
 resource "aws_iam_role" "cloudwatch" {
@@ -147,7 +147,7 @@ EOF
 
 resource "aws_iam_role_policy" "cloudwatch" {
   name = "default"
-  role = "${aws_iam_role.cloudwatch.id}"
+  role = aws_iam_role.cloudwatch.id
 
   policy = <<EOF
 {
@@ -176,7 +176,7 @@ EOF
 func testAccAWSAPIGatewayAccountConfig_updated2(randName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_account" "test" {
-  cloudwatch_role_arn = "${aws_iam_role.second.arn}"
+  cloudwatch_role_arn = aws_iam_role.second.arn
 }
 
 resource "aws_iam_role" "second" {
@@ -201,7 +201,7 @@ EOF
 
 resource "aws_iam_role_policy" "cloudwatch" {
   name = "default"
-  role = "${aws_iam_role.second.id}"
+  role = aws_iam_role.second.id
 
   policy = <<EOF
 {

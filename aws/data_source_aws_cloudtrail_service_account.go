@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // See http://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-supported-regions.html
 // See https://docs.aws.amazon.com/govcloud-us/latest/ug-east/verifying-cloudtrail.html
 // See https://docs.aws.amazon.com/govcloud-us/latest/ug-west/verifying-cloudtrail.html
 var cloudTrailServiceAccountPerRegionMap = map[string]string{
+	"af-south-1":     "525921808201",
 	"ap-east-1":      "119688915426",
 	"ap-northeast-1": "216624486486",
 	"ap-northeast-2": "492519147666",
@@ -23,6 +24,7 @@ var cloudTrailServiceAccountPerRegionMap = map[string]string{
 	"cn-northwest-1": "681348832753",
 	"eu-central-1":   "035351147821",
 	"eu-north-1":     "829690693026",
+	"eu-south-1":     "669305197877",
 	"eu-west-1":      "859597730677",
 	"eu-west-2":      "282025262664",
 	"eu-west-3":      "262312530599",

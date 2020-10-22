@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/docdb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -248,7 +248,10 @@ func resourceAwsDocDBClusterInstanceCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	db, err := resourceAwsDocDBInstanceRetrieve(d.Id(), meta.(*AWSClient).docdbconn)
+	conn := meta.(*AWSClient).docdbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
+	db, err := resourceAwsDocDBInstanceRetrieve(d.Id(), conn)
 	// Errors from this helper are always reportable
 	if err != nil {
 		return fmt.Errorf("Error on retrieving DocDB Cluster Instance (%s): %s", d.Id(), err)
@@ -261,7 +264,6 @@ func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{
 	}
 
 	// Retrieve DB Cluster information, to determine if this Instance is a writer
-	conn := meta.(*AWSClient).docdbconn
 	resp, err := conn.DescribeDBClusters(&docdb.DescribeDBClustersInput{
 		DBClusterIdentifier: db.DBClusterIdentifier,
 	})
@@ -320,7 +322,7 @@ func resourceAwsDocDBClusterInstanceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error listing tags for DocumentDB Cluster Instance (%s): %s", d.Get("arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsElb() *schema.Resource {
@@ -196,6 +196,8 @@ func dataSourceAwsElb() *schema.Resource {
 
 func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	lbName := d.Get("name").(string)
 
 	input := &elb.DescribeLoadBalancersInput{
@@ -221,5 +223,5 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("arn", arn.String())
 
-	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0])
+	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0], ignoreTagsConfig)
 }

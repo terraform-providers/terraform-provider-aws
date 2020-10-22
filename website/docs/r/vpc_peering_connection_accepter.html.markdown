@@ -38,19 +38,19 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_vpc" "peer" {
-  provider   = "aws.peer"
+  provider   = aws.peer
   cidr_block = "10.1.0.0/16"
 }
 
 data "aws_caller_identity" "peer" {
-  provider = "aws.peer"
+  provider = aws.peer
 }
 
 # Requester's side of the connection.
 resource "aws_vpc_peering_connection" "peer" {
-  vpc_id        = "${aws_vpc.main.id}"
-  peer_vpc_id   = "${aws_vpc.peer.id}"
-  peer_owner_id = "${data.aws_caller_identity.peer.account_id}"
+  vpc_id        = aws_vpc.main.id
+  peer_vpc_id   = aws_vpc.peer.id
+  peer_owner_id = data.aws_caller_identity.peer.account_id
   peer_region   = "us-west-2"
   auto_accept   = false
 
@@ -61,8 +61,8 @@ resource "aws_vpc_peering_connection" "peer" {
 
 # Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
-  provider                  = "aws.peer"
-  vpc_peering_connection_id = "${aws_vpc_peering_connection.peer.id}"
+  provider                  = aws.peer
+  vpc_peering_connection_id = aws_vpc_peering_connection.peer.id
   auto_accept               = true
 
   tags = {
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `vpc_peering_connection_id` - (Required) The VPC Peering Connection ID to manage.
 * `auto_accept` - (Optional) Whether or not to accept the peering request. Defaults to `false`.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Removing `aws_vpc_peering_connection_accepter` from your configuration
 
@@ -98,9 +98,9 @@ All of the argument attributes except `auto_accept` are also exported as result 
 * `peer_owner_id` - The AWS account ID of the owner of the requester VPC.
 * `peer_region` - The region of the accepter VPC.
 * `accepter` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the accepter VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 * `requester` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the requester VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
 
 #### Accepter and Requester Attributes Reference
 
@@ -133,7 +133,7 @@ resource "aws_vpc_peering_connection_accepter" "example" {
 
   # There is no AWS EC2 API for reading auto_accept
   lifecycle {
-    ignore_changes = ["auto_accept"]
+    ignore_changes = [auto_accept]
   }
 }
 ```

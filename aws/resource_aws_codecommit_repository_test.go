@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/codecommit"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCodeCommitRepository_basic(t *testing.T) {
@@ -263,20 +263,24 @@ resource "aws_codecommit_repository" "test" {
 func testAccAWSCodeCommitRepositoryConfigTags1(r, tag1Key, tag1Value string) string {
 	return fmt.Sprintf(`
 resource "aws_codecommit_repository" "test" {
-	repository_name = "terraform-test-%s"
-	tags = {
-		%q = %q
-	}
-	}`, r, tag1Key, tag1Value)
+  repository_name = "terraform-test-%s"
+
+  tags = {
+    %q = %q
+  }
+}
+`, r, tag1Key, tag1Value)
 }
 
 func testAccAWSCodeCommitRepositoryConfigTags2(r, tag1Key, tag1Value, tag2Key, tag2Value string) string {
 	return fmt.Sprintf(`
 resource "aws_codecommit_repository" "test" {
-	repository_name = "terraform-test-%s"
-	tags = {
-		%q = %q
-		%q = %q
-	  }
-	}`, r, tag1Key, tag1Value, tag2Key, tag2Value)
+  repository_name = "terraform-test-%s"
+
+  tags = {
+    %q = %q
+    %q = %q
+  }
+}
+`, r, tag1Key, tag1Value, tag2Key, tag2Value)
 }

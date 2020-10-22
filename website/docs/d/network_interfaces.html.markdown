@@ -16,7 +16,7 @@ The following shows outputing all network interface ids in a region.
 data "aws_network_interfaces" "example" {}
 
 output "example" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 
@@ -30,7 +30,7 @@ data "aws_network_interfaces" "example" {
 }
 
 output "example1" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 
@@ -41,18 +41,18 @@ with specific subnet.
 data "aws_network_interfaces" "example" {
   filter {
     name   = "subnet-id"
-    values = ["${aws_subnet.test.id}"]
+    values = [aws_subnet.test.id]
   }
 }
 
 output "example" {
-  value = "${data.aws_network_interfaces.example.ids}"
+  value = data.aws_network_interfaces.example.ids
 }
 ```
 
 ## Argument Reference
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired network interfaces.
 
 * `filter` - (Optional) Custom filter block as described below.

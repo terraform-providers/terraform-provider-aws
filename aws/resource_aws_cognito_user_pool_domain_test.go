@@ -3,15 +3,75 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_cognito_user_pool_domain", &resource.Sweeper{
+		Name: "aws_cognito_user_pool_domain",
+		F:    testSweepCognitoUserPoolDomains,
+	})
+}
+
+func testSweepCognitoUserPoolDomains(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("Error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).cognitoidpconn
+
+	input := &cognitoidentityprovider.ListUserPoolsInput{
+		MaxResults: aws.Int64(int64(50)),
+	}
+
+	err = conn.ListUserPoolsPages(input, func(resp *cognitoidentityprovider.ListUserPoolsOutput, isLast bool) bool {
+		if len(resp.UserPools) == 0 {
+			log.Print("[DEBUG] No Cognito user pools (i.e. domains) to sweep")
+			return false
+		}
+
+		for _, u := range resp.UserPools {
+			output, err := conn.DescribeUserPool(&cognitoidentityprovider.DescribeUserPoolInput{
+				UserPoolId: u.Id,
+			})
+			if err != nil {
+				log.Printf("[ERROR] Failed describing Cognito user pool (%s): %s", aws.StringValue(u.Name), err)
+				continue
+			}
+			if output.UserPool != nil && output.UserPool.Domain != nil {
+				domain := aws.StringValue(output.UserPool.Domain)
+
+				log.Printf("[INFO] Deleting Cognito user pool domain: %s", domain)
+				_, err := conn.DeleteUserPoolDomain(&cognitoidentityprovider.DeleteUserPoolDomainInput{
+					Domain:     output.UserPool.Domain,
+					UserPoolId: u.Id,
+				})
+				if err != nil {
+					log.Printf("[ERROR] Failed deleting Cognito user pool domain (%s): %s", domain, err)
+				}
+			}
+		}
+		return !isLast
+	})
+
+	if err != nil {
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Cognito User Pool Domain sweep for %s: %s", region, err)
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Cognito User Pools: %s", err)
+	}
+
+	return nil
+}
 
 func TestAccAWSCognitoUserPoolDomain_basic(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-test-domain-%d", acctest.RandInt())
@@ -91,6 +151,28 @@ func TestAccAWSCognitoUserPoolDomain_custom(t *testing.T) {
 	})
 }
 
+func TestAccAWSCognitoUserPoolDomain_disappears(t *testing.T) {
+	domainName := fmt.Sprintf("tf-acc-test-domain-%d", acctest.RandInt())
+	poolName := fmt.Sprintf("tf-acc-test-pool-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	resourceName := "aws_cognito_user_pool_domain.main"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoUserPoolDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoUserPoolDomainConfig_basic(domainName, poolName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoUserPoolDomainExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCognitoUserPoolDomain(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSCognitoUserPoolDomainExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -125,7 +207,7 @@ func testAccCheckAWSCognitoUserPoolDomainDestroy(s *terraform.State) error {
 		})
 
 		if err != nil {
-			if isAWSErr(err, "ResourceNotFoundException", "") {
+			if isAWSErr(err, cognitoidentityprovider.ErrCodeResourceNotFoundException, "") {
 				return nil
 			}
 			return err
@@ -139,7 +221,7 @@ func testAccAWSCognitoUserPoolDomainConfig_basic(domainName, poolName string) st
 	return fmt.Sprintf(`
 resource "aws_cognito_user_pool_domain" "main" {
   domain       = "%s"
-  user_pool_id = "${aws_cognito_user_pool.main.id}"
+  user_pool_id = aws_cognito_user_pool.main.id
 }
 
 resource "aws_cognito_user_pool" "main" {
@@ -152,7 +234,7 @@ func testAccAWSCognitoUserPoolDomainConfig_custom(customSubDomainName, poolName,
 	return fmt.Sprintf(`
 resource "aws_cognito_user_pool_domain" "main" {
   domain          = "%s"
-  user_pool_id    = "${aws_cognito_user_pool.main.id}"
+  user_pool_id    = aws_cognito_user_pool.main.id
   certificate_arn = "%s"
 }
 

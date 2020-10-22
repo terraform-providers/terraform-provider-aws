@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsGlueCatalogTable() *schema.Resource {
@@ -21,6 +23,10 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"catalog_id": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -137,8 +143,9 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"parameters": {
 										Type:     schema.TypeMap,
@@ -146,8 +153,9 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"serialization_library": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -224,7 +232,7 @@ func readAwsGlueTableID(id string) (catalogID string, dbName string, name string
 }
 
 func resourceAwsGlueCatalogTableCreate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 	catalogID := createAwsGlueCatalogID(d, meta.(*AWSClient).accountid)
 	dbName := d.Get("database_name").(string)
 	name := d.Get("name").(string)
@@ -235,7 +243,7 @@ func resourceAwsGlueCatalogTableCreate(d *schema.ResourceData, meta interface{})
 		TableInput:   expandGlueTableInput(d),
 	}
 
-	_, err := glueconn.CreateTable(input)
+	_, err := conn.CreateTable(input)
 	if err != nil {
 		return fmt.Errorf("Error creating Catalog Table: %s", err)
 	}
@@ -246,7 +254,7 @@ func resourceAwsGlueCatalogTableCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, name, err := readAwsGlueTableID(d.Id())
 	if err != nil {
@@ -259,7 +267,7 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 		Name:         aws.String(name),
 	}
 
-	out, err := glueconn.GetTable(input)
+	out, err := conn.GetTable(input)
 	if err != nil {
 
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
@@ -270,6 +278,15 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 
 		return fmt.Errorf("Error reading Glue Catalog Table: %s", err)
 	}
+
+	tableArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "glue",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("table/%s/%s", dbName, aws.StringValue(out.Table.Name)),
+	}.String()
+	d.Set("arn", tableArn)
 
 	d.Set("name", out.Table.Name)
 	d.Set("catalog_id", catalogID)
@@ -298,7 +315,7 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsGlueCatalogTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, _, err := readAwsGlueTableID(d.Id())
 	if err != nil {
@@ -311,7 +328,7 @@ func resourceAwsGlueCatalogTableUpdate(d *schema.ResourceData, meta interface{})
 		TableInput:   expandGlueTableInput(d),
 	}
 
-	if _, err := glueconn.UpdateTable(updateTableInput); err != nil {
+	if _, err := conn.UpdateTable(updateTableInput); err != nil {
 		return fmt.Errorf("Error updating Glue Catalog Table: %s", err)
 	}
 
@@ -319,7 +336,7 @@ func resourceAwsGlueCatalogTableUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsGlueCatalogTableDelete(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, name, tableIdErr := readAwsGlueTableID(d.Id())
 	if tableIdErr != nil {
@@ -327,7 +344,7 @@ func resourceAwsGlueCatalogTableDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[DEBUG] Glue Catalog Table: %s:%s:%s", catalogID, dbName, name)
-	_, err := glueconn.DeleteTable(&glue.DeleteTableInput{
+	_, err := conn.DeleteTable(&glue.DeleteTableInput{
 		CatalogId:    aws.String(catalogID),
 		Name:         aws.String(name),
 		DatabaseName: aws.String(dbName),
@@ -388,7 +405,7 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 }
 
 func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
@@ -479,18 +496,18 @@ func expandGlueColumns(columns []interface{}) []*glue.Column {
 }
 
 func expandGlueSerDeInfo(l []interface{}) *glue.SerDeInfo {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
 	s := l[0].(map[string]interface{})
 	serDeInfo := &glue.SerDeInfo{}
 
-	if v, ok := s["name"]; ok {
+	if v := s["name"]; len(v.(string)) > 0 {
 		serDeInfo.Name = aws.String(v.(string))
 	}
 
-	if v, ok := s["parameters"]; ok {
+	if v := s["parameters"]; len(v.(map[string]interface{})) > 0 {
 		paramsMap := map[string]string{}
 		for key, value := range v.(map[string]interface{}) {
 			paramsMap[key] = value.(string)
@@ -498,7 +515,7 @@ func expandGlueSerDeInfo(l []interface{}) *glue.SerDeInfo {
 		serDeInfo.Parameters = aws.StringMap(paramsMap)
 	}
 
-	if v, ok := s["serialization_library"]; ok {
+	if v := s["serialization_library"]; len(v.(string)) > 0 {
 		serDeInfo.SerializationLibrary = aws.String(v.(string))
 	}
 
@@ -526,7 +543,7 @@ func expandGlueSortColumns(columns []interface{}) []*glue.Order {
 }
 
 func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
@@ -630,9 +647,15 @@ func flattenGlueSerDeInfo(s *glue.SerDeInfo) []map[string]interface{} {
 	serDeInfos := make([]map[string]interface{}, 1)
 	serDeInfo := make(map[string]interface{})
 
-	serDeInfo["name"] = aws.StringValue(s.Name)
+	if v := aws.StringValue(s.Name); v != "" {
+		serDeInfo["name"] = v
+	}
+
 	serDeInfo["parameters"] = aws.StringValueMap(s.Parameters)
-	serDeInfo["serialization_library"] = aws.StringValue(s.SerializationLibrary)
+
+	if v := aws.StringValue(s.SerializationLibrary); v != "" {
+		serDeInfo["serialization_library"] = v
+	}
 
 	serDeInfos[0] = serDeInfo
 	return serDeInfos

@@ -8,9 +8,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+)
+
+const (
+	// Maximum amount of time for VpcLink to become available
+	apigatewayVpcLinkAvailableTimeout = 20 * time.Minute
+	// Maximum amount of time for VpcLink to delete
+	apigatewayVpcLinkDeleteTimeout = 20 * time.Minute
 )
 
 func resourceAwsApiGatewayVpcLink() *schema.Resource {
@@ -19,6 +26,7 @@ func resourceAwsApiGatewayVpcLink() *schema.Resource {
 		Read:   resourceAwsApiGatewayVpcLinkRead,
 		Update: resourceAwsApiGatewayVpcLinkUpdate,
 		Delete: resourceAwsApiGatewayVpcLinkDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +41,7 @@ func resourceAwsApiGatewayVpcLink() *schema.Resource {
 				Optional: true,
 			},
 			"target_arns": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
 				ForceNew: true,
@@ -54,7 +62,7 @@ func resourceAwsApiGatewayVpcLinkCreate(d *schema.ResourceData, meta interface{}
 
 	input := &apigateway.CreateVpcLinkInput{
 		Name:       aws.String(d.Get("name").(string)),
-		TargetArns: expandStringList(d.Get("target_arns").(*schema.Set).List()),
+		TargetArns: expandStringList(d.Get("target_arns").([]interface{})),
 		Tags:       tags,
 	}
 	if v, ok := d.GetOk("description"); ok {
@@ -72,7 +80,7 @@ func resourceAwsApiGatewayVpcLinkCreate(d *schema.ResourceData, meta interface{}
 		Pending:    []string{apigateway.VpcLinkStatusPending},
 		Target:     []string{apigateway.VpcLinkStatusAvailable},
 		Refresh:    apigatewayVpcLinkRefreshStatusFunc(conn, *resp.Id),
-		Timeout:    8 * time.Minute,
+		Timeout:    apigatewayVpcLinkAvailableTimeout,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -87,6 +95,7 @@ func resourceAwsApiGatewayVpcLinkCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).apigatewayconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &apigateway.GetVpcLinkInput{
 		VpcLinkId: aws.String(d.Id()),
@@ -102,7 +111,7 @@ func resourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(resp.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.ApigatewayKeyValueTags(resp.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -167,7 +176,7 @@ func resourceAwsApiGatewayVpcLinkUpdate(d *schema.ResourceData, meta interface{}
 		Pending:    []string{apigateway.VpcLinkStatusPending},
 		Target:     []string{apigateway.VpcLinkStatusAvailable},
 		Refresh:    apigatewayVpcLinkRefreshStatusFunc(conn, d.Id()),
-		Timeout:    8 * time.Minute,
+		Timeout:    apigatewayVpcLinkAvailableTimeout,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -222,7 +231,7 @@ func waitForApiGatewayVpcLinkDeletion(conn *apigateway.APIGateway, vpcLinkID str
 			apigateway.VpcLinkStatusAvailable,
 			apigateway.VpcLinkStatusDeleting},
 		Target:     []string{""},
-		Timeout:    5 * time.Minute,
+		Timeout:    apigatewayVpcLinkDeleteTimeout,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			resp, err := conn.GetVpcLink(&apigateway.GetVpcLinkInput{

@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -172,12 +172,12 @@ resource "aws_route53_delegation_set" "test" {
 
 resource "aws_route53_zone" "primary" {
   name              = "%s"
-  delegation_set_id = "${aws_route53_delegation_set.test.id}"
+  delegation_set_id = aws_route53_delegation_set.test.id
 }
 
 resource "aws_route53_zone" "secondary" {
   name              = "%s"
-  delegation_set_id = "${aws_route53_delegation_set.test.id}"
+  delegation_set_id = aws_route53_delegation_set.test.id
 }
 `, refName, zoneName1, zoneName2)
 }

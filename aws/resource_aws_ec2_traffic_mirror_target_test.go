@@ -5,13 +5,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TrafficMirrorTarget_nlb(t *testing.T) {
@@ -28,13 +28,13 @@ func TestAccAWSEc2TrafficMirrorTarget_nlb(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TrafficMirrorTargetDestroy,
 		Steps: []resource.TestStep{
-			//create
 			{
 				Config: testAccTrafficMirrorTargetConfigNlb(rName, description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorTargetExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`traffic-mirror-target/tmt-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestMatchResourceAttr(resourceName, "network_load_balancer_arn", regexp.MustCompile("arn:aws:elasticloadbalancing:.*")),
+					resource.TestCheckResourceAttrPair(resourceName, "network_load_balancer_arn", "aws_lb.lb", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -61,7 +61,6 @@ func TestAccAWSEc2TrafficMirrorTarget_eni(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSEc2TrafficMirrorTargetDestroy,
 		Steps: []resource.TestStep{
-			//create
 			{
 				Config: testAccTrafficMirrorTargetConfigEni(rName, description),
 				Check: resource.ComposeTestCheckFunc(
@@ -146,7 +145,7 @@ func TestAccAWSEc2TrafficMirrorTarget_disappears(t *testing.T) {
 				Config: testAccTrafficMirrorTargetConfigNlb(rName, description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TrafficMirrorTargetExists(resourceName, &v),
-					testAccCheckAWSEc2TrafficMirrorTargetDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TrafficMirrorTarget(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -185,17 +184,6 @@ func testAccCheckAWSEc2TrafficMirrorTargetExists(name string, target *ec2.Traffi
 	}
 }
 
-func testAccCheckAWSEc2TrafficMirrorTargetDisappears(target *ec2.TrafficMirrorTarget) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		_, err := conn.DeleteTrafficMirrorTarget(&ec2.DeleteTrafficMirrorTargetInput{
-			TrafficMirrorTargetId: target.TrafficMirrorTargetId,
-		})
-
-		return err
-	}
-}
-
 func testAccTrafficMirrorTargetConfigBase(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "azs" {
@@ -216,9 +204,9 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "sub1" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.0.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[0]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.0.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[0]
 
   tags = {
     Name = %[1]q
@@ -226,9 +214,9 @@ resource "aws_subnet" "sub1" {
 }
 
 resource "aws_subnet" "sub2" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "${data.aws_availability_zones.azs.names[1]}"
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.azs.names[1]
 
   tags = {
     Name = %[1]q
@@ -243,9 +231,9 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
-  enable_deletion_protection  = false
+  enable_deletion_protection = false
 
   tags = {
     Name        = %[1]q
@@ -254,8 +242,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 }
 `, rName, description)
 }
@@ -266,12 +254,12 @@ data "aws_ami" "amzn-linux" {
   most_recent = true
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn2-ami-hvm-2.0*"]
   }
 
   filter {
-    name = "architecture"
+    name   = "architecture"
     values = ["x86_64"]
   }
 
@@ -279,9 +267,9 @@ data "aws_ami" "amzn-linux" {
 }
 
 resource "aws_instance" "src" {
-  ami = "${data.aws_ami.amzn-linux.id}"
+  ami           = data.aws_ami.amzn-linux.id
   instance_type = "t2.micro"
-  subnet_id = "${aws_subnet.sub1.id}"
+  subnet_id     = aws_subnet.sub1.id
 
   tags = {
     Name = %[1]q
@@ -289,8 +277,8 @@ resource "aws_instance" "src" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_interface_id = "${aws_instance.src.primary_network_interface_id}"
+  description          = %[2]q
+  network_interface_id = aws_instance.src.primary_network_interface_id
 }
 `, rName, description)
 }
@@ -301,9 +289,9 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
-  enable_deletion_protection  = false
+  enable_deletion_protection = false
 
   tags = {
     Name        = %[1]q
@@ -312,8 +300,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 
   tags = {
     %[3]q = %[4]q
@@ -328,9 +316,9 @@ resource "aws_lb" "lb" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.sub1.id}", "${aws_subnet.sub2.id}"]
+  subnets            = [aws_subnet.sub1.id, aws_subnet.sub2.id]
 
-  enable_deletion_protection  = false
+  enable_deletion_protection = false
 
   tags = {
     Name        = %[1]q
@@ -339,8 +327,8 @@ resource "aws_lb" "lb" {
 }
 
 resource "aws_ec2_traffic_mirror_target" "test" {
-  description = %[2]q
-  network_load_balancer_arn = "${aws_lb.lb.arn}"
+  description               = %[2]q
+  network_load_balancer_arn = aws_lb.lb.arn
 
   tags = {
     %[3]q = %[4]q

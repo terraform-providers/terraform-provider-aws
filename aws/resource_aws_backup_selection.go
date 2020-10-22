@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/backup"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsBackupSelection() *schema.Resource {
@@ -145,7 +145,8 @@ func resourceAwsBackupSelectionRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := conn.GetBackupSelection(input)
-	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") {
+	if isAWSErr(err, backup.ErrCodeResourceNotFoundException, "") ||
+		isAWSErr(err, backup.ErrCodeInvalidParameterValueException, "Cannot find Backup plan") {
 		log.Printf("[WARN] Backup Selection (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil

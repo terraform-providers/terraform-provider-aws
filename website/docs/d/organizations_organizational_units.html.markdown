@@ -26,6 +26,6 @@ data "aws_organizations_organizational_units" "ou" {
 ## Attributes Reference
 
 * `children` - List of child organizational units, which have the following attributes:
-  * `arn` - ARN of the organizational unit
-  * `name` - Name of the organizational unit
-  * `id` - ID of the organizational unit
+    * `arn` - ARN of the organizational unit
+    * `name` - Name of the organizational unit
+    * `id` - ID of the organizational unit

@@ -29,8 +29,8 @@ Certificates][2] in AWS Documentation.
 ```hcl
 resource "aws_iam_server_certificate" "test_cert" {
   name             = "some_test_cert"
-  certificate_body = "${file("self-ca-cert.pem")}"
-  private_key      = "${file("test-key.pem")}"
+  certificate_body = file("self-ca-cert.pem")
+  private_key      = file("test-key.pem")
 }
 ```
 
@@ -66,8 +66,8 @@ dependant resources before attempting to destroy the old version.
 ```hcl
 resource "aws_iam_server_certificate" "test_cert" {
   name_prefix      = "example-cert"
-  certificate_body = "${file("self-ca-cert.pem")}"
-  private_key      = "${file("test-key.pem")}"
+  certificate_body = file("self-ca-cert.pem")
+  private_key      = file("test-key.pem")
 
   lifecycle {
     create_before_destroy = true
@@ -84,7 +84,7 @@ resource "aws_elb" "ourapp" {
     instance_protocol  = "http"
     lb_port            = 443
     lb_protocol        = "https"
-    ssl_certificate_id = "${aws_iam_server_certificate.test_cert.arn}"
+    ssl_certificate_id = aws_iam_server_certificate.test_cert.arn
   }
 }
 ```

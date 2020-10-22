@@ -18,7 +18,7 @@ Provides an VPC subnet resource.
 
 ```hcl
 resource "aws_subnet" "main" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
 
   tags = {
@@ -34,12 +34,12 @@ resource, it is recommended to reference that resource's `vpc_id` attribute to e
 
 ```hcl
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  vpc_id     = "${aws_vpc.main.id}"
+  vpc_id     = aws_vpc.main.id
   cidr_block = "172.2.0.0/16"
 }
 
 resource "aws_subnet" "in_secondary_cidr" {
-  vpc_id     = "${aws_vpc_ipv4_cidr_block_association.secondary_cidr.vpc_id}"
+  vpc_id     = aws_vpc_ipv4_cidr_block_association.secondary_cidr.vpc_id
   cidr_block = "172.2.0.0/24"
 }
 ```
@@ -56,11 +56,12 @@ The following arguments are supported:
 * `map_public_ip_on_launch` -  (Optional) Specify true to indicate
     that instances launched into the subnet should be assigned
     a public IP address. Default is `false`.
+* `outpost_arn` - (Optional) The Amazon Resource Name (ARN) of the Outpost.
 * `assign_ipv6_address_on_creation` - (Optional) Specify true to indicate
     that network interfaces created in the specified subnet should be
     assigned an IPv6 address. Default is `false`
 * `vpc_id` - (Required) The VPC ID.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

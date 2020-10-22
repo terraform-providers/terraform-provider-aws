@@ -20,12 +20,12 @@ resource "aws_glue_trigger" "example" {
   type = "CONDITIONAL"
 
   actions {
-    job_name = "${aws_glue_job.example1.name}"
+    job_name = aws_glue_job.example1.name
   }
 
   predicate {
     conditions {
-      job_name = "${aws_glue_job.example2.name}"
+      job_name = aws_glue_job.example2.name
       state    = "SUCCEEDED"
     }
   }
@@ -40,7 +40,7 @@ resource "aws_glue_trigger" "example" {
   type = "ON_DEMAND"
 
   actions {
-    job_name = "${aws_glue_job.example.name}"
+    job_name = aws_glue_job.example.name
   }
 }
 ```
@@ -54,7 +54,7 @@ resource "aws_glue_trigger" "example" {
   type     = "SCHEDULED"
 
   actions {
-    job_name = "${aws_glue_job.example.name}"
+    job_name = aws_glue_job.example.name
   }
 }
 ```
@@ -69,19 +69,19 @@ resource "aws_glue_trigger" "example" {
   type = "CONDITIONAL"
 
   actions {
-    crawler_name = "${aws_glue_crawler.example1.name}"
+    crawler_name = aws_glue_crawler.example1.name
   }
 
   predicate {
     conditions {
-      job_name = "${aws_glue_job.example2.name}"
+      job_name = aws_glue_job.example2.name
       state    = "SUCCEEDED"
     }
   }
 }
 ```
 
-### Conditional Trigger with Crawler Condition 
+### Conditional Trigger with Crawler Condition
 
 **Note:** Triggers can have both a crawler action and a crawler condition, just no example provided.
 
@@ -91,12 +91,12 @@ resource "aws_glue_trigger" "example" {
   type = "CONDITIONAL"
 
   actions {
-    job_name = "${aws_glue_job.example1.name}"
+    job_name = aws_glue_job.example1.name
   }
 
   predicate {
     conditions {
-      crawler_name = "${aws_glue_crawler.example2.name}"
+      crawler_name = aws_glue_crawler.example2.name
       crawl_state  = "SUCCEEDED"
     }
   }
@@ -113,7 +113,7 @@ The following arguments are supported:
 * `name` – (Required) The name of the trigger.
 * `predicate` – (Optional) A predicate to specify when the new trigger should fire. Required when trigger type is `CONDITIONAL`. Defined below.
 * `schedule` – (Optional) A cron expression used to specify the schedule. [Time-Based Schedules for Jobs and Crawlers](https://docs.aws.amazon.com/glue/latest/dg/monitor-data-warehouse-schedule.html)
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 * `type` – (Required) The type of trigger. Valid values are `CONDITIONAL`, `ON_DEMAND`, and `SCHEDULED`.
 * `workflow_name` - (Optional) A workflow to which the trigger should be associated to. Every workflow graph (DAG) needs a starting trigger (`ON_DEMAND` or `SCHEDULED` type) and can contain multiple additional `CONDITIONAL` triggers.
 

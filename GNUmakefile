@@ -1,10 +1,10 @@
 SWEEP?=us-east-1,us-west-2
 TEST?=./...
 SWEEP_DIR?=./aws
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=aws
-WEBSITE_REPO=github.com/hashicorp/terraform-website
 TEST_COUNT?=1
+ACCTEST_TIMEOUT?=120m
+ACCTEST_PARALLELISM?=20
 
 default: build
 
@@ -13,6 +13,7 @@ build: fmtcheck
 
 gen:
 	rm -f aws/internal/keyvaluetags/*_gen.go
+	rm -f aws/internal/service/**/lister/*_gen.go
 	go generate ./...
 
 sweep:
@@ -23,11 +24,21 @@ test: fmtcheck
 	go test $(TEST) $(TESTARGS) -timeout=120s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count $(TEST_COUNT) -parallel 20 $(TESTARGS) -timeout 120m
+	@if [ "$(TESTARGS)" = "-run=TestAccXXX" ]; then \
+		echo ""; \
+		echo "Error: Skipping example acceptance testing pattern. Update TESTARGS to match the test naming in the relevant *_test.go file."; \
+		echo ""; \
+		echo "For example if updating aws/resource_aws_acm_certificate.go, use the test names in aws/resource_aws_acm_certificate_test.go starting with TestAcc and up to the underscore:"; \
+		echo "make testacc TESTARGS='-run=TestAccAWSAcmCertificate_'"; \
+		echo ""; \
+		echo "See the contributing guide for more information: https://github.com/terraform-providers/terraform-provider-aws/blob/master/docs/contributing/running-and-writing-acceptance-tests.md"; \
+		exit 1; \
+	fi
+	TF_ACC=1 go test ./$(PKG_NAME) -v -count $(TEST_COUNT) -parallel $(ACCTEST_PARALLELISM) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT)
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./$(PKG_NAME)
+	gofmt -s -w ./$(PKG_NAME) $(filter-out ./awsproviderlint/go% ./awsproviderlint/README.md ./awsproviderlint/vendor, $(wildcard ./awsproviderlint/*))
 
 # Currently required by tf-deploy compile
 fmtcheck:
@@ -44,10 +55,22 @@ depscheck:
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
 		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
-	@echo "==> Checking source code with go mod vendor..."
-	@go mod vendor
-	@git diff --compact-summary --exit-code -- vendor || \
-		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
+
+docs-lint:
+	@echo "==> Checking docs against linters..."
+	@misspell -error -source=text docs/ || (echo; \
+		echo "Unexpected misspelling found in docs files."; \
+		echo "To automatically fix the misspelling, run 'make docs-lint-fix' and commit the changes."; \
+		exit 1)
+	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli docs/ || (echo; \
+		echo "Unexpected issues found in docs Markdown files."; \
+		echo "To apply any automatic fixes, run 'make docs-lint-fix' and commit the changes."; \
+		exit 1)
+
+docs-lint-fix:
+	@echo "==> Applying automatic docs linter fixes..."
+	@misspell -w -source=text docs/
+	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli --fix docs/
 
 docscheck:
 	@tfproviderdocs check \
@@ -56,21 +79,35 @@ docscheck:
 		-require-resource-subcategory
 	@misspell -error -source text CHANGELOG.md
 
-lint:
-	@echo "==> Checking source code against linters..."
+lint: golangci-lint awsproviderlint
+
+golangci-lint:
 	@golangci-lint run ./$(PKG_NAME)/...
+
+awsproviderlint:
 	@awsproviderlint \
 		-c 1 \
 		-AT001 \
 		-AT002 \
+		-AT003 \
 		-AT005 \
 		-AT006 \
 		-AT007 \
 		-AT008 \
+		-AWSAT001 \
+		-AWSAT002 \
+		-AWSAT004 \
 		-AWSR001 \
+		-AWSR002 \
 		-R002 \
+		-R003 \
 		-R004 \
+		-R005 \
 		-R006 \
+		-R007 \
+		-R008 \
+		-R009 \
+		-R011 \
 		-R012 \
 		-R013 \
 		-R014 \
@@ -79,6 +116,7 @@ lint:
 		-S003 \
 		-S004 \
 		-S005 \
+		-S006 \
 		-S007 \
 		-S008 \
 		-S009 \
@@ -90,9 +128,13 @@ lint:
 		-S015 \
 		-S016 \
 		-S017 \
+		-S018 \
 		-S019 \
 		-S020 \
 		-S021 \
+		-S022 \
+		-S023 \
+		-S024 \
 		-S025 \
 		-S026 \
 		-S027 \
@@ -109,17 +151,19 @@ lint:
 		-V002 \
 		-V003 \
 		-V004 \
+		-V005 \
 		-V006 \
 		-V007 \
 		-V008 \
 		./$(PKG_NAME)
 
 tools:
-	GO111MODULE=on go install ./awsproviderlint
-	GO111MODULE=on go install github.com/bflad/tfproviderdocs
-	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	GO111MODULE=on go install github.com/katbyte/terrafmt
+	cd awsproviderlint && GO111MODULE=on go install .
+	cd tools && GO111MODULE=on go install github.com/bflad/tfproviderdocs
+	cd tools && GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
+	cd tools && GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd tools && GO111MODULE=on go install github.com/katbyte/terrafmt
+	cd tools && GO111MODULE=on go install github.com/terraform-linters/tflint
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -129,12 +173,8 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+website-link-check:
+	@scripts/markdown-link-check.sh
 
 website-lint:
 	@echo "==> Checking website against linters..."
@@ -158,12 +198,4 @@ website-lint-fix:
 	@docker run -v $(PWD):/markdown 06kellyjac/markdownlint-cli --fix website/docs/
 	@terrafmt fmt ./website --pattern '*.markdown'
 
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-lint-fix website-test depscheck docscheck
-
+.PHONY: awsproviderlint build gen golangci-lint sweep test testacc fmt fmtcheck lint tools test-compile website-link-check website-lint website-lint-fix depscheck docscheck

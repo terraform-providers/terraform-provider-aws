@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "b" {
 resource "aws_s3_bucket" "b" {
   bucket = "s3-website-test.hashicorp.com"
   acl    = "public-read"
-  policy = "${file("policy.json")}"
+  policy = file("policy.json")
 
   website {
     index_document = "index.html"
@@ -95,7 +95,7 @@ resource "aws_s3_bucket" "b" {
   acl    = "private"
 
   logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
+    target_bucket = aws_s3_bucket.log_bucket.id
     target_prefix = "log/"
   }
 }
@@ -247,13 +247,12 @@ POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "replication" {
-  role       = "${aws_iam_role.replication.name}"
-  policy_arn = "${aws_iam_policy.replication.arn}"
+  role       = aws_iam_role.replication.name
+  policy_arn = aws_iam_policy.replication.arn
 }
 
 resource "aws_s3_bucket" "destination" {
   bucket = "tf-test-bucket-destination-12345"
-  region = "eu-west-1"
 
   versioning {
     enabled = true
@@ -261,17 +260,16 @@ resource "aws_s3_bucket" "destination" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  provider = "aws.central"
+  provider = aws.central
   bucket   = "tf-test-bucket-12345"
   acl      = "private"
-  region   = "eu-central-1"
 
   versioning {
     enabled = true
   }
 
   replication_configuration {
-    role = "${aws_iam_role.replication.arn}"
+    role = aws_iam_role.replication.arn
 
     rules {
       id     = "foobar"
@@ -279,7 +277,7 @@ resource "aws_s3_bucket" "bucket" {
       status = "Enabled"
 
       destination {
-        bucket        = "${aws_s3_bucket.destination.arn}"
+        bucket        = aws_s3_bucket.destination.arn
         storage_class = "STANDARD"
       }
     }
@@ -301,7 +299,7 @@ resource "aws_s3_bucket" "mybucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "${aws_kms_key.mykey.arn}"
+        kms_master_key_id = aws_kms_key.mykey.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -318,7 +316,7 @@ resource "aws_s3_bucket" "bucket" {
   bucket = "mybucket"
 
   grant {
-    id          = "${data.aws_canonical_user_id.current_user.id}"
+    id          = data.aws_canonical_user_id.current_user.id
     type        = "CanonicalUser"
     permissions = ["FULL_CONTROL"]
   }
@@ -341,7 +339,7 @@ The following arguments are supported:
 * `grant` - (Optional) An [ACL policy grant](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#sample-acl) (documented below). Conflicts with `acl`.
 * `policy` - (Optional) A valid [bucket policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) JSON document. Note that if the policy document is not specific enough (but still valid), Terraform may view the policy as constantly changing in a `terraform plan`. In this case, please make sure you use the verbose/specific version of the policy. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 
-* `tags` - (Optional) A mapping of tags to assign to the bucket.
+* `tags` - (Optional) A map of tags to assign to the bucket.
 * `force_destroy` - (Optional, Default:`false`) A boolean that indicates all objects (including any [locked objects](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock-overview.html)) should be deleted from the bucket so that the bucket can be destroyed without error. These objects are *not* recoverable.
 * `website` - (Optional) A website object (documented below).
 * `cors_rule` - (Optional) A rule of [Cross-Origin Resource Sharing](https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html) (documented below).
@@ -349,7 +347,6 @@ The following arguments are supported:
 * `logging` - (Optional) A settings of [bucket logging](https://docs.aws.amazon.com/AmazonS3/latest/UG/ManagingBucketLogging.html) (documented below).
 * `lifecycle_rule` - (Optional) A configuration of [object lifecycle management](http://docs.aws.amazon.com/AmazonS3/latest/dev/object-lifecycle-mgmt.html) (documented below).
 * `acceleration_status` - (Optional) Sets the accelerate configuration of an existing bucket. Can be `Enabled` or `Suspended`.
-* `region` - (Optional) If specified, the AWS region this bucket should reside in. Otherwise, the region used by the callee.
 * `request_payer` - (Optional) Specifies who should bear the cost of Amazon S3 data transfer.
 Can be either `BucketOwner` or `Requester`. By default, the owner of the S3 bucket would incur
 the costs of any data transfer. See [Requester Pays Buckets](http://docs.aws.amazon.com/AmazonS3/latest/dev/RequesterPaysBuckets.html)
@@ -379,7 +376,7 @@ The `CORS` object supports the following:
 The `versioning` object supports the following:
 
 * `enabled` - (Optional) Enable versioning. Once you version-enable a bucket, it can never return to an unversioned state. You can, however, suspend versioning on that bucket.
-* `mfa_delete` - (Optional) Enable MFA delete for either `Change the versioning state of your bucket` or `Permanently delete an object version`. Default is `false`.
+* `mfa_delete` - (Optional) Enable MFA delete for either `Change the versioning state of your bucket` or `Permanently delete an object version`. Default is `false`. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS
 
 The `logging` object supports the following:
 
@@ -414,12 +411,12 @@ The `transition` object supports the following
 
 The `noncurrent_version_expiration` object supports the following
 
-* `days` (Required) Specifies the number of days an object is noncurrent object versions expire.
+* `days` (Required) Specifies the number of days noncurrent object versions expire.
 
 The `noncurrent_version_transition` object supports the following
 
-* `days` (Required) Specifies the number of days an object is noncurrent object versions expire.
-* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent versions object to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, `GLACIER`, or `DEEP_ARCHIVE`.
+* `days` (Required) Specifies the number of days noncurrent object versions transition.
+* `storage_class` (Required) Specifies the Amazon S3 storage class to which you want the noncurrent object versions to transition. Can be `ONEZONE_IA`, `STANDARD_IA`, `INTELLIGENT_TIERING`, `GLACIER`, or `DEEP_ARCHIVE`.
 
 The `replication_configuration` object supports the following:
 
@@ -465,7 +462,7 @@ The `sse_kms_encrypted_objects` object supports the following:
 The `filter` object supports the following:
 
 * `prefix` - (Optional) Object keyname prefix that identifies subset of objects to which the rule applies.
-* `tags` - (Optional)  A mapping of tags that identifies subset of objects to which the rule applies.
+* `tags` - (Optional)  A map of tags that identifies subset of objects to which the rule applies.
 The rule applies only to objects having all the tags in its tagset.
 
 The `server_side_encryption_configuration` object supports the following:
@@ -533,3 +530,5 @@ S3 bucket can be imported using the `bucket`, e.g.
 ```
 $ terraform import aws_s3_bucket.bucket bucket-name
 ```
+
+The `policy` argument is not imported and will be deprecated in a future version 3.x of the Terraform AWS Provider for removal in version 4.0. Use the [`aws_s3_bucket_policy` resource](/docs/providers/aws/r/s3_bucket_policy.html) to manage the S3 Bucket Policy instead.

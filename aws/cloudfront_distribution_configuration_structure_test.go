@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func defaultCacheBehaviorConf() map[string]interface{} {
@@ -35,12 +35,12 @@ func lambdaFunctionAssociationsConf() *schema.Set {
 	x := []interface{}{
 		map[string]interface{}{
 			"event_type":   "viewer-request",
-			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function1:alias",
+			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function1:alias", //lintignore:AWSAT003,AWSAT005
 			"include_body": true,
 		},
 		map[string]interface{}{
 			"event_type":   "origin-response",
-			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function2:alias",
+			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function2:alias", //lintignore:AWSAT003,AWSAT005
 			"include_body": true,
 		},
 	}
@@ -257,7 +257,7 @@ func viewerCertificateConfSetIAM() map[string]interface{} {
 
 func viewerCertificateConfSetACM() map[string]interface{} {
 	return map[string]interface{}{
-		"acm_certificate_arn":            "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+		"acm_certificate_arn":            "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012", //lintignore:AWSAT003,AWSAT005
 		"cloudfront_default_certificate": false,
 		"iam_certificate_id":             "",
 		"ssl_support_method":             "sni-only",
@@ -991,8 +991,10 @@ func TestCloudFrontStructure_expandViewerCertificate_iam_certificate_id(t *testi
 func TestCloudFrontStructure_expandViewerCertificate_acm_certificate_arn(t *testing.T) {
 	data := viewerCertificateConfSetACM()
 	vc := expandViewerCertificate(data)
+
+	// lintignore:AWSAT003,AWSAT005
 	if *vc.ACMCertificateArn != "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012" {
-		t.Fatalf("Expected ACMCertificateArn to be arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012, got %v", *vc.ACMCertificateArn)
+		t.Fatalf("Expected ACMCertificateArn to be arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012, got %v", *vc.ACMCertificateArn) // lintignore:AWSAT003,AWSAT005
 	}
 	if vc.CloudFrontDefaultCertificate != nil {
 		t.Fatalf("Expected CloudFrontDefaultCertificate to be unset, got %v", *vc.CloudFrontDefaultCertificate)

@@ -9,10 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsDxHostedPrivateVirtualInterface_basic(t *testing.T) {
@@ -28,8 +28,8 @@ func TestAccAwsDxHostedPrivateVirtualInterface_basic(t *testing.T) {
 	accepterResourceName := "aws_dx_hosted_private_virtual_interface_accepter.test"
 	vpnGatewayResourceName := "aws_vpn_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-private-vif-%s", acctest.RandString(9))
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -86,8 +86,8 @@ func TestAccAwsDxHostedPrivateVirtualInterface_AccepterTags(t *testing.T) {
 	accepterResourceName := "aws_dx_hosted_private_virtual_interface_accepter.test"
 	vpnGatewayResourceName := "aws_vpn_gateway.test"
 	rName := fmt.Sprintf("tf-testacc-private-vif-%s", acctest.RandString(9))
-	bgpAsn := randIntRange(64512, 65534)
-	vlan := randIntRange(2049, 4094)
+	bgpAsn := acctest.RandIntRange(64512, 65534)
+	vlan := acctest.RandIntRange(2049, 4094)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -169,21 +169,21 @@ resource "aws_dx_hosted_private_virtual_interface" "test" {
   bgp_asn          = %[3]d
   connection_id    = %[1]q
   name             = %[2]q
-  owner_account_id = "${data.aws_caller_identity.accepter.account_id}"
+  owner_account_id = data.aws_caller_identity.accepter.account_id
   vlan             = %[4]d
 
   # The aws_dx_hosted_private_virtual_interface
   # must be destroyed before the aws_vpn_gateway.
-  depends_on = ["aws_vpn_gateway.test"]
+  depends_on = [aws_vpn_gateway.test]
 }
 
 # Accepter
 data "aws_caller_identity" "accepter" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 }
 
 resource "aws_vpn_gateway" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
   tags = {
     Name = %[2]q
@@ -193,23 +193,23 @@ resource "aws_vpn_gateway" "test" {
 }
 
 func testAccDxHostedPrivateVirtualInterfaceConfig_basic(cid, rName string, bgpAsn, vlan int) string {
-	return testAccDxHostedPrivateVirtualInterfaceConfig_base(cid, rName, bgpAsn, vlan) + fmt.Sprintf(`
+	return testAccDxHostedPrivateVirtualInterfaceConfig_base(cid, rName, bgpAsn, vlan) + `
 resource "aws_dx_hosted_private_virtual_interface_accepter" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  virtual_interface_id = "${aws_dx_hosted_private_virtual_interface.test.id}"
-  vpn_gateway_id       = "${aws_vpn_gateway.test.id}"
+  virtual_interface_id = aws_dx_hosted_private_virtual_interface.test.id
+  vpn_gateway_id       = aws_vpn_gateway.test.id
 }
-`)
+`
 }
 
 func testAccDxHostedPrivateVirtualInterfaceConfig_accepterTags(cid, rName string, bgpAsn, vlan int) string {
 	return testAccDxHostedPrivateVirtualInterfaceConfig_base(cid, rName, bgpAsn, vlan) + fmt.Sprintf(`
 resource "aws_dx_hosted_private_virtual_interface_accepter" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  virtual_interface_id = "${aws_dx_hosted_private_virtual_interface.test.id}"
-  vpn_gateway_id       = "${aws_vpn_gateway.test.id}"
+  virtual_interface_id = aws_dx_hosted_private_virtual_interface.test.id
+  vpn_gateway_id       = aws_vpn_gateway.test.id
 
   tags = {
     Name = %[1]q
@@ -223,10 +223,10 @@ resource "aws_dx_hosted_private_virtual_interface_accepter" "test" {
 func testAccDxHostedPrivateVirtualInterfaceConfig_accepterTagsUpdated(cid, rName string, bgpAsn, vlan int) string {
 	return testAccDxHostedPrivateVirtualInterfaceConfig_base(cid, rName, bgpAsn, vlan) + fmt.Sprintf(`
 resource "aws_dx_hosted_private_virtual_interface_accepter" "test" {
-  provider = "aws.alternate"
+  provider = "awsalternate"
 
-  virtual_interface_id = "${aws_dx_hosted_private_virtual_interface.test.id}"
-  vpn_gateway_id       = "${aws_vpn_gateway.test.id}"
+  virtual_interface_id = aws_dx_hosted_private_virtual_interface.test.id
+  vpn_gateway_id       = aws_vpn_gateway.test.id
 
   tags = {
     Name = %[1]q

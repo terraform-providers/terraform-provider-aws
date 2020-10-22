@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsSecretsManagerSecretVersion() *schema.Resource {
@@ -21,7 +21,6 @@ func dataSourceAwsSecretsManagerSecretVersion() *schema.Resource {
 			"secret_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"secret_string": {
 				Type:      schema.TypeString,

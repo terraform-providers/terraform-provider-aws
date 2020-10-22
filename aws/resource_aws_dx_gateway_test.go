@@ -3,15 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -124,7 +123,7 @@ func TestAccAwsDxGateway_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAwsDxGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDxGatewayConfig(acctest.RandString(5), randIntRange(64512, 65534)),
+				Config: testAccDxGatewayConfig(acctest.RandString(5), acctest.RandIntRange(64512, 65534)),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsDxGatewayExists(resourceName),
 					testAccCheckResourceAttrAccountID(resourceName, "owner_account_id"),
@@ -140,16 +139,9 @@ func TestAccAwsDxGateway_basic(t *testing.T) {
 }
 
 func TestAccAwsDxGateway_complex(t *testing.T) {
-	checkFn := func(s []*terraform.InstanceState) error {
-		if len(s) != 3 {
-			return fmt.Errorf("Got %d resources, expected 3. State: %#v", len(s), s)
-		}
-		return nil
-	}
-
 	rName1 := fmt.Sprintf("terraform-testacc-dxgwassoc-%d", acctest.RandInt())
 	rName2 := fmt.Sprintf("terraform-testacc-dxgwassoc-%d", acctest.RandInt())
-	rBgpAsn := randIntRange(64512, 65534)
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_dx_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,7 +159,6 @@ func TestAccAwsDxGateway_complex(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateCheck:  checkFn,
 				ImportStateVerify: true,
 			},
 		},
@@ -217,13 +208,4 @@ resource "aws_dx_gateway" "test" {
   amazon_side_asn = "%d"
 }
 `, rName, rBgpAsn)
-}
-
-// Local copy of acctest.RandIntRange until https://github.com/hashicorp/terraform/pull/17438 is merged.
-func randIntRange(min int, max int) int {
-	rand.Seed(time.Now().UTC().UnixNano())
-	source := rand.New(rand.NewSource(time.Now().UnixNano()))
-	rangeMax := max - min
-
-	return int(source.Int31n(int32(rangeMax))) + min
 }

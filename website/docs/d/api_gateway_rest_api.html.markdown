@@ -9,8 +9,8 @@ description: |-
 # Data Source: aws_api_gateway_rest_api
 
 Use this data source to get the id and root_resource_id of a REST API in
-API Gateway. To fetch the REST API you must provide a name to match against. 
-As there is no unique name constraint on REST APIs this data source will 
+API Gateway. To fetch the REST API you must provide a name to match against.
+As there is no unique name constraint on REST APIs this data source will
 error if there is more than one match.
 
 ## Example Usage
@@ -37,4 +37,4 @@ data "aws_api_gateway_rest_api" "my_rest_api" {
 * `minimum_compression_size` - Minimum response size to compress for the REST API.
 * `policy` - JSON formatted policy document that controls access to the API Gateway.
 * `root_resource_id` - Set to the ID of the API Gateway Resource on the found REST API where the route matches '/'.
-* `tags` - Key-value mapping of resource tags.
+* `tags` - Key-value map of resource tags.

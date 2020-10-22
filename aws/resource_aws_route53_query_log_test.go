@@ -2,19 +2,73 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSRoute53QueryLog_Basic(t *testing.T) {
+func init() {
+	resource.AddTestSweepers("aws_route53_query_log", &resource.Sweeper{
+		Name: "aws_route53_query_log",
+		F:    testSweepRoute53QueryLogs,
+	})
+}
+
+func testSweepRoute53QueryLogs(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).r53conn
+	var sweeperErrs *multierror.Error
+
+	err = conn.ListQueryLoggingConfigsPages(&route53.ListQueryLoggingConfigsInput{}, func(page *route53.ListQueryLoggingConfigsOutput, isLast bool) bool {
+		if page == nil {
+			return !isLast
+		}
+
+		for _, queryLoggingConfig := range page.QueryLoggingConfigs {
+			id := aws.StringValue(queryLoggingConfig.Id)
+
+			log.Printf("[INFO] Deleting Route53 query logging configuration: %s", id)
+			_, err := conn.DeleteQueryLoggingConfig(&route53.DeleteQueryLoggingConfigInput{
+				Id: aws.String(id),
+			})
+			if isAWSErr(err, route53.ErrCodeNoSuchQueryLoggingConfig, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting Route53 query logging configuration (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !isLast
+	})
+	// In unsupported AWS partitions, the API may return an error even the SDK cannot handle.
+	// Reference: https://github.com/aws/aws-sdk-go/issues/3313
+	if testSweepSkipSweepError(err) || isAWSErr(err, "SerializationError", "failed to unmarshal error message") || isAWSErr(err, "AccessDeniedException", "Unable to determine service/operation name to be authorized") {
+		log.Printf("[WARN] Skipping Route53 query logging configurations sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Route53 query logging configurations: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
+
+func TestAccAWSRoute53QueryLog_basic(t *testing.T) {
 	// The underlying resources are sensitive to where they are located
 	// Use us-east-1 for testing
 	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
@@ -125,7 +179,7 @@ data "aws_iam_policy_document" "test" {
 
 resource "aws_cloudwatch_log_resource_policy" "test" {
   policy_name     = "%[1]s"
-  policy_document = "${data.aws_iam_policy_document.test.json}"
+  policy_document = data.aws_iam_policy_document.test.json
 }
 
 resource "aws_route53_zone" "test" {
@@ -133,10 +187,10 @@ resource "aws_route53_zone" "test" {
 }
 
 resource "aws_route53_query_log" "test" {
-  depends_on = ["aws_cloudwatch_log_resource_policy.test"]
+  depends_on = [aws_cloudwatch_log_resource_policy.test]
 
-  cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.test.arn}"
-  zone_id                  = "${aws_route53_zone.test.zone_id}"
+  cloudwatch_log_group_arn = aws_cloudwatch_log_group.test.arn
+  zone_id                  = aws_route53_zone.test.zone_id
 }
 `, rName)
 }

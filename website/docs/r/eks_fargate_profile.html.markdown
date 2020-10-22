@@ -61,7 +61,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 
 ### selector Configuration Block
 
@@ -71,7 +71,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `labels` - (Optional) Key-value mapping of Kubernetes labels for selection.
+* `labels` - (Optional) Key-value map of Kubernetes labels for selection.
 
 ## Attributes Reference
 

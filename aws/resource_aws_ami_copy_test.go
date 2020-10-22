@@ -2,13 +2,14 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAMICopy_basic(t *testing.T) {
@@ -26,6 +27,7 @@ func TestAccAWSAMICopy_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAMICopyExists(resourceName, &image),
 					testAccCheckAWSAMICopyAttributes(&image, rName),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "ec2", regexp.MustCompile(`image/ami-.+`)),
 				),
 			},
 		},
@@ -181,10 +183,10 @@ func testAccCheckAWSAMICopyDestroy(s *terraform.State) error {
 
 func testAccCheckAWSAMICopyAttributes(image *ec2.Image, expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if expected := "available"; aws.StringValue(image.State) != expected {
+		if expected := ec2.ImageStateAvailable; aws.StringValue(image.State) != expected {
 			return fmt.Errorf("invalid image state; expected %s, got %s", expected, aws.StringValue(image.State))
 		}
-		if expected := "machine"; aws.StringValue(image.ImageType) != expected {
+		if expected := ec2.ImageTypeValuesMachine; aws.StringValue(image.ImageType) != expected {
 			return fmt.Errorf("wrong image type; expected %s, got %s", expected, aws.StringValue(image.ImageType))
 		}
 		if expected := expectedName; aws.StringValue(image.Name) != expected {
@@ -209,7 +211,7 @@ func testAccCheckAWSAMICopyAttributes(image *ec2.Image, expectedName string) res
 	}
 }
 
-func testAccAWSAMICopyConfigBase() string {
+func testAccAWSAMICopyConfigBase(rName string) string {
 	return fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
@@ -219,29 +221,30 @@ data "aws_availability_zones" "available" {
     values = ["opt-in-not-required"]
   }
 }
+
 data "aws_region" "current" {}
 
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
 
   tags = {
-    Name = "tf-acc-test-ami-copy"
+    Name = %[1]q
   }
 }
 
 resource "aws_ebs_snapshot" "test" {
-  volume_id = "${aws_ebs_volume.test.id}"
+  volume_id = aws_ebs_volume.test.id
 
   tags = {
-    Name = "tf-acc-test-ami-copy"
+    Name = %[1]q
   }
 }
-`)
+`, rName)
 }
 
 func testAccAWSAMICopyConfigTags1(rName, tagKey1, tagValue1 string) string {
-	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+	return testAccAWSAMICopyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   name                = %[1]q
   virtualization_type = "hvm"
@@ -249,14 +252,14 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.test.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 
 resource "aws_ami_copy" "test" {
   name              = %[1]q
-  source_ami_id     = "${aws_ami.test.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = aws_ami.test.id
+  source_ami_region = data.aws_region.current.name
 
   tags = {
     %[2]q = %[3]q
@@ -266,7 +269,7 @@ resource "aws_ami_copy" "test" {
 }
 
 func testAccAWSAMICopyConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
-	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+	return testAccAWSAMICopyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   name                = %[1]q
   virtualization_type = "hvm"
@@ -274,14 +277,14 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.test.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 
 resource "aws_ami_copy" "test" {
   name              = %[1]q
-  source_ami_id     = "${aws_ami.test.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = aws_ami.test.id
+  source_ami_region = data.aws_region.current.name
 
   tags = {
     %[2]q = %[3]q
@@ -292,7 +295,7 @@ resource "aws_ami_copy" "test" {
 }
 
 func testAccAWSAMICopyConfig(rName string) string {
-	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+	return testAccAWSAMICopyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   name                = "%s-source"
   virtualization_type = "hvm"
@@ -300,20 +303,20 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.test.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 
 resource "aws_ami_copy" "test" {
   name              = %q
-  source_ami_id     = "${aws_ami.test.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = aws_ami.test.id
+  source_ami_region = data.aws_region.current.name
 }
 `, rName, rName)
 }
 
 func testAccAWSAMICopyConfigDescription(rName, description string) string {
-	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+	return testAccAWSAMICopyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   name                = "%s-source"
   virtualization_type = "hvm"
@@ -321,21 +324,21 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.test.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 
 resource "aws_ami_copy" "test" {
   description       = %q
   name              = %q
-  source_ami_id     = "${aws_ami.test.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = aws_ami.test.id
+  source_ami_region = data.aws_region.current.name
 }
 `, rName, description, rName)
 }
 
 func testAccAWSAMICopyConfigENASupport(rName string) string {
-	return testAccAWSAMICopyConfigBase() + fmt.Sprintf(`
+	return testAccAWSAMICopyConfigBase(rName) + fmt.Sprintf(`
 resource "aws_ami" "test" {
   ena_support         = true
   name                = "%s-source"
@@ -344,14 +347,14 @@ resource "aws_ami" "test" {
 
   ebs_block_device {
     device_name = "/dev/sda1"
-    snapshot_id = "${aws_ebs_snapshot.test.id}"
+    snapshot_id = aws_ebs_snapshot.test.id
   }
 }
 
 resource "aws_ami_copy" "test" {
-    name              = "%s-copy"
-    source_ami_id     = "${aws_ami.test.id}"
-    source_ami_region = "${data.aws_region.current.name}"
+  name              = "%s-copy"
+  source_ami_id     = aws_ami.test.id
+  source_ami_region = data.aws_region.current.name
 }
 `, rName, rName)
 }

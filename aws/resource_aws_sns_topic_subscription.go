@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -71,7 +71,7 @@ func resourceAwsSnsTopicSubscription() *schema.Resource {
 			"delivery_policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentSnsTopicSubscriptionDeliveryPolicy,
 			},
 			"raw_message_delivery": {
@@ -86,7 +86,7 @@ func resourceAwsSnsTopicSubscription() *schema.Resource {
 			"filter_policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
@@ -117,7 +117,7 @@ func resourceAwsSnsTopicSubscriptionCreate(d *schema.ResourceData, meta interfac
 	// Write the ARN to the 'arn' field for export
 	d.Set("arn", output.SubscriptionArn)
 
-	return resourceAwsSnsTopicSubscriptionUpdate(d, meta)
+	return resourceAwsSnsTopicSubscriptionRead(d, meta)
 }
 
 func resourceAwsSnsTopicSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -201,12 +201,37 @@ func resourceAwsSnsTopicSubscriptionDelete(d *schema.ResourceData, meta interfac
 	return err
 }
 
+// Assembles supplied attributes into a single map - empty/default values are excluded from the map
+func getResourceAttributes(d *schema.ResourceData) (output map[string]*string) {
+	delivery_policy := d.Get("delivery_policy").(string)
+	filter_policy := d.Get("filter_policy").(string)
+	raw_message_delivery := d.Get("raw_message_delivery").(bool)
+
+	// Collect attributes if available
+	attributes := map[string]*string{}
+
+	if delivery_policy != "" {
+		attributes["DeliveryPolicy"] = aws.String(delivery_policy)
+	}
+
+	if filter_policy != "" {
+		attributes["FilterPolicy"] = aws.String(filter_policy)
+	}
+
+	if raw_message_delivery {
+		attributes["RawMessageDelivery"] = aws.String(fmt.Sprintf("%t", raw_message_delivery))
+	}
+
+	return attributes
+}
+
 func subscribeToSNSTopic(d *schema.ResourceData, snsconn *sns.SNS) (output *sns.SubscribeOutput, err error) {
 	protocol := d.Get("protocol").(string)
 	endpoint := d.Get("endpoint").(string)
 	topic_arn := d.Get("topic_arn").(string)
 	endpoint_auto_confirms := d.Get("endpoint_auto_confirms").(bool)
 	confirmation_timeout_in_minutes := d.Get("confirmation_timeout_in_minutes").(int)
+	attributes := getResourceAttributes(d)
 
 	if strings.Contains(protocol, "http") && !endpoint_auto_confirms {
 		return nil, fmt.Errorf("Protocol http/https is only supported for endpoints which auto confirms!")
@@ -215,14 +240,15 @@ func subscribeToSNSTopic(d *schema.ResourceData, snsconn *sns.SNS) (output *sns.
 	log.Printf("[DEBUG] SNS create topic subscription: %s (%s) @ '%s'", endpoint, protocol, topic_arn)
 
 	req := &sns.SubscribeInput{
-		Protocol: aws.String(protocol),
-		Endpoint: aws.String(endpoint),
-		TopicArn: aws.String(topic_arn),
+		Protocol:   aws.String(protocol),
+		Endpoint:   aws.String(endpoint),
+		TopicArn:   aws.String(topic_arn),
+		Attributes: attributes,
 	}
 
 	output, err = snsconn.Subscribe(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating SNS topic: %s", err)
+		return nil, fmt.Errorf("Error creating SNS topic subscription: %s", err)
 	}
 
 	log.Printf("[DEBUG] Finished subscribing to topic %s with subscription arn %s", topic_arn, *output.SubscriptionArn)
@@ -235,18 +261,16 @@ func subscribeToSNSTopic(d *schema.ResourceData, snsconn *sns.SNS) (output *sns.
 
 			subscription, err := findSubscriptionByNonID(d, snsconn)
 
-			if subscription != nil {
-				output.SubscriptionArn = subscription.SubscriptionArn
-				return nil
-			}
-
 			if err != nil {
-				return resource.RetryableError(
-					fmt.Errorf("Error fetching subscriptions for SNS topic %s: %s", topic_arn, err))
+				return resource.NonRetryableError(err)
 			}
 
-			return resource.RetryableError(
-				fmt.Errorf("Endpoint (%s) did not autoconfirm the subscription for topic %s", endpoint, topic_arn))
+			if subscription == nil {
+				return resource.RetryableError(fmt.Errorf("Endpoint (%s) did not autoconfirm the subscription for topic %s", endpoint, topic_arn))
+			}
+
+			output.SubscriptionArn = subscription.SubscriptionArn
+			return nil
 		})
 
 		if isResourceTimeoutError(err) {
@@ -268,37 +292,52 @@ func subscribeToSNSTopic(d *schema.ResourceData, snsconn *sns.SNS) (output *sns.
 }
 
 // finds a subscription using protocol, endpoint and topic_arn (which is a key in sns subscription)
-func findSubscriptionByNonID(d *schema.ResourceData, snsconn *sns.SNS) (*sns.Subscription, error) {
+func findSubscriptionByNonID(d *schema.ResourceData, conn *sns.SNS) (*sns.Subscription, error) {
 	protocol := d.Get("protocol").(string)
 	endpoint := d.Get("endpoint").(string)
-	topic_arn := d.Get("topic_arn").(string)
+	topicARN := d.Get("topic_arn").(string)
 	obfuscatedEndpoint := obfuscateEndpoint(endpoint)
 
-	req := &sns.ListSubscriptionsByTopicInput{
-		TopicArn: aws.String(topic_arn),
+	input := &sns.ListSubscriptionsByTopicInput{
+		TopicArn: aws.String(topicARN),
 	}
+	var result *sns.Subscription
 
-	for {
-		res, err := snsconn.ListSubscriptionsByTopic(req)
-
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching subscriptions for topic %s : %s", topic_arn, err)
+	err := conn.ListSubscriptionsByTopicPages(input, func(page *sns.ListSubscriptionsByTopicOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
 
-		for _, subscription := range res.Subscriptions {
-			log.Printf("[DEBUG] check subscription with Subscription EndPoint %s (local: %s), Protocol %s, topicARN %s and SubscriptionARN %s", *subscription.Endpoint, obfuscatedEndpoint, *subscription.Protocol, *subscription.TopicArn, *subscription.SubscriptionArn)
-			if *subscription.Endpoint == obfuscatedEndpoint && *subscription.Protocol == protocol && *subscription.TopicArn == topic_arn && !subscriptionHasPendingConfirmation(subscription.SubscriptionArn) {
-				return subscription, nil
+		for _, subscription := range page.Subscriptions {
+			if subscription == nil {
+				continue
 			}
+
+			if aws.StringValue(subscription.Endpoint) != obfuscatedEndpoint {
+				continue
+			}
+
+			if aws.StringValue(subscription.Protocol) != protocol {
+				continue
+			}
+
+			if aws.StringValue(subscription.TopicArn) != topicARN {
+				continue
+			}
+
+			if subscriptionHasPendingConfirmation(subscription.SubscriptionArn) {
+				continue
+			}
+
+			result = subscription
+
+			return false
 		}
 
-		// if there are more than 100 subscriptions then go to the next 100 otherwise return an error
-		if res.NextToken != nil {
-			req.NextToken = res.NextToken
-		} else {
-			return nil, fmt.Errorf("Error finding subscription for topic %s with endpoint %s and protocol %s", topic_arn, endpoint, protocol)
-		}
-	}
+		return !lastPage
+	})
+
+	return result, err
 }
 
 // returns true if arn is nil or has both pending and confirmation words in the arn

@@ -6,9 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSWafRegionalGeoMatchSet_basic(t *testing.T) {
@@ -29,14 +30,14 @@ func TestAccAWSWafRegionalGeoMatchSet_basic(t *testing.T) {
 						resourceName, "name", geoMatchSet),
 					resource.TestCheckResourceAttr(
 						resourceName, "geo_match_constraint.#", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.384465307.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.384465307.value", "US"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1991628426.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1991628426.value", "CA"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "US",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "CA",
+					}),
 				),
 			},
 			{
@@ -129,14 +130,14 @@ func TestAccAWSWafRegionalGeoMatchSet_changeConstraints(t *testing.T) {
 						resourceName, "name", setName),
 					resource.TestCheckResourceAttr(
 						resourceName, "geo_match_constraint.#", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.384465307.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.384465307.value", "US"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1991628426.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1991628426.value", "CA"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "US",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "CA",
+					}),
 				),
 			},
 			{
@@ -147,14 +148,14 @@ func TestAccAWSWafRegionalGeoMatchSet_changeConstraints(t *testing.T) {
 						resourceName, "name", setName),
 					resource.TestCheckResourceAttr(
 						resourceName, "geo_match_constraint.#", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1174390936.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.1174390936.value", "RU"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.4046309957.type", "Country"),
-					resource.TestCheckResourceAttr(
-						resourceName, "geo_match_constraint.4046309957.value", "CN"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "RU",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "geo_match_constraint.*", map[string]string{
+						"type":  "Country",
+						"value": "CN",
+					}),
 				),
 			},
 			{

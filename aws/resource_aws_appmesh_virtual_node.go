@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -9,13 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsAppmeshVirtualNode() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsAppmeshVirtualNodeCreate,
 		Read:   resourceAwsAppmeshVirtualNodeRead,
@@ -43,6 +42,14 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 255),
 			},
 
+			"mesh_owner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAwsAccountId,
+			},
+
 			"spec": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -50,14 +57,6 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"backends": {
-							Type:     schema.TypeSet,
-							Removed:  "Use `backend` configuration blocks instead",
-							Optional: true,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-
 						"backend": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -67,8 +66,7 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"virtual_service": {
 										Type:     schema.TypeList,
-										Optional: true,
-										MinItems: 0,
+										Required: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -77,16 +75,29 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 													Required:     true,
 													ValidateFunc: validation.StringLenBetween(1, 255),
 												},
+
+												"client_policy": appmeshVirtualNodeClientPolicySchema(),
 											},
 										},
 									},
 								},
 							},
-							Set: appmeshVirtualNodeBackendHash,
+						},
+
+						"backend_defaults": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 0,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_policy": appmeshVirtualNodeClientPolicySchema(),
+								},
+							},
 						},
 
 						"listener": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 0,
 							MaxItems: 1,
@@ -120,16 +131,13 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 													Type:         schema.TypeInt,
 													Optional:     true,
 													Computed:     true,
-													ValidateFunc: validation.IntBetween(1, 65535),
+													ValidateFunc: validation.IsPortNumber,
 												},
 
 												"protocol": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														appmesh.PortProtocolHttp,
-														appmesh.PortProtocolTcp,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.PortProtocol_Values(), false),
 												},
 
 												"timeout_millis": {
@@ -157,23 +165,280 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 												"port": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 65535),
+													ValidateFunc: validation.IsPortNumber,
 												},
 
 												"protocol": {
-													Type:     schema.TypeString,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.PortProtocol_Values(), false),
+												},
+											},
+										},
+									},
+
+									"timeout": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 0,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"grpc": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"idle": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+
+															"per_request": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+
+												"http": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"idle": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+
+															"per_request": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+
+												"http2": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"idle": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+
+															"per_request": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+
+												"tcp": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 0,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"idle": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"unit": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringInSlice(appmesh.DurationUnit_Values(), false),
+																		},
+
+																		"value": {
+																			Type:     schema.TypeInt,
+																			Required: true,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+
+									"tls": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MinItems: 0,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"certificate": {
+													Type:     schema.TypeList,
 													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														appmesh.PortProtocolHttp,
-														appmesh.PortProtocolTcp,
-													}, false),
+													MinItems: 1,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"acm": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"certificate_arn": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validateArn,
+																		},
+																	},
+																},
+															},
+
+															"file": {
+																Type:     schema.TypeList,
+																Optional: true,
+																MinItems: 0,
+																MaxItems: 1,
+																Elem: &schema.Resource{
+																	Schema: map[string]*schema.Schema{
+																		"certificate_chain": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+
+																		"private_key": {
+																			Type:         schema.TypeString,
+																			Required:     true,
+																			ValidateFunc: validation.StringLenBetween(1, 255),
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+
+												"mode": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.ListenerTlsMode_Values(), false),
 												},
 											},
 										},
 									},
 								},
 							},
-							Set: appmeshVirtualNodeListenerHash,
 						},
 
 						"logging": {
@@ -256,13 +521,6 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 										ConflictsWith: []string{"spec.0.service_discovery.0.aws_cloud_map"},
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"service_name": {
-													Type:     schema.TypeString,
-													Removed:  "Use `hostname` argument instead",
-													Optional: true,
-													Computed: true,
-												},
-
 												"hostname": {
 													Type:         schema.TypeString,
 													Required:     true,
@@ -293,7 +551,101 @@ func resourceAwsAppmeshVirtualNode() *schema.Resource {
 				Computed: true,
 			},
 
+			"resource_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
+		},
+	}
+}
+
+// appmeshVirtualNodeClientPolicySchema returns the schema for `client_policy` attributes.
+func appmeshVirtualNodeClientPolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MinItems: 0,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"tls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MinItems: 0,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"enforce": {
+								Type:     schema.TypeBool,
+								Optional: true,
+								Default:  true,
+							},
+
+							"ports": {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem:     &schema.Schema{Type: schema.TypeInt},
+								Set:      schema.HashInt,
+							},
+
+							"validation": {
+								Type:     schema.TypeList,
+								Required: true,
+								MinItems: 1,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"trust": {
+											Type:     schema.TypeList,
+											Required: true,
+											MinItems: 1,
+											MaxItems: 1,
+											Elem: &schema.Resource{
+												Schema: map[string]*schema.Schema{
+													"acm": {
+														Type:     schema.TypeList,
+														Optional: true,
+														MinItems: 0,
+														MaxItems: 1,
+														Elem: &schema.Resource{
+															Schema: map[string]*schema.Schema{
+																"certificate_authority_arns": {
+																	Type:     schema.TypeSet,
+																	Required: true,
+																	Elem:     &schema.Schema{Type: schema.TypeString},
+																	Set:      schema.HashString,
+																},
+															},
+														},
+													},
+
+													"file": {
+														Type:     schema.TypeList,
+														Optional: true,
+														MinItems: 0,
+														MaxItems: 1,
+														Elem: &schema.Resource{
+															Schema: map[string]*schema.Schema{
+																"certificate_chain": {
+																	Type:         schema.TypeString,
+																	Required:     true,
+																	ValidateFunc: validation.StringLenBetween(1, 255),
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -306,6 +658,9 @@ func resourceAwsAppmeshVirtualNodeCreate(d *schema.ResourceData, meta interface{
 		VirtualNodeName: aws.String(d.Get("name").(string)),
 		Spec:            expandAppmeshVirtualNodeSpec(d.Get("spec").([]interface{})),
 		Tags:            keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().AppmeshTags(),
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Creating App Mesh virtual node: %#v", req)
@@ -321,11 +676,17 @@ func resourceAwsAppmeshVirtualNodeCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeVirtualNode(&appmesh.DescribeVirtualNodeInput{
+	req := &appmesh.DescribeVirtualNodeInput{
 		MeshName:        aws.String(d.Get("mesh_name").(string)),
 		VirtualNodeName: aws.String(d.Get("name").(string)),
-	})
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
+	}
+
+	resp, err := conn.DescribeVirtualNode(req)
 	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
 		log.Printf("[WARN] App Mesh virtual node (%s) not found, removing from state", d.Id())
 		d.SetId("")
@@ -343,9 +704,11 @@ func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{})
 	arn := aws.StringValue(resp.VirtualNode.Metadata.Arn)
 	d.Set("name", resp.VirtualNode.VirtualNodeName)
 	d.Set("mesh_name", resp.VirtualNode.MeshName)
+	d.Set("mesh_owner", resp.VirtualNode.Metadata.MeshOwner)
 	d.Set("arn", arn)
 	d.Set("created_date", resp.VirtualNode.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.VirtualNode.Metadata.LastUpdatedAt.Format(time.RFC3339))
+	d.Set("resource_owner", resp.VirtualNode.Metadata.ResourceOwner)
 	err = d.Set("spec", flattenAppmeshVirtualNodeSpec(resp.VirtualNode.Spec))
 	if err != nil {
 		return fmt.Errorf("error setting spec: %s", err)
@@ -357,7 +720,7 @@ func resourceAwsAppmeshVirtualNodeRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error listing tags for App Mesh virtual node (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -373,6 +736,9 @@ func resourceAwsAppmeshVirtualNodeUpdate(d *schema.ResourceData, meta interface{
 			MeshName:        aws.String(d.Get("mesh_name").(string)),
 			VirtualNodeName: aws.String(d.Get("name").(string)),
 			Spec:            expandAppmeshVirtualNodeSpec(v.([]interface{})),
+		}
+		if v, ok := d.GetOk("mesh_owner"); ok {
+			req.MeshOwner = aws.String(v.(string))
 		}
 
 		log.Printf("[DEBUG] Updating App Mesh virtual node: %#v", req)
@@ -437,54 +803,4 @@ func resourceAwsAppmeshVirtualNodeImport(d *schema.ResourceData, meta interface{
 	d.Set("mesh_name", resp.VirtualNode.MeshName)
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func appmeshVirtualNodeBackendHash(vBackend interface{}) int {
-	var buf bytes.Buffer
-	mBackend := vBackend.(map[string]interface{})
-	if vVirtualService, ok := mBackend["virtual_service"].([]interface{}); ok && len(vVirtualService) > 0 && vVirtualService[0] != nil {
-		mVirtualService := vVirtualService[0].(map[string]interface{})
-		if v, ok := mVirtualService["virtual_service_name"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-	}
-	return hashcode.String(buf.String())
-}
-
-func appmeshVirtualNodeListenerHash(vListener interface{}) int {
-	var buf bytes.Buffer
-	mListener := vListener.(map[string]interface{})
-	if vHealthCheck, ok := mListener["health_check"].([]interface{}); ok && len(vHealthCheck) > 0 && vHealthCheck[0] != nil {
-		mHealthCheck := vHealthCheck[0].(map[string]interface{})
-		if v, ok := mHealthCheck["healthy_threshold"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mHealthCheck["interval_millis"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mHealthCheck["path"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-		// Don't include "port" in the hash as it's Optional/Computed.
-		// If present it must match the "port_mapping.port" value, so changes will be detected.
-		if v, ok := mHealthCheck["protocol"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-		if v, ok := mHealthCheck["timeout_millis"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mHealthCheck["unhealthy_threshold"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-	}
-	if vPortMapping, ok := mListener["port_mapping"].([]interface{}); ok && len(vPortMapping) > 0 && vPortMapping[0] != nil {
-		mPortMapping := vPortMapping[0].(map[string]interface{})
-		if v, ok := mPortMapping["port"].(int); ok {
-			buf.WriteString(fmt.Sprintf("%d-", v))
-		}
-		if v, ok := mPortMapping["protocol"].(string); ok {
-			buf.WriteString(fmt.Sprintf("%s-", v))
-		}
-	}
-	return hashcode.String(buf.String())
 }

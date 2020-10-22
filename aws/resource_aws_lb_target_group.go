@@ -1,18 +1,20 @@
 package aws
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -147,7 +149,8 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"lb_cookie",
+								"lb_cookie", // Only for ALBs
+								"source_ip", // Only for NLBs
 							}, false),
 						},
 						"cookie_duration": {
@@ -155,6 +158,13 @@ func resourceAwsLbTargetGroup() *schema.Resource {
 							Optional:     true,
 							Default:      86400,
 							ValidateFunc: validation.IntBetween(0, 604800),
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								switch d.Get("protocol").(string) {
+								case elbv2.ProtocolEnumTcp, elbv2.ProtocolEnumUdp, elbv2.ProtocolEnumTcpUdp, elbv2.ProtocolEnumTls:
+									return true
+								}
+								return false
+							},
 						},
 					},
 				},
@@ -432,11 +442,7 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 			})
 		}
 
-		// In CustomizeDiff we allow LB stickiness to be declared for TCP target
-		// groups, so long as it's not enabled. This allows for better support for
-		// modules, but also means we need to completely skip sending the data to the
-		// API if it's defined on a TCP target group.
-		if d.HasChange("stickiness") && d.Get("protocol") != elbv2.ProtocolEnumTcp {
+		if d.HasChange("stickiness") {
 			stickinessBlocks := d.Get("stickiness").([]interface{})
 			if len(stickinessBlocks) == 1 {
 				stickiness := stickinessBlocks[0].(map[string]interface{})
@@ -449,11 +455,16 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 					&elbv2.TargetGroupAttribute{
 						Key:   aws.String("stickiness.type"),
 						Value: aws.String(stickiness["type"].(string)),
-					},
-					&elbv2.TargetGroupAttribute{
-						Key:   aws.String("stickiness.lb_cookie.duration_seconds"),
-						Value: aws.String(fmt.Sprintf("%d", stickiness["cookie_duration"].(int))),
 					})
+
+				switch d.Get("protocol").(string) {
+				case elbv2.ProtocolEnumHttp, elbv2.ProtocolEnumHttps:
+					attrs = append(attrs,
+						&elbv2.TargetGroupAttribute{
+							Key:   aws.String("stickiness.lb_cookie.duration_seconds"),
+							Value: aws.String(fmt.Sprintf("%d", stickiness["cookie_duration"].(int))),
+						})
+				}
 			} else if len(stickinessBlocks) == 0 {
 				attrs = append(attrs, &elbv2.TargetGroupAttribute{
 					Key:   aws.String("stickiness.enabled"),
@@ -495,9 +506,29 @@ func resourceAwsLbTargetGroupUpdate(d *schema.ResourceData, meta interface{}) er
 func resourceAwsLbTargetGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbv2conn
 
-	_, err := elbconn.DeleteTargetGroup(&elbv2.DeleteTargetGroupInput{
+	input := &elbv2.DeleteTargetGroupInput{
 		TargetGroupArn: aws.String(d.Id()),
+	}
+
+	log.Printf("[DEBUG] Deleting Target Group (%s): %s", d.Id(), input)
+	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		_, err := elbconn.DeleteTargetGroup(input)
+
+		if isAWSErr(err, "ResourceInUse", "is currently in use by a listener or a rule") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	})
+
+	if isResourceTimeoutError(err) {
+		_, err = elbconn.DeleteTargetGroup(input)
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error deleting Target Group: %s", err)
 	}
@@ -567,6 +598,7 @@ func lbTargetGroupSuffixFromARN(arn *string) string {
 // flattenAwsLbTargetGroupResource takes a *elbv2.TargetGroup and populates all respective resource fields.
 func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, targetGroup *elbv2.TargetGroup) error {
 	elbconn := meta.(*AWSClient).elbv2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	d.Set("arn", targetGroup.TargetGroupArn)
 	d.Set("arn_suffix", lbTargetGroupSuffixFromARN(targetGroup.TargetGroupArn))
@@ -631,23 +663,8 @@ func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, t
 		}
 	}
 
-	// We only read in the stickiness attributes if the target group is not
-	// TCP-based. This ensures we don't end up causing a spurious diff if someone
-	// has defined the stickiness block on a TCP target group (albeit with
-	// false), for which this update would clobber the state coming from config
-	// for.
-	//
-	// This is a workaround to support module design where the module needs to
-	// support HTTP and TCP target groups.
-	switch {
-	case aws.StringValue(targetGroup.Protocol) != elbv2.ProtocolEnumTcp:
-		if err = flattenAwsLbTargetGroupStickiness(d, attrResp.Attributes); err != nil {
-			return err
-		}
-	case aws.StringValue(targetGroup.Protocol) == elbv2.ProtocolEnumTcp && len(d.Get("stickiness").([]interface{})) < 1:
-		if err = d.Set("stickiness", []interface{}{}); err != nil {
-			return fmt.Errorf("error setting stickiness: %s", err)
-		}
+	if err = flattenAwsLbTargetGroupStickiness(d, attrResp.Attributes); err != nil {
+		return err
 	}
 
 	tags, err := keyvaluetags.Elbv2ListTags(elbconn, d.Id())
@@ -656,7 +673,7 @@ func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, t
 		return fmt.Errorf("error listing tags for LB Target Group (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -700,17 +717,8 @@ func flattenAwsLbTargetGroupStickiness(d *schema.ResourceData, attributes []*elb
 	return nil
 }
 
-func resourceAwsLbTargetGroupCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func resourceAwsLbTargetGroupCustomizeDiff(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 	protocol := diff.Get("protocol").(string)
-	if protocol == elbv2.ProtocolEnumTcp {
-		// TCP load balancers do not support stickiness
-		if stickinessBlocks := diff.Get("stickiness").([]interface{}); len(stickinessBlocks) == 1 {
-			stickiness := stickinessBlocks[0].(map[string]interface{})
-			if val := stickiness["enabled"].(bool); val {
-				return fmt.Errorf("Network Load Balancers do not support Stickiness")
-			}
-		}
-	}
 
 	// Network Load Balancers have many special qwirks to them.
 	// See http://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_CreateTargetGroup.html

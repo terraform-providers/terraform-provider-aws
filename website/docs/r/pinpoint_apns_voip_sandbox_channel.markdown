@@ -17,10 +17,10 @@ Provides a Pinpoint APNs VoIP Sandbox Channel resource.
 
 ```hcl
 resource "aws_pinpoint_apns_voip_sandbox_channel" "apns_voip_sandbox" {
-  application_id = "${aws_pinpoint_app.app.application_id}"
+  application_id = aws_pinpoint_app.app.application_id
 
-  certificate = "${file("./certificate.pem")}"
-  private_key = "${file("./private_key.key")}"
+  certificate = file("./certificate.pem")
+  private_key = file("./private_key.key")
 }
 
 resource "aws_pinpoint_app" "app" {}
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `application_id` - (Required) The application ID.
 * `enabled` - (Optional) Whether the channel is enabled or disabled. Defaults to `true`.
-* `default_authentication_method` - (Optional) The default authentication method used for APNs. 
+* `default_authentication_method` - (Optional) The default authentication method used for APNs.
   __NOTE__: Amazon Pinpoint uses this default for every APNs push notification that you send using the console.
   You can override the default when you send a message programmatically using the Amazon Pinpoint API, the AWS CLI, or an AWS SDK.
   If your default authentication type fails, Amazon Pinpoint doesn't attempt to use the other authentication type.
@@ -49,7 +49,7 @@ If you choose to use __Key credentials__ you will have to provide:
 
 * `bundle_id` - (Required) The ID assigned to your iOS app. To find this value, choose Certificates, IDs & Profiles, choose App IDs in the Identifiers section, and choose your app.
 * `team_id` - (Required) The ID assigned to your Apple developer account team. This value is provided on the Membership page.
-* `token_key` - (Required) The `.p8` file that you download from your Apple developer account when you create an authentication key. 
+* `token_key` - (Required) The `.p8` file that you download from your Apple developer account when you create an authentication key.
 * `token_key_id` - (Required) The ID assigned to your signing key. To find this value, choose Certificates, IDs & Profiles, and choose your key in the Keys section.
 
 ## Import

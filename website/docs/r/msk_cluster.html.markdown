@@ -13,7 +13,6 @@ Manages AWS Managed Streaming for Kafka cluster
 ## Example Usage
 
 ```hcl
-
 resource "aws_vpc" "vpc" {
   cidr_block = "192.168.0.0/22"
 }
@@ -23,25 +22,25 @@ data "aws_availability_zones" "azs" {
 }
 
 resource "aws_subnet" "subnet_az1" {
-  availability_zone = "${data.aws_availability_zones.azs.names[0]}"
+  availability_zone = data.aws_availability_zones.azs.names[0]
   cidr_block        = "192.168.0.0/24"
-  vpc_id            = "${aws_vpc.vpc.id}"
+  vpc_id            = aws_vpc.vpc.id
 }
 
 resource "aws_subnet" "subnet_az2" {
-  availability_zone = "${data.aws_availability_zones.azs.names[1]}"
+  availability_zone = data.aws_availability_zones.azs.names[1]
   cidr_block        = "192.168.1.0/24"
-  vpc_id            = "${aws_vpc.vpc.id}"
+  vpc_id            = aws_vpc.vpc.id
 }
 
 resource "aws_subnet" "subnet_az3" {
-  availability_zone = "${data.aws_availability_zones.azs.names[2]}"
+  availability_zone = data.aws_availability_zones.azs.names[2]
   cidr_block        = "192.168.2.0/24"
-  vpc_id            = "${aws_vpc.vpc.id}"
+  vpc_id            = aws_vpc.vpc.id
 }
 
 resource "aws_security_group" "sg" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 }
 
 resource "aws_kms_key" "kms" {
@@ -82,8 +81,8 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn = "${aws_s3_bucket.bucket.arn}"
+    role_arn   = aws_iam_role.firehose_role.arn
+    bucket_arn = aws_s3_bucket.bucket.arn
   }
 
   tags = {
@@ -99,22 +98,22 @@ resource "aws_kinesis_firehose_delivery_stream" "test_stream" {
 
 resource "aws_msk_cluster" "example" {
   cluster_name           = "example"
-  kafka_version          = "2.1.0"
+  kafka_version          = "2.4.1"
   number_of_broker_nodes = 3
 
   broker_node_group_info {
     instance_type   = "kafka.m5.large"
     ebs_volume_size = 1000
     client_subnets = [
-      "${aws_subnet.subnet_az1.id}",
-      "${aws_subnet.subnet_az2.id}",
-      "${aws_subnet.subnet_az3.id}",
+      aws_subnet.subnet_az1.id,
+      aws_subnet.subnet_az2.id,
+      aws_subnet.subnet_az3.id,
     ]
-    security_groups = ["${aws_security_group.sg.id}"]
+    security_groups = [aws_security_group.sg.id]
   }
 
   encryption_info {
-    encryption_at_rest_kms_key_arn = "${aws_kms_key.kms.arn}"
+    encryption_at_rest_kms_key_arn = aws_kms_key.kms.arn
   }
 
   open_monitoring {
@@ -132,15 +131,15 @@ resource "aws_msk_cluster" "example" {
     broker_logs {
       cloudwatch_logs {
         enabled   = true
-        log_group = "${aws_cloudwatch_log_group.test.name}"
+        log_group = aws_cloudwatch_log_group.test.name
       }
       firehose {
         enabled         = true
-        delivery_stream = "${aws_kinesis_firehose_delivery_stream.test_stream.name}"
+        delivery_stream = aws_kinesis_firehose_delivery_stream.test_stream.name
       }
       s3 {
         enabled = true
-        bucket  = "${aws_s3_bucket.bucket.id}"
+        bucket  = aws_s3_bucket.bucket.id
         prefix  = "logs/msk-"
       }
     }
@@ -152,17 +151,12 @@ resource "aws_msk_cluster" "example" {
 }
 
 output "zookeeper_connect_string" {
-  value = "${aws_msk_cluster.example.zookeeper_connect_string}"
-}
-
-output "bootstrap_brokers" {
-  description = "Plaintext connection host:port pairs"
-  value       = "${aws_msk_cluster.example.bootstrap_brokers}"
+  value = aws_msk_cluster.example.zookeeper_connect_string
 }
 
 output "bootstrap_brokers_tls" {
   description = "TLS connection host:port pairs"
-  value       = "${aws_msk_cluster.example.bootstrap_brokers_tls}"
+  value       = aws_msk_cluster.example.bootstrap_brokers_tls
 }
 ```
 
@@ -180,7 +174,7 @@ The following arguments are supported:
 * `enhanced_monitoring` - (Optional) Specify the desired enhanced MSK CloudWatch monitoring level.  See [Monitoring Amazon MSK with Amazon CloudWatch](https://docs.aws.amazon.com/msk/latest/developerguide/monitoring.html)
 * `open_monitoring` - (Optional) Configuration block for JMX and Node monitoring for the MSK cluster. See below.
 * `logging_info` - (Optional) Configuration block for streaming broker logs to Cloudwatch/S3/Kinesis Firehose. See below.
-* `tags` - (Optional) A mapping of tags to assign to the resource
+* `tags` - (Optional) A map of tags to assign to the resource
 
 ### broker_node_group_info Argument Reference
 
@@ -210,7 +204,7 @@ The following arguments are supported:
 
 #### encryption_info encryption_in_transit Argument Reference
 
-* `client_broker` - (Optional) Encryption setting for data in transit between clients and brokers. Valid values: `TLS`, `TLS_PLAINTEXT`, and `PLAINTEXT`. Default value is `TLS_PLAINTEXT` when `encryption_in_transit` block defined, but `TLS` when `encryption_in_transit` block omitted.
+* `client_broker` - (Optional) Encryption setting for data in transit between clients and brokers. Valid values: `TLS`, `TLS_PLAINTEXT`, and `PLAINTEXT`. Default value is `TLS`.
 * `in_cluster` - (Optional) Whether data communication among broker nodes is encrypted. Default value: `true`.
 
 #### open_monitoring Argument Reference
@@ -224,7 +218,7 @@ The following arguments are supported:
 
 #### open_monitoring prometheus jmx_exporter Argument Reference
 
-* `enabled_in_broker` - (Required) Indicates whether you want to enable or disable the JMX Exporter. 
+* `enabled_in_broker` - (Required) Indicates whether you want to enable or disable the JMX Exporter.
 
 #### open_monitoring prometheus node_exporter Argument Reference
 
@@ -236,7 +230,7 @@ The following arguments are supported:
 
 #### logging_info broker_logs cloudwatch_logs Argument Reference
 
-* `enabled` - (Optional) Indicates whether you want to enable or disable streaming broker logs to Cloudwatch Logs. 
+* `enabled` - (Optional) Indicates whether you want to enable or disable streaming broker logs to Cloudwatch Logs.
 * `log_group` - (Optional) Name of the Cloudwatch Log Group to deliver logs to.
 
 #### logging_info broker_logs firehose Argument Reference
@@ -247,16 +241,16 @@ The following arguments are supported:
 #### logging_info broker_logs s3 Argument Reference
 
 * `enabled` - (Optional) Indicates whether you want to enable or disable streaming broker logs to S3.
-* `bucket` - (Optional) Name of the S3 bucket to deliver logs to. 
-* `prefix` - (Optional) Prefix to append to the folder name. 
+* `bucket` - (Optional) Name of the S3 bucket to deliver logs to.
+* `prefix` - (Optional) Prefix to append to the folder name.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the MSK cluster.
-* `bootstrap_brokers` - A comma separated list of one or more hostname:port pairs of kafka brokers suitable to boostrap connectivity to the kafka cluster. Only contains value if `client_broker` encryption in transit is set to `PLAINTEXT` or `TLS_PLAINTEXT`.
-* `bootstrap_brokers_tls` - A comma separated list of one or more DNS names (or IPs) and TLS port pairs kafka brokers suitable to boostrap connectivity to the kafka cluster. Only contains value if `client_broker` encryption in transit is set to `TLS_PLAINTEXT` or `TLS`.
+* `bootstrap_brokers` - A comma separated list of one or more hostname:port pairs of kafka brokers suitable to bootstrap connectivity to the kafka cluster. Only contains value if `client_broker` encryption in transit is set to `PLAINTEXT` or `TLS_PLAINTEXT`.
+* `bootstrap_brokers_tls` - A comma separated list of one or more DNS names (or IPs) and TLS port pairs kafka brokers suitable to bootstrap connectivity to the kafka cluster. Only contains value if `client_broker` encryption in transit is set to `TLS_PLAINTEXT` or `TLS`.
 * `current_version` - Current version of the MSK Cluster used for updates, e.g. `K13V1IB3VIYZZH`
 * `encryption_info.0.encryption_at_rest_kms_key_arn` - The ARN of the KMS key used for encryption at rest of the broker data volumes.
 * `zookeeper_connect_string` - A comma separated list of one or more hostname:port pairs to use to connect to the Apache Zookeeper cluster.

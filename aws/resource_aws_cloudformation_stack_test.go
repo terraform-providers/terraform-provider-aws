@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -189,7 +190,7 @@ func TestAccAWSCloudFormationStack_allAttributes(t *testing.T) {
 					testAccCheckCloudFormationStackExists(resourceName, &stack),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "capabilities.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "capabilities.1328347040", "CAPABILITY_IAM"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "capabilities.*", "CAPABILITY_IAM"),
 					resource.TestCheckResourceAttr(resourceName, "disable_rollback", "false"),
 					resource.TestCheckResourceAttr(resourceName, "notification_arns.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
@@ -213,7 +214,7 @@ func TestAccAWSCloudFormationStack_allAttributes(t *testing.T) {
 					testAccCheckCloudFormationStackExists(resourceName, &stack),
 					resource.TestCheckResourceAttr(resourceName, "name", stackName),
 					resource.TestCheckResourceAttr(resourceName, "capabilities.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "capabilities.1328347040", "CAPABILITY_IAM"),
+					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "capabilities.*", "CAPABILITY_IAM"),
 					resource.TestCheckResourceAttr(resourceName, "disable_rollback", "false"),
 					resource.TestCheckResourceAttr(resourceName, "notification_arns.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
@@ -568,6 +569,7 @@ resource "aws_cloudformation_stack" "test" {
 }
 BODY
 
+
   parameters = {
     TopicName = "%[1]s"
   }
@@ -576,8 +578,10 @@ BODY
 }
 
 var testAccAWSCloudFormationStackConfig_allAttributesWithBodies_tpl = `
+data "aws_partition" "current" {}
+
 resource "aws_cloudformation_stack" "test" {
-  name = "%[1]s"
+  name          = "%[1]s"
   template_body = <<STACK
 {
   "Parameters" : {
@@ -612,7 +616,7 @@ resource "aws_cloudformation_stack" "test" {
           "Version": "2012-10-17",
           "Statement": [ {
             "Effect": "Allow",
-            "Principal": { "Service": "ec2.amazonaws.com" },
+            "Principal": { "Service": "ec2.${data.aws_partition.current.dns_suffix}" },
             "Action": "sts:AssumeRole"
           } ]
         },
@@ -637,15 +641,15 @@ STACK
     VpcCIDR = "10.0.0.0/16"
   }
 
-  policy_body = <<POLICY
+  policy_body        = <<POLICY
 %[2]s
 POLICY
-  capabilities = ["CAPABILITY_IAM"]
-  notification_arns = ["${aws_sns_topic.cf-updates.arn}"]
-  on_failure = "DELETE"
+  capabilities       = ["CAPABILITY_IAM"]
+  notification_arns  = ["${aws_sns_topic.cf-updates.arn}"]
+  on_failure         = "DELETE"
   timeout_in_minutes = 10
   tags = {
-    First = "Mickey"
+    First  = "Mickey"
     Second = "Mouse"
   }
 }
@@ -716,7 +720,7 @@ resource "aws_cloudformation_stack" "test" {
 }
 STACK
 
-  on_failure = "DELETE"
+  on_failure         = "DELETE"
   timeout_in_minutes = 1
 }
 `
@@ -737,6 +741,10 @@ func testAccAWSCloudFormationStackConfig_withParams_modified(stackName string) s
 
 func testAccAWSCloudFormationStackConfig_templateUrl_withParams(rName, bucketKey, vpcCidr string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_s3_bucket" "b" {
   bucket = "%[1]s"
   acl    = "public-read"
@@ -752,11 +760,12 @@ resource "aws_s3_bucket" "b" {
         "AWS": "*"
       },
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::%[1]s/*"
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::%[1]s/*"
     }
   ]
 }
 POLICY
+
 
   website {
     index_document = "index.html"
@@ -765,7 +774,7 @@ POLICY
 }
 
 resource "aws_s3_bucket_object" "object" {
-  bucket = "${aws_s3_bucket.b.id}"
+  bucket = aws_s3_bucket.b.id
   key    = "%[2]s"
   source = "test-fixtures/cloudformation-template.json"
 }
@@ -777,7 +786,7 @@ resource "aws_cloudformation_stack" "test" {
     VpcCIDR = "%[3]s"
   }
 
-  template_url       = "https://${aws_s3_bucket.b.id}.s3-us-west-2.amazonaws.com/${aws_s3_bucket_object.object.key}"
+  template_url       = "https://${aws_s3_bucket.b.id}.s3-${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}/${aws_s3_bucket_object.object.key}"
   on_failure         = "DELETE"
   timeout_in_minutes = 1
 }
@@ -786,6 +795,10 @@ resource "aws_cloudformation_stack" "test" {
 
 func testAccAWSCloudFormationStackConfig_templateUrl_withParams_withYaml(rName, bucketKey, vpcCidr string) string {
 	return fmt.Sprintf(`
+data "aws_partition" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_s3_bucket" "b" {
   bucket = "%[1]s"
   acl    = "public-read"
@@ -801,11 +814,12 @@ resource "aws_s3_bucket" "b" {
         "AWS": "*"
       },
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::%[1]s/*"
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::%[1]s/*"
     }
   ]
 }
 POLICY
+
 
   website {
     index_document = "index.html"
@@ -814,7 +828,7 @@ POLICY
 }
 
 resource "aws_s3_bucket_object" "object" {
-  bucket = "${aws_s3_bucket.b.id}"
+  bucket = aws_s3_bucket.b.id
   key    = "%[2]s"
   source = "test-fixtures/cloudformation-template.yaml"
 }
@@ -826,7 +840,7 @@ resource "aws_cloudformation_stack" "test" {
     VpcCIDR = "%[3]s"
   }
 
-  template_url       = "https://${aws_s3_bucket.b.id}.s3-us-west-2.amazonaws.com/${aws_s3_bucket_object.object.key}"
+  template_url       = "https://${aws_s3_bucket.b.id}.s3-${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}/${aws_s3_bucket_object.object.key}"
   on_failure         = "DELETE"
   timeout_in_minutes = 1
 }
@@ -838,7 +852,7 @@ func testAccAWSCloudFormationStackConfig_withTransform(rName string) string {
 resource "aws_cloudformation_stack" "with-transform" {
   name = "%[1]s"
 
-  template_body      = <<STACK
+  template_body = <<STACK
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
@@ -881,6 +895,7 @@ resource "aws_cloudformation_stack" "with-transform" {
   }
 }
 STACK
+
   capabilities       = ["CAPABILITY_AUTO_EXPAND"]
   on_failure         = "DELETE"
   timeout_in_minutes = 10

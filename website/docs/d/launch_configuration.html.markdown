@@ -60,6 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `delete_on_termination` - Whether the EBS Volume will be deleted on instance termination.
 * `device_name` - The Name of the device.
+* `no_device` - Whether the device in the block device mapping of the AMI is suppressed.
 * `iops` - The provisioned IOPs of the volume.
 * `snapshot_id` - The Snapshot ID of the mount.
 * `volume_size` - The Size of the volume.

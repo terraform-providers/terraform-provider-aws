@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsLambdaFunctionEventInvokeConfig() *schema.Resource {
@@ -289,7 +289,7 @@ func resourceAwsLambdaFunctionEventInvokeConfigParseId(id string) (string, strin
 			return id, "", nil
 		}
 
-		functionParts := strings.Split(id, ":")
+		functionParts := strings.Split(function, ":")
 
 		if len(functionParts) != 2 || functionParts[0] == "" || functionParts[1] == "" {
 			return "", "", fmt.Errorf("unexpected format of function resource (%s), expected name:qualifier", id)

@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsNetworkAclRule() *schema.Resource {
@@ -19,6 +20,30 @@ func resourceAwsNetworkAclRule() *schema.Resource {
 		Create: resourceAwsNetworkAclRuleCreate,
 		Read:   resourceAwsNetworkAclRuleRead,
 		Delete: resourceAwsNetworkAclRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				if len(idParts) != 4 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" || idParts[3] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected NETWORK_ACL_ID:RULE_NUMBER:PROTOCOL:EGRESS", d.Id())
+				}
+				networkAclID := idParts[0]
+				ruleNumber, err := strconv.Atoi(idParts[1])
+				if err != nil {
+					return nil, err
+				}
+				protocol := idParts[2]
+				egress, err := strconv.ParseBool(idParts[3])
+				if err != nil {
+					return nil, err
+				}
+
+				d.Set("network_acl_id", networkAclID)
+				d.Set("rule_number", ruleNumber)
+				d.Set("egress", egress)
+				d.SetId(networkAclIdRuleNumberEgressHash(networkAclID, ruleNumber, egress, protocol))
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"network_acl_id": {
@@ -173,7 +198,7 @@ func resourceAwsNetworkAclRuleCreate(d *schema.ResourceData, meta interface{}) e
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
 		r, err = findNetworkAclRule(d, meta)
 		if err != nil {
-			return resource.RetryableError(err)
+			return resource.NonRetryableError(err)
 		}
 		if r == nil {
 			return resource.RetryableError(fmt.Errorf("Network ACL rule (%s) not found", d.Id()))
@@ -210,8 +235,8 @@ func resourceAwsNetworkAclRuleRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("ipv6_cidr_block", resp.Ipv6CidrBlock)
 	d.Set("egress", resp.Egress)
 	if resp.IcmpTypeCode != nil {
-		d.Set("icmp_code", resp.IcmpTypeCode.Code)
-		d.Set("icmp_type", resp.IcmpTypeCode.Type)
+		d.Set("icmp_code", strconv.FormatInt(aws.Int64Value(resp.IcmpTypeCode.Code), 10))
+		d.Set("icmp_type", strconv.FormatInt(aws.Int64Value(resp.IcmpTypeCode.Type), 10))
 	}
 	if resp.PortRange != nil {
 		d.Set("from_port", resp.PortRange.From)

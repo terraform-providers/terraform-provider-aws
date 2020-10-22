@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sagemaker"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -239,12 +239,12 @@ data "aws_iam_policy_document" "assume_role" {
 resource "aws_iam_role" "test" {
   name               = %[1]q
   path               = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 resource "aws_iam_role_policy" "test" {
-  role   = "${aws_iam_role.test.name}"
-  policy = "${data.aws_iam_policy_document.access.json}"
+  role   = aws_iam_role.test.name
+  policy = data.aws_iam_policy_document.access.json
 }
 
 resource "aws_s3_bucket" "test" {
@@ -253,21 +253,21 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_bucket_object" "test" {
-  bucket = "${aws_s3_bucket.test.id}"
+  bucket = aws_s3_bucket.test.id
   key    = "model.tar.gz"
   source = "test-fixtures/sagemaker-tensorflow-serving-test-model.tar.gz"
 }
 
 resource "aws_sagemaker_model" "test" {
   name               = %[1]q
-  execution_role_arn = "${aws_iam_role.test.arn}"
+  execution_role_arn = aws_iam_role.test.arn
 
   primary_container {
     image          = "520713654638.dkr.ecr.us-west-2.amazonaws.com/sagemaker-tensorflow-serving:1.12-cpu"
     model_data_url = "https://${aws_s3_bucket.test.bucket_regional_domain_name}/${aws_s3_bucket_object.test.key}"
   }
 
-  depends_on = ["aws_iam_role_policy.test"]
+  depends_on = [aws_iam_role_policy.test]
 }
 
 resource "aws_sagemaker_endpoint_configuration" "test" {
@@ -277,7 +277,7 @@ resource "aws_sagemaker_endpoint_configuration" "test" {
     initial_instance_count = 1
     initial_variant_weight = 1
     instance_type          = "ml.t2.medium"
-    model_name             = "${aws_sagemaker_model.test.name}"
+    model_name             = aws_sagemaker_model.test.name
     variant_name           = "variant-1"
   }
 }
@@ -287,7 +287,7 @@ resource "aws_sagemaker_endpoint_configuration" "test" {
 func testAccSagemakerEndpointConfig(rName string) string {
 	return testAccSagemakerEndpointConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint" "test" {
-  endpoint_config_name = "${aws_sagemaker_endpoint_configuration.test.name}"
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.test.name
   name                 = %[1]q
 }
 `, rName)
@@ -302,13 +302,13 @@ resource "aws_sagemaker_endpoint_configuration" "test2" {
     initial_instance_count = 1
     initial_variant_weight = 1
     instance_type          = "ml.t2.medium"
-    model_name             = "${aws_sagemaker_model.test.name}"
+    model_name             = aws_sagemaker_model.test.name
     variant_name           = "variant-1"
   }
 }
 
 resource "aws_sagemaker_endpoint" "test" {
-  endpoint_config_name = "${aws_sagemaker_endpoint_configuration.test2.name}"
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.test2.name
   name                 = %[1]q
 }
 `, rName)
@@ -317,7 +317,7 @@ resource "aws_sagemaker_endpoint" "test" {
 func testAccSagemakerEndpointConfigTags(rName string) string {
 	return testAccSagemakerEndpointConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint" "test" {
-  endpoint_config_name = "${aws_sagemaker_endpoint_configuration.test.name}"
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.test.name
   name                 = %[1]q
 
   tags = {
@@ -330,7 +330,7 @@ resource "aws_sagemaker_endpoint" "test" {
 func testAccSagemakerEndpointConfigTagsUpdate(rName string) string {
 	return testAccSagemakerEndpointConfig_Base(rName) + fmt.Sprintf(`
 resource "aws_sagemaker_endpoint" "test" {
-  endpoint_config_name = "${aws_sagemaker_endpoint_configuration.test.name}"
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.test.name
   name                 = %[1]q
 
   tags = {

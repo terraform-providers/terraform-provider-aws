@@ -71,7 +71,7 @@ string.
 * `iam_roles` - (Optional) A list of IAM Role ARNs to associate with the cluster. A Maximum of 10 can be associated to the cluster at any time.
 * `logging` - (Optional) Logging, documented below.
 * `snapshot_copy` - (Optional) Configuration of automatic copy of snapshots from one region to another. Documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Timeouts
 
@@ -79,7 +79,7 @@ string.
 [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
 
 - `create` - (Default `75 minutes`) Used for creating Clusters.
-- `update` - (Default `40 minutes`) Used for Cluster Argument changes.
+- `update` - (Default `75 minutes`) Used for updating Clusters.
 - `delete` - (Default `40 minutes`) Used for destroying Clusters.
 
 ### Nested Blocks

@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsAppsyncResolver_basic(t *testing.T) {
@@ -18,7 +18,7 @@ func TestAccAwsAppsyncResolver_basic(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +48,7 @@ func TestAccAwsAppsyncResolver_disappears(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccAwsAppsyncResolver_disappears(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAppsyncGraphqlApiExists(appsyncGraphqlApiResourceName, &api1),
 					testAccCheckAwsAppsyncResolverExists(resourceName, &resolver1),
-					testAccCheckAwsAppsyncResolverDisappears(&api1, &resolver1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsAppsyncResolver(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -71,7 +71,7 @@ func TestAccAwsAppsyncResolver_DataSource(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -104,7 +104,7 @@ func TestAccAwsAppsyncResolver_RequestTemplate(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -137,7 +137,7 @@ func TestAccAwsAppsyncResolver_ResponseTemplate(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -170,7 +170,7 @@ func TestAccAwsAppsyncResolver_multipleResolvers(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -199,7 +199,7 @@ func TestAccAwsAppsyncResolver_PipelineConfig(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -209,6 +209,33 @@ func TestAccAwsAppsyncResolver_PipelineConfig(t *testing.T) {
 					testAccCheckAwsAppsyncResolverExists(resourceName, &resolver),
 					resource.TestCheckResourceAttr(resourceName, "pipeline_config.0.functions.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "pipeline_config.0.functions.0", "aws_appsync_function.test", "function_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAwsAppsyncResolver_CachingConfig(t *testing.T) {
+	var resolver appsync.Resolver
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_resolver.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("appsync", t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncResolver_cachingConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncResolverExists(resourceName, &resolver),
+					resource.TestCheckResourceAttr(resourceName, "caching_config.0.caching_keys.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "caching_config.0.ttl", "60"),
 				),
 			},
 			{
@@ -288,22 +315,6 @@ func testAccCheckAwsAppsyncResolverExists(name string, resolver *appsync.Resolve
 	}
 }
 
-func testAccCheckAwsAppsyncResolverDisappears(api *appsync.GraphqlApi, resolver *appsync.Resolver) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).appsyncconn
-
-		input := &appsync.DeleteResolverInput{
-			ApiId:     api.ApiId,
-			FieldName: resolver.FieldName,
-			TypeName:  resolver.TypeName,
-		}
-
-		_, err := conn.DeleteResolver(input)
-
-		return err
-	}
-}
-
 func testAccAppsyncResolver_basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_appsync_graphql_api" "test" {
@@ -332,7 +343,7 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = %q
   type   = "HTTP"
 
@@ -342,10 +353,10 @@ resource "aws_appsync_datasource" "test" {
 }
 
 resource "aws_appsync_resolver" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
+  api_id      = aws_appsync_graphql_api.test.id
   field       = "singlePost"
   type        = "Query"
-  data_source = "${aws_appsync_datasource.test.name}"
+  data_source = aws_appsync_datasource.test.name
 
   request_template = <<EOF
 {
@@ -397,7 +408,7 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test_ds_1" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = "test_ds_1"
   type   = "HTTP"
 
@@ -407,7 +418,7 @@ resource "aws_appsync_datasource" "test_ds_1" {
 }
 
 resource "aws_appsync_datasource" "test_ds_2" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = "test_ds_2"
   type   = "HTTP"
 
@@ -417,10 +428,10 @@ resource "aws_appsync_datasource" "test_ds_2" {
 }
 
 resource "aws_appsync_resolver" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
+  api_id      = aws_appsync_graphql_api.test.id
   field       = "singlePost"
   type        = "Query"
-  data_source = "${aws_appsync_datasource.%s.name}"
+  data_source = aws_appsync_datasource.%s.name
 
   request_template = <<EOF
 {
@@ -472,7 +483,7 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = %q
   type   = "HTTP"
 
@@ -482,10 +493,10 @@ resource "aws_appsync_datasource" "test" {
 }
 
 resource "aws_appsync_resolver" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
+  api_id      = aws_appsync_graphql_api.test.id
   field       = "singlePost"
   type        = "Query"
-  data_source = "${aws_appsync_datasource.test.name}"
+  data_source = aws_appsync_datasource.test.name
 
   request_template = <<EOF
 {
@@ -537,7 +548,7 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = %q
   type   = "HTTP"
 
@@ -547,10 +558,10 @@ resource "aws_appsync_datasource" "test" {
 }
 
 resource "aws_appsync_resolver" "test" {
-  api_id      = "${aws_appsync_graphql_api.test.id}"
+  api_id      = aws_appsync_graphql_api.test.id
   field       = "singlePost"
   type        = "Query"
-  data_source = "${aws_appsync_datasource.test.name}"
+  data_source = aws_appsync_datasource.test.name
 
   request_template = <<EOF
 {
@@ -636,7 +647,7 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
+  api_id = aws_appsync_graphql_api.test.id
   name   = %q
   type   = "HTTP"
 
@@ -653,9 +664,9 @@ resource "aws_appsync_datasource" "test" {
 func testAccAppsyncResolver_pipelineConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_appsync_graphql_api" "test" {
-	authentication_type = "API_KEY"
-	name                = "%[1]s"
-	schema              = <<EOF
+  authentication_type = "API_KEY"
+  name                = "%[1]s"
+  schema              = <<EOF
 type Mutation {
 		putPost(id: ID!, title: String!): Post
 }
@@ -677,20 +688,20 @@ EOF
 }
 
 resource "aws_appsync_datasource" "test" {
-	api_id      = "${aws_appsync_graphql_api.test.id}"
-	name        = "%[1]s"
-	type        = "HTTP"
+  api_id = aws_appsync_graphql_api.test.id
+  name   = "%[1]s"
+  type   = "HTTP"
 
-	http_config {
-		endpoint = "http://example.com"
-	}
+  http_config {
+    endpoint = "http://example.com"
+  }
 }
 
 resource "aws_appsync_function" "test" {
-	api_id      = "${aws_appsync_graphql_api.test.id}"
-	data_source = "${aws_appsync_datasource.test.name}"
-	name        = "%[1]s"
-	request_mapping_template = <<EOF
+  api_id                   = aws_appsync_graphql_api.test.id
+  data_source              = aws_appsync_datasource.test.name
+  name                     = "%[1]s"
+  request_mapping_template = <<EOF
 {
 		"version": "2018-05-29",
 		"method": "GET",
@@ -700,7 +711,8 @@ resource "aws_appsync_function" "test" {
 		}
 }
 EOF
-	response_mapping_template = <<EOF
+
+  response_mapping_template = <<EOF
 #if($ctx.result.statusCode == 200)
 		$ctx.result.body
 #else
@@ -710,11 +722,11 @@ EOF
 }
 
 resource "aws_appsync_resolver" "test" {
-	api_id           = "${aws_appsync_graphql_api.test.id}"
-	field            = "singlePost"
-	type             = "Query"
-	kind					   = "PIPELINE"
-	request_template = <<EOF
+  api_id           = aws_appsync_graphql_api.test.id
+  field            = "singlePost"
+  type             = "Query"
+  kind             = "PIPELINE"
+  request_template = <<EOF
 {
 		"version": "2018-05-29",
 		"method": "GET",
@@ -724,7 +736,8 @@ resource "aws_appsync_resolver" "test" {
 		}
 }
 EOF
-	response_template = <<EOF
+
+  response_template = <<EOF
 #if($ctx.result.statusCode == 200)
 		$ctx.result.body
 #else
@@ -732,10 +745,82 @@ EOF
 #end
 EOF
 
-	pipeline_config {
-		functions = ["${aws_appsync_function.test.function_id}"]
-	}
+  pipeline_config {
+    functions = [aws_appsync_function.test.function_id]
+  }
 }
 
+`, rName)
+}
+
+func testAccAppsyncResolver_cachingConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_appsync_graphql_api" "test" {
+  authentication_type = "API_KEY"
+  name                = "%[1]s"
+  schema              = <<EOF
+type Mutation {
+	putPost(id: ID!, title: String!): Post
+}
+
+type Post {
+	id: ID!
+	title: String!
+}
+
+type Query {
+	singlePost(id: ID!): Post
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}
+EOF
+}
+
+resource "aws_appsync_datasource" "test" {
+  api_id = aws_appsync_graphql_api.test.id
+  name   = "%[1]s"
+  type   = "HTTP"
+
+  http_config {
+    endpoint = "http://example.com"
+  }
+}
+
+resource "aws_appsync_resolver" "test" {
+  api_id           = aws_appsync_graphql_api.test.id
+  field            = "singlePost"
+  type             = "Query"
+  kind             = "UNIT"
+  data_source      = aws_appsync_datasource.test.name
+  request_template = <<EOF
+{
+    "version": "2018-05-29",
+    "method": "GET",
+    "resourcePath": "/",
+    "params":{
+        "headers": $utils.http.copyheaders($ctx.request.headers)
+    }
+}
+EOF
+
+  response_template = <<EOF
+#if($ctx.result.statusCode == 200)
+    $ctx.result.body
+#else
+    $utils.appendError($ctx.result.body, $ctx.result.statusCode)
+#end
+EOF
+
+  caching_config {
+    caching_keys = [
+      "$context.identity.sub",
+      "$context.arguments.id",
+    ]
+    ttl = 60
+  }
+}
 `, rName)
 }

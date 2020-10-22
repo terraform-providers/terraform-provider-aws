@@ -23,7 +23,7 @@ resource "aws_route" "r" {
   route_table_id            = "rtb-4fbb3ac4"
   destination_cidr_block    = "10.0.1.0/22"
   vpc_peering_connection_id = "pcx-45ff3dc1"
-  depends_on                = ["aws_route_table.testing"]
+  depends_on                = [aws_route_table.testing]
 }
 ```
 
@@ -36,13 +36,13 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_egress_only_internet_gateway" "egress" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = aws_vpc.vpc.id
 }
 
 resource "aws_route" "r" {
   route_table_id              = "rtb-4fbb3ac4"
   destination_ipv6_cidr_block = "::/0"
-  egress_only_gateway_id      = "${aws_egress_only_internet_gateway.egress.id}"
+  egress_only_gateway_id      = aws_egress_only_internet_gateway.egress.id
 }
 ```
 
@@ -63,6 +63,7 @@ One of the following target arguments must be supplied:
 * `gateway_id` - (Optional) Identifier of a VPC internet gateway or a virtual private gateway.
 * `instance_id` - (Optional) Identifier of an EC2 instance.
 * `nat_gateway_id` - (Optional) Identifier of a VPC NAT gateway.
+* `local_gateway_id` - (Optional) Identifier of a Outpost local gateway.
 * `network_interface_id` - (Optional) Identifier of an EC2 network interface.
 * `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.

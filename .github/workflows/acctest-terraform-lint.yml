@@ -1,0 +1,95 @@
+name: Acceptance Test Linting
+on:
+  push:
+    branches:
+      - master
+      - "release/**"
+  pull_request:
+    paths:
+      - .github/workflows/acctest-terraform-lint.yml
+      - aws/core_acceptance_test.go
+      - aws/data_source_aws_*_test.go
+      - aws/resource_aws_*_test.go
+      - scripts/validate-terraform.sh
+      - tools/go.mod
+
+env:
+  GO_VERSION: "1.15"
+  GO111MODULE: on
+
+jobs:
+  terrafmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: |
+          # go get github.com/katbyte/terrafmt
+          git clone --branch tracking-main --single-branch https://github.com/gdavison/terrafmt terrafmt
+          cd terrafmt
+          go install
+      # - run: terrafmt diff ./aws --check --pattern '*_test.go' --quiet --fmtcompat
+      - run: |
+          find ./aws -type f \( \
+            -name 'core_acceptance_test.go' \
+            -o -name 'data_source_aws_*_test.go' \
+            -o -name 'resource_aws_*_test.go' \
+            \) \
+            | sort -u \
+            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
+            | grep -v resource_aws_dynamodb_table_test.go \
+            | grep -v resource_aws_ecs_capacity_provider_test.go \
+            | grep -v resource_aws_efs_file_system_test.go \
+            | grep -v resource_aws_kinesis_stream_test.go \
+            | grep -v resource_aws_kms_grant_test.go \
+            | grep -v resource_aws_quicksight_user_test.go \
+            | grep -v resource_aws_s3_bucket_object_test.go \
+            | grep -v resource_aws_sns_platform_application_test.go \
+            | xargs -I {} terrafmt diff --check --quiet --fmtcompat {}
+
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: |
+          # go get github.com/katbyte/terrafmt
+          git clone --branch tracking-main --single-branch https://github.com/gdavison/terrafmt terrafmt
+          cd terrafmt
+          go install
+      - run: cd tools && go install github.com/terraform-linters/tflint
+      - run: |
+          find ./aws -type f \( \
+            -name 'core_acceptance_test.go' \
+            -o -name 'data_source_aws_*_test.go' \
+            -o -name 'resource_aws_*_test.go' \
+            \) \
+            | sort -u \
+            | grep -v resource_aws_apigatewayv2_domain_name_test.go \
+            | grep -v resource_aws_dynamodb_table_test.go \
+            | grep -v resource_aws_ecs_capacity_provider_test.go \
+            | grep -v resource_aws_efs_file_system_test.go \
+            | grep -v resource_aws_elasticache_cluster_test.go \
+            | grep -v resource_aws_kinesis_stream_test.go \
+            | grep -v resource_aws_kms_grant_test.go \
+            | grep -v resource_aws_lambda_permission_test.go \
+            | grep -v resource_aws_quicksight_user_test.go \
+            | grep -v resource_aws_s3_bucket_object_test.go \
+            | grep -v resource_aws_sns_platform_application_test.go \
+            | ./scripts/validate-terraform.sh

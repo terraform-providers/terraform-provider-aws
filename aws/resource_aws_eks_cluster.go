@@ -8,19 +8,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
-
-var eksLogTypes = []string{
-	eks.LogTypeApi,
-	eks.LogTypeAudit,
-	eks.LogTypeAuthenticator,
-	eks.LogTypeControllerManager,
-	eks.LogTypeScheduler,
-}
 
 func resourceAwsEksCluster() *schema.Resource {
 	return &schema.Resource{
@@ -202,7 +194,7 @@ func resourceAwsEksCluster() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.StringInSlice(eksLogTypes, true),
+					ValidateFunc: validation.StringInSlice(eks.LogType_Values(), true),
 				},
 				Set: schema.HashString,
 			},
@@ -226,7 +218,7 @@ func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error
 		input.Tags = keyvaluetags.New(v).IgnoreAws().EksTags()
 	}
 
-	if v, ok := d.GetOk("version"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("version"); ok {
 		input.Version = aws.String(v.(string))
 	}
 
@@ -245,7 +237,7 @@ func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error
 			if isAWSErr(err, eks.ErrCodeInvalidParameterException, "Role could not be assumed because the trusted entity is not correct") {
 				return resource.RetryableError(err)
 			}
-			// InvalidParameterException: The provided role doesn't have the Amazon EKS Managed Policies associated with it. Please ensure the following policies [arn:aws:iam::aws:policy/AmazonEKSClusterPolicy, arn:aws:iam::aws:policy/AmazonEKSServicePolicy] are attached
+			// InvalidParameterException: The provided role doesn't have the Amazon EKS Managed Policies associated with it. Please ensure the following policy is attached: arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 			if isAWSErr(err, eks.ErrCodeInvalidParameterException, "The provided role doesn't have the Amazon EKS Managed Policies associated with it") {
 				return resource.RetryableError(err)
 			}
@@ -282,6 +274,7 @@ func resourceAwsEksClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &eks.DescribeClusterInput{
 		Name: aws.String(d.Id()),
@@ -328,7 +321,7 @@ func resourceAwsEksClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("role_arn", cluster.RoleArn)
 	d.Set("status", cluster.Status)
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -405,7 +398,7 @@ func resourceAwsEksClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("vpc_config.0.endpoint_private_access") || d.HasChange("vpc_config.0.endpoint_public_access") || d.HasChange("vpc_config.0.public_access_cidrs") {
+	if d.HasChanges("vpc_config.0.endpoint_private_access", "vpc_config.0.endpoint_public_access", "vpc_config.0.public_access_cidrs") {
 		input := &eks.UpdateClusterConfigInput{
 			Name:               aws.String(d.Id()),
 			ResourcesVpcConfig: expandEksVpcConfigUpdateRequest(d.Get("vpc_config").([]interface{})),
@@ -557,7 +550,7 @@ func expandEksVpcConfigUpdateRequest(l []interface{}) *eks.VpcConfigRequest {
 
 func expandEksLoggingTypes(vEnabledLogTypes *schema.Set) *eks.Logging {
 	vEksLogTypes := []interface{}{}
-	for _, eksLogType := range eksLogTypes {
+	for _, eksLogType := range eks.LogType_Values() {
 		vEksLogTypes = append(vEksLogTypes, eksLogType)
 	}
 	vAllLogTypes := schema.NewSet(schema.HashString, vEksLogTypes)

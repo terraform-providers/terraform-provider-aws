@@ -94,7 +94,7 @@ The following arguments are supported:
 * `partition_keys` - (Optional) A list of columns by which the table is partitioned. Only primitive types are supported as partition keys.
 * `view_original_text` - (Optional) If the table is a view, the original text of the view; otherwise null.
 * `view_expanded_text` - (Optional) If the table is a view, the expanded text of the view; otherwise null.
-* `table_type` - (Optional) The type of this table (EXTERNAL_TABLE, VIRTUAL_VIEW, etc.).
+* `table_type` - (Optional) The type of this table (EXTERNAL_TABLE, VIRTUAL_VIEW, etc.). While optional, some Athena DDL queries such as `ALTER TABLE` and `SHOW CREATE TABLE` will fail if this argument is empty.
 * `parameters` - (Optional) Properties associated with this table, as a list of key-value pairs.
 
 ##### storage_descriptor
@@ -133,7 +133,15 @@ The following arguments are supported:
 
 * `skewed_column_names` - (Optional) A list of names of columns that contain skewed values.
 * `skewed_column_value_location_maps` - (Optional) A list of values that appear so frequently as to be considered skewed.
-* `skewed_column_values` - (Optional) A mapping of skewed values to the columns that contain them.
+* `skewed_column_values` - (Optional) A map of skewed values to the columns that contain them.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - Catalog ID, Database name and of the name table.
+* `arn` - The ARN of the Glue Table.
+
 
 ## Import
 

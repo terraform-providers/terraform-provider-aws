@@ -29,12 +29,12 @@ resource "aws_vpc" "example" {
 }
 
 resource "aws_vpn_gateway" "example" {
-  vpc_id = "${aws_vpc.example.id}"
+  vpc_id = aws_vpc.example.id
 }
 
 resource "aws_dx_gateway_association" "example" {
-  dx_gateway_id         = "${aws_dx_gateway.example.id}"
-  associated_gateway_id = "${aws_vpn_gateway.example.id}"
+  dx_gateway_id         = aws_dx_gateway.example.id
+  associated_gateway_id = aws_vpn_gateway.example.id
 }
 ```
 
@@ -46,11 +46,12 @@ resource "aws_dx_gateway" "example" {
   amazon_side_asn = "64512"
 }
 
-resource "aws_ec2_transit_gateway" "example" {}
+resource "aws_ec2_transit_gateway" "example" {
+}
 
 resource "aws_dx_gateway_association" "example" {
-  dx_gateway_id         = "${aws_dx_gateway.example.id}"
-  associated_gateway_id = "${aws_ec2_transit_gateway.example.id}"
+  dx_gateway_id         = aws_dx_gateway.example.id
+  associated_gateway_id = aws_ec2_transit_gateway.example.id
 
   allowed_prefixes = [
     "10.255.255.0/30",
@@ -72,12 +73,12 @@ resource "aws_vpc" "example" {
 }
 
 resource "aws_vpn_gateway" "example" {
-  vpc_id = "${aws_vpc.example.id}"
+  vpc_id = aws_vpc.example.id
 }
 
 resource "aws_dx_gateway_association" "example" {
-  dx_gateway_id         = "${aws_dx_gateway.example.id}"
-  associated_gateway_id = "${aws_vpn_gateway.example.id}"
+  dx_gateway_id         = aws_dx_gateway.example.id
+  associated_gateway_id = aws_vpn_gateway.example.id
 
   allowed_prefixes = [
     "210.52.109.0/24",
@@ -90,14 +91,12 @@ A full example of how to create a VPN Gateway in one AWS account, create a Direc
 
 ## Argument Reference
 
-~> **NOTE:** `dx_gateway_id` plus one of `associated_gateway_id`, or `vpn_gateway_id` must be specified for single account Direct Connect gateway associations.
+~> **NOTE:** `dx_gateway_id` and `associated_gateway_id` must be specified for single account Direct Connect gateway associations.
 
 The following arguments are supported:
 
 * `dx_gateway_id` - (Required) The ID of the Direct Connect gateway.
 * `associated_gateway_id` - (Optional) The ID of the VGW or transit gateway with which to associate the Direct Connect gateway.
-Used for single account Direct Connect gateway associations.
-* `vpn_gateway_id` - (Optional) *Deprecated:* Use `associated_gateway_id` instead. The ID of the VGW with which to associate the gateway.
 Used for single account Direct Connect gateway associations.
 * `associated_gateway_owner_account_id` - (Optional) The ID of the AWS account that owns the VGW or transit gateway with which to associate the Direct Connect gateway.
 Used for cross-account Direct Connect gateway associations.
@@ -119,9 +118,9 @@ In addition to all arguments above, the following attributes are exported:
 `aws_dx_gateway_association` provides the following
 [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
 
-- `create` - (Default `15 minutes`) Used for creating the association
-- `update` - (Default `10 minutes`) Used for updating the association
-- `delete` - (Default `15 minutes`) Used for destroying the association
+- `create` - (Default `30 minutes`) Used for creating the association
+- `update` - (Default `30 minutes`) Used for updating the association
+- `delete` - (Default `30 minutes`) Used for destroying the association
 
 ## Import
 

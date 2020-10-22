@@ -17,12 +17,12 @@ Provides an AWS App Mesh virtual service resource.
 ```hcl
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     provider {
       virtual_node {
-        virtual_node_name = "${aws_appmesh_virtual_node.serviceb1.name}"
+        virtual_node_name = aws_appmesh_virtual_node.serviceb1.name
       }
     }
   }
@@ -34,12 +34,12 @@ resource "aws_appmesh_virtual_service" "servicea" {
 ```hcl
 resource "aws_appmesh_virtual_service" "servicea" {
   name      = "servicea.simpleapp.local"
-  mesh_name = "${aws_appmesh_mesh.simple.id}"
+  mesh_name = aws_appmesh_mesh.simple.id
 
   spec {
     provider {
       virtual_router {
-        virtual_router_name = "${aws_appmesh_virtual_router.serviceb.name}"
+        virtual_router_name = aws_appmesh_virtual_router.serviceb.name
       }
     }
   }
@@ -52,8 +52,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name to use for the virtual service.
 * `mesh_name` - (Required) The name of the service mesh in which to create the virtual service.
+* `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The virtual service specification to apply.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `spec` object supports the following:
 
@@ -80,6 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the virtual service.
 * `created_date` - The creation date of the virtual service.
 * `last_updated_date` - The last update date of the virtual service.
+* `resource_owner` - The resource owner's AWS account ID.
 
 ## Import
 
@@ -89,3 +91,5 @@ e.g.
 ```
 $ terraform import aws_appmesh_virtual_service.servicea simpleapp/servicea.simpleapp.local
 ```
+
+[1]: /docs/providers/aws/index.html

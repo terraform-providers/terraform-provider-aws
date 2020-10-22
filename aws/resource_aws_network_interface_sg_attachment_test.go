@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSNetworkInterfaceSGAttachment_basic(t *testing.T) {
@@ -56,7 +56,7 @@ func TestAccAWSNetworkInterfaceSGAttachment_disappears(t *testing.T) {
 				Config: testAccAwsNetworkInterfaceSGAttachmentConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSNetworkInterfaceSGAttachmentExists(resourceName, &networkInterface),
-					testAccCheckAWSENIDisappears(&networkInterface),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsNetworkInterfaceSGAttachment(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -236,7 +236,7 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test" {
   cidr_block = "172.16.10.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 
   tags = {
     Name = %q
@@ -245,11 +245,11 @@ resource "aws_subnet" "test" {
 
 resource "aws_security_group" "test" {
   name   = %q
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id = "${aws_subnet.test.id}"
+  subnet_id = aws_subnet.test.id
 
   tags = {
     Name = %q
@@ -257,8 +257,8 @@ resource "aws_network_interface" "test" {
 }
 
 resource "aws_network_interface_sg_attachment" "test" {
-  network_interface_id = "${aws_network_interface.test.id}"
-  security_group_id    = "${aws_security_group.test.id}"
+  network_interface_id = aws_network_interface.test.id
+  security_group_id    = aws_security_group.test.id
 }
 `, rName, rName, rName, rName)
 }
@@ -278,7 +278,7 @@ data "aws_ami" "ami" {
 
 resource "aws_instance" "test" {
   instance_type = "t2.micro"
-  ami           = "${data.aws_ami.ami.id}"
+  ami           = data.aws_ami.ami.id
 
   tags = {
     Name = %q
@@ -290,8 +290,8 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_network_interface_sg_attachment" "test" {
-  network_interface_id = "${aws_instance.test.primary_network_interface_id}"
-  security_group_id    = "${aws_security_group.test.id}"
+  network_interface_id = aws_instance.test.primary_network_interface_id
+  security_group_id    = aws_security_group.test.id
 }
 `, rName, rName)
 }
@@ -311,7 +311,7 @@ data "aws_ami" "ami" {
 
 resource "aws_instance" "test" {
   instance_type = "t2.micro"
-  ami           = "${data.aws_ami.ami.id}"
+  ami           = data.aws_ami.ami.id
 
   tags = {
     Name = %q
@@ -319,7 +319,7 @@ resource "aws_instance" "test" {
 }
 
 data "aws_instance" "test" {
-  instance_id = "${aws_instance.test.id}"
+  instance_id = aws_instance.test.id
 }
 
 resource "aws_security_group" "test" {
@@ -327,8 +327,8 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_network_interface_sg_attachment" "test" {
-  security_group_id    = "${aws_security_group.test.id}"
-  network_interface_id = "${data.aws_instance.test.network_interface_id}"
+  security_group_id    = aws_security_group.test.id
+  network_interface_id = data.aws_instance.test.network_interface_id
 }
 `, rName, rName)
 }
@@ -345,12 +345,12 @@ data "aws_availability_zones" "available" {
 }
 
 data "aws_subnet" "test" {
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
   default_for_az    = "true"
 }
 
 resource "aws_network_interface" "test" {
-  subnet_id = "${data.aws_subnet.test.id}"
+  subnet_id = data.aws_subnet.test.id
 
   tags = {
     Name = %q
@@ -364,8 +364,8 @@ resource "aws_security_group" "test" {
 
 resource "aws_network_interface_sg_attachment" "test" {
   count                = 4
-  network_interface_id = "${aws_network_interface.test.id}"
-  security_group_id    = "${aws_security_group.test.*.id[count.index]}"
+  network_interface_id = aws_network_interface.test.id
+  security_group_id    = aws_security_group.test.*.id[count.index]
 }
 `, rName, rName)
 }

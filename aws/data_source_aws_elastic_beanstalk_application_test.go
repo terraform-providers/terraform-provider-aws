@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAwsElasticBeanstalkApplicationDataSource_basic(t *testing.T) {
@@ -39,7 +39,7 @@ func testAccAwsElasticBeanstalkApplicationDataSourceConfig_Basic(rName string) s
 %s
 
 data "aws_elastic_beanstalk_application" "test" {
-  name = "${aws_elastic_beanstalk_application.tftest.name}"
+  name = aws_elastic_beanstalk_application.tftest.name
 }
 `, testAccBeanstalkAppConfigWithMaxAge(rName))
 }

@@ -14,11 +14,11 @@ Provides information about a Lambda Layer Version.
 
 ```hcl
 variable "layer_name" {
-  type = "string"
+  type = string
 }
 
 data "aws_lambda_layer_version" "existing" {
-  layer_name = "${var.layer_name}"
+  layer_name = var.layer_name
 }
 ```
 

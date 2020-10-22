@@ -3,35 +3,46 @@ subcategory: "GuardDuty"
 layout: "aws"
 page_title: "AWS: aws_guardduty_invite_accepter"
 description: |-
-  Provides a resource to accept a pending GuardDuty invite on creation, ensure the detector has the correct master account on read, and disassociate with the master account upon removal.
+  Provides a resource to accept a pending GuardDuty invite on creation, ensure the detector has the correct primary account on read, and disassociate with the primary account upon removal.
 ---
 
 # Resource: aws_guardduty_invite_accepter
 
-Provides a resource to accept a pending GuardDuty invite on creation, ensure the detector has the correct master account on read, and disassociate with the master account upon removal.
+Provides a resource to accept a pending GuardDuty invite on creation, ensure the detector has the correct primary account on read, and disassociate with the primary account upon removal.
 
 ## Example Usage
 
 ```hcl
-resource "aws_guardduty_detector" "master" {}
-
-resource "aws_guardduty_detector" "member" {
-  provider = "aws.dev"
+provider "aws" {
+  alias = "primary"
 }
 
-resource "aws_guardduty_member" "dev" {
-  account_id  = "${aws_guardduty_detector.member.account_id}"
-  detector_id = "${aws_guardduty_detector.master.id}"
+provider "aws" {
+  alias = "member"
+}
+
+resource "aws_guardduty_invite_accepter" "member" {
+  depends_on = [aws_guardduty_member.member]
+  provider   = aws.member
+
+  detector_id       = aws_guardduty_detector.member.id
+  master_account_id = aws_guardduty_detector.primary.account_id
+}
+
+resource "aws_guardduty_member" "member" {
+  provider    = aws.primary
+  account_id  = aws_guardduty_detector.member.account_id
+  detector_id = aws_guardduty_detector.primary.id
   email       = "required@example.com"
   invite      = true
 }
 
-resource "aws_guardduty_invite_accepter" "member" {
-  depends_on = ["aws_guardduty_member.dev"]
-  provider   = "aws.dev"
+resource "aws_guardduty_detector" "primary" {
+  provider = aws.primary
+}
 
-  detector_id       = "${aws_guardduty_detector.member.id}"
-  master_account_id = "${aws_guardduty_detector.master.account_id}"
+resource "aws_guardduty_detector" "member" {
+  provider = aws.member
 }
 ```
 
@@ -40,7 +51,7 @@ resource "aws_guardduty_invite_accepter" "member" {
 The following arguments are supported:
 
 * `detector_id` - (Required) The detector ID of the member GuardDuty account.
-* `master_account_id` - (Required) AWS account ID for master account.
+* `master_account_id` - (Required) AWS account ID for primary account.
 
 ## Attributes Reference
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLbListener() *schema.Resource {
@@ -62,6 +62,7 @@ func dataSourceAwsLbListener() *schema.Resource {
 									"authentication_request_extra_params": {
 										Type:     schema.TypeMap,
 										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"on_unauthenticated_request": {
 										Type:     schema.TypeString,
@@ -102,6 +103,7 @@ func dataSourceAwsLbListener() *schema.Resource {
 									"authentication_request_extra_params": {
 										Type:     schema.TypeMap,
 										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"authorization_endpoint": {
 										Type:     schema.TypeString,

@@ -13,33 +13,33 @@ Provides an AppSync Function.
 ## Example Usage
 
 ```hcl
-resource "aws_appsync_graphql_api" "test" {
+resource "aws_appsync_graphql_api" "example" {
   authentication_type = "API_KEY"
-  name                = "tf-example"
+  name                = "example"
   schema              = <<EOF
 type Mutation {
-    putPost(id: ID!, title: String!): Post
+  putPost(id: ID!, title: String!): Post
 }
 
 type Post {
-    id: ID!
-    title: String!
+  id: ID!
+  title: String!
 }
 
 type Query {
-    singlePost(id: ID!): Post
+  singlePost(id: ID!): Post
 }
 
 schema {
-    query: Query
-    mutation: Mutation
+  query: Query
+  mutation: Mutation
 }
 EOF
 }
 
-resource "aws_appsync_datasource" "test" {
-  api_id = "${aws_appsync_graphql_api.test.id}"
-  name   = "tf-example"
+resource "aws_appsync_datasource" "example" {
+  api_id = aws_appsync_graphql_api.example.id
+  name   = "example"
   type   = "HTTP"
 
   http_config {
@@ -47,11 +47,11 @@ resource "aws_appsync_datasource" "test" {
   }
 }
 
-resource "aws_appsync_function" "test" {
-  api_id                    = "${aws_appsync_graphql_api.test.id}"
-  data_source               = "${aws_appsync_datasource.test.name}"
-  name                      = "tf_example"
-  request_mapping_template  = <<EOF
+resource "aws_appsync_function" "example" {
+  api_id                   = aws_appsync_graphql_api.example.id
+  data_source              = aws_appsync_datasource.example.name
+  name                     = "example"
+  request_mapping_template = <<EOF
 {
     "version": "2018-05-29",
     "method": "GET",
@@ -61,6 +61,7 @@ resource "aws_appsync_function" "test" {
     }
 }
 EOF
+
   response_mapping_template = <<EOF
 #if($ctx.result.statusCode == 200)
     $ctx.result.body
@@ -69,7 +70,6 @@ EOF
 #end
 EOF
 }
-
 ```
 
 ## Argument Reference

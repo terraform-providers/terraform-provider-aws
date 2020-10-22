@@ -15,7 +15,7 @@ Provides a Inspector assessment template
 ```hcl
 resource "aws_inspector_assessment_template" "example" {
   name       = "example"
-  target_arn = "${aws_inspector_assessment_target.example.arn}"
+  target_arn = aws_inspector_assessment_target.example.arn
   duration   = 3600
 
   rules_package_arns = [
@@ -35,7 +35,7 @@ The following arguments are supported:
 * `target_arn` - (Required) The assessment target ARN to attach the template to.
 * `duration` - (Required) The duration of the inspector run.
 * `rules_package_arns` - (Required) The rules to be used during the run.
-* `tags` - (Optional) Key-value mapping of tags for the Inspector assessment template.
+* `tags` - (Optional) Key-value map of tags for the Inspector assessment template.
 
 ## Attributes Reference
 

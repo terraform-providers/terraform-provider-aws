@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -40,6 +40,7 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					eks.AMITypesAl2X8664,
 					eks.AMITypesAl2X8664Gpu,
+					eks.AMITypesAl2Arm64,
 				}, false),
 			},
 			"arn": {
@@ -58,8 +59,12 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
+			"force_update_version": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"instance_types": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -72,6 +77,36 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"launch_template": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ForceNew:      true,
+							ConflictsWith: []string{"launch_template.0.name"},
+							ValidateFunc:  validateLaunchTemplateId,
+						},
+						"name": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ForceNew:      true,
+							ConflictsWith: []string{"launch_template.0.id"},
+							ValidateFunc:  validateLaunchTemplateName,
+						},
+						"version": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 255),
+						},
+					},
+				},
 			},
 			"node_group_name": {
 				Type:         schema.TypeString,
@@ -201,12 +236,16 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.DiskSize = aws.Int64(int64(v.(int)))
 	}
 
-	if v := d.Get("instance_types").(*schema.Set); v.Len() > 0 {
-		input.InstanceTypes = expandStringSet(v)
+	if v := d.Get("instance_types").([]interface{}); len(v) > 0 {
+		input.InstanceTypes = expandStringList(v)
 	}
 
 	if v := d.Get("labels").(map[string]interface{}); len(v) > 0 {
 		input.Labels = stringMapToPointers(v)
+	}
+
+	if v := d.Get("launch_template").([]interface{}); len(v) > 0 {
+		input.LaunchTemplate = expandEksLaunchTemplateSpecification(v)
 	}
 
 	if v, ok := d.GetOk("release_version"); ok {
@@ -255,6 +294,7 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).eksconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	clusterName, nodeGroupName, err := resourceAwsEksNodeGroupParseId(d.Id())
 	if err != nil {
@@ -298,6 +338,10 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting labels: %s", err)
 	}
 
+	if err := d.Set("launch_template", flattenEksLaunchTemplateSpecification(nodeGroup.LaunchTemplate)); err != nil {
+		return fmt.Errorf("error setting launch_template: %s", err)
+	}
+
 	d.Set("node_group_name", nodeGroup.NodegroupName)
 	d.Set("node_role_arn", nodeGroup.NodeRole)
 	d.Set("release_version", nodeGroup.ReleaseVersion)
@@ -320,7 +364,7 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting subnets: %s", err)
 	}
 
-	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EksKeyValueTags(nodeGroup.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -337,7 +381,7 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if d.HasChange("labels") || d.HasChange("scaling_config") {
+	if d.HasChanges("labels", "scaling_config") {
 		oldLabelsRaw, newLabelsRaw := d.GetChange("labels")
 
 		input := &eks.UpdateNodegroupConfigInput{
@@ -369,19 +413,39 @@ func resourceAwsEksNodeGroupUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("release_version") || d.HasChange("version") {
+	if d.HasChanges("launch_template", "release_version", "version") {
 		input := &eks.UpdateNodegroupVersionInput{
 			ClientRequestToken: aws.String(resource.UniqueId()),
 			ClusterName:        aws.String(clusterName),
-			Force:              aws.Bool(false),
+			Force:              aws.Bool(d.Get("force_update_version").(bool)),
 			NodegroupName:      aws.String(nodeGroupName),
 		}
 
-		if v, ok := d.GetOk("release_version"); ok {
+		if v := d.Get("launch_template").([]interface{}); len(v) > 0 {
+			input.LaunchTemplate = expandEksLaunchTemplateSpecification(v)
+
+			// When returning Launch Template information, the API returns all
+			// fields. Since both the id and name are saved to the Terraform
+			// state for drift detection and the API returns the following
+			// error if both are present during update:
+			// InvalidParameterException: Either provide launch template ID or launch template name in the request.
+
+			// Remove the name if there are no changes, to prefer the ID.
+			if input.LaunchTemplate.Id != nil && input.LaunchTemplate.Name != nil && !d.HasChange("launch_template.0.name") {
+				input.LaunchTemplate.Name = nil
+			}
+
+			// Otherwise, remove the ID, but only if both are present still.
+			if input.LaunchTemplate.Id != nil && input.LaunchTemplate.Name != nil && !d.HasChange("launch_template.0.id") {
+				input.LaunchTemplate.Id = nil
+			}
+		}
+
+		if v, ok := d.GetOk("release_version"); ok && d.HasChange("release_version") {
 			input.ReleaseVersion = aws.String(v.(string))
 		}
 
-		if v, ok := d.GetOk("version"); ok {
+		if v, ok := d.GetOk("version"); ok && d.HasChange("version") {
 			input.Version = aws.String(v.(string))
 		}
 
@@ -441,6 +505,30 @@ func resourceAwsEksNodeGroupDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
+}
+
+func expandEksLaunchTemplateSpecification(l []interface{}) *eks.LaunchTemplateSpecification {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	config := &eks.LaunchTemplateSpecification{}
+
+	if v, ok := m["id"].(string); ok && v != "" {
+		config.Id = aws.String(v)
+	}
+
+	if v, ok := m["name"].(string); ok && v != "" {
+		config.Name = aws.String(v)
+	}
+
+	if v, ok := m["version"].(string); ok && v != "" {
+		config.Version = aws.String(v)
+	}
+
+	return config
 }
 
 func expandEksNodegroupScalingConfig(l []interface{}) *eks.NodegroupScalingConfig {
@@ -528,6 +616,28 @@ func flattenEksAutoScalingGroups(autoScalingGroups []*eks.AutoScalingGroup) []ma
 	}
 
 	return l
+}
+
+func flattenEksLaunchTemplateSpecification(config *eks.LaunchTemplateSpecification) []map[string]interface{} {
+	if config == nil {
+		return nil
+	}
+
+	m := map[string]interface{}{}
+
+	if v := config.Id; v != nil {
+		m["id"] = aws.StringValue(v)
+	}
+
+	if v := config.Name; v != nil {
+		m["name"] = aws.StringValue(v)
+	}
+
+	if v := config.Version; v != nil {
+		m["version"] = aws.StringValue(v)
+	}
+
+	return []map[string]interface{}{m}
 }
 
 func flattenEksNodeGroupResources(resources *eks.NodegroupResources) []map[string]interface{} {

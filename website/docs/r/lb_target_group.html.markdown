@@ -21,7 +21,7 @@ resource "aws_lb_target_group" "test" {
   name     = "tf-example-lb-tg"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = "${aws_vpc.main.id}"
+  vpc_id   = aws_vpc.main.id
 }
 
 resource "aws_vpc" "main" {
@@ -37,7 +37,7 @@ resource "aws_lb_target_group" "ip-example" {
   port        = 80
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
 }
 
 resource "aws_vpc" "main" {
@@ -69,20 +69,20 @@ The following arguments are supported:
 * `load_balancing_algorithm_type` - (Optional) Determines how the load balancer selects targets when routing requests. Only applicable for Application Load Balancer Target Groups. The value is `round_robin` or `least_outstanding_requests`. The default is `round_robin`.
 * `lambda_multi_value_headers_enabled` - (Optional) Boolean whether the request and response headers exchanged between the load balancer and the Lambda function include arrays of values or strings. Only applies when `target_type` is `lambda`.
 * `proxy_protocol_v2` - (Optional) Boolean to enable / disable support for proxy protocol v2 on Network Load Balancers. See [doc](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html#proxy-protocol) for more information.
-* `stickiness` - (Optional) A Stickiness block. Stickiness blocks are documented below. `stickiness` is only valid if used with Load Balancers of type `Application`
-* `health_check` - (Optional) A Health Check block. Health Check blocks are documented below.
+* `stickiness` - (Optional, Maximum of 1) A Stickiness block. Stickiness blocks are documented below.
+* `health_check` - (Optional, Maximum of 1) A Health Check block. Health Check blocks are documented below.
 * `target_type` - (Optional, Forces new resource) The type of target that you must specify when registering targets with this target group.
 The possible values are `instance` (targets are specified by instance ID) or `ip` (targets are specified by IP address) or `lambda` (targets are specified by lambda arn).
 The default is `instance`. Note that you can't specify targets for a target group using both instance IDs and IP addresses.
 If the target type is `ip`, specify IP addresses from the subnets of the virtual private cloud (VPC) for the target group,
 the RFC 1918 range (10.0.0.0/8, 172.16.0.0/12, and 192.168.0.0/16), and the RFC 6598 range (100.64.0.0/10).
 You can't specify publicly routable IP addresses.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 Stickiness Blocks (`stickiness`) support the following:
 
-* `type` - (Required) The type of sticky sessions. The only current possible value is `lb_cookie`.
-* `cookie_duration` - (Optional) The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).
+* `type` - (Required) The type of sticky sessions. The only current possible values are `lb_cookie` for ALBs and `source_ip` for NLBs.
+* `cookie_duration` - (Optional) Only used when the type is `lb_cookie`. The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).
 * `enabled` - (Optional) Boolean to enable / disable `stickiness`. Default is `true`
 
 ~> **NOTE:** To help facilitate the authoring of modules that support target groups of any protocol, you can define `stickiness` regardless of the protocol chosen. However, for `TCP` target groups, `enabled` must be `false`.

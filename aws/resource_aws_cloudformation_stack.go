@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -43,9 +43,9 @@ func resourceAwsCloudFormationStack() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateCloudFormationTemplate,
+				ValidateFunc: validateStringIsJsonOrYaml,
 				StateFunc: func(v interface{}) string {
-					template, _ := normalizeCloudFormationTemplate(v)
+					template, _ := normalizeJsonOrYamlString(v)
 					return template
 				},
 			},
@@ -79,16 +79,18 @@ func resourceAwsCloudFormationStack() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"policy_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
@@ -119,7 +121,7 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 		StackName: aws.String(d.Get("name").(string)),
 	}
 	if v, ok := d.GetOk("template_body"); ok {
-		template, err := normalizeCloudFormationTemplate(v)
+		template, err := normalizeJsonOrYamlString(v)
 		if err != nil {
 			return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 		}
@@ -256,6 +258,7 @@ func resourceAwsCloudFormationStackCreate(d *schema.ResourceData, meta interface
 
 func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &cloudformation.DescribeStacksInput{
 		StackName: aws.String(d.Id()),
@@ -297,7 +300,7 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	template, err := normalizeCloudFormationTemplate(*out.TemplateBody)
+	template, err := normalizeJsonOrYamlString(*out.TemplateBody)
 	if err != nil {
 		return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 	}
@@ -331,7 +334,7 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.CloudformationKeyValueTags(stack.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -362,7 +365,7 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 		input.TemplateURL = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("template_body"); ok && input.TemplateURL == nil {
-		template, err := normalizeCloudFormationTemplate(v)
+		template, err := normalizeJsonOrYamlString(v)
 		if err != nil {
 			return fmt.Errorf("template body contains an invalid JSON or YAML: %s", err)
 		}

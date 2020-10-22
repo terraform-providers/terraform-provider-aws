@@ -5,14 +5,15 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/waf"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSWafRule_basic(t *testing.T) {
@@ -120,8 +121,10 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
 					computeWafRulePredicateWithIpSet(&ipset, false, "IPMatch", &idx),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.negated", &idx, "false"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.type", &idx, "IPMatch"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
+						"negated": "false",
+						"type":    "IPMatch",
+					}),
 				),
 			},
 			{
@@ -132,8 +135,10 @@ func TestAccAWSWafRule_changePredicates(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
 					computeWafRulePredicateWithByteMatchSet(&byteMatchSet, true, "ByteMatch", &idx),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.negated", &idx, "true"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.type", &idx, "ByteMatch"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
+						"negated": "true",
+						"type":    "ByteMatch",
+					}),
 				),
 			},
 		},
@@ -161,8 +166,10 @@ func TestAccAWSWafRule_geoMatchSetPredicate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicates.#", "1"),
 					computeWafRulePredicateWithGeoMatchSet(&geoMatchSet, true, "GeoMatch", &idx),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.negated", &idx, "true"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "predicates.%d.type", &idx, "GeoMatch"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicates.*", map[string]string{
+						"negated": "true",
+						"type":    "GeoMatch",
+					}),
 				),
 			},
 		},
@@ -223,12 +230,6 @@ func computeWafRulePredicateWithGeoMatchSet(set *waf.GeoMatchSet, negated bool, 
 		*idx = f(m)
 
 		return nil
-	}
-}
-
-func testCheckResourceAttrWithIndexesAddr(name, format string, idx *int, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		return resource.TestCheckResourceAttr(name, fmt.Sprintf(format, *idx), value)(s)
 	}
 }
 
@@ -438,12 +439,12 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "%s"
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -463,12 +464,12 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "%s"
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
@@ -507,7 +508,7 @@ resource "aws_waf_rule" "wafrule" {
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_byte_match_set.set.id}"
+    data_id = aws_waf_byte_match_set.set.id
     negated = true
     type    = "ByteMatch"
   }
@@ -540,7 +541,7 @@ resource "aws_waf_rule" "wafrule" {
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_geo_match_set.geo_match_set.id}"
+    data_id = aws_waf_geo_match_set.geo_match_set.id
     negated = true
     type    = "GeoMatch"
   }
@@ -560,18 +561,18 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "%s"
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
 
   tags = {
-  	%q = %q
+    %q = %q
   }
 }
 `, rName, rName, rName, tag1Key, tag1Value)
@@ -589,19 +590,19 @@ resource "aws_waf_ipset" "ipset" {
 }
 
 resource "aws_waf_rule" "wafrule" {
-  depends_on  = ["aws_waf_ipset.ipset"]
+  depends_on  = [aws_waf_ipset.ipset]
   name        = "%s"
   metric_name = "%s"
 
   predicates {
-    data_id = "${aws_waf_ipset.ipset.id}"
+    data_id = aws_waf_ipset.ipset.id
     negated = false
     type    = "IPMatch"
   }
 
   tags = {
-  	%q = %q
-  	%q = %q
+    %q = %q
+    %q = %q
   }
 }
 `, rName, rName, rName, tag1Key, tag1Value, tag2Key, tag2Value)

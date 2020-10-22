@@ -16,7 +16,7 @@ Provides a settings of an API Gateway Account. Settings is applied region-wide p
 
 ```hcl
 resource "aws_api_gateway_account" "demo" {
-  cloudwatch_role_arn = "${aws_iam_role.cloudwatch.arn}"
+  cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
 }
 
 resource "aws_iam_role" "cloudwatch" {
@@ -41,7 +41,7 @@ EOF
 
 resource "aws_iam_role_policy" "cloudwatch" {
   name = "default"
-  role = "${aws_iam_role.cloudwatch.id}"
+  role = aws_iam_role.cloudwatch.id
 
   policy = <<EOF
 {

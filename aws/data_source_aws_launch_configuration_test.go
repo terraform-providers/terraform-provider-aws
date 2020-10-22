@@ -5,34 +5,38 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSLaunchConfigurationDataSource_basic(t *testing.T) {
-	rInt := acctest.RandInt()
-	rName := "data.aws_launch_configuration.foo"
+	resourceName := "aws_launch_configuration.test"
+	datasourceName := "data.aws_launch_configuration.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccLaunchConfigurationDataSourceConfig_basic(rInt),
+				Config: testAccLaunchConfigurationDataSourceConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(rName, "image_id"),
-					resource.TestCheckResourceAttrSet(rName, "instance_type"),
-					resource.TestCheckResourceAttrSet(rName, "associate_public_ip_address"),
-					resource.TestCheckResourceAttrSet(rName, "user_data"),
-					resource.TestCheckResourceAttr(rName, "root_block_device.#", "1"),
-					resource.TestCheckResourceAttr(rName, "ebs_block_device.#", "1"),
-					resource.TestCheckResourceAttr(rName, "ephemeral_block_device.#", "1"),
-					testAccMatchResourceAttrRegionalARN(rName, "arn", "autoscaling", regexp.MustCompile(`launchConfiguration:.+`)),
+					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(datasourceName, "image_id", resourceName, "image_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "instance_type", resourceName, "instance_type"),
+					resource.TestCheckResourceAttrPair(datasourceName, "associate_public_ip_address", resourceName, "associate_public_ip_address"),
+					// Resource and data source user_data have differing representations in state.
+					resource.TestCheckResourceAttrSet(datasourceName, "user_data"),
+					resource.TestCheckResourceAttrPair(datasourceName, "root_block_device.#", resourceName, "root_block_device.#"),
+					resource.TestCheckResourceAttrPair(datasourceName, "ebs_block_device.#", resourceName, "ebs_block_device.#"),
+					resource.TestCheckResourceAttrPair(datasourceName, "ephemeral_block_device.#", resourceName, "ephemeral_block_device.#"),
+					testAccMatchResourceAttrRegionalARN(datasourceName, "arn", "autoscaling", regexp.MustCompile(`launchConfiguration:.+`)),
 				),
 			},
 		},
 	})
 }
+
 func TestAccAWSLaunchConfigurationDataSource_securityGroups(t *testing.T) {
 	rInt := acctest.RandInt()
 	rName := "data.aws_launch_configuration.foo"
@@ -51,11 +55,33 @@ func TestAccAWSLaunchConfigurationDataSource_securityGroups(t *testing.T) {
 	})
 }
 
-func testAccLaunchConfigurationDataSourceConfig_basic(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_launch_configuration" "foo" {
-  name                        = "terraform-test-%d"
-  image_id                    = "ami-21f78e11"
+func TestAccAWSLaunchConfigurationDataSource_ebsNoDevice(t *testing.T) {
+	resourceName := "aws_launch_configuration.test"
+	datasourceName := "data.aws_launch_configuration.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccLaunchConfigurationDataSourceConfigEbsNoDevice(rName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(datasourceName, "name", resourceName, "name"),
+					resource.TestCheckResourceAttrPair(datasourceName, "image_id", resourceName, "image_id"),
+					resource.TestCheckResourceAttrPair(datasourceName, "instance_type", resourceName, "instance_type"),
+					resource.TestCheckResourceAttrPair(datasourceName, "ebs_block_device.#", resourceName, "ebs_block_device.#"),
+				),
+			},
+		},
+	})
+}
+
+func testAccLaunchConfigurationDataSourceConfig_basic(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
+resource "aws_launch_configuration" "test" {
+  name                        = %[1]q
+  image_id                    = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type               = "m1.small"
   associate_public_ip_address = true
   user_data                   = "foobar-user-data"
@@ -83,32 +109,53 @@ resource "aws_launch_configuration" "foo" {
   }
 }
 
-data "aws_launch_configuration" "foo" {
-  name = "${aws_launch_configuration.foo.name}"
+data "aws_launch_configuration" "test" {
+  name = aws_launch_configuration.test.name
 }
-`, rInt)
+`, rName))
 }
 
 func testAccLaunchConfigurationDataSourceConfig_securityGroups(rInt int) string {
-	return fmt.Sprintf(`
+	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 }
 
 resource "aws_security_group" "test" {
   name   = "terraform-test_%d"
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 resource "aws_launch_configuration" "test" {
   name            = "terraform-test-%d"
-  image_id        = "ami-21f78e11"
+  image_id        = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
   instance_type   = "m1.small"
-  security_groups = ["${aws_security_group.test.id}"]
+  security_groups = [aws_security_group.test.id]
 }
 
 data "aws_launch_configuration" "foo" {
-  name = "${aws_launch_configuration.test.name}"
+  name = aws_launch_configuration.test.name
 }
 `, rInt, rInt)
+}
+
+func testAccLaunchConfigurationDataSourceConfigEbsNoDevice(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		fmt.Sprintf(`
+resource "aws_launch_configuration" "test" {
+  name          = %[1]q
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+
+  ebs_block_device {
+    device_name = "/dev/sda2"
+    no_device   = true
+  }
+}
+
+data "aws_launch_configuration" "test" {
+  name = aws_launch_configuration.test.name
+}
+`, rName))
 }

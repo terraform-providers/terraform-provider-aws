@@ -25,7 +25,7 @@ resource "aws_kms_key" "oauth_config" {
 }
 
 resource "aws_kms_ciphertext" "oauth" {
-  key_id = "${aws_kms_key.oauth_config.key_id}"
+  key_id = aws_kms_key.oauth_config.key_id
 
   plaintext = <<EOF
 {

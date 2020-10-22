@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/pinpoint"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSPinpointEventStream_basic(t *testing.T) {
@@ -78,9 +78,9 @@ func testAccAWSPinpointEventStreamConfig_basic(rName string) string {
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_event_stream" "test_event_stream" {
-  application_id         = "${aws_pinpoint_app.test_app.application_id}"
-  destination_stream_arn = "${aws_kinesis_stream.test_stream.arn}"
-  role_arn               = "${aws_iam_role.test_role.arn}"
+  application_id         = aws_pinpoint_app.test_app.application_id
+  destination_stream_arn = aws_kinesis_stream.test_stream.arn
+  role_arn               = aws_iam_role.test_role.arn
 }
 
 resource "aws_kinesis_stream" "test_stream" {
@@ -107,8 +107,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "test_role_policy" {
-  name   = "test_policy"
-  role   = "${aws_iam_role.test_role.id}"
+  name = "test_policy"
+  role = aws_iam_role.test_role.id
+
   policy = <<EOF
 {
   "Version": "2012-10-17",

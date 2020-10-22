@@ -20,13 +20,13 @@ data "aws_availability_zones" "available" {}
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-resource "aws_eip" "foo" {
+resource "aws_eip" "example" {
   vpc = true
 }
 
-resource "aws_shield_protection" "foo" {
-  name         = "${var.name}"
-  resource_arn = "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:eip-allocation/${aws_eip.foo.id}"
+resource "aws_shield_protection" "example" {
+  name         = "example"
+  resource_arn = "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:eip-allocation/${aws_eip.example.id}"
 }
 ```
 
@@ -48,5 +48,5 @@ In addition to all arguments above, the following attributes are exported:
 Shield protection resources can be imported by specifying their ID e.g.
 
 ```
-$ terraform import aws_shield_protection.foo ff9592dc-22f3-4e88-afa1-7b29fde9669a
+$ terraform import aws_shield_protection.example ff9592dc-22f3-4e88-afa1-7b29fde9669a
 ```

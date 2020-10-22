@@ -17,9 +17,9 @@ More information can be found in the [Amazon API Gateway Developer Guide](https:
 
 ```hcl
 resource "aws_apigatewayv2_authorizer" "example" {
-  api_id           = "${aws_apigatewayv2_api.example.id}"
+  api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "REQUEST"
-  authorizer_uri   = "${aws_lambda_function.example.invoke_arn}"
+  authorizer_uri   = aws_lambda_function.example.invoke_arn
   identity_sources = ["route.request.header.Auth"]
   name             = "example-authorizer"
 }
@@ -29,7 +29,7 @@ resource "aws_apigatewayv2_authorizer" "example" {
 
 ```hcl
 resource "aws_apigatewayv2_authorizer" "example" {
-  api_id           = "${aws_apigatewayv2_api.example.id}"
+  api_id           = aws_apigatewayv2_api.example.id
   authorizer_type  = "JWT"
   identity_sources = ["$request.header.Authorization"]
   name             = "example-authorizer"
@@ -47,17 +47,24 @@ The following arguments are supported:
 
 * `api_id` - (Required) The API identifier.
 * `authorizer_type` - (Required) The authorizer type. Valid values: `JWT`, `REQUEST`.
-For WebSocket APIs, specify `REQUEST` for a Lambda function using incoming request parameters.
- For HTTP APIs, specify `JWT` to use JSON Web Tokens.
-* `identity_sources` - (Required) The identity sources for which authorization is requested.
-For `REQUEST` authorizers the value is a list of one or more mapping expressions of the specified request parameters.
-For `JWT` authorizers the single entry specifies where to extract the JSON Web Token (JWT) from inbound requests.
+Specify `REQUEST` for a Lambda function using incoming request parameters.
+For HTTP APIs, specify `JWT` to use JSON Web Tokens.
 * `name` - (Required) The name of the authorizer.
 * `authorizer_credentials_arn` - (Optional) The required credentials as an IAM role for API Gateway to invoke the authorizer.
 Supported only for `REQUEST` authorizers.
+* `authorizer_payload_format_version` - (Optional) The format of the payload sent to an HTTP API Lambda authorizer. Required for HTTP API Lambda authorizers.
+Valid values: `1.0`, `2.0`.
+* `authorizer_result_ttl_in_seconds` - (Optional) The time to live (TTL) for cached authorizer results, in seconds. If it equals 0, authorization caching is disabled.
+If it is greater than 0, API Gateway caches authorizer responses. The maximum value is 3600, or 1 hour. Defaults to `300`.
+Supported only for HTTP API Lambda authorizers.
 * `authorizer_uri` - (Optional) The authorizer's Uniform Resource Identifier (URI).
 For `REQUEST` authorizers this must be a well-formed Lambda function URI, such as the `invoke_arn` attribute of the [`aws_lambda_function`](/docs/providers/aws/r/lambda_function.html) resource.
 Supported only for `REQUEST` authorizers.
+* `enable_simple_responses` - (Optional) Whether a Lambda authorizer returns a response in a simple format. If enabled, the Lambda authorizer can return a boolean value instead of an IAM policy.
+Supported only for HTTP APIs.
+* `identity_sources` - (Optional) The identity sources for which authorization is requested.
+For `REQUEST` authorizers the value is a list of one or more mapping expressions of the specified request parameters.
+For `JWT` authorizers the single entry specifies where to extract the JSON Web Token (JWT) from inbound requests.
 * `jwt_configuration` - (Optional) The configuration of a JWT authorizer. Required for the `JWT` authorizer type.
 Supported only for HTTP APIs.
 

@@ -6,9 +6,7 @@
   "ignoreDeps": [
     "github.com/go-toolsmith/pkgload",
     "github.com/gogo/protobuf",
-    "github.com/golang/snappy",
     "github.com/hashicorp/go-hclog",
-    "github.com/hashicorp/vault",
     "github.com/mattn/go-isatty",
     "github.com/mitchellh/go-testing-interface",
     "golang.org/x/tools",

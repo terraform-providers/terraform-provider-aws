@@ -39,13 +39,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
-  role       = "${aws_iam_role.ecs_instance_role.name}"
+  role       = aws_iam_role.ecs_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
 resource "aws_iam_instance_profile" "ecs_instance_role" {
   name = "ecs_instance_role"
-  role = "${aws_iam_role.ecs_instance_role.name}"
+  role = aws_iam_role.ecs_instance_role.name
 }
 
 resource "aws_iam_role" "aws_batch_service_role" {
@@ -68,7 +68,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
-  role       = "${aws_iam_role.aws_batch_service_role.name}"
+  role       = aws_iam_role.aws_batch_service_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
 
@@ -88,7 +88,7 @@ resource "aws_vpc" "sample" {
 }
 
 resource "aws_subnet" "sample" {
-  vpc_id     = "${aws_vpc.sample.id}"
+  vpc_id     = aws_vpc.sample.id
   cidr_block = "10.1.1.0/24"
 }
 
@@ -96,7 +96,7 @@ resource "aws_batch_compute_environment" "sample" {
   compute_environment_name = "sample"
 
   compute_resources {
-    instance_role = "${aws_iam_instance_profile.ecs_instance_role.arn}"
+    instance_role = aws_iam_instance_profile.ecs_instance_role.arn
 
     instance_type = [
       "c4.large",
@@ -106,19 +106,19 @@ resource "aws_batch_compute_environment" "sample" {
     min_vcpus = 0
 
     security_group_ids = [
-      "${aws_security_group.sample.id}",
+      aws_security_group.sample.id,
     ]
 
     subnets = [
-      "${aws_subnet.sample.id}",
+      aws_subnet.sample.id,
     ]
 
     type = "EC2"
   }
 
-  service_role = "${aws_iam_role.aws_batch_service_role.arn}"
+  service_role = aws_iam_role.aws_batch_service_role.arn
   type         = "MANAGED"
-  depends_on   = ["aws_iam_role_policy_attachment.aws_batch_service_role"]
+  depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
 }
 ```
 
@@ -129,6 +129,7 @@ resource "aws_batch_compute_environment" "sample" {
 * `compute_resources` - (Optional) Details of the compute resources managed by the compute environment. This parameter is required for managed compute environments. See details below.
 * `service_role` - (Required) The full Amazon Resource Name (ARN) of the IAM role that allows AWS Batch to make calls to other AWS services on your behalf.
 * `state` - (Optional) The state of the compute environment. If the state is `ENABLED`, then the compute environment accepts jobs from a queue and can scale out automatically based on queues. Valid items are `ENABLED` or `DISABLED`. Defaults to `ENABLED`.
+* `tags` - (Optional) Key-value map of resource tags
 * `type` - (Required) The type of the compute environment. Valid items are `MANAGED` or `UNMANAGED`.
 
 **compute_resources** is a child block with a single argument:

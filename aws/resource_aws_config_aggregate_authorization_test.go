@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -61,6 +61,8 @@ func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 	rString := acctest.RandStringFromCharSet(12, "0123456789")
 	resourceName := "aws_config_aggregate_authorization.example"
 
+	region := "eu-west-1"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -70,8 +72,8 @@ func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 				Config: testAccAWSConfigAggregateAuthorizationConfig_basic(rString),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "account_id", rString),
-					resource.TestCheckResourceAttr(resourceName, "region", "eu-west-1"),
-					resource.TestMatchResourceAttr(resourceName, "arn", regexp.MustCompile(`^arn:aws:config:[\w-]+:\d{12}:aggregation-authorization/\d{12}/[\w-]+$`)),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "config", regexp.MustCompile(fmt.Sprintf(`aggregation-authorization/%s/%s$`, rString, region))),
 				),
 			},
 			{
@@ -170,9 +172,10 @@ resource "aws_config_aggregate_authorization" "example" {
   region     = "eu-west-1"
 
   tags = {
-	Name  = %[1]q
-	%[2]s = %[3]q
-	%[4]s = %[5]q
+    Name = %[1]q
+
+    %[2]s = %[3]q
+    %[4]s = %[5]q
   }
 }
 `, rString, tagKey1, tagValue1, tagKey2, tagValue2)

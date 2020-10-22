@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name to use for the service mesh.
 * `spec` - (Optional) The service mesh specification to apply.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The `spec` object supports the following:
 
@@ -59,6 +59,8 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The ARN of the service mesh.
 * `created_date` - The creation date of the service mesh.
 * `last_updated_date` - The last update date of the service mesh.
+* `mesh_owner` - The AWS account ID of the service mesh's owner.
+* `resource_owner` - The resource owner's AWS account ID.
 
 ## Import
 

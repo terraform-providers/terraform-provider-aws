@@ -32,14 +32,14 @@ resource "aws_mq_broker" "example" {
   broker_name = "example"
 
   configuration {
-    id       = "${aws_mq_configuration.test.id}"
-    revision = "${aws_mq_configuration.test.latest_revision}"
+    id       = aws_mq_configuration.test.id
+    revision = aws_mq_configuration.test.latest_revision
   }
 
   engine_type        = "ActiveMQ"
   engine_version     = "5.15.0"
   host_instance_type = "mq.t2.micro"
-  security_groups    = ["${aws_security_group.test.id}"]
+  security_groups    = [aws_security_group.test.id]
 
   user {
     username = "ExampleUser"
@@ -68,7 +68,7 @@ The following arguments are supported:
 * `maintenance_window_start_time` - (Optional) Maintenance window start time. See below.
 * `logs` - (Optional) Logging configuration of the broker. See below.
 * `user` - (Optional) The list of all ActiveMQ usernames for the specified broker. See below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Nested Fields
 
@@ -109,15 +109,19 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The unique ID that Amazon MQ generates for the broker.
 * `arn` - The ARN of the broker.
 * `instances` - A list of information about allocated brokers (both active & standby).
-  * `instances.0.console_url` - The URL of the broker's [ActiveMQ Web Console](http://activemq.apache.org/web-console.html).
-  * `instances.0.ip_address` - The IP Address of the broker.
-  * `instances.0.endpoints` - The broker's wire-level protocol endpoints in the following order & format referenceable e.g. as `instances.0.endpoints.0` (SSL):
-     * `ssl://broker-id.mq.us-west-2.amazonaws.com:61617`
-     * `amqp+ssl://broker-id.mq.us-west-2.amazonaws.com:5671`
-     * `stomp+ssl://broker-id.mq.us-west-2.amazonaws.com:61614`
-     * `mqtt+ssl://broker-id.mq.us-west-2.amazonaws.com:8883`
-     * `wss://broker-id.mq.us-west-2.amazonaws.com:61619`
+    * `instances.0.console_url` - The URL of the broker's [ActiveMQ Web Console](http://activemq.apache.org/web-console.html).
+    * `instances.0.ip_address` - The IP Address of the broker.
+    * `instances.0.endpoints` - The broker's wire-level protocol endpoints in the following order & format referenceable e.g. as `instances.0.endpoints.0` (SSL):
+        * `ssl://broker-id.mq.us-west-2.amazonaws.com:61617`
+        * `amqp+ssl://broker-id.mq.us-west-2.amazonaws.com:5671`
+        * `stomp+ssl://broker-id.mq.us-west-2.amazonaws.com:61614`
+        * `mqtt+ssl://broker-id.mq.us-west-2.amazonaws.com:8883`
+        * `wss://broker-id.mq.us-west-2.amazonaws.com:61619`
 
 ## Import
 
-MQ Broker is currently not importable.
+MQ Brokers can be imported using their broker id, e.g.
+
+```
+$ terraform import aws_mq_broker.example a1b2c3d4-d5f6-7777-8888-9999aaaabbbbcccc
+```

@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
 	"github.com/aws/aws-sdk-go/service/batch"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/batch/equivalency"
 )
 
@@ -18,6 +19,7 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsBatchJobDefinitionCreate,
 		Read:   resourceAwsBatchJobDefinitionRead,
+		Update: resourceAwsBatchJobDefinitionUpdate,
 		Delete: resourceAwsBatchJobDefinitionDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -71,6 +73,7 @@ func resourceAwsBatchJobDefinition() *schema.Resource {
 					},
 				},
 			},
+			"tags": tagsSchema(),
 			"timeout": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -130,6 +133,10 @@ func resourceAwsBatchJobDefinitionCreate(d *schema.ResourceData, meta interface{
 		input.RetryStrategy = expandJobDefinitionRetryStrategy(v.([]interface{}))
 	}
 
+	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
+		input.Tags = keyvaluetags.New(v).IgnoreAws().BatchTags()
+	}
+
 	if v, ok := d.GetOk("timeout"); ok {
 		input.Timeout = expandJobDefinitionTimeout(v.([]interface{}))
 	}
@@ -145,6 +152,8 @@ func resourceAwsBatchJobDefinitionCreate(d *schema.ResourceData, meta interface{
 
 func resourceAwsBatchJobDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).batchconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	arn := d.Get("arn").(string)
 	job, err := getJobDefinition(conn, arn)
 	if err != nil {
@@ -174,12 +183,30 @@ func resourceAwsBatchJobDefinitionRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting retry_strategy: %s", err)
 	}
 
+	if err := d.Set("tags", keyvaluetags.BatchKeyValueTags(job.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %s", err)
+	}
+
 	if err := d.Set("timeout", flattenBatchJobTimeout(job.Timeout)); err != nil {
 		return fmt.Errorf("error setting timeout: %s", err)
 	}
 
 	d.Set("revision", job.Revision)
 	d.Set("type", job.Type)
+	return nil
+}
+
+func resourceAwsBatchJobDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).batchconn
+
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.BatchUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
+			return fmt.Errorf("error updating tags: %s", err)
+		}
+	}
+
 	return nil
 }
 

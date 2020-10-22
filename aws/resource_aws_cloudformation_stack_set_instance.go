@@ -8,9 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsCloudFormationStackSetInstance() *schema.Resource {
@@ -95,16 +96,76 @@ func resourceAwsCloudFormationStackSetInstanceCreate(d *schema.ResourceData, met
 	}
 
 	log.Printf("[DEBUG] Creating CloudFormation StackSet Instance: %s", input)
-	output, err := conn.CreateStackInstances(input)
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		output, err := conn.CreateStackInstances(input)
 
-	if err != nil {
-		return fmt.Errorf("error creating CloudFormation StackSet Instance: %s", err)
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("error creating CloudFormation StackSet Instance: %w", err))
+		}
+
+		d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
+
+		err = waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
+
+		if err != nil {
+			// IAM eventual consistency
+			if strings.Contains(err.Error(), "AccountGate check failed") {
+				input.OperationId = aws.String(resource.UniqueId())
+				return resource.RetryableError(err)
+			}
+
+			// IAM eventual consistency
+			// User: XXX is not authorized to perform: cloudformation:CreateStack on resource: YYY
+			if strings.Contains(err.Error(), "is not authorized") {
+				input.OperationId = aws.String(resource.UniqueId())
+				return resource.RetryableError(err)
+			}
+
+			// IAM eventual consistency
+			// XXX role has insufficient YYY permissions
+			if strings.Contains(err.Error(), "role has insufficient") {
+				input.OperationId = aws.String(resource.UniqueId())
+				return resource.RetryableError(err)
+			}
+
+			// IAM eventual consistency
+			// Account XXX should have YYY role with trust relationship to Role ZZZ
+			if strings.Contains(err.Error(), "role with trust relationship") {
+				input.OperationId = aws.String(resource.UniqueId())
+				return resource.RetryableError(err)
+			}
+
+			// IAM eventual consistency
+			if strings.Contains(err.Error(), "The security token included in the request is invalid") {
+				input.OperationId = aws.String(resource.UniqueId())
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) creation: %w", d.Id(), err))
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		var output *cloudformation.CreateStackInstancesOutput
+		output, err = conn.CreateStackInstances(input)
+
+		if err != nil {
+			return fmt.Errorf("error creating CloudFormation StackSet Instance: %w", err)
+		}
+
+		d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
+
+		err = waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
+
+		if err != nil {
+			return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) creation: %w", d.Id(), err)
+		}
 	}
 
-	d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
-
-	if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate)); err != nil {
-		return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) creation: %s", d.Id(), err)
+	if err != nil {
+		return err
 	}
 
 	return resourceAwsCloudFormationStackSetInstanceRead(d, meta)

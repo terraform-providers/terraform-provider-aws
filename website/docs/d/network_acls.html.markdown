@@ -14,11 +14,11 @@ The following shows outputing all network ACL ids in a vpc.
 
 ```hcl
 data "aws_network_acls" "example" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 }
 
 output "example" {
-  value = "${data.aws_network_acls.example.ids}"
+  value = data.aws_network_acls.example.ids
 }
 ```
 
@@ -27,7 +27,7 @@ tag of `Tier` set to a value of "Private".
 
 ```hcl
 data "aws_network_acls" "example" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 
   tags = {
     Tier = "Private"
@@ -40,11 +40,11 @@ with specific subnet.
 
 ```hcl
 data "aws_network_acls" "example" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 
   filter {
     name   = "association.subnet-id"
-    values = ["${aws_subnet.test.id}"]
+    values = [aws_subnet.test.id]
   }
 }
 ```
@@ -53,7 +53,7 @@ data "aws_network_acls" "example" {
 
 * `vpc_id` - (Optional) The VPC ID that you want to filter from.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired network ACLs.
 
 * `filter` - (Optional) Custom filter block as described below.

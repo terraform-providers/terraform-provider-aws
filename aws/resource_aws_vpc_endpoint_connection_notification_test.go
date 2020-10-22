@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSVpcEndpointConnectionNotification_basic(t *testing.T) {
@@ -106,8 +106,9 @@ func testAccCheckVpcEndpointConnectionNotificationExists(n string) resource.Test
 }
 
 func testAccVpcEndpointConnectionNotificationBasicConfig(lbName string) string {
-	return fmt.Sprintf(
-		`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+data "aws_partition" "current" {}
+
 resource "aws_vpc" "nlb_test" {
   cidr_block = "10.0.0.0/16"
 
@@ -120,8 +121,8 @@ resource "aws_lb" "nlb_test" {
   name = "%s"
 
   subnets = [
-    "${aws_subnet.nlb_test_1.id}",
-    "${aws_subnet.nlb_test_2.id}",
+    aws_subnet.nlb_test_1.id,
+    aws_subnet.nlb_test_2.id,
   ]
 
   load_balancer_type         = "network"
@@ -135,9 +136,9 @@ resource "aws_lb" "nlb_test" {
 }
 
 resource "aws_subnet" "nlb_test_1" {
-  vpc_id            = "${aws_vpc.nlb_test.id}"
+  vpc_id            = aws_vpc.nlb_test.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-1"
@@ -145,9 +146,9 @@ resource "aws_subnet" "nlb_test_1" {
 }
 
 resource "aws_subnet" "nlb_test_2" {
-  vpc_id            = "${aws_vpc.nlb_test.id}"
+  vpc_id            = aws_vpc.nlb_test.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-west-2b"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-vpc-endpoint-connection-notification-2"
@@ -160,11 +161,11 @@ resource "aws_vpc_endpoint_service" "test" {
   acceptance_required = false
 
   network_load_balancer_arns = [
-    "${aws_lb.nlb_test.id}",
+    aws_lb.nlb_test.id,
   ]
 
   allowed_principals = [
-    "${data.aws_caller_identity.current.arn}"
+    data.aws_caller_identity.current.arn
   ]
 }
 
@@ -173,112 +174,119 @@ resource "aws_sns_topic" "topic" {
 
   policy = <<POLICY
 {
-    "Version":"2012-10-17",
-    "Statement":[{
-        "Effect": "Allow",
-        "Principal": {
-            "Service": "vpce.amazonaws.com"
-        },
-        "Action": "SNS:Publish",
-        "Resource": "arn:aws:sns:*:*:vpce-notification-topic"
-    }]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "vpce.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:vpce-notification-topic"
+    }
+  ]
 }
 POLICY
+
 }
 
 resource "aws_vpc_endpoint_connection_notification" "test" {
-  vpc_endpoint_service_id = "${aws_vpc_endpoint_service.test.id}"
-  connection_notification_arn = "${aws_sns_topic.topic.arn}"
-  connection_events = ["Accept", "Reject"]
+  vpc_endpoint_service_id     = aws_vpc_endpoint_service.test.id
+  connection_notification_arn = aws_sns_topic.topic.arn
+  connection_events           = ["Accept", "Reject"]
 }
-`, lbName)
+`, lbName))
 }
 
 func testAccVpcEndpointConnectionNotificationModifiedConfig(lbName string) string {
-	return fmt.Sprintf(
-		`
-		resource "aws_vpc" "nlb_test" {
-			cidr_block = "10.0.0.0/16"
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+data "aws_partition" "current" {}
 
-	tags = {
-				Name = "terraform-testacc-vpc-endpoint-connection-notification"
-			}
-		}
+resource "aws_vpc" "nlb_test" {
+  cidr_block = "10.0.0.0/16"
 
-		resource "aws_lb" "nlb_test" {
-			name = "%s"
+  tags = {
+    Name = "terraform-testacc-vpc-endpoint-connection-notification"
+  }
+}
 
-			subnets = [
-				"${aws_subnet.nlb_test_1.id}",
-				"${aws_subnet.nlb_test_2.id}",
-			]
+resource "aws_lb" "nlb_test" {
+  name = "%s"
 
-			load_balancer_type         = "network"
-			internal                   = true
-			idle_timeout               = 60
-			enable_deletion_protection = false
+  subnets = [
+    aws_subnet.nlb_test_1.id,
+    aws_subnet.nlb_test_2.id,
+  ]
 
-	tags = {
-				Name = "testAccVpcEndpointConnectionNotificationBasicConfig_nlb"
-			}
-		}
+  load_balancer_type         = "network"
+  internal                   = true
+  idle_timeout               = 60
+  enable_deletion_protection = false
 
-		resource "aws_subnet" "nlb_test_1" {
-			vpc_id            = "${aws_vpc.nlb_test.id}"
-			cidr_block        = "10.0.1.0/24"
-			availability_zone = "us-west-2a"
+  tags = {
+    Name = "testAccVpcEndpointConnectionNotificationBasicConfig_nlb"
+  }
+}
 
-	tags = {
-				Name = "tf-acc-vpc-endpoint-connection-notification-1"
-			}
-		}
+resource "aws_subnet" "nlb_test_1" {
+  vpc_id            = aws_vpc.nlb_test.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
-		resource "aws_subnet" "nlb_test_2" {
-			vpc_id            = "${aws_vpc.nlb_test.id}"
-			cidr_block        = "10.0.2.0/24"
-			availability_zone = "us-west-2b"
+  tags = {
+    Name = "tf-acc-vpc-endpoint-connection-notification-1"
+  }
+}
 
-	tags = {
-				Name = "tf-acc-vpc-endpoint-connection-notification-2"
-			}
-		}
+resource "aws_subnet" "nlb_test_2" {
+  vpc_id            = aws_vpc.nlb_test.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = data.aws_availability_zones.available.names[1]
 
-		data "aws_caller_identity" "current" {}
+  tags = {
+    Name = "tf-acc-vpc-endpoint-connection-notification-2"
+  }
+}
 
-		resource "aws_vpc_endpoint_service" "test" {
-			acceptance_required = false
+data "aws_caller_identity" "current" {}
 
-			network_load_balancer_arns = [
-				"${aws_lb.nlb_test.id}",
-			]
+resource "aws_vpc_endpoint_service" "test" {
+  acceptance_required = false
 
-			allowed_principals = [
-				"${data.aws_caller_identity.current.arn}"
-			]
-		}
+  network_load_balancer_arns = [
+    aws_lb.nlb_test.id,
+  ]
 
-		resource "aws_sns_topic" "topic" {
-			name = "vpce-notification-topic"
+  allowed_principals = [
+    data.aws_caller_identity.current.arn
+  ]
+}
 
-			policy = <<POLICY
-		{
-				"Version":"2012-10-17",
-				"Statement":[{
-						"Effect": "Allow",
-						"Principal": {
-								"Service": "vpce.amazonaws.com"
-						},
-						"Action": "SNS:Publish",
-						"Resource": "arn:aws:sns:*:*:vpce-notification-topic"
-				}]
-		}
+resource "aws_sns_topic" "topic" {
+  name = "vpce-notification-topic"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "vpce.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:vpce-notification-topic"
+    }
+  ]
+}
 		POLICY
-		}
 
-		resource "aws_vpc_endpoint_connection_notification" "test" {
-			vpc_endpoint_service_id = "${aws_vpc_endpoint_service.test.id}"
-			connection_notification_arn = "${aws_sns_topic.topic.arn}"
-			connection_events = ["Accept"]
-		}
-`, lbName)
+}
+
+resource "aws_vpc_endpoint_connection_notification" "test" {
+  vpc_endpoint_service_id     = aws_vpc_endpoint_service.test.id
+  connection_notification_arn = aws_sns_topic.topic.arn
+  connection_events           = ["Accept"]
+}
+`, lbName))
 }

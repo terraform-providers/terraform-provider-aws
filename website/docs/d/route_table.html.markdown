@@ -23,11 +23,11 @@ and use this data source to obtain the data necessary to create a route.
 variable "subnet_id" {}
 
 data "aws_route_table" "selected" {
-  subnet_id = "${var.subnet_id}"
+  subnet_id = var.subnet_id
 }
 
 resource "aws_route" "route" {
-  route_table_id            = "${data.aws_route_table.selected.id}"
+  route_table_id            = data.aws_route_table.selected.id
   destination_cidr_block    = "10.0.1.0/22"
   vpc_peering_connection_id = "pcx-45ff3dc1"
 }
@@ -43,7 +43,7 @@ Route Table whose data will be exported as attributes.
 
 * `route_table_id` - (Optional) The id of the specific Route Table to retrieve.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired Route Table.
 
 * `vpc_id` - (Optional) The id of the VPC that the desired Route Table belongs to.
@@ -78,6 +78,7 @@ Each route supports the following:
 * `egress_only_gateway_id` - The ID of the Egress Only Internet Gateway.
 * `gateway_id` - The Internet Gateway ID.
 * `nat_gateway_id` - The NAT Gateway ID.
+* `local_gateway_id` - The Local Gateway ID.
 * `instance_id` - The EC2 instance ID.
 * `transit_gateway_id` - The EC2 Transit Gateway ID.
 * `vpc_peering_connection_id` - The VPC Peering ID.

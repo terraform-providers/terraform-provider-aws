@@ -8,12 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSESDomainDkim_basic(t *testing.T) {
+	resourceName := "aws_ses_domain_dkim.test"
 	domain := fmt.Sprintf(
 		"%s.terraformtesting.com",
 		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
@@ -29,8 +30,8 @@ func TestAccAWSSESDomainDkim_basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccAwsSESDomainDkimConfig, domain),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsSESDomainDkimExists("aws_ses_domain_dkim.test"),
-					testAccCheckAwsSESDomainDkimTokens("aws_ses_domain_dkim.test", domain),
+					testAccCheckAwsSESDomainDkimExists(resourceName),
+					testAccCheckAwsSESDomainDkimTokens(resourceName),
 				),
 			},
 		},
@@ -99,7 +100,7 @@ func testAccCheckAwsSESDomainDkimExists(n string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckAwsSESDomainDkimTokens(n string, domain string) resource.TestCheckFunc {
+func testAccCheckAwsSESDomainDkimTokens(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[n]
 
@@ -124,9 +125,10 @@ func testAccCheckAwsSESDomainDkimTokens(n string, domain string) resource.TestCh
 
 const testAccAwsSESDomainDkimConfig = `
 resource "aws_ses_domain_identity" "test" {
-	domain = "%s"
+  domain = "%s"
 }
+
 resource "aws_ses_domain_dkim" "test" {
-	domain = "${aws_ses_domain_identity.test.domain}"
+  domain = aws_ses_domain_identity.test.domain
 }
 `

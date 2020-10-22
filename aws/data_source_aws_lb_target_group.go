@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elbv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsLbTargetGroup() *schema.Resource {
@@ -62,6 +62,11 @@ func dataSourceAwsLbTargetGroup() *schema.Resource {
 
 			"lambda_multi_value_headers_enabled": {
 				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"load_balancing_algorithm_type": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 

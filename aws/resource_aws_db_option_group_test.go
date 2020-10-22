@@ -11,9 +11,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -245,8 +246,9 @@ func TestAccAWSDBOptionGroup_Option_OptionSettings(t *testing.T) {
 						"aws_db_option_group.bar", "name", rName),
 					resource.TestCheckResourceAttr(
 						"aws_db_option_group.bar", "option.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_db_option_group.bar", "option.961211605.option_settings.129825347.value", "UTC"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
+						"value": "UTC",
+					}),
 				),
 			},
 			{
@@ -265,8 +267,9 @@ func TestAccAWSDBOptionGroup_Option_OptionSettings(t *testing.T) {
 						"aws_db_option_group.bar", "name", rName),
 					resource.TestCheckResourceAttr(
 						"aws_db_option_group.bar", "option.#", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_db_option_group.bar", "option.2422743510.option_settings.1350509764.value", "US/Pacific"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
+						"value": "US/Pacific",
+					}),
 				),
 			},
 			// Ensure we can import non-default value option settings
@@ -696,7 +699,7 @@ resource "aws_db_instance" "bar" {
   backup_retention_period = 0
   skip_final_snapshot     = true
 
-  option_group_name = "${aws_db_option_group.bar.name}"
+  option_group_name = aws_db_option_group.bar.name
 }
 
 resource "aws_db_option_group" "bar" {
@@ -743,7 +746,7 @@ data "aws_iam_policy_document" "rds_assume_role" {
 
 resource "aws_iam_role" "sql_server_backup" {
   name               = "rds-backup-%s"
-  assume_role_policy = "${data.aws_iam_policy_document.rds_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.rds_assume_role.json
 }
 
 resource "aws_db_option_group" "bar" {
@@ -757,7 +760,7 @@ resource "aws_db_option_group" "bar" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = "${aws_iam_role.sql_server_backup.arn}"
+      value = aws_iam_role.sql_server_backup.arn
     }
   }
 }
@@ -827,7 +830,7 @@ resource "aws_db_option_group" "bar" {
     port        = "3872"
     version     = "%[2]s"
 
-    vpc_security_group_memberships = ["${aws_security_group.foo.id}"]
+    vpc_security_group_memberships = [aws_security_group.foo.id]
 
     option_settings {
       name  = "OMS_PORT"
@@ -869,18 +872,18 @@ resource "aws_db_option_group" "bar" {
 
 const testAccAWSDBOptionGroup_namePrefix = `
 resource "aws_db_option_group" "test" {
-  name_prefix = "tf-test-"
+  name_prefix              = "tf-test-"
   option_group_description = "Test option group for terraform"
-  engine_name = "mysql"
-  major_engine_version = "5.6"
+  engine_name              = "mysql"
+  major_engine_version     = "5.6"
 }
 `
 
 const testAccAWSDBOptionGroup_generatedName = `
 resource "aws_db_option_group" "test" {
   option_group_description = "Test option group for terraform"
-  engine_name = "mysql"
-  major_engine_version = "5.6"
+  engine_name              = "mysql"
+  major_engine_version     = "5.6"
 }
 `
 

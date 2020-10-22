@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2TransitGatewayRouteTable_basic(t *testing.T) {
@@ -77,7 +77,7 @@ func TestAccAWSEc2TransitGatewayRouteTable_disappears_TransitGateway(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayExists(transitGatewayResourceName, &transitGateway1),
 					testAccCheckAWSEc2TransitGatewayRouteTableExists(resourceName, &transitGatewayRouteTable1),
-					testAccCheckAWSEc2TransitGatewayDisappears(&transitGateway1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEc2TransitGateway(), transitGatewayResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -222,13 +222,13 @@ func testAccCheckAWSEc2TransitGatewayRouteTableNotRecreated(i, j *ec2.TransitGat
 }
 
 func testAccAWSEc2TransitGatewayRouteTableConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 }
-`)
+`
 }
 
 func testAccAWSEc2TransitGatewayRouteTableConfigTags1(tagKey1, tagValue1 string) string {
@@ -236,7 +236,7 @@ func testAccAWSEc2TransitGatewayRouteTableConfigTags1(tagKey1, tagValue1 string)
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 
   tags = {
     %q = %q
@@ -250,7 +250,7 @@ func testAccAWSEc2TransitGatewayRouteTableConfigTags2(tagKey1, tagValue1, tagKey
 resource "aws_ec2_transit_gateway" "test" {}
 
 resource "aws_ec2_transit_gateway_route_table" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
 
   tags = {
     %q = %q

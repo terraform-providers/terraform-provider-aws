@@ -58,13 +58,13 @@ data "aws_availability_zone" "example" {
 
 # Create a VPC for the region associated with the AZ
 resource "aws_vpc" "example" {
-  cidr_block = "${cidrsubnet("10.0.0.0/8", 4, var.region_number[data.aws_availability_zone.example.region])}"
+  cidr_block = cidrsubnet("10.0.0.0/8", 4, var.region_number[data.aws_availability_zone.example.region])
 }
 
 # Create a subnet for the AZ within the regional VPC
 resource "aws_subnet" "example" {
-  vpc_id     = "${aws_vpc.example.id}"
-  cidr_block = "${cidrsubnet(aws_vpc.example.cidr_block, 4, var.az_number[data.aws_availability_zone.example.name_suffix])}"
+  vpc_id     = aws_vpc.example.id
+  cidr_block = cidrsubnet(aws_vpc.example.cidr_block, 4, var.az_number[data.aws_availability_zone.example.name_suffix])
 }
 ```
 

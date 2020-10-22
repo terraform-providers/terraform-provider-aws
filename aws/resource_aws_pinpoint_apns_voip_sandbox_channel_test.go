@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/pinpoint"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 /**
@@ -190,7 +190,7 @@ func testAccAWSPinpointAPNSVoipSandboxChannelConfig_basicCertificate(conf *testA
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_apns_voip_sandbox_channel" "test_channel" {
-  application_id                = "${aws_pinpoint_app.test_app.application_id}"
+  application_id                = aws_pinpoint_app.test_app.application_id
   enabled                       = false
   default_authentication_method = "CERTIFICATE"
   certificate                   = %s
@@ -204,7 +204,7 @@ func testAccAWSPinpointAPNSVoipSandboxChannelConfig_basicToken(conf *testAccAwsP
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_apns_voip_sandbox_channel" "test_channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
+  application_id = aws_pinpoint_app.test_app.application_id
   enabled        = false
 
   default_authentication_method = "TOKEN"

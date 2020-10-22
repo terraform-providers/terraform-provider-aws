@@ -9,23 +9,30 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
 func resourceAwsSpotFleetRequest() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsSpotFleetRequestCreate,
 		Read:   resourceAwsSpotFleetRequestRead,
 		Delete: resourceAwsSpotFleetRequestDelete,
 		Update: resourceAwsSpotFleetRequestUpdate,
-
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("instance_pools_to_use_count", 1)
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(15 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -54,7 +61,7 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 			// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SpotFleetLaunchSpecification.html
 			"launch_specification": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -118,17 +125,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 										ForceNew: true,
 									},
 									"volume_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ec2.VolumeTypeStandard,
-											ec2.VolumeTypeIo1,
-											ec2.VolumeTypeGp2,
-											ec2.VolumeTypeSc1,
-											ec2.VolumeTypeSt1,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(ec2.VolumeType_Values(), false),
 									},
 								},
 							},
@@ -197,17 +198,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 										ForceNew: true,
 									},
 									"volume_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ec2.VolumeTypeStandard,
-											ec2.VolumeTypeIo1,
-											ec2.VolumeTypeGp2,
-											ec2.VolumeTypeSc1,
-											ec2.VolumeTypeSt1,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(ec2.VolumeType_Values(), false),
 									},
 								},
 							},
@@ -306,12 +301,96 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							Type:     schema.TypeMap,
 							Optional: true,
 							ForceNew: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
-				Set: hashLaunchSpecification,
+				Set:          hashLaunchSpecification,
+				ExactlyOneOf: []string{"launch_specification", "launch_template_config"},
 			},
-			// Everything on a spot fleet is ForceNew except target_capacity
+			"launch_template_config": {
+				Type:         schema.TypeSet,
+				Optional:     true,
+				ForceNew:     true,
+				ExactlyOneOf: []string{"launch_specification", "launch_template_config"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"launch_template_specification": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validateLaunchTemplateId,
+									},
+									"name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validateLaunchTemplateName,
+									},
+									"version": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
+									},
+								},
+							},
+						},
+						"overrides": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"availability_zone": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+									},
+									"instance_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+									},
+									"spot_price": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+									},
+									"subnet_id": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+									},
+									"weighted_capacity": {
+										Type:     schema.TypeFloat,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+									},
+									"priority": {
+										Type:     schema.TypeFloat,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+									},
+								},
+							},
+							Set: hashLaunchTemplateOverrides,
+						},
+					},
+				},
+			},
+			// Everything on a spot fleet is ForceNew except target_capacity and excess_capacity_termination_policy,
+			// see https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/#ModifySpotFleetRequestInput
 			"target_capacity": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -661,12 +740,12 @@ func readSpotFleetBlockDeviceMappingsFromConfig(
 func buildAwsSpotFleetLaunchSpecifications(
 	d *schema.ResourceData, meta interface{}) ([]*ec2.SpotFleetLaunchSpecification, error) {
 
-	user_specs := d.Get("launch_specification").(*schema.Set).List()
-	specs := make([]*ec2.SpotFleetLaunchSpecification, len(user_specs))
-	for i, user_spec := range user_specs {
-		user_spec_map := user_spec.(map[string]interface{})
+	userSpecs := d.Get("launch_specification").(*schema.Set).List()
+	specs := make([]*ec2.SpotFleetLaunchSpecification, len(userSpecs))
+	for i, userSpec := range userSpecs {
+		userSpecMap := userSpec.(map[string]interface{})
 		// panic: interface conversion: interface {} is map[string]interface {}, not *schema.ResourceData
-		opts, err := buildSpotFleetLaunchSpecification(user_spec_map, meta)
+		opts, err := buildSpotFleetLaunchSpecification(userSpecMap, meta)
 		if err != nil {
 			return nil, err
 		}
@@ -676,19 +755,93 @@ func buildAwsSpotFleetLaunchSpecifications(
 	return specs, nil
 }
 
+func buildLaunchTemplateConfigs(d *schema.ResourceData) []*ec2.LaunchTemplateConfig {
+	launchTemplateConfigs := d.Get("launch_template_config").(*schema.Set)
+	configs := make([]*ec2.LaunchTemplateConfig, 0)
+
+	for _, launchTemplateConfig := range launchTemplateConfigs.List() {
+
+		ltc := &ec2.LaunchTemplateConfig{}
+
+		ltcMap := launchTemplateConfig.(map[string]interface{})
+
+		//launch template spec
+		if v, ok := ltcMap["launch_template_specification"]; ok {
+			vL := v.([]interface{})
+			lts := vL[0].(map[string]interface{})
+
+			flts := &ec2.FleetLaunchTemplateSpecification{}
+
+			if v, ok := lts["id"].(string); ok && v != "" {
+				flts.LaunchTemplateId = aws.String(v)
+			}
+
+			if v, ok := lts["name"].(string); ok && v != "" {
+				flts.LaunchTemplateName = aws.String(v)
+			}
+
+			if v, ok := lts["version"].(string); ok && v != "" {
+				flts.Version = aws.String(v)
+			}
+
+			ltc.LaunchTemplateSpecification = flts
+
+		}
+
+		if v, ok := ltcMap["overrides"]; ok && v.(*schema.Set).Len() > 0 {
+			vL := v.(*schema.Set).List()
+			overrides := make([]*ec2.LaunchTemplateOverrides, 0)
+
+			for _, v := range vL {
+				ors := v.(map[string]interface{})
+				lto := &ec2.LaunchTemplateOverrides{}
+
+				if v, ok := ors["availability_zone"].(string); ok && v != "" {
+					lto.AvailabilityZone = aws.String(v)
+				}
+
+				if v, ok := ors["instance_type"].(string); ok && v != "" {
+					lto.InstanceType = aws.String(v)
+				}
+
+				if v, ok := ors["spot_price"].(string); ok && v != "" {
+					lto.SpotPrice = aws.String(v)
+				}
+
+				if v, ok := ors["subnet_id"].(string); ok && v != "" {
+					lto.SubnetId = aws.String(v)
+				}
+
+				if v, ok := ors["weighted_capacity"].(float64); ok && v > 0 {
+					lto.WeightedCapacity = aws.Float64(v)
+				}
+
+				if v, ok := ors["priority"].(float64); ok {
+					lto.Priority = aws.Float64(v)
+				}
+
+				overrides = append(overrides, lto)
+			}
+
+			ltc.Overrides = overrides
+		}
+
+		configs = append(configs, ltc)
+	}
+
+	return configs
+}
+
 func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{}) error {
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RequestSpotFleet.html
 	conn := meta.(*AWSClient).ec2conn
 
-	launch_specs, err := buildAwsSpotFleetLaunchSpecifications(d, meta)
-	if err != nil {
-		return err
-	}
+	_, launchSpecificationOk := d.GetOk("launch_specification")
+	_, launchTemplateConfigsOk := d.GetOk("launch_template_config")
 
 	// http://docs.aws.amazon.com/sdk-for-go/api/service/ec2.html#type-SpotFleetRequestConfigData
 	spotFleetConfig := &ec2.SpotFleetRequestConfigData{
 		IamFleetRole:                     aws.String(d.Get("iam_fleet_role").(string)),
-		LaunchSpecifications:             launch_specs,
 		TargetCapacity:                   aws.Int64(int64(d.Get("target_capacity").(int))),
 		ClientToken:                      aws.String(resource.UniqueId()),
 		TerminateInstancesWithExpiration: aws.Bool(d.Get("terminate_instances_with_expiration").(bool)),
@@ -698,6 +851,19 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 		TagSpecifications:                ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeSpotFleetRequest),
 	}
 
+	if launchSpecificationOk {
+		launchSpecs, err := buildAwsSpotFleetLaunchSpecifications(d, meta)
+		if err != nil {
+			return err
+		}
+		spotFleetConfig.LaunchSpecifications = launchSpecs
+	}
+
+	if launchTemplateConfigsOk {
+		launchTemplates := buildLaunchTemplateConfigs(d)
+		spotFleetConfig.LaunchTemplateConfigs = launchTemplates
+	}
+
 	if v, ok := d.GetOk("excess_capacity_termination_policy"); ok {
 		spotFleetConfig.ExcessCapacityTerminationPolicy = aws.String(v.(string))
 	}
@@ -705,34 +871,31 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("allocation_strategy"); ok {
 		spotFleetConfig.AllocationStrategy = aws.String(v.(string))
 	} else {
-		spotFleetConfig.AllocationStrategy = aws.String("lowestPrice")
+		spotFleetConfig.AllocationStrategy = aws.String(ec2.AllocationStrategyLowestPrice)
 	}
 
 	if v, ok := d.GetOk("instance_pools_to_use_count"); ok && v.(int) != 1 {
 		spotFleetConfig.InstancePoolsToUseCount = aws.Int64(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("spot_price"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("spot_price"); ok {
 		spotFleetConfig.SpotPrice = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("valid_from"); ok {
-		valid_from, err := time.Parse(time.RFC3339, v.(string))
+		validFrom, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
 			return err
 		}
-		spotFleetConfig.ValidFrom = aws.Time(valid_from)
+		spotFleetConfig.ValidFrom = aws.Time(validFrom)
 	}
 
 	if v, ok := d.GetOk("valid_until"); ok {
-		valid_until, err := time.Parse(time.RFC3339, v.(string))
+		validUntil, err := time.Parse(time.RFC3339, v.(string))
 		if err != nil {
 			return err
 		}
-		spotFleetConfig.ValidUntil = aws.Time(valid_until)
-	} else {
-		valid_until := time.Now().Add(24 * time.Hour)
-		spotFleetConfig.ValidUntil = aws.Time(valid_until)
+		spotFleetConfig.ValidUntil = aws.Time(validUntil)
 	}
 
 	if v, ok := d.GetOk("load_balancers"); ok && v.(*schema.Set).Len() > 0 {
@@ -776,15 +939,22 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 	// Since IAM is eventually consistent, we retry creation as a newly created role may not
 	// take effect immediately, resulting in an InvalidSpotFleetRequestConfig error
 	var resp *ec2.RequestSpotFleetOutput
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
 		resp, err = conn.RequestSpotFleet(spotFleetOpts)
 
-		if isAWSErr(err, "InvalidSpotFleetRequestConfig", "") {
-			return resource.RetryableError(fmt.Errorf("Error creating Spot fleet request, retrying: %s", err))
+		if isAWSErr(err, "InvalidSpotFleetRequestConfig", "Parameter: SpotFleetRequestConfig.IamFleetRole is invalid") {
+			return resource.RetryableError(err)
 		}
+
+		if isAWSErr(err, "InvalidSpotFleetRequestConfig", "The provided SpotFleetRequestConfig.IamFleetRole does not have permission to call") {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
@@ -804,7 +974,7 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 		Pending:    []string{ec2.BatchStateSubmitted},
 		Target:     []string{ec2.BatchStateActive},
 		Refresh:    resourceAwsSpotFleetRequestStateRefreshFunc(d, meta),
-		Timeout:    10 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate), //10 * time.Minute,
 		MinTimeout: 10 * time.Second,
 		Delay:      30 * time.Second,
 	}
@@ -926,6 +1096,7 @@ func resourceAwsSpotFleetRequestFulfillmentRefreshFunc(id string, conn *ec2.EC2)
 func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) error {
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSpotFleetRequests.html
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	req := &ec2.DescribeSpotFleetRequestsInput{
 		SpotFleetRequestIds: []*string{aws.String(d.Id())},
@@ -948,9 +1119,9 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 
 	// if the request is cancelled, then it is gone
 	cancelledStates := map[string]bool{
-		"cancelled":             true,
-		"cancelled_running":     true,
-		"cancelled_terminating": true,
+		ec2.BatchStateCancelled:            true,
+		ec2.BatchStateCancelledRunning:     true,
+		ec2.BatchStateCancelledTerminating: true,
 	}
 	if _, ok := cancelledStates[*sfr.SpotFleetRequestState]; ok {
 		d.SetId("")
@@ -1015,11 +1186,70 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("instance_interruption_behaviour", config.InstanceInterruptionBehavior)
 	d.Set("fleet_type", config.Type)
 	d.Set("launch_specification", launchSpec)
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(sfr.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(sfr.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
+	if len(config.LaunchTemplateConfigs) > 0 {
+		if err := d.Set("launch_template_config", flattenFleetLaunchTemplateConfig(config.LaunchTemplateConfigs)); err != nil {
+			return fmt.Errorf("error setting launch_template_config: %s", err)
+		}
+	}
+
+	if config.LoadBalancersConfig != nil {
+		lbConf := config.LoadBalancersConfig
+
+		if lbConf.ClassicLoadBalancersConfig != nil {
+			flatLbs := make([]*string, 0)
+			for _, lb := range lbConf.ClassicLoadBalancersConfig.ClassicLoadBalancers {
+				flatLbs = append(flatLbs, lb.Name)
+			}
+			if err := d.Set("load_balancers", flattenStringSet(flatLbs)); err != nil {
+				return fmt.Errorf("error setting load_balancers: %s", err)
+			}
+		}
+
+		if lbConf.TargetGroupsConfig != nil {
+			flatTgs := make([]*string, 0)
+			for _, tg := range lbConf.TargetGroupsConfig.TargetGroups {
+				flatTgs = append(flatTgs, tg.Arn)
+			}
+			if err := d.Set("target_group_arns", flattenStringSet(flatTgs)); err != nil {
+				return fmt.Errorf("error setting target_group_arns: %s", err)
+			}
+		}
+	}
+
 	return nil
+}
+
+func flattenSpotFleetRequestLaunchTemplateOverrides(override *ec2.LaunchTemplateOverrides) map[string]interface{} {
+	m := make(map[string]interface{})
+
+	if override.AvailabilityZone != nil {
+		m["availability_zone"] = aws.StringValue(override.AvailabilityZone)
+	}
+	if override.InstanceType != nil {
+		m["instance_type"] = aws.StringValue(override.InstanceType)
+	}
+
+	if override.SpotPrice != nil {
+		m["spot_price"] = aws.StringValue(override.SpotPrice)
+	}
+
+	if override.SubnetId != nil {
+		m["subnet_id"] = aws.StringValue(override.SubnetId)
+	}
+
+	if override.WeightedCapacity != nil {
+		m["weighted_capacity"] = aws.Float64Value(override.WeightedCapacity)
+	}
+
+	if override.Priority != nil {
+		m["priority"] = aws.Float64Value(override.Priority)
+	}
+
+	return m
 }
 
 func launchSpecsToSet(launchSpecs []*ec2.SpotFleetLaunchSpecification, conn *ec2.EC2) (*schema.Set, error) {
@@ -1241,11 +1471,10 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 	updateFlag := false
 
 	if d.HasChange("target_capacity") {
-		if val, ok := d.GetOk("target_capacity"); ok {
+		if val, ok := d.GetOkExists("target_capacity"); ok {
 			req.TargetCapacity = aws.Int64(int64(val.(int)))
+			updateFlag = true
 		}
-
-		updateFlag = true
 	}
 
 	if d.HasChange("excess_capacity_termination_policy") {
@@ -1257,8 +1486,24 @@ func resourceAwsSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if updateFlag {
+		log.Printf("[DEBUG] Modifying Spot Fleet Request: %#v", req)
 		if _, err := conn.ModifySpotFleetRequest(req); err != nil {
 			return fmt.Errorf("error updating spot request (%s): %s", d.Id(), err)
+		}
+
+		log.Println("[INFO] Waiting for Spot Fleet Request to be modified")
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{ec2.BatchStateModifying},
+			Target:     []string{ec2.BatchStateActive},
+			Refresh:    resourceAwsSpotFleetRequestStateRefreshFunc(d, meta),
+			Timeout:    10 * time.Minute,
+			MinTimeout: 10 * time.Second,
+			Delay:      30 * time.Second,
+		}
+
+		_, err := stateConf.WaitForState()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -1363,14 +1608,39 @@ func hashLaunchSpecification(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["ami"].(string)))
-	if m["availability_zone"] != "" {
-		buf.WriteString(fmt.Sprintf("%s-", m["availability_zone"].(string)))
+	if v, ok := m["availability_zone"].(string); ok && v != "" {
+		buf.WriteString(fmt.Sprintf("%s-", v))
 	}
-	if m["subnet_id"] != "" {
-		buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
+	if v, ok := m["subnet_id"].(string); ok && v != "" {
+		buf.WriteString(fmt.Sprintf("%s-", v))
 	}
 	buf.WriteString(fmt.Sprintf("%s-", m["instance_type"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["spot_price"].(string)))
+	return hashcode.String(buf.String())
+}
+
+func hashLaunchTemplateOverrides(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	if m["availability_zone"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["availability_zone"].(string)))
+	}
+	if m["subnet_id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
+	}
+	if m["spot_price"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["spot_price"].(string)))
+	}
+	if m["instance_type"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["instance_type"].(string)))
+	}
+	if m["weighted_capacity"] != nil {
+		buf.WriteString(fmt.Sprintf("%f-", m["weighted_capacity"].(float64)))
+	}
+	if m["priority"] != nil {
+		buf.WriteString(fmt.Sprintf("%f-", m["priority"].(float64)))
+	}
+
 	return hashcode.String(buf.String())
 }
 
@@ -1384,4 +1654,57 @@ func hashEbsBlockDevice(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", id.(string)))
 	}
 	return hashcode.String(buf.String())
+}
+
+func flattenFleetLaunchTemplateConfig(ltcs []*ec2.LaunchTemplateConfig) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	for _, ltc := range ltcs {
+		ltcRes := map[string]interface{}{}
+
+		if ltc.LaunchTemplateSpecification != nil {
+			ltcRes["launch_template_specification"] = flattenFleetLaunchTemplateSpecification(ltc.LaunchTemplateSpecification)
+		}
+
+		if ltc.Overrides != nil {
+			ltcRes["overrides"] = flattenLaunchTemplateOverrides(ltc.Overrides)
+		}
+
+		result = append(result, ltcRes)
+	}
+
+	return result
+}
+
+func flattenFleetLaunchTemplateSpecification(flt *ec2.FleetLaunchTemplateSpecification) []map[string]interface{} {
+	attrs := map[string]interface{}{}
+	result := make([]map[string]interface{}, 0)
+
+	// unlike autoscaling.LaunchTemplateConfiguration, FleetLaunchTemplateSpecs only return what was set
+	if flt.LaunchTemplateId != nil {
+		attrs["id"] = aws.StringValue(flt.LaunchTemplateId)
+	}
+
+	if flt.LaunchTemplateName != nil {
+		attrs["name"] = aws.StringValue(flt.LaunchTemplateName)
+	}
+
+	// version is returned only if it was previously set
+	if flt.Version != nil {
+		attrs["version"] = aws.StringValue(flt.Version)
+	} else {
+		attrs["version"] = nil
+	}
+
+	result = append(result, attrs)
+
+	return result
+}
+
+func flattenLaunchTemplateOverrides(overrides []*ec2.LaunchTemplateOverrides) *schema.Set {
+	overrideSet := &schema.Set{F: hashLaunchTemplateOverrides}
+	for _, override := range overrides {
+		overrideSet.Add(flattenSpotFleetRequestLaunchTemplateOverrides(override))
+	}
+	return overrideSet
 }

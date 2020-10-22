@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsEcsService() *schema.Resource {
@@ -17,7 +17,6 @@ func dataSourceAwsEcsService() *schema.Resource {
 			"service_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -26,7 +25,6 @@ func dataSourceAwsEcsService() *schema.Resource {
 			"cluster_arn": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"desired_count": {
 				Type:     schema.TypeInt,

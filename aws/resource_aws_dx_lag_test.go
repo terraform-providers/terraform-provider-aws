@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDxLag_basic(t *testing.T) {
@@ -27,7 +27,7 @@ func TestAccAWSDxLag_basic(t *testing.T) {
 					testAccCheckAwsDxLagExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", lagName1),
 					resource.TestCheckResourceAttr(resourceName, "connections_bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2"),
+					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -43,7 +43,7 @@ func TestAccAWSDxLag_basic(t *testing.T) {
 					testAccCheckAwsDxLagExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", lagName2),
 					resource.TestCheckResourceAttr(resourceName, "connections_bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2"),
+					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -138,7 +138,7 @@ func testAccDxLagConfig(n string) string {
 resource "aws_dx_lag" "test" {
   name                  = "%s"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   force_destroy         = true
 }
 `, n)
@@ -149,7 +149,7 @@ func testAccDxLagConfig_tags(n string) string {
 resource "aws_dx_lag" "test" {
   name                  = "%s"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   force_destroy         = true
 
   tags = {
@@ -165,7 +165,7 @@ func testAccDxLagConfig_tagsChanged(n string) string {
 resource "aws_dx_lag" "test" {
   name                  = "%s"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   force_destroy         = true
 
   tags = {

@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const organizationsPolicyTypeStatusDisabled = "DISABLED"
@@ -144,6 +144,8 @@ func resourceAwsOrganizationsOrganization() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
+						organizations.PolicyTypeAiservicesOptOutPolicy,
+						organizations.PolicyTypeBackupPolicy,
 						organizations.PolicyTypeServiceControlPolicy,
 						organizations.PolicyTypeTagPolicy,
 					}, false),

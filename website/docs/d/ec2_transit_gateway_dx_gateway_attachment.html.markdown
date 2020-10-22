@@ -16,8 +16,8 @@ Get information on an EC2 Transit Gateway's attachment to a Direct Connect Gatew
 
 ```hcl
 data "aws_ec2_transit_gateway_dx_gateway_attachment" "example" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.example.id}"
-  dx_gateway_id      = "${aws_dx_gateway.example.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+  dx_gateway_id      = aws_dx_gateway.example.id
 }
 ```
 
@@ -28,7 +28,7 @@ The following arguments are supported:
 * `transit_gateway_id` - (Optional) Identifier of the EC2 Transit Gateway.
 * `dx_gateway_id` - (Optional) Identifier of the Direct Connect Gateway.
 * `filter` - (Optional) Configuration block(s) for filtering. Detailed below.
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match a pair on the desired Transit Gateway Direct Connect Gateway Attachment.
+* `tags` - (Optional) A map of tags, each pair of which must exactly match a pair on the desired Transit Gateway Direct Connect Gateway Attachment.
 
 ### filter Configuration Block
 

@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/mediastore"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSMediaStoreContainer_basic(t *testing.T) {
@@ -155,9 +155,10 @@ resource "aws_media_store_container" "test" {
   name = "tf_mediastore_%[1]s"
 
   tags = {
-	Name  = "tf_mediastore_%[1]s"
-	%[2]s = %[3]q
-	%[4]s = %[5]q
+    Name = "tf_mediastore_%[1]s"
+
+    %[2]s = %[3]q
+    %[4]s = %[5]q
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)

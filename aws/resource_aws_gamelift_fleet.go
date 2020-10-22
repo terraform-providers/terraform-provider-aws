@@ -8,10 +8,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/gamelift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsGameliftFleet() *schema.Resource {
@@ -232,19 +235,27 @@ func resourceAwsGameliftFleetCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Creating Gamelift Fleet: %s", input)
 	var out *gamelift.CreateFleetOutput
-	err := resource.Retry(3*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(iamwaiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		out, err = conn.CreateFleet(&input)
-		if isAWSErr(err, gamelift.ErrCodeInvalidRequestException, "GameLift is not authorized to perform") {
+
+		if tfawserr.ErrMessageContains(err, gamelift.ErrCodeInvalidRequestException, "GameLift is not authorized to perform") {
 			return resource.RetryableError(err)
 		}
+
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
+
+	if tfresource.TimedOut(err) {
+		out, err = conn.CreateFleet(&input)
+	}
+
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating GameLift Fleet (%s): %w", d.Get("name").(string), err)
 	}
 
 	d.SetId(*out.FleetAttributes.FleetId)
@@ -298,6 +309,7 @@ func resourceAwsGameliftFleetCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsGameliftFleetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).gameliftconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[INFO] Describing Gamelift Fleet: %s", d.Id())
 	out, err := conn.DescribeFleetAttributes(&gamelift.DescribeFleetAttributesInput{
@@ -340,7 +352,7 @@ func resourceAwsGameliftFleetRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for Game Lift Fleet (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -352,8 +364,7 @@ func resourceAwsGameliftFleetUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Updating Gamelift Fleet: %s", d.Id())
 
-	if d.HasChange("description") || d.HasChange("metric_groups") || d.HasChange("name") ||
-		d.HasChange("new_game_session_protection_policy") || d.HasChange("resource_creation_limit_policy") {
+	if d.HasChanges("description", "metric_groups", "name", "new_game_session_protection_policy", "resource_creation_limit_policy") {
 		_, err := conn.UpdateFleetAttributes(&gamelift.UpdateFleetAttributesInput{
 			Description:                    aws.String(d.Get("description").(string)),
 			FleetId:                        aws.String(d.Id()),

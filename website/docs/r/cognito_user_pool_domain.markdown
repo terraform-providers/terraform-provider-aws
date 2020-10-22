@@ -17,7 +17,7 @@ Provides a Cognito User Pool Domain resource.
 ```hcl
 resource "aws_cognito_user_pool_domain" "main" {
   domain       = "example-domain"
-  user_pool_id = "${aws_cognito_user_pool.example.id}"
+  user_pool_id = aws_cognito_user_pool.example.id
 }
 
 resource "aws_cognito_user_pool" "example" {
@@ -30,16 +30,30 @@ resource "aws_cognito_user_pool" "example" {
 ```hcl
 resource "aws_cognito_user_pool_domain" "main" {
   domain          = "example-domain.example.com"
-  certificate_arn = "${aws_acm_certificate.cert.arn}"
-  user_pool_id    = "${aws_cognito_user_pool.example.id}"
+  certificate_arn = aws_acm_certificate.cert.arn
+  user_pool_id    = aws_cognito_user_pool.example.id
 }
 
 resource "aws_cognito_user_pool" "example" {
   name = "example-pool"
 }
+
+data "aws_route53_zone" "example" {
+  name = "example.com"
+}
+
+resource "aws_route53_record" "auth-cognito-A" {
+  name    = aws_cognito_user_pool_domain.main.domain
+  type    = "A"
+  zone_id = data.aws_route53_zone.example.zone_id
+  alias {
+    evaluate_target_health = false
+    name                   = aws_cognito_user_pool_domain.main.cloudfront_distribution_arn
+    # This zone_id is fixed
+    zone_id = "Z2FDTNDATAQYW2"
+  }
+}
 ```
-
-
 
 ## Argument Reference
 
@@ -54,7 +68,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `aws_account_id` - The AWS account ID for the user pool owner.
-* `cloudfront_distribution_arn` - The ARN of the CloudFront distribution.
+* `cloudfront_distribution_arn` - The URL of the CloudFront distribution. This is required to generate the ALIAS `aws_route53_record`
 * `s3_bucket` - The S3 bucket where the static files for this domain are stored.
 * `version` - The app version.
 

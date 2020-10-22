@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSRedshiftSecurityGroup_basic(t *testing.T) {
@@ -65,8 +66,9 @@ func TestAccAWSRedshiftSecurityGroup_ingressCidr(t *testing.T) {
 						resourceName, "name", fmt.Sprintf("redshift-sg-terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						resourceName, "description", "Managed by Terraform"),
-					resource.TestCheckResourceAttr(
-						resourceName, "ingress.2735652665.cidr", "10.0.0.1/24"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+						"cidr": "10.0.0.1/24",
+					}),
 					resource.TestCheckResourceAttr(
 						resourceName, "ingress.#", "1"),
 				),
@@ -277,38 +279,6 @@ func testAccCheckAWSRedshiftSecurityGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func TestResourceAWSRedshiftSecurityGroupNameValidation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "default",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123%%",
-			ErrCount: 1,
-		},
-		{
-			Value:    "TestingSG",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandStringFromCharSet(256, acctest.CharSetAlpha),
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedshiftSecurityGroupName(tc.Value, "aws_redshift_security_group_name")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Redshift Security Group Name to trigger a validation error")
-		}
-	}
-}
-
 func testAccAWSRedshiftSecurityGroupConfig_ingressCidr(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_security_group" "test" {
@@ -378,8 +348,8 @@ resource "aws_redshift_security_group" "test" {
   description = "this is a description"
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 }
 `, rInt, rInt)
@@ -428,18 +398,18 @@ resource "aws_redshift_security_group" "test" {
   description = "this is a description"
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift2.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift2.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift3.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift3.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 }
 `, rInt, rInt, rInt, rInt)
@@ -476,13 +446,13 @@ resource "aws_redshift_security_group" "test" {
   description = "this is a description"
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 
   ingress {
-    security_group_name     = "${aws_security_group.redshift2.name}"
-    security_group_owner_id = "${aws_security_group.redshift.owner_id}"
+    security_group_name     = aws_security_group.redshift2.name
+    security_group_owner_id = aws_security_group.redshift.owner_id
   }
 }
 `, rInt, rInt, rInt)

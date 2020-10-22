@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2AvailabilityZoneGroup_OptInStatus(t *testing.T) {
@@ -86,7 +86,7 @@ data "aws_availability_zones" "test" {
   # Filter to one Availability Zone Group per Region as Local Zones become available
   # e.g. ensure there are not two us-west-2-XXX when adding to this list
   filter {
-    name   = "group-name"
+    name = "group-name"
     values = [
       "us-west-2-lax-1",
     ]

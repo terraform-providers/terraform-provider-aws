@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -11,10 +12,69 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/budgets"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_budgets_budget", &resource.Sweeper{
+		Name: "aws_budgets_budget",
+		F:    testSweepBudgetsBudgets,
+	})
+}
+
+func testSweepBudgetsBudgets(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).budgetconn
+	accountID := client.(*AWSClient).accountid
+	input := &budgets.DescribeBudgetsInput{
+		AccountId: aws.String(accountID),
+	}
+	var sweeperErrs *multierror.Error
+
+	for {
+		output, err := conn.DescribeBudgets(input)
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Budgets sweep for %s: %s", region, err)
+			return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+		}
+		if err != nil {
+			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Budgets: %w", err))
+			return sweeperErrs
+		}
+
+		for _, budget := range output.Budgets {
+			name := aws.StringValue(budget.BudgetName)
+
+			log.Printf("[INFO] Deleting Budget: %s", name)
+			_, err := conn.DeleteBudget(&budgets.DeleteBudgetInput{
+				AccountId:  aws.String(accountID),
+				BudgetName: aws.String(name),
+			})
+			if isAWSErr(err, budgets.ErrCodeNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting Budget (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		if aws.StringValue(output.NextToken) == "" {
+			break
+		}
+		input.NextToken = output.NextToken
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSBudgetsBudget_basic(t *testing.T) {
 	costFilterKey := "AZ"
@@ -24,7 +84,7 @@ func TestAccAWSBudgetsBudget_basic(t *testing.T) {
 	configBasicUpdate := testAccAWSBudgetsBudgetConfigUpdate(name)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBudgets(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("budgets", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAWSBudgetsBudgetDestroy,
 		Steps: []resource.TestStep{
@@ -76,7 +136,7 @@ func TestAccAWSBudgetsBudget_prefix(t *testing.T) {
 	configBasicUpdate := testAccAWSBudgetsBudgetConfigUpdate(name)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBudgets(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("budgets", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAWSBudgetsBudgetDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +198,7 @@ func TestAccAWSBudgetsBudget_notification(t *testing.T) {
 	oneTopic := []string{"${aws_sns_topic.budget_notifications.arn}"}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBudgets(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck("budgets", t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccAWSBudgetsBudgetDestroy,
 		Steps: []resource.TestStep{
@@ -334,24 +394,6 @@ func testAccAWSBudgetsBudgetDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccPreCheckAWSBudgets(t *testing.T) {
-	conn := testAccProvider.Meta().(*AWSClient).budgetconn
-
-	input := &budgets.DescribeBudgetsInput{
-		AccountId: aws.String(testAccProvider.Meta().(*AWSClient).accountid),
-	}
-
-	_, err := conn.DescribeBudgets(input)
-
-	if testAccPreCheckSkipError(err) {
-		t.Skipf("skipping acceptance testing: %s", err)
-	}
-
-	if err != nil {
-		t.Fatalf("unexpected PreCheck error: %s", err)
-	}
 }
 
 func testAccAWSBudgetsBudgetConfigUpdate(name string) budgets.Budget {
@@ -574,20 +616,19 @@ resource "aws_sns_topic" "budget_notifications" {
 }
 
 resource "aws_budgets_budget" "foo" {
-	name = "%s"
-	budget_type = "%s"
-	limit_amount = "%s"
-	limit_unit = "%s"
-	cost_types {
-		include_tax = "%t"
-		include_subscription = "%t"
-		use_blended = "%t"
-	}
+  name         = "%s"
+  budget_type  = "%s"
+  limit_amount = "%s"
+  limit_unit   = "%s"
+  cost_types {
+    include_tax          = "%t"
+    include_subscription = "%t"
+    use_blended          = "%t"
+  }
 
-	time_period_start = "%s" 
-	time_period_end = "%s"
-	time_unit = "%s"
-	
+  time_period_start = "%s"
+  time_period_end   = "%s"
+  time_unit         = "%s"
     %s
 }
 `, *budgetConfig.BudgetName, *budgetConfig.BudgetType, *budgetConfig.BudgetLimit.Amount, *budgetConfig.BudgetLimit.Unit, *budgetConfig.CostTypes.IncludeTax, *budgetConfig.CostTypes.IncludeSubscription, *budgetConfig.CostTypes.UseBlended, timePeriodStart, timePeriodEnd, *budgetConfig.TimeUnit, strings.Join(notificationStrings, "\n"))
@@ -606,13 +647,13 @@ func testAccAWSBudgetsBudgetConfigNotificationSnippet(notification budgets.Notif
 	}
 
 	return fmt.Sprintf(`
-	notification {
-		threshold = %f
-		threshold_type = "%s"
-		notification_type = "%s"
-		subscriber_email_addresses = [%s]
-		subscriber_sns_topic_arns = [%s]
-		comparison_operator = "%s"
-	}
+notification {
+  threshold                  = %f
+  threshold_type             = "%s"
+  notification_type          = "%s"
+  subscriber_email_addresses = [%s]
+  subscriber_sns_topic_arns  = [%s]
+  comparison_operator        = "%s"
+}
 `, *notification.Threshold, *notification.ThresholdType, *notification.NotificationType, strings.Join(quotedEMails, ","), strings.Join(quotedTopics, ","), *notification.ComparisonOperator)
 }

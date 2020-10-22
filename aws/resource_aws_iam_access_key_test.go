@@ -9,10 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/hashicorp/vault/helper/pgpkeys"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/vault/helper/pgpkeys"
 )
 
 func TestAccAWSAccessKey_basic(t *testing.T) {
@@ -200,7 +200,7 @@ resource "aws_iam_user" "a_user" {
 }
 
 resource "aws_iam_access_key" "a_key" {
-  user = "${aws_iam_user.a_user.name}"
+  user = aws_iam_user.a_user.name
 }
 `, rName)
 }
@@ -212,7 +212,7 @@ resource "aws_iam_user" "a_user" {
 }
 
 resource "aws_iam_access_key" "a_key" {
-  user = "${aws_iam_user.a_user.name}"
+  user = aws_iam_user.a_user.name
 
   pgp_key = <<EOF
 %s
@@ -228,7 +228,7 @@ resource "aws_iam_user" "a_user" {
 }
 
 resource "aws_iam_access_key" "a_key" {
-  user   = "${aws_iam_user.a_user.name}"
+  user   = aws_iam_user.a_user.name
   status = "Inactive"
 }
 `, rName)
@@ -248,26 +248,6 @@ func TestSesSmtpPasswordFromSecretKeySigV4(t *testing.T) {
 
 	for _, tc := range cases {
 		actual, err := sesSmtpPasswordFromSecretKeySigV4(&tc.Input, tc.Region)
-		if err != nil {
-			t.Fatalf("unexpected error: %s", err)
-		}
-		if actual != tc.Expected {
-			t.Fatalf("%q: expected %q, got %q", tc.Input, tc.Expected, actual)
-		}
-	}
-}
-
-func TestSesSmtpPasswordFromSecretKeySigV2(t *testing.T) {
-	cases := []struct {
-		Input    string
-		Expected string
-	}{
-		{"some+secret+key", "AnkqhOiWEcszZZzTMCQbOY1sPGoLFgMH9zhp4eNgSjo4"},
-		{"another+secret+key", "Akwqr0Giwi8FsQFgW3DXWCC2DiiQ/jZjqLDWK8TeTBgL"},
-	}
-
-	for _, tc := range cases {
-		actual, err := sesSmtpPasswordFromSecretKeySigV2(&tc.Input)
 		if err != nil {
 			t.Fatalf("unexpected error: %s", err)
 		}

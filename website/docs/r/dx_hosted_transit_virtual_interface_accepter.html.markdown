@@ -27,13 +27,13 @@ provider "aws" {
 }
 
 data "aws_caller_identity" "accepter" {
-  provider = "aws.accepter"
+  provider = aws.accepter
 }
 
 # Creator's side of the VIF
 resource "aws_dx_hosted_transit_virtual_interface" "creator" {
   connection_id    = "dxcon-zzzzzzzz"
-  owner_account_id = "${data.aws_caller_identity.accepter.account_id}"
+  owner_account_id = data.aws_caller_identity.accepter.account_id
 
   name           = "tf-transit-vif-example"
   vlan           = 4094
@@ -42,21 +42,21 @@ resource "aws_dx_hosted_transit_virtual_interface" "creator" {
 
   # The aws_dx_hosted_transit_virtual_interface
   # must be destroyed before the aws_dx_gateway.
-  depends_on = ["aws_dx_gateway.example"]
+  depends_on = [aws_dx_gateway.example]
 }
 
 # Accepter's side of the VIF.
 resource "aws_dx_gateway" "example" {
-  provider = "aws.accepter"
+  provider = aws.accepter
 
   name            = "tf-dxg-example"
   amazon_side_asn = 64512
 }
 
 resource "aws_dx_hosted_transit_virtual_interface_accepter" "accepter" {
-  provider             = "aws.accepter"
-  virtual_interface_id = "${aws_dx_hosted_transit_virtual_interface.creator.id}"
-  dx_gateway_id        = "${aws_dx_gateway.example.id}"
+  provider             = aws.accepter
+  virtual_interface_id = aws_dx_hosted_transit_virtual_interface.creator.id
+  dx_gateway_id        = aws_dx_gateway.example.id
 
   tags = {
     Side = "Accepter"
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `dx_gateway_id` - (Required) The ID of the [Direct Connect gateway](dx_gateway.html) to which to connect the virtual interface.
 * `virtual_interface_id` - (Required) The ID of the Direct Connect virtual interface to accept.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 

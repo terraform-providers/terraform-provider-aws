@@ -24,7 +24,7 @@ resource "aws_autoscaling_policy" "bat" {
   scaling_adjustment     = 4
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = "${aws_autoscaling_group.bar.name}"
+  autoscaling_group_name = aws_autoscaling_group.bar.name
 }
 
 resource "aws_autoscaling_group" "bar" {
@@ -35,7 +35,7 @@ resource "aws_autoscaling_group" "bar" {
   health_check_grace_period = 300
   health_check_type         = "ELB"
   force_delete              = true
-  launch_configuration      = "${aws_launch_configuration.foo.name}"
+  launch_configuration      = aws_launch_configuration.foo.name
 }
 ```
 
@@ -49,6 +49,10 @@ The following arguments are supported:
 * `policy_type` - (Optional) The policy type, either "SimpleScaling", "StepScaling" or "TargetTrackingScaling". If this value isn't provided, AWS will default to "SimpleScaling."
 * `estimated_instance_warmup` - (Optional) The estimated time, in seconds, until a newly launched instance will contribute CloudWatch metrics. Without a value, AWS will default to the group's specified cooldown period.
 
+The following argument is only available to "SimpleScaling" and "StepScaling" type policies:
+
+* `min_adjustment_magnitude` - (Optional) Minimum value to scale by when `adjustment_type` is set to `PercentChangeInCapacity`.
+
 The following arguments are only available to "SimpleScaling" type policies:
 
 * `cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start.
@@ -61,16 +65,20 @@ The following arguments are only available to "StepScaling" type policies:
 group scaling. These have the following structure:
 
 ```hcl
-step_adjustment {
-  scaling_adjustment          = -1
-  metric_interval_lower_bound = 1.0
-  metric_interval_upper_bound = 2.0
-}
+resource "aws_autoscaling_policy" "example" {
+  # ... other configuration ...
 
-step_adjustment {
-  scaling_adjustment          = 1
-  metric_interval_lower_bound = 2.0
-  metric_interval_upper_bound = 3.0
+  step_adjustment {
+    scaling_adjustment          = -1
+    metric_interval_lower_bound = 1.0
+    metric_interval_upper_bound = 2.0
+  }
+
+  step_adjustment {
+    scaling_adjustment          = 1
+    metric_interval_lower_bound = 2.0
+    metric_interval_upper_bound = 3.0
+  }
 }
 ```
 
@@ -92,27 +100,31 @@ The following arguments are only available to "TargetTrackingScaling" type polic
 * `target_tracking_configuration` - (Optional) A target tracking policy. These have the following structure:
 
 ```hcl
-target_tracking_configuration {
-  predefined_metric_specification {
-    predefined_metric_type = "ASGAverageCPUUtilization"
-  }
+resource "aws_autoscaling_policy" "example" {
+  # ... other configuration ...
 
-  target_value = 40.0
-}
-
-target_tracking_configuration {
-  customized_metric_specification {
-    metric_dimension {
-      name  = "fuga"
-      value = "fuga"
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
     }
 
-    metric_name = "hoge"
-    namespace   = "hoge"
-    statistic   = "Average"
+    target_value = 40.0
   }
 
-  target_value = 40.0
+  target_tracking_configuration {
+    customized_metric_specification {
+      metric_dimension {
+        name  = "fuga"
+        value = "fuga"
+      }
+
+      metric_name = "hoge"
+      namespace   = "hoge"
+      statistic   = "Average"
+    }
+
+    target_value = 40.0
+  }
 }
 ```
 

@@ -15,7 +15,7 @@ Provides an AWS Backup vault resource.
 ```hcl
 resource "aws_backup_vault" "example" {
   name        = "example_backup_vault"
-  kms_key_arn = "${aws_kms_key.example.arn}"
+  kms_key_arn = aws_kms_key.example.arn
 }
 ```
 

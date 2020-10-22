@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -80,6 +80,7 @@ func dataSourceAwsRoute53ResolverRule() *schema.Resource {
 
 func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).route53resolverconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	var rule *route53resolver.ResolverRule
 	if v, ok := d.GetOk("resolver_rule_id"); ok {
@@ -121,7 +122,9 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	d.SetId(aws.StringValue(rule.Id))
 	arn := *rule.Arn
 	d.Set("arn", arn)
-	d.Set("domain_name", rule.DomainName)
+	// To be consistent with other AWS services that do not accept a trailing period,
+	// we remove the suffix from the Domain Name returned from the API
+	d.Set("domain_name", trimTrailingPeriod(aws.StringValue(rule.DomainName)))
 	d.Set("name", rule.Name)
 	d.Set("owner_id", rule.OwnerId)
 	d.Set("resolver_endpoint_id", rule.ResolverEndpointId)
@@ -137,7 +140,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("error listing tags for Route 53 Resolver rule (%s): %s", arn, err)
 		}
 
-		if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+		if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 			return fmt.Errorf("error setting tags: %s", err)
 		}
 	}

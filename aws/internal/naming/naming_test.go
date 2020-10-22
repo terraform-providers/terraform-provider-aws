@@ -109,8 +109,18 @@ func TestHasResourceUniqueIdSuffix(t *testing.T) {
 			Expected: true,
 		},
 		{
+			TestName: "correct suffix with hex, incorrect prefix",
+			Input:    "test-200601021504050000000000a1",
+			Expected: true,
+		},
+		{
 			TestName: "correct suffix, correct prefix",
 			Input:    "terraform-20060102150405000000000001",
+			Expected: true,
+		},
+		{
+			TestName: "correct suffix with hex, correct prefix",
+			Input:    "terraform-2006010215040500000000000a",
 			Expected: true,
 		},
 	}
@@ -153,6 +163,11 @@ func TestNamePrefixFromName(t *testing.T) {
 			Expected: strPtr("test-"),
 		},
 		{
+			TestName: "correct prefix with hyphen, correct suffix with hex",
+			Input:    "test-200601021504050000000000f1",
+			Expected: strPtr("test-"),
+		},
+		{
 			TestName: "incorrect prefix, correct suffix",
 			Input:    "terraform-20060102150405000000000001",
 			Expected: nil,
@@ -177,4 +192,20 @@ func TestNamePrefixFromName(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("extracting prefix from generated name", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			prefix := "test-"
+			input := Generate("", prefix)
+			got := NamePrefixFromName(input)
+
+			if got == nil {
+				t.Errorf("run%d: got nil, expected %s for input %s", i, prefix, input)
+			}
+
+			if got != nil && prefix != *got {
+				t.Errorf("run%d: got %s, expected %s for input %s", i, *got, prefix, input)
+			}
+		}
+	})
 }

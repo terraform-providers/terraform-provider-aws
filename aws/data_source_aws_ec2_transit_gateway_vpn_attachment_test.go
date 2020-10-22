@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSEc2TransitGatewayVpnAttachmentDataSource_TransitGatewayIdAndVpnConnectionId(t *testing.T) {
@@ -79,9 +79,9 @@ resource "aws_customer_gateway" "test" {
 }
 
 resource "aws_vpn_connection" "test" {
-  customer_gateway_id = "${aws_customer_gateway.test.id}"
-  transit_gateway_id  = "${aws_ec2_transit_gateway.test.id}"
-  type                = "${aws_customer_gateway.test.type}"
+  customer_gateway_id = aws_customer_gateway.test.id
+  transit_gateway_id  = aws_ec2_transit_gateway.test.id
+  type                = aws_customer_gateway.test.type
 
   tags = {
     Name = "tf-acc-test-ec2-vpn-connection-transit-gateway-id"
@@ -91,21 +91,21 @@ resource "aws_vpn_connection" "test" {
 }
 
 func testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigTransitGatewayIdAndVpnConnectionId(rBgpAsn int) string {
-	return testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigBase(rBgpAsn) + fmt.Sprintf(`
+	return testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigBase(rBgpAsn) + `
 data "aws_ec2_transit_gateway_vpn_attachment" "test" {
-  transit_gateway_id = "${aws_ec2_transit_gateway.test.id}"
-  vpn_connection_id  = "${aws_vpn_connection.test.id}"
+  transit_gateway_id = aws_ec2_transit_gateway.test.id
+  vpn_connection_id  = aws_vpn_connection.test.id
 }
-`)
+`
 }
 
 func testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigFilter(rBgpAsn int) string {
-	return testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigBase(rBgpAsn) + fmt.Sprintf(`
+	return testAccAWSEc2TransitGatewayVpnAttachmentDataSourceConfigBase(rBgpAsn) + `
 data "aws_ec2_transit_gateway_vpn_attachment" "test" {
   filter {
     name   = "resource-id"
-    values = ["${aws_vpn_connection.test.id}"]
+    values = [aws_vpn_connection.test.id]
   }
 }
-`)
+`
 }

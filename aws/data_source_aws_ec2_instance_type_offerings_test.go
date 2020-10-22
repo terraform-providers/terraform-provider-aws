@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSEc2InstanceTypeOfferingsDataSource_Filter(t *testing.T) {
@@ -80,34 +80,25 @@ func testAccPreCheckAWSEc2InstanceTypeOfferings(t *testing.T) {
 }
 
 func testAccAWSEc2InstanceTypeOfferingsDataSourceConfigFilter() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ec2_instance_type_offerings" "test" {
   filter {
     name   = "instance-type"
     values = ["t2.micro", "t3.micro"]
   }
 }
-`)
+`
 }
 
 func testAccAWSEc2InstanceTypeOfferingsDataSourceConfigLocationType() string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return testAccAvailableAZsNoOptInConfig() + `
 data "aws_ec2_instance_type_offerings" "test" {
   filter {
     name   = "location"
-    values = ["${data.aws_availability_zones.available.names[0]}"]
+    values = [data.aws_availability_zones.available.names[0]]
   }
 
   location_type = "availability-zone"
 }
-`)
+`
 }

@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSInspectorTarget_basic(t *testing.T) {
@@ -229,7 +229,7 @@ resource "aws_inspector_resource_group" "test2" {
 
 resource "aws_inspector_assessment_target" "test" {
   name               = %q
-  resource_group_arn = "${%s.arn}"
+  resource_group_arn = %s.arn
 }
 `, rName, rName, rName, inspectorResourceGroupResourceName)
 }

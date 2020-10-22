@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAWSLambdaAlias_basic(t *testing.T) {
@@ -57,21 +57,21 @@ EOF
 
 resource "aws_iam_role_policy" "lambda" {
   name = %[1]q
-  role = "${aws_iam_role.lambda.id}"
+  role = aws_iam_role.lambda.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
-        },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:${data.aws_partition.current.partition}:logs:*:*:*"
+    },
     {
       "Effect": "Allow",
       "Action": [
@@ -106,10 +106,10 @@ resource "aws_lambda_alias" "test" {
 }
 
 func testAccDataSourceAWSLambdaAliasConfigBasic(rName string) string {
-	return testAccDataSourceAWSLambdaAliasConfigBase(rName) + fmt.Sprintf(`
+	return testAccDataSourceAWSLambdaAliasConfigBase(rName) + `
 data "aws_lambda_alias" "test" {
   name          = aws_lambda_alias.test.name
   function_name = aws_lambda_alias.test.function_name
 }
-  `)
+`
 }

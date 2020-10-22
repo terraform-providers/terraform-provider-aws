@@ -1,0 +1,20 @@
+name: team-slack-bot
+
+on:
+  schedule:
+    - cron:  '0 15 * * 1-5'
+
+jobs:
+  open-pr-stats:
+    runs-on: ubuntu-latest
+    name: open-pr-stats
+    steps:
+    - name: open-pr-stats
+      uses: breathingdust/github-team-slackbot@v17
+      with:
+        github_token: ${{ secrets.GITHUB_ACTIONS_TOKEN}}
+        org: terraform-providers
+        repo: terraform-provider-aws
+        team_slug: aws-provider
+        slack_token: ${{ secrets.SLACK_BOT_TOKEN }}
+        slack_channel: ${{ secrets.SLACK_CHANNEL }}

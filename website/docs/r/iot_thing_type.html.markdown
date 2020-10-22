@@ -23,8 +23,8 @@ resource "aws_iot_thing_type" "foo" {
 * `name` - (Required, Forces New Resource) The name of the thing type.
 * `deprecated` - (Optional, Defaults to false) Whether the thing type is deprecated. If true, no new things could be associated with this type.
 * `properties` - (Optional), Configuration block that can contain the following properties of the thing type:
-  * `description` - (Optional, Forces New Resource) The description of the thing type.
-  * `searchable_attributes` - (Optional, Forces New Resource) A list of searchable thing attribute names.
+    * `description` - (Optional, Forces New Resource) The description of the thing type.
+    * `searchable_attributes` - (Optional, Forces New Resource) A list of searchable thing attribute names.
 
 
 ## Attributes Reference

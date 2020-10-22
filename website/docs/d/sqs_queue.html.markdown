@@ -28,4 +28,4 @@ data "aws_sqs_queue" "example" {
 
 * `arn` - The Amazon Resource Name (ARN) of the queue.
 * `url` - The URL of the queue.
-* `tags` - A mapping of tags for the resource.
+* `tags` - A map of tags for the resource.

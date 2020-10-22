@@ -2,10 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
@@ -22,8 +23,8 @@ func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
 				Config: testAccMskClusterDataSourceConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName, "arn"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "bootstrap_brokers"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "bootstrap_brokers_tls"),
+					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers", ""),
+					resource.TestMatchResourceAttr(resourceName, "bootstrap_brokers_tls", regexp.MustCompile(`^(([-\w]+\.){1,}[\w]+:\d+,){2,}([-\w]+\.){1,}[\w]+:\d+$`)), // Hostname ordering not guaranteed between resource and data source reads
 					resource.TestCheckResourceAttrPair(resourceName, "cluster_name", dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrPair(resourceName, "kafka_version", dataSourceName, "kafka_version"),
 					resource.TestCheckResourceAttrPair(resourceName, "number_of_broker_nodes", dataSourceName, "number_of_broker_nodes"),
@@ -43,10 +44,10 @@ resource "aws_msk_cluster" "test" {
   number_of_broker_nodes = 3
 
   broker_node_group_info {
-    client_subnets  = ["${aws_subnet.example_subnet_az1.id}", "${aws_subnet.example_subnet_az2.id}", "${aws_subnet.example_subnet_az3.id}"]
+    client_subnets  = [aws_subnet.example_subnet_az1.id, aws_subnet.example_subnet_az2.id, aws_subnet.example_subnet_az3.id]
     ebs_volume_size = 10
     instance_type   = "kafka.m5.large"
-    security_groups = ["${aws_security_group.example_sg.id}"]
+    security_groups = [aws_security_group.example_sg.id]
   }
 
   tags = {
@@ -55,7 +56,7 @@ resource "aws_msk_cluster" "test" {
 }
 
 data "aws_msk_cluster" "test" {
-  cluster_name = "${aws_msk_cluster.test.cluster_name}"
+  cluster_name = aws_msk_cluster.test.cluster_name
 }
 `, rName)
 }

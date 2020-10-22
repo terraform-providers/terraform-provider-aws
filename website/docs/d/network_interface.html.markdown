@@ -44,6 +44,7 @@ Additionally, the following attributes are exported:
 * `requester_id` - The ID of the entity that launched the instance on your behalf.
 * `security_groups` - The list of security groups for the network interface.
 * `subnet_id` - The ID of the subnet.
+* `outpost_arn` - The Amazon Resource Name (ARN) of the Outpost.
 * `tags` - Any tags assigned to the network interface.
 * `vpc_id` - The ID of the VPC.
 

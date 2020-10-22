@@ -17,26 +17,26 @@ Manages an EKS Cluster.
 ```hcl
 resource "aws_eks_cluster" "example" {
   name     = "example"
-  role_arn = "${aws_iam_role.example.arn}"
+  role_arn = aws_iam_role.example.arn
 
   vpc_config {
-    subnet_ids = ["${aws_subnet.example1.id}", "${aws_subnet.example2.id}"]
+    subnet_ids = [aws_subnet.example1.id, aws_subnet.example2.id]
   }
 
   # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
   # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
-    "aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy",
-    "aws_iam_role_policy_attachment.example-AmazonEKSServicePolicy",
+    aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController,
   ]
 }
 
 output "endpoint" {
-  value = "${aws_eks_cluster.example.endpoint}"
+  value = aws_eks_cluster.example.endpoint
 }
 
 output "kubeconfig-certificate-authority-data" {
-  value = "${aws_eks_cluster.example.certificate_authority.0.data}"
+  value = aws_eks_cluster.example.certificate_authority[0].data
 }
 ```
 
@@ -64,12 +64,14 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "example-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = "${aws_iam_role.example.name}"
+  role       = aws_iam_role.example.name
 }
 
-resource "aws_iam_role_policy_attachment" "example-AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = "${aws_iam_role.example.name}"
+# Optionally, enable Security Groups for Pods
+# Reference: https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html
+resource "aws_iam_role_policy_attachment" "example-AmazonEKSVPCResourceController" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role       = aws_iam_role.example.name
 }
 ```
 
@@ -82,14 +84,14 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSServicePolicy" {
 ```hcl
 variable "cluster_name" {
   default = "example"
-  type    = "string"
+  type    = string
 }
 
 resource "aws_eks_cluster" "example" {
-  depends_on = ["aws_cloudwatch_log_group.example"]
+  depends_on = [aws_cloudwatch_log_group.example]
 
   enabled_cluster_log_types = ["api", "audit"]
-  name                      = "${var.cluster_name}"
+  name                      = var.cluster_name
 
   # ... other configuration ...
 }
@@ -114,7 +116,7 @@ resource "aws_eks_cluster" "example" {
 resource "aws_iam_openid_connect_provider" "example" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = []
-  url             = "${aws_eks_cluster.example.identity.0.oidc.0.issuer}"
+  url             = aws_eks_cluster.example.identity[0].oidc[0].issuer
 }
 
 data "aws_caller_identity" "current" {}
@@ -131,14 +133,14 @@ data "aws_iam_policy_document" "example_assume_role_policy" {
     }
 
     principals {
-      identifiers = ["${aws_iam_openid_connect_provider.example.arn}"]
+      identifiers = [aws_iam_openid_connect_provider.example.arn]
       type        = "Federated"
     }
   }
 }
 
 resource "aws_iam_role" "example" {
-  assume_role_policy = "${data.aws_iam_policy_document.example_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.example_assume_role_policy.json
   name               = "example"
 }
 ```
@@ -154,7 +156,7 @@ The following arguments are supported:
 * `vpc_config` - (Required) Nested argument for the VPC associated with your cluster. Amazon EKS VPC resources have specific requirements to work properly with Kubernetes. For more information, see [Cluster VPC Considerations](https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html) and [Cluster Security Group Considerations](https://docs.aws.amazon.com/eks/latest/userguide/sec-group-reqs.html) in the Amazon EKS User Guide. Configuration detailed below.
 * `enabled_cluster_log_types` - (Optional) A list of the desired control plane logging to enable. For more information, see [Amazon EKS Control Plane Logging](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html)
 * `encryption_config` - (Optional) Configuration block with encryption configuration for the cluster. Only available on Kubernetes 1.13 and above clusters created after March 6, 2020. Detailed below.
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 * `version` – (Optional) Desired Kubernetes master version. If you do not specify a value, the latest available version at resource creation is used and no upgrades will occur except those automatically triggered by EKS. The value must be configured and increased to upgrade the version when desired. Downgrades are not supported by EKS.
 
 ### encryption_config
@@ -185,17 +187,17 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The name of the cluster.
 * `arn` - The Amazon Resource Name (ARN) of the cluster.
 * `certificate_authority` - Nested attribute containing `certificate-authority-data` for your cluster.
-  * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
+    * `data` - The base64 encoded certificate data required to communicate with your cluster. Add this to the `certificate-authority-data` section of the `kubeconfig` file for your cluster.
 * `endpoint` - The endpoint for your Kubernetes API server.
 * `identity` - Nested attribute containing identity provider information for your cluster. Only available on Kubernetes version 1.13 and 1.14 clusters created or upgraded on or after September 3, 2019.
-  * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
-    * `issuer` - Issuer URL for the OpenID Connect identity provider.
+    * `oidc` - Nested attribute containing [OpenID Connect](https://openid.net/connect/) identity provider information for the cluster.
+        * `issuer` - Issuer URL for the OpenID Connect identity provider.
 * `platform_version` - The platform version for the cluster.
-* `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`. 
+* `status` - The status of the EKS cluster. One of `CREATING`, `ACTIVE`, `DELETING`, `FAILED`.
 * `version` - The Kubernetes server version for the cluster.
 * `vpc_config` - Additional nested attributes:
-  * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
-  * `vpc_id` - The VPC associated with your cluster.
+    * `cluster_security_group_id` - The cluster security group that was created by Amazon EKS for the cluster.
+    * `vpc_id` - The VPC associated with your cluster.
 
 ## Timeouts
 

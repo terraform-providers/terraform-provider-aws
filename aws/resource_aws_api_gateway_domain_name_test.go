@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayDomainName_CertificateArn(t *testing.T) {
@@ -267,6 +267,31 @@ func TestAccAWSAPIGatewayDomainName_Tags(t *testing.T) {
 	})
 }
 
+func TestAccAWSAPIGatewayDomainName_disappears(t *testing.T) {
+	var domainName apigateway.DomainName
+	resourceName := "aws_api_gateway_domain_name.test"
+	rName := fmt.Sprintf("tf-acc-%s.terraformtest.com", acctest.RandString(8))
+
+	key := tlsRsaPrivateKeyPem(2048)
+	certificate := tlsRsaX509SelfSignedCertificatePem(key, rName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayDomainNameDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayDomainNameConfig_RegionalCertificateArn(rName, key, certificate),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayDomainNameExists(resourceName, &domainName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayDomainName(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSAPIGatewayDomainNameExists(n string, res *apigateway.DomainName) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -357,7 +382,7 @@ resource "aws_acm_certificate" "test" {
 
 resource "aws_api_gateway_domain_name" "test" {
   domain_name              = %[1]q
-  regional_certificate_arn = "${aws_acm_certificate.test.arn}"
+  regional_certificate_arn = aws_acm_certificate.test.arn
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -391,7 +416,7 @@ resource "aws_acm_certificate" "test" {
 
 resource "aws_api_gateway_domain_name" "test" {
   domain_name              = %[1]q
-  regional_certificate_arn = "${aws_acm_certificate.test.arn}"
+  regional_certificate_arn = aws_acm_certificate.test.arn
   security_policy          = %[4]q
 
   endpoint_configuration {
@@ -410,14 +435,14 @@ resource "aws_acm_certificate" "test" {
 
 resource "aws_api_gateway_domain_name" "test" {
   domain_name              = %[1]q
-  regional_certificate_arn = "${aws_acm_certificate.test.arn}"
+  regional_certificate_arn = aws_acm_certificate.test.arn
 
   endpoint_configuration {
     types = ["REGIONAL"]
   }
 
   tags = {
-	%[4]q = %[5]q
+    %[4]q = %[5]q
   }
 }
 `, domainName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key), tagKey1, tagValue1)
@@ -432,15 +457,15 @@ resource "aws_acm_certificate" "test" {
 
 resource "aws_api_gateway_domain_name" "test" {
   domain_name              = %[1]q
-  regional_certificate_arn = "${aws_acm_certificate.test.arn}"
+  regional_certificate_arn = aws_acm_certificate.test.arn
 
   endpoint_configuration {
     types = ["REGIONAL"]
   }
 
   tags = {
-	%[4]q = %[5]q
-	%[6]q = %[7]q
+    %[4]q = %[5]q
+    %[6]q = %[7]q
   }
 }
 `, domainName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key), tagKey1, tagValue1, tagKey2, tagValue2)

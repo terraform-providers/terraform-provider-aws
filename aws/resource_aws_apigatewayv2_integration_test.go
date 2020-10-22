@@ -6,12 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigatewayv2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSAPIGatewayV2Integration_basic(t *testing.T) {
+func TestAccAWSAPIGatewayV2Integration_basicWebSocket(t *testing.T) {
 	var apiId string
 	var v apigatewayv2.GetIntegrationOutput
 	resourceName := "aws_apigatewayv2_integration.test"
@@ -33,9 +33,54 @@ func TestAccAWSAPIGatewayV2Integration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_method", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", "${integration.response.statuscode}"),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_type", "MOCK"),
 					resource.TestCheckResourceAttr(resourceName, "integration_uri", ""),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", "WHEN_NO_MATCH"),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Integration_basicHttp(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetIntegrationOutput
+	resourceName := "aws_apigatewayv2_integration.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_httpProxy(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "connection_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "credentials_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "GET"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_uri", "https://example.com"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
@@ -97,14 +142,18 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Test HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "integration_method", "GET"),
 					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", "${integration.response.statuscode}"),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "integration_uri", "http://www.example.com"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", "WHEN_NO_MATCH"),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.querystring.stage", "'value1'"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", ""),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", "$request.body.name"),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "28999"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 			{
@@ -118,15 +167,20 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Test HTTP updated"),
 					resource.TestCheckResourceAttr(resourceName, "integration_method", "POST"),
 					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", "${integration.response.statuscode}"),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP"),
 					resource.TestCheckResourceAttr(resourceName, "integration_uri", "http://www.example.org"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", "WHEN_NO_TEMPLATES"),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.header.x-userid", "'value2'"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.path.op", "'value3'"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", "#set($number=42)"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/xml", "#set($percent=$number/100)"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", "$request.body.id"),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "51"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 			{
@@ -139,7 +193,7 @@ func TestAccAWSAPIGatewayV2Integration_IntegrationTypeHttp(t *testing.T) {
 	})
 }
 
-func TestAccAWSAPIGatewayV2Integration_Lambda(t *testing.T) {
+func TestAccAWSAPIGatewayV2Integration_LambdaWebSocket(t *testing.T) {
 	var apiId string
 	var v apigatewayv2.GetIntegrationOutput
 	resourceName := "aws_apigatewayv2_integration.test"
@@ -153,7 +207,7 @@ func TestAccAWSAPIGatewayV2Integration_Lambda(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayV2IntegrationConfig_lambda(rName),
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_lambdaWebSocket(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
 					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
@@ -162,13 +216,16 @@ func TestAccAWSAPIGatewayV2Integration_Lambda(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Test Lambda"),
 					resource.TestCheckResourceAttr(resourceName, "integration_method", "POST"),
 					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", "${integration.response.body.errorMessage}"),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_type", "AWS"),
 					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lambdaResourceName, "invoke_arn"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", "WHEN_NO_MATCH"),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 			{
@@ -181,7 +238,52 @@ func TestAccAWSAPIGatewayV2Integration_Lambda(t *testing.T) {
 	})
 }
 
-func TestAccAWSAPIGatewayV2Integration_VpcLink(t *testing.T) {
+func TestAccAWSAPIGatewayV2Integration_LambdaHttp(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetIntegrationOutput
+	resourceName := "aws_apigatewayv2_integration.test"
+	callerIdentityDatasourceName := "data.aws_caller_identity.current"
+	lambdaResourceName := "aws_lambda_function.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_lambdaHttp(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "credentials_arn", callerIdentityDatasourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Test Lambda"),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "POST"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "AWS_PROXY"),
+					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lambdaResourceName, "invoke_arn"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "2.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Integration_VpcLinkWebSocket(t *testing.T) {
 	var apiId string
 	var v apigatewayv2.GetIntegrationOutput
 	resourceName := "aws_apigatewayv2_integration.test"
@@ -194,7 +296,7 @@ func TestAccAWSAPIGatewayV2Integration_VpcLink(t *testing.T) {
 		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayV2IntegrationConfig_vpcLink(rName),
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkWebSocket(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
 					resource.TestCheckResourceAttrPair(resourceName, "connection_id", vpcLinkResourceName, "id"),
@@ -204,13 +306,135 @@ func TestAccAWSAPIGatewayV2Integration_VpcLink(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Test VPC Link"),
 					resource.TestCheckResourceAttr(resourceName, "integration_method", "PUT"),
 					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
 					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
 					resource.TestCheckResourceAttr(resourceName, "integration_uri", "http://www.example.net"),
 					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", "NEVER"),
 					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
 					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "12345"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Integration_VpcLinkHttp(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetIntegrationOutput
+	resourceName := "aws_apigatewayv2_integration.test"
+	vpcLinkResourceName := "aws_apigatewayv2_vpc_link.test"
+	lbListenerResourceName := "aws_lb_listener.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttp(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttrPair(resourceName, "connection_id", vpcLinkResourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "VPC_LINK"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "credentials_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", "Test private integration"),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "GET"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
+					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lbListenerResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "5001"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.0.server_name_to_verify", "www.example.com"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpUpdated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttrPair(resourceName, "connection_id", vpcLinkResourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "VPC_LINK"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "credentials_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", "Test private integration updated"),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", "POST"),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "HTTP_PROXY"),
+					resource.TestCheckResourceAttrPair(resourceName, "integration_uri", lbListenerResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "4999"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.0.server_name_to_verify", "www.example.org"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccAWSAPIGatewayV2IntegrationImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2Integration_AwsServiceIntegration(t *testing.T) {
+	var apiId string
+	var v apigatewayv2.GetIntegrationOutput
+	resourceName := "aws_apigatewayv2_integration.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2IntegrationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2IntegrationConfig_sqsIntegration(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2IntegrationExists(resourceName, &apiId, &v),
+					resource.TestCheckResourceAttr(resourceName, "connection_type", "INTERNET"),
+					resource.TestCheckResourceAttr(resourceName, "content_handling_strategy", ""),
+					resource.TestCheckResourceAttr(resourceName, "description", "Test SQS send"),
+					resource.TestCheckResourceAttr(resourceName, "integration_method", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_response_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "integration_subtype", "SQS-SendMessage"),
+					resource.TestCheckResourceAttr(resourceName, "integration_type", "AWS_PROXY"),
+					resource.TestCheckResourceAttr(resourceName, "integration_uri", ""),
+					resource.TestCheckResourceAttr(resourceName, "passthrough_behavior", ""),
+					resource.TestCheckResourceAttr(resourceName, "payload_format_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.QueueUrl", "$request.header.queueUrl"),
+					resource.TestCheckResourceAttr(resourceName, "request_parameters.MessageBody", "$request.body.message"),
+					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "template_selection_expression", ""),
+					resource.TestCheckResourceAttr(resourceName, "timeout_milliseconds", "29000"),
+					resource.TestCheckResourceAttr(resourceName, "tls_config.#", "0"),
 				),
 			},
 			{
@@ -311,19 +535,74 @@ resource "aws_apigatewayv2_api" "test" {
 `, rName)
 }
 
+func testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_apigatewayv2_api" "test" {
+  name          = %[1]q
+  protocol_type = "HTTP"
+}
+`, rName)
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpBase(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName),
+		testAccAWSAPIGatewayV2VpcLinkConfig_basic(rName),
+		fmt.Sprintf(`
+resource "aws_lb" "test" {
+  name = %[1]q
+
+  internal           = true
+  load_balancer_type = "network"
+  subnets            = aws_subnet.test.*.id
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 80
+  protocol = "TCP"
+  vpc_id   = aws_vpc.test.id
+
+  health_check {
+    port     = 80
+    protocol = "TCP"
+  }
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.arn
+  port              = "80"
+  protocol          = "TCP"
+
+  default_action {
+    target_group_arn = aws_lb_target_group.test.arn
+    type             = "forward"
+  }
+}
+`, rName))
+}
+
 func testAccAWSAPIGatewayV2IntegrationConfig_basic(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_integration" "test" {
-  api_id           = "${aws_apigatewayv2_api.test.id}"
+  api_id           = aws_apigatewayv2_api.test.id
   integration_type = "MOCK"
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2IntegrationConfig_integrationTypeHttp(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_integration" "test" {
-  api_id           = "${aws_apigatewayv2_api.test.id}"
+  api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP"
 
   connection_type               = "INTERNET"
@@ -335,17 +614,21 @@ resource "aws_apigatewayv2_integration" "test" {
   template_selection_expression = "$request.body.name"
   timeout_milliseconds          = 28999
 
+  request_parameters = {
+    "integration.request.querystring.stage" = "'value1'"
+  }
+
   request_templates = {
     "application/json" = ""
   }
 }
-`)
+`
 }
 
 func testAccAWSAPIGatewayV2IntegrationConfig_integrationTypeHttpUpdated(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + fmt.Sprintf(`
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + `
 resource "aws_apigatewayv2_integration" "test" {
-  api_id           = "${aws_apigatewayv2_api.test.id}"
+  api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP"
 
   connection_type               = "INTERNET"
@@ -357,43 +640,137 @@ resource "aws_apigatewayv2_integration" "test" {
   template_selection_expression = "$request.body.id"
   timeout_milliseconds          = 51
 
+  request_parameters = {
+    "integration.request.header.x-userid" = "'value2'"
+    "integration.request.path.op"         = "'value3'"
+  }
+
   request_templates = {
     "application/json" = "#set($number=42)"
     "application/xml"  = "#set($percent=$number/100)"
   }
 }
-`)
+`
 }
 
-func testAccAWSAPIGatewayV2IntegrationConfig_lambda(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + baseAccAWSLambdaConfig(rName, rName, rName) + fmt.Sprintf(`
+func testAccAWSAPIGatewayV2IntegrationConfig_lambdaWebSocket(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName),
+		baseAccAWSLambdaConfig(rName, rName, rName),
+		fmt.Sprintf(`
 data "aws_caller_identity" "current" {}
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "index.handler"
   runtime       = "nodejs10.x"
 }
 
 resource "aws_apigatewayv2_integration" "test" {
-  api_id           = "${aws_apigatewayv2_api.test.id}"
+  api_id           = aws_apigatewayv2_api.test.id
   integration_type = "AWS"
 
-  connection_type               = "INTERNET"
-  content_handling_strategy     = "CONVERT_TO_TEXT"
-  credentials_arn               = "${data.aws_caller_identity.current.arn}"
-  description                   = "Test Lambda"
-  integration_method            = "POST"
-  integration_uri               = "${aws_lambda_function.test.invoke_arn}"
-  passthrough_behavior          = "WHEN_NO_MATCH"
+  connection_type           = "INTERNET"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  credentials_arn           = data.aws_caller_identity.current.arn
+  description               = "Test Lambda"
+  integration_uri           = aws_lambda_function.test.invoke_arn
+  passthrough_behavior      = "WHEN_NO_MATCH"
 }
-`, rName)
+`, rName))
 }
 
-func testAccAWSAPIGatewayV2IntegrationConfig_vpcLink(rName string) string {
-	return testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName) + fmt.Sprintf(`
+func testAccAWSAPIGatewayV2IntegrationConfig_lambdaHttp(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName),
+		baseAccAWSLambdaConfig(rName, rName, rName),
+		fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = %[1]q
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "index.handler"
+  runtime       = "nodejs10.x"
+}
+
+resource "aws_apigatewayv2_integration" "test" {
+  api_id           = aws_apigatewayv2_api.test.id
+  integration_type = "AWS_PROXY"
+
+  connection_type = "INTERNET"
+  credentials_arn = data.aws_caller_identity.current.arn
+  description     = "Test Lambda"
+  integration_uri = aws_lambda_function.test.invoke_arn
+
+  payload_format_version = "2.0"
+}
+`, rName))
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_httpProxy(rName string) string {
+	return testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName) + fmt.Sprintf(`
+resource "aws_apigatewayv2_integration" "test" {
+  api_id           = aws_apigatewayv2_api.test.id
+  integration_type = "HTTP_PROXY"
+
+  integration_method = "GET"
+  integration_uri    = "https://example.com"
+}
+`)
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttp(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpBase(rName),
+		fmt.Sprintf(`
+resource "aws_apigatewayv2_integration" "test" {
+  api_id           = aws_apigatewayv2_api.test.id
+  integration_type = "HTTP_PROXY"
+
+  connection_type      = "VPC_LINK"
+  connection_id        = aws_apigatewayv2_vpc_link.test.id
+  description          = "Test private integration"
+  integration_method   = "GET"
+  integration_uri      = aws_lb_listener.test.arn
+  timeout_milliseconds = 5001
+
+  tls_config {
+    server_name_to_verify = "www.example.com"
+  }
+}
+`))
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpUpdated(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkHttpBase(rName),
+		fmt.Sprintf(`
+resource "aws_apigatewayv2_integration" "test" {
+  api_id           = aws_apigatewayv2_api.test.id
+  integration_type = "HTTP_PROXY"
+
+  connection_type      = "VPC_LINK"
+  connection_id        = aws_apigatewayv2_vpc_link.test.id
+  description          = "Test private integration updated"
+  integration_method   = "POST"
+  integration_uri      = aws_lb_listener.test.arn
+  timeout_milliseconds = 4999
+
+  tls_config {
+    server_name_to_verify = "www.example.org"
+  }
+}
+`))
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_vpcLinkWebSocket(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_apiWebSocket(rName),
+		fmt.Sprintf(`
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -412,9 +789,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
+  vpc_id            = aws_vpc.test.id
   cidr_block        = "10.10.0.0/24"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = %[1]q
@@ -425,26 +802,82 @@ resource "aws_lb" "test" {
   name               = %[1]q
   internal           = true
   load_balancer_type = "network"
-  subnets            = ["${aws_subnet.test.id}"]
+  subnets            = [aws_subnet.test.id]
+
+  tags = {
+    Name = %[1]q
+  }
 }
 
 resource "aws_api_gateway_vpc_link" "test" {
   name        = %[1]q
-  target_arns = ["${aws_lb.test.arn}"]
+  target_arns = [aws_lb.test.arn]
 }
 
 resource "aws_apigatewayv2_integration" "test" {
-  api_id           = "${aws_apigatewayv2_api.test.id}"
+  api_id           = aws_apigatewayv2_api.test.id
   integration_type = "HTTP_PROXY"
 
-  connection_id                 = "${aws_api_gateway_vpc_link.test.id}"
-  connection_type               = "VPC_LINK"
-  content_handling_strategy     = "CONVERT_TO_TEXT"
-  description                   = "Test VPC Link"
-  integration_method            = "PUT"
-  integration_uri               = "http://www.example.net"
-  passthrough_behavior          = "NEVER"
-  timeout_milliseconds          = 12345
+  connection_id             = aws_api_gateway_vpc_link.test.id
+  connection_type           = "VPC_LINK"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Test VPC Link"
+  integration_method        = "PUT"
+  integration_uri           = "http://www.example.net"
+  passthrough_behavior      = "NEVER"
+  timeout_milliseconds      = 12345
 }
-`, rName)
+`, rName))
+}
+
+func testAccAWSAPIGatewayV2IntegrationConfig_sqsIntegration(rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2IntegrationConfig_apiHttp(rName),
+		fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+  name = %[1]q
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {"Service": "apigateway.amazonaws.com"},
+    "Action": "sts:AssumeRole"
+  }]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "test" {
+  name = %[1]q
+  role = aws_iam_role.test.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["sqs:*"],
+    "Resource": "*"
+  }]
+}
+EOF
+}
+
+resource "aws_apigatewayv2_integration" "test" {
+  api_id              = aws_apigatewayv2_api.test.id
+  credentials_arn     = aws_iam_role.test.arn
+  description         = "Test SQS send"
+  integration_type    = "AWS_PROXY"
+  integration_subtype = "SQS-SendMessage"
+
+  request_parameters = {
+    "QueueUrl"    = "$request.header.queueUrl"
+    "MessageBody" = "$request.body.message"
+  }
+
+  depends_on = [aws_iam_role_policy.test]
+}
+`, rName))
 }

@@ -34,7 +34,7 @@ The following arguments are supported:
 * `ip_address_type` - (Optional) The value for the address type must be `IPV4`.
 * `enabled` - (Optional) Indicates whether the accelerator is enabled. The value is true or false. The default value is true.
 * `attributes` - (Optional) The attributes of the accelerator. Fields documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 **attributes** supports the following attributes:
 

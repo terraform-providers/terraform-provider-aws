@@ -14,7 +14,7 @@ Provides a Gamelift Fleet resource.
 
 ```hcl
 resource "aws_gamelift_fleet" "example" {
-  build_id          = "${aws_gamelift_build.example.id}"
+  build_id          = aws_gamelift_build.example.id
   ec2_instance_type = "t2.micro"
   fleet_type        = "ON_DEMAND"
   name              = "example-fleet-name"
@@ -43,7 +43,7 @@ The following arguments are supported:
 * `new_game_session_protection_policy` - (Optional) Game session protection policy to apply to all instances in this fleet. e.g. `FullProtection`. Defaults to `NoProtection`.
 * `resource_creation_limit_policy` - (Optional) Policy that limits the number of game sessions an individual player can create over a span of time for this fleet. See below.
 * `runtime_configuration` - (Optional) Instructions for launching server processes on each instance in the fleet. See below.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ### Nested Fields
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 #### `runtime_configuration`
 
 * `game_session_activation_timeout_seconds` - (Optional) Maximum amount of time (in seconds) that a game session can remain in status `ACTIVATING`.
-* `max_concurrent_game_session_activations` - (Optional) Maximum number of game sessions with status `ACTIVATING` to allow on an instance simultaneously. 
+* `max_concurrent_game_session_activations` - (Optional) Maximum number of game sessions with status `ACTIVATING` to allow on an instance simultaneously.
 * `server_process` - (Optional) Collection of server process configurations that describe which server processes to run on each instance in a fleet. See below.
 
 #### `server_process`

@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -158,6 +158,6 @@ resource "aws_security_group" "test" {
 
 resource "aws_elasticache_security_group" "test" {
   name                 = "tf-test-security-group-%03d"
-  security_group_names = ["${aws_security_group.test.name}"]
+  security_group_names = [aws_security_group.test.name]
 }
 `, acctest.RandInt(), acctest.RandInt())

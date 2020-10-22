@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/fsx"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func describeFsxFileSystem(conn *fsx.FSx, id string) (*fsx.FileSystem, error) {
@@ -66,6 +66,20 @@ func waitForFsxFileSystemDeletion(conn *fsx.FSx, id string, timeout time.Duratio
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{fsx.FileSystemLifecycleAvailable, fsx.FileSystemLifecycleDeleting},
 		Target:  []string{},
+		Refresh: refreshFsxFileSystemLifecycle(conn, id),
+		Timeout: timeout,
+		Delay:   30 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+
+	return err
+}
+
+func waitForFsxFileSystemUpdate(conn *fsx.FSx, id string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{fsx.FileSystemLifecycleUpdating},
+		Target:  []string{fsx.FileSystemLifecycleAvailable},
 		Refresh: refreshFsxFileSystemLifecycle(conn, id),
 		Timeout: timeout,
 		Delay:   30 * time.Second,

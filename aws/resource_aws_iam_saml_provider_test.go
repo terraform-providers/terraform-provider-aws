@@ -2,13 +2,14 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
@@ -24,6 +25,7 @@ func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 				Config: testAccIAMSamlProviderConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIAMSamlProviderExists(resourceName),
+					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "iam", regexp.MustCompile(`saml-provider/.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "saml_metadata_document"),
 				),
@@ -45,8 +47,29 @@ func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMSamlProvider_disappears(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iam_saml_provider.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMSamlProviderDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIAMSamlProviderConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMSamlProviderExists(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsIamSamlProvider(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccCheckIAMSamlProviderDestroy(s *terraform.State) error {
-	iamconn := testAccProvider.Meta().(*AWSClient).iamconn
+	conn := testAccProvider.Meta().(*AWSClient).iamconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_iam_saml_provider" {
@@ -56,7 +79,7 @@ func testAccCheckIAMSamlProviderDestroy(s *terraform.State) error {
 		input := &iam.GetSAMLProviderInput{
 			SAMLProviderArn: aws.String(rs.Primary.ID),
 		}
-		out, err := iamconn.GetSAMLProvider(input)
+		out, err := conn.GetSAMLProvider(input)
 
 		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 			continue
@@ -85,8 +108,8 @@ func testAccCheckIAMSamlProviderExists(id string) resource.TestCheckFunc {
 			return fmt.Errorf("No ID is set")
 		}
 
-		iamconn := testAccProvider.Meta().(*AWSClient).iamconn
-		_, err := iamconn.GetSAMLProvider(&iam.GetSAMLProviderInput{
+		conn := testAccProvider.Meta().(*AWSClient).iamconn
+		_, err := conn.GetSAMLProvider(&iam.GetSAMLProviderInput{
 			SAMLProviderArn: aws.String(rs.Primary.ID),
 		})
 
@@ -98,7 +121,7 @@ func testAccIAMSamlProviderConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_saml_provider" "test" {
   name                   = %q
-  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
+  saml_metadata_document = file("./test-fixtures/saml-metadata.xml")
 }
 `, rName)
 }
@@ -107,7 +130,7 @@ func testAccIAMSamlProviderConfigUpdate(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_saml_provider" "test" {
   name                   = %q
-  saml_metadata_document = "${file("./test-fixtures/saml-metadata-modified.xml")}"
+  saml_metadata_document = file("./test-fixtures/saml-metadata-modified.xml")
 }
 `, rName)
 }

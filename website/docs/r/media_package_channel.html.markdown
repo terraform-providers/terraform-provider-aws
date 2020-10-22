@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * `channel_id` - (Required) A unique identifier describing the channel
 * `description` - (Optional) A description of the channel
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ## Attributes Reference
 
@@ -34,10 +34,10 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The same as `channel_id`
 * `arn` - The ARN of the channel
 * `hls_ingest` - A single item list of HLS ingest information
-  * `ingest_endpoints` - A list of the ingest endpoints
-    * `password` - The password
-    * `url` - The URL
-    * `username` - The username
+    * `ingest_endpoints` - A list of the ingest endpoints
+        * `password` - The password
+        * `url` - The URL
+        * `username` - The username
 
 ## Import
 

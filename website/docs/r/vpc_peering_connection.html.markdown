@@ -26,9 +26,9 @@ connection and use the `aws_vpc_peering_connection_accepter` resource to manage 
 
 ```hcl
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
 }
 ```
 
@@ -36,9 +36,9 @@ Basic usage with connection options:
 
 ```hcl
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
 
   accepter {
     allow_remote_vpc_dns_resolution = true
@@ -54,9 +54,9 @@ Basic usage with tags:
 
 ```hcl
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
   auto_accept   = true
 
   tags = {
@@ -78,19 +78,19 @@ Basic usage with region:
 
 ```hcl
 resource "aws_vpc_peering_connection" "foo" {
-  peer_owner_id = "${var.peer_owner_id}"
-  peer_vpc_id   = "${aws_vpc.bar.id}"
-  vpc_id        = "${aws_vpc.foo.id}"
+  peer_owner_id = var.peer_owner_id
+  peer_vpc_id   = aws_vpc.bar.id
+  vpc_id        = aws_vpc.foo.id
   peer_region   = "us-east-1"
 }
 
 resource "aws_vpc" "foo" {
-  provider   = "aws.us-west-2"
+  provider   = aws.us-west-2
   cidr_block = "10.1.0.0/16"
 }
 
 resource "aws_vpc" "bar" {
-  provider   = "aws.us-east-1"
+  provider   = aws.us-east-1
   cidr_block = "10.2.0.0/16"
 }
 ```
@@ -112,12 +112,12 @@ The following arguments are supported:
 * `peer_region` - (Optional) The region of the accepter VPC of the [VPC Peering Connection]. `auto_accept` must be `false`,
 and use the `aws_vpc_peering_connection_accepter` to manage the accepter side.
 * `accepter` (Optional) - An optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that accepts
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that accepts
 the peering connection (a maximum of one).
 * `requester` (Optional) - A optional configuration block that allows for [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options to be set for the VPC that requests
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options to be set for the VPC that requests
 the peering connection (a maximum of one).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 #### Accepter and Requester Arguments
 

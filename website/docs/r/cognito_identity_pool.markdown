@@ -15,7 +15,7 @@ Provides an AWS Cognito Identity Pool.
 ```hcl
 resource "aws_iam_saml_provider" "default" {
   name                   = "my-saml-provider"
-  saml_metadata_document = "${file("saml-metadata.xml")}"
+  saml_metadata_document = file("saml-metadata.xml")
 }
 
 resource "aws_cognito_identity_pool" "main" {
@@ -39,8 +39,8 @@ resource "aws_cognito_identity_pool" "main" {
     "accounts.google.com" = "123456789012.apps.googleusercontent.com"
   }
 
-  saml_provider_arns           = ["${aws_iam_saml_provider.default.arn}"]
-  openid_connect_provider_arns = ["arn:aws:iam::123456789012:oidc-provider/foo.example.com"]
+  saml_provider_arns           = [aws_iam_saml_provider.default.arn]
+  openid_connect_provider_arns = ["arn:aws:iam::123456789012:oidc-provider/id.example.com"]
 }
 ```
 
@@ -53,16 +53,16 @@ The Cognito Identity Pool argument layout is a structure composed of several sub
 * `developer_provider_name` (Optional) - The "domain" by which Cognito will refer to your users. This name acts as a placeholder that allows your
 backend and the Cognito service to communicate about the developer provider.
 * `cognito_identity_providers` (Optional) - An array of [Amazon Cognito Identity user pools](#cognito-identity-providers) and their client IDs.
-* `openid_connect_provider_arns` (Optional) - A list of OpendID Connect provider ARNs.
+* `openid_connect_provider_arns` (Optional) - Set of OpendID Connect provider ARNs.
 * `saml_provider_arns` (Optional) - An array of Amazon Resource Names (ARNs) of the SAML provider for your identity.
 * `supported_login_providers` (Optional) - Key-Value pairs mapping provider names to provider app IDs.
-* `tags` - (Optional) A mapping of tags to assign to the Identity Pool.
+* `tags` - (Optional) A map of tags to assign to the Identity Pool.
 
 #### Cognito Identity Providers
 
-  * `client_id` (Optional) - The client ID for the Amazon Cognito Identity User Pool.
-  * `provider_name` (Optional) - The provider name for an Amazon Cognito Identity User Pool.
-  * `server_side_token_check` (Optional) - Whether server-side token validation is enabled for the identity provider’s token or not.
+* `client_id` (Optional) - The client ID for the Amazon Cognito Identity User Pool.
+* `provider_name` (Optional) - The provider name for an Amazon Cognito Identity User Pool.
+* `server_side_token_check` (Optional) - Whether server-side token validation is enabled for the identity provider’s token or not.
 
 ## Attributes Reference
 

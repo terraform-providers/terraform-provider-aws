@@ -6,12 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSAMILaunchPermission_Basic(t *testing.T) {
+func TestAccAWSAMILaunchPermission_basic(t *testing.T) {
 	resourceName := "aws_ami_launch_permission.test"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
@@ -280,13 +280,13 @@ data "aws_region" "current" {}
 resource "aws_ami_copy" "test" {
   description       = %q
   name              = %q
-  source_ami_id     = "${data.aws_ami.amzn-ami-minimal-hvm.id}"
-  source_ami_region = "${data.aws_region.current.name}"
+  source_ami_id     = data.aws_ami.amzn-ami-minimal-hvm.id
+  source_ami_region = data.aws_region.current.name
 }
 
 resource "aws_ami_launch_permission" "test" {
-  account_id = "${data.aws_caller_identity.current.account_id}"
-  image_id   = "${aws_ami_copy.test.id}"
+  account_id = data.aws_caller_identity.current.account_id
+  image_id   = aws_ami_copy.test.id
 }
 `, rName, rName)
 }

@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -231,9 +231,9 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_subnet" "sn1" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 0)}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 0)
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-r53-resolver-sn1-%d"
@@ -241,9 +241,9 @@ resource "aws_subnet" "sn1" {
 }
 
 resource "aws_subnet" "sn2" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 1)}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 1)
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
     Name = "tf-acc-r53-resolver-sn2-%d"
@@ -251,9 +251,9 @@ resource "aws_subnet" "sn2" {
 }
 
 resource "aws_subnet" "sn3" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 2)}"
-  availability_zone = "${data.aws_availability_zones.available.names[2]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 2)
+  availability_zone = data.aws_availability_zones.available.names[2]
 
   tags = {
     Name = "tf-acc-r53-resolver-sn3-%d"
@@ -261,7 +261,7 @@ resource "aws_subnet" "sn3" {
 }
 
 resource "aws_security_group" "sg1" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
   name   = "tf-acc-r53-resolver-sg1-%d"
 
   tags = {
@@ -270,7 +270,7 @@ resource "aws_security_group" "sg1" {
 }
 
 resource "aws_security_group" "sg2" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
   name   = "tf-acc-r53-resolver-sg2-%d"
 
   tags = {
@@ -289,17 +289,17 @@ resource "aws_route53_resolver_endpoint" "foo" {
   name      = "%s"
 
   security_group_ids = [
-    "${aws_security_group.sg1.id}",
-    "${aws_security_group.sg2.id}",
+    aws_security_group.sg1.id,
+    aws_security_group.sg2.id,
   ]
 
   ip_address {
-    subnet_id = "${aws_subnet.sn1.id}"
+    subnet_id = aws_subnet.sn1.id
   }
 
   ip_address {
-    subnet_id = "${aws_subnet.sn2.id}"
-    ip        = "${cidrhost(aws_subnet.sn2.cidr_block, 8)}"
+    subnet_id = aws_subnet.sn2.id
+    ip        = cidrhost(aws_subnet.sn2.cidr_block, 8)
   }
 
   tags = {
@@ -319,16 +319,16 @@ resource "aws_route53_resolver_endpoint" "foo" {
   name      = "%s"
 
   security_group_ids = [
-    "${aws_security_group.sg1.id}",
-    "${aws_security_group.sg2.id}",
+    aws_security_group.sg1.id,
+    aws_security_group.sg2.id,
   ]
 
   ip_address {
-    subnet_id = "${aws_subnet.sn1.id}"
+    subnet_id = aws_subnet.sn1.id
   }
 
   ip_address {
-    subnet_id = "${aws_subnet.sn3.id}"
+    subnet_id = aws_subnet.sn3.id
   }
 
   tags = {

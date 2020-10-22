@@ -15,7 +15,7 @@ Provides a DAX Cluster resource.
 ```hcl
 resource "aws_dax_cluster" "bar" {
   cluster_name       = "cluster-example"
-  iam_role_arn       = "${data.aws_iam_role.example.arn}"
+  iam_role_arn       = data.aws_iam_role.example.arn
   node_type          = "dax.r4.large"
   replication_factor = 1
 }
@@ -64,7 +64,7 @@ with the cluster
 * `subnet_group_name` – (Optional) Name of the subnet group to be used for the
 cluster
 
-* `tags` - (Optional) A mapping of tags to assign to the resource
+* `tags` - (Optional) A map of tags to assign to the resource
 
 The `server_side_encryption` object supports the following:
 
@@ -98,7 +98,7 @@ consisting of a DNS name and a port number
 
 ## Import
 
-DAX Clusters can be imported using the `cluster_id`, e.g.
+DAX Clusters can be imported using the `cluster_name`, e.g.
 
 ```
 $ terraform import aws_dax_cluster.my_cluster my_cluster

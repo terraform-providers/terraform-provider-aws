@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/efs"
 
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 		F:    testSweepEfsFileSystems,
 		Dependencies: []string{
 			"aws_efs_mount_target",
+			"aws_efs_access_point",
 		},
 	})
 }
@@ -625,7 +626,7 @@ func testAccCheckEfsFileSystemLifecyclePolicy(resourceID string, expectedVal str
 func testAccAWSEFSFileSystemConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %q
+  creation_token = %q
 }
 `, rName)
 }
@@ -633,10 +634,10 @@ resource "aws_efs_file_system" "test" {
 func testAccAWSEFSFileSystemConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %[1]q
-    tags = {
-      %[2]q = %[3]q
-    }
+  creation_token = %[1]q
+  tags = {
+    %[2]q = %[3]q
+  }
 }
 `, rName, tagKey1, tagValue1)
 }
@@ -644,11 +645,11 @@ resource "aws_efs_file_system" "test" {
 func testAccAWSEFSFileSystemConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
-	creation_token = %[1]q
-    tags = {
-      %[2]q = %[3]q
-      %[4]q = %[5]q
-    }
+  creation_token = %[1]q
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
@@ -679,55 +680,54 @@ resource "aws_efs_file_system" "test" {
   tags = {
     Name    = %q
     Another = "tag"
-
-		Tag00 = "TestTagValue"
-		Tag01 = "TestTagValue"
-		Tag02 = "TestTagValue"
-		Tag03 = "TestTagValue"
-		Tag04 = "TestTagValue"
-		Tag05 = "TestTagValue"
-		Tag06 = "TestTagValue"
-		Tag07 = "TestTagValue"
-		Tag08 = "TestTagValue"
-		Tag09 = "TestTagValue"
-		Tag10 = "TestTagValue"
-		Tag11 = "TestTagValue"
-		Tag12 = "TestTagValue"
-		Tag13 = "TestTagValue"
-		Tag14 = "TestTagValue"
-		Tag15 = "TestTagValue"
-		Tag16 = "TestTagValue"
-		Tag17 = "TestTagValue"
-		Tag18 = "TestTagValue"
-		Tag19 = "TestTagValue"
-		Tag20 = "TestTagValue"
-		Tag21 = "TestTagValue"
-		Tag22 = "TestTagValue"
-		Tag23 = "TestTagValue"
-		Tag24 = "TestTagValue"
-		Tag25 = "TestTagValue"
-		Tag26 = "TestTagValue"
-		Tag27 = "TestTagValue"
-		Tag28 = "TestTagValue"
-		Tag29 = "TestTagValue"
-		Tag30 = "TestTagValue"
-		Tag31 = "TestTagValue"
-		Tag32 = "TestTagValue"
-		Tag33 = "TestTagValue"
-		Tag34 = "TestTagValue"
-		Tag35 = "TestTagValue"
-		Tag36 = "TestTagValue"
-		Tag37 = "TestTagValue"
-		Tag38 = "TestTagValue"
-		Tag39 = "TestTagValue"
-		Tag40 = "TestTagValue"
-		Tag41 = "TestTagValue"
-		Tag42 = "TestTagValue"
-		Tag43 = "TestTagValue"
-		Tag44 = "TestTagValue"
-		Tag45 = "TestTagValue"
-		Tag46 = "TestTagValue"
-		Tag47 = "TestTagValue"
+    Tag00   = "TestTagValue"
+    Tag01   = "TestTagValue"
+    Tag02   = "TestTagValue"
+    Tag03   = "TestTagValue"
+    Tag04   = "TestTagValue"
+    Tag05   = "TestTagValue"
+    Tag06   = "TestTagValue"
+    Tag07   = "TestTagValue"
+    Tag08   = "TestTagValue"
+    Tag09   = "TestTagValue"
+    Tag10   = "TestTagValue"
+    Tag11   = "TestTagValue"
+    Tag12   = "TestTagValue"
+    Tag13   = "TestTagValue"
+    Tag14   = "TestTagValue"
+    Tag15   = "TestTagValue"
+    Tag16   = "TestTagValue"
+    Tag17   = "TestTagValue"
+    Tag18   = "TestTagValue"
+    Tag19   = "TestTagValue"
+    Tag20   = "TestTagValue"
+    Tag21   = "TestTagValue"
+    Tag22   = "TestTagValue"
+    Tag23   = "TestTagValue"
+    Tag24   = "TestTagValue"
+    Tag25   = "TestTagValue"
+    Tag26   = "TestTagValue"
+    Tag27   = "TestTagValue"
+    Tag28   = "TestTagValue"
+    Tag29   = "TestTagValue"
+    Tag30   = "TestTagValue"
+    Tag31   = "TestTagValue"
+    Tag32   = "TestTagValue"
+    Tag33   = "TestTagValue"
+    Tag34   = "TestTagValue"
+    Tag35   = "TestTagValue"
+    Tag36   = "TestTagValue"
+    Tag37   = "TestTagValue"
+    Tag38   = "TestTagValue"
+    Tag39   = "TestTagValue"
+    Tag40   = "TestTagValue"
+    Tag41   = "TestTagValue"
+    Tag42   = "TestTagValue"
+    Tag43   = "TestTagValue"
+    Tag44   = "TestTagValue"
+    Tag45   = "TestTagValue"
+    Tag46   = "TestTagValue"
+    Tag47   = "TestTagValue"
   }
 }
 `, rName)
@@ -735,8 +735,8 @@ resource "aws_efs_file_system" "test" {
 
 const testAccAWSEFSFileSystemConfigWithPerformanceMode = `
 resource "aws_efs_file_system" "test2" {
-	creation_token = "supercalifragilisticexpialidocious"
-	performance_mode = "maxIO"
+  creation_token   = "supercalifragilisticexpialidocious"
+  performance_mode = "maxIO"
 }
 `
 
@@ -748,7 +748,7 @@ resource "aws_kms_key" "test" {
 
 resource "aws_efs_file_system" "test" {
   encrypted  = true
-  kms_key_id = "${aws_kms_key.test.arn}"
+  kms_key_id = aws_kms_key.test.arn
 }
 `, rInt)
 }
@@ -761,7 +761,7 @@ resource "aws_kms_key" "test" {
 
 resource "aws_efs_file_system" "test" {
   encrypted  = false
-  kms_key_id = "${aws_kms_key.test.arn}"
+  kms_key_id = aws_kms_key.test.arn
 }
 `, rInt)
 }

@@ -7,13 +7,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	events "github.com/aws/aws-sdk-go/service/cloudwatchevents"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudwatchevents/lister"
 )
 
 func resourceAwsCloudWatchEventTarget() *schema.Resource {
@@ -215,6 +216,11 @@ func resourceAwsCloudWatchEventTarget() *schema.Resource {
 						"input_paths": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							ValidateFunc: validation.All(
+								MapMaxItems(10),
+								MapKeysDoNotMatch(regexp.MustCompile(`^AWS.*$`), "input_path must not start with \"AWS\""),
+							),
 						},
 						"input_template": {
 							Type:         schema.TypeString,
@@ -265,10 +271,7 @@ func resourceAwsCloudWatchEventTargetCreate(d *schema.ResourceData, meta interfa
 func resourceAwsCloudWatchEventTargetRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudwatcheventsconn
 
-	t, err := findEventTargetById(
-		d.Get("target_id").(string),
-		d.Get("rule").(string),
-		nil, conn)
+	t, err := findEventTargetById(conn, d.Get("target_id").(string), d.Get("rule").(string))
 	if err != nil {
 		if regexp.MustCompile(" not found$").MatchString(err.Error()) {
 			log.Printf("[WARN] Removing CloudWatch Event Target %q because it's gone.", d.Id())
@@ -340,29 +343,35 @@ func resourceAwsCloudWatchEventTargetRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func findEventTargetById(id, rule string, nextToken *string, conn *events.CloudWatchEvents) (*events.Target, error) {
-	input := events.ListTargetsByRuleInput{
-		Rule:      aws.String(rule),
-		NextToken: nextToken,
-		Limit:     aws.Int64(100), // Set limit to allowed maximum to prevent API throttling
+func findEventTargetById(conn *events.CloudWatchEvents, id, rule string) (*events.Target, error) {
+	input := &events.ListTargetsByRuleInput{
+		Rule:  aws.String(rule),
+		Limit: aws.Int64(100), // Set limit to allowed maximum to prevent API throttling
 	}
-	log.Printf("[DEBUG] Reading CloudWatch Event Target: %s", input)
-	out, err := conn.ListTargetsByRule(&input)
+	var result *events.Target
+
+	err := lister.ListTargetsByRulePages(conn, input, func(page *events.ListTargetsByRuleOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, t := range page.Targets {
+			if id == aws.StringValue(t.Id) {
+				result = t
+				return false
+			}
+		}
+
+		return !lastPage
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	for _, t := range out.Targets {
-		if *t.Id == id {
-			return t, nil
-		}
+	if result == nil {
+		return nil, fmt.Errorf("CloudWatch Event Target %q (%q) not found", id, rule)
 	}
-
-	if out.NextToken != nil {
-		return findEventTargetById(id, rule, nextToken, conn)
-	}
-
-	return nil, fmt.Errorf("CloudWatch Event Target %q (%q) not found", id, rule)
+	return result, nil
 }
 
 func resourceAwsCloudWatchEventTargetUpdate(d *schema.ResourceData, meta interface{}) error {

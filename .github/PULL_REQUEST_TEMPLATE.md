@@ -1,4 +1,4 @@
-<!--- See what makes a good Pull Request at : https://github.com/terraform-providers/terraform-provider-aws/blob/master/.github/CONTRIBUTING.md#pull-requests --->
+<!--- See what makes a good Pull Request at : https://github.com/terraform-providers/terraform-provider-aws/blob/master/docs/CONTRIBUTING.md --->
 
 <!--- Please keep this note for the community --->
 

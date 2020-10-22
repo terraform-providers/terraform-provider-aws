@@ -8,10 +8,17 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_ses_email_identity", &resource.Sweeper{
+		Name: "aws_ses_email_identity",
+		F:    func(region string) error { return testSweepSesIdentities(region, ses.IdentityTypeEmailAddress) },
+	})
+}
 
 func TestAccAWSSESEmailIdentity_basic(t *testing.T) {
 	email := fmt.Sprintf(

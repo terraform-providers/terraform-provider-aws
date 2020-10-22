@@ -7,11 +7,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
@@ -92,55 +92,10 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 				Optional: true,
 			},
 
-			"logging_info": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: []string{"task_invocation_parameters"},
-				Deprecated:    "use 'task_invocation_parameters' argument instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"s3_bucket_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"s3_region": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"s3_bucket_prefix": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
-
-			"task_parameters": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				ConflictsWith: []string{"task_invocation_parameters"},
-				Deprecated:    "use 'task_invocation_parameters' argument instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"values": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-					},
-				},
-			},
-
 			"task_invocation_parameters": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"task_parameters", "logging_info"},
-				MaxItems:      1,
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"automation_parameters": {
@@ -326,62 +281,6 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 			},
 		},
 	}
-}
-
-func expandAwsSsmMaintenanceWindowLoggingInfo(config []interface{}) *ssm.LoggingInfo {
-	if len(config) == 0 || config[0] == nil {
-		return nil
-	}
-
-	loggingConfig := config[0].(map[string]interface{})
-
-	loggingInfo := &ssm.LoggingInfo{
-		S3BucketName: aws.String(loggingConfig["s3_bucket_name"].(string)),
-		S3Region:     aws.String(loggingConfig["s3_region"].(string)),
-	}
-
-	if s := loggingConfig["s3_bucket_prefix"].(string); s != "" {
-		loggingInfo.S3KeyPrefix = aws.String(s)
-	}
-
-	return loggingInfo
-}
-
-func flattenAwsSsmMaintenanceWindowLoggingInfo(loggingInfo *ssm.LoggingInfo) []interface{} {
-
-	result := make(map[string]interface{})
-	result["s3_bucket_name"] = *loggingInfo.S3BucketName
-	result["s3_region"] = *loggingInfo.S3Region
-
-	if loggingInfo.S3KeyPrefix != nil {
-		result["s3_bucket_prefix"] = *loggingInfo.S3KeyPrefix
-	}
-
-	return []interface{}{result}
-}
-
-func expandAwsSsmTaskParameters(config []interface{}) map[string]*ssm.MaintenanceWindowTaskParameterValueExpression {
-	params := make(map[string]*ssm.MaintenanceWindowTaskParameterValueExpression)
-	for _, v := range config {
-		paramConfig := v.(map[string]interface{})
-		params[paramConfig["name"].(string)] = &ssm.MaintenanceWindowTaskParameterValueExpression{
-			Values: expandStringList(paramConfig["values"].([]interface{})),
-		}
-	}
-	return params
-}
-
-func flattenAwsSsmTaskParameters(taskParameters map[string]*ssm.MaintenanceWindowTaskParameterValueExpression) []interface{} {
-	result := make([]interface{}, 0, len(taskParameters))
-	for k, v := range taskParameters {
-		taskParam := map[string]interface{}{
-			"name":   k,
-			"values": flattenStringList(v.Values),
-		}
-		result = append(result, taskParam)
-	}
-
-	return result
 }
 
 func expandAwsSsmTaskInvocationParameters(config []interface{}) *ssm.MaintenanceWindowTaskInvocationParameters {
@@ -697,14 +596,6 @@ func resourceAwsSsmMaintenanceWindowTaskCreate(d *schema.ResourceData, meta inte
 		params.Priority = aws.Int64(int64(v.(int)))
 	}
 
-	if v, ok := d.GetOk("logging_info"); ok {
-		params.LoggingInfo = expandAwsSsmMaintenanceWindowLoggingInfo(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("task_parameters"); ok {
-		params.TaskParameters = expandAwsSsmTaskParameters(v.(*schema.Set).List())
-	}
-
 	if v, ok := d.GetOk("task_invocation_parameters"); ok {
 		params.TaskInvocationParameters = expandAwsSsmTaskInvocationParameters(v.([]interface{}))
 	}
@@ -747,18 +638,6 @@ func resourceAwsSsmMaintenanceWindowTaskRead(d *schema.ResourceData, meta interf
 	d.Set("name", resp.Name)
 	d.Set("description", resp.Description)
 
-	if resp.LoggingInfo != nil {
-		if err := d.Set("logging_info", flattenAwsSsmMaintenanceWindowLoggingInfo(resp.LoggingInfo)); err != nil {
-			return fmt.Errorf("Error setting logging_info error: %#v", err)
-		}
-	}
-
-	if resp.TaskParameters != nil {
-		if err := d.Set("task_parameters", flattenAwsSsmTaskParameters(resp.TaskParameters)); err != nil {
-			return fmt.Errorf("Error setting task_parameters error: %#v", err)
-		}
-	}
-
 	if resp.TaskInvocationParameters != nil {
 		if err := d.Set("task_invocation_parameters", flattenAwsSsmTaskInvocationParameters(resp.TaskInvocationParameters)); err != nil {
 			return fmt.Errorf("Error setting task_invocation_parameters error: %#v", err)
@@ -797,14 +676,6 @@ func resourceAwsSsmMaintenanceWindowTaskUpdate(d *schema.ResourceData, meta inte
 
 	if v, ok := d.GetOk("priority"); ok {
 		params.Priority = aws.Int64(int64(v.(int)))
-	}
-
-	if v, ok := d.GetOk("logging_info"); ok {
-		params.LoggingInfo = expandAwsSsmMaintenanceWindowLoggingInfo(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("task_parameters"); ok {
-		params.TaskParameters = expandAwsSsmTaskParameters(v.(*schema.Set).List())
 	}
 
 	if v, ok := d.GetOk("task_invocation_parameters"); ok {

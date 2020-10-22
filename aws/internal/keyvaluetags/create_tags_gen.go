@@ -3,44 +3,17 @@
 package keyvaluetags
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const EventualConsistencyTimeout = 5 * time.Minute
-
-// Similar to isAWSErr from aws/awserr.go
-// TODO: Add and export in shared package
-func isAWSErrCode(err error, code string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return awsErr.Code() == code
-	}
-	return false
-}
-
-// TODO: Add and export in shared package
-func isAWSErrCodeContains(err error, code string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return strings.Contains(awsErr.Code(), code)
-	}
-	return false
-}
-
-// Copied from aws/utils.go
-// TODO: Export in shared package or add to Terraform Plugin SDK
-func isResourceTimeoutError(err error) bool {
-	timeoutErr, ok := err.(*resource.TimeoutError)
-	return ok && timeoutErr.LastError == nil
-}
 
 // Ec2CreateTags creates ec2 service tags for new resources.
 // The identifier is typically the Amazon Resource Name (ARN), although
@@ -55,7 +28,7 @@ func Ec2CreateTags(conn *ec2.EC2, identifier string, tagsMap interface{}) error 
 	err := resource.Retry(EventualConsistencyTimeout, func() *resource.RetryError {
 		_, err := conn.CreateTags(input)
 
-		if isAWSErrCodeContains(err, ".NotFound") {
+		if tfawserr.ErrCodeContains(err, ".NotFound") {
 			return resource.RetryableError(err)
 		}
 
@@ -66,7 +39,7 @@ func Ec2CreateTags(conn *ec2.EC2, identifier string, tagsMap interface{}) error 
 		return nil
 	})
 
-	if isResourceTimeoutError(err) {
+	if tfresource.TimedOut(err) {
 		_, err = conn.CreateTags(input)
 	}
 

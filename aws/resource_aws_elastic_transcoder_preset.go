@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsElasticTranscoderPreset() *schema.Resource {
@@ -26,7 +26,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 			},
 
 			"audio": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -62,7 +62,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				},
 			},
 			"audio_codec_options": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				ForceNew: true,
@@ -112,7 +112,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 			},
 
 			"thumbnails": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
 				ForceNew: true,
@@ -170,7 +170,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 			},
 
 			"video": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -215,7 +215,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 						"max_frame_rate": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "30",
+							Computed: true,
 							ForceNew: true,
 						},
 						"max_height": {
@@ -313,6 +313,7 @@ func resourceAwsElasticTranscoderPreset() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -354,16 +355,16 @@ func resourceAwsElasticTranscoderPresetCreate(d *schema.ResourceData, meta inter
 }
 
 func expandETThumbnails(d *schema.ResourceData) *elastictranscoder.Thumbnails {
-	set, ok := d.GetOk("thumbnails")
+	list, ok := d.GetOk("thumbnails")
 	if !ok {
 		return nil
 	}
 
-	s := set.(*schema.Set)
-	if s == nil || s.Len() == 0 {
+	l := list.([]interface{})
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
-	t := s.List()[0].(map[string]interface{})
+	t := l[0].(map[string]interface{})
 
 	thumbnails := &elastictranscoder.Thumbnails{}
 
@@ -403,16 +404,16 @@ func expandETThumbnails(d *schema.ResourceData) *elastictranscoder.Thumbnails {
 }
 
 func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParameters {
-	set, ok := d.GetOk("audio")
+	list, ok := d.GetOk("audio")
 	if !ok {
 		return nil
 	}
 
-	s := set.(*schema.Set)
-	if s == nil || s.Len() == 0 {
+	l := list.([]interface{})
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
-	audio := s.List()[0].(map[string]interface{})
+	audio := l[0].(map[string]interface{})
 
 	return &elastictranscoder.AudioParameters{
 		AudioPackingMode: aws.String(audio["audio_packing_mode"].(string)),
@@ -425,12 +426,12 @@ func expandETAudioParams(d *schema.ResourceData) *elastictranscoder.AudioParamet
 }
 
 func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioCodecOptions {
-	s := d.Get("audio_codec_options").(*schema.Set)
-	if s == nil || s.Len() == 0 {
+	l := d.Get("audio_codec_options").([]interface{})
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
-	codec := s.List()[0].(map[string]interface{})
+	codec := l[0].(map[string]interface{})
 
 	codecOpts := &elastictranscoder.AudioCodecOptions{}
 
@@ -454,11 +455,11 @@ func expandETAudioCodecOptions(d *schema.ResourceData) *elastictranscoder.AudioC
 }
 
 func expandETVideoParams(d *schema.ResourceData) *elastictranscoder.VideoParameters {
-	s := d.Get("video").(*schema.Set)
-	if s == nil || s.Len() == 0 {
+	l := d.Get("video").([]interface{})
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
-	p := s.List()[0].(map[string]interface{})
+	p := l[0].(map[string]interface{})
 
 	etVideoParams := &elastictranscoder.VideoParameters{
 		Watermarks: expandETVideoWatermarks(d),
@@ -540,6 +541,10 @@ func expandETVideoWatermarks(d *schema.ResourceData) []*elastictranscoder.Preset
 	var watermarks []*elastictranscoder.PresetWatermark
 
 	for _, w := range s.List() {
+		if w == nil {
+			continue
+		}
+
 		p := w.(map[string]interface{})
 		watermark := &elastictranscoder.PresetWatermark{
 			HorizontalAlign:  aws.String(p["horizontal_align"].(string)),

@@ -1,9 +1,13 @@
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
 }
 
 resource "aws_cloudwatch_event_rule" "foo" {
-  name = "${var.rule_name}"
+  name = var.rule_name
 
   event_pattern = <<PATTERN
 {
@@ -18,11 +22,11 @@ resource "aws_cloudwatch_event_rule" "foo" {
 }
 PATTERN
 
-  role_arn = "${aws_iam_role.role.arn}"
+  role_arn = aws_iam_role.role.arn
 }
 
 resource "aws_iam_role" "role" {
-  name = "${var.iam_role_name}"
+  name = var.iam_role_name
 
   assume_role_policy = <<POLICY
 {
@@ -43,7 +47,7 @@ POLICY
 
 resource "aws_iam_role_policy" "policy" {
   name = "tf-example-policy"
-  role = "${aws_iam_role.role.id}"
+  role = aws_iam_role.role.id
 
   policy = <<POLICY
 {
@@ -65,12 +69,12 @@ POLICY
 }
 
 resource "aws_cloudwatch_event_target" "foobar" {
-  rule      = "${aws_cloudwatch_event_rule.foo.name}"
-  target_id = "${var.target_name}"
-  arn       = "${aws_kinesis_stream.foo.arn}"
+  rule      = aws_cloudwatch_event_rule.foo.name
+  target_id = var.target_name
+  arn       = aws_kinesis_stream.foo.arn
 }
 
 resource "aws_kinesis_stream" "foo" {
-  name        = "${var.stream_name}"
+  name        = var.stream_name
   shard_count = 1
 }

@@ -2,14 +2,15 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMUser_basic(t *testing.T) {
+	resourceName := "data.aws_iam_user.test"
+
 	userName := fmt.Sprintf("test-datasource-user-%d", acctest.RandInt())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -19,11 +20,11 @@ func TestAccAWSDataSourceIAMUser_basic(t *testing.T) {
 			{
 				Config: testAccAwsDataSourceIAMUserConfig(userName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.aws_iam_user.test", "user_id"),
-					resource.TestCheckResourceAttr("data.aws_iam_user.test", "path", "/"),
-					resource.TestCheckResourceAttr("data.aws_iam_user.test", "permissions_boundary", ""),
-					resource.TestCheckResourceAttr("data.aws_iam_user.test", "user_name", userName),
-					resource.TestMatchResourceAttr("data.aws_iam_user.test", "arn", regexp.MustCompile("^arn:[^:]+:iam::[0-9]{12}:user/"+userName)),
+					resource.TestCheckResourceAttrPair(resourceName, "user_id", "aws_iam_user.user", "unique_id"),
+					resource.TestCheckResourceAttr(resourceName, "path", "/"),
+					resource.TestCheckResourceAttr(resourceName, "permissions_boundary", ""),
+					resource.TestCheckResourceAttr(resourceName, "user_name", userName),
+					resource.TestCheckResourceAttrPair(resourceName, "arn", "aws_iam_user.user", "arn"),
 				),
 			},
 		},
@@ -38,7 +39,7 @@ resource "aws_iam_user" "user" {
 }
 
 data "aws_iam_user" "test" {
-  user_name = "${aws_iam_user.user.name}"
+  user_name = aws_iam_user.user.name
 }
 `, name)
 }

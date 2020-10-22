@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSDataSourceIAMRole_basic(t *testing.T) {
@@ -89,7 +89,7 @@ EOF
 }
 
 data "aws_iam_role" "test" {
-  name = "${aws_iam_role.test.name}"
+  name = aws_iam_role.test.name
 }
 `, roleName)
 }
@@ -122,7 +122,7 @@ EOF
 }
 
 data "aws_iam_role" "test" {
-  name = "${aws_iam_role.test.name}"
+  name = aws_iam_role.test.name
 }
 `, roleName)
 }

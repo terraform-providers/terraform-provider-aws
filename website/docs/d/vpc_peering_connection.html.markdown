@@ -16,20 +16,20 @@ a specific VPC peering connection.
 ```hcl
 # Declare the data source
 data "aws_vpc_peering_connection" "pc" {
-  vpc_id          = "${aws_vpc.foo.id}"
+  vpc_id          = aws_vpc.foo.id
   peer_cidr_block = "10.0.1.0/22"
 }
 
 # Create a route table
 resource "aws_route_table" "rt" {
-  vpc_id = "${aws_vpc.foo.id}"
+  vpc_id = aws_vpc.foo.id
 }
 
 # Create a route
 resource "aws_route" "r" {
-  route_table_id            = "${aws_route_table.rt.id}"
-  destination_cidr_block    = "${data.aws_vpc_peering_connection.pc.peer_cidr_block}"
-  vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
+  route_table_id            = aws_route_table.rt.id
+  destination_cidr_block    = data.aws_vpc_peering_connection.pc.peer_cidr_block
+  vpc_peering_connection_id = data.aws_vpc_peering_connection.pc.id
 }
 ```
 
@@ -60,7 +60,7 @@ The given filters must match exactly one VPC peering connection whose data will 
 
 * `filter` - (Optional) Custom filter block as described below.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired VPC Peering Connection.
 
 More complex filters can be expressed using one or more `filter` sub-blocks,
@@ -77,10 +77,10 @@ which take the following arguments:
 All of the argument attributes except `filter` are also exported as result attributes.
 
 * `accepter` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the accepter VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the accepter VPC.
 
 * `requester` - A configuration block that describes [VPC Peering Connection]
-(http://docs.aws.amazon.com/AmazonVPC/latest/PeeringGuide) options set for the requester VPC.
+(https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html) options set for the requester VPC.
 
 #### Accepter and Requester Attributes Reference
 

@@ -8,9 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/aws/aws-sdk-go/service/wafregional"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafregional/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -27,57 +31,65 @@ func testSweepWafRegionalRegexMatchSet(region string) error {
 	}
 	conn := client.(*AWSClient).wafregionalconn
 
-	req := &waf.ListRegexMatchSetsInput{}
-	resp, err := conn.ListRegexMatchSets(req)
-	if err != nil {
-		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping WAF Regional Regex Match Set sweep for %s: %s", region, err)
-			return nil
+	var sweeperErrs *multierror.Error
+
+	err = ListRegexMatchSetsPages(conn, &waf.ListRegexMatchSetsInput{}, func(page *waf.ListRegexMatchSetsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
 		}
-		return fmt.Errorf("Error describing WAF Regional Regex Match Sets: %s", err)
+
+		for _, r := range page.RegexMatchSets {
+			id := aws.StringValue(r.RegexMatchSetId)
+
+			set, err := finder.RegexMatchSetByID(conn, id)
+			if err != nil {
+				sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving WAF Regional Regex Match Set (%s): %w", id, err))
+				continue
+			}
+
+			err = deleteRegexMatchSetResource(conn, region, region, id, getRegexMatchTuplesFromAPIResource(set))
+			if err != nil {
+				if !tfawserr.ErrCodeEquals(err, wafregional.ErrCodeWAFNonexistentItemException) {
+					sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error deleting WAF Regional Regex Match Set (%s): %w", id, err))
+				}
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAF Regional Regex Match Set sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAF Regional Regex Match Sets: %w", err))
 	}
 
-	if len(resp.RegexMatchSets) == 0 {
-		log.Print("[DEBUG] No AWS WAF Regional Regex Match Sets to sweep")
-		return nil
-	}
+	return sweeperErrs.ErrorOrNil()
+}
 
-	for _, s := range resp.RegexMatchSets {
-		resp, err := conn.GetRegexMatchSet(&waf.GetRegexMatchSetInput{
-			RegexMatchSetId: s.RegexMatchSetId,
-		})
+func ListRegexMatchSetsPages(conn *wafregional.WAFRegional, input *waf.ListRegexMatchSetsInput, fn func(*waf.ListRegexMatchSetsOutput, bool) bool) error {
+	for {
+		output, err := conn.ListRegexMatchSets(input)
 		if err != nil {
 			return err
 		}
-		set := resp.RegexMatchSet
 
-		oldTuples := flattenWafRegexMatchTuples(set.RegexMatchTuples)
-		noTuples := []interface{}{}
-		err = updateRegexMatchSetResourceWR(*set.RegexMatchSetId, oldTuples, noTuples, conn, region)
-		if err != nil {
-			return fmt.Errorf("Error updating WAF Regional Regex Match Set: %s", err)
+		lastPage := aws.StringValue(output.NextMarker) == ""
+		if !fn(output, lastPage) || lastPage {
+			break
 		}
 
-		wr := newWafRegionalRetryer(conn, region)
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.DeleteRegexMatchSetInput{
-				ChangeToken:     token,
-				RegexMatchSetId: set.RegexMatchSetId,
-			}
-			log.Printf("[INFO] Deleting WAF Regional Regex Match Set: %s", req)
-			return conn.DeleteRegexMatchSet(req)
-		})
-		if err != nil {
-			return fmt.Errorf("error deleting WAF Regional Regex Match Set (%s): %s", aws.StringValue(set.RegexMatchSetId), err)
-		}
+		input.NextMarker = output.NextMarker
 	}
-
 	return nil
 }
 
 // Serialized acceptance tests due to WAF account limits
 // https://docs.aws.amazon.com/waf/latest/developerguide/limits.html
-func TestAccAWSWafRegionalRegexMatchSet(t *testing.T) {
+func TestAccAWSWafRegionalRegexMatchSet_serial(t *testing.T) {
 	testCases := map[string]func(t *testing.T){
 		"basic":          testAccAWSWafRegionalRegexMatchSet_basic,
 		"changePatterns": testAccAWSWafRegionalRegexMatchSet_changePatterns,
@@ -120,10 +132,12 @@ func testAccAWSWafRegionalRegexMatchSet_basic(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &fieldToMatch, "NONE", &idx),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx, "user-agent"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx, "NONE"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "user-agent",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -157,10 +171,12 @@ func testAccAWSWafRegionalRegexMatchSet_changePatterns(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("User-Agent"), Type: aws.String("HEADER")}, "NONE", &idx1),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx1, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx1, "user-agent"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx1, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx1, "NONE"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "user-agent",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "NONE",
+					}),
 				),
 			},
 			{
@@ -171,10 +187,12 @@ func testAccAWSWafRegionalRegexMatchSet_changePatterns(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
 
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("Referer"), Type: aws.String("HEADER")}, "COMPRESS_WHITE_SPACE", &idx2),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.#", &idx2, "1"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.data", &idx2, "referer"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.field_to_match.0.type", &idx2, "HEADER"),
-					testCheckResourceAttrWithIndexesAddr(resourceName, "regex_match_tuple.%d.text_transformation", &idx2, "COMPRESS_WHITE_SPACE"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+						"field_to_match.#":      "1",
+						"field_to_match.0.data": "referer",
+						"field_to_match.0.type": "HEADER",
+						"text_transformation":   "COMPRESS_WHITE_SPACE",
+					}),
 				),
 			},
 			{
@@ -228,52 +246,12 @@ func testAccAWSWafRegionalRegexMatchSet_disappears(t *testing.T) {
 				Config: testAccAWSWafRegionalRegexMatchSetConfig(matchSetName, patternSetName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalRegexMatchSetExists(resourceName, &matchSet),
-					testAccCheckAWSWafRegionalRegexMatchSetDisappears(&matchSet),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsWafRegionalRegexMatchSet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
-}
-
-func testAccCheckAWSWafRegionalRegexMatchSetDisappears(set *waf.RegexMatchSet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).wafregionalconn
-		region := testAccProvider.Meta().(*AWSClient).region
-
-		wr := newWafRegionalRetryer(conn, region)
-		_, err := wr.RetryWithToken(func(token *string) (interface{}, error) {
-			req := &waf.UpdateRegexMatchSetInput{
-				ChangeToken:     token,
-				RegexMatchSetId: set.RegexMatchSetId,
-			}
-
-			for _, tuple := range set.RegexMatchTuples {
-				req.Updates = append(req.Updates, &waf.RegexMatchSetUpdate{
-					Action:          aws.String("DELETE"),
-					RegexMatchTuple: tuple,
-				})
-			}
-
-			return conn.UpdateRegexMatchSet(req)
-		})
-		if err != nil {
-			return fmt.Errorf("Failed updating WAF Regional Regex Match Set: %s", err)
-		}
-
-		_, err = wr.RetryWithToken(func(token *string) (interface{}, error) {
-			opts := &waf.DeleteRegexMatchSetInput{
-				ChangeToken:     token,
-				RegexMatchSetId: set.RegexMatchSetId,
-			}
-			return conn.DeleteRegexMatchSet(opts)
-		})
-		if err != nil {
-			return fmt.Errorf("Failed deleting WAF Regional Regex Match Set: %s", err)
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckAWSWafRegionalRegexMatchSetExists(n string, v *waf.RegexMatchSet) resource.TestCheckFunc {
@@ -323,7 +301,7 @@ func testAccCheckAWSWafRegionalRegexMatchSetDestroy(s *terraform.State) error {
 		}
 
 		// Return nil if the Regex Pattern Set is already destroyed
-		if isAWSErr(err, wafregional.ErrCodeWAFNonexistentItemException, "") {
+		if tfawserr.ErrCodeEquals(err, wafregional.ErrCodeWAFNonexistentItemException) {
 			return nil
 		}
 
@@ -344,7 +322,7 @@ resource "aws_wafregional_regex_match_set" "test" {
       type = "HEADER"
     }
 
-    regex_pattern_set_id = "${aws_wafregional_regex_pattern_set.test.id}"
+    regex_pattern_set_id = aws_wafregional_regex_pattern_set.test.id
     text_transformation  = "NONE"
   }
 }
@@ -367,7 +345,7 @@ resource "aws_wafregional_regex_match_set" "test" {
       type = "HEADER"
     }
 
-    regex_pattern_set_id = "${aws_wafregional_regex_pattern_set.test.id}"
+    regex_pattern_set_id = aws_wafregional_regex_pattern_set.test.id
     text_transformation  = "COMPRESS_WHITE_SPACE"
   }
 }

@@ -14,8 +14,8 @@ Provides an API Gateway Method Settings, e.g. logging or monitoring.
 
 ```hcl
 resource "aws_api_gateway_method_settings" "s" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  stage_name  = "${aws_api_gateway_stage.test.stage_name}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  stage_name  = aws_api_gateway_stage.test.stage_name
   method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
 
   settings {
@@ -30,34 +30,34 @@ resource "aws_api_gateway_rest_api" "test" {
 }
 
 resource "aws_api_gateway_deployment" "test" {
-  depends_on  = ["aws_api_gateway_integration.test"]
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  depends_on  = [aws_api_gateway_integration.test]
+  rest_api_id = aws_api_gateway_rest_api.test.id
   stage_name  = "dev"
 }
 
 resource "aws_api_gateway_stage" "test" {
   stage_name    = "prod"
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  deployment_id = "${aws_api_gateway_deployment.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  deployment_id = aws_api_gateway_deployment.test.id
 }
 
 resource "aws_api_gateway_resource" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  parent_id   = "${aws_api_gateway_rest_api.test.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
   path_part   = "mytestresource"
 }
 
 resource "aws_api_gateway_method" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.test.id}"
-  resource_id   = "${aws_api_gateway_resource.test.id}"
+  rest_api_id   = aws_api_gateway_rest_api.test.id
+  resource_id   = aws_api_gateway_resource.test.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "test" {
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
-  resource_id = "${aws_api_gateway_resource.test.id}"
-  http_method = "${aws_api_gateway_method.test.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.test.id
+  resource_id = aws_api_gateway_resource.test.id
+  http_method = aws_api_gateway_method.test.http_method
   type        = "MOCK"
 
   request_templates = {
@@ -84,10 +84,18 @@ The following arguments are supported:
 * `metrics_enabled` - (Optional) Specifies whether Amazon CloudWatch metrics are enabled for this method.
 * `logging_level` - (Optional) Specifies the logging level for this method, which effects the log entries pushed to Amazon CloudWatch Logs. The available levels are `OFF`, `ERROR`, and `INFO`.
 * `data_trace_enabled` - (Optional) Specifies whether data trace logging is enabled for this method, which effects the log entries pushed to Amazon CloudWatch Logs.
-* `throttling_burst_limit` - (Optional) Specifies the throttling burst limit.
-* `throttling_rate_limit` - (Optional) Specifies the throttling rate limit.
-* `caching_enabled` - (Optional) Specifies whether responses should be cached and returned for requests. A cache cluster must be enabled on the stage for responses to be cached. 
+* `throttling_burst_limit` - (Optional) Specifies the throttling burst limit. Default: `-1` (throttling disabled).
+* `throttling_rate_limit` - (Optional) Specifies the throttling rate limit. Default: `-1` (throttling disabled).
+* `caching_enabled` - (Optional) Specifies whether responses should be cached and returned for requests. A cache cluster must be enabled on the stage for responses to be cached.
 * `cache_ttl_in_seconds` - (Optional) Specifies the time to live (TTL), in seconds, for cached responses. The higher the TTL, the longer the response will be cached.
 * `cache_data_encrypted` - (Optional) Specifies whether the cached responses are encrypted.
 * `require_authorization_for_cache_control` - (Optional) Specifies whether authorization is required for a cache invalidation request.
 * `unauthorized_cache_control_header_strategy` - (Optional) Specifies how to handle unauthorized requests for cache invalidation. The available values are `FAIL_WITH_403`, `SUCCEED_WITH_RESPONSE_HEADER`, `SUCCEED_WITHOUT_RESPONSE_HEADER`.
+
+## Import
+
+`aws_api_gateway_method_settings` can be imported using `REST-API-ID/STAGE-NAME/METHOD-PATH`, e.g.
+
+```
+$ terraform import aws_api_gateway_method_settings.example 12345abcde/example/test/GET
+```

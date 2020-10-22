@@ -2,14 +2,101 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/waiter"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_kinesis_analytics_application", &resource.Sweeper{
+		Name: "aws_kinesis_analytics_application",
+		F:    testSweepKinesisAnalyticsApplications,
+	})
+}
+
+func testSweepKinesisAnalyticsApplications(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).kinesisanalyticsconn
+	input := &kinesisanalytics.ListApplicationsInput{}
+	var sweeperErrs *multierror.Error
+
+	for {
+		output, err := conn.ListApplications(input)
+		if testSweepSkipSweepError(err) {
+			log.Printf("[WARN] Skipping Kinesis Analytics Application sweep for %s: %s", region, err)
+			return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+		}
+		if err != nil {
+			sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error retrieving Kinesis Analytics Applications: %w", err))
+			return sweeperErrs
+		}
+
+		var name string
+		for _, applicationSummary := range output.ApplicationSummaries {
+			name = aws.StringValue(applicationSummary.ApplicationName)
+
+			output, err := conn.DescribeApplication(&kinesisanalytics.DescribeApplicationInput{
+				ApplicationName: aws.String(name),
+			})
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error describing Kinesis Analytics Application (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			if output.ApplicationDetail == nil {
+				continue
+			}
+
+			log.Printf("[INFO] Deleting Kinesis Analytics Application: %s", name)
+			_, err = conn.DeleteApplication(&kinesisanalytics.DeleteApplicationInput{
+				ApplicationName: aws.String(name),
+				CreateTimestamp: output.ApplicationDetail.CreateTimestamp,
+			})
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting Kinesis Analytics Application (%s): %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			_, err = waiter.ApplicationDeleted(conn, name)
+			if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+				continue
+			}
+			if err != nil {
+				sweeperErr := fmt.Errorf("error waiting for Kinesis Analytics Application (%s) to be deleted: %w", name, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		if !aws.BoolValue(output.HasMoreApplications) {
+			break
+		}
+		input.ExclusiveStartApplicationName = aws.String(name)
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSKinesisAnalyticsApplication_basic(t *testing.T) {
 	var application kinesisanalytics.ApplicationDetail
@@ -726,7 +813,7 @@ resource "aws_cloudwatch_log_group" "test" {
 
 resource "aws_cloudwatch_log_stream" "test" {
   name           = "testAcc-%s-%d"
-  log_group_name = "${aws_cloudwatch_log_group.test.name}"
+  log_group_name = aws_cloudwatch_log_group.test.name
 }
 
 resource "aws_kinesis_analytics_application" "test" {
@@ -734,8 +821,8 @@ resource "aws_kinesis_analytics_application" "test" {
   code = "testCode\n"
 
   cloudwatch_logging_options {
-    log_stream_arn = "${aws_cloudwatch_log_stream.test.arn}"
-    role_arn       = "${aws_iam_role.test.arn}"
+    log_stream_arn = aws_cloudwatch_log_stream.test.arn
+    role_arn       = aws_iam_role.test.arn
   }
 }
 `, rInt, streamName, rInt, rInt)
@@ -756,7 +843,7 @@ data "aws_iam_policy_document" "trust_firehose" {
 
 resource "aws_iam_role" "firehose" {
   name               = "testAcc-firehose-%d"
-  assume_role_policy = "${data.aws_iam_policy_document.trust_firehose.json}"
+  assume_role_policy = data.aws_iam_policy_document.trust_firehose.json
 }
 
 data "aws_iam_policy_document" "trust_lambda" {
@@ -772,7 +859,7 @@ data "aws_iam_policy_document" "trust_lambda" {
 
 resource "aws_iam_role" "lambda" {
   name               = "testAcc-lambda-%d"
-  assume_role_policy = "${data.aws_iam_policy_document.trust_lambda.json}"
+  assume_role_policy = data.aws_iam_policy_document.trust_lambda.json
 }
 
 resource "aws_s3_bucket" "test" {
@@ -784,7 +871,7 @@ resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "testAcc-%d"
   handler       = "exports.example"
-  role          = "${aws_iam_role.lambda.arn}"
+  role          = aws_iam_role.lambda.arn
   runtime       = "nodejs12.x"
 }
 
@@ -793,8 +880,8 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
   destination = "extended_s3"
 
   extended_s3_configuration {
-    role_arn   = "${aws_iam_role.firehose.arn}"
-    bucket_arn = "${aws_s3_bucket.test.arn}"
+    role_arn   = aws_iam_role.firehose.arn
+    bucket_arn = aws_s3_bucket.test.arn
   }
 }
 
@@ -806,8 +893,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name_prefix = "test_prefix"
 
     kinesis_firehose {
-      resource_arn = "${aws_kinesis_firehose_delivery_stream.test.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_firehose_delivery_stream.test.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     parallelism {
@@ -852,8 +939,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name_prefix = "test_prefix"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     parallelism {
@@ -897,8 +984,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name_prefix = "test_prefix2"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     parallelism {
@@ -943,8 +1030,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name = "test_name"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     schema {
@@ -975,8 +1062,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name = "test_name1"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test1.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test1.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     schema {
@@ -988,8 +1075,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name = "test_name2"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test2.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test2.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     schema {
@@ -1030,29 +1117,29 @@ data "aws_partition" "current" {}
 
 resource "aws_iam_role" "kinesis_analytics_application" {
   name               = "tf-acc-test-%d-kinesis"
-  assume_role_policy = "${data.aws_iam_policy_document.kinesisanalytics_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.kinesisanalytics_assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "kinesis_analytics_application-AWSLambdaRole" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaRole"
-  role       = "${aws_iam_role.kinesis_analytics_application.name}"
+  role       = aws_iam_role.kinesis_analytics_application.name
 }
 
 resource "aws_iam_role" "lambda_function" {
   name               = "tf-acc-test-%d-lambda"
-  assume_role_policy = "${data.aws_iam_policy_document.lambda_assume_role_policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_function-AWSLambdaBasicExecutionRole" {
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = "${aws_iam_role.lambda_function.name}"
+  role       = aws_iam_role.lambda_function.name
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "tf-acc-test-%d"
   handler       = "exports.example"
-  role          = "${aws_iam_role.lambda_function.arn}"
+  role          = aws_iam_role.lambda_function.arn
   runtime       = "nodejs12.x"
 }
 
@@ -1064,8 +1151,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name = "test_name"
 
     lambda {
-      resource_arn = "${aws_lambda_function.test.arn}"
-      role_arn     = "${aws_iam_role.kinesis_analytics_application.arn}"
+      resource_arn = aws_lambda_function.test.arn
+      role_arn     = aws_iam_role.kinesis_analytics_application.arn
     }
 
     schema {
@@ -1091,8 +1178,8 @@ resource "aws_kinesis_analytics_application" "test" {
     name = "test_name2"
 
     kinesis_stream {
-      resource_arn = "${aws_kinesis_stream.test.arn}"
-      role_arn     = "${aws_iam_role.test.arn}"
+      resource_arn = aws_kinesis_stream.test.arn
+      role_arn     = aws_iam_role.test.arn
     }
 
     schema {
@@ -1116,9 +1203,9 @@ resource "aws_kinesis_analytics_application" "test" {
     table_name = "test_table"
 
     s3 {
-      bucket_arn = "${aws_s3_bucket.test.arn}"
+      bucket_arn = aws_s3_bucket.test.arn
       file_key   = "test_file_key"
-      role_arn   = "${aws_iam_role.test.arn}"
+      role_arn   = aws_iam_role.test.arn
     }
 
     schema {
@@ -1156,9 +1243,9 @@ resource "aws_kinesis_analytics_application" "test" {
     table_name = "test_table2"
 
     s3 {
-      bucket_arn = "${aws_s3_bucket.test.arn}"
+      bucket_arn = aws_s3_bucket.test.arn
       file_key   = "test_file_key"
-      role_arn   = "${aws_iam_role.test.arn}"
+      role_arn   = aws_iam_role.test.arn
     }
 
     schema {
@@ -1200,7 +1287,7 @@ data "aws_iam_policy_document" "trust" {
 
 resource "aws_iam_role" "test" {
   name               = "testAcc-%d"
-  assume_role_policy = "${data.aws_iam_policy_document.trust.json}"
+  assume_role_policy = data.aws_iam_policy_document.trust.json
 }
 
 data "aws_iam_policy_document" "test" {
@@ -1212,12 +1299,12 @@ data "aws_iam_policy_document" "test" {
 
 resource "aws_iam_policy" "test" {
   name   = "testAcc-%d"
-  policy = "${data.aws_iam_policy_document.test.json}"
+  policy = data.aws_iam_policy_document.test.json
 }
 
 resource "aws_iam_role_policy_attachment" "test" {
-  role       = "${aws_iam_role.test.name}"
-  policy_arn = "${aws_iam_policy.test.arn}"
+  role       = aws_iam_role.test.name
+  policy_arn = aws_iam_policy.test.arn
 }
 `, rInt, rInt)
 }

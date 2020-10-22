@@ -1,13 +1,20 @@
-# Specify the provider and access details
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "aws" {
-  region = "${var.aws_region}"
+  region = var.aws_region
+}
+
+locals {
+  availability_zones = split(",", var.availability_zones)
 }
 
 resource "aws_elb" "web-elb" {
   name = "terraform-example-elb"
 
   # The same availability zone as our instances
-  availability_zones = ["${split(",", var.availability_zones)}"]
+  availability_zones = local.availability_zones
 
   listener {
     instance_port     = 80
@@ -26,14 +33,14 @@ resource "aws_elb" "web-elb" {
 }
 
 resource "aws_autoscaling_group" "web-asg" {
-  availability_zones   = ["${split(",", var.availability_zones)}"]
+  availability_zones   = local.availability_zones
   name                 = "terraform-example-asg"
-  max_size             = "${var.asg_max}"
-  min_size             = "${var.asg_min}"
-  desired_capacity     = "${var.asg_desired}"
+  max_size             = var.asg_max
+  min_size             = var.asg_min
+  desired_capacity     = var.asg_desired
   force_delete         = true
-  launch_configuration = "${aws_launch_configuration.web-lc.name}"
-  load_balancers       = ["${aws_elb.web-elb.name}"]
+  launch_configuration = aws_launch_configuration.web-lc.name
+  load_balancers       = [aws_elb.web-elb.name]
 
   #vpc_zone_identifier = ["${split(",", var.availability_zones)}"]
   tag {
@@ -45,13 +52,13 @@ resource "aws_autoscaling_group" "web-asg" {
 
 resource "aws_launch_configuration" "web-lc" {
   name          = "terraform-example-lc"
-  image_id      = "${lookup(var.aws_amis, var.aws_region)}"
-  instance_type = "${var.instance_type}"
+  image_id      = var.aws_amis[var.aws_region]
+  instance_type = var.instance_type
 
   # Security group
-  security_groups = ["${aws_security_group.default.id}"]
-  user_data       = "${file("userdata.sh")}"
-  key_name        = "${var.key_name}"
+  security_groups = [aws_security_group.default.id]
+  user_data       = file("userdata.sh")
+  key_name        = var.key_name
 }
 
 # Our default security group to access

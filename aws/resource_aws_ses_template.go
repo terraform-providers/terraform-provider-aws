@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSesTemplate() *schema.Resource {
@@ -89,12 +89,12 @@ func resourceAwsSesTemplateRead(d *schema.ResourceData, meta interface{}) error 
 	log.Printf("[DEBUG] Reading SES template: %#v", input)
 	gto, err := conn.GetTemplate(&input)
 	if err != nil {
-		if isAWSErr(err, "TemplateDoesNotExist", "") {
+		if isAWSErr(err, ses.ErrCodeTemplateDoesNotExistException, "") {
 			log.Printf("[WARN] SES template %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Reading SES template '%s' failed: %s", *input.TemplateName, err.Error())
+		return fmt.Errorf("Reading SES template '%s' failed: %s", aws.StringValue(input.TemplateName), err.Error())
 	}
 
 	d.Set("html", gto.Template.HtmlPart)

@@ -18,7 +18,7 @@ resource "aws_api_gateway_rest_api" "main" {
 }
 
 resource "aws_api_gateway_gateway_response" "test" {
-  rest_api_id   = "${aws_api_gateway_rest_api.main.id}"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
   status_code   = "401"
   response_type = "UNAUTHORIZED"
 

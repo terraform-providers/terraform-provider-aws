@@ -9,14 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceAwsEcsTaskDefinition() *schema.Resource {
+	//lintignore:R011
 	return &schema.Resource{
 		Create: resourceAwsEcsTaskDefinitionCreate,
 		Read:   resourceAwsEcsTaskDefinitionRead,
@@ -73,7 +74,13 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				StateFunc: func(v interface{}) string {
-					json, _ := structure.NormalizeJsonString(v)
+					// Sort the lists of environment variables as they are serialized to state, so we won't get
+					// spurious reorderings in plans (diff is suppressed if the environment variables haven't changed,
+					// but they still show in the plan if some other property changes).
+					orderedCDs, _ := expandEcsContainerDefinitions(v.(string))
+					containerDefinitions(orderedCDs).OrderEnvironmentVariables()
+					unnormalizedJson, _ := flattenEcsContainerDefinitions(orderedCDs)
+					json, _ := structure.NormalizeJsonString(unnormalizedJson)
 					return json
 				},
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -195,6 +202,46 @@ func resourceAwsEcsTaskDefinition() *schema.Resource {
 										Type:     schema.TypeString,
 										ForceNew: true,
 										Optional: true,
+										Default:  "/",
+									},
+									"transit_encryption": {
+										Type:     schema.TypeString,
+										ForceNew: true,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											ecs.EFSTransitEncryptionEnabled,
+											ecs.EFSTransitEncryptionDisabled,
+										}, false),
+									},
+									"transit_encryption_port": {
+										Type:         schema.TypeInt,
+										ForceNew:     true,
+										Optional:     true,
+										ValidateFunc: validation.IsPortNumber,
+									},
+									"authorization_config": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"access_point_id": {
+													Type:     schema.TypeString,
+													ForceNew: true,
+													Optional: true,
+												},
+												"iam": {
+													Type:     schema.TypeString,
+													ForceNew: true,
+													Optional: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														ecs.EFSAuthorizationConfigIAMEnabled,
+														ecs.EFSAuthorizationConfigIAMDisabled,
+													}, false),
+												},
+											},
+										},
 									},
 								},
 							},
@@ -368,19 +415,12 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("volume"); ok {
-		volumes, err := expandEcsVolumes(v.(*schema.Set).List())
-		if err != nil {
-			return err
-		}
+		volumes := expandEcsVolumes(v.(*schema.Set).List())
 		input.Volumes = volumes
 	}
 
 	if v, ok := d.GetOk("inference_accelerator"); ok {
-		iAcc, err := expandEcsInferenceAccelerators(v.(*schema.Set).List())
-		if err != nil {
-			return err
-		}
-		input.InferenceAccelerators = iAcc
+		input.InferenceAccelerators = expandEcsInferenceAccelerators(v.(*schema.Set).List())
 	}
 
 	constraints := d.Get("placement_constraints").(*schema.Set).List()
@@ -452,6 +492,7 @@ func resourceAwsEcsTaskDefinitionCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ecsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	log.Printf("[DEBUG] Reading task definition %s", d.Id())
 	out, err := conn.DescribeTaskDefinition(&ecs.DescribeTaskDefinitionInput{
@@ -477,6 +518,11 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("family", taskDefinition.Family)
 	d.Set("revision", taskDefinition.Revision)
 
+	// Sort the lists of environment variables as they come in, so we won't get spurious reorderings in plans
+	// (diff is suppressed if the environment variables haven't changed, but they still show in the plan if
+	// some other property changes).
+	containerDefinitions(taskDefinition.ContainerDefinitions).OrderEnvironmentVariables()
+
 	defs, err := flattenEcsContainerDefinitions(taskDefinition.ContainerDefinitions)
 	if err != nil {
 		return err
@@ -494,7 +540,7 @@ func resourceAwsEcsTaskDefinitionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("ipc_mode", taskDefinition.IpcMode)
 	d.Set("pid_mode", taskDefinition.PidMode)
 
-	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(out.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.EcsKeyValueTags(out.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -591,6 +637,36 @@ func resourceAwsEcsTaskDefinitionVolumeHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["host_path"].(string)))
+
+	if v, ok := m["efs_volume_configuration"]; ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+		m := v.([]interface{})[0].(map[string]interface{})
+
+		if v, ok := m["file_system_id"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+
+		if v, ok := m["root_directory"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+
+		if v, ok := m["transit_encryption"]; ok && v.(string) != "" {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["transit_encryption_port"]; ok && v.(int) > 0 {
+			buf.WriteString(fmt.Sprintf("%d-", v.(int)))
+		}
+		if v, ok := m["authorization_config"]; ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
+			m := v.([]interface{})[0].(map[string]interface{})
+			if v, ok := m["access_point_id"]; ok && v.(string) != "" {
+				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			}
+			if v, ok := m["iam"]; ok && v.(string) != "" {
+				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+			}
+		}
+
+	}
+
 	return hashcode.String(buf.String())
 }
 
@@ -607,7 +683,7 @@ func flattenEcsInferenceAccelerators(list []*ecs.InferenceAccelerator) []map[str
 	return result
 }
 
-func expandEcsInferenceAccelerators(configured []interface{}) ([]*ecs.InferenceAccelerator, error) {
+func expandEcsInferenceAccelerators(configured []interface{}) []*ecs.InferenceAccelerator {
 	iAccs := make([]*ecs.InferenceAccelerator, 0, len(configured))
 	for _, lRaw := range configured {
 		data := lRaw.(map[string]interface{})
@@ -618,5 +694,5 @@ func expandEcsInferenceAccelerators(configured []interface{}) ([]*ecs.InferenceA
 		iAccs = append(iAccs, l)
 	}
 
-	return iAccs, nil
+	return iAccs
 }

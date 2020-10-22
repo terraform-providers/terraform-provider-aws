@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
@@ -49,62 +49,64 @@ func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
 }
 
 func testAccDataSourceAwsPricingProductConfigEc2(dataName string, instanceType string) string {
-	return fmt.Sprintf(`data "aws_pricing_product" "%s" {
-		service_code = "AmazonEC2"
-	  
-		filters {
-			field = "instanceType"
-			value = "%s"
-		}
+	return fmt.Sprintf(`
+data "aws_pricing_product" "%s" {
+  service_code = "AmazonEC2"
 
-		filters {
-			field = "operatingSystem"
-			value = "Linux"
-		}
+  filters {
+    field = "instanceType"
+    value = "%s"
+  }
 
-		filters {
-			field = "location"
-			value = "US East (N. Virginia)"
-		}
+  filters {
+    field = "operatingSystem"
+    value = "Linux"
+  }
 
-		filters {
-			field = "preInstalledSw"
-			value = "NA"
-		}
+  filters {
+    field = "location"
+    value = "US East (N. Virginia)"
+  }
 
-		filters {
-			field = "licenseModel"
-			value = "No License required"
-		}
+  filters {
+    field = "preInstalledSw"
+    value = "NA"
+  }
 
-		filters {
-			field = "tenancy"
-			value = "Shared"
-		}
+  filters {
+    field = "licenseModel"
+    value = "No License required"
+  }
 
-		filters {
-			field = "capacitystatus"
-			value = "Used"
-		}
+  filters {
+    field = "tenancy"
+    value = "Shared"
+  }
+
+  filters {
+    field = "capacitystatus"
+    value = "Used"
+  }
 }
 `, dataName, instanceType)
 }
 
 func testAccDataSourceAwsPricingProductConfigRedshift() string {
-	return fmt.Sprintf(`data "aws_pricing_product" "test" {
-		service_code = "AmazonRedshift"
-	  
-		filters {
-			field = "instanceType"
-			value = "ds1.xlarge"
-		}
+	return `
+data "aws_pricing_product" "test" {
+  service_code = "AmazonRedshift"
 
-		filters {
-			field = "location"
-			value = "US East (N. Virginia)"
-		}
+  filters {
+    field = "instanceType"
+    value = "ds1.xlarge"
+  }
+
+  filters {
+    field = "location"
+    value = "US East (N. Virginia)"
+  }
 }
-`)
+`
 }
 
 func testAccPricingCheckValueIsJSON(data string) resource.TestCheckFunc {

@@ -10,10 +10,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 func resourceAwsKmsGrant() *schema.Resource {
@@ -23,7 +23,6 @@ func resourceAwsKmsGrant() *schema.Resource {
 		Create: resourceAwsKmsGrantCreate,
 		Read:   resourceAwsKmsGrantRead,
 		Delete: resourceAwsKmsGrantDelete,
-		Exists: resourceAwsKmsGrantExists,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				keyId, grantId, err := decodeKmsGrantId(d.Id())
@@ -299,30 +298,6 @@ func resourceAwsKmsGrantDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourceAwsKmsGrantExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*AWSClient).kmsconn
-
-	keyId, grantId, err := decodeKmsGrantId(d.Id())
-	if err != nil {
-		return false, err
-	}
-
-	log.Printf("[DEBUG] Looking for Grant: %s", grantId)
-	grant, err := findKmsGrantByIdWithRetry(conn, keyId, grantId)
-
-	if err != nil {
-		if isResourceNotFoundError(err) {
-			return false, nil
-		}
-		return true, err
-	}
-	if grant != nil {
-		return true, err
-	}
-
-	return false, nil
-}
-
 func getKmsGrantById(grants []*kms.GrantListEntry, grantIdentifier string) *kms.GrantListEntry {
 	for _, grant := range grants {
 		if *grant.GrantId == grantIdentifier {
@@ -381,7 +356,10 @@ func waitForKmsGrantToBeRevoked(conn *kms.KMS, keyId string, grantId string) err
 				fmt.Errorf("Grant still exists while expected to be revoked, retyring revocation check: %s", *grant.GrantId))
 		}
 
-		return resource.NonRetryableError(err)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		return nil
 	})
 	if isResourceTimeoutError(err) {
 		grant, err = findKmsGrantById(conn, keyId, grantId, nil)

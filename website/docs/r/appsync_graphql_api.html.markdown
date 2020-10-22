@@ -29,9 +29,9 @@ resource "aws_appsync_graphql_api" "example" {
   name                = "example"
 
   user_pool_config {
-    aws_region     = "${data.aws_region.current.name}"
+    aws_region     = data.aws_region.current.name
     default_action = "DENY"
-    user_pool_id   = "${aws_cognito_user_pool.example.id}"
+    user_pool_id   = aws_cognito_user_pool.example.id
   }
 }
 ```
@@ -113,14 +113,14 @@ POLICY
 
 resource "aws_iam_role_policy_attachment" "example" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs"
-  role       = "${aws_iam_role.example.name}"
+  role       = aws_iam_role.example.name
 }
 
 resource "aws_appsync_graphql_api" "example" {
   # ... other configuration ...
 
   log_config {
-    cloudwatch_logs_role_arn = "${aws_iam_role.example.arn}"
+    cloudwatch_logs_role_arn = aws_iam_role.example.arn
     field_log_level          = "ERROR"
   }
 }
@@ -137,7 +137,7 @@ The following arguments are supported:
 * `user_pool_config` - (Optional) The Amazon Cognito User Pool configuration. Defined below.
 * `schema` - (Optional) The schema definition, in GraphQL schema language format. Terraform cannot perform drift detection of this configuration.
 * `additional_authentication_provider` - (Optional) One or more additional authentication providers for the GraphqlApi. Defined below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 * `xray_enabled` - (Optional) Whether tracing with X-ray is enabled. Defaults to false.
 
 ### log_config
@@ -146,6 +146,7 @@ The following arguments are supported:
 
 * `cloudwatch_logs_role_arn` - (Required) Amazon Resource Name of the service role that AWS AppSync will assume to publish to Amazon CloudWatch logs in your account.
 * `field_log_level` - (Required) Field logging level. Valid values: `ALL`, `ERROR`, `NONE`.
+* `exclude_verbose_content` - (Optional) Set to TRUE to exclude sections that contain information such as headers, context, and evaluated mapping templates, regardless of logging  level. Valid values: `true`, `false`. Default value: `false`
 
 ### additional_authentication_provider
 

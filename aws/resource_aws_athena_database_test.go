@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/athena"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAthenaDatabase_basic(t *testing.T) {
@@ -145,7 +145,7 @@ func testAccCheckAWSAthenaDatabaseDestroy(s *terraform.State) error {
 		}
 
 		input := &athena.StartQueryExecutionInput{
-			QueryString: aws.String(fmt.Sprint("show databases;")),
+			QueryString: aws.String("show databases;"),
 			ResultConfiguration: &athena.ResultConfiguration{
 				OutputLocation: aws.String("s3://" + bucketName),
 			},
@@ -339,7 +339,7 @@ resource "aws_s3_bucket" "hoge" {
 
 resource "aws_athena_database" "hoge" {
   name          = "%[2]s"
-  bucket        = "${aws_s3_bucket.hoge.bucket}"
+  bucket        = aws_s3_bucket.hoge.bucket
   force_destroy = %[3]t
 }
 `, randInt, dbName, forceDestroy)
@@ -358,7 +358,7 @@ resource "aws_s3_bucket" "hoge" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "${aws_kms_key.hoge.arn}"
+        kms_master_key_id = aws_kms_key.hoge.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -367,12 +367,12 @@ resource "aws_s3_bucket" "hoge" {
 
 resource "aws_athena_database" "hoge" {
   name          = "%[2]s"
-  bucket        = "${aws_s3_bucket.hoge.bucket}"
+  bucket        = aws_s3_bucket.hoge.bucket
   force_destroy = %[3]t
 
   encryption_configuration {
     encryption_option = "SSE_KMS"
-    kms_key           = "${aws_kms_key.hoge.arn}"
+    kms_key           = aws_kms_key.hoge.arn
   }
 }
 `, randInt, dbName, forceDestroy)

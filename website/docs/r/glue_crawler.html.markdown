@@ -16,9 +16,9 @@ Manages a Glue Crawler. More information can be found in the [AWS Glue Developer
 
 ```hcl
 resource "aws_glue_crawler" "example" {
-  database_name = "${aws_glue_catalog_database.example.name}"
+  database_name = aws_glue_catalog_database.example.name
   name          = "example"
-  role          = "${aws_iam_role.example.arn}"
+  role          = aws_iam_role.example.arn
 
   dynamodb_target {
     path = "table-name"
@@ -30,12 +30,12 @@ resource "aws_glue_crawler" "example" {
 
 ```hcl
 resource "aws_glue_crawler" "example" {
-  database_name = "${aws_glue_catalog_database.example.name}"
+  database_name = aws_glue_catalog_database.example.name
   name          = "example"
-  role          = "${aws_iam_role.example.arn}"
+  role          = aws_iam_role.example.arn
 
   jdbc_target {
-    connection_name = "${aws_glue_connection.example.name}"
+    connection_name = aws_glue_connection.example.name
     path            = "database-name/%"
   }
 }
@@ -45,9 +45,9 @@ resource "aws_glue_crawler" "example" {
 
 ```hcl
 resource "aws_glue_crawler" "example" {
-  database_name = "${aws_glue_catalog_database.example.name}"
+  database_name = aws_glue_catalog_database.example.name
   name          = "example"
-  role          = "${aws_iam_role.example.arn}"
+  role          = aws_iam_role.example.arn
 
   s3_target {
     path = "s3://${aws_s3_bucket.example.bucket}"
@@ -60,13 +60,13 @@ resource "aws_glue_crawler" "example" {
 
 ```hcl
 resource "aws_glue_crawler" "example" {
-  database_name = "${aws_glue_catalog_database.example.name}"
+  database_name = aws_glue_catalog_database.example.name
   name          = "example"
-  role          = "${aws_iam_role.example.arn}"
+  role          = aws_iam_role.example.arn
 
   catalog_target {
-    database_name = "${aws_glue_catalog_database.example.name}"
-    tables        = ["${aws_glue_catalog_table.example.name}"]
+    database_name = aws_glue_catalog_database.example.name
+    tables        = [aws_glue_catalog_table.example.name]
   }
 
   schema_change_policy {
@@ -103,11 +103,13 @@ The following arguments are supported:
 * `schema_change_policy` (Optional) Policy for the crawler's update and deletion behavior.
 * `security_configuration` (Optional) The name of Security Configuration to be used by the crawler
 * `table_prefix` (Optional) The table prefix used for catalog tables that are created.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ### dynamodb_target Argument Reference
 
 * `path` - (Required) The name of the DynamoDB table to crawl.
+* `scan_all` - (Optional) Indicates whether to scan all the records, or to sample rows from the table. Scanning all the records can take a long time when the table is not a high throughput table.  defaults to `true`.
+* `scan_rate` - (Optional) The percentage of the configured read capacity units to use by the AWS Glue crawler. The valid values are null or a value between 0.1 to 1.5.
 
 ### jdbc_target Argument Reference
 
@@ -118,6 +120,7 @@ The following arguments are supported:
 ### s3_target Argument Reference
 
 * `path` - (Required) The path to the Amazon S3 target.
+* `connection_name` - (Optional) The name of a connection which allows crawler to access data in S3 within a VPC.
 * `exclusions` - (Optional) A list of glob patterns used to exclude from the crawl.
 
 ### catalog_target Argument Reference
@@ -140,7 +143,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Crawler name
-* `arn` - The ARN of the crawler 
+* `arn` - The ARN of the crawler
 
 ## Import
 

@@ -40,17 +40,11 @@ resource "aws_route53_zone" "dev" {
 }
 
 resource "aws_route53_record" "dev-ns" {
-  zone_id = "${aws_route53_zone.main.zone_id}"
+  zone_id = aws_route53_zone.main.zone_id
   name    = "dev.example.com"
   type    = "NS"
   ttl     = "30"
-
-  records = [
-    "${aws_route53_zone.dev.name_servers.0}",
-    "${aws_route53_zone.dev.name_servers.1}",
-    "${aws_route53_zone.dev.name_servers.2}",
-    "${aws_route53_zone.dev.name_servers.3}",
-  ]
+  records = aws_route53_zone.dev.name_servers
 }
 ```
 
@@ -65,7 +59,7 @@ resource "aws_route53_zone" "private" {
   name = "example.com"
 
   vpc {
-    vpc_id = "${aws_vpc.example.id}"
+    vpc_id = aws_vpc.example.id
   }
 }
 ```
@@ -78,7 +72,7 @@ The following arguments are supported:
 * `comment` - (Optional) A comment for the hosted zone. Defaults to 'Managed by Terraform'.
 * `delegation_set_id` - (Optional) The ID of the reusable delegation set whose NS records you want to assign to the hosted zone. Conflicts with `vpc` as delegation sets can only be used for public zones.
 * `force_destroy` - (Optional) Whether to destroy all records (possibly managed outside of Terraform) in the zone when destroying the zone.
-* `tags` - (Optional) A mapping of tags to assign to the zone.
+* `tags` - (Optional) A map of tags to assign to the zone.
 * `vpc` - (Optional) Configuration block(s) specifying VPC(s) to associate with a private hosted zone. Conflicts with the `delegation_set_id` argument in this resource and any [`aws_route53_zone_association` resource](/docs/providers/aws/r/route53_zone_association.html) specifying the same zone ID. Detailed below.
 
 ### vpc Argument Reference

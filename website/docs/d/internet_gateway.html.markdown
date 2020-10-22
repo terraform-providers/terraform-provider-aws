@@ -18,7 +18,7 @@ variable "vpc_id" {}
 data "aws_internet_gateway" "default" {
   filter {
     name   = "attachment.vpc-id"
-    values = ["${var.vpc_id}"]
+    values = [var.vpc_id]
   }
 }
 ```
@@ -31,7 +31,7 @@ Internet Gateway whose data will be exported as attributes.
 
 * `internet_gateway_id` - (Optional) The id of the specific Internet Gateway to retrieve.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired Internet Gateway.
 
 * `filter` - (Optional) Custom filter block as described below.
@@ -47,13 +47,15 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `arn` - The ARN of the Internet Gateway.
+
 All of the argument attributes except `filter` block are also exported as
 result attributes. This data source will complete the data by populating
 any fields that are not included in the configuration with the data for
 the selected Internet Gateway.
 
 `attachments` are also exported with the following attributes, when there are relevants:
-Each attachement supports the following:
+Each attachment supports the following:
 
 * `owner_id` - The ID of the AWS account that owns the internet gateway.
 * `state` - The current state of the attachment between the gateway and the VPC. Present only if a VPC is attached

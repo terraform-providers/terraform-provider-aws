@@ -175,7 +175,7 @@ func (cs IAMPolicyStatementConditionSet) MarshalJSON() ([]byte, error) {
 		case string:
 			raw[c.Test][c.Variable] = i
 		default:
-			panic("Unsupported data type for IAMPolicyStatementConditionSet")
+			return nil, fmt.Errorf("Unsupported data type for IAMPolicyStatementConditionSet: %s", i)
 		}
 	}
 

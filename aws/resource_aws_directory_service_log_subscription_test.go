@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directoryservice"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDirectoryServiceLogSubscription_basic(t *testing.T) {
@@ -119,8 +119,8 @@ resource "aws_directory_service_directory" "bar" {
   edition  = "Standard"
 
   vpc_settings {
-    vpc_id     = "${aws_vpc.main.id}"
-    subnet_ids = ["${aws_subnet.foo.id}", "${aws_subnet.bar.id}"]
+    vpc_id     = aws_vpc.main.id
+    subnet_ids = [aws_subnet.foo.id, aws_subnet.bar.id]
   }
 
   tags = {
@@ -137,8 +137,8 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "foo" {
-  vpc_id            = "${aws_vpc.main.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.main.id
+  availability_zone = data.aws_availability_zones.available.names[0]
   cidr_block        = "10.0.1.0/24"
 
   tags = {
@@ -147,8 +147,8 @@ resource "aws_subnet" "foo" {
 }
 
 resource "aws_subnet" "bar" {
-  vpc_id            = "${aws_vpc.main.id}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id            = aws_vpc.main.id
+  availability_zone = data.aws_availability_zones.available.names[1]
   cidr_block        = "10.0.2.0/24"
 
   tags = {
@@ -157,7 +157,7 @@ resource "aws_subnet" "bar" {
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
-  name = "%s"
+  name              = "%s"
   retention_in_days = 1
 }
 
@@ -165,28 +165,28 @@ data "aws_iam_policy_document" "ad-log-policy" {
   statement {
     actions = [
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
     ]
-  
+
     principals {
       identifiers = ["ds.amazonaws.com"]
-      type = "Service"
+      type        = "Service"
     }
-  
-    resources = ["${aws_cloudwatch_log_group.logs.arn}"]
-  
+
+    resources = ["${aws_cloudwatch_log_group.logs.arn}:*"]
+
     effect = "Allow"
   }
 }
-  
+
 resource "aws_cloudwatch_log_resource_policy" "ad-log-policy" {
-  policy_document = "${data.aws_iam_policy_document.ad-log-policy.json}"
-  policy_name = "ad-log-policy"
+  policy_document = data.aws_iam_policy_document.ad-log-policy.json
+  policy_name     = "ad-log-policy"
 }
 
 resource "aws_directory_service_log_subscription" "subscription" {
-  directory_id = "${aws_directory_service_directory.bar.id}"
-  log_group_name = "${aws_cloudwatch_log_group.logs.name}"
+  directory_id   = aws_directory_service_directory.bar.id
+  log_group_name = aws_cloudwatch_log_group.logs.name
 }
 `, logGroupName)
 }

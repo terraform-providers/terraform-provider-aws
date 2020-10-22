@@ -14,10 +14,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/flatmap"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 )
 
 // cloudFrontRoute53ZoneID defines the route 53 zone ID for CloudFront. This
@@ -266,10 +265,12 @@ func flattenCloudFrontDefaultCacheBehavior(dcb *cloudfront.DefaultCacheBehavior)
 		"field_level_encryption_id": aws.StringValue(dcb.FieldLevelEncryptionId),
 		"viewer_protocol_policy":    aws.StringValue(dcb.ViewerProtocolPolicy),
 		"target_origin_id":          aws.StringValue(dcb.TargetOriginId),
-		"forwarded_values":          []interface{}{flattenForwardedValues(dcb.ForwardedValues)},
 		"min_ttl":                   aws.Int64Value(dcb.MinTTL),
 	}
 
+	if dcb.ForwardedValues != nil {
+		m["forwarded_values"] = []interface{}{flattenForwardedValues(dcb.ForwardedValues)}
+	}
 	if len(dcb.TrustedSigners.Items) > 0 {
 		m["trusted_signers"] = flattenTrustedSigners(dcb.TrustedSigners)
 	}
@@ -298,13 +299,15 @@ func flattenCloudFrontDefaultCacheBehavior(dcb *cloudfront.DefaultCacheBehavior)
 func flattenCacheBehavior(cb *cloudfront.CacheBehavior) map[string]interface{} {
 	m := make(map[string]interface{})
 
-	m["compress"] = *cb.Compress
+	m["compress"] = aws.BoolValue(cb.Compress)
 	m["field_level_encryption_id"] = aws.StringValue(cb.FieldLevelEncryptionId)
-	m["viewer_protocol_policy"] = *cb.ViewerProtocolPolicy
-	m["target_origin_id"] = *cb.TargetOriginId
-	m["forwarded_values"] = []interface{}{flattenForwardedValues(cb.ForwardedValues)}
-	m["min_ttl"] = int(*cb.MinTTL)
+	m["viewer_protocol_policy"] = aws.StringValue(cb.ViewerProtocolPolicy)
+	m["target_origin_id"] = aws.StringValue(cb.TargetOriginId)
+	m["min_ttl"] = int(aws.Int64Value(cb.MinTTL))
 
+	if cb.ForwardedValues != nil {
+		m["forwarded_values"] = []interface{}{flattenForwardedValues(cb.ForwardedValues)}
+	}
 	if len(cb.TrustedSigners.Items) > 0 {
 		m["trusted_signers"] = flattenTrustedSigners(cb.TrustedSigners)
 	}
@@ -403,9 +406,9 @@ func flattenLambdaFunctionAssociations(lfa *cloudfront.LambdaFunctionAssociation
 func flattenLambdaFunctionAssociation(lfa *cloudfront.LambdaFunctionAssociation) map[string]interface{} {
 	m := map[string]interface{}{}
 	if lfa != nil {
-		m["event_type"] = *lfa.EventType
-		m["lambda_arn"] = *lfa.LambdaFunctionARN
-		m["include_body"] = *lfa.IncludeBody
+		m["event_type"] = aws.StringValue(lfa.EventType)
+		m["lambda_arn"] = aws.StringValue(lfa.LambdaFunctionARN)
+		m["include_body"] = aws.BoolValue(lfa.IncludeBody)
 	}
 	return m
 }
@@ -428,7 +431,7 @@ func expandForwardedValues(m map[string]interface{}) *cloudfront.ForwardedValues
 
 func flattenForwardedValues(fv *cloudfront.ForwardedValues) map[string]interface{} {
 	m := make(map[string]interface{})
-	m["query_string"] = *fv.QueryString
+	m["query_string"] = aws.BoolValue(fv.QueryString)
 	if fv.Cookies != nil {
 		m["cookies"] = []interface{}{flattenCookiePreference(fv.Cookies)}
 	}
@@ -481,7 +484,7 @@ func expandCookiePreference(m map[string]interface{}) *cloudfront.CookiePreferen
 
 func flattenCookiePreference(cp *cloudfront.CookiePreference) map[string]interface{} {
 	m := make(map[string]interface{})
-	m["forward"] = *cp.Forward
+	m["forward"] = aws.StringValue(cp.Forward)
 	if cp.WhitelistedNames != nil {
 		m["whitelisted_names"] = schema.NewSet(schema.HashString, flattenCookieNames(cp.WhitelistedNames))
 	}
@@ -637,7 +640,7 @@ func expandOriginGroup(m map[string]interface{}) *cloudfront.OriginGroup {
 
 func flattenOriginGroup(og *cloudfront.OriginGroup) map[string]interface{} {
 	m := make(map[string]interface{})
-	m["origin_id"] = *og.Id
+	m["origin_id"] = aws.StringValue(og.Id)
 	if og.FailoverCriteria != nil {
 		m["failover_criteria"] = flattenOriginGroupFailoverCriteria(og.FailoverCriteria)
 	}
@@ -667,7 +670,7 @@ func flattenOriginGroupFailoverCriteria(ogfc *cloudfront.OriginGroupFailoverCrit
 	if ogfc.StatusCodes.Items != nil {
 		l := []interface{}{}
 		for _, i := range ogfc.StatusCodes.Items {
-			l = append(l, int(*i))
+			l = append(l, int(aws.Int64Value(i)))
 		}
 		m["status_codes"] = schema.NewSet(schema.HashInt, l)
 	}
@@ -694,7 +697,7 @@ func flattenOriginGroupMembers(ogm *cloudfront.OriginGroupMembers) []interface{}
 	s := []interface{}{}
 	for _, i := range ogm.Items {
 		m := map[string]interface{}{
-			"origin_id": *i.OriginId,
+			"origin_id": aws.StringValue(i.OriginId),
 		}
 		s = append(s, m)
 	}
@@ -795,8 +798,8 @@ func expandOriginCustomHeader(m map[string]interface{}) *cloudfront.OriginCustom
 
 func flattenOriginCustomHeader(och *cloudfront.OriginCustomHeader) map[string]interface{} {
 	return map[string]interface{}{
-		"name":  *och.HeaderName,
-		"value": *och.HeaderValue,
+		"name":  aws.StringValue(och.HeaderName),
+		"value": aws.StringValue(och.HeaderValue),
 	}
 }
 
@@ -837,12 +840,12 @@ func expandCustomOriginConfig(m map[string]interface{}) *cloudfront.CustomOrigin
 func flattenCustomOriginConfig(cor *cloudfront.CustomOriginConfig) map[string]interface{} {
 
 	customOrigin := map[string]interface{}{
-		"origin_protocol_policy":   *cor.OriginProtocolPolicy,
-		"http_port":                int(*cor.HTTPPort),
-		"https_port":               int(*cor.HTTPSPort),
+		"origin_protocol_policy":   aws.StringValue(cor.OriginProtocolPolicy),
+		"http_port":                int(aws.Int64Value(cor.HTTPPort)),
+		"https_port":               int(aws.Int64Value(cor.HTTPSPort)),
 		"origin_ssl_protocols":     flattenCustomOriginConfigSSL(cor.OriginSslProtocols),
-		"origin_read_timeout":      int(*cor.OriginReadTimeout),
-		"origin_keepalive_timeout": int(*cor.OriginKeepaliveTimeout),
+		"origin_read_timeout":      int(aws.Int64Value(cor.OriginReadTimeout)),
+		"origin_keepalive_timeout": int(aws.Int64Value(cor.OriginKeepaliveTimeout)),
 	}
 
 	return customOrigin
@@ -885,7 +888,7 @@ func expandS3OriginConfig(m map[string]interface{}) *cloudfront.S3OriginConfig {
 
 func flattenS3OriginConfig(s3o *cloudfront.S3OriginConfig) map[string]interface{} {
 	return map[string]interface{}{
-		"origin_access_identity": *s3o.OriginAccessIdentity,
+		"origin_access_identity": aws.StringValue(s3o.OriginAccessIdentity),
 	}
 }
 
@@ -940,7 +943,7 @@ func expandCustomErrorResponse(m map[string]interface{}) *cloudfront.CustomError
 
 func flattenCustomErrorResponse(er *cloudfront.CustomErrorResponse) map[string]interface{} {
 	m := make(map[string]interface{})
-	m["error_code"] = int(*er.ErrorCode)
+	m["error_code"] = int(aws.Int64Value(er.ErrorCode))
 	if er.ErrorCachingMinTTL != nil {
 		m["error_caching_min_ttl"] = int(*er.ErrorCachingMinTTL)
 	}
@@ -1097,20 +1100,30 @@ func flattenViewerCertificate(vc *cloudfront.ViewerCertificate) []interface{} {
 	return []interface{}{m}
 }
 
-// Convert *cloudfront.ActiveTrustedSigners to a flatmap.Map type, which ensures
-// it can probably be inserted into the schema.TypeMap type used by the
-// active_trusted_signers attribute.
-func flattenActiveTrustedSigners(ats *cloudfront.ActiveTrustedSigners) flatmap.Map {
-	m := make(map[string]interface{})
-	s := []interface{}{}
-	m["enabled"] = *ats.Enabled
-
-	for _, v := range ats.Items {
-		signer := make(map[string]interface{})
-		signer["aws_account_number"] = *v.AwsAccountNumber
-		signer["key_pair_ids"] = aws.StringValueSlice(v.KeyPairIds.Items)
-		s = append(s, signer)
+func flattenCloudfrontActiveTrustedSigners(ats *cloudfront.ActiveTrustedSigners) []interface{} {
+	if ats == nil {
+		return []interface{}{}
 	}
-	m["items"] = s
-	return flatmap.Flatten(m)
+
+	m := map[string]interface{}{
+		"enabled": aws.BoolValue(ats.Enabled),
+		"items":   flattenCloudfrontSigners(ats.Items),
+	}
+
+	return []interface{}{m}
+}
+
+func flattenCloudfrontSigners(signers []*cloudfront.Signer) []interface{} {
+	result := make([]interface{}, 0, len(signers))
+
+	for _, signer := range signers {
+		m := map[string]interface{}{
+			"aws_account_number": aws.StringValue(signer.AwsAccountNumber),
+			"key_pair_ids":       aws.StringValueSlice(signer.KeyPairIds.Items),
+		}
+
+		result = append(result, m)
+	}
+
+	return result
 }

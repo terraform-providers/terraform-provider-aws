@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAPIGatewayDocumentationPart_basic(t *testing.T) {
@@ -23,7 +23,7 @@ func TestAccAWSAPIGatewayDocumentationPart_basic(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_part.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationPartDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAWSAPIGatewayDocumentationPart_method(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_part.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationPartDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccAWSAPIGatewayDocumentationPart_responseHeader(t *testing.T) {
 	resourceName := "aws_api_gateway_documentation_part.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationPartDestroy,
 		Steps: []resource.TestStep{
@@ -151,6 +151,32 @@ func TestAccAWSAPIGatewayDocumentationPart_responseHeader(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "properties", uProperties),
 					resource.TestCheckResourceAttrSet(resourceName, "rest_api_id"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayDocumentationPart_disappears(t *testing.T) {
+	var conf apigateway.DocumentationPart
+
+	rString := acctest.RandString(8)
+	apiName := fmt.Sprintf("tf-acc-test_api_doc_part_basic_%s", rString)
+	properties := `{"description":"Terraform Acceptance Test"}`
+
+	resourceName := "aws_api_gateway_documentation_part.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayDocumentationPartDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayDocumentationPartConfig(apiName, strconv.Quote(properties)),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayDocumentationPartExists(resourceName, &conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayDocumentationPart(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -225,8 +251,8 @@ resource "aws_api_gateway_documentation_part" "test" {
   location {
     type = "API"
   }
-  properties = %v
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  properties  = %s
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_rest_api" "test" {
@@ -239,12 +265,12 @@ func testAccAWSAPIGatewayDocumentationPartMethodConfig(apiName, properties strin
 	return fmt.Sprintf(`
 resource "aws_api_gateway_documentation_part" "test" {
   location {
-    type = "METHOD"
+    type   = "METHOD"
     method = "GET"
-    path = "/terraform-acc-test"
+    path   = "/terraform-acc-test"
   }
-  properties = %v
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  properties  = %s
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_rest_api" "test" {
@@ -257,14 +283,14 @@ func testAccAWSAPIGatewayDocumentationPartResponseHeaderConfig(apiName, properti
 	return fmt.Sprintf(`
 resource "aws_api_gateway_documentation_part" "test" {
   location {
-    type = "RESPONSE_HEADER"
-    method = "GET"
-    name = "tfacc"
-    path = "/terraform-acc-test"
+    type        = "RESPONSE_HEADER"
+    method      = "GET"
+    name        = "tfacc"
+    path        = "/terraform-acc-test"
     status_code = "200"
   }
-  properties = %v
-  rest_api_id = "${aws_api_gateway_rest_api.test.id}"
+  properties  = %s
+  rest_api_id = aws_api_gateway_rest_api.test.id
 }
 
 resource "aws_api_gateway_rest_api" "test" {

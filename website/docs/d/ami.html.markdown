@@ -3,7 +3,7 @@ subcategory: "EC2"
 layout: "aws"
 page_title: "AWS: aws_ami"
 description: |-
-  Get information on a Amazon Machine Image (AMI).
+  Get information on an Amazon Machine Image (AMI).
 ---
 
 # Data Source: aws_ami
@@ -70,21 +70,22 @@ are exported:
 ~> **NOTE:** Some values are not always set and may not be available for
 interpolation.
 
+* `arn` - The ARN of the AMI.
 * `architecture` - The OS architecture of the AMI (ie: `i386` or `x86_64`).
 * `block_device_mappings` - The block device mappings of the AMI.
-  * `block_device_mappings.#.device_name` - The physical name of the device.
-  * `block_device_mappings.#.ebs.delete_on_termination` - `true` if the EBS volume
+    * `block_device_mappings.#.device_name` - The physical name of the device.
+    * `block_device_mappings.#.ebs.delete_on_termination` - `true` if the EBS volume
     will be deleted on termination.
-  * `block_device_mappings.#.ebs.encrypted` - `true` if the EBS volume
+    * `block_device_mappings.#.ebs.encrypted` - `true` if the EBS volume
     is encrypted.
-  * `block_device_mappings.#.ebs.iops` - `0` if the EBS volume is
+    * `block_device_mappings.#.ebs.iops` - `0` if the EBS volume is
     not a provisioned IOPS image, otherwise the supported IOPS count.
-  * `block_device_mappings.#.ebs.snapshot_id` - The ID of the snapshot.
-  * `block_device_mappings.#.ebs.volume_size` - The size of the volume, in GiB.
-  * `block_device_mappings.#.ebs.volume_type` - The volume type.
-  * `block_device_mappings.#.no_device` - Suppresses the specified device
+    * `block_device_mappings.#.ebs.snapshot_id` - The ID of the snapshot.
+    * `block_device_mappings.#.ebs.volume_size` - The size of the volume, in GiB.
+    * `block_device_mappings.#.ebs.volume_type` - The volume type.
+    * `block_device_mappings.#.no_device` - Suppresses the specified device
     included in the block device mapping of the AMI.
-  * `block_device_mappings.#.virtual_name` - The virtual device name (for
+    * `block_device_mappings.#.virtual_name` - The virtual device name (for
     instance stores).
 * `creation_date` - The date and time the image was created.
 * `description` - The description of the AMI that was provided during image
@@ -101,8 +102,8 @@ interpolation.
 * `owner_id` - The AWS account ID of the image owner.
 * `platform` - The value is Windows for `Windows` AMIs; otherwise blank.
 * `product_codes` - Any product codes associated with the AMI.
-  * `product_codes.#.product_code_id` - The product code.
-  * `product_codes.#.product_code_type` - The type of product code.
+    * `product_codes.#.product_code_id` - The product code.
+    * `product_codes.#.product_code_type` - The type of product code.
 * `public` - `true` if the image has public launch permissions.
 * `ramdisk_id` - The RAM disk associated with the image, if any. Only applicable
   for machine images.
@@ -114,11 +115,11 @@ interpolation.
 * `state` - The current state of the AMI. If the state is `available`, the image
   is successfully registered and can be used to launch an instance.
 * `state_reason` - Describes a state change. Fields are `UNSET` if not available.
-  * `state_reason.code` - The reason code for the state change.
-  * `state_reason.message` - The message for the state change.
+    * `state_reason.code` - The reason code for the state change.
+    * `state_reason.message` - The message for the state change.
 * `tags` - Any tags assigned to the image.
-  * `tags.#.key` - The key name of the tag.
-  * `tags.#.value` - The value of the tag.
+    * `tags.#.key` - The key name of the tag.
+    * `tags.#.value` - The value of the tag.
 * `virtualization_type` - The type of virtualization of the AMI (ie: `hvm` or
   `paravirtual`).
 
