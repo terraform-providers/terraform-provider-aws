@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -25,8 +25,6 @@ func resourceAwsDedicatedHost() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		MigrateState:  resourceAwsInstanceMigrateState,
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
@@ -74,8 +72,7 @@ type awsHostsOpts struct {
 	HostRecovery     *string
 }
 
-func buildAwsHostsOpts(
-	d *schema.ResourceData, meta interface{}) (*awsHostsOpts, error) {
+func buildAwsHostsOpts(d *schema.ResourceData) *awsHostsOpts {
 
 	instanceType := d.Get("instance_type").(string)
 	opts := &awsHostsOpts{
@@ -84,17 +81,14 @@ func buildAwsHostsOpts(
 		InstanceType:     aws.String(instanceType),
 		HostRecovery:     aws.String(d.Get("host_recovery").(string)),
 	}
-	return opts, nil
+	return opts
 }
 
 // resourceAwsDedicatedHostCreate allocates a Dedicated Host to your account.
 // https://docs.aws.amazon.com/en_pv/AWSEC2/latest/APIReference/API_AllocateHosts.html
 func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	hostOpts, err := buildAwsHostsOpts(d, meta)
-	if err != nil {
-		return err
-	}
+	hostOpts := buildAwsHostsOpts(d)
 
 	tagsSpec := ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), ec2.ResourceTypeDedicatedHost)
 
@@ -112,7 +106,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	var runResp *ec2.AllocateHostsOutput
-	err = resource.Retry(30*time.Second, func() *resource.RetryError {
+	err := resource.Retry(30*time.Second, func() *resource.RetryError {
 		var err error
 		runResp, err = conn.AllocateHosts(runOpts)
 		return resource.RetryableError(err)
@@ -136,6 +130,7 @@ func resourceAwsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	resp, err := conn.DescribeHosts(&ec2.DescribeHostsInput{
 		HostIds: []*string{aws.String(d.Id())},
@@ -160,7 +155,7 @@ func resourceAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("availibility_zone", host.AvailabilityZone)
 	d.Set("host_recovery", host.HostRecovery)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreConfig(ignoreTagsConfig).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 	// If nothing was found, then return no state
@@ -215,7 +210,7 @@ func resourceAwsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 func resourceAwsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	err := awsReleaseHosts(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
+	err := awsReleaseHosts(conn, d.Id())
 
 	if err != nil {
 		return fmt.Errorf("error terminating EC2 Host (%s): %s", d.Id(), err)
@@ -224,7 +219,7 @@ func resourceAwsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func awsReleaseHosts(conn *ec2.EC2, id string, timeout time.Duration) error {
+func awsReleaseHosts(conn *ec2.EC2, id string) error {
 	log.Printf("[INFO] Terminating host: %s", id)
 	req := &ec2.ReleaseHostsInput{
 		HostIds: []*string{aws.String(id)},

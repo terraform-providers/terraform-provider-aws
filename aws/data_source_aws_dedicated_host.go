@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -59,6 +59,7 @@ func dataSourceAwsDedicatedHost() *schema.Resource {
 }
 
 func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 	conn := meta.(*AWSClient).ec2conn
 	hostID, hostIDOk := d.GetOk("host_id")
 
@@ -106,12 +107,12 @@ func dataSourceAwsAwsDedicatedHostRead(d *schema.ResourceData, meta interface{})
 		params.Filter = append(params.Filter, ec2TagFiltersFromMap(tags.(map[string]interface{}))...)
 	}
 	log.Printf("[DEBUG] aws_dedicated_host - Single host ID found: %s", *host.HostId)
-	if err := hostDescriptionAttributes(d, host, conn); err != nil {
+	if err := hostDescriptionAttributes(d, host, ignoreTagsConfig); err != nil {
 		return err
 	}
 	return nil
 }
-func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2.EC2) error {
+func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, ignoreTagsConfig *keyvaluetags.IgnoreConfig) error {
 
 	d.SetId(*host.HostId)
 	d.Set("instance_state", host.State)
@@ -141,7 +142,7 @@ func hostDescriptionAttributes(d *schema.ResourceData, host *ec2.Host, conn *ec2
 		d.Set("total_vcpus", host.HostProperties.TotalVCpus)
 	}
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(host.Tags).IgnoreConfig(ignoreTagsConfig).IgnoreAws().Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 	return nil
