@@ -397,8 +397,9 @@ func resourceAwsVpnConnection() *schema.Resource {
 
 			// Begin read only attributes
 			"customer_gateway_configuration": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
 			},
 
 			"tunnel1_address": {
