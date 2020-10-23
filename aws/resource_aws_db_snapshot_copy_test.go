@@ -174,16 +174,15 @@ resource "aws_db_instance" "bar" {
 }
 
 resource "aws_db_snapshot" "test" {
-  db_instance_identifier = "${aws_db_instance.bar.id}"
+  db_instance_identifier = aws_db_instance.bar.id
   db_snapshot_identifier = "testsnapshot%d"
 }
 
 resource "aws_db_snapshot_copy" "test" {
-        source_db_snapshot_identifier = "${aws_db_snapshot.test.db_snapshot_arn}"
+        source_db_snapshot_identifier = aws_db_snapshot.test.db_snapshot_arn
         target_db_snapshot_identifier = "testsnapshot%d"
         source_region = "us-west-2"
 }
-
 `, rInt, rInt)
 }
 
@@ -221,15 +220,14 @@ resource "aws_db_instance" "bar" {
 
 resource "aws_db_snapshot" "test" {
   provider = "aws.uswest2"
-  db_instance_identifier = "${aws_db_instance.bar.id}"
+  db_instance_identifier = aws_db_instance.bar.id
   db_snapshot_identifier = "testsnapshot%d"
 }
 
 resource "aws_db_snapshot_copy" "test" {
 	provider           = "aws.uswest1"
-	source_db_snapshot_identifier = "${aws_db_snapshot.test.db_snapshot_arn}"
+	source_db_snapshot_identifier = aws_db_snapshot.test.db_snapshot_arn
 	target_db_snapshot_identifier = "testsnapshot%d"
 	source_region = "us-west-2"
-}
-`, rInt, rInt)
+}`, rInt, rInt)
 }
