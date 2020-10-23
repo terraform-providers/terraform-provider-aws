@@ -22,6 +22,8 @@ var sliceServiceNames = []string{
 	"databasemigrationservice",
 	"docdb",
 	"ec2",
+	"elasticinference",
+	"elasticsearchservice",
 	"fsx",
 	"imagebuilder",
 	"licensemanager",
@@ -102,15 +104,15 @@ import (
 
 // {{ . | Title }}Filters returns {{ . }} service filters.
 func (filters NameValuesFilters) {{ . | Title }}Filters() []*{{ . | FilterPackage }}.{{ . | FilterType }} {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(nvfm))
+	result := make([]*{{ . | FilterPackage }}.{{ . | FilterType }}, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &{{ . | FilterPackage }}.{{ . | FilterType }}{
 			{{ . | FilterTypeNameField }}:   aws.String(k),
 			{{ . | FilterTypeValuesField }}: aws.StringSlice(v),
