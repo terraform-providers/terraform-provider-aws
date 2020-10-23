@@ -49,18 +49,18 @@ func TestNameValuesFiltersMap(t *testing.T) {
 	}
 }
 
-func TestNameValuesFiltersMerge(t *testing.T) {
+func TestNameValuesFiltersAdd(t *testing.T) {
 	testCases := []struct {
-		name         string
-		filters      NameValuesFilters
-		mergeFilters NameValuesFilters
-		want         map[string][]string
+		name    string
+		filters NameValuesFilters
+		add     interface{}
+		want    map[string][]string
 	}{
 		{
-			name:         "empty",
-			filters:      New(map[string][]string{}),
-			mergeFilters: New(map[string]string{}),
-			want:         map[string][]string{},
+			name:    "empty",
+			filters: New(map[string][]string{}),
+			add:     nil,
+			want:    map[string][]string{},
 		},
 		{
 			name: "add_all",
@@ -69,7 +69,7 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 				"name2": "value2",
 				"name3": "value3",
 			}),
-			mergeFilters: New(map[string][]string{
+			add: New(map[string][]string{
 				"name4": {"value4a", "value4b"},
 				"name5": {"value5"},
 				"name6": {"value6a", "value6b", "value6c"},
@@ -89,9 +89,9 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 				"name1": {"value1a"},
 				"name2": {"value2a", "value2b"},
 			}),
-			mergeFilters: map[string][]string{
-				"name1": {"value1b"},
-				"name3": {"value3"},
+			add: map[string]string{
+				"name1": "value1b",
+				"name3": "value3",
 			},
 			want: map[string][]string{
 				"name1": {"value1a", "value1b"},
@@ -122,7 +122,7 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 					}),
 				},
 			})),
-			mergeFilters: map[string][]string{
+			add: map[string][]string{
 				"name1": {"value1"},
 				"name2": {"value2c"},
 			},
@@ -136,7 +136,7 @@ func TestNameValuesFiltersMerge(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			got := testCase.filters.Merge(testCase.mergeFilters)
+			got := testCase.filters.Add(testCase.add)
 
 			testNameValuesFiltersVerifyMap(t, got.Map(), testCase.want)
 		})

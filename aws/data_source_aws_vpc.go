@@ -142,18 +142,18 @@ func dataSourceAwsVpcRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Filters based on attributes.
-	nvfAttr := namevaluesfilters.New(map[string]string{
+	filters := namevaluesfilters.New(map[string]string{
 		"cidr":            d.Get("cidr_block").(string),
 		"dhcp-options-id": d.Get("dhcp_options_id").(string),
 		"isDefault":       isDefaultStr,
 		"state":           d.Get("state").(string),
 	})
-	// Filters based on keyvalue tags.
-	nvfTags := namevaluesfilters.Ec2Tags(keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
-	// Filters based on the custom filtering "filter" attribute.
-	nvfCust := namevaluesfilters.New(d.Get("filter").(*schema.Set))
+	// Add filters based on keyvalue tags.
+	filters.Add(namevaluesfilters.Ec2Tags(keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()))
+	// Add filters based on the custom filtering "filter" attribute.
+	filters.Add(d.Get("filter").(*schema.Set))
 
-	req.Filters = nvfAttr.Merge(nvfTags).Merge(nvfCust).Ec2Filters()
+	req.Filters = filters.Ec2Filters()
 
 	log.Printf("[DEBUG] Reading AWS VPC: %s", req)
 	resp, err := conn.DescribeVpcs(req)

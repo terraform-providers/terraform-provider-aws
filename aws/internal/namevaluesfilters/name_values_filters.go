@@ -12,6 +12,55 @@ import (
 // across all these Go types, we convert them into this Go type.
 type NameValuesFilters map[string][]string
 
+// Add adds missing and updates existing filters from common Terraform Provider SDK types.
+// Supports map[string]string, map[string][]string, *schema.Set.
+func (filters NameValuesFilters) Add(i interface{}) NameValuesFilters {
+	switch value := i.(type) {
+	case map[string]string:
+		for name, v := range value {
+			if values, ok := filters[name]; ok {
+				filters[name] = append(values, v)
+			} else {
+				values = []string{v}
+				filters[name] = values
+			}
+		}
+
+	case map[string][]string:
+		// We can't use fallthrough here, so recurse.
+		return filters.Add(NameValuesFilters(value))
+
+	case NameValuesFilters:
+		for name, vs := range value {
+			if values, ok := filters[name]; ok {
+				filters[name] = append(values, vs...)
+			} else {
+				values = make([]string, len(vs))
+				copy(values, vs)
+				filters[name] = values
+			}
+		}
+
+	case *schema.Set:
+		// The set of filters described by Schema().
+		for _, filter := range value.List() {
+			m := filter.(map[string]interface{})
+			name := m["name"].(string)
+
+			for _, v := range m["values"].(*schema.Set).List() {
+				if values, ok := filters[name]; ok {
+					filters[name] = append(values, v.(string))
+				} else {
+					values = []string{v.(string)}
+					filters[name] = values
+				}
+			}
+		}
+	}
+
+	return filters
+}
+
 // Map returns filter names mapped to their values.
 // Duplicate values are eliminated and empty values removed.
 func (filters NameValuesFilters) Map() map[string][]string {
@@ -45,58 +94,10 @@ func (filters NameValuesFilters) Map() map[string][]string {
 	return result
 }
 
-// Merge adds missing and updates existing filters.
-func (filters NameValuesFilters) Merge(mergeFilters NameValuesFilters) NameValuesFilters {
-	result := make(NameValuesFilters)
-
-	for k, v := range filters {
-		result[k] = v
-	}
-
-	for k, v := range mergeFilters {
-		if values, ok := result[k]; ok {
-			result[k] = append(values, v...)
-		} else {
-			result[k] = v
-		}
-	}
-
-	return result
-}
-
 // New creates NameValuesFilters from common Terraform Provider SDK types.
 // Supports map[string]string, map[string][]string, *schema.Set.
 func New(i interface{}) NameValuesFilters {
-	switch value := i.(type) {
-	case map[string]string:
-		nvfm := make(NameValuesFilters, len(value))
-
-		for k, v := range value {
-			nvfm[k] = []string{v}
-		}
-
-		return nvfm
-	case map[string][]string:
-		return NameValuesFilters(value)
-	case *schema.Set:
-		// The set of filters described by Schema().
-		filters := value.List()
-		nvfm := make(NameValuesFilters, len(filters))
-
-		for _, filter := range filters {
-			filterMap := filter.(map[string]interface{})
-			name := filterMap["name"].(string)
-			values := filterMap["values"].(*schema.Set)
-			nvfm[name] = make([]string, values.Len())
-			for _, value := range values.List() {
-				nvfm[name] = append(nvfm[name], value.(string))
-			}
-		}
-
-		return nvfm
-	default:
-		return make(NameValuesFilters)
-	}
+	return make(NameValuesFilters).Add(i)
 }
 
 // Schema returns a *schema.Schema that represents a set of custom filtering criteria

@@ -13,15 +13,15 @@ To run this code generator, execute `go generate ./...` from the root of the rep
 ```go
 // DocdbFilters returns docdb service filters.
 func (filters NameValuesFilters) DocdbFilters() []*docdb.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*docdb.Filter, 0, len(nvfm))
+	result := make([]*docdb.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &docdb.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),

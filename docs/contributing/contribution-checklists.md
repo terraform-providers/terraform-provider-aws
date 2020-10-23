@@ -582,15 +582,15 @@ More details about this code generation can be found in the [namevaluesfilters d
 input := &ec2.DescribeInternetGatewaysInput{}
 
 // Filters based on attributes.
-nvfAttr := namevaluesfilters.New(map[string]string{
+filters := namevaluesfilters.New(map[string]string{
 	"internet-gateway-id": d.Get("internet_gateway_id").(string),
 })
-// Filters based on keyvalue tags (N.B. Not applicable to all AWS services that support filtering)
-nvfTags := namevaluesfilters.Ec2Tags(keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map())
-// Filters based on the custom filtering "filter" attribute.
-nvfCust := namevaluesfilters.New(d.Get("filter").(*schema.Set))
+// Add filters based on keyvalue tags (N.B. Not applicable to all AWS services that support filtering)
+filters.Add(namevaluesfilters.Ec2Tags(keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()))
+// Add filters based on the custom filtering "filter" attribute.
+filters.Add(d.Get("filter").(*schema.Set))
 
-input.Filters = nvfAttr.Merge(nvfTags).Merge(nvfCust).Ec2Filters()
+input.Filters = filters.Ec2Filters()
 ```
 
 ### Resource Filtering Documentation Implementation
