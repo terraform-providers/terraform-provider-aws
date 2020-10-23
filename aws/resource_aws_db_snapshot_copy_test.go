@@ -154,8 +154,7 @@ func testAccCheckRdsDbSnapshotCopyExistsWithProviders(n string, v *rds.DBSnapsho
 }
 
 func testAccAwsRdsDbSnapshotCopyConfig(rInt int) string {
-	return fmt.Sprintf(`
-resource "aws_db_instance" "bar" {
+	return fmt.Sprintf(`resource "aws_db_instance" "bar" {
   allocated_storage = 10
   engine            = "MySQL"
   engine_version    = "5.6.35"
@@ -182,14 +181,11 @@ resource "aws_db_snapshot_copy" "test" {
         source_db_snapshot_identifier = aws_db_snapshot.test.db_snapshot_arn
         target_db_snapshot_identifier = "testsnapshot%d"
         source_region = "us-west-2"
-}
-`, rInt, rInt)
+}`, rInt, rInt)
 }
 
 func testAccAwsRdsDbSnapshotCopyConfigWithRegions(rInt int) string {
-	return fmt.Sprintf(`
-
-provider "aws" {
+	return fmt.Sprintf(`provider "aws" {
 	region = "us-west-2"
 	alias  = "uswest2"
 }
