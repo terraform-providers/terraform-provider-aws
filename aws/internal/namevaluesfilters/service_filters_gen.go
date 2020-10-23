@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/docdb"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elasticinference"
+	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/aws/aws-sdk-go/service/imagebuilder"
 	"github.com/aws/aws-sdk-go/service/licensemanager"
@@ -20,15 +22,15 @@ import (
 
 // AutoscalingFilters returns autoscaling service filters.
 func (filters NameValuesFilters) AutoscalingFilters() []*autoscaling.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*autoscaling.Filter, 0, len(nvfm))
+	result := make([]*autoscaling.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &autoscaling.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -42,15 +44,15 @@ func (filters NameValuesFilters) AutoscalingFilters() []*autoscaling.Filter {
 
 // DatabasemigrationserviceFilters returns databasemigrationservice service filters.
 func (filters NameValuesFilters) DatabasemigrationserviceFilters() []*databasemigrationservice.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*databasemigrationservice.Filter, 0, len(nvfm))
+	result := make([]*databasemigrationservice.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &databasemigrationservice.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -64,15 +66,15 @@ func (filters NameValuesFilters) DatabasemigrationserviceFilters() []*databasemi
 
 // DocdbFilters returns docdb service filters.
 func (filters NameValuesFilters) DocdbFilters() []*docdb.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*docdb.Filter, 0, len(nvfm))
+	result := make([]*docdb.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &docdb.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -86,16 +88,60 @@ func (filters NameValuesFilters) DocdbFilters() []*docdb.Filter {
 
 // Ec2Filters returns ec2 service filters.
 func (filters NameValuesFilters) Ec2Filters() []*ec2.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*ec2.Filter, 0, len(nvfm))
+	result := make([]*ec2.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &ec2.Filter{
+			Name:   aws.String(k),
+			Values: aws.StringSlice(v),
+		}
+
+		result = append(result, filter)
+	}
+
+	return result
+}
+
+// ElasticinferenceFilters returns elasticinference service filters.
+func (filters NameValuesFilters) ElasticinferenceFilters() []*elasticinference.Filter {
+	m := filters.Map()
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*elasticinference.Filter, 0, len(m))
+
+	for k, v := range m {
+		filter := &elasticinference.Filter{
+			Name:   aws.String(k),
+			Values: aws.StringSlice(v),
+		}
+
+		result = append(result, filter)
+	}
+
+	return result
+}
+
+// ElasticsearchserviceFilters returns elasticsearchservice service filters.
+func (filters NameValuesFilters) ElasticsearchserviceFilters() []*elasticsearchservice.Filter {
+	m := filters.Map()
+
+	if len(m) == 0 {
+		return nil
+	}
+
+	result := make([]*elasticsearchservice.Filter, 0, len(m))
+
+	for k, v := range m {
+		filter := &elasticsearchservice.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
 		}
@@ -108,15 +154,15 @@ func (filters NameValuesFilters) Ec2Filters() []*ec2.Filter {
 
 // FsxFilters returns fsx service filters.
 func (filters NameValuesFilters) FsxFilters() []*fsx.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*fsx.Filter, 0, len(nvfm))
+	result := make([]*fsx.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &fsx.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -130,15 +176,15 @@ func (filters NameValuesFilters) FsxFilters() []*fsx.Filter {
 
 // ImagebuilderFilters returns imagebuilder service filters.
 func (filters NameValuesFilters) ImagebuilderFilters() []*imagebuilder.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*imagebuilder.Filter, 0, len(nvfm))
+	result := make([]*imagebuilder.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &imagebuilder.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -152,15 +198,15 @@ func (filters NameValuesFilters) ImagebuilderFilters() []*imagebuilder.Filter {
 
 // LicensemanagerFilters returns licensemanager service filters.
 func (filters NameValuesFilters) LicensemanagerFilters() []*licensemanager.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*licensemanager.Filter, 0, len(nvfm))
+	result := make([]*licensemanager.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &licensemanager.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -174,15 +220,15 @@ func (filters NameValuesFilters) LicensemanagerFilters() []*licensemanager.Filte
 
 // NeptuneFilters returns neptune service filters.
 func (filters NameValuesFilters) NeptuneFilters() []*neptune.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*neptune.Filter, 0, len(nvfm))
+	result := make([]*neptune.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &neptune.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -196,15 +242,15 @@ func (filters NameValuesFilters) NeptuneFilters() []*neptune.Filter {
 
 // RdsFilters returns rds service filters.
 func (filters NameValuesFilters) RdsFilters() []*rds.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*rds.Filter, 0, len(nvfm))
+	result := make([]*rds.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &rds.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
@@ -218,15 +264,15 @@ func (filters NameValuesFilters) RdsFilters() []*rds.Filter {
 
 // Route53resolverFilters returns route53resolver service filters.
 func (filters NameValuesFilters) Route53resolverFilters() []*route53resolver.Filter {
-	nvfm := filters.Map()
+	m := filters.Map()
 
-	if len(nvfm) == 0 {
+	if len(m) == 0 {
 		return nil
 	}
 
-	result := make([]*route53resolver.Filter, 0, len(nvfm))
+	result := make([]*route53resolver.Filter, 0, len(m))
 
-	for k, v := range nvfm {
+	for k, v := range m {
 		filter := &route53resolver.Filter{
 			Name:   aws.String(k),
 			Values: aws.StringSlice(v),
