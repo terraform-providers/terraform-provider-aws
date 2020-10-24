@@ -273,6 +273,7 @@ func Provider() *schema.Provider {
 			"aws_instance":                                   dataSourceAwsInstance(),
 			"aws_instances":                                  dataSourceAwsInstances(),
 			"aws_ip_ranges":                                  dataSourceAwsIPRanges(),
+			"aws_key_pair":                                   dataSourceAwsKeyPair(),
 			"aws_kinesis_stream":                             dataSourceAwsKinesisStream(),
 			"aws_kms_alias":                                  dataSourceAwsKmsAlias(),
 			"aws_kms_ciphertext":                             dataSourceAwsKmsCiphertext(),
