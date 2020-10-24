@@ -40,7 +40,7 @@ resource "aws_key_pair" "default" {
 }
 
 data "aws_key_pair" "default" {
-	key_name = aws_key_pair.default.key_name
+  key_name = aws_key_pair.default.key_name
 }
 
 `, keyName, publicKey)
