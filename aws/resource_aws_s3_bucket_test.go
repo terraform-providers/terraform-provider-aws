@@ -1366,6 +1366,42 @@ func TestAccAWSS3Bucket_LifecycleExpireMarkerOnly(t *testing.T) {
 	})
 }
 
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/14280
+func TestAccAWSS3Bucket_Lifecycle_AbortIncompleteMultipartUploadOnly(t *testing.T) {
+	bucketName := acctest.RandomWithPrefix("tf-test-bucket")
+	resourceName := "aws_s3_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithLifecycleAbortIncompleteMultipartUploadOnly(bucketName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.abort_incomplete_multipart_upload_days", "7"),
+					resource.TestCheckNoResourceAttr(resourceName, "lifecycle_rule.0.expiration"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"force_destroy", "acl"},
+			},
+			{
+				Config: testAccAWSS3BucketConfig_Basic(bucketName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 // Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11420
 func TestAccAWSS3Bucket_LifecycleRule_Expiration_EmptyConfigurationBlock(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -3663,6 +3699,23 @@ resource "aws_s3_bucket" "bucket" {
     expiration {
       expired_object_delete_marker = "true"
     }
+  }
+}
+`, bucketName)
+}
+
+func testAccAWSS3BucketConfigWithLifecycleAbortIncompleteMultipartUploadOnly(bucketName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = %[1]q
+  acl    = "private"
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    abort_incomplete_multipart_upload_days = 7
   }
 }
 `, bucketName)
