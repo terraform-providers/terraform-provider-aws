@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"strings"
@@ -27,6 +28,23 @@ func TestAccDataSourceAwsSecurityGroup_basic(t *testing.T) {
 					testAccDataSourceAwsSecurityGroupCheck("data.aws_security_group.by_name"),
 					testAccDataSourceAwsSecurityGroupCheckDefault("data.aws_security_group.default_by_name"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsSecurityGroup_dne(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDataSourceAwsSecurityGroupConfigDne(),
+				ExpectError: regexp.MustCompile(`no matching SecurityGroup found: dne`),
+			},
+			{
+				Config:      testAccDataSourceAwsSecurityGroupConfigDneVpc(),
+				ExpectError: regexp.MustCompile(`no matching SecurityGroup found: vpc-xxxxxxx/dne`),
 			},
 		},
 	})
@@ -150,4 +168,21 @@ data "aws_security_group" "by_filter" {
   }
 }
 `, rInt, rInt)
+}
+
+func testAccDataSourceAwsSecurityGroupConfigDne() string {
+	return `
+data "aws_security_group" "dne" {
+  name = "dne"
+}
+`
+}
+
+func testAccDataSourceAwsSecurityGroupConfigDneVpc() string {
+	return `
+data "aws_security_group" "dne_vpc" {
+  name   = "dne"
+  vpc_id = "vpc-xxxxxxx"
+}
+`
 }
