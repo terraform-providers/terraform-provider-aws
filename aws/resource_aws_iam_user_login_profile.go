@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -147,6 +148,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("pgp_key"); ok {
 		pgpKey := v.(string)
+		pgpKey = strings.TrimSuffix(pgpKey, "\n")
 		encryptionKey, err := encryption.RetrieveGPGKey(pgpKey)
 		if err != nil {
 			return err
