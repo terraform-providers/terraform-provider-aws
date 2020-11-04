@@ -119,10 +119,16 @@ func TestAccAWSUserLoginProfile_no_pgp(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password_length", "password_reset_required"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"encrypted_password",
+					"key_fingerprint",
+					"password_length",
+					"password_reset_required",
+					"pgp_key",
+				},
 			},
 		},
 	})
@@ -421,7 +427,7 @@ func testAccAWSUserLoginProfileConfigNoPGP(rName, path string) string {
 %s
 
 resource "aws_iam_user_login_profile" "test" {
-  user = "${aws_iam_user.test.name}"
+  user = aws_iam_user.user.name
 }
 `, testAccAWSUserLoginProfileConfig_base(rName, path))
 }

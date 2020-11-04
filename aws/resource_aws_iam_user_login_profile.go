@@ -141,7 +141,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 	log.Println("[DEBUG] Create IAM User Login Profile request:", request)
 	createResp, err := iamconn.CreateLoginProfile(request)
 	if err != nil {
-		return fmt.Errorf("Error creating IAM User Login Profile for %q: %s", username, err)
+		return fmt.Errorf("Error creating IAM User Login Profile for %q: %w", username, err)
 	}
 
 	d.SetId(aws.StringValue(createResp.LoginProfile.UserName))
@@ -158,7 +158,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 		}
 
 		d.Set("key_fingerprint", fingerprint)
-		d.Set("encrypted_secret", encrypted)
+		d.Set("encrypted_password", encrypted)
 	}
 
 	return nil
@@ -181,7 +181,7 @@ func resourceAwsIamUserLoginProfileRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err != nil {
-		return fmt.Errorf("error getting IAM User Login Profile (%s): %s", d.Id(), err)
+		return fmt.Errorf("error getting IAM User Login Profile (%s): %w", d.Id(), err)
 	}
 
 	if output == nil || output.LoginProfile == nil {
@@ -231,7 +231,7 @@ func resourceAwsIamUserLoginProfileDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting IAM User Login Profile (%s): %s", d.Id(), err)
+		return fmt.Errorf("error deleting IAM User Login Profile (%s): %w", d.Id(), err)
 	}
 
 	return nil
