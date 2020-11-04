@@ -125,7 +125,6 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 	iamconn := meta.(*AWSClient).iamconn
 	username := d.Get("user").(string)
 
-	passwordResetRequired := d.Get("password_reset_required").(bool)
 	passwordLength := d.Get("password_length").(int)
 	initialPassword, err := generateIAMPassword(passwordLength)
 	if err != nil {
@@ -135,7 +134,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 	request := &iam.CreateLoginProfileInput{
 		UserName:              aws.String(username),
 		Password:              aws.String(initialPassword),
-		PasswordResetRequired: aws.Bool(passwordResetRequired),
+		PasswordResetRequired: aws.Bool(d.Get("password_reset_required").(bool)),
 	}
 
 	log.Println("[DEBUG] Create IAM User Login Profile request:", request)
@@ -189,9 +188,7 @@ func resourceAwsIamUserLoginProfileRead(d *schema.ResourceData, meta interface{}
 	}
 
 	loginProfile := output.LoginProfile
-
 	d.Set("user", loginProfile.UserName)
-	d.Set("password_reset_required", loginProfile.PasswordResetRequired)
 
 	return nil
 }

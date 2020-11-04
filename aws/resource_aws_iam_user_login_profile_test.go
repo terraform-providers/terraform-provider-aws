@@ -91,6 +91,7 @@ func TestAccAWSUserLoginProfile_basic(t *testing.T) {
 					"encrypted_password",
 					"key_fingerprint",
 					"password_length",
+					"password_reset_required",
 					"pgp_key",
 				},
 			},
@@ -125,6 +126,7 @@ func TestAccAWSUserLoginProfile_no_pgp(t *testing.T) {
 					"encrypted_password",
 					"key_fingerprint",
 					"password_length",
+					"password_reset_required",
 					"pgp_key",
 				},
 			},
@@ -163,6 +165,7 @@ func TestAccAWSUserLoginProfile_keybase(t *testing.T) {
 					"encrypted_password",
 					"key_fingerprint",
 					"password_length",
+					"password_reset_required",
 					"pgp_key",
 				},
 			},
@@ -233,8 +236,32 @@ func TestAccAWSUserLoginProfile_PasswordLength(t *testing.T) {
 					"encrypted_password",
 					"key_fingerprint",
 					"password_length",
+					"password_reset_required",
 					"pgp_key",
 				},
+			},
+		},
+	})
+}
+
+func TestAccAWSUserLoginProfile_disappears(t *testing.T) {
+	var conf iam.GetLoginProfileOutput
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iam_user_login_profile.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSUserLoginProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSUserLoginProfileConfig_Required(rName, "/", testPubKey1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSUserLoginProfileExists(resourceName, &conf),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsIamUserLoginProfile(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -391,7 +418,7 @@ resource "aws_iam_access_key" "test" {
 
 func testAccAWSUserLoginProfileConfig_PasswordLength(rName, path, pgpKey string, passwordLength int) string {
 	return testAccAWSUserLoginProfileConfigBase(rName, path) + fmt.Sprintf(`
-resource "aws_iam_user_login_profile" "user" {
+resource "aws_iam_user_login_profile" "test" {
   user            = aws_iam_user.test.name
   password_length = %d
 
@@ -404,7 +431,7 @@ EOF
 
 func testAccAWSUserLoginProfileConfig_Required(rName, path, pgpKey string) string {
 	return testAccAWSUserLoginProfileConfigBase(rName, path) + fmt.Sprintf(`
-resource "aws_iam_user_login_profile" "user" {
+resource "aws_iam_user_login_profile" "test" {
   user = aws_iam_user.test.name
 
   pgp_key = <<EOF
