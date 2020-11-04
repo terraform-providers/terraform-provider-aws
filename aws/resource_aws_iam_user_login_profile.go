@@ -122,7 +122,7 @@ func checkIAMPwdPolicy(pass []byte) bool {
 }
 
 func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 	username := d.Get("user").(string)
 
 	passwordLength := d.Get("password_length").(int)
@@ -138,7 +138,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 	}
 
 	log.Println("[DEBUG] Create IAM User Login Profile request:", request)
-	createResp, err := iamconn.CreateLoginProfile(request)
+	createResp, err := conn.CreateLoginProfile(request)
 	if err != nil {
 		return fmt.Errorf("Error creating IAM User Login Profile for %q: %w", username, err)
 	}
