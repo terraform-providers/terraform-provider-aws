@@ -3767,6 +3767,8 @@ resource "aws_rds_cluster" "test" {
 `, rName, masterUsername)
 }
 
+// We provide preferred_maintenance_window to prevent the following error from a randomly selected window:
+// InvalidParameterValue: The backup window and maintenance window must not overlap.
 func testAccAWSRDSClusterConfig_SnapshotIdentifier_PreferredBackupWindow(rName, preferredBackupWindow string) string {
 	return fmt.Sprintf(`
 resource "aws_rds_cluster" "source" {
@@ -3784,6 +3786,7 @@ resource "aws_db_cluster_snapshot" "test" {
 resource "aws_rds_cluster" "test" {
   cluster_identifier      = %q
   preferred_backup_window = %q
+  preferred_maintenance_window = "sun:23:00-sun:23:30"
   skip_final_snapshot     = true
   snapshot_identifier     = aws_db_cluster_snapshot.test.id
 }
