@@ -111,15 +111,16 @@ resource "aws_s3_bucket_object" "examplebucket_object" {
 
 ## Argument Reference
 
--> **Note:** If you specify `content_encoding` you are responsible for encoding the body appropriately. `source`, `content`, and `content_base64` all expect already encoded/compressed bytes.
+-> **Note:** If you specify `content_encoding` you are responsible for encoding the body appropriately. `source`, `content`, `sensitive_content`, and `content_base64` all expect already encoded/compressed bytes.
 
 The following arguments are supported:
 
 * `bucket` - (Required) The name of the bucket to put the file in. Alternatively, an [S3 access point](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-access-points.html) ARN can be specified.
 * `key` - (Required) The name of the object once it is in the bucket.
-* `source` - (Optional, conflicts with `content` and `content_base64`) The path to a file that will be read and uploaded as raw bytes for the object content.
-* `content` - (Optional, conflicts with `source` and `content_base64`) Literal string value to use as the object content, which will be uploaded as UTF-8-encoded text.
-* `content_base64` - (Optional, conflicts with `source` and `content`) Base64-encoded data that will be decoded and uploaded as raw bytes for the object content. This allows safely uploading non-UTF8 binary data, but is recommended only for small content such as the result of the `gzipbase64` function with small text strings. For larger objects, use `source` to stream the content from a disk file.
+* `source` - (Optional, conflicts with `content`, `content_base64` and `sensitive_content`) The path to a file that will be read and uploaded as raw bytes for the object content.
+* `content` - (Optional, conflicts with `source`, `content_base64` and `sensitive_content`) Literal string value to use as the object content, which will be uploaded as UTF-8-encoded text.
+* `content_base64` - (Optional, conflicts with `source`, `content` and `sensitive_content`) Base64-encoded data that will be decoded and uploaded as raw bytes for the object content. This allows safely uploading non-UTF8 binary data, but is recommended only for small content such as the result of the `gzipbase64` function with small text strings. For larger objects, use `source` to stream the content from a disk file.
+* `sensitive_content` - (Optional, conflicts with `source` and `content_base64`) Literal string value to use as the object content, which will be uploaded as UTF-8-encoded text. This is a sensitive field and will not be displayed in plan/apply.
 * `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".
 * `cache_control` - (Optional) Specifies caching behavior along the request/reply chain Read [w3c cache_control](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) for further details.
 * `content_disposition` - (Optional) Specifies presentational information for the object. Read [w3c content_disposition](http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1) for further information.
@@ -143,7 +144,7 @@ Default is `false`. This value should be set to `true` only if the bucket has S3
 * `object_lock_mode` - (Optional) The object lock [retention mode](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock-overview.html#object-lock-retention-modes) that you want to apply to this object. Valid values are `GOVERNANCE` and `COMPLIANCE`.
 * `object_lock_retain_until_date` - (Optional) The date and time, in [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8), when this object's object lock will [expire](https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock-overview.html#object-lock-retention-periods).
 
-If no content is provided through `source`, `content` or `content_base64`, then the object will be empty.
+If no content is provided through `source`, `content`, `sensitive_content` or `content_base64`, then the object will be empty.
 
 -> **Note:** Terraform ignores all leading `/`s in the object's `key` and treats multiple `/`s in the rest of the object's `key` as a single `/`, so values of `/index.html` and `index.html` correspond to the same S3 object as do `first//second///third//` and `first/second/third/`.
 

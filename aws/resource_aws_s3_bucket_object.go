@@ -96,19 +96,26 @@ func resourceAwsS3BucketObject() *schema.Resource {
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"content", "content_base64"},
+				ConflictsWith: []string{"content", "content_base64", "sensitive_content"},
 			},
 
 			"content": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"source", "content_base64"},
+				ConflictsWith: []string{"source", "content_base64", "sensitive_content"},
+			},
+
+			"sensitive_content": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"content", "content_base64", "source"},
 			},
 
 			"content_base64": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"source", "content"},
+				ConflictsWith: []string{"source", "content", "sensitive_content"},
 			},
 
 			"storage_class": {
@@ -229,6 +236,9 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 			}
 		}()
 	} else if v, ok := d.GetOk("content"); ok {
+		content := v.(string)
+		body = bytes.NewReader([]byte(content))
+	} else if v, ok := d.GetOk("sensitive_content"); ok {
 		content := v.(string)
 		body = bytes.NewReader([]byte(content))
 	} else if v, ok := d.GetOk("content_base64"); ok {
@@ -421,6 +431,7 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 		"content_language",
 		"content_type",
 		"content",
+		"sensitive_content",
 		"etag",
 		"kms_key_id",
 		"metadata",
