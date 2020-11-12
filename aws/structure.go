@@ -37,6 +37,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/macie"
 	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/aws/aws-sdk-go/service/networkmanager"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -3555,6 +3556,31 @@ func flattenCognitoIdentityPoolRolesAttachmentMappingRules(d []*cognitoidentity.
 	}
 
 	return rules
+}
+
+func flattenNetworkManagerLocation(location *networkmanager.Location) []interface{} {
+	if location == nil {
+		return []interface{}{}
+	}
+	m := map[string]interface{}{
+		"address":   aws.StringValue(location.Address),
+		"latitude":  aws.StringValue(location.Latitude),
+		"longitude": aws.StringValue(location.Longitude),
+	}
+	return []interface{}{m}
+}
+
+func expandNetworkManagerLocation(l []interface{}) *networkmanager.Location {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+	m := l[0].(map[string]interface{})
+	logs := &networkmanager.Location{
+		Address:   aws.String(m["address"].(string)),
+		Latitude:  aws.String(m["latitude"].(string)),
+		Longitude: aws.String(m["longitude"].(string)),
+	}
+	return logs
 }
 
 func flattenRedshiftLogging(ls *redshift.LoggingStatus) []interface{} {
