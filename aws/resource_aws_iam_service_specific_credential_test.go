@@ -21,7 +21,7 @@ func TestAccAWSIAMServiceSpecificCredential_basic(t *testing.T) {
 		CheckDestroy: testAccCheckIAMServiceSpecificCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIAMServiceSpecificCredentialConfig(rName),
+				Config: testAccIAMServiceSpecificCredentialBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIAMServiceSpecificCredentialExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "user_name", "aws_iam_user.test", "name"),
@@ -43,6 +43,48 @@ func TestAccAWSIAMServiceSpecificCredential_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSIAMServiceSpecificCredential_status(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_iam_service_specific_credential.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckIAMServiceSpecificCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIAMServiceSpecificCredentialConfigStatus(rName, "Inactive"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMServiceSpecificCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "status", "Inactive"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_password",
+				},
+			},
+			{
+				Config: testAccIAMServiceSpecificCredentialConfigStatus(rName, "Active"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMServiceSpecificCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "status", "Active"),
+				),
+			},
+			{
+				Config: testAccIAMServiceSpecificCredentialConfigStatus(rName, "Inactive"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIAMServiceSpecificCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "status", "Inactive"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSIAMServiceSpecificCredential_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_iam_service_specific_credential.test"
@@ -53,7 +95,7 @@ func TestAccAWSIAMServiceSpecificCredential_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckIAMServiceSpecificCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIAMServiceSpecificCredentialConfig(rName),
+				Config: testAccIAMServiceSpecificCredentialBasicConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIAMServiceSpecificCredentialExists(resourceName),
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsIamServiceSpecificCredential(), resourceName),
@@ -133,7 +175,7 @@ func testAccCheckIAMServiceSpecificCredentialExists(id string) resource.TestChec
 	}
 }
 
-func testAccIAMServiceSpecificCredentialConfig(rName string) string {
+func testAccIAMServiceSpecificCredentialBasicConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_user" "test" {
   name = %[1]q
@@ -144,4 +186,18 @@ resource "aws_iam_service_specific_credential" "test" {
   user_name    = aws_iam_user.test.name
 }
 `, rName)
+}
+
+func testAccIAMServiceSpecificCredentialConfigStatus(rName, status string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_user" "test" {
+  name = %[1]q
+}
+
+resource "aws_iam_service_specific_credential" "test" {
+  service_name = "codecommit.amazonaws.com"
+  user_name    = aws_iam_user.test.name
+  status       = %[2]q
+}
+`, rName, status)
 }

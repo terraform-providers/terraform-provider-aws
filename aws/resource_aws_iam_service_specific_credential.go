@@ -15,6 +15,7 @@ func resourceAwsIamServiceSpecificCredential() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsIamServiceSpecificCredentialCreate,
 		Read:   resourceAwsIamServiceSpecificCredentialRead,
+		Update: resourceAwsIamServiceSpecificCredentialUpdate,
 		Delete: resourceAwsIamServiceSpecificCredentialDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -32,6 +33,12 @@ func resourceAwsIamServiceSpecificCredential() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      iam.StatusTypeActive,
+				ValidateFunc: validation.StringInSlice(iam.StatusType_Values(), false),
+			},
 			"service_password": {
 				Type:      schema.TypeString,
 				Sensitive: true,
@@ -45,23 +52,19 @@ func resourceAwsIamServiceSpecificCredential() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
 
 func resourceAwsIamServiceSpecificCredentialCreate(d *schema.ResourceData, meta interface{}) error {
-	iamconn := meta.(*AWSClient).iamconn
+	conn := meta.(*AWSClient).iamconn
 
 	input := &iam.CreateServiceSpecificCredentialInput{
 		ServiceName: aws.String(d.Get("service_name").(string)),
 		UserName:    aws.String(d.Get("user_name").(string)),
 	}
 
-	out, err := iamconn.CreateServiceSpecificCredential(input)
+	out, err := conn.CreateServiceSpecificCredential(input)
 	if err != nil {
 		return fmt.Errorf("error creating IAM Service Specific Credential: %w", err)
 	}
@@ -70,6 +73,19 @@ func resourceAwsIamServiceSpecificCredentialCreate(d *schema.ResourceData, meta 
 
 	d.SetId(fmt.Sprintf("%s:%s", aws.StringValue(cred.ServiceName), aws.StringValue(cred.UserName)))
 	d.Set("service_password", cred.ServicePassword)
+
+	if v, ok := d.GetOk("status"); ok && v.(string) == iam.StatusTypeInactive {
+		updateInput := &iam.UpdateServiceSpecificCredentialInput{
+			ServiceSpecificCredentialId: cred.ServiceSpecificCredentialId,
+			UserName:                    cred.UserName,
+			Status:                      aws.String(v.(string)),
+		}
+
+		_, err := conn.UpdateServiceSpecificCredential(updateInput)
+		if err != nil {
+			return fmt.Errorf("error settings IAM Service Specific Credential status: %w", err)
+		}
+	}
 
 	return resourceAwsIamServiceSpecificCredentialRead(d, meta)
 }
@@ -118,20 +134,34 @@ func resourceAwsIamServiceSpecificCredentialRead(d *schema.ResourceData, meta in
 	return nil
 }
 
+func resourceAwsIamServiceSpecificCredentialUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).iamconn
+
+	if d.HasChange("status") {
+		updateInput := &iam.UpdateServiceSpecificCredentialInput{
+			ServiceSpecificCredentialId: aws.String(d.Get("service_specific_credential_id").(string)),
+			UserName:                    aws.String(d.Get("user_name").(string)),
+			Status:                      aws.String(d.Get("status").(string)),
+		}
+
+		_, err := conn.UpdateServiceSpecificCredential(updateInput)
+		if err != nil {
+			return fmt.Errorf("error settings IAM Service Specific Credential status: %w", err)
+		}
+	}
+
+	return resourceAwsIamServiceSpecificCredentialRead(d, meta)
+}
+
 func resourceAwsIamServiceSpecificCredentialDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
 
-	_, userName, err := decodeAwsIamServiceSpecificCredential(d.Id())
-	if err != nil {
-		return err
-	}
-
 	input := &iam.DeleteServiceSpecificCredentialInput{
 		ServiceSpecificCredentialId: aws.String(d.Get("service_specific_credential_id").(string)),
-		UserName:                    aws.String(userName),
+		UserName:                    aws.String(d.Get("user_name").(string)),
 	}
 
-	_, err = conn.DeleteServiceSpecificCredential(input)
+	_, err := conn.DeleteServiceSpecificCredential(input)
 	if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
 		return nil
 	}
