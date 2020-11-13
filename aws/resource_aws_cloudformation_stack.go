@@ -355,7 +355,7 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 
 func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cfconn
-
+	updatesPerformed := true
 	input := &cloudformation.UpdateStackInput{
 		StackName: aws.String(d.Id()),
 	}
@@ -406,6 +406,7 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 	}
 
 	log.Printf("[DEBUG] Updating CloudFormation stack: %s", input)
+
 	_, err := conn.UpdateStack(input)
 	if err != nil {
 		awsErr, ok := err.(awserr.Error)
@@ -415,7 +416,7 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 			awsErr.Message() != "No updates are to be performed." {
 			return err
 		}
-
+		updatesPerformed = false
 		log.Printf("[DEBUG] Current CloudFormation stack has no updates")
 	}
 
@@ -465,7 +466,11 @@ func resourceAwsCloudFormationStackUpdate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	if lastStatus == cloudformation.StackStatusUpdateRollbackComplete || lastStatus == cloudformation.StackStatusUpdateRollbackFailed {
+	/*
+		Only consider StackStatusUpdateRollbackComplete as fail state if updates were performed.
+		To avoid the plan application to fail if nothing was updated.
+	*/
+	if (updatesPerformed && lastStatus == cloudformation.StackStatusUpdateRollbackComplete) || lastStatus == cloudformation.StackStatusUpdateRollbackFailed {
 		reasons, err := getCloudFormationRollbackReasons(stackId, lastUpdatedTime, conn)
 		if err != nil {
 			return fmt.Errorf("Failed getting details about rollback: %q", err.Error())

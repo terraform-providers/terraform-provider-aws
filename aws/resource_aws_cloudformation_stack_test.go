@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -901,4 +902,159 @@ STACK
   timeout_in_minutes = 10
 }
 `, rName)
+}
+
+func testAccAWSCloudformationStackUpdate_UpdateRollbackComplete_validTemplate(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudformation_stack" "update-rollback" {
+  name = "%[1]s"
+  template_body = <<STACK
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: VPC
+  PublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}a
+  PublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.16/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}b
+  PublicC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.32/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}c
+
+  ApplicationA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}a
+  ApplicationB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}b
+  ApplicationC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.3.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}c
+STACK
+}`, rName)
+}
+
+func testAccAWSCloudformationStackUpdate_UpdateRollbackComplete_invalidTemplate(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudformation_stack" "update-rollback" {
+  name = "%[1]s"
+  template_body = <<STACK
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: VPC
+  PublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}a
+  PublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.16/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}b
+  PublicC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.32/28
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}c
+
+  ApplicationA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}a
+  ApplicationB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}b
+  ApplicationC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.3.0/24
+      VpcId: !Ref VPC
+      AvailabilityZone: !Sub $${AWS::Region}d
+STACK
+}
+`, rName)
+}
+
+func testAccAWSCloudformationCheckStackStatus(stack *cloudformation.Stack, expectedState string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if *stack.StackStatus != expectedState {
+			return fmt.Errorf("wrong Cloudformation stack status: %s, expected: %s", *stack.StackStatus, expectedState)
+		}
+		return nil
+	}
+}
+
+func TestAccAWSCloudformationStackUpdate_whenPreviousUpdateCaused_UpdateRollbackComplete_state(t *testing.T) {
+	var stack cloudformation.Stack
+	rName := fmt.Sprintf("tf-acc-test-update-rollback-%s", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudFormationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCloudformationStackUpdate_UpdateRollbackComplete_validTemplate(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFormationStackExists("aws_cloudformation_stack.update-rollback", &stack),
+					testAccAWSCloudformationCheckStackStatus(&stack, cloudformation.StackStatusCreateComplete),
+				),
+			},
+			{
+				Config:      testAccAWSCloudformationStackUpdate_UpdateRollbackComplete_invalidTemplate(rName),
+				ExpectError: regexp.MustCompile(`UPDATE_ROLLBACK_COMPLETE: \["CIDR Block must change if Availability Zone is changed and VPC ID is not changed"]`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFormationStackExists("aws_cloudformation_stack.update-rollback", &stack),
+					testAccAWSCloudformationCheckStackStatus(&stack, cloudformation.StackStatusUpdateRollbackComplete),
+				),
+			},
+			{
+				Config: testAccAWSCloudformationStackUpdate_UpdateRollbackComplete_validTemplate(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCloudFormationStackExists("aws_cloudformation_stack.update-rollback", &stack),
+					testAccAWSCloudformationCheckStackStatus(&stack, cloudformation.StackStatusUpdateRollbackComplete),
+				),
+			},
+		},
+	})
 }
