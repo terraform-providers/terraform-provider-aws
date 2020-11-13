@@ -809,6 +809,7 @@ func Provider() *schema.Provider {
 			"aws_iam_saml_provider":                                   resourceAwsIamSamlProvider(),
 			"aws_iam_server_certificate":                              resourceAwsIAMServerCertificate(),
 			"aws_iam_service_linked_role":                             resourceAwsIamServiceLinkedRole(),
+			"aws_iam_service_specific_credential":                     resourceAwsIamServiceSpecificCredential(),
 			"aws_iam_user_group_membership":                           resourceAwsIamUserGroupMembership(),
 			"aws_iam_user_policy_attachment":                          resourceAwsIamUserPolicyAttachment(),
 			"aws_iam_user_policy":                                     resourceAwsIamUserPolicy(),
