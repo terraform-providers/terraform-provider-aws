@@ -173,7 +173,7 @@ func resourceAwsIamServiceSpecificCredentialDelete(d *schema.ResourceData, meta 
 }
 
 func decodeAwsIamServiceSpecificCredential(id string) (string, string, error) {
-	creds := strings.Split(string(id), ":")
+	creds := strings.Split(id, ":")
 	if len(creds) != 2 {
 		return "", "", fmt.Errorf("unknown IAM Service Specific Credential ID format")
 	}
