@@ -51,7 +51,7 @@ resource "aws_instance" "web" {
 The following arguments are supported:
 
 * `ami` - (Required) The AMI to use for the instance.
-* `availability_zone` - (Optional) The AZ to start the instance in.
+* `availability_zone` - (Optional) The AZ to start the instance in. Conflicts with `subnet_id`.
 * `placement_group` - (Optional) The Placement Group to start the instance in.
 * `tenancy` - (Optional) The tenancy of the instance (if the instance is running in a VPC). An instance with a tenancy of dedicated runs on single-tenant hardware. The host tenancy is not supported for the import-instance command.
 * `host_id` - (optional) The Id of a dedicated host that the instance will be assigned to. Use when an instance is to be launched on a specific dedicated host.
@@ -83,7 +83,7 @@ instances. See [Shutdown Behavior](https://docs.aws.amazon.com/AWSEC2/latest/Use
 -> **NOTE:** If you are creating Instances in a VPC, use `vpc_security_group_ids` instead.
 
 * `vpc_security_group_ids` - (Optional, VPC only) A list of security group IDs to associate with.
-* `subnet_id` - (Optional) The VPC Subnet ID to launch in.
+* `subnet_id` - (Optional) The VPC Subnet ID to launch in. Conflicts with `availability_zone`.
 * `associate_public_ip_address` - (Optional) Associate a public ip address with an instance in a VPC.  Boolean value.
 * `private_ip` - (Optional) Private IP address to associate with the
      instance in a VPC.
