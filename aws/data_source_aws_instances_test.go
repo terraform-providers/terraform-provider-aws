@@ -58,6 +58,23 @@ func TestAccAWSInstancesDataSource_instance_state_names(t *testing.T) {
 	})
 }
 
+func TestAccAWSInstancesDataSource_noResults(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInstancesDataSourceConfig_noResults,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.aws_instances.test", "ids.#", "0"),
+					resource.TestCheckResourceAttr("data.aws_instances.test", "private_ips.#", "0"),
+					resource.TestCheckResourceAttr("data.aws_instances.test", "public_ips.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 const testAccInstancesDataSourceConfig_ids = `
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -172,3 +189,14 @@ data "aws_instances" "test" {
 }
 `, rInt)
 }
+
+const testAccInstancesDataSourceConfig_noResults = `
+data "aws_instances" "test" {
+  filter {
+    name = "instance-id"
+    values = ["does", "not", "exist"]
+  }
+
+  allow_no_results = true
+}
+`

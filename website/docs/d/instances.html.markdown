@@ -54,6 +54,8 @@ exactly match a pair on desired instances.
 several valid keys, for a full reference, check out
 [describe-instances in the AWS CLI reference][1].
 
+* `allow_no_results` - (Optional) Defaults to false. If true, empty lists could be returned for `ids`, `private_ips` and  `public_ips`. This is useful when querying the count of ephemeral instances (e.g. managed via autoscaling group) which may not be created yet.
+
 ## Attributes Reference
 
 * `id` - AWS Region.
