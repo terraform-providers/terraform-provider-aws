@@ -42,10 +42,18 @@ func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_filter.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_tag_set.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_instance_tag_filter.#", "1"),
 					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "filtervalue",
+					}),
+
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_instance_tag_filter.*", map[string]string{
+						"key":   "filterkeyonprem",
+						"type":  "KEY_AND_VALUE",
+						"value": "filtervalueonprem",
 					}),
 
 					resource.TestCheckResourceAttr(resourceName, "alarm_configuration.#", "0"),
@@ -64,10 +72,18 @@ func TestAccAWSCodeDeployDeploymentGroup_basic(t *testing.T) {
 
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_set.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "ec2_tag_filter.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_tag_set.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_instance_tag_filter.#", "1"),
 					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ec2_tag_filter.*", map[string]string{
 						"key":   "filterkey",
 						"type":  "KEY_AND_VALUE",
 						"value": "anotherfiltervalue",
+					}),
+
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_instance_tag_filter.*", map[string]string{
+						"key":   "filterkeyonprem",
+						"type":  "KEY_AND_VALUE",
+						"value": "anotherfiltervalueonprem",
 					}),
 
 					resource.TestCheckResourceAttr(resourceName, "alarm_configuration.#", "0"),
@@ -156,6 +172,77 @@ func TestAccAWSCodeDeployDeploymentGroup_basic_tagSet(t *testing.T) {
 	})
 }
 
+func TestAccAWSCodeDeployDeploymentGroup_onPremisestagSet(t *testing.T) {
+	var group codedeploy.DeploymentGroupInfo
+	resourceName := "aws_codedeploy_deployment_group.test"
+
+	rName := acctest.RandString(5)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCodeDeployDeploymentGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCodeDeployDeploymentGroup(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeDeployDeploymentGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "app_name", "tf-acc-test-"+rName),
+					resource.TestCheckResourceAttr(resourceName, "deployment_group_name", "tf-acc-test-"+rName),
+					resource.TestCheckResourceAttr(resourceName, "deployment_config_name", "CodeDeployDefault.OneAtATime"),
+					resource.TestCheckResourceAttrPair(resourceName, "service_role_arn", "aws_iam_role.test", "arn"),
+
+					resource.TestCheckResourceAttr(resourceName, "on_premises_tag_set.#", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_tag_set.*", map[string]string{
+						"on_premises_instance_tag_filter.#": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_tag_set.*.on_premises_instance_tag_filter.*", map[string]string{
+						"key":   "filterkeyonprem",
+						"type":  "KEY_AND_VALUE",
+						"value": "filtervalueonprem",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_instance_tag_filter.#", "0"),
+
+					resource.TestCheckResourceAttr(resourceName, "alarm_configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "auto_rollback_configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "trigger_configuration.#", "0"),
+				),
+			},
+			{
+				Config: testAccAWSCodeDeployDeploymentGroupModified(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCodeDeployDeploymentGroupExists(resourceName, &group),
+					resource.TestCheckResourceAttr(resourceName, "app_name", "tf-acc-test-"+rName),
+					resource.TestCheckResourceAttr(resourceName, "deployment_group_name", "tf-acc-test-updated-"+rName),
+					resource.TestCheckResourceAttr(resourceName, "deployment_config_name", "CodeDeployDefault.OneAtATime"),
+					resource.TestCheckResourceAttrPair(resourceName, "service_role_arn", "aws_iam_role.test_updated", "arn"),
+
+					resource.TestCheckResourceAttr(resourceName, "on_premises_tag_set.#", "1"),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_tag_set.*", map[string]string{
+						"on_premises_instance_tag_filter.#": "1",
+					}),
+					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "on_premises_tag_set.*.on_premises_instance_tag_filter.*", map[string]string{
+						"key":   "filterkeyonprem",
+						"type":  "KEY_AND_VALUE",
+						"value": "anotherfiltervalueonprem",
+					}),
+					resource.TestCheckResourceAttr(resourceName, "on_premises_instance_tag_filter.#", "0"),
+
+					resource.TestCheckResourceAttr(resourceName, "alarm_configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "auto_rollback_configuration.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "trigger_configuration.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSCodeDeployDeploymentGroupImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAWSCodeDeployDeploymentGroup_onPremiseTag(t *testing.T) {
 	var group codedeploy.DeploymentGroupInfo
 
@@ -180,9 +267,9 @@ func TestAccAWSCodeDeployDeploymentGroup_onPremiseTag(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.#", "1"),
 					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_codedeploy_deployment_group.test", "on_premises_instance_tag_filter.*", map[string]string{
-						"key":   "filterkey",
+						"key":   "filterkeyonprem",
 						"type":  "KEY_AND_VALUE",
-						"value": "filtervalue",
+						"value": "filtervalueonprem",
 					}),
 				),
 			},
@@ -2245,6 +2332,14 @@ ec2_tag_set {
     value = "filtervalue"
   }
 }
+
+on_premises_tag_set {
+  on_premises_instance_tag_filter {
+    key   = "filterkeyonprem"
+    type  = "KEY_AND_VALUE"
+    value = "filtervalueonprem"
+  }
+}
 `
 
 	} else {
@@ -2253,6 +2348,12 @@ ec2_tag_filter {
   key   = "filterkey"
   type  = "KEY_AND_VALUE"
   value = "filtervalue"
+}
+
+on_premises_instance_tag_filter {
+  key   = "filterkeyonprem"
+  type  = "KEY_AND_VALUE"
+  value = "filtervalueonprem"
 }
 `
 
@@ -2336,6 +2437,14 @@ ec2_tag_set {
     value = "anotherfiltervalue"
   }
 }
+
+on_premises_tag_set {
+  on_premises_instance_tag_filter {
+    key   = "filterkeyonprem"
+    type  = "KEY_AND_VALUE"
+    value = "anotherfiltervalueonprem"
+  }
+}
 `
 
 	} else {
@@ -2344,6 +2453,12 @@ ec2_tag_filter {
   key   = "filterkey"
   type  = "KEY_AND_VALUE"
   value = "anotherfiltervalue"
+}
+
+on_premises_instance_tag_filter {
+  key   = "filterkeyonprem"
+  type  = "KEY_AND_VALUE"
+  value = "anotherfiltervalueonprem"
 }
 `
 
@@ -2481,9 +2596,9 @@ resource "aws_codedeploy_deployment_group" "test" {
   service_role_arn      = aws_iam_role.test.arn
 
   on_premises_instance_tag_filter {
-    key   = "filterkey"
+    key   = "filterkeyonprem"
     type  = "KEY_AND_VALUE"
-    value = "filtervalue"
+    value = "filtervalueonprem"
   }
 }
 `, rName)

@@ -413,6 +413,40 @@ func resourceAwsCodeDeployDeploymentGroup() *schema.Resource {
 				},
 			},
 
+			"on_premises_tag_set": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"on_premises_instance_tag_filter": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"type": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validateTagFilters,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+							Set: resourceAwsCodeDeployTagFilterHash,
+						},
+					},
+				},
+				Set: resourceAwsCodeDeployOnPremisesTagSetHash,
+			},
+
 			"on_premises_instance_tag_filter": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -505,6 +539,10 @@ func resourceAwsCodeDeployDeploymentGroupCreate(d *schema.ResourceData, meta int
 
 	if attr, ok := d.GetOk("autoscaling_groups"); ok {
 		input.AutoScalingGroups = expandStringList(attr.(*schema.Set).List())
+	}
+
+	if attr, ok := d.GetOk("on_premises_tag_set"); ok {
+		input.OnPremisesTagSet = buildOnPremisesTagSet(attr.(*schema.Set).List())
 	}
 
 	if attr, ok := d.GetOk("on_premises_instance_tag_filter"); ok {
@@ -628,6 +666,10 @@ func resourceAwsCodeDeployDeploymentGroupRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error setting ecs_service: %s", err)
 	}
 
+	if err := d.Set("on_premises_tag_set", onPremisesTagSetToMap(resp.DeploymentGroupInfo.OnPremisesTagSet)); err != nil {
+		return err
+	}
+
 	if err := d.Set("on_premises_instance_tag_filter", onPremisesTagFiltersToMap(resp.DeploymentGroupInfo.OnPremisesInstanceTagFilters)); err != nil {
 		return err
 	}
@@ -691,6 +733,12 @@ func resourceAwsCodeDeployDeploymentGroupUpdate(d *schema.ResourceData, meta int
 	}
 
 	// TagFilters aren't like tags. They don't append. They simply replace.
+	if d.HasChange("on_premises_tag_set") {
+		_, n := d.GetChange("on_premises_tag_set")
+		onPremisesTagSet := buildOnPremisesTagSet(n.(*schema.Set).List())
+		input.OnPremisesTagSet = onPremisesTagSet
+	}
+
 	if d.HasChange("on_premises_instance_tag_filter") {
 		_, n := d.GetChange("on_premises_instance_tag_filter")
 		onPremFilters := buildOnPremTagFilters(n.(*schema.Set).List())
@@ -780,6 +828,18 @@ func resourceAwsCodeDeployDeploymentGroupDelete(d *schema.ResourceData, meta int
 	})
 
 	return err
+}
+
+// buildOnPremisesTagSet converts raw schema lists into a codedeploy.OnPremisesTagSet.
+func buildOnPremisesTagSet(configured []interface{}) *codedeploy.OnPremisesTagSet {
+	filterSets := make([][]*codedeploy.TagFilter, 0)
+	for _, raw := range configured {
+		m := raw.(map[string]interface{})
+		rawFilters := m["on_premises_instance_tag_filter"].(*schema.Set)
+		filters := buildOnPremTagFilters(rawFilters.List())
+		filterSets = append(filterSets, filters)
+	}
+	return &codedeploy.OnPremisesTagSet{OnPremisesTagSetList: filterSets}
 }
 
 // buildOnPremTagFilters converts raw schema lists into a list of
@@ -1162,6 +1222,28 @@ func ec2TagSetToMap(tagSet *codedeploy.EC2TagSet) []map[string]interface{} {
 	return result
 }
 
+// onPremisesTagSetToMap converts lists of tag filters into a [][]map[string]string.
+func onPremisesTagSetToMap(tagSet *codedeploy.OnPremisesTagSet) []map[string]interface{} {
+	var result []map[string]interface{}
+	if tagSet == nil {
+		result = make([]map[string]interface{}, 0)
+	} else {
+		result = make([]map[string]interface{}, 0, len(tagSet.OnPremisesTagSetList))
+		for _, filterSet := range tagSet.OnPremisesTagSetList {
+			filters := onPremisesTagFiltersToMap(filterSet)
+			filtersAsIntfSlice := make([]interface{}, 0, len(filters))
+			for _, item := range filters {
+				filtersAsIntfSlice = append(filtersAsIntfSlice, item)
+			}
+			tagFilters := map[string]interface{}{
+				"on_premises_instance_tag_filter": schema.NewSet(resourceAwsCodeDeployOnPremTagFilterHash, filtersAsIntfSlice),
+			}
+			result = append(result, tagFilters)
+		}
+	}
+	return result
+}
+
 // triggerConfigsToMap converts a list of []*codedeploy.TriggerConfig into a []map[string]interface{}
 func triggerConfigsToMap(list []*codedeploy.TriggerConfig) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(list))
@@ -1406,13 +1488,42 @@ func resourceAwsCodeDeployTagFilterHash(v interface{}) int {
 	if v, ok := m["value"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
+	return hashcode.String(buf.String())
+}
 
+func resourceAwsCodeDeployOnPremTagFilterHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]string)
+
+	// Nothing's actually required in tag filters, so we must check the
+	// presence of all values before attempting a hash.
+	if m["Key"] != "" {
+		buf.WriteString(fmt.Sprintf("%s-", m["key"]))
+	}
+	if m["type"] != "" {
+		buf.WriteString(fmt.Sprintf("%s-", m["type"]))
+	}
+	if m["value"] != "" {
+		buf.WriteString(fmt.Sprintf("%s-", m["value"]))
+	}
 	return hashcode.String(buf.String())
 }
 
 func resourceAwsCodeDeployTagSetHash(v interface{}) int {
 	tagSetMap := v.(map[string]interface{})
 	filterSet := tagSetMap["ec2_tag_filter"]
+	filterSetSlice := filterSet.(*schema.Set).List()
+
+	var x uint64 = 1
+	for i, filter := range filterSetSlice {
+		x = ((x << 7) | (x >> (64 - 7))) ^ uint64(i) ^ uint64(resourceAwsCodeDeployTagFilterHash(filter))
+	}
+	return int(x)
+}
+
+func resourceAwsCodeDeployOnPremisesTagSetHash(v interface{}) int {
+	tagSetMap := v.(map[string]interface{})
+	filterSet := tagSetMap["on_premises_instance_tag_filter"]
 	filterSetSlice := filterSet.(*schema.Set).List()
 
 	var x uint64 = 1
