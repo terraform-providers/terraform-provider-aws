@@ -3,12 +3,10 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
@@ -165,49 +163,20 @@ func resourceAwsDxConnectionUpdate(d *schema.ResourceData, meta interface{}) err
 func resourceAwsDxConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
 
-	log.Printf("[DEBUG] Deleting Direct Connect connection: %s", d.Id())
-	_, err := conn.DeleteConnection(&directconnect.DeleteConnectionInput{
-		ConnectionId: aws.String(d.Id()),
-	})
-	if err != nil {
-		if isNoSuchDxConnectionErr(err) {
-			return nil
-		}
-		return err
-	}
-
-	deleteStateConf := &resource.StateChangeConf{
-		Pending:    []string{directconnect.ConnectionStatePending, directconnect.ConnectionStateOrdering, directconnect.ConnectionStateAvailable, directconnect.ConnectionStateRequested, directconnect.ConnectionStateDeleting},
-		Target:     []string{directconnect.ConnectionStateDeleted},
-		Refresh:    dxConnectionRefreshStateFunc(conn, d.Id()),
-		Timeout:    10 * time.Minute,
-		Delay:      10 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-	_, err = deleteStateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf("Error waiting for Direct Connect connection (%s) to be deleted: %s", d.Id(), err)
-	}
-
-	return nil
-}
-
-func dxConnectionRefreshStateFunc(conn *directconnect.DirectConnect, connId string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return dxConnectionDelete(d, conn, func() (*directconnect.Connection, error) {
 		input := &directconnect.DescribeConnectionsInput{
-			ConnectionId: aws.String(connId),
+			ConnectionId: aws.String(d.Id()),
 		}
+
 		resp, err := conn.DescribeConnections(input)
 		if err != nil {
-			return nil, "failed", err
+			return nil, err
 		}
-		if len(resp.Connections) < 1 {
-			return resp, directconnect.ConnectionStateDeleted, nil
-		}
-		return resp, *resp.Connections[0].ConnectionState, nil
-	}
-}
 
-func isNoSuchDxConnectionErr(err error) bool {
-	return isAWSErr(err, "DirectConnectClientException", "Could not find Connection with ID")
+		if len(resp.Connections) < 1 {
+			return nil, nil
+		}
+
+		return resp.Connections[0], nil
+	})
 }
