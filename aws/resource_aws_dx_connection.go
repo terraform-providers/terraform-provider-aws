@@ -163,20 +163,5 @@ func resourceAwsDxConnectionUpdate(d *schema.ResourceData, meta interface{}) err
 func resourceAwsDxConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).dxconn
 
-	return dxConnectionDelete(d, conn, func() (*directconnect.Connection, error) {
-		input := &directconnect.DescribeConnectionsInput{
-			ConnectionId: aws.String(d.Id()),
-		}
-
-		resp, err := conn.DescribeConnections(input)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(resp.Connections) < 1 {
-			return nil, nil
-		}
-
-		return resp.Connections[0], nil
-	})
+	return dxConnectionDelete(d, conn, dxConnectionDescribe(conn, d.Id()))
 }

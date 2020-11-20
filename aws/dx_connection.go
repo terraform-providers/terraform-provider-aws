@@ -57,6 +57,25 @@ func dxConnectionRefreshStateFunc(describeFunc func() (*directconnect.Connection
 	}
 }
 
+func dxConnectionDescribe(conn *directconnect.DirectConnect, id string) func() (*directconnect.Connection, error) {
+	return func() (*directconnect.Connection, error) {
+		input := &directconnect.DescribeConnectionsInput{
+			ConnectionId: aws.String(id),
+		}
+
+		resp, err := conn.DescribeConnections(input)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(resp.Connections) < 1 {
+			return nil, nil
+		}
+
+		return resp.Connections[0], nil
+	}
+}
+
 func isNoSuchDxConnectionErr(err error) bool {
 	return isAWSErr(err, "DirectConnectClientException", "Could not find Connection with ID")
 }

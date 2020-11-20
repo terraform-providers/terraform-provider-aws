@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/directconnect"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -30,7 +31,7 @@ func TestAccAWSDxHostedConnection_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsDxHostedConnectionDestroy,
+		CheckDestroy: testAccCheckAwsDxHostedConnectionDestroy(testAccDxHostedConnectionProvider),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDxHostedConnectionConfig(connectionName, env.ConnectionId, env.OwnerAccountId),
@@ -60,7 +61,7 @@ func TestAccAWSDxHostedConnection_tags(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAwsDxHostedConnectionDestroy,
+		CheckDestroy: testAccCheckAwsDxHostedConnectionDestroy(testAccDxHostedConnectionProvider),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDxHostedConnectionConfig_tags(connectionName, env.ConnectionId, env.OwnerAccountId),
@@ -82,45 +83,74 @@ func testAccCheckAwsDxHostedConnectionEnv() (*testAccDxHostedConnectionEnv, erro
 	}
 
 	if result.ConnectionId == "" || result.OwnerAccountId == "" {
-		return nil, errors.New("TEST_AWS_DX_CONNECTION_ID and TEST_AWS_DX_OWNER_ACCOUNT_ID must be set for aws_dx_hosted_connection tests")
+		return nil, errors.New("TEST_AWS_DX_CONNECTION_ID and TEST_AWS_DX_OWNER_ACCOUNT_ID must be set for tests involving hosted connections")
 	}
 
 	return result, nil
 }
 
-func testAccCheckAwsDxHostedConnectionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).dxconn
+func testAccCheckAwsDxHostedConnectionDestroy(providerFunc func() *schema.Provider) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		provider := providerFunc()
+		conn := provider.Meta().(*AWSClient).dxconn
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "aws_dx_hosted_connection" {
-			continue
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "aws_dx_hosted_connection" {
+				continue
+			}
+
+			input := &directconnect.DescribeHostedConnectionsInput{
+				ConnectionId: aws.String(rs.Primary.Attributes["connection_id"]),
+			}
+
+			resp, err := conn.DescribeHostedConnections(input)
+			if err != nil {
+				return err
+			}
+			for _, c := range resp.Connections {
+				if c.ConnectionId != nil && *c.ConnectionId == rs.Primary.ID &&
+					c.ConnectionState != nil && *c.ConnectionState != directconnect.ConnectionStateDeleted {
+					return fmt.Errorf("[DESTROY ERROR] Dx Hosted Connection (%s) not deleted", rs.Primary.ID)
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func testAccCheckAwsDxHostedConnectionExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
 		}
 
+		if rs.Primary.ID == "" {
+			return errors.New("No Hosted Connection ID is set")
+		}
+
+		connectionId := rs.Primary.Attributes["connection_id"]
+		if connectionId == "" {
+			return errors.New("No Connection (Interconnect or LAG) ID is set")
+		}
+
+		conn := testAccProvider.Meta().(*AWSClient).dxconn
 		input := &directconnect.DescribeHostedConnectionsInput{
-			ConnectionId: aws.String(rs.Primary.Attributes["connection_id"]),
+			ConnectionId: aws.String(connectionId),
 		}
 
 		resp, err := conn.DescribeHostedConnections(input)
 		if err != nil {
 			return err
 		}
-		for _, v := range resp.Connections {
-			if *v.ConnectionId == rs.Primary.ID && !(*v.ConnectionState == directconnect.ConnectionStateDeleted) {
-				return fmt.Errorf("[DESTROY ERROR] Dx Hosted Connection (%s) not deleted", rs.Primary.ID)
+
+		for _, c := range resp.Connections {
+			if c.ConnectionId != nil && *c.ConnectionId == rs.Primary.ID {
+				return nil
 			}
 		}
-	}
-	return nil
-}
 
-func testAccCheckAwsDxHostedConnectionExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		return nil
+		return errors.New("Hosted Connection not found")
 	}
 }
 
@@ -150,4 +180,8 @@ resource "aws_dx_hosted_connection" "test" {
   }
 }
 `, name, connectionId, ownerAccountId)
+}
+
+func testAccDxHostedConnectionProvider() *schema.Provider {
+	return testAccProvider
 }

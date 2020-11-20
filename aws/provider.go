@@ -558,6 +558,7 @@ func Provider() *schema.Provider {
 			"aws_dx_bgp_peer":                                         resourceAwsDxBgpPeer(),
 			"aws_dx_connection":                                       resourceAwsDxConnection(),
 			"aws_dx_connection_association":                           resourceAwsDxConnectionAssociation(),
+			"aws_dx_connection_confirmation":                          resourceAwsDxConnectionConfirmation(),
 			"aws_dx_gateway":                                          resourceAwsDxGateway(),
 			"aws_dx_gateway_association":                              resourceAwsDxGatewayAssociation(),
 			"aws_dx_gateway_association_proposal":                     resourceAwsDxGatewayAssociationProposal(),
