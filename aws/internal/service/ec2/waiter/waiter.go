@@ -258,6 +258,50 @@ func InstanceIamInstanceProfileUpdated(conn *ec2.EC2, instanceID string, expecte
 }
 
 const (
+	InternetGatewayAttachmentStatusAvailable       = "available"
+	InternetGatewayAttachmentCreatedTimeout        = 4 * time.Minute
+	InternetGatewayAttachmentDeletedTimeout        = 15 * time.Minute
+	InternetGatewayAttachmentDeletedDelay          = 10 * time.Second
+	InternetGatewayAttachmentDeletedNotFoundChecks = 30
+)
+
+func InternetGatewayAttachmentCreated(conn *ec2.EC2, igwID, vpcID string) (*ec2.InternetGatewayAttachment, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ec2.AttachmentStatusDetached, ec2.AttachmentStatusAttaching},
+		Target:  []string{InternetGatewayAttachmentStatusAvailable},
+		Refresh: InternetGatewayAttachmentStatus(conn, igwID, vpcID),
+		Timeout: InternetGatewayAttachmentCreatedTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.InternetGatewayAttachment); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+func InternetGatewayAttachmentDeleted(conn *ec2.EC2, igwID, vpcID string) (*ec2.InternetGatewayAttachment, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:        []string{ec2.AttachmentStatusDetaching},
+		Target:         []string{},
+		Refresh:        InternetGatewayAttachmentStatus(conn, igwID, vpcID),
+		Timeout:        InternetGatewayAttachmentDeletedTimeout,
+		Delay:          InternetGatewayAttachmentDeletedDelay,
+		NotFoundChecks: InternetGatewayAttachmentDeletedNotFoundChecks,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ec2.InternetGatewayAttachment); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+const (
 	NetworkAclPropagationTimeout      = 2 * time.Minute
 	NetworkAclEntryPropagationTimeout = 5 * time.Minute
 )

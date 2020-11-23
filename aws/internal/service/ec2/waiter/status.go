@@ -303,6 +303,57 @@ func RouteTableAssociationState(conn *ec2.EC2, id string) resource.StateRefreshF
 }
 
 const (
+	InternetGatewayAttachmentStatusNotFound = "NotFound"
+
+	InternetGatewayAttachmentStatusUnknown = "Unknown"
+)
+
+// InternetGatewayAttachmentStatus fetches the attachment between the specified Internet Gateway and VPC and its state
+func InternetGatewayAttachmentStatus(conn *ec2.EC2, igwID, vpcID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		result, err := finder.InternetGatewayAttachmentByID(conn, igwID, vpcID)
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+			return nil, InternetGatewayAttachmentStatusNotFound, nil
+		}
+		if err != nil {
+			return nil, InternetGatewayAttachmentStatusUnknown, err
+		}
+
+		if result == nil || len(result.InternetGateways) == 0 || result.InternetGateways[0] == nil {
+			return nil, InternetGatewayAttachmentStatusUnknown, nil
+		}
+
+		if len(result.InternetGateways) > 1 {
+			return nil, InternetGatewayAttachmentStatusUnknown, fmt.Errorf("internal error: found %d results for Internet Gateway (%s) status, need 1", len(result.InternetGateways), igwID)
+		}
+
+		if result == nil || len(result.InternetGateways) == 0 || result.InternetGateways[0] == nil {
+			return nil, InternetGatewayAttachmentStatusUnknown, nil
+		}
+
+		if len(result.InternetGateways) > 1 {
+			return nil, InternetGatewayAttachmentStatusUnknown, fmt.Errorf("internal error: found %d results for Internet Gateway (%s) status, need 1", len(result.InternetGateways), igwID)
+		}
+
+		igw := result.InternetGateways[0]
+		if igw.Attachments == nil || len(igw.Attachments) == 0 {
+			return nil, ec2.AttachmentStatusDetached, nil
+		}
+
+		if len(igw.Attachments) > 1 {
+			return nil, InternetGatewayAttachmentStatusUnknown, fmt.Errorf("internal error: found %d results for Internet Gateway Attachment (%s) status, need 1", len(igw.Attachments), igwID)
+		}
+
+		igwAttachment := igw.Attachments[0]
+		if igwAttachment == nil {
+			return nil, InternetGatewayAttachmentStatusNotFound, nil
+		}
+
+		return igwAttachment, aws.StringValue(igwAttachment.State), nil
+	}
+}
+
+const (
 	SecurityGroupStatusCreated = "Created"
 
 	SecurityGroupStatusNotFound = "NotFound"

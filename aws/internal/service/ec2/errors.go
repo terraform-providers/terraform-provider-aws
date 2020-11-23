@@ -83,6 +83,10 @@ const (
 	InvalidVpnGatewayIDNotFound         = "InvalidVpnGatewayID.NotFound"
 )
 
+const (
+	ErrCodeInternetGatewayIDNotFound = "InvalidInternetGatewayID.NotFound"
+)
+
 func UnsuccessfulItemError(apiObject *ec2.UnsuccessfulItemError) error {
 	if apiObject == nil {
 		return nil

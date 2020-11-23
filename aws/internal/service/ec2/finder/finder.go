@@ -98,6 +98,19 @@ func InstanceByID(conn *ec2.EC2, id string) (*ec2.Instance, error) {
 	return output.Reservations[0].Instances[0], nil
 }
 
+func InternetGatewayAttachmentByID(conn *ec2.EC2, igwID, vpcID string) (*ec2.DescribeInternetGatewaysOutput, error) {
+	filters := map[string]string{
+		"internet-gateway-id": igwID,
+		"attachment.vpc-id":   vpcID,
+	}
+
+	input := &ec2.DescribeInternetGatewaysInput{
+		Filters: tfec2.BuildAttributeFilterList(filters),
+	}
+
+	return conn.DescribeInternetGateways(input)
+}
+
 // NetworkAclByID looks up a NetworkAcl by ID. When not found, returns nil and potentially an API error.
 func NetworkAclByID(conn *ec2.EC2, id string) (*ec2.NetworkAcl, error) {
 	input := &ec2.DescribeNetworkAclsInput{
