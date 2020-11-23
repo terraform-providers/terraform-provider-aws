@@ -649,6 +649,7 @@ func Provider() *schema.Provider {
 			"aws_elasticache_replication_group":                       resourceAwsElasticacheReplicationGroup(),
 			"aws_elasticache_security_group":                          resourceAwsElasticacheSecurityGroup(),
 			"aws_elasticache_subnet_group":                            resourceAwsElasticacheSubnetGroup(),
+			"aws_elasticache_user_group":                              resourceAwsElasticacheUserGroup(),
 			"aws_elastic_beanstalk_application":                       resourceAwsElasticBeanstalkApplication(),
 			"aws_elastic_beanstalk_application_version":               resourceAwsElasticBeanstalkApplicationVersion(),
 			"aws_elastic_beanstalk_configuration_template":            resourceAwsElasticBeanstalkConfigurationTemplate(),
