@@ -75,7 +75,7 @@ func testSweepInternetGatewayAttachments(region string) error {
 			igwID := aws.StringValue(internetGateway.InternetGatewayId)
 			vpcID := aws.StringValue(attachment.VpcId)
 
-			log.Printf("[DEBUG] Detaching Internet Gateway %s", internetGateway.InternetGatewayId)
+			log.Printf("[DEBUG] Detaching Internet Gateway %s from VPC %s", igwID, vpcID)
 			r := resourceAwsInternetGatewayAttachment()
 			d := r.Data(nil)
 			d.SetId(fmt.Sprintf("%s:%s", vpcID, igwID))
