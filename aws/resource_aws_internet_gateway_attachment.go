@@ -72,9 +72,9 @@ func resourceAwsInternetGatewayAttachmentCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprintf("%s:%s", vpcID, igwID))
 
-	_, err = waiter.InternetGatewayAttchmentCreated(conn, igwID, vpcID)
+	_, err = waiter.InternetGatewayAttachmentCreated(conn, igwID, vpcID)
 	if err != nil {
-		return fmt.Errorf("error waiting for Internet Gateway attachmen %q to be created: %w", d.Id(), err)
+		return fmt.Errorf("error waiting for Internet Gateway attachment %q to be created: %w", d.Id(), err)
 	}
 
 	return resourceAwsInternetGatewayAttachmentRead(d, meta)
@@ -160,7 +160,7 @@ func resourceAwsInternetGatewayAttachmentDelete(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error deleting internet gateway attchment: %w", err)
 	}
 
-	_, err = waiter.InternetGatewayAttchmentDeleted(conn, igwID, vpcID)
+	_, err = waiter.InternetGatewayAttachmentDeleted(conn, igwID, vpcID)
 	if err != nil {
 		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
 			return nil

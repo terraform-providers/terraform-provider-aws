@@ -84,7 +84,7 @@ const (
 )
 
 const (
-	ErrCodeInternetGatewayIDNotFound = "InvalidInternetGatewayID.NotFound"
+	ErrCodeInvalidInternetGatewayIDNotFound = "InvalidInternetGatewayID.NotFound"
 )
 
 func UnsuccessfulItemError(apiObject *ec2.UnsuccessfulItemError) error {
