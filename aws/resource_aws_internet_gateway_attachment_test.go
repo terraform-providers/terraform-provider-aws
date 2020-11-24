@@ -150,7 +150,7 @@ func testAccCheckInternetGatewayAttachmentDestroy(s *terraform.State) error {
 			continue
 		}
 
-		vpcID, igwID, err := decodeInternetGatewayAttachmentID(rs.Primary.ID)
+		vpcID, igwID, err := tfec2.InternetGatewayAttachmentParseID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func testAccCheckInternetGatewayAttachmentExists(n string, ig *ec2.InternetGatew
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		vpcID, igwID, err := decodeInternetGatewayAttachmentID(rs.Primary.ID)
+		vpcID, igwID, err := tfec2.InternetGatewayAttachmentParseID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

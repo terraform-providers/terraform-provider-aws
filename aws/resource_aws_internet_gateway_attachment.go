@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -70,7 +69,7 @@ func resourceAwsInternetGatewayAttachmentCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating Internet Gateway attachment: %w", err)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", vpcID, igwID))
+	d.SetId(tfec2.InternetGatewayAttachmentCreateID(vpcID, igwID))
 
 	_, err = waiter.InternetGatewayAttachmentCreated(conn, igwID, vpcID)
 	if err != nil {
@@ -83,7 +82,7 @@ func resourceAwsInternetGatewayAttachmentCreate(d *schema.ResourceData, meta int
 func resourceAwsInternetGatewayAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	vpcID, igwID, err := decodeInternetGatewayAttachmentID(d.Id())
+	vpcID, igwID, err := tfec2.InternetGatewayAttachmentParseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -118,7 +117,7 @@ func resourceAwsInternetGatewayAttachmentRead(d *schema.ResourceData, meta inter
 func resourceAwsInternetGatewayAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	vpcID, igwID, err := decodeInternetGatewayAttachmentID(d.Id())
+	vpcID, igwID, err := tfec2.InternetGatewayAttachmentParseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -161,14 +160,4 @@ func resourceAwsInternetGatewayAttachmentDelete(d *schema.ResourceData, meta int
 	}
 
 	return nil
-}
-
-func decodeInternetGatewayAttachmentID(id string) (string, string, error) {
-	parts := strings.Split(id, ":")
-
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("Unexpected format of ID (%q), expected VPC-ID:IGW-ID", id)
-	}
-
-	return parts[0], parts[1], nil
 }
