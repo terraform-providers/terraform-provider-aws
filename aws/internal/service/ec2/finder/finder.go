@@ -98,7 +98,7 @@ func InstanceByID(conn *ec2.EC2, id string) (*ec2.Instance, error) {
 	return output.Reservations[0].Instances[0], nil
 }
 
-func InternetGatewayAttachmentByID(conn *ec2.EC2, igwID, vpcID string) (*ec2.DescribeInternetGatewaysOutput, error) {
+func InternetGatewayAttachmentByID(conn *ec2.EC2, igwID, vpcID string) (*ec2.InternetGatewayAttachment, error) {
 	filters := map[string]string{
 		"internet-gateway-id": igwID,
 		"attachment.vpc-id":   vpcID,
@@ -108,7 +108,30 @@ func InternetGatewayAttachmentByID(conn *ec2.EC2, igwID, vpcID string) (*ec2.Des
 		Filters: tfec2.BuildAttributeFilterList(filters),
 	}
 
-	return conn.DescribeInternetGateways(input)
+	result, err := conn.DescribeInternetGateways(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if result == nil || len(result.InternetGateways) == 0 || result.InternetGateways[0] == nil {
+		return nil, nil
+	}
+
+	if len(result.InternetGateways) > 1 {
+		return nil, fmt.Errorf("internal error: found %d results for Internet Gateway (%s) status, need 1", len(result.InternetGateways), igwID)
+	}
+
+	igw := result.InternetGateways[0]
+
+	if len(igw.Attachments) == 0 || igw.Attachments[0] == nil {
+		return nil, nil
+	}
+
+	if len(igw.Attachments) > 1 {
+		return nil, fmt.Errorf("internal error: found %d results for Internet Gateway Attachment (%s) status, need 1", len(igw.Attachments), igwID)
+	}
+
+	return igw.Attachments[0], nil
 }
 
 // NetworkAclByID looks up a NetworkAcl by ID. When not found, returns nil and potentially an API error.

@@ -57,7 +57,7 @@ func resourceAwsInternetGatewayAttachmentCreate(d *schema.ResourceData, meta int
 		if err == nil {
 			return nil
 		}
-		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
 			return resource.RetryableError(err)
 		}
 
@@ -90,28 +90,20 @@ func resourceAwsInternetGatewayAttachmentRead(d *schema.ResourceData, meta inter
 
 	resp, err := finder.InternetGatewayAttachmentByID(conn, igwID, vpcID)
 	if err != nil {
-		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
 			log.Printf("[WARN] Internet Gateway Attachment (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 	}
 
-	if resp == nil || len(resp.InternetGateways) == 0 {
+	if resp == nil {
 		log.Printf("[WARN] Internet Gateway Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	igw := resp.InternetGateways[0]
-	if len(igw.Attachments) == 0 {
-		log.Printf("[WARN] Internet Gateway Attachment (%s) not found, removing from state", d.Id())
-		d.SetId("")
-		return nil
-	}
-
-	attachment := igw.Attachments[0]
-	if aws.StringValue(attachment.VpcId) != vpcID {
+	if aws.StringValue(resp.VpcId) != vpcID {
 		log.Printf("[WARN] Internet Gateway Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -143,7 +135,7 @@ func resourceAwsInternetGatewayAttachmentDelete(d *schema.ResourceData, meta int
 			return nil
 		}
 
-		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
 			return nil
 		}
 
@@ -162,7 +154,7 @@ func resourceAwsInternetGatewayAttachmentDelete(d *schema.ResourceData, meta int
 
 	_, err = waiter.InternetGatewayAttachmentDeleted(conn, igwID, vpcID)
 	if err != nil {
-		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
 			return nil
 		}
 		return fmt.Errorf("error waiting for Internet Gateway attachment %q to be deleted: %w", d.Id(), err)

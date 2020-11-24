@@ -156,7 +156,7 @@ func testAccCheckInternetGatewayAttachmentDestroy(s *terraform.State) error {
 		}
 
 		_, err = finder.InternetGatewayAttachmentByID(conn, igwID, vpcID)
-		if !tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInternetGatewayIDNotFound) {
+		if !tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidInternetGatewayIDNotFound) {
 			return err
 		}
 	}
@@ -185,15 +185,8 @@ func testAccCheckInternetGatewayAttachmentExists(n string, ig *ec2.InternetGatew
 		if err != nil {
 			return err
 		}
-		if len(resp.InternetGateways) == 0 {
-			return fmt.Errorf("Internet Gateway not found")
-		}
 
-		if len(resp.InternetGateways[0].Attachments) == 0 {
-			return fmt.Errorf("Internet Gateway Attachment not found")
-		}
-
-		*ig = *resp.InternetGateways[0].Attachments[0]
+		*ig = *resp
 
 		return nil
 	}
