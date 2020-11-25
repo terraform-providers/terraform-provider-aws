@@ -187,7 +187,7 @@ func TestAccAWSLambdaPermission_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionFromCloudWatch"),
 					resource.TestCheckResourceAttr(resourceName, "qualifier", ""),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 					resource.TestCheckResourceAttr(resourceName, "event_source_token", "test-event-source-token"),
 				),
 			},
@@ -239,7 +239,7 @@ func TestAccAWSLambdaPermission_withRawFunctionName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceName, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionWithRawFuncName"),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 				),
 			},
 			{
@@ -273,7 +273,7 @@ func TestAccAWSLambdaPermission_withStatementIdPrefix(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceName, "principal", "events.amazonaws.com"),
 					resource.TestMatchResourceAttr(resourceName, "statement_id", startsWithPrefix),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 				),
 			},
 			{
@@ -310,7 +310,7 @@ func TestAccAWSLambdaPermission_withQualifier(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceName, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionWithQualifier"),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 					resource.TestCheckResourceAttr(resourceName, "qualifier", aliasName),
 				),
 			},
@@ -379,13 +379,13 @@ func TestAccAWSLambdaPermission_multiplePerms(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameFirst, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceNameFirst, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceNameFirst, "statement_id", "AllowExecutionFirst"),
-					resource.TestCheckResourceAttrPair(resourceNameFirst, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceNameFirst, "function_name", functionResourceName, "function_name"),
 					// 2nd
 					testAccCheckLambdaPermissionExists(resourceNameSecond, &firstStatementModified),
 					resource.TestCheckResourceAttr(resourceNameSecond, "action", "lambda:*"),
 					resource.TestCheckResourceAttr(resourceNameSecond, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceNameSecond, "statement_id", "AllowExecutionSecond"),
-					resource.TestCheckResourceAttrPair(resourceNameSecond, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceNameSecond, "function_name", functionResourceName, "function_name"),
 				),
 			},
 			{
@@ -396,19 +396,19 @@ func TestAccAWSLambdaPermission_multiplePerms(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceNameFirst, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceNameFirst, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceNameFirst, "statement_id", "AllowExecutionFirst"),
-					resource.TestCheckResourceAttrPair(resourceNameFirst, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceNameFirst, "function_name", functionResourceName, "function_name"),
 					// 2nd
 					testAccCheckLambdaPermissionExists(resourceNameSecondModified, &secondStatementModified),
 					resource.TestCheckResourceAttr(resourceNameSecondModified, "action", "lambda:*"),
 					resource.TestCheckResourceAttr(resourceNameSecondModified, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceNameSecondModified, "statement_id", "AllowExecutionSec0nd"),
-					resource.TestCheckResourceAttrPair(resourceNameSecondModified, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceNameSecondModified, "function_name", functionResourceName, "function_name"),
 					// 3rd
 					testAccCheckLambdaPermissionExists(resourceNameThird, &thirdStatement),
 					resource.TestCheckResourceAttr(resourceNameThird, "action", "lambda:*"),
 					resource.TestCheckResourceAttr(resourceNameThird, "principal", "events.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceNameThird, "statement_id", "AllowExecutionThird"),
-					resource.TestCheckResourceAttrPair(resourceNameThird, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceNameThird, "function_name", functionResourceName, "function_name"),
 				),
 			},
 			{
@@ -451,7 +451,7 @@ func TestAccAWSLambdaPermission_withS3(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceName, "principal", "s3.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionFromS3"),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 					resource.TestCheckResourceAttrPair(resourceName, "source_arn", bucketResourceName, "arn"),
 				),
 			},
@@ -489,7 +489,7 @@ func TestAccAWSLambdaPermission_withSNS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttr(resourceName, "principal", "sns.amazonaws.com"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionFromSNS"),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 					resource.TestCheckResourceAttrPair(resourceName, "source_arn", snsTopicResourceName, "arn"),
 				),
 			},
@@ -526,7 +526,7 @@ func TestAccAWSLambdaPermission_withIAMRole(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "action", "lambda:InvokeFunction"),
 					resource.TestCheckResourceAttrPair(resourceName, "principal", iamRoleResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "statement_id", "AllowExecutionFromIAMRole"),
-					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "arn"),
+					resource.TestCheckResourceAttrPair(resourceName, "function_name", functionResourceName, "function_name"),
 				),
 			},
 			{
@@ -722,7 +722,7 @@ func testAccAWSLambdaPermissionConfig(funcName, roleName string) string {
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id       = "AllowExecutionFromCloudWatch"
   action             = "lambda:InvokeFunction"
-  function_name      = aws_lambda_function.test.arn
+  function_name      = aws_lambda_function.test.function_name
   principal          = "events.amazonaws.com"
   event_source_token = "test-event-source-token"
 }
@@ -762,7 +762,7 @@ func testAccAWSLambdaPermissionConfigStatementIdDuplicate(rName string) string {
 resource "aws_lambda_permission" "test1" {
   action             = "lambda:InvokeFunction"
   event_source_token = "test-event-source-token"
-  function_name      = aws_lambda_function.test.arn
+  function_name      = aws_lambda_function.test.function_name
   principal          = "events.amazonaws.com"
   statement_id       = "AllowExecutionFromCloudWatch"
 }
@@ -770,7 +770,7 @@ resource "aws_lambda_permission" "test1" {
 resource "aws_lambda_permission" "test2" {
   action             = "lambda:InvokeFunction"
   event_source_token = "test-event-source-token"
-  function_name      = aws_lambda_function.test.arn
+  function_name      = aws_lambda_function.test.function_name
   principal          = "events.amazonaws.com"
   statement_id       = "AllowExecutionFromCloudWatch"
 }
@@ -810,7 +810,7 @@ func testAccAWSLambdaPermissionConfig_withRawFunctionName(funcName, roleName str
 resource "aws_lambda_permission" "with_raw_func_name" {
   statement_id  = "AllowExecutionWithRawFuncName"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "events.amazonaws.com"
 }
 
@@ -849,7 +849,7 @@ func testAccAWSLambdaPermissionConfig_withStatementIdPrefix(rName string) string
 resource "aws_lambda_permission" "with_statement_id_prefix" {
   statement_id_prefix = "AllowExecutionWithStatementIdPrefix-"
   action              = "lambda:InvokeFunction"
-  function_name       = aws_lambda_function.test.arn
+  function_name       = aws_lambda_function.test.function_name
   principal           = "events.amazonaws.com"
 }
 
@@ -889,7 +889,7 @@ func testAccAWSLambdaPermissionConfig_withQualifier(aliasName, funcName, roleNam
 resource "aws_lambda_permission" "with_qualifier" {
   statement_id   = "AllowExecutionWithQualifier"
   action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.test.arn
+  function_name  = aws_lambda_function.test.function_name
   principal      = "events.amazonaws.com"
   source_account = "111122223333"
   source_arn     = "arn:aws:events:eu-west-1:111122223333:rule/RunDaily"
@@ -899,7 +899,7 @@ resource "aws_lambda_permission" "with_qualifier" {
 resource "aws_lambda_alias" "test_alias" {
   name             = "%s"
   description      = "a sample description"
-  function_name    = aws_lambda_function.test.arn
+  function_name    = aws_lambda_function.test.function_name
   function_version = "$LATEST"
 }
 
@@ -937,14 +937,14 @@ var testAccAWSLambdaPermissionConfig_multiplePerms_tpl = `
 resource "aws_lambda_permission" "first" {
   statement_id  = "AllowExecutionFirst"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "events.amazonaws.com"
 }
 
 resource "aws_lambda_permission" "%s" {
   statement_id  = "%s"
   action        = "lambda:*"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "events.amazonaws.com"
 }
 %s
@@ -989,7 +989,7 @@ func testAccAWSLambdaPermissionConfig_multiplePermsModified(funcName, roleName s
 resource "aws_lambda_permission" "third" {
   statement_id  = "AllowExecutionThird"
   action        = "lambda:*"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "events.amazonaws.com"
 }
 `, funcName, roleName)
@@ -1000,7 +1000,7 @@ func testAccAWSLambdaPermissionConfig_withS3(bucketName, funcName, roleName stri
 resource "aws_lambda_permission" "with_s3" {
   statement_id  = "AllowExecutionFromS3"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.default.arn
 }
@@ -1045,7 +1045,7 @@ func testAccAWSLambdaPermissionConfig_withSNS(topicName, funcName, roleName stri
 resource "aws_lambda_permission" "with_sns" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = "sns.amazonaws.com"
   source_arn    = aws_sns_topic.default.arn
 }
@@ -1095,7 +1095,7 @@ func testAccAWSLambdaPermissionConfig_withIAMRole(funcName, roleName string) str
 resource "aws_lambda_permission" "iam_role" {
   statement_id  = "AllowExecutionFromIAMRole"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.test.arn
+  function_name = aws_lambda_function.test.function_name
   principal     = aws_iam_role.test.arn
 }
 
