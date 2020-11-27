@@ -31,6 +31,7 @@ resource "aws_s3_bucket" "example" {
 
 There are no arguments available for this data source.
 
+* `region` - (Optional) The region you'd like the zone for. By default, fetches the current region.
 
 ## Attributes Reference
 

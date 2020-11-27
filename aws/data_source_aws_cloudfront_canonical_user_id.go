@@ -17,7 +17,12 @@ func dataSourceAwsCloudfrontCanonicalId() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAwsCloudfrontCanonicalIdRead,
 
-		Schema: map[string]*schema.Schema{},
+		Schema: map[string]*schema.Schema{
+			"region": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+		},
 	}
 }
 
@@ -25,6 +30,9 @@ func dataSourceAwsCloudfrontCanonicalIdRead(d *schema.ResourceData, meta interfa
 	canonicalId := defaultCloudfrontDeliveryCanonicalId
 
 	region := meta.(*AWSClient).region
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 	for _, r := range chinaRegions {
 		if r == region {
 			canonicalId = chinaCloudfrontDeliveryCanonicalId
