@@ -51,7 +51,7 @@ func TestAccCloudfrontCanonicalUserIdCheck_chinaRegion(t *testing.T) {
 			name: "cn-north-1",
 			config: `
 data "aws_cloudfront_canonical_user_id" "main" {
-	region = "cn-north-1"
+  region = "cn-north-1"
 }
 `,
 		},
@@ -59,7 +59,7 @@ data "aws_cloudfront_canonical_user_id" "main" {
 			name: "cn-northwest-1",
 			config: `
 data "aws_cloudfront_canonical_user_id" "main" {
-	region = "cn-northwest-1"
+  region = "cn-northwest-1"
 }
 `,
 		},
