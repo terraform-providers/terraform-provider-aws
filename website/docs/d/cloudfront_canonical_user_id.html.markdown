@@ -37,4 +37,3 @@ There are no arguments available for this data source.
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The canonical user ID for the AWS `awslogsdelivery` account.
-
