@@ -1322,7 +1322,8 @@ behavior "pull_request_path_labeler" "service_labels" {
       "aws/internal/service/s3/**/*",
       "**/*_s3_bucket*",
       "**/s3_bucket*",
-      "aws/*_aws_canonical_user_id*"
+      "aws/*_aws_canonical_user_id*",
+      "website/**/canonical_user_id*"
     ]
     "service/s3control" = [
       "aws/internal/service/s3control/**/*",
