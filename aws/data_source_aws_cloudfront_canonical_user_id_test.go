@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAwslogsdeliveryCanonicalUserId_basic(t *testing.T) {
-	dataSourceName := "data.aws_awslogsdelivery_canonical_user_id.main"
+func TestAccCloudfrontCanonicalUserId_basic(t *testing.T) {
+	dataSourceName := "data.aws_cloudfront_canonical_user_id.main"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -18,22 +18,22 @@ func TestAccAwslogsdeliveryCanonicalUserId_basic(t *testing.T) {
 			{
 				Config: testAwslogsdeliveryCanonicalIdConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwslogsdeliveryCanonicalUserIdCheckExists(dataSourceName),
+					testAccDataSourceCloudfrontCanonicalUserIdCheckExists(dataSourceName),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAwslogsdeliveryCanonicalUserIdCheckExists(name string) resource.TestCheckFunc {
+func testAccDataSourceCloudfrontCanonicalUserIdCheckExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("can't find awslogsdelivery canonical user ID resource: %s", name)
+			return fmt.Errorf("can't find cloudfront canonical user ID resource: %s", name)
 		}
 
 		if rs.Primary.Attributes["id"] != "c4c1ede66af53448b93c283ce9448c4ba468c9432aa01d700d3878632f77d2d0" {
-			return fmt.Errorf("invalid awslogsdelivery canonical user id")
+			return fmt.Errorf("invalid cloudfront canonical user id")
 		}
 
 		return nil
@@ -41,5 +41,5 @@ func testAccDataSourceAwslogsdeliveryCanonicalUserIdCheckExists(name string) res
 }
 
 const testAwslogsdeliveryCanonicalIdConfig = `
-data "aws_awslogsdelivery_canonical_user_id" "main" {}
+data "aws_cloudfront_canonical_user_id" "main" {}
 `
