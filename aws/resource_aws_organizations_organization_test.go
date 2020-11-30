@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func testAccAwsOrganizationsOrganization_basic(t *testing.T) {
@@ -66,7 +65,7 @@ func testAccAwsOrganizationsOrganization_AwsServiceAccessPrincipals(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &organization),
 					resource.TestCheckResourceAttr(resourceName, "aws_service_access_principals.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "config.amazonaws.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "config.amazonaws.com"),
 				),
 			},
 			{
@@ -79,8 +78,8 @@ func testAccAwsOrganizationsOrganization_AwsServiceAccessPrincipals(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &organization),
 					resource.TestCheckResourceAttr(resourceName, "aws_service_access_principals.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "config.amazonaws.com"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "ds.amazonaws.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "config.amazonaws.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "ds.amazonaws.com"),
 				),
 			},
 			{
@@ -88,7 +87,7 @@ func testAccAwsOrganizationsOrganization_AwsServiceAccessPrincipals(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &organization),
 					resource.TestCheckResourceAttr(resourceName, "aws_service_access_principals.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "fms.amazonaws.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "aws_service_access_principals.*", "fms.amazonaws.com"),
 				),
 			},
 		},
@@ -204,6 +203,76 @@ func testAccAwsOrganizationsOrganization_FeatureSet(t *testing.T) {
 	})
 }
 
+func testAccAwsOrganizationsOrganization_FeatureSetForcesNew(t *testing.T) {
+	var beforeValue, afterValue organizations.Organization
+	resourceName := "aws_organizations_organization.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsOrganizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsOrganizationConfigFeatureSet(organizations.OrganizationFeatureSetAll),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &beforeValue),
+					resource.TestCheckResourceAttr(resourceName, "feature_set", organizations.OrganizationFeatureSetAll),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsOrganizationsOrganizationConfigFeatureSet(organizations.OrganizationFeatureSetConsolidatedBilling),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &afterValue),
+					resource.TestCheckResourceAttr(resourceName, "feature_set", organizations.OrganizationFeatureSetConsolidatedBilling),
+					testAccAwsOrganizationsOrganizationRecreated(&beforeValue, &afterValue),
+				),
+			},
+		},
+	})
+}
+
+func testAccAwsOrganizationsOrganization_FeatureSetUpdate(t *testing.T) {
+	var beforeValue, afterValue organizations.Organization
+	resourceName := "aws_organizations_organization.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccOrganizationsAccountPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsOrganizationsOrganizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsOrganizationsOrganizationConfigFeatureSet(organizations.OrganizationFeatureSetConsolidatedBilling),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &beforeValue),
+					resource.TestCheckResourceAttr(resourceName, "feature_set", organizations.OrganizationFeatureSetConsolidatedBilling),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config:             testAccAwsOrganizationsOrganizationConfigFeatureSet(organizations.OrganizationFeatureSetAll),
+				ExpectNonEmptyPlan: true, // See note below on this perpetual difference
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsOrganizationsOrganizationExists(resourceName, &afterValue),
+					// The below check cannot be performed here because the user must confirm the change
+					// via Console. Until then, the FeatureSet will not actually be toggled to ALL
+					// and will continue to show as CONSOLIDATED_BILLING when calling DescribeOrganization
+					// resource.TestCheckResourceAttr(resourceName, "feature_set", organizations.OrganizationFeatureSetAll),
+					testAccAwsOrganizationsOrganizationNotRecreated(&beforeValue, &afterValue),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAwsOrganizationsOrganizationDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).organizationsconn
 
@@ -232,7 +301,7 @@ func testAccCheckAwsOrganizationsOrganizationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAwsOrganizationsOrganizationExists(n string, a *organizations.Organization) resource.TestCheckFunc {
+func testAccCheckAwsOrganizationsOrganizationExists(n string, org *organizations.Organization) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -256,7 +325,7 @@ func testAccCheckAwsOrganizationsOrganizationExists(n string, a *organizations.O
 			return fmt.Errorf("Organization %q does not exist", rs.Primary.ID)
 		}
 
-		a = resp.Organization
+		*org = *resp.Organization
 
 		return nil
 	}
@@ -352,5 +421,23 @@ func testFlattenOrganizationsRootPolicyTypes(t *testing.T, index int, result []m
 		if aws.StringValue(v.Type) != result[i]["type"] {
 			t.Fatalf(`expected result[%d]["policy_types"][%d]["type"] to equal %q, got %q`, index, i, aws.StringValue(v.Type), result[i]["type"])
 		}
+	}
+}
+
+func testAccAwsOrganizationsOrganizationRecreated(before, after *organizations.Organization) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(before.Id) == aws.StringValue(after.Id) {
+			return fmt.Errorf("Organization (%s) not recreated", aws.StringValue(before.Id))
+		}
+		return nil
+	}
+}
+
+func testAccAwsOrganizationsOrganizationNotRecreated(before, after *organizations.Organization) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if aws.StringValue(before.Id) != aws.StringValue(after.Id) {
+			return fmt.Errorf("Organization (%s) recreated", aws.StringValue(before.Id))
+		}
+		return nil
 	}
 }

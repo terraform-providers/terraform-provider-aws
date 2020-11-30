@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -300,7 +299,7 @@ func TestAccAWSWafRegionalRule_changePredicates(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
 					computeWafRegionalRulePredicate(&ipset.IPSetId, false, "IPMatch", &idx),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "false",
 						"type":    "IPMatch",
 					}),
@@ -314,12 +313,12 @@ func TestAccAWSWafRegionalRule_changePredicates(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "2"),
 					computeWafRegionalRulePredicate(&xssMatchSet.XssMatchSetId, true, "XssMatch", &idx),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "true",
 						"type":    "XssMatch",
 					}),
 					computeWafRegionalRulePredicate(&ipset.IPSetId, true, "IPMatch", &idx),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "true",
 						"type":    "IPMatch",
 					}),

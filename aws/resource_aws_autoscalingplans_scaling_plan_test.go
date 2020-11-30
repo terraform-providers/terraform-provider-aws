@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/autoscalingplans/finder"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -94,7 +93,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicDynamicScaling(t *testing.T) {
 						rName: {rName},
 					}),
 					resource.TestCheckResourceAttr(resourceName, "scaling_instruction.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
 						"customized_load_metric_specification.#": "0",
 						"disable_dynamic_scaling":                "false",
 						"max_capacity":                           "3",
@@ -145,7 +144,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicPredictiveScaling(t *testing.T) 
 						rName: {rName},
 					}),
 					resource.TestCheckResourceAttr(resourceName, "scaling_instruction.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
 						"customized_load_metric_specification.#": "0",
 						"disable_dynamic_scaling":                "true",
 						"max_capacity":                           "3",
@@ -200,7 +199,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicUpdate(t *testing.T) {
 						rName: {rName},
 					}),
 					resource.TestCheckResourceAttr(resourceName, "scaling_instruction.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
 						"customized_load_metric_specification.#": "0",
 						"disable_dynamic_scaling":                "false",
 						"max_capacity":                           "3",
@@ -226,7 +225,7 @@ func TestAccAwsAutoScalingPlansScalingPlan_basicUpdate(t *testing.T) {
 						rNameUpdated: {rNameUpdated},
 					}),
 					resource.TestCheckResourceAttr(resourceName, "scaling_instruction.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "scaling_instruction.*", map[string]string{
 						"customized_load_metric_specification.#": "0",
 						"disable_dynamic_scaling":                "true",
 						"max_capacity":                           "3",

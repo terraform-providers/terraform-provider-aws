@@ -1,13 +1,20 @@
 terraform {
-  backend "atlas" {
-    name = "hashicorp-v2/terraform-provider-aws-repository"
+  backend "remote" {
+    organization = "hashicorp-v2"
+
+    workspaces {
+      name = "terraform-provider-aws-repository"
+    }
   }
 
   required_providers {
-    github = "3.1.0"
+    github = {
+      source  = "hashicorp/github"
+      version = "3.1.0"
+    }
   }
 
-  required_version = "~> 0.12.24"
+  required_version = ">= 0.13.5"
 }
 
 provider "github" {

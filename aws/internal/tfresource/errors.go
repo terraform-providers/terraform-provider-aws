@@ -1,14 +1,17 @@
 package tfresource
 
 import (
+	"errors"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // NotFound returns true if the error represents a "resource not found" condition.
-// Specifically, NotFound returns true if the error is of type resource.NotFoundError.
+// Specifically, NotFound returns true if the error or a wrapped error is of type
+// resource.NotFoundError.
 func NotFound(err error) bool {
-	_, ok := err.(*resource.NotFoundError)
-	return ok
+	var e *resource.NotFoundError
+	return errors.As(err, &e)
 }
 
 // TimedOut returns true if the error represents a "wait timed out" condition.

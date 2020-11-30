@@ -4,6 +4,8 @@
 default: true
 MD007:
   indent: 4
+MD010:
+  code_blocks: false
 
 # Disabled Rules
 # https://github.com/DavidAnson/markdownlint/blob/master/doc/Rules.md
@@ -11,7 +13,6 @@ MD007:
 MD001: false
 MD004: false
 MD006: false
-MD010: false
 MD012: false
 MD013: false
 MD014: false

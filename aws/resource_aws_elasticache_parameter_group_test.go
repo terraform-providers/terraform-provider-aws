@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSElasticacheParameterGroup_basic(t *testing.T) {
@@ -56,7 +55,7 @@ func TestAccAWSElasticacheParameterGroup_addParameter(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheParameterGroupExists("aws_elasticache_parameter_group.bar", &v),
 					resource.TestCheckResourceAttr("aws_elasticache_parameter_group.bar", "parameter.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
 						"name":  "appendonly",
 						"value": "yes",
 					}),
@@ -72,11 +71,11 @@ func TestAccAWSElasticacheParameterGroup_addParameter(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheParameterGroupExists("aws_elasticache_parameter_group.bar", &v),
 					resource.TestCheckResourceAttr("aws_elasticache_parameter_group.bar", "parameter.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
 						"name":  "appendonly",
 						"value": "yes",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_elasticache_parameter_group.bar", "parameter.*", map[string]string{
 						"name":  "appendfsync",
 						"value": "always",
 					}),

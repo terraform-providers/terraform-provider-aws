@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSWafRegionalIPSet_basic(t *testing.T) {
@@ -33,7 +32,7 @@ func TestAccAWSWafRegionalIPSet_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafRegionalIPSetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "name", ipsetName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -86,7 +85,7 @@ func TestAccAWSWafRegionalIPSet_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafRegionalIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ipsetName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -97,7 +96,7 @@ func TestAccAWSWafRegionalIPSet_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafRegionalIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ipsetNewName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -128,7 +127,7 @@ func TestAccAWSWafRegionalIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafRegionalIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ipsetName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptor.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -140,7 +139,7 @@ func TestAccAWSWafRegionalIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafRegionalIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ipsetName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptor.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptor.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.8.0/24",
 					}),

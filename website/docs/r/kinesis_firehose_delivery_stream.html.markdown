@@ -623,6 +623,8 @@ resource "aws_kinesis_firehose_delivery_stream" "example" {
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream
 
 [1]: https://aws.amazon.com/documentation/firehose/

@@ -70,7 +70,41 @@ based on these guidelines to speed up the review and merge process.
 
 ### Go Coding Style
 
-The following Go language resources provide common coding preferences that may be referenced during review, if not automatically handled by the project's linting tools.
+All Go code is automatically checked for compliance with various linters, such as `gofmt`. These tools can be installed using the `GNUMakefile` in this repository.
+
+```console
+% cd terraform-provider-aws
+% make tools
+```
+
+Check your code with the linters:
+
+```console
+% make lint
+```
+
+`gofmt` will also fix many simple formatting issues for you. The Makefile includes a target for this:
+
+```console
+% make fmt
+```
+
+The import statement in a Go file follows these rules (see [#15903](https://github.com/hashicorp/terraform-provider-aws/issues/15903)):
+
+1. Import declarations are grouped into a maximum of three groups with the following order:
+    - Standard packages (also called short import path or built-in packages)
+    - Third-party packages (also called long import path packages)
+    - Local packages
+1. Groups are separated by a single blank line
+1. Packages within each group are alphabetized
+
+Check your imports:
+
+```console
+% make importlint
+```
+
+For greater detail, the following Go language resources provide common coding preferences that may be referenced during review, if not automatically handled by the project's linting tools.
 
 - [Effective Go](https://golang.org/doc/effective_go.html)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)

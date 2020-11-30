@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -76,14 +77,25 @@ var testAccProviderFactories map[string]func() (*schema.Provider, error)
 // testAccPreCheck(t) must be called before using this provider instance.
 var testAccProvider *schema.Provider
 
+// testAccProviderConfigure ensures testAccProvider is only configured once
+//
+// The testAccPreCheck(t) function is invoked for every test and this prevents
+// extraneous reconfiguration to the same values each time. However, this does
+// not prevent reconfiguration that may happen should the address of
+// testAccProvider be errantly reused in ProviderFactories.
+var testAccProviderConfigure sync.Once
+
 func init() {
 	testAccProvider = Provider()
 
 	testAccProviders = map[string]*schema.Provider{
 		ProviderNameAws: testAccProvider,
 	}
+
+	// Always allocate a new provider instance each invocation, otherwise gRPC
+	// ProviderConfigure() can overwrite configuration during concurrent testing.
 	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		ProviderNameAws: func() (*schema.Provider, error) { return testAccProvider, nil },
+		ProviderNameAws: func() (*schema.Provider, error) { return Provider(), nil }, //nolint:unparam
 	}
 }
 
@@ -166,23 +178,41 @@ func TestProvider_impl(t *testing.T) {
 	var _ *schema.Provider = Provider()
 }
 
+// testAccPreCheck verifies and sets required provider testing configuration
+//
+// This PreCheck function should be present in every acceptance test. It allows
+// test configurations to omit a provider configuration with region and ensures
+// testing functions that attempt to call AWS APIs are previously configured.
+//
+// These verifications and configuration are preferred at this level to prevent
+// provider developers from experiencing less clear errors for every test.
 func testAccPreCheck(t *testing.T) {
-	if os.Getenv("AWS_PROFILE") == "" && os.Getenv("AWS_ACCESS_KEY_ID") == "" {
-		t.Fatal("AWS_ACCESS_KEY_ID or AWS_PROFILE must be set for acceptance tests")
-	}
+	// Since we are outside the scope of the Terraform configuration we must
+	// call Configure() to properly initialize the provider configuration.
+	testAccProviderConfigure.Do(func() {
+		if os.Getenv("AWS_PROFILE") == "" && os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+			t.Fatal("AWS_ACCESS_KEY_ID or AWS_PROFILE must be set for acceptance tests")
+		}
 
-	if os.Getenv("AWS_ACCESS_KEY_ID") != "" && os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
-		t.Fatal("AWS_SECRET_ACCESS_KEY must be set for acceptance tests")
-	}
+		if os.Getenv("AWS_ACCESS_KEY_ID") != "" && os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+			t.Fatal("AWS_SECRET_ACCESS_KEY must be set for acceptance tests")
+		}
 
-	region := testAccGetRegion()
-	log.Printf("[INFO] Test: Using %s as test region", region)
-	os.Setenv("AWS_DEFAULT_REGION", region)
+		// Setting the AWS_DEFAULT_REGION environment variable here allows all tests to omit
+		// a provider configuration with a region. This defaults to us-west-2 for provider
+		// developer simplicity and has been in the codebase for a very long time.
+		//
+		// This handling must be preserved until either:
+		//   * AWS_DEFAULT_REGION is required and checked above (should mention us-west-2 default)
+		//   * Region is automatically handled via shared AWS configuration file and still verified
+		region := testAccGetRegion()
+		os.Setenv("AWS_DEFAULT_REGION", region)
 
-	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
-	if err != nil {
-		t.Fatal(err)
-	}
+		err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
 // testAccAwsProviderAccountID returns the account ID of an AWS provider
@@ -313,7 +343,7 @@ func testAccMatchResourceAttrRegionalARN(resourceName, attributeName, arnService
 		attributeMatch, err := regexp.Compile(arnRegexp)
 
 		if err != nil {
-			return fmt.Errorf("Unable to compile ARN regexp (%s): %s", arnRegexp, err)
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %w", arnRegexp, err)
 		}
 
 		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
@@ -354,7 +384,7 @@ func testAccMatchResourceAttrRegionalARNAccountID(resourceName, attributeName, a
 		attributeMatch, err := regexp.Compile(arnRegexp)
 
 		if err != nil {
-			return fmt.Errorf("Unable to compile ARN regexp (%s): %s", arnRegexp, err)
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %w", arnRegexp, err)
 		}
 
 		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
@@ -369,7 +399,7 @@ func testAccMatchResourceAttrRegionalHostname(resourceName, attributeName, servi
 		hostnameRegexp, err := regexp.Compile(hostnameRegexpPattern)
 
 		if err != nil {
-			return fmt.Errorf("Unable to compile hostname regexp (%s): %s", hostnameRegexp, err)
+			return fmt.Errorf("Unable to compile hostname regexp (%s): %w", hostnameRegexp, err)
 		}
 
 		return resource.TestMatchResourceAttr(resourceName, attributeName, hostnameRegexp)(s)
@@ -427,7 +457,28 @@ func testAccMatchResourceAttrGlobalARN(resourceName, attributeName, arnService s
 		attributeMatch, err := regexp.Compile(arnRegexp)
 
 		if err != nil {
-			return fmt.Errorf("Unable to compile ARN regexp (%s): %s", arnRegexp, err)
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %w", arnRegexp, err)
+		}
+
+		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
+	}
+}
+
+// testAccCheckResourceAttrRegionalARNIgnoreRegionAndAccount ensures the Terraform state exactly matches a formatted ARN with region without specifying the region or account
+func testAccCheckResourceAttrRegionalARNIgnoreRegionAndAccount(resourceName, attributeName, arnService, arnResource string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		arnRegexp := arn.ARN{
+			AccountID: awsAccountIDRegexpInternalPattern,
+			Partition: testAccGetPartition(),
+			Region:    awsRegionRegexpInternalPattern,
+			Resource:  arnResource,
+			Service:   arnService,
+		}.String()
+
+		attributeMatch, err := regexp.Compile(arnRegexp)
+
+		if err != nil {
+			return fmt.Errorf("Unable to compile ARN regexp (%s): %w", arnRegexp, err)
 		}
 
 		return resource.TestMatchResourceAttr(resourceName, attributeName, attributeMatch)(s)
@@ -1737,7 +1788,7 @@ provider "aws" {
 }
 
 data "aws_caller_identity" "current" {}
-`
+` //lintignore:AT004
 
 // composeConfig can be called to concatenate multiple strings to build test configurations
 func composeConfig(config ...string) string {

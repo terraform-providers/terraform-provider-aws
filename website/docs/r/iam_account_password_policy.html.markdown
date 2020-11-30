@@ -32,8 +32,7 @@ resource "aws_iam_account_password_policy" "strict" {
 The following arguments are supported:
 
 * `allow_users_to_change_password` - (Optional) Whether to allow users to change their own password
-* `hard_expiry` - (Optional) Whether users are prevented from setting a new password after their password has expired
-	(i.e. require administrator reset)
+* `hard_expiry` - (Optional) Whether users are prevented from setting a new password after their password has expired (i.e. require administrator reset)
 * `max_password_age` - (Optional) The number of days that an user password is valid.
 * `minimum_password_length` - (Optional) Minimum length to require for user passwords.
 * `password_reuse_prevention` - (Optional) The number of previous passwords that users are prevented from reusing.
@@ -46,9 +45,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `expire_passwords` - Indicates whether passwords in the account expire.
-	Returns `true` if `max_password_age` contains a value greater than `0`.
-	Returns `false` if it is `0` or _not present_.
+* `expire_passwords` - Indicates whether passwords in the account expire. Returns `true` if `max_password_age` contains a value greater than `0`. Returns `false` if it is `0` or _not present_.
 
 
 ## Import

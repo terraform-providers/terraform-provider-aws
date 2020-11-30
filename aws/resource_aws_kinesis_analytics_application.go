@@ -218,7 +218,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"record_columns": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 1000,
 										Elem: &schema.Resource{
@@ -481,7 +481,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"record_columns": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 1000,
 										Elem: &schema.Resource{
@@ -1248,8 +1248,8 @@ func expandKinesisAnalyticsInputUpdate(vInput []interface{}) *kinesisanalytics.I
 
 		mInputSchema := vInputSchema[0].(map[string]interface{})
 
-		if vRecordColumns, ok := mInputSchema["record_columns"].(*schema.Set); ok && vRecordColumns.Len() > 0 {
-			inputSchemaUpdate.RecordColumnUpdates = expandKinesisAnalyticsRecordColumns(vRecordColumns.List())
+		if vRecordColumns, ok := mInputSchema["record_columns"].([]interface{}); ok {
+			inputSchemaUpdate.RecordColumnUpdates = expandKinesisAnalyticsRecordColumns(vRecordColumns)
 		}
 
 		if vRecordEncoding, ok := mInputSchema["record_encoding"].(string); ok && vRecordEncoding != "" {
@@ -1555,8 +1555,8 @@ func expandKinesisAnalyticsSourceSchema(vSourceSchema []interface{}) *kinesisana
 
 	mSourceSchema := vSourceSchema[0].(map[string]interface{})
 
-	if vRecordColumns, ok := mSourceSchema["record_columns"].(*schema.Set); ok && vRecordColumns.Len() > 0 {
-		sourceSchema.RecordColumns = expandKinesisAnalyticsRecordColumns(vRecordColumns.List())
+	if vRecordColumns, ok := mSourceSchema["record_columns"].([]interface{}); ok {
+		sourceSchema.RecordColumns = expandKinesisAnalyticsRecordColumns(vRecordColumns)
 	}
 
 	if vRecordEncoding, ok := mSourceSchema["record_encoding"].(string); ok && vRecordEncoding != "" {

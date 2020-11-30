@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the arguments, which are exported, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `scope_identifiers` - A list of all scopes configured for this resource server in the format identifier/scope_name.
 

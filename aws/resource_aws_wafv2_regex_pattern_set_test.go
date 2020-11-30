@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafv2/lister"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -98,10 +97,10 @@ func TestAccAwsWafv2RegexPatternSet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", rName),
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "regular_expression.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
 						"regex_string": "one",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
 						"regex_string": "two",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -116,13 +115,13 @@ func TestAccAwsWafv2RegexPatternSet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "Updated"),
 					resource.TestCheckResourceAttr(resourceName, "scope", wafv2.ScopeRegional),
 					resource.TestCheckResourceAttr(resourceName, "regular_expression.#", "3"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
 						"regex_string": "one",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
 						"regex_string": "two",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regular_expression.*", map[string]string{
 						"regex_string": "three",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),

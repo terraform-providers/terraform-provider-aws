@@ -123,7 +123,7 @@ func TestAccAWSCloudFormationStackSet_disappears(t *testing.T) {
 				Config: testAccAWSCloudFormationStackSetConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudFormationStackSetExists(resourceName, &stackSet1),
-					testAccCheckCloudFormationStackSetDisappears(&stackSet1),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCloudFormationStackSet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -636,20 +636,6 @@ func testAccCheckAWSCloudFormationStackSetDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckCloudFormationStackSetDisappears(stackSet *cloudformation.StackSet) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).cfconn
-
-		input := &cloudformation.DeleteStackSetInput{
-			StackSetName: stackSet.StackSetName,
-		}
-
-		_, err := conn.DeleteStackSet(input)
-
-		return err
-	}
 }
 
 func testAccCheckCloudFormationStackSetNotRecreated(i, j *cloudformation.StackSet) resource.TestCheckFunc {

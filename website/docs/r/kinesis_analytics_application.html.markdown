@@ -247,7 +247,7 @@ The `s3` blcok supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported along with all argument references:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Kinesis Analytics Application.
 * `arn` - The ARN of the Kinesis Analytics Appliation.

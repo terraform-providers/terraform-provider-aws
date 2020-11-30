@@ -180,6 +180,64 @@ func TestAccAWSLambdaFunction_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSLambdaFunction_codeSigningConfig(t *testing.T) {
+	var conf lambda.GetFunctionOutput
+
+	rString := acctest.RandString(8)
+	funcName := fmt.Sprintf("tf_acc_lambda_func_csc_%s", rString)
+	roleName := fmt.Sprintf("tf_acc_role_lambda_func_csc_%s", rString)
+	resourceName := "aws_lambda_function.test"
+	cscResourceName := "aws_lambda_code_signing_config.code_signing_config_1"
+	cscUpdateResourceName := "aws_lambda_code_signing_config.code_signing_config_2"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckSingerSigningProfile(t, "AWSLambda-SHA384-ECDSA") },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLambdaFunctionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLambdaConfigCSCCreate(roleName, funcName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					testAccCheckAwsLambdaFunctionName(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestCheckResourceAttrPair(resourceName, "code_signing_config_arn", cscResourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+			{
+				Config: testAccAWSLambdaConfigCSCUpdate(roleName, funcName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					testAccCheckAwsLambdaFunctionName(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestCheckResourceAttrPair(resourceName, "code_signing_config_arn", cscUpdateResourceName, "arn"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+			{
+				Config: testAccAWSLambdaConfigCSCDelete(roleName, funcName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsLambdaFunctionExists(resourceName, funcName, &conf),
+					testAccCheckAwsLambdaFunctionName(&conf, funcName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "lambda", fmt.Sprintf("function:%s", funcName)),
+					resource.TestCheckResourceAttr(resourceName, "code_signing_config_arn", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLambdaFunction_concurrency(t *testing.T) {
 	var conf lambda.GetFunctionOutput
 
@@ -1908,6 +1966,113 @@ resource "aws_security_group" "sg_for_lambda" {
 
 func testAccAWSLambdaConfigBasic(funcName, policyName, roleName, sgName string) string {
 	return fmt.Sprintf(baseAccAWSLambdaConfig(policyName, roleName, sgName)+`
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambdatest.zip"
+  function_name = "%s"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs12.x"
+}
+`, funcName)
+}
+
+func testAccAWSLambdaConfigCSCBasic(roleName string) string {
+	return fmt.Sprintf(`
+data "aws_iam_policy_document" "policy" {
+  statement {
+    sid    = ""
+    effect = "Allow"
+
+    principals {
+      identifiers = ["lambda.amazonaws.com"]
+      type        = "Service"
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name               = "%s"
+  assume_role_policy = data.aws_iam_policy_document.policy.json
+}
+
+resource "aws_signer_signing_profile" "test1" {
+  platform_id = "AWSLambda-SHA384-ECDSA"
+}
+
+resource "aws_signer_signing_profile" "test2" {
+  platform_id = "AWSLambda-SHA384-ECDSA"
+}
+
+resource "aws_signer_signing_profile" "test3" {
+  platform_id = "AWSLambda-SHA384-ECDSA"
+}
+
+resource "aws_signer_signing_profile" "test4" {
+  platform_id = "AWSLambda-SHA384-ECDSA"
+}
+
+resource "aws_lambda_code_signing_config" "code_signing_config_1" {
+  allowed_publishers {
+    signing_profile_version_arns = [
+      aws_signer_signing_profile.test1.version_arn,
+      aws_signer_signing_profile.test2.version_arn
+    ]
+  }
+
+  policies {
+    untrusted_artifact_on_deployment = "Warn"
+  }
+
+  description = "Code Signing Config for test account"
+}
+
+resource "aws_lambda_code_signing_config" "code_signing_config_2" {
+  allowed_publishers {
+    signing_profile_version_arns = [
+      aws_signer_signing_profile.test3.version_arn,
+      aws_signer_signing_profile.test4.version_arn
+    ]
+  }
+
+  policies {
+    untrusted_artifact_on_deployment = "Warn"
+  }
+
+  description = "Code Signing Config for test account update"
+}
+`, roleName)
+}
+
+func testAccAWSLambdaConfigCSCCreate(roleName, funcName string) string {
+	return fmt.Sprintf(testAccAWSLambdaConfigCSCBasic(roleName)+`
+resource "aws_lambda_function" "test" {
+  filename                = "test-fixtures/lambdatest.zip"
+  function_name           = "%s"
+  role                    = aws_iam_role.iam_for_lambda.arn
+  handler                 = "exports.example"
+  runtime                 = "nodejs12.x"
+  code_signing_config_arn = aws_lambda_code_signing_config.code_signing_config_1.arn
+}
+`, funcName)
+}
+
+func testAccAWSLambdaConfigCSCUpdate(roleName, funcName string) string {
+	return fmt.Sprintf(testAccAWSLambdaConfigCSCBasic(roleName)+`
+resource "aws_lambda_function" "test" {
+  filename                = "test-fixtures/lambdatest.zip"
+  function_name           = "%s"
+  role                    = aws_iam_role.iam_for_lambda.arn
+  handler                 = "exports.example"
+  runtime                 = "nodejs12.x"
+  code_signing_config_arn = aws_lambda_code_signing_config.code_signing_config_2.arn
+}
+`, funcName)
+}
+
+func testAccAWSLambdaConfigCSCDelete(roleName, funcName string) string {
+	return fmt.Sprintf(testAccAWSLambdaConfigCSCBasic(roleName)+`
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = "%s"

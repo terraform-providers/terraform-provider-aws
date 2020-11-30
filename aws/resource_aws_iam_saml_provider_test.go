@@ -2,15 +2,62 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
+	"log"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_iam_saml_provider", &resource.Sweeper{
+		Name: "aws_iam_saml_provider",
+		F:    testSweepIamSamlProvider,
+	})
+}
+
+func testSweepIamSamlProvider(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %w", err)
+	}
+	conn := client.(*AWSClient).iamconn
+
+	var sweeperErrs *multierror.Error
+
+	out, err := conn.ListSAMLProviders(&iam.ListSAMLProvidersInput{})
+
+	for _, sampProvider := range out.SAMLProviderList {
+		arn := aws.StringValue(sampProvider.Arn)
+
+		r := resourceAwsIamSamlProvider()
+		d := r.Data(nil)
+		d.SetId(arn)
+		err := r.Delete(d, client)
+
+		if err != nil {
+			sweeperErr := fmt.Errorf("error deleting IAM SAML Provider (%s): %w", arn, err)
+			log.Printf("[ERROR] %s", sweeperErr)
+			sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+			continue
+		}
+	}
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping IAM SAML Provider sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing IAM SAML Providers: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -25,9 +72,10 @@ func TestAccAWSIAMSamlProvider_basic(t *testing.T) {
 				Config: testAccIAMSamlProviderConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIAMSamlProviderExists(resourceName),
-					testAccMatchResourceAttrGlobalARN(resourceName, "arn", "iam", regexp.MustCompile(`saml-provider/.+`)),
+					testAccCheckResourceAttrGlobalARN(resourceName, "arn", "iam", fmt.Sprintf("saml-provider/%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttrSet(resourceName, "saml_metadata_document"),
+					resource.TestCheckResourceAttrSet(resourceName, "valid_until"),
 				),
 			},
 			{

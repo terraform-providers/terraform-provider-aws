@@ -173,8 +173,8 @@ resource "aws_appmesh_virtual_node" "serviceb1" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the virtual node.
-* `mesh_name` - (Required) The name of the service mesh in which to create the virtual node.
+* `name` - (Required) The name to use for the virtual node. Must be between 1 and 255 characters in length.
+* `mesh_name` - (Required) The name of the service mesh in which to create the virtual node. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The virtual node specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.
@@ -194,7 +194,7 @@ The `backend` object supports the following:
 The `virtual_service` object supports the following:
 
 * `client_policy` - (Optional) The client policy for the backend.
-* `virtual_service_name` - (Required) The name of the virtual service that is acting as a virtual node backend.
+* `virtual_service_name` - (Required) The name of the virtual service that is acting as a virtual node backend. Must be between 1 and 255 characters in length.
 
 The `client_policy` object supports the following:
 
@@ -221,7 +221,7 @@ The `acm` object supports the following:
 
 The `file` object supports the following:
 
-* `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the virtual node that the proxy is running on.
+* `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the virtual node that the proxy is running on. Must be between 1 and 255 characters in length.
 
 The `backend_defaults` object supports the following:
 
@@ -244,7 +244,7 @@ The `access_log` object supports the following:
 
 The `file` object supports the following:
 
-* `path` - (Required) The file path to write access logs to. You can use `/dev/stdout` to send access logs to standard out.
+* `path` - (Required) The file path to write access logs to. You can use `/dev/stdout` to send access logs to standard out. Must be between 1 and 255 characters in length.
 
 The `service_discovery` object supports the following:
 
@@ -255,8 +255,8 @@ The `aws_cloud_map` object supports the following:
 
 * `attributes` - (Optional) A string map that contains attributes with values that you can use to filter instances by any custom attribute that you specified when you registered the instance. Only instances that match all of the specified key/value pairs will be returned.
 * `namespace_name` - (Required) The name of the AWS Cloud Map namespace to use.
-Use the [`aws_service_discovery_http_namespace`](/docs/providers/aws/r/service_discovery_http_namespace.html) resource to configure a Cloud Map namespace.
-* `service_name` - (Required) The name of the AWS Cloud Map service to use. Use the [`aws_service_discovery_service`](/docs/providers/aws/r/service_discovery_service.html) resource to configure a Cloud Map service.
+Use the [`aws_service_discovery_http_namespace`](/docs/providers/aws/r/service_discovery_http_namespace.html) resource to configure a Cloud Map namespace. Must be between 1 and 1024 characters in length.
+* `service_name` - (Required) The name of the AWS Cloud Map service to use. Use the [`aws_service_discovery_service`](/docs/providers/aws/r/service_discovery_service.html) resource to configure a Cloud Map service. Must be between 1 and 1024 characters in length.
 
 The `dns` object supports the following:
 
@@ -329,8 +329,8 @@ The `acm` object supports the following:
 
 The `file` object supports the following:
 
-* `certificate_chain` - (Required) The certificate chain for the certificate.
-* `private_key` - (Required) The private key for a certificate stored on the file system of the virtual node that the proxy is running on.
+* `certificate_chain` - (Required) The certificate chain for the certificate. Must be between 1 and 255 characters in length.
+* `private_key` - (Required) The private key for a certificate stored on the file system of the virtual node that the proxy is running on. Must be between 1 and 255 characters in length.
 
 ## Attributes Reference
 

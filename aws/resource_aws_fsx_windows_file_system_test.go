@@ -538,10 +538,10 @@ func TestAccAWSFsxWindowsFileSystem_StorageCapacity(t *testing.T) {
 		CheckDestroy: testAccCheckFsxWindowsFileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAwsFsxWindowsFileSystemConfigStorageCapacity(33),
+				Config: testAccAwsFsxWindowsFileSystemConfigStorageCapacity(32),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckFsxWindowsFileSystemExists(resourceName, &filesystem1),
-					resource.TestCheckResourceAttr(resourceName, "storage_capacity", "33"),
+					resource.TestCheckResourceAttr(resourceName, "storage_capacity", "32"),
 				),
 			},
 			{
@@ -554,11 +554,11 @@ func TestAccAWSFsxWindowsFileSystem_StorageCapacity(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAwsFsxWindowsFileSystemConfigStorageCapacity(34),
+				Config: testAccAwsFsxWindowsFileSystemConfigStorageCapacity(36),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckFsxWindowsFileSystemExists(resourceName, &filesystem2),
-					testAccCheckFsxWindowsFileSystemRecreated(&filesystem1, &filesystem2),
-					resource.TestCheckResourceAttr(resourceName, "storage_capacity", "34"),
+					testAccCheckFsxWindowsFileSystemNotRecreated(&filesystem1, &filesystem2),
+					resource.TestCheckResourceAttr(resourceName, "storage_capacity", "36"),
 				),
 			},
 		},
@@ -643,7 +643,7 @@ func TestAccAWSFsxWindowsFileSystem_ThroughputCapacity(t *testing.T) {
 				Config: testAccAwsFsxWindowsFileSystemConfigThroughputCapacity(32),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckFsxWindowsFileSystemExists(resourceName, &filesystem2),
-					testAccCheckFsxWindowsFileSystemRecreated(&filesystem1, &filesystem2),
+					testAccCheckFsxWindowsFileSystemNotRecreated(&filesystem1, &filesystem2),
 					resource.TestCheckResourceAttr(resourceName, "throughput_capacity", "32"),
 				),
 			},
@@ -1000,7 +1000,7 @@ resource "aws_fsx_windows_file_system" "test" {
   skip_final_backup   = true
   storage_capacity    = %[1]d
   subnet_ids          = [aws_subnet.test1.id]
-  throughput_capacity = 8
+  throughput_capacity = 16
 }
 `, storageCapacity)
 }

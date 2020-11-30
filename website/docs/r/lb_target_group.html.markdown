@@ -109,7 +109,7 @@ The underlying function is invoked when `target_type` is set to `lambda`.
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the Target Group (matches `arn`)
 * `arn` - The ARN of the Target Group (matches `id`)

@@ -48,19 +48,16 @@ func TestAccDataSourceAwsEip_Id(t *testing.T) {
 		},
 	})
 }
-
 func TestAccDataSourceAwsEip_PublicIP_EC2Classic(t *testing.T) {
 	dataSourceName := "data.aws_eip.test"
 	resourceName := "aws_eip.test"
 
-	// Do not parallelize this test until the provider testing framework
-	// has a stable us-east-1 alias
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsEipConfigPublicIpEc2Classic,
+				Config: testAccDataSourceAwsEipConfigPublicIpEc2Classic(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "public_dns", resourceName, "public_dns"),
@@ -218,17 +215,17 @@ data "aws_eip" "test" {
 }
 `
 
-const testAccDataSourceAwsEipConfigPublicIpEc2Classic = `
-provider "aws" {
-  region = "us-east-1"
-}
-
+func testAccDataSourceAwsEipConfigPublicIpEc2Classic() string {
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		`
 resource "aws_eip" "test" {}
 
 data "aws_eip" "test" {
   public_ip = aws_eip.test.public_ip
 }
-`
+`)
+}
 
 const testAccDataSourceAwsEipConfigPublicIpVpc = `
 resource "aws_eip" "test" {

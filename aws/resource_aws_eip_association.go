@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -96,12 +97,25 @@ func resourceAwsEipAssociationCreate(d *schema.ResourceData, meta interface{}) e
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 		var err error
 		resp, err = conn.AssociateAddress(request)
+
+		// EC2-VPC error for new addresses
+		if tfawserr.ErrCodeEquals(err, "InvalidAllocationID.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		// EC2-Classic error for new addresses
+		if tfawserr.ErrMessageContains(err, "AuthFailure", "does not belong to you") {
+			return resource.RetryableError(err)
+		}
+
+		if tfawserr.ErrMessageContains(err, "InvalidInstanceID", "pending instance") {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, "InvalidInstanceID", "pending instance") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 	if isResourceTimeoutError(err) {
@@ -121,11 +135,15 @@ func resourceAwsEipAssociationCreate(d *schema.ResourceData, meta interface{}) e
 			supportedPlatforms, resp)
 	}
 
-	if resp.AssociationId == nil {
-		// This is required field for EC2 Classic per docs
-		d.SetId(*request.PublicIp)
+	if resp.AssociationId != nil {
+		d.SetId(aws.StringValue(resp.AssociationId))
 	} else {
-		d.SetId(*resp.AssociationId)
+		// EC2-Classic
+		d.SetId(aws.StringValue(request.PublicIp))
+
+		if err := waitForEc2AddressAssociationClassic(conn, aws.StringValue(request.PublicIp), aws.StringValue(request.InstanceId)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Address (%s) to associate with EC2-Classic Instance (%s): %w", aws.StringValue(request.PublicIp), aws.StringValue(request.InstanceId), err)
+		}
 	}
 
 	return resourceAwsEipAssociationRead(d, meta)

@@ -8,6 +8,7 @@ rules:
         - aws/structure.go
         - aws/validators.go
         - aws/*wafregional*.go
+        - aws/resource_aws_serverlessapplicationrepository_cloudformation_stack.go
         - aws/*_test.go
         - aws/internal/keyvaluetags/
         - aws/internal/service/wafregional/

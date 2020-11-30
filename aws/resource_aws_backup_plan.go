@@ -333,7 +333,10 @@ func expandBackupPlanCopyActions(actionList []interface{}) []*backup.CopyAction 
 		action := &backup.CopyAction{}
 
 		action.DestinationBackupVaultArn = aws.String(item["destination_vault_arn"].(string))
-		action.Lifecycle = expandBackupPlanLifecycle(item["lifecycle"].([]interface{}))
+
+		if v, ok := item["lifecycle"].([]interface{}); ok && len(v) > 0 {
+			action.Lifecycle = expandBackupPlanLifecycle(v)
+		}
 
 		actions = append(actions, action)
 	}
@@ -416,7 +419,10 @@ func flattenBackupPlanCopyActions(copyActions []*backup.CopyAction) []interface{
 
 		tfMap := map[string]interface{}{
 			"destination_vault_arn": aws.StringValue(copyAction.DestinationBackupVaultArn),
-			"lifecycle":             flattenBackupPlanCopyActionLifecycle(copyAction.Lifecycle),
+		}
+
+		if copyAction.Lifecycle != nil {
+			tfMap["lifecycle"] = flattenBackupPlanCopyActionLifecycle(copyAction.Lifecycle)
 		}
 
 		tfList = append(tfList, tfMap)

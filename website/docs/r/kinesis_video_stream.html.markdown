@@ -41,6 +41,8 @@ AWS account and region the Stream is created in.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The unique Stream id
 * `arn` - The Amazon Resource Name (ARN) specifying the Stream (same as `id`)
 * `creation_time` - A time stamp that indicates when the stream was created.

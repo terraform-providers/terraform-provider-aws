@@ -24,6 +24,7 @@ func TestAccAWSMskClusterDataSource_Name(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceName, "arn", dataSourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "bootstrap_brokers", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "bootstrap_brokers_sasl_scram", dataSourceName, "bootstrap_brokers_sasl_scram"),
 					resource.TestMatchResourceAttr(resourceName, "bootstrap_brokers_tls", regexp.MustCompile(`^(([-\w]+\.){1,}[\w]+:\d+,){2,}([-\w]+\.){1,}[\w]+:\d+$`)), // Hostname ordering not guaranteed between resource and data source reads
 					resource.TestCheckResourceAttrPair(resourceName, "cluster_name", dataSourceName, "cluster_name"),
 					resource.TestCheckResourceAttrPair(resourceName, "kafka_version", dataSourceName, "kafka_version"),

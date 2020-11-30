@@ -18,10 +18,11 @@ import (
 )
 
 const (
-	AwsTagKeyPrefix              = `aws:`
-	ElasticbeanstalkTagKeyPrefix = `elasticbeanstalk:`
-	NameTagKey                   = `Name`
-	RdsTagKeyPrefix              = `rds:`
+	AwsTagKeyPrefix                             = `aws:`
+	ElasticbeanstalkTagKeyPrefix                = `elasticbeanstalk:`
+	NameTagKey                                  = `Name`
+	RdsTagKeyPrefix                             = `rds:`
+	ServerlessApplicationRepositoryTagKeyPrefix = `serverlessrepo:`
 )
 
 // IgnoreConfig contains various options for removing resource tags.
@@ -118,6 +119,25 @@ func (tags KeyValueTags) IgnoreRds() KeyValueTags {
 		}
 
 		if strings.HasPrefix(k, RdsTagKeyPrefix) {
+			continue
+		}
+
+		result[k] = v
+	}
+
+	return result
+}
+
+// IgnoreServerlessApplicationRepository returns non-AWS and non-ServerlessApplicationRepository tag keys.
+func (tags KeyValueTags) IgnoreServerlessApplicationRepository() KeyValueTags {
+	result := make(KeyValueTags)
+
+	for k, v := range tags {
+		if strings.HasPrefix(k, AwsTagKeyPrefix) {
+			continue
+		}
+
+		if strings.HasPrefix(k, ServerlessApplicationRepositoryTagKeyPrefix) {
 			continue
 		}
 

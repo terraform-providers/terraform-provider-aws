@@ -41,27 +41,15 @@ func TestAccAwsAutoScalingGroupDataSource_basic(t *testing.T) {
 
 // Lookup based on AutoScalingGroupName
 func testAccAutoScalingGroupDataResourceConfig(rName string) string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInConfig(),
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("data.aws_availability_zones.available.names[0]", "t3.micro", "t2.micro"),
+		fmt.Sprintf(`
 resource "aws_launch_configuration" "data_source_aws_autoscaling_group_test" {
   name          = "%[1]s"
-  image_id      = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 }
 
 resource "aws_autoscaling_group" "foo" {
@@ -91,5 +79,5 @@ resource "aws_autoscaling_group" "bar" {
 data "aws_autoscaling_group" "good_match" {
   name = aws_autoscaling_group.foo.name
 }
-`, rName)
+`, rName))
 }

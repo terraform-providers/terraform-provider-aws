@@ -66,6 +66,14 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"signing_profile_version_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"signing_job_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -141,6 +149,12 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 	}
 	if err := d.Set("source_code_size", output.Content.CodeSize); err != nil {
 		return fmt.Errorf("error setting lambda layer source code size: %s", err)
+	}
+	if err := d.Set("signing_profile_version_arn", output.Content.SigningProfileVersionArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing profile arn: %s", err)
+	}
+	if err := d.Set("signing_job_arn", output.Content.SigningJobArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing job arn: %s", err)
 	}
 
 	d.SetId(aws.StringValue(output.LayerVersionArn))

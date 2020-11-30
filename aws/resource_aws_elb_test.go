@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -83,7 +82,7 @@ func TestAccAWSELB_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "availability_zones.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "subnets.#", "3"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",
@@ -488,7 +487,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",
@@ -501,13 +500,13 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",
 						"lb_protocol":       "http",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "22",
 						"instance_protocol": "tcp",
 						"lb_port":           "22",
@@ -520,7 +519,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",
@@ -533,7 +532,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8080",
 						"instance_protocol": "http",
 						"lb_port":           "80",
@@ -557,7 +556,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",
@@ -588,7 +587,7 @@ func TestAccAWSELB_listener(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSELBExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "listener.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "listener.*", map[string]string{
 						"instance_port":     "8000",
 						"instance_protocol": "http",
 						"lb_port":           "80",

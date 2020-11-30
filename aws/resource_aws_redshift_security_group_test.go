@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSRedshiftSecurityGroup_basic(t *testing.T) {
@@ -56,7 +55,7 @@ func TestAccAWSRedshiftSecurityGroup_ingressCidr(t *testing.T) {
 						resourceName, "name", fmt.Sprintf("redshift-sg-terraform-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						resourceName, "description", "Managed by Terraform"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"cidr": "10.0.0.1/24",
 					}),
 					resource.TestCheckResourceAttr(

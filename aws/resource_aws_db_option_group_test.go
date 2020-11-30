@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -246,7 +245,7 @@ func TestAccAWSDBOptionGroup_Option_OptionSettings(t *testing.T) {
 						"aws_db_option_group.bar", "name", rName),
 					resource.TestCheckResourceAttr(
 						"aws_db_option_group.bar", "option.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
 						"value": "UTC",
 					}),
 				),
@@ -267,7 +266,7 @@ func TestAccAWSDBOptionGroup_Option_OptionSettings(t *testing.T) {
 						"aws_db_option_group.bar", "name", rName),
 					resource.TestCheckResourceAttr(
 						"aws_db_option_group.bar", "option.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("aws_db_option_group.bar", "option.*.option_settings.*", map[string]string{
 						"value": "US/Pacific",
 					}),
 				),

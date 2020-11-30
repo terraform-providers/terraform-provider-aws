@@ -41,6 +41,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The unique identifier (ID) of the policy.
 * `arn` - Amazon Resource Name (ARN) of the policy.
 

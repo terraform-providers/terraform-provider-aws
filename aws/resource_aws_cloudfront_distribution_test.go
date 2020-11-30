@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -361,7 +360,7 @@ func TestAccAWSCloudFrontDistribution_noOptionalItemsConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "is_ipv6_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "logging_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "origin.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "origin.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "origin.*", map[string]string{
 						"custom_header.#":                                 "0",
 						"custom_origin_config.#":                          "1",
 						"custom_origin_config.0.http_port":                "80",
@@ -1072,7 +1071,7 @@ func TestAccAWSCloudFrontDistribution_OriginGroups(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCloudFrontDistributionExists(resourceName, &distribution),
 					resource.TestCheckResourceAttr(resourceName, "origin_group.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "origin_group.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "origin_group.*", map[string]string{
 						"origin_id":                          "groupS3",
 						"failover_criteria.#":                "1",
 						"failover_criteria.0.status_codes.#": "4",
@@ -1080,10 +1079,10 @@ func TestAccAWSCloudFrontDistribution_OriginGroups(t *testing.T) {
 						"member.0.origin_id":                 "primaryS3",
 						"member.1.origin_id":                 "failoverS3",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "403"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "404"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "500"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "502"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "403"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "404"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "500"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "origin_group.*.failover_criteria.0.status_codes.*", "502"),
 				),
 			},
 		},

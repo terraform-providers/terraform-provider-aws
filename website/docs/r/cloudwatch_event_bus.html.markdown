@@ -25,9 +25,7 @@ resource "aws_cloudwatch_event_bus" "messenger" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the new event bus.
-	The names of custom event buses can't contain the / character.
-	Please note that a partner event bus is not supported at the moment.
+* `name` - (Required) The name of the new event bus. The names of custom event buses can't contain the / character. Please note that a partner event bus is not supported at the moment.
 * `tags` - (Optional)  A map of tags to assign to the resource.
 
 ## Attributes Reference

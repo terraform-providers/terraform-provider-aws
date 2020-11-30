@@ -258,6 +258,9 @@ type ImportStateCheckFunc func([]*terraform.InstanceState) error
 // generation for ImportState tests.
 type ImportStateIdFunc func(*terraform.State) (string, error)
 
+// ErrorCheckFunc is a function providers can use to handle errors.
+type ErrorCheckFunc func(error) error
+
 // TestCase is a single acceptance test case used to test the apply/destroy
 // lifecycle of a resource in a specific configuration.
 //
@@ -322,6 +325,10 @@ type TestCase struct {
 	// CheckDestroy is called after the resource is finally destroyed
 	// to allow the tester to test that the resource is truly gone.
 	CheckDestroy TestCheckFunc
+
+	// ErrorCheck allows providers the option to handle errors such as skipping
+	// tests based on certain errors.
+	ErrorCheck ErrorCheckFunc
 
 	// Steps are the apply sequences done within the context of the
 	// same state. Each step can have its own check to verify correctness.

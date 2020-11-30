@@ -204,6 +204,11 @@ func resourceAwsAutoscalingGroup() *schema.Resource {
 				},
 			},
 
+			"capacity_rebalance": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"desired_capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -609,6 +614,10 @@ func resourceAwsAutoscalingGroupCreate(d *schema.ResourceData, meta interface{})
 		createOpts.Tags = keyvaluetags.AutoscalingKeyValueTags(v, resourceID, autoscalingTagResourceTypeAutoScalingGroup).IgnoreAws().AutoscalingTags()
 	}
 
+	if v, ok := d.GetOk("capacity_rebalance"); ok {
+		createOpts.CapacityRebalance = aws.Bool(v.(bool))
+	}
+
 	if v, ok := d.GetOk("default_cooldown"); ok {
 		createOpts.DefaultCooldown = aws.Int64(int64(v.(int)))
 	}
@@ -730,6 +739,7 @@ func resourceAwsAutoscalingGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("arn", g.AutoScalingGroupARN)
+	d.Set("capacity_rebalance", g.CapacityRebalance)
 	d.Set("default_cooldown", g.DefaultCooldown)
 	d.Set("desired_capacity", g.DesiredCapacity)
 
@@ -909,6 +919,16 @@ func resourceAwsAutoscalingGroupUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("default_cooldown") {
 		opts.DefaultCooldown = aws.Int64(int64(d.Get("default_cooldown").(int)))
+	}
+
+	if d.HasChange("capacity_rebalance") {
+		// If the capacity rebalance field is set to null, we need to explicitly set
+		// it back to "false", or the API won't reset it for us.
+		if v, ok := d.GetOk("capacity_rebalance"); ok {
+			opts.CapacityRebalance = aws.Bool(v.(bool))
+		} else {
+			opts.CapacityRebalance = aws.Bool(false)
+		}
 	}
 
 	if d.HasChange("desired_capacity") {

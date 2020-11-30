@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -269,7 +268,7 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "false",
 						"type":    "IPMatch",
 					}),
@@ -282,7 +281,7 @@ func TestAccAWSWafRegionalRateBasedRule_changePredicates(t *testing.T) {
 					testAccCheckAWSWafRegionalRateBasedRuleExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", ruleName),
 					resource.TestCheckResourceAttr(resourceName, "predicate.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "predicate.*", map[string]string{
 						"negated": "true",
 						"type":    "ByteMatch",
 					}),

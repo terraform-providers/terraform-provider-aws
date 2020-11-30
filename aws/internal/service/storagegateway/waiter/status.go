@@ -1,6 +1,9 @@
 package waiter
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
 	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
@@ -10,6 +13,10 @@ import (
 const (
 	StoredIscsiVolumeStatusNotFound = "NotFound"
 	StoredIscsiVolumeStatusUnknown  = "Unknown"
+	NfsFileShareStatusNotFound      = "NotFound"
+	NfsFileShareStatusUnknown       = "Unknown"
+	SmbFileShareStatusNotFound      = "NotFound"
+	SmbFileShareStatusUnknown       = "Unknown"
 )
 
 // StoredIscsiVolumeStatus fetches the Volume and its Status
@@ -35,5 +42,55 @@ func StoredIscsiVolumeStatus(conn *storagegateway.StorageGateway, volumeARN stri
 		}
 
 		return output, aws.StringValue(output.StorediSCSIVolumes[0].VolumeStatus), nil
+	}
+}
+
+func NfsFileShareStatus(conn *storagegateway.StorageGateway, fileShareArn string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &storagegateway.DescribeNFSFileSharesInput{
+			FileShareARNList: []*string{aws.String(fileShareArn)},
+		}
+
+		log.Printf("[DEBUG] Reading Storage Gateway NFS File Share: %s", input)
+		output, err := conn.DescribeNFSFileShares(input)
+		if err != nil {
+			if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file share was not found.") {
+				return nil, NfsFileShareStatusNotFound, nil
+			}
+			return nil, NfsFileShareStatusUnknown, fmt.Errorf("error reading Storage Gateway NFS File Share: %w", err)
+		}
+
+		if output == nil || len(output.NFSFileShareInfoList) == 0 || output.NFSFileShareInfoList[0] == nil {
+			return nil, NfsFileShareStatusNotFound, nil
+		}
+
+		fileshare := output.NFSFileShareInfoList[0]
+
+		return fileshare, aws.StringValue(fileshare.FileShareStatus), nil
+	}
+}
+
+func SmbFileShareStatus(conn *storagegateway.StorageGateway, fileShareArn string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		input := &storagegateway.DescribeSMBFileSharesInput{
+			FileShareARNList: []*string{aws.String(fileShareArn)},
+		}
+
+		log.Printf("[DEBUG] Reading Storage Gateway SMB File Share: %s", input)
+		output, err := conn.DescribeSMBFileShares(input)
+		if err != nil {
+			if tfawserr.ErrMessageContains(err, storagegateway.ErrCodeInvalidGatewayRequestException, "The specified file share was not found.") {
+				return nil, SmbFileShareStatusNotFound, nil
+			}
+			return nil, SmbFileShareStatusUnknown, fmt.Errorf("error reading Storage Gateway SMB File Share: %w", err)
+		}
+
+		if output == nil || len(output.SMBFileShareInfoList) == 0 || output.SMBFileShareInfoList[0] == nil {
+			return nil, SmbFileShareStatusNotFound, nil
+		}
+
+		fileshare := output.SMBFileShareInfoList[0]
+
+		return fileshare, aws.StringValue(fileshare.FileShareStatus), nil
 	}
 }

@@ -386,7 +386,7 @@ func TestAccAWSEksNodeGroup_LaunchTemplate_Name(t *testing.T) {
 }
 
 func TestAccAWSEksNodeGroup_LaunchTemplate_Version(t *testing.T) {
-	var nodeGroup1 eks.Nodegroup
+	var nodeGroup1, nodeGroup2 eks.Nodegroup
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	launchTemplateResourceName := "aws_launch_template.test"
 	resourceName := "aws_eks_node_group.test"
@@ -411,14 +411,12 @@ func TestAccAWSEksNodeGroup_LaunchTemplate_Version(t *testing.T) {
 			},
 			{
 				Config: testAccAWSEksNodeGroupConfigLaunchTemplateVersion2(rName),
-				// This API error is incorrect and will need to be rectified by the service team.
-				ExpectError: regexp.MustCompile(`User data was not in the MIME multipart format`),
-				// Check: resource.ComposeTestCheckFunc(
-				// 	testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
-				// 	testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
-				// 	resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
-				// 	resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
-				// ),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
+					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),
+					resource.TestCheckResourceAttr(resourceName, "launch_template.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "launch_template.0.version", launchTemplateResourceName, "default_version"),
+				),
 			},
 		},
 	})
@@ -436,7 +434,7 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEksNodeGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.15"),
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.17"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup1),
 					resource.TestCheckResourceAttrPair(resourceName, "release_version", ssmParameterDataSourceName, "value"),
@@ -448,7 +446,7 @@ func TestAccAWSEksNodeGroup_ReleaseVersion(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.16"),
+				Config: testAccAWSEksNodeGroupConfigReleaseVersion(rName, "1.18"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEksNodeGroupExists(resourceName, &nodeGroup2),
 					testAccCheckAWSEksNodeGroupNotRecreated(&nodeGroup1, &nodeGroup2),

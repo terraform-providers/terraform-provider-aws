@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccDataSourceAwsRoute53ResolverRules_basic(t *testing.T) {
@@ -20,7 +19,7 @@ func TestAccDataSourceAwsRoute53ResolverRules_basic(t *testing.T) {
 				Config: testAccDataSourceAwsRoute53ResolverRules_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dsResourceName, "resolver_rule_ids.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(dsResourceName, "resolver_rule_ids.*", "rslvr-autodefined-rr-internet-resolver"),
+					resource.TestCheckTypeSetElemAttr(dsResourceName, "resolver_rule_ids.*", "rslvr-autodefined-rr-internet-resolver"),
 				),
 			},
 		},

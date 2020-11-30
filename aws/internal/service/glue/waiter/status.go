@@ -1,13 +1,18 @@
 package waiter
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue/finder"
 )
 
 const (
 	MLTransformStatusUnknown = "Unknown"
+	RegistryStatusUnknown    = "Unknown"
 	TriggerStatusUnknown     = "Unknown"
 )
 
@@ -32,6 +37,22 @@ func MLTransformStatus(conn *glue.Glue, transformId string) resource.StateRefres
 	}
 }
 
+// RegistryStatus fetches the Registry and its Status
+func RegistryStatus(conn *glue.Glue, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.RegistryByID(conn, id)
+		if err != nil {
+			return nil, RegistryStatusUnknown, err
+		}
+
+		if output == nil {
+			return output, RegistryStatusUnknown, nil
+		}
+
+		return output, aws.StringValue(output.Status), nil
+	}
+}
+
 // TriggerStatus fetches the Trigger and its Status
 func TriggerStatus(conn *glue.Glue, triggerName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
@@ -50,5 +71,31 @@ func TriggerStatus(conn *glue.Glue, triggerName string) resource.StateRefreshFun
 		}
 
 		return output, aws.StringValue(output.Trigger.State), nil
+	}
+}
+
+func GlueDevEndpointStatus(conn *glue.Glue, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		getDevEndpointInput := &glue.GetDevEndpointInput{
+			EndpointName: aws.String(name),
+		}
+		endpoint, err := conn.GetDevEndpoint(getDevEndpointInput)
+		if err != nil {
+			if tfawserr.ErrCodeEquals(err, glue.ErrCodeEntityNotFoundException) {
+				return nil, "", nil
+			}
+
+			return nil, "", err
+		}
+
+		if endpoint == nil || endpoint.DevEndpoint == nil {
+			return nil, "", nil
+		}
+
+		if aws.StringValue(endpoint.DevEndpoint.Status) == "FAILED" && endpoint.DevEndpoint.FailureReason != nil {
+			return endpoint, aws.StringValue(endpoint.DevEndpoint.Status), fmt.Errorf("%s", aws.StringValue(endpoint.DevEndpoint.FailureReason))
+		}
+
+		return endpoint, aws.StringValue(endpoint.DevEndpoint.Status), nil
 	}
 }

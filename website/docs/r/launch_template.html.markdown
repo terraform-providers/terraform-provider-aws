@@ -334,7 +334,7 @@ Each `tag_specifications` block supports the following:
 
 ## Attributes Reference
 
-The following attributes are exported along with all argument references:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - Amazon Resource Name (ARN) of the launch template.
 * `id` - The ID of the launch template.

@@ -55,7 +55,7 @@ func resourceAwsIamSamlProviderCreate(d *schema.ResourceData, meta interface{}) 
 
 	out, err := conn.CreateSAMLProvider(input)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating IAM SAML Provider: %w", err)
 	}
 
 	d.SetId(aws.StringValue(out.SAMLProviderArn))
@@ -72,11 +72,11 @@ func resourceAwsIamSamlProviderRead(d *schema.ResourceData, meta interface{}) er
 	out, err := conn.GetSAMLProvider(input)
 	if err != nil {
 		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
-			log.Printf("[WARN] IAM SAML Provider %q not found.", d.Id())
+			log.Printf("[WARN] IAM SAML Provider %q not found, removing from state.", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return err
+		return fmt.Errorf("error reading IAM SAML Provider (%q): %w", d.Id(), err)
 	}
 
 	d.Set("arn", d.Id())
@@ -100,7 +100,7 @@ func resourceAwsIamSamlProviderUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	_, err := conn.UpdateSAMLProvider(input)
 	if err != nil {
-		return err
+		return fmt.Errorf("error updating IAM SAML Provider (%q): %w", d.Id(), err)
 	}
 
 	return resourceAwsIamSamlProviderRead(d, meta)
@@ -113,8 +113,14 @@ func resourceAwsIamSamlProviderDelete(d *schema.ResourceData, meta interface{}) 
 		SAMLProviderArn: aws.String(d.Id()),
 	}
 	_, err := conn.DeleteSAMLProvider(input)
+	if err != nil {
+		if isAWSErr(err, iam.ErrCodeNoSuchEntityException, "") {
+			return nil
+		}
+		return fmt.Errorf("error deleting IAM SAML Provider (%q): %w", d.Id(), err)
+	}
 
-	return err
+	return nil
 }
 
 func extractNameFromIAMSamlProviderArn(samlArn string) (string, error) {

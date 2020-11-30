@@ -77,7 +77,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - run: cd tools && go install github.com/katbyte/terrafmt
-      - run: terrafmt diff ./website --check --pattern '*.markdown' --quiet
+      - run: terrafmt diff ./website --check --pattern '*.markdown'
   validate-terraform:
     runs-on: ubuntu-latest
     steps:
@@ -109,6 +109,8 @@ jobs:
               "--disable-rule=aws_iam_saml_provider_invalid_saml_metadata_document"
               "--disable-rule=aws_iam_server_certificate_invalid_certificate_body"
               "--disable-rule=aws_iam_server_certificate_invalid_private_key"
+              "--disable-rule=aws_lb_invalid_load_balancer_type"
+              "--disable-rule=aws_lb_target_group_invalid_protocol"
               "--disable-rule=aws_transfer_ssh_key_invalid_body"
               "--disable-rule=aws_worklink_website_certificate_authority_association_invalid_certificate"
           )

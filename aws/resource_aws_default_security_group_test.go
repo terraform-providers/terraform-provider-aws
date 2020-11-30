@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
@@ -30,7 +29,7 @@ func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "default VPC security group"),
 					resource.TestCheckResourceAttrPair(resourceName, "vpc_id", vpcResourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "ingress.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":      "tcp",
 						"from_port":     "80",
 						"to_port":       "8000",
@@ -38,7 +37,7 @@ func TestAccAWSDefaultSecurityGroup_Vpc_basic(t *testing.T) {
 						"cidr_blocks.0": "10.0.0.0/8",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "egress.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "egress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "egress.*", map[string]string{
 						"protocol":      "tcp",
 						"from_port":     "80",
 						"to_port":       "8000",
@@ -110,7 +109,7 @@ func TestAccAWSDefaultSecurityGroup_Classic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "default group"),
 					resource.TestCheckResourceAttr(resourceName, "vpc_id", ""),
 					resource.TestCheckResourceAttr(resourceName, "ingress.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":      "tcp",
 						"from_port":     "80",
 						"to_port":       "8000",

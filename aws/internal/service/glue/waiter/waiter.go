@@ -10,6 +10,7 @@ import (
 const (
 	// Maximum amount of time to wait for an Operation to return Deleted
 	MLTransformDeleteTimeout = 2 * time.Minute
+	RegistryDeleteTimeout    = 2 * time.Minute
 	TriggerCreateTimeout     = 2 * time.Minute
 	TriggerDeleteTimeout     = 2 * time.Minute
 )
@@ -26,6 +27,24 @@ func MLTransformDeleted(conn *glue.Glue, transformId string) (*glue.GetMLTransfo
 	outputRaw, err := stateConf.WaitForState()
 
 	if output, ok := outputRaw.(*glue.GetMLTransformOutput); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+// RegistryDeleted waits for a Registry to return Deleted
+func RegistryDeleted(conn *glue.Glue, registryID string) (*glue.GetRegistryOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{glue.RegistryStatusDeleting},
+		Target:  []string{},
+		Refresh: RegistryStatus(conn, registryID),
+		Timeout: RegistryDeleteTimeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*glue.GetRegistryOutput); ok {
 		return output, err
 	}
 
@@ -68,6 +87,44 @@ func TriggerDeleted(conn *glue.Glue, triggerName string) (*glue.GetTriggerOutput
 	outputRaw, err := stateConf.WaitForState()
 
 	if output, ok := outputRaw.(*glue.GetTriggerOutput); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+// GlueDevEndpointCreated waits for a Glue Dev Endpoint to become available.
+func GlueDevEndpointCreated(conn *glue.Glue, devEndpointId string) (*glue.GetDevEndpointOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"PROVISIONING",
+		},
+		Target:  []string{"READY"},
+		Refresh: GlueDevEndpointStatus(conn, devEndpointId),
+		Timeout: 15 * time.Minute,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*glue.GetDevEndpointOutput); ok {
+		return output, err
+	}
+
+	return nil, err
+}
+
+// GlueDevEndpointDeleted waits for a Glue Dev Endpoint to become terminated.
+func GlueDevEndpointDeleted(conn *glue.Glue, devEndpointId string) (*glue.GetDevEndpointOutput, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"TERMINATING"},
+		Target:  []string{},
+		Refresh: GlueDevEndpointStatus(conn, devEndpointId),
+		Timeout: 15 * time.Minute,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*glue.GetDevEndpointOutput); ok {
 		return output, err
 	}
 

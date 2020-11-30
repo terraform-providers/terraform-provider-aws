@@ -81,7 +81,11 @@ func TestAccAWSWafRegionalWebAclAssociation_ResourceArn_ApiGatewayStage(t *testi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t)
+			testAccAPIGatewayTypeEDGEPreCheck(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckWafRegionalWebAclAssociationDestroy,
 		Steps: []resource.TestStep{

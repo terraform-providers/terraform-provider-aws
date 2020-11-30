@@ -59,7 +59,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the bot alias.
 * `checksum` - Checksum of the bot alias.

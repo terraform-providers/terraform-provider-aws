@@ -3,13 +3,19 @@
 package lister
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchevents"
 )
 
 func ListEventBusesPages(conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListEventBusesInput, fn func(*cloudwatchevents.ListEventBusesOutput, bool) bool) error {
+	return ListEventBusesPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListEventBusesPagesWithContext(ctx context.Context, conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListEventBusesInput, fn func(*cloudwatchevents.ListEventBusesOutput, bool) bool) error {
 	for {
-		output, err := conn.ListEventBuses(input)
+		output, err := conn.ListEventBusesWithContext(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -25,8 +31,12 @@ func ListEventBusesPages(conn *cloudwatchevents.CloudWatchEvents, input *cloudwa
 }
 
 func ListRulesPages(conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListRulesInput, fn func(*cloudwatchevents.ListRulesOutput, bool) bool) error {
+	return ListRulesPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListRulesPagesWithContext(ctx context.Context, conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListRulesInput, fn func(*cloudwatchevents.ListRulesOutput, bool) bool) error {
 	for {
-		output, err := conn.ListRules(input)
+		output, err := conn.ListRulesWithContext(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -42,8 +52,12 @@ func ListRulesPages(conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchev
 }
 
 func ListTargetsByRulePages(conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListTargetsByRuleInput, fn func(*cloudwatchevents.ListTargetsByRuleOutput, bool) bool) error {
+	return ListTargetsByRulePagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListTargetsByRulePagesWithContext(ctx context.Context, conn *cloudwatchevents.CloudWatchEvents, input *cloudwatchevents.ListTargetsByRuleInput, fn func(*cloudwatchevents.ListTargetsByRuleOutput, bool) bool) error {
 	for {
-		output, err := conn.ListTargetsByRule(input)
+		output, err := conn.ListTargetsByRuleWithContext(ctx, input)
 		if err != nil {
 			return err
 		}

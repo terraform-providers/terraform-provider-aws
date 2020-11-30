@@ -134,5 +134,5 @@ provider "aws" {
 resource "aws_lightsail_domain" "domain_test" {
   domain_name = "%s"
 }
-`, lightsailDomainName)
+`, lightsailDomainName) //lintignore:AT004
 }

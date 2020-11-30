@@ -36,10 +36,10 @@ For HTTP APIs, valid values are `NONE` for open access, or `JWT` for using JSON 
 Defaults to `NONE`.
 * `authorizer_id` - (Optional) The identifier of the [`aws_apigatewayv2_authorizer`](/docs/providers/aws/r/apigatewayv2_authorizer.html) resource to be associated with this route, if the authorizationType is `CUSTOM`.
 * `model_selection_expression` - (Optional) The [model selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-model-selection-expressions) for the route.
-* `operation_name` - (Optional) The operation name for the route.
+* `operation_name` - (Optional) The operation name for the route. Must be between 1 and 64 characters in length.
 * `request_models` - (Optional) The request models for the route.
 * `route_response_selection_expression` - (Optional) The [route response selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-route-response-selection-expressions) for the route.
-* `target` - (Optional) The target for the route.
+* `target` - (Optional) The target for the route. Must be between 1 and 128 characters in length.
 
 ## Attributes Reference
 

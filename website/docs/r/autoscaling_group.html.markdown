@@ -132,6 +132,48 @@ resource "aws_autoscaling_group" "example" {
 }
 ```
 
+### Mixed Instances Policy with Spot Instances and Capacity Rebalance
+
+```hcl
+resource "aws_launch_template" "example" {
+  name_prefix   = "example"
+  image_id      = data.aws_ami.example.id
+  instance_type = "c5.large"
+}
+
+resource "aws_autoscaling_group" "example" {
+  capacity_rebalance  = true
+  desired_capacity    = 12
+  max_size            = 15
+  min_size            = 12
+  vpc_zone_identifier = [aws_subnet.example1.id, aws_subnet.example2.id]
+
+  mixed_instances_policy {
+    instance_distribution {
+      on_demand_base_capacity                  = 0
+      on_demand_percentage_above_base_capacity = 25
+      spot_allocation_strategy                 = "capacity-optimized"
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.example.id
+      }
+
+      override {
+        instance_type     = "c4.large"
+        weighted_capacity = "3"
+      }
+
+      override {
+        instance_type     = "c3.large"
+        weighted_capacity = "2"
+      }
+    }
+  }
+}
+```
+
 ## Interpolated tags
 
 ```hcl
@@ -186,6 +228,7 @@ The following arguments are supported:
 * `min_size` - (Required) The minimum size of the auto scale group.
     (See also [Waiting for Capacity](#waiting-for-capacity) below.)
 * `availability_zones` - (Optional) A list of one or more availability zones for the group. Used for EC2-Classic and default subnets when not specified with `vpc_zone_identifier` argument. Conflicts with `vpc_zone_identifier`.
+* `capacity_rebalance` - (Optional) Indicates whether capacity rebalance is enabled. Otherwise, capacity rebalance is disabled.
 * `default_cooldown` - (Optional) The amount of time, in seconds, after a scaling activity completes before another scaling activity can start.
 * `launch_configuration` - (Optional) The name of the launch configuration to use.
 * `launch_template` - (Optional) Nested argument with Launch template specification to use to launch instances. Defined below.

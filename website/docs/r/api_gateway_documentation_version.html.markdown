@@ -44,7 +44,7 @@ The following argument is supported:
 
 ## Attributes Reference
 
-The arguments listed above are all exported as attributes.
+In addition to all arguments above, the following attributes are exported:
 
 ## Import
 

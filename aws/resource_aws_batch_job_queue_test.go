@@ -346,13 +346,13 @@ resource "aws_iam_role" "test" {
 {
     "Version": "2012-10-17",
     "Statement": [
-	{
-	    "Action": "sts:AssumeRole",
-	    "Effect": "Allow",
-	    "Principal": {
-		"Service": "batch.${data.aws_partition.current.dns_suffix}"
-	    }
-	}
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": "batch.${data.aws_partition.current.dns_suffix}"
+        }
+    }
     ]
 }
 EOF
@@ -361,6 +361,35 @@ EOF
 resource "aws_iam_role_policy_attachment" "test" {
   role       = aws_iam_role.test.name
   policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
+resource "aws_iam_role" "ecs_instance_role" {
+  name = "%[1]s-ecs"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
+        }
+    }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "ecs_instance_role" {
+  name = aws_iam_role.ecs_instance_role.name
+  role = aws_iam_role_policy_attachment.ecs_instance_role.role
 }
 
 resource "aws_vpc" "test" {
@@ -391,7 +420,7 @@ resource "aws_batch_compute_environment" "test" {
   type                     = "MANAGED"
 
   compute_resources {
-    instance_role      = aws_iam_role.test.arn
+    instance_role      = aws_iam_instance_profile.ecs_instance_role.arn
     instance_type      = ["c5", "m5", "r5"]
     max_vcpus          = 1
     min_vcpus          = 0

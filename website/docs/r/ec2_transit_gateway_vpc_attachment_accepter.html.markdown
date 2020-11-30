@@ -44,6 +44,7 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - EC2 Transit Gateway Attachment identifier
+* `appliance_mode_support` - Whether Appliance Mode support is enabled. Valid values: `disable`, `enable`.
 * `dns_support` - Whether DNS support is enabled. Valid values: `disable`, `enable`.
 * `ipv6_support` - Whether IPv6 support is enabled. Valid values: `disable`, `enable`.
 * `subnet_ids` - Identifiers of EC2 Subnets.

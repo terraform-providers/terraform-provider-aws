@@ -21,6 +21,10 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepter() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"appliance_mode_support": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"dns_support": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -166,6 +170,7 @@ func resourceAwsEc2TransitGatewayVpcAttachmentAccepterRead(d *schema.ResourceDat
 		return fmt.Errorf("error reading EC2 Transit Gateway VPC Attachment (%s): missing options", d.Id())
 	}
 
+	d.Set("appliance_mode_support", transitGatewayVpcAttachment.Options.ApplianceModeSupport)
 	d.Set("dns_support", transitGatewayVpcAttachment.Options.DnsSupport)
 	d.Set("ipv6_support", transitGatewayVpcAttachment.Options.Ipv6Support)
 

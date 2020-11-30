@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsDxHostedPublicVirtualInterface_basic(t *testing.T) {
@@ -56,8 +55,8 @@ func TestAccAwsDxHostedPublicVirtualInterface_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "vlan", strconv.Itoa(vlan)),
 					// Accepter's attributes:
 					resource.TestCheckResourceAttrSet(accepterResourceName, "arn"),
@@ -116,8 +115,8 @@ func TestAccAwsDxHostedPublicVirtualInterface_AccepterTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "vlan", strconv.Itoa(vlan)),
 					// Accepter's attributes:
 					resource.TestCheckResourceAttrSet(accepterResourceName, "arn"),
@@ -143,8 +142,8 @@ func TestAccAwsDxHostedPublicVirtualInterface_AccepterTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "customer_address", customerAddress),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "route_filter_prefixes.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "210.52.109.0/24"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "route_filter_prefixes.*", "175.45.176.0/22"),
 					resource.TestCheckResourceAttr(resourceName, "vlan", strconv.Itoa(vlan)),
 					// Accepter's attributes:
 					resource.TestCheckResourceAttrSet(accepterResourceName, "arn"),

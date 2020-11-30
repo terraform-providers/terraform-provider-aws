@@ -10,9 +10,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
+)
+
+const (
+	// Maximum amount of time to wait for EIP association with EC2-Classic instances
+	ec2AddressAssociationClassicTimeout = 2 * time.Minute
 )
 
 func resourceAwsEip() *schema.Resource {
@@ -388,6 +395,12 @@ func resourceAwsEipUpdate(d *schema.ResourceData, meta interface{}) error {
 			d.Set("network_interface", "")
 			return fmt.Errorf("Failure associating EIP: %s", err)
 		}
+
+		if assocOpts.AllocationId == nil {
+			if err := waitForEc2AddressAssociationClassic(ec2conn, aws.StringValue(assocOpts.PublicIp), aws.StringValue(assocOpts.InstanceId)); err != nil {
+				return fmt.Errorf("error waiting for EC2 Address (%s) to associate with EC2-Classic Instance (%s): %w", aws.StringValue(assocOpts.PublicIp), aws.StringValue(assocOpts.InstanceId), err)
+			}
+		}
 	}
 
 	if d.HasChange("tags") && !d.IsNewResource() {
@@ -500,4 +513,54 @@ func disassociateEip(d *schema.ResourceData, meta interface{}) error {
 		err = nil
 	}
 	return err
+}
+
+// waitForEc2AddressAssociationClassic ensures the correct Instance is associated with an Address
+//
+// This can take a few seconds to appear correctly for EC2-Classic addresses.
+func waitForEc2AddressAssociationClassic(conn *ec2.EC2, publicIP string, instanceID string) error {
+	input := &ec2.DescribeAddressesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("public-ip"),
+				Values: []*string{aws.String(publicIP)},
+			},
+			{
+				Name:   aws.String("domain"),
+				Values: []*string{aws.String(ec2.DomainTypeStandard)},
+			},
+		},
+	}
+
+	err := resource.Retry(ec2AddressAssociationClassicTimeout, func() *resource.RetryError {
+		output, err := conn.DescribeAddresses(input)
+
+		if tfawserr.ErrCodeEquals(err, "InvalidAddress.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if len(output.Addresses) == 0 || output.Addresses[0] == nil {
+			return resource.RetryableError(fmt.Errorf("not found"))
+		}
+
+		if aws.StringValue(output.Addresses[0].InstanceId) != instanceID {
+			return resource.RetryableError(fmt.Errorf("not associated"))
+		}
+
+		return nil
+	})
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.DescribeAddresses(input)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error describing EC2 Address (%s) association: %w", publicIP, err)
+	}
+
+	return nil
 }

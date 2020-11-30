@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -128,7 +127,7 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.metadata.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -137,10 +136,10 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.service_name", ""),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "deadline-exceeded"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "resource-exhausted"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "deadline-exceeded"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "resource-exhausted"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "server-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "server-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.max_retries", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.0.unit", "s"),
@@ -171,12 +170,12 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.action.0.weighted_target.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.metadata.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":  "true",
 						"match.#": "0",
 						"name":    "X-Testing1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":                "false",
 						"match.#":               "1",
 						"match.0.range.#":       "1",
@@ -188,16 +187,16 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.service_name", "test.local"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "cancelled"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "cancelled"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "client-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "client-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.max_retries", "3"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.0.unit", "ms"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.0.value", "250000"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.timeout.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.#", "0"),
@@ -223,12 +222,12 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.action.0.weighted_target.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.metadata.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":  "true",
 						"match.#": "0",
 						"name":    "X-Testing1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":                "false",
 						"match.#":               "1",
 						"match.0.range.#":       "1",
@@ -240,16 +239,16 @@ func testAccAwsAppmeshRoute_grpcRoute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.service_name", "test.local"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "cancelled"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.grpc_retry_events.*", "cancelled"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "client-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.http_retry_events.*", "client-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.max_retries", "3"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.0.unit", "ms"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.per_retry_timeout.0.value", "250000"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.grpc_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.timeout.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.#", "0"),
@@ -299,7 +298,7 @@ func testAccAwsAppmeshRoute_grpcRouteTimeout(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.metadata.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -335,7 +334,7 @@ func testAccAwsAppmeshRoute_grpcRouteTimeout(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.grpc_route.0.match.0.metadata.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.grpc_route.0.match.0.metadata.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -398,7 +397,7 @@ func testAccAwsAppmeshRoute_http2Route(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.header.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -408,7 +407,7 @@ func testAccAwsAppmeshRoute_http2Route(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.scheme", "http"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "server-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "server-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.max_retries", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.per_retry_timeout.0.unit", "s"),
@@ -439,12 +438,12 @@ func testAccAwsAppmeshRoute_http2Route(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.header.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
 						"invert":  "true",
 						"match.#": "0",
 						"name":    "X-Testing1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
 						"invert":                "false",
 						"match.#":               "1",
 						"match.0.range.#":       "1",
@@ -457,14 +456,14 @@ func testAccAwsAppmeshRoute_http2Route(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.scheme", "https"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "client-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.http_retry_events.*", "client-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.max_retries", "3"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.per_retry_timeout.0.unit", "ms"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.per_retry_timeout.0.value", "250000"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.tcp_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http2_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.timeout.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.tcp_route.#", "0"),
@@ -514,7 +513,7 @@ func testAccAwsAppmeshRoute_http2RouteTimeout(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.header.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -552,7 +551,7 @@ func testAccAwsAppmeshRoute_http2RouteTimeout(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http2_route.0.match.0.header.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http2_route.0.match.0.header.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -1041,7 +1040,7 @@ func testAccAwsAppmeshRoute_httpHeader(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.header.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
 						"invert":  "false",
 						"match.#": "0",
 						"name":    "X-Testing1",
@@ -1075,12 +1074,12 @@ func testAccAwsAppmeshRoute_httpHeader(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.action.0.weighted_target.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.header.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
 						"invert":  "true",
 						"match.#": "0",
 						"name":    "X-Testing1",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "spec.0.http_route.0.match.0.header.*", map[string]string{
 						"invert":                "false",
 						"match.#":               "1",
 						"match.0.range.#":       "1",
@@ -1228,7 +1227,7 @@ func testAccAwsAppmeshRoute_httpRetryPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.scheme", ""),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "server-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "server-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.max_retries", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.per_retry_timeout.0.unit", "s"),
@@ -1263,14 +1262,14 @@ func testAccAwsAppmeshRoute_httpRetryPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.match.0.scheme", ""),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "client-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "gateway-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.http_retry_events.*", "client-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.max_retries", "3"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.per_retry_timeout.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.per_retry_timeout.0.unit", "ms"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.per_retry_timeout.0.value", "250000"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.http_route.0.retry_policy.0.tcp_retry_events.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "spec.0.http_route.0.retry_policy.0.tcp_retry_events.*", "connection-error"),
 					resource.TestCheckResourceAttr(resourceName, "spec.0.tcp_route.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(resourceName, "created_date"),

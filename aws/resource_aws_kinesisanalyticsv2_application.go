@@ -337,7 +337,7 @@ func resourceAwsKinesisAnalyticsV2Application() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"record_column": {
-																Type:     schema.TypeSet,
+																Type:     schema.TypeList,
 																Required: true,
 																MaxItems: 1000,
 																Elem: &schema.Resource{
@@ -598,7 +598,7 @@ func resourceAwsKinesisAnalyticsV2Application() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"record_column": {
-																Type:     schema.TypeSet,
+																Type:     schema.TypeList,
 																Required: true,
 																MaxItems: 1000,
 																Elem: &schema.Resource{
@@ -1897,8 +1897,8 @@ func expandKinesisAnalyticsV2InputUpdate(vInput []interface{}) *kinesisanalytics
 
 		mInputSchema := vInputSchema[0].(map[string]interface{})
 
-		if vRecordColumns, ok := mInputSchema["record_column"].(*schema.Set); ok && vRecordColumns.Len() > 0 {
-			inputSchemaUpdate.RecordColumnUpdates = expandKinesisAnalyticsV2RecordColumns(vRecordColumns.List())
+		if vRecordColumns, ok := mInputSchema["record_column"].([]interface{}); ok {
+			inputSchemaUpdate.RecordColumnUpdates = expandKinesisAnalyticsV2RecordColumns(vRecordColumns)
 		}
 
 		if vRecordEncoding, ok := mInputSchema["record_encoding"].(string); ok && vRecordEncoding != "" {
@@ -2208,8 +2208,8 @@ func expandKinesisAnalyticsV2SourceSchema(vSourceSchema []interface{}) *kinesisa
 
 	mSourceSchema := vSourceSchema[0].(map[string]interface{})
 
-	if vRecordColumns, ok := mSourceSchema["record_column"].(*schema.Set); ok && vRecordColumns.Len() > 0 {
-		sourceSchema.RecordColumns = expandKinesisAnalyticsV2RecordColumns(vRecordColumns.List())
+	if vRecordColumns, ok := mSourceSchema["record_column"].([]interface{}); ok {
+		sourceSchema.RecordColumns = expandKinesisAnalyticsV2RecordColumns(vRecordColumns)
 	}
 
 	if vRecordEncoding, ok := mSourceSchema["record_encoding"].(string); ok && vRecordEncoding != "" {

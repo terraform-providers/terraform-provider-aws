@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudformation/waiter"
 	iamwaiter "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/iam/waiter"
 )
 
@@ -26,9 +26,9 @@ func resourceAwsCloudFormationStackSetInstance() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(waiter.StackSetInstanceCreatedDefaultTimeout),
+			Update: schema.DefaultTimeout(waiter.StackSetInstanceUpdatedDefaultTimeout),
+			Delete: schema.DefaultTimeout(waiter.StackSetInstanceDeletedDefaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -105,7 +105,7 @@ func resourceAwsCloudFormationStackSetInstanceCreate(d *schema.ResourceData, met
 
 		d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
 
-		err = waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
+		err = waiter.StackSetOperationSucceeded(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
 
 		if err != nil {
 			// IAM eventual consistency
@@ -157,7 +157,7 @@ func resourceAwsCloudFormationStackSetInstanceCreate(d *schema.ResourceData, met
 
 		d.SetId(fmt.Sprintf("%s,%s,%s", stackSetName, accountID, region))
 
-		err = waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
+		err = waiter.StackSetOperationSucceeded(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutCreate))
 
 		if err != nil {
 			return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) creation: %w", d.Id(), err)
@@ -253,7 +253,7 @@ func resourceAwsCloudFormationStackSetInstanceUpdate(d *schema.ResourceData, met
 			return fmt.Errorf("error updating CloudFormation StackSet Instance (%s): %s", d.Id(), err)
 		}
 
-		if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
+		if err := waiter.StackSetOperationSucceeded(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutUpdate)); err != nil {
 			return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) update: %s", d.Id(), err)
 		}
 	}
@@ -293,7 +293,7 @@ func resourceAwsCloudFormationStackSetInstanceDelete(d *schema.ResourceData, met
 		return fmt.Errorf("error deleting CloudFormation StackSet Instance (%s): %s", d.Id(), err)
 	}
 
-	if err := waitForCloudFormationStackSetOperation(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutDelete)); err != nil {
+	if err := waiter.StackSetOperationSucceeded(conn, stackSetName, aws.StringValue(output.OperationId), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return fmt.Errorf("error waiting for CloudFormation StackSet Instance (%s) deletion: %s", d.Id(), err)
 	}
 
@@ -334,76 +334,4 @@ func listCloudFormationStackSetInstances(conn *cloudformation.CloudFormation, st
 	}
 
 	return result, nil
-}
-
-func refreshCloudformationStackSetOperation(conn *cloudformation.CloudFormation, stackSetName, operationID string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		input := &cloudformation.DescribeStackSetOperationInput{
-			OperationId:  aws.String(operationID),
-			StackSetName: aws.String(stackSetName),
-		}
-
-		output, err := conn.DescribeStackSetOperation(input)
-
-		if isAWSErr(err, cloudformation.ErrCodeOperationNotFoundException, "") {
-			return nil, cloudformation.StackSetOperationStatusRunning, nil
-		}
-
-		if err != nil {
-			return nil, cloudformation.StackSetOperationStatusFailed, err
-		}
-
-		if output == nil || output.StackSetOperation == nil {
-			return nil, cloudformation.StackSetOperationStatusRunning, nil
-		}
-
-		if aws.StringValue(output.StackSetOperation.Status) == cloudformation.StackSetOperationStatusFailed {
-			allResults := make([]string, 0)
-			listOperationResultsInput := &cloudformation.ListStackSetOperationResultsInput{
-				OperationId:  aws.String(operationID),
-				StackSetName: aws.String(stackSetName),
-			}
-
-			for {
-				listOperationResultsOutput, err := conn.ListStackSetOperationResults(listOperationResultsInput)
-
-				if err != nil {
-					return output.StackSetOperation, cloudformation.StackSetOperationStatusFailed, fmt.Errorf("error listing Operation (%s) errors: %s", operationID, err)
-				}
-
-				if listOperationResultsOutput == nil {
-					continue
-				}
-
-				for _, summary := range listOperationResultsOutput.Summaries {
-					allResults = append(allResults, fmt.Sprintf("Account (%s) Region (%s) Status (%s) Status Reason: %s", aws.StringValue(summary.Account), aws.StringValue(summary.Region), aws.StringValue(summary.Status), aws.StringValue(summary.StatusReason)))
-				}
-
-				if aws.StringValue(listOperationResultsOutput.NextToken) == "" {
-					break
-				}
-
-				listOperationResultsInput.NextToken = listOperationResultsOutput.NextToken
-			}
-
-			return output.StackSetOperation, cloudformation.StackSetOperationStatusFailed, fmt.Errorf("Operation (%s) Results:\n%s", operationID, strings.Join(allResults, "\n"))
-		}
-
-		return output.StackSetOperation, aws.StringValue(output.StackSetOperation.Status), nil
-	}
-}
-
-func waitForCloudFormationStackSetOperation(conn *cloudformation.CloudFormation, stackSetName, operationID string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{cloudformation.StackSetOperationStatusRunning},
-		Target:  []string{cloudformation.StackSetOperationStatusSucceeded},
-		Refresh: refreshCloudformationStackSetOperation(conn, stackSetName, operationID),
-		Timeout: timeout,
-		Delay:   5 * time.Second,
-	}
-
-	log.Printf("[DEBUG] Waiting for CloudFormation StackSet (%s) operation: %s", stackSetName, operationID)
-	_, err := stateConf.WaitForState()
-
-	return err
 }

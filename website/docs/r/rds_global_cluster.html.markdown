@@ -37,7 +37,6 @@ resource "aws_rds_cluster" "primary" {
   provider = aws.primary
 
   # ... other configuration ...
-  engine_mode               = "global"
   global_cluster_identifier = aws_rds_global_cluster.example.id
 }
 
@@ -53,7 +52,6 @@ resource "aws_rds_cluster" "secondary" {
   provider   = aws.secondary
 
   # ... other configuration ...
-  engine_mode               = "global"
   global_cluster_identifier = aws_rds_global_cluster.example.id
 }
 

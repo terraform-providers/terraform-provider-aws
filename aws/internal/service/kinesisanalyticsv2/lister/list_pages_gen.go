@@ -3,13 +3,19 @@
 package lister
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kinesisanalyticsv2"
 )
 
 func ListApplicationsPages(conn *kinesisanalyticsv2.KinesisAnalyticsV2, input *kinesisanalyticsv2.ListApplicationsInput, fn func(*kinesisanalyticsv2.ListApplicationsOutput, bool) bool) error {
+	return ListApplicationsPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListApplicationsPagesWithContext(ctx context.Context, conn *kinesisanalyticsv2.KinesisAnalyticsV2, input *kinesisanalyticsv2.ListApplicationsInput, fn func(*kinesisanalyticsv2.ListApplicationsOutput, bool) bool) error {
 	for {
-		output, err := conn.ListApplications(input)
+		output, err := conn.ListApplicationsWithContext(ctx, input)
 		if err != nil {
 			return err
 		}

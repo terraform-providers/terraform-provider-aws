@@ -99,6 +99,34 @@ resource "aws_glue_crawler" "example" {
 }
 ```
 
+### Configuration Settings
+
+```hcl
+resource "aws_glue_crawler" "events_crawler" {
+  database_name = aws_glue_catalog_database.glue_database.name
+  schedule      = "cron(0 1 * * ? *)"
+  name          = "events_crawler_${var.environment_name}"
+  role          = aws_iam_role.glue_role.arn
+  tags          = var.tags
+
+  configuration = jsonencode(
+    {
+      Grouping = {
+        TableGroupingPolicy = "CombineCompatibleSchemas"
+      }
+      CrawlerOutput = {
+        Partitions = { AddOrUpdateBehavior = "InheritFromTable" }
+      }
+      Version = 1
+    }
+  )
+
+  s3_target {
+    path = "s3://${aws_s3_bucket.data_lake_bucket.bucket}"
+  }
+}
+```
+
 ## Argument Reference
 
 ~> **NOTE:** Must specify at least one of `dynamodb_target`, `jdbc_target`, `s3_target` or `catalog_target`.
@@ -109,7 +137,7 @@ The following arguments are supported:
 * `name` (Required) Name of the crawler.
 * `role` (Required) The IAM role friendly name (including path without leading slash), or ARN of an IAM role, used by the crawler to access other resources.
 * `classifiers` (Optional) List of custom classifiers. By default, all AWS classifiers are included in a crawl, but these custom classifiers always override the default classifiers for a given classification.
-* `configuration` (Optional) JSON string of configuration information.
+* `configuration` (Optional) JSON string of configuration information. For more details see [Setting Crawler Configuration Options](https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html).
 * `description` (Optional) Description of the crawler.
 * `dynamodb_target` (Optional) List of nested DynamoDB target arguments. See below.
 * `jdbc_target` (Optional) List of nested JBDC target arguments. See below.

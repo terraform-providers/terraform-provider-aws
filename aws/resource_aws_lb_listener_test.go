@@ -213,6 +213,30 @@ func TestAccAWSLBListener_https(t *testing.T) {
 	})
 }
 
+func TestAccAWSLBListener_LoadBalancerArn_GatewayLoadBalancer(t *testing.T) {
+	var conf elbv2.Listener
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	lbResourceName := "aws_lb.test"
+	resourceName := "aws_lb_listener.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLBListenerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLBListenerConfig_LoadBalancerArn_GatewayLoadBalancer(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSLBListenerExists(resourceName, &conf),
+					resource.TestCheckResourceAttrPair(resourceName, "load_balancer_arn", lbResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "protocol", ""),
+					resource.TestCheckResourceAttr(resourceName, "port", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLBListener_Protocol_Tls(t *testing.T) {
 	var listener1 elbv2.Listener
 	key := tlsRsaPrivateKeyPem(2048)
@@ -528,7 +552,6 @@ func testAccAWSLBListenerConfig_basic(lbName, targetGroupName string) string {
 	return fmt.Sprintf(`
 resource "aws_lb_listener" "front_end" {
   load_balancer_arn = aws_lb.alb_test.id
-  protocol          = "HTTP"
   port              = "80"
 
   default_action {
@@ -1334,6 +1357,60 @@ resource "aws_iam_server_certificate" "test_cert" {
   private_key      = "%[3]s"
 }
 `, rName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key))
+}
+
+func testAccAWSLBListenerConfig_LoadBalancerArn_GatewayLoadBalancer(rName string) string {
+	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.10.10.0/25"
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, 0)
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_lb" "test" {
+  load_balancer_type = "gateway"
+  name               = %[1]q
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test.id
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = %[1]q
+  port     = 6081
+  protocol = "GENEVE"
+  vpc_id   = aws_vpc.test.id
+
+  health_check {
+    port     = 80
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.id
+
+  default_action {
+    target_group_arn = aws_lb_target_group.test.id
+    type             = "forward"
+  }
+}
+`, rName))
 }
 
 func testAccAWSLBListenerConfig_Protocol_Tls(rName, key, certificate string) string {

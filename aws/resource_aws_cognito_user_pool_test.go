@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -773,7 +772,7 @@ func TestAccAWSCognitoUserPool_withAliasAttributes(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "alias_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "preferred_username"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "preferred_username"),
 					resource.TestCheckResourceAttr(resourceName, "auto_verified_attributes.#", "0"),
 				),
 			},
@@ -786,10 +785,10 @@ func TestAccAWSCognitoUserPool_withAliasAttributes(t *testing.T) {
 				Config: testAccAWSCognitoUserPoolConfig_withAliasAttributesUpdated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "alias_attributes.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "email"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "preferred_username"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "alias_attributes.*", "preferred_username"),
 					resource.TestCheckResourceAttr(resourceName, "auto_verified_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "auto_verified_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "auto_verified_attributes.*", "email"),
 				),
 			},
 		},
@@ -938,7 +937,7 @@ func TestAccAWSCognitoUserPool_withSchemaAttributes(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoUserPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "schema.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
 						"attribute_data_type":            "String",
 						"developer_only_attribute":       "false",
 						"mutable":                        "false",
@@ -949,7 +948,7 @@ func TestAccAWSCognitoUserPool_withSchemaAttributes(t *testing.T) {
 						"string_attribute_constraints.0.min_length": "5",
 						"string_attribute_constraints.0.max_length": "10",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
 						"attribute_data_type":            "Boolean",
 						"developer_only_attribute":       "true",
 						"mutable":                        "false",
@@ -969,7 +968,7 @@ func TestAccAWSCognitoUserPool_withSchemaAttributes(t *testing.T) {
 				Config: testAccAWSCognitoUserPoolConfig_withSchemaAttributesUpdated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "schema.#", "3"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
 						"attribute_data_type":            "String",
 						"developer_only_attribute":       "false",
 						"mutable":                        "false",
@@ -980,7 +979,7 @@ func TestAccAWSCognitoUserPool_withSchemaAttributes(t *testing.T) {
 						"string_attribute_constraints.0.min_length": "7",
 						"string_attribute_constraints.0.max_length": "15",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
 						"attribute_data_type":            "Number",
 						"developer_only_attribute":       "true",
 						"mutable":                        "true",
@@ -991,7 +990,7 @@ func TestAccAWSCognitoUserPool_withSchemaAttributes(t *testing.T) {
 						"required":                       "false",
 						"string_attribute_constraints.#": "0",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "schema.*", map[string]string{
 						"attribute_data_type":            "Number",
 						"developer_only_attribute":       "false",
 						"mutable":                        "true",

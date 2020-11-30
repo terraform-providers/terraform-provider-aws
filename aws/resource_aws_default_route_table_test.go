@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSDefaultRouteTable_basic(t *testing.T) {
@@ -302,7 +301,7 @@ func TestAccAWSDefaultRouteTable_ConditionalCidrBlock(t *testing.T) {
 				Config: testAccAWSDefaultRouteTableConfigConditionalIpv4Ipv6(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
 						"cidr_block":      "0.0.0.0/0",
 						"ipv6_cidr_block": "",
 					}),
@@ -312,7 +311,7 @@ func TestAccAWSDefaultRouteTable_ConditionalCidrBlock(t *testing.T) {
 				Config: testAccAWSDefaultRouteTableConfigConditionalIpv4Ipv6(rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
 						"cidr_block":      "",
 						"ipv6_cidr_block": "::/0",
 					}),

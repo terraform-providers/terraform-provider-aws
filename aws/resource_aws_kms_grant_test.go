@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSKmsGrant_basic(t *testing.T) {
@@ -27,8 +26,8 @@ func TestAccAWSKmsGrant_basic(t *testing.T) {
 					testAccCheckAWSKmsGrantExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "operations.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Encrypt"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Decrypt"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Encrypt"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Decrypt"),
 					resource.TestCheckResourceAttrSet(resourceName, "grantee_principal"),
 					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
 				),
@@ -59,7 +58,7 @@ func TestAccAWSKmsGrant_withConstraints(t *testing.T) {
 					testAccCheckAWSKmsGrantExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "constraints.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "constraints.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "constraints.*", map[string]string{
 						"encryption_context_equals.%":   "2",
 						"encryption_context_equals.baz": "kaz",
 						"encryption_context_equals.foo": "bar",
@@ -79,7 +78,7 @@ func TestAccAWSKmsGrant_withConstraints(t *testing.T) {
 					testAccCheckAWSKmsGrantExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "constraints.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "constraints.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "constraints.*", map[string]string{
 						"encryption_context_subset.%":   "2",
 						"encryption_context_subset.baz": "kaz",
 						"encryption_context_subset.foo": "bar",
@@ -159,8 +158,8 @@ func TestAccAWSKmsGrant_ARN(t *testing.T) {
 					testAccCheckAWSKmsGrantExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "operations.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Encrypt"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Decrypt"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Encrypt"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "operations.*", "Decrypt"),
 					resource.TestCheckResourceAttrSet(resourceName, "grantee_principal"),
 					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
 				),

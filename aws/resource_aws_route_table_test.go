@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -399,7 +398,7 @@ func TestAccAWSRouteTable_Route_VpcEndpointId(t *testing.T) {
 	resourceName := "aws_route_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckElbv2GatewayLoadBalancer(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
@@ -606,7 +605,7 @@ func TestAccAWSRouteTable_ConditionalCidrBlock(t *testing.T) {
 				Config: testAccAWSRouteTableConfigConditionalIpv4Ipv6(rName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
 						"cidr_block":      "0.0.0.0/0",
 						"ipv6_cidr_block": "",
 					}),
@@ -616,7 +615,7 @@ func TestAccAWSRouteTable_ConditionalCidrBlock(t *testing.T) {
 				Config: testAccAWSRouteTableConfigConditionalIpv4Ipv6(rName, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(resourceName, &routeTable),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "route.*", map[string]string{
 						"cidr_block":      "",
 						"ipv6_cidr_block": "::/0",
 					}),

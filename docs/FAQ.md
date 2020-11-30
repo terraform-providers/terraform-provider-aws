@@ -7,9 +7,10 @@
 The HashiCorp Terraform AWS provider team is :
 
 * Mary Cutrali, Product Manager - GitHub [@maryelizbeth](https://github.com/maryelizbeth) Twitter [@marycutrali](https://twitter.com/marycutrali)
-* Brian Flad, Engineering Lead GitHub [@bflad](https://github.com/bflad)
+* Brian Flad, Engineering Lead - GitHub [@bflad](https://github.com/bflad)
 * Graham Davison, Engineer - GitHub [@gdavison](https://github.com/gdavison)
 * Angie Pinilla, Engineer - GitHub [@angie44](https://github.com/angie44)
+* Bill Rich, Engineer - GitHub [@bill-rich](https://github.com/bill-rich)
 * Simon Davis, Engineering Manager - GitHub [@breathingdust](https://github.com/breathingdust)
 * Kerim Satirli,  Developer Advocate - GitHub [@ksatirli](https://github.com/ksatirli)
 
@@ -19,7 +20,11 @@ Unfortunately, due to the volume of issues and new pull requests we receive, we 
 
 ### How do you decide what gets merged for each release?
 
-The number one factor we look at when deciding what issues to look at are your 👍 [reactions](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue/PR description as these can be [easily discovered](https://github.com/hashicorp/terraform-provider-aws/issues?q=is%3Aopen+sort%3Areactions-%2B1-desc). Comments that further explain desired use cases or poor user experience are also heavily factored. The items with the most support are always on our radar, and we commit to keep the community updated on their status and potential timelines.
+We have a large backlog of pull requests to get through and the team are moving through them as quick as we can. All pull requests must be reviewed by a HashiCorp engineer before inclusion. This is to ensure that the design of the addition fits with what provider users have come to expect, and to ensure that testing and best practices are adhered to. This is particularly important for such a large codebase, to ensure that we sustain its maintainability as its grows.
+
+The number one factor we look at when deciding what issues to look at are your 👍 [reactions](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue/PR description as these can be [easily discovered](https://github.com/terraform-providers/terraform-provider-aws/issues?q=is%3Aopen+sort%3Areactions-%2B1-desc). Comments that further explain desired use cases or poor user experience are also heavily factored. The items with the most support are always on our radar, and we commit to keep the community updated on their status and potential timelines.
+
+Once we have prioritized your contribution for review, we will let you know when to expect an engineer to get in touch. If changes are required, we will ask in the pull request. If you are unable to find the time, just let us know, and we will make the necessary changes required in order to merge.
 
 We publish a [roadmap](../ROADMAP.md) every quarter which describes major themes or specific product areas of focus.
 

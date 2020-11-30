@@ -101,8 +101,7 @@ The following arguments are supported:
 * `deployment_id` - (Required) The ID of the deployment that the stage points to
 * `access_log_settings` - (Optional) Enables access logs for the API stage. Detailed below.
 * `cache_cluster_enabled` - (Optional) Specifies whether a cache cluster is enabled for the stage
-* `cache_cluster_size` - (Optional) The size of the cache cluster for the stage, if enabled.
-	Allowed values include `0.5`, `1.6`, `6.1`, `13.5`, `28.4`, `58.2`, `118` and `237`.
+* `cache_cluster_size` - (Optional) The size of the cache cluster for the stage, if enabled. Allowed values include `0.5`, `1.6`, `6.1`, `13.5`, `28.4`, `58.2`, `118` and `237`.
 * `client_certificate_id` - (Optional) The identifier of a client certificate for the stage.
 * `description` - (Optional) The description of the stage
 * `documentation_version` - (Optional) The version of the associated API documentation

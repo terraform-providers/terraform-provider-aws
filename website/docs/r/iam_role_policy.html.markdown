@@ -67,6 +67,8 @@ assign a random, unique name.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The role policy ID, in the form of `role_name:role_policy_name`.
 * `name` - The name of the policy.
 * `policy` - The policy document attached to the role.

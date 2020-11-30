@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"reflect"
 	"regexp"
@@ -10,11 +11,87 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/waf"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/waf/lister"
 )
+
+func init() {
+	resource.AddTestSweepers("aws_waf_ipset", &resource.Sweeper{
+		Name: "aws_waf_ipset",
+		F:    testSweepWafIPSet,
+		Dependencies: []string{
+			"aws_waf_rate_based_rule",
+			"aws_waf_rule",
+			"aws_waf_rule_group",
+		},
+	})
+}
+
+func testSweepWafIPSet(region string) error {
+	client, err := sharedClientForRegion(region)
+	if err != nil {
+		return fmt.Errorf("error getting client: %s", err)
+	}
+	conn := client.(*AWSClient).wafconn
+
+	var sweeperErrs *multierror.Error
+
+	input := &waf.ListIPSetsInput{}
+
+	err = lister.ListIPSetsPages(conn, input, func(page *waf.ListIPSetsOutput, lastPage bool) bool {
+		if page == nil {
+			return !lastPage
+		}
+
+		for _, ipSet := range page.IPSets {
+			id := aws.StringValue(ipSet.IPSetId)
+
+			r := resourceAwsWafIPSet()
+			d := r.Data(nil)
+			d.SetId(id)
+
+			// Need to Read first to fill in ip_set_descriptors attribute
+			err := r.Read(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error reading WAF IP Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+
+			// In case it was already deleted
+			if d.Id() == "" {
+				continue
+			}
+
+			err = r.Delete(d, client)
+
+			if err != nil {
+				sweeperErr := fmt.Errorf("error deleting WAF IP Set (%s): %w", id, err)
+				log.Printf("[ERROR] %s", sweeperErr)
+				sweeperErrs = multierror.Append(sweeperErrs, sweeperErr)
+				continue
+			}
+		}
+
+		return !lastPage
+	})
+
+	if testSweepSkipSweepError(err) {
+		log.Printf("[WARN] Skipping WAF IP Set sweep for %s: %s", region, err)
+		return sweeperErrs.ErrorOrNil() // In case we have completed some pages, but had errors
+	}
+
+	if err != nil {
+		sweeperErrs = multierror.Append(sweeperErrs, fmt.Errorf("error describing WAF IP Sets: %w", err))
+	}
+
+	return sweeperErrs.ErrorOrNil()
+}
 
 func TestAccAWSWafIPSet_basic(t *testing.T) {
 	var v waf.IPSet
@@ -31,7 +108,7 @@ func TestAccAWSWafIPSet_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &v),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -85,7 +162,7 @@ func TestAccAWSWafIPSet_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -101,7 +178,7 @@ func TestAccAWSWafIPSet_changeNameForceNew(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSWafIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", uName),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -127,7 +204,7 @@ func TestAccAWSWafIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafIPSetExists(resourceName, &before),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.7.0/24",
 					}),
@@ -144,7 +221,7 @@ func TestAccAWSWafIPSet_changeDescriptors(t *testing.T) {
 					testAccCheckAWSWafIPSetExists(resourceName, &after),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "ip_set_descriptors.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ip_set_descriptors.*", map[string]string{
 						"type":  "IPV4",
 						"value": "192.0.8.0/24",
 					}),

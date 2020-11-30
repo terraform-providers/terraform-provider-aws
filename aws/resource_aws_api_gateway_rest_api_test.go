@@ -465,12 +465,6 @@ func TestAccAWSAPIGatewayRestApi_policy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy", expectedUpdatePolicyText),
 				),
 			},
-			{
-				Config: testAccAWSAPIGatewayRestAPIConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "policy", ""),
-				),
-			},
 		},
 	})
 }

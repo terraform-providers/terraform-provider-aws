@@ -185,7 +185,7 @@ When uploading a certificate, the following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the arguments, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The internal id assigned to this domain name by API Gateway.
 * `certificate_upload_date` - The upload date associated with the domain certificate.

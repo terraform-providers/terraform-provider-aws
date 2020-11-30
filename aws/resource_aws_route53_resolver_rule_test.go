@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -278,7 +277,7 @@ func TestAccAwsRoute53ResolverRule_forward(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule_type", "FORWARD"),
 					resource.TestCheckResourceAttrPair(resourceName, "resolver_endpoint_id", resourceNameEp1, "id"),
 					resource.TestCheckResourceAttr(resourceName, "target_ip.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.6",
 						"port": "53",
 					}),
@@ -299,11 +298,11 @@ func TestAccAwsRoute53ResolverRule_forward(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "resolver_endpoint_id", resourceNameEp1, "id"),
 					resource.TestCheckResourceAttr(resourceName, "rule_type", "FORWARD"),
 					resource.TestCheckResourceAttr(resourceName, "target_ip.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.7",
 						"port": "53",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.17",
 						"port": "54",
 					}),
@@ -319,11 +318,11 @@ func TestAccAwsRoute53ResolverRule_forward(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "resolver_endpoint_id", resourceNameEp2, "id"),
 					resource.TestCheckResourceAttr(resourceName, "rule_type", "FORWARD"),
 					resource.TestCheckResourceAttr(resourceName, "target_ip.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.7",
 						"port": "53",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.17",
 						"port": "54",
 					}),
@@ -353,7 +352,7 @@ func TestAccAwsRoute53ResolverRule_forwardEndpointRecreate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule_type", "FORWARD"),
 					resource.TestCheckResourceAttrPair(resourceName, "resolver_endpoint_id", resourceNameEp, "id"),
 					resource.TestCheckResourceAttr(resourceName, "target_ip.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.6",
 						"port": "53",
 					}),
@@ -369,7 +368,7 @@ func TestAccAwsRoute53ResolverRule_forwardEndpointRecreate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule_type", "FORWARD"),
 					resource.TestCheckResourceAttrPair(resourceName, "resolver_endpoint_id", resourceNameEp, "id"),
 					resource.TestCheckResourceAttr(resourceName, "target_ip.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "target_ip.*", map[string]string{
 						"ip":   "192.0.2.6",
 						"port": "53",
 					}),

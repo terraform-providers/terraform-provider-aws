@@ -120,7 +120,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `checksum` - Checksum identifying the version of the bot that was created. The checksum is not
 included as an argument because the resource will add it automatically when updating the bot.

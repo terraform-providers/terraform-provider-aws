@@ -29,7 +29,7 @@ resource "aws_iot_thing_type" "foo" {
 
 ## Attributes Reference
 
-In addition to the arguments above, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the created AWS IoT Thing Type.
 

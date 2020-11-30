@@ -139,6 +139,47 @@ func TestAccAWSEc2TransitGatewayVpcAttachment_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAWSEc2TransitGatewayVpcAttachment_ApplianceModeSupport(t *testing.T) {
+	var transitGatewayVpcAttachment1, transitGatewayVpcAttachment2 ec2.TransitGatewayVpcAttachment
+	resourceName := "aws_ec2_transit_gateway_vpc_attachment.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2TransitGateway(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSEc2TransitGatewayVpcAttachmentConfigApplianceModeSupport("false"),
+				ExpectError: regexp.MustCompile(`expected appliance_mode_support to be one of`),
+			},
+			{
+				Config:      testAccAWSEc2TransitGatewayVpcAttachmentConfigApplianceModeSupport("true"),
+				ExpectError: regexp.MustCompile(`expected appliance_mode_support to be one of`),
+			},
+			{
+				Config: testAccAWSEc2TransitGatewayVpcAttachmentConfigApplianceModeSupport(ec2.ApplianceModeSupportValueDisable),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEc2TransitGatewayVpcAttachmentExists(resourceName, &transitGatewayVpcAttachment1),
+					resource.TestCheckResourceAttr(resourceName, "appliance_mode_support", ec2.ApplianceModeSupportValueDisable),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSEc2TransitGatewayVpcAttachmentConfigApplianceModeSupport(ec2.ApplianceModeSupportValueEnable),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEc2TransitGatewayVpcAttachmentExists(resourceName, &transitGatewayVpcAttachment2),
+					testAccCheckAWSEc2TransitGatewayVpcAttachmentNotRecreated(&transitGatewayVpcAttachment1, &transitGatewayVpcAttachment2),
+					resource.TestCheckResourceAttr(resourceName, "appliance_mode_support", ec2.ApplianceModeSupportValueEnable),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSEc2TransitGatewayVpcAttachment_DnsSupport(t *testing.T) {
 	var transitGatewayVpcAttachment1, transitGatewayVpcAttachment2 ec2.TransitGatewayVpcAttachment
 	resourceName := "aws_ec2_transit_gateway_vpc_attachment.test"
@@ -580,6 +621,49 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
   vpc_id             = aws_vpc.test.id
 }
 `
+}
+
+func testAccAWSEc2TransitGatewayVpcAttachmentConfigApplianceModeSupport(appModeSupport string) string {
+	return fmt.Sprintf(`
+data "aws_availability_zones" "available" {
+  # IncorrectState: Transit Gateway is not available in availability zone us-west-2d
+  exclude_zone_ids = ["usw2-az4"]
+  state            = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-ec2-transit-gateway-vpc-attachment"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.0.0/24"
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-ec2-transit-gateway-vpc-attachment"
+  }
+}
+
+resource "aws_ec2_transit_gateway" "test" {
+}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
+  appliance_mode_support = %q
+  subnet_ids             = [aws_subnet.test.id]
+  transit_gateway_id     = aws_ec2_transit_gateway.test.id
+  vpc_id                 = aws_vpc.test.id
+}
+`, appModeSupport)
 }
 
 func testAccAWSEc2TransitGatewayVpcAttachmentConfigDnsSupport(dnsSupport string) string {

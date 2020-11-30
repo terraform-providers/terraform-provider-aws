@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -85,7 +84,7 @@ func TestAccAWSWafRegionalRuleGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "activated_rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "metric_name", groupName),
 					computeWafActivatedRuleWithRuleId(&rule, "COUNT", 50, &idx),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
 						"action.0.type": "COUNT",
 						"priority":      "50",
 						"type":          waf.WafRuleTypeRegular,
@@ -238,7 +237,7 @@ func TestAccAWSWafRegionalRuleGroup_changeActivatedRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", groupName),
 					resource.TestCheckResourceAttr(resourceName, "activated_rule.#", "1"),
 					computeWafActivatedRuleWithRuleId(&rule0, "COUNT", 50, &idx0),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
 						"action.0.type": "COUNT",
 						"priority":      "50",
 						"type":          waf.WafRuleTypeRegular,
@@ -254,7 +253,7 @@ func TestAccAWSWafRegionalRuleGroup_changeActivatedRules(t *testing.T) {
 
 					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.test", &rule1),
 					computeWafActivatedRuleWithRuleId(&rule1, "BLOCK", 10, &idx1),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
 						"action.0.type": "BLOCK",
 						"priority":      "10",
 						"type":          waf.WafRuleTypeRegular,
@@ -262,7 +261,7 @@ func TestAccAWSWafRegionalRuleGroup_changeActivatedRules(t *testing.T) {
 
 					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.test2", &rule2),
 					computeWafActivatedRuleWithRuleId(&rule2, "COUNT", 1, &idx2),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
 						"action.0.type": "COUNT",
 						"priority":      "1",
 						"type":          waf.WafRuleTypeRegular,
@@ -270,7 +269,7 @@ func TestAccAWSWafRegionalRuleGroup_changeActivatedRules(t *testing.T) {
 
 					testAccCheckAWSWafRegionalRuleExists("aws_wafregional_rule.test3", &rule3),
 					computeWafActivatedRuleWithRuleId(&rule3, "BLOCK", 15, &idx3),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "activated_rule.*", map[string]string{
 						"action.0.type": "BLOCK",
 						"priority":      "15",
 						"type":          waf.WafRuleTypeRegular,

@@ -71,7 +71,7 @@ The `capture_content_type_header` block supports:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The Amazon Resource Name (ARN) assigned by AWS to this endpoint configuration.
 * `name` - The name of the endpoint configuration.

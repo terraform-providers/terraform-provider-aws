@@ -536,21 +536,13 @@ func testAccCheckAWSSSMAssociationDestroy(s *terraform.State) error {
 }
 
 func testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "ssm_ami" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["*hvm-ssd/ubuntu-trusty-14.04*"]
-  }
-}
-
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_iam_instance_profile" "ssm_profile" {
   name = "ssm_profile-%[1]s"
   role = aws_iam_role.ssm_role.name
 }
+
+data "aws_partition" "current" {}
 
 resource "aws_iam_role" "ssm_role" {
   name = "ssm_role-%[1]s"
@@ -563,7 +555,7 @@ resource "aws_iam_role" "ssm_role" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -599,7 +591,7 @@ resource "aws_ssm_document" "foo" {
       "maxAttempts": 1,
       "onFailure": "Abort",
       "inputs": {
-        "ImageId": "${data.aws_ami.ssm_ami.id}",
+        "ImageId": "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}",
         "InstanceType": "t2.small",
         "MinInstanceCount": 1,
         "MaxInstanceCount": 1,
@@ -652,7 +644,7 @@ resource "aws_ssm_association" "test" {
 
   schedule_expression = "rate(60 minutes)"
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSSSMAssociationBasicConfigWithParametersUpdated(rName string) string {

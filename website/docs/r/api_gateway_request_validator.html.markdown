@@ -32,7 +32,7 @@ The following argument is supported:
 
 ## Attributes Reference
 
-The following attribute is exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique ID of the request validator
 

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	tfglue "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/glue"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSGluePartition_basic(t *testing.T) {
@@ -31,7 +30,7 @@ func TestAccAWSGluePartition_basic(t *testing.T) {
 					testAccCheckResourceAttrAccountID(resourceName, "catalog_id"),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
 					resource.TestCheckResourceAttr(resourceName, "partition_values.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
+					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttrSet(resourceName, "creation_time"),
 				),
@@ -61,8 +60,8 @@ func TestAccAWSGluePartition_multipleValues(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckGluePartitionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "partition_values.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue2),
+					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue),
+					resource.TestCheckTypeSetElemAttr(resourceName, "partition_values.*", parValue2),
 				),
 			},
 			{

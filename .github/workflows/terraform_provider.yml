@@ -66,10 +66,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/cache@v2
       with:
@@ -128,9 +129,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -156,9 +158,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -186,9 +189,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -211,9 +215,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
@@ -238,9 +243,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
+    # See also: https://github.com/actions/setup-go/issues/54
     - name: go env
       run: |
-        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2

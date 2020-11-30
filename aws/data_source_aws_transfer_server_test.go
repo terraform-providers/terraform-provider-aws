@@ -57,7 +57,7 @@ func TestAccDataSourceAwsTransferServer_apigateway(t *testing.T) {
 	datasourceName := "data.aws_transfer_server.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPreCheckAWSTransfer(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

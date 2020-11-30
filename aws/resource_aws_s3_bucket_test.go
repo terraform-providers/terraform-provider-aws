@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/cloudformation/waiter"
 )
 
 func init() {
@@ -286,7 +286,7 @@ func TestAccAWSS3Bucket_tagsWithSystemTags(t *testing.T) {
 	resourceName := "aws_s3_bucket.bucket"
 	bucketName := acctest.RandomWithPrefix("tf-test-bucket")
 
-	var stackId string
+	var stackID string
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -297,16 +297,18 @@ func TestAccAWSS3Bucket_tagsWithSystemTags(t *testing.T) {
 				// Tear down CF stack.
 				conn := testAccProvider.Meta().(*AWSClient).cfconn
 
+				requestToken := resource.UniqueId()
 				req := &cloudformation.DeleteStackInput{
-					StackName: aws.String(stackId),
+					StackName:          aws.String(stackID),
+					ClientRequestToken: aws.String(requestToken),
 				}
 
-				log.Printf("[DEBUG] Deleting CloudFormation stack: %#v", req)
+				log.Printf("[DEBUG] Deleting CloudFormation stack: %s", req)
 				if _, err := conn.DeleteStack(req); err != nil {
-					return fmt.Errorf("Error deleting CloudFormation stack: %s", err)
+					return fmt.Errorf("error deleting CloudFormation stack: %w", err)
 				}
 
-				if err := waitForCloudFormationStackDeletion(conn, stackId, 10*time.Minute); err != nil {
+				if _, err := waiter.StackDeleted(conn, stackID, requestToken, 10*time.Minute); err != nil {
 					return fmt.Errorf("Error waiting for CloudFormation stack deletion: %s", err)
 				}
 
@@ -320,7 +322,7 @@ func TestAccAWSS3Bucket_tagsWithSystemTags(t *testing.T) {
 					testAccCheckAWSS3BucketExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					testAccCheckAWSS3DestroyBucket(resourceName),
-					testAccCheckAWSS3BucketCreateViaCloudFormation(bucketName, &stackId),
+					testAccCheckAWSS3BucketCreateViaCloudFormation(bucketName, &stackID),
 				),
 			},
 			{
@@ -648,12 +650,12 @@ func TestAccAWSS3Bucket_UpdateGrant(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3BucketExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "grant.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
 						"permissions.#": "2",
 						"type":          "CanonicalUser",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "FULL_CONTROL"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "WRITE"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "FULL_CONTROL"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "WRITE"),
 				),
 			},
 			{
@@ -667,17 +669,17 @@ func TestAccAWSS3Bucket_UpdateGrant(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3BucketExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "grant.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
 						"permissions.#": "1",
 						"type":          "CanonicalUser",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "READ"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
+					resource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "READ"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "grant.*", map[string]string{
 						"permissions.#": "1",
 						"type":          "Group",
 						"uri":           "http://acs.amazonaws.com/groups/s3/LogDelivery",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "READ_ACP"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "grant.*.permissions.*", "READ_ACP"),
 				),
 			},
 			{
@@ -1248,27 +1250,27 @@ func TestAccAWSS3Bucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.expiration.0.days", "365"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.expiration.0.date", ""),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.expiration.0.expired_object_delete_marker", "false"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
 						"date":          "",
 						"days":          "30",
 						"storage_class": "STANDARD_IA",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
 						"date":          "",
 						"days":          "60",
 						"storage_class": "INTELLIGENT_TIERING",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
 						"date":          "",
 						"days":          "90",
 						"storage_class": "ONEZONE_IA",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
 						"date":          "",
 						"days":          "120",
 						"storage_class": "GLACIER",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.transition.*", map[string]string{
 						"date":          "",
 						"days":          "210",
 						"storage_class": "DEEP_ARCHIVE",
@@ -1280,7 +1282,7 @@ func TestAccAWSS3Bucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.1.expiration.0.expired_object_delete_marker", "false"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.2.id", "id3"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.2.prefix", "path3/"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.2.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.2.transition.*", map[string]string{
 						"days": "0",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.3.id", "id4"),
@@ -1290,13 +1292,13 @@ func TestAccAWSS3Bucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.4.id", "id5"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.4.tags.tagKey", "tagValue"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.4.tags.terraform", "hashicorp"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.4.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.4.transition.*", map[string]string{
 						"days":          "0",
 						"storage_class": "GLACIER",
 					}),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.5.id", "id6"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.5.tags.tagKey", "tagValue"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.5.transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.5.transition.*", map[string]string{
 						"days":          "0",
 						"storage_class": "GLACIER",
 					}),
@@ -1316,11 +1318,11 @@ func TestAccAWSS3Bucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.prefix", "path1/"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.0.noncurrent_version_expiration.0.days", "365"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.noncurrent_version_transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.noncurrent_version_transition.*", map[string]string{
 						"days":          "30",
 						"storage_class": "STANDARD_IA",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.noncurrent_version_transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.noncurrent_version_transition.*", map[string]string{
 						"days":          "60",
 						"storage_class": "GLACIER",
 					}),
@@ -1330,7 +1332,7 @@ func TestAccAWSS3Bucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.1.noncurrent_version_expiration.0.days", "365"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.2.id", "id3"),
 					resource.TestCheckResourceAttr(resourceName, "lifecycle_rule.2.prefix", "path3/"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.2.noncurrent_version_transition.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.2.noncurrent_version_transition.*", map[string]string{
 						"days":          "0",
 						"storage_class": "GLACIER",
 					}),
@@ -2570,7 +2572,7 @@ func testAccCheckAWSS3BucketAddObjectsWithLegalHold(n string, keys ...string) re
 }
 
 // Create an S3 bucket via a CF stack so that it has system tags.
-func testAccCheckAWSS3BucketCreateViaCloudFormation(n string, stackId *string) resource.TestCheckFunc {
+func testAccCheckAWSS3BucketCreateViaCloudFormation(n string, stackID *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).cfconn
 		stackName := acctest.RandomWithPrefix("tf-acc-test-s3tags")
@@ -2585,26 +2587,29 @@ func testAccCheckAWSS3BucketCreateViaCloudFormation(n string, stackId *string) r
   }
 }`, n)
 
+		requestToken := resource.UniqueId()
 		req := &cloudformation.CreateStackInput{
-			StackName:    aws.String(stackName),
-			TemplateBody: aws.String(templateBody),
+			StackName:          aws.String(stackName),
+			TemplateBody:       aws.String(templateBody),
+			ClientRequestToken: aws.String(requestToken),
 		}
 
-		log.Printf("[DEBUG] Creating CloudFormation stack: %#v", req)
+		log.Printf("[DEBUG] Creating CloudFormation stack: %s", req)
 		resp, err := conn.CreateStack(req)
 		if err != nil {
-			return fmt.Errorf("Error creating CloudFormation stack: %s", err)
+			return fmt.Errorf("error creating CloudFormation stack: %w", err)
 		}
 
-		status, err := waitForCloudFormationStackCreation(conn, aws.StringValue(resp.StackId), 10*time.Minute)
+		stack, err := waiter.StackCreated(conn, aws.StringValue(resp.StackId), requestToken, 10*time.Minute)
 		if err != nil {
-			return fmt.Errorf("Error waiting for CloudFormation stack creation: %s", err)
+			return fmt.Errorf("Error waiting for CloudFormation stack creation: %w", err)
 		}
+		status := aws.StringValue(stack.StackStatus)
 		if status != cloudformation.StackStatusCreateComplete {
 			return fmt.Errorf("Invalid CloudFormation stack creation status: %s", status)
 		}
 
-		*stackId = aws.StringValue(resp.StackId)
+		*stackID = aws.StringValue(resp.StackId)
 		return nil
 	}
 }

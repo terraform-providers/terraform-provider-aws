@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsGlobalAcceleratorListener_basic(t *testing.T) {
@@ -26,7 +25,7 @@ func TestAccAwsGlobalAcceleratorListener_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "client_affinity", "NONE"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "port_range.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
 						"from_port": "80",
 						"to_port":   "81",
 					}),
@@ -60,7 +59,7 @@ func TestAccAwsGlobalAcceleratorListener_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "client_affinity", "SOURCE_IP"),
 					resource.TestCheckResourceAttr(resourceName, "protocol", "UDP"),
 					resource.TestCheckResourceAttr(resourceName, "port_range.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "port_range.*", map[string]string{
 						"from_port": "443",
 						"to_port":   "444",
 					}),

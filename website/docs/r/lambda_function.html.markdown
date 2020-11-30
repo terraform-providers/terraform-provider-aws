@@ -231,6 +231,7 @@ large files efficiently.
 * `source_code_hash` - (Optional) Used to trigger updates. Must be set to a base64-encoded SHA256 hash of the package file specified with either `filename` or `s3_key`. The usual way to set this is `filebase64sha256("file.zip")` (Terraform 0.11.12 and later) or `base64sha256(file("file.zip"))` (Terraform 0.11.11 and earlier), where "file.zip" is the local filename of the lambda function source archive.
 * `tags` - (Optional) A map of tags to assign to the object.
 * `file_system_config` - (Optional) The connection settings for an EFS file system. Fields documented below. Before creating or updating Lambda functions with `file_system_config`, EFS mount targets much be in available lifecycle state. Use `depends_on` to explicitly declare this dependency. See [Using Amazon EFS with Lambda][12].
+* `code_signing_config_arn` - (Optional) Amazon Resource Name (ARN) for a Code Signing Configuration.
 
 **dead_letter_config** is a child block with a single argument:
 
@@ -266,6 +267,8 @@ For **environment** the following attributes are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `arn` - The Amazon Resource Name (ARN) identifying your Lambda Function.
 * `qualified_arn` - The Amazon Resource Name (ARN) identifying your Lambda Function Version
   (if versioning is enabled via `publish = true`).
@@ -273,6 +276,8 @@ For **environment** the following attributes are supported:
 * `version` - Latest published version of your Lambda Function.
 * `last_modified` - The date this resource was last modified.
 * `kms_key_arn` - (Optional) The ARN for the KMS encryption key.
+* `signing_job_arn` - The Amazon Resource Name (ARN) of a signing job.
+* `signing_profile_version_arn` - The Amazon Resource Name (ARN) for a signing profile version.
 * `source_code_hash` - Base64-encoded representation of raw SHA-256 sum of the zip file, provided either via `filename` or `s3_*` parameters.
 * `source_code_size` - The size in bytes of the function .zip file.
 

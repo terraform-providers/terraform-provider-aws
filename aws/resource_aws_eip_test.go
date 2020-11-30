@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -86,24 +87,20 @@ func testSweepEc2Eips(region string) error {
 }
 
 func TestAccAWSEIP_Ec2Classic(t *testing.T) {
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
 	resourceName := "aws_eip.test"
 	var conf ec2.Address
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEIPInstanceEc2Classic(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSEIPExists(resourceName, &conf),
+					testAccCheckAWSEIPEc2ClassicExists(resourceName, &conf),
 					testAccCheckAWSEIPAttributes(&conf),
-					testAccCheckAWSEIPPublicDNS(resourceName),
+					testAccCheckAWSEIPPublicDNSEc2Classic(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "domain", ec2.DomainTypeStandard),
 				),
 			},
@@ -400,16 +397,12 @@ func TestAccAWSEIP_tags_Vpc(t *testing.T) {
 }
 
 func TestAccAWSEIP_tags_Ec2Classic(t *testing.T) {
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
 	rName1 := fmt.Sprintf("%s-%d", t.Name(), acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSEIPDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSEIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSEIPConfig_tags_Ec2Classic(rName1, t.Name()),
@@ -650,6 +643,39 @@ func testAccCheckAWSEIPExists(n string, res *ec2.Address) resource.TestCheckFunc
 	}
 }
 
+func testAccCheckAWSEIPEc2ClassicExists(n string, res *ec2.Address) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No EIP ID is set")
+		}
+
+		conn := testAccProviderEc2Classic.Meta().(*AWSClient).ec2conn
+
+		input := &ec2.DescribeAddressesInput{
+			PublicIps: []*string{aws.String(rs.Primary.ID)},
+		}
+
+		describe, err := conn.DescribeAddresses(input)
+
+		if err != nil {
+			return fmt.Errorf("error describing EC2 Address (%s): %w", rs.Primary.ID, err)
+		}
+
+		if len(describe.Addresses) != 1 || aws.StringValue(describe.Addresses[0].PublicIp) != rs.Primary.ID {
+			return fmt.Errorf("EC2 Address (%s) not found", rs.Primary.ID)
+		}
+
+		*res = *describe.Addresses[0]
+
+		return nil
+	}
+}
+
 func testAccCheckAWSEIPPrivateDNS(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -696,6 +722,29 @@ func testAccCheckAWSEIPPublicDNS(resourceName string) resource.TestCheckFunc {
 	}
 }
 
+func testAccCheckAWSEIPPublicDNSEc2Classic(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		publicIPDashed := strings.Replace(rs.Primary.Attributes["public_ip"], ".", "-", -1)
+		publicDNS := rs.Primary.Attributes["public_dns"]
+		expectedPublicDNS := fmt.Sprintf("ec2-%s.%s.compute.%s", publicIPDashed, testAccGetEc2ClassicRegion(), testAccGetPartitionDNSSuffix())
+
+		if testAccGetEc2ClassicRegion() == endpoints.UsEast1RegionID {
+			expectedPublicDNS = fmt.Sprintf("ec2-%s.compute-1.%s", publicIPDashed, testAccGetPartitionDNSSuffix())
+		}
+
+		if publicDNS != expectedPublicDNS {
+			return fmt.Errorf("expected public_dns value (%s), received: %s", expectedPublicDNS, publicDNS)
+		}
+
+		return nil
+	}
+}
+
 const testAccAWSEIPConfig = `
 resource "aws_eip" "test" {
 }
@@ -713,18 +762,16 @@ resource "aws_eip" "test" {
 }
 
 func testAccAWSEIPConfig_tags_Ec2Classic(rName, testName string) string {
-	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_eip" "test" {
   tags = {
     RandomName = "%[1]s"
     TestName   = "%[2]s"
   }
 }
-`, rName, testName)
+`, rName, testName))
 }
 
 const testAccAWSEIPConfig_PublicIpv4Pool_default = `
@@ -744,16 +791,13 @@ resource "aws_eip" "test" {
 
 func testAccAWSEIPInstanceEc2Classic() string {
 	return composeConfig(
-		testAccLatestAmazonLinuxPvInstanceStoreAmiConfig(), `
-provider "aws" {
-  region = "us-east-1"
-}
-
+		testAccEc2ClassicRegionProviderConfig(),
+		testAccLatestAmazonLinuxPvEbsAmiConfig(),
+		testAccAvailableEc2InstanceTypeForRegion("t1.micro", "m3.medium", "m3.large", "c3.large", "r3.large"),
+		`
 resource "aws_instance" "test" {
-  ami = data.aws_ami.amzn-ami-minimal-pv-instance-store.id
-
-  # tflint-ignore: aws_instance_previous_type
-  instance_type = "m1.small"
+  ami           = data.aws_ami.amzn-ami-minimal-pv-ebs.id
+  instance_type = data.aws_ec2_instance_type_offering.available.instance_type
 }
 
 resource "aws_eip" "test" {

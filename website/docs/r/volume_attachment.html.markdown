@@ -58,6 +58,8 @@ means attached.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `device_name` - The device name exposed to the instance
 * `instance_id` - ID of the Instance
 * `volume_id` - ID of the Volume

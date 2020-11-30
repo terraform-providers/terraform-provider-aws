@@ -38,7 +38,6 @@ func testSweepWorkspacesDirectories(region string) error {
 			if err != nil {
 				errors = multierror.Append(errors, err)
 			}
-
 		}
 		return true
 	})
@@ -47,7 +46,7 @@ func testSweepWorkspacesDirectories(region string) error {
 		return errors // In case we have completed some pages, but had errors
 	}
 	if err != nil {
-		errors = multierror.Append(errors, fmt.Errorf("error listing Workspace Directories: %s", err))
+		errors = multierror.Append(errors, fmt.Errorf("error listing WorkSpaces Directories: %w", err))
 	}
 
 	return errors
@@ -90,6 +89,7 @@ func TestAccAwsWorkspacesDirectory_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "self_service_permissions.0.switch_running_mode", "false"),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "ip_group_ids.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "workspace_creation_properties.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "workspace_creation_properties.0.custom_security_group_id", ""),
 					resource.TestCheckResourceAttr(resourceName, "workspace_creation_properties.0.default_ou", ""),
@@ -278,6 +278,48 @@ func TestAccAwsWorkspacesDirectory_workspaceCreationProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "workspace_creation_properties.0.enable_maintenance_mode", "false"),
 					resource.TestCheckResourceAttr(resourceName, "workspace_creation_properties.0.user_enabled_as_local_administrator", "false"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAwsWorkspacesDirectory_ipGroupIds(t *testing.T) {
+	var v workspaces.WorkspaceDirectory
+	rName := acctest.RandString(8)
+
+	resourceName := "aws_workspaces_directory.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckHasIAMRole(t, "workspaces_DefaultRole") },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsWorkspacesDirectoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWorkspacesDirectoryConfig_ipGroupIds_create(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsWorkspacesDirectoryExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ip_group_ids.#", "1"),
+					resource.TestCheckTypeSetElemAttrPair(resourceName, "ip_group_ids.*", "aws_workspaces_ip_group.test_alpha", "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccWorkspacesDirectoryConfig_ipGroupIds_update(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsWorkspacesDirectoryExists(resourceName, &v),
+					resource.TestCheckResourceAttr(resourceName, "ip_group_ids.#", "2"),
+					resource.TestCheckTypeSetElemAttrPair(resourceName, "ip_group_ids.*", "aws_workspaces_ip_group.test_beta", "id"),
+					resource.TestCheckTypeSetElemAttrPair(resourceName, "ip_group_ids.*", "aws_workspaces_ip_group.test_gamma", "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -526,8 +568,7 @@ resource "aws_directory_service_directory" "main" {
 
 func testAccWorkspacesDirectoryConfig(rName string) string {
 	return composeConfig(
-		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
-		`
+		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName), `
 resource "aws_workspaces_directory" "main" {
   directory_id = aws_directory_service_directory.main.id
 }
@@ -540,8 +581,7 @@ data "aws_iam_role" "workspaces-default" {
 
 func testAccWorkspacesDirectory_selfServicePermissions(rName string) string {
 	return composeConfig(
-		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
-		`
+		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName), `
 resource "aws_workspaces_directory" "main" {
   directory_id = aws_directory_service_directory.main.id
 
@@ -558,8 +598,7 @@ resource "aws_workspaces_directory" "main" {
 
 func testAccWorkspacesDirectoryConfig_subnetIds(rName string) string {
 	return composeConfig(
-		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
-		`
+		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName), `
 resource "aws_workspaces_directory" "main" {
   directory_id = aws_directory_service_directory.main.id
   subnet_ids   = [aws_subnet.primary.id, aws_subnet.secondary.id]
@@ -615,6 +654,47 @@ resource "aws_workspaces_directory" "main" {
     enable_maintenance_mode             = false
     user_enabled_as_local_administrator = false
   }
+}
+`, rName))
+}
+
+func testAccWorkspacesDirectoryConfig_ipGroupIds_create(rName string) string {
+	return composeConfig(
+		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
+		fmt.Sprintf(`
+resource "aws_workspaces_ip_group" "test_alpha" {
+  name = "%[1]s-alpha"
+}
+
+resource "aws_workspaces_directory" "test" {
+  directory_id = aws_directory_service_directory.main.id
+
+  ip_group_ids = [
+    aws_workspaces_ip_group.test_alpha.id
+  ]
+}
+`, rName))
+}
+
+func testAccWorkspacesDirectoryConfig_ipGroupIds_update(rName string) string {
+	return composeConfig(
+		testAccAwsWorkspacesDirectoryConfig_Prerequisites(rName),
+		fmt.Sprintf(`
+resource "aws_workspaces_ip_group" "test_beta" {
+  name = "%[1]s-beta"
+}
+
+resource "aws_workspaces_ip_group" "test_gamma" {
+  name = "%[1]s-gamma"
+}
+
+resource "aws_workspaces_directory" "test" {
+  directory_id = aws_directory_service_directory.main.id
+
+  ip_group_ids = [
+    aws_workspaces_ip_group.test_beta.id,
+    aws_workspaces_ip_group.test_gamma.id
+  ]
 }
 `, rName))
 }

@@ -74,8 +74,8 @@ resource "aws_appmesh_virtual_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the virtual gateway.
-* `mesh_name` - (Required) The name of the service mesh in which to create the virtual gateway.
+* `name` - (Required) The name to use for the virtual gateway. Must be between 1 and 255 characters in length.
+* `mesh_name` - (Required) The name of the service mesh in which to create the virtual gateway. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The virtual gateway specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.
@@ -115,7 +115,7 @@ The `acm` object supports the following:
 
 The `file` object supports the following:
 
-* `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the mesh endpoint that the proxy is running on.
+* `certificate_chain` - (Required) The certificate trust chain for a certificate stored on the file system of the mesh endpoint that the proxy is running on. Must be between 1 and 255 characters in length.
 
 The `listener` object supports the following:
 
@@ -133,7 +133,7 @@ The `access_log` object supports the following:
 
 The `file` object supports the following:
 
-* `path` - (Required) The file path to write access logs to. You can use `/dev/stdout` to send access logs to standard out.
+* `path` - (Required) The file path to write access logs to. You can use `/dev/stdout` to send access logs to standard out. Must be between 1 and 255 characters in length.
 
 The `port_mapping` object supports the following:
 
@@ -166,8 +166,8 @@ The `acm` object supports the following:
 
 The `file` object supports the following:
 
-* `certificate_chain` - (Required) The certificate chain for the certificate.
-* `private_key` - (Required) The private key for a certificate stored on the file system of the mesh endpoint that the proxy is running on.
+* `certificate_chain` - (Required) The certificate chain for the certificate. Must be between 1 and 255 characters in length.
+* `private_key` - (Required) The private key for a certificate stored on the file system of the mesh endpoint that the proxy is running on. Must be between 1 and 255 characters in length.
 
 ## Attributes Reference
 

@@ -18,7 +18,7 @@ func TestAccAWSDeviceFarmProject_basic(t *testing.T) {
 	resourceName := "aws_devicefarm_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAccAWSDeviceFarmProject_disappears(t *testing.T) {
 	resourceName := "aws_devicefarm_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(devicefarm.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDeviceFarmProjectDestroy,
 		Steps: []resource.TestStep{

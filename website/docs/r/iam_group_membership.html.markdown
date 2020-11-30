@@ -54,6 +54,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `name` - The name to identify the Group Membership
 * `users` - list of IAM User names
 * `group` – IAM Group name

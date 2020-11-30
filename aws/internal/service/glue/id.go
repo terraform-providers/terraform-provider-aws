@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/glue"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -29,4 +31,10 @@ func stringifyAwsGluePartition(partValues *schema.Set) string {
 	vals := strings.Trim(b.String(), "#")
 
 	return vals
+}
+
+func CreateAwsGlueRegistryID(id string) *glue.RegistryId {
+	return &glue.RegistryId{
+		RegistryArn: aws.String(id),
+	}
 }

@@ -45,25 +45,18 @@ func resourceAwsLbListener() *schema.Resource {
 
 			"port": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
 			"protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "HTTP",
+				Computed: true,
 				StateFunc: func(v interface{}) string {
 					return strings.ToUpper(v.(string))
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					elbv2.ProtocolEnumHttp,
-					elbv2.ProtocolEnumHttps,
-					elbv2.ProtocolEnumTcp,
-					elbv2.ProtocolEnumTls,
-					elbv2.ProtocolEnumUdp,
-					elbv2.ProtocolEnumTcpUdp,
-				}, true),
+				ValidateFunc: validation.StringInSlice(elbv2.ProtocolEnum_Values(), true),
 			},
 
 			"ssl_policy": {
@@ -392,8 +385,17 @@ func resourceAwsLbListenerCreate(d *schema.ResourceData, meta interface{}) error
 
 	params := &elbv2.CreateListenerInput{
 		LoadBalancerArn: aws.String(lbArn),
-		Port:            aws.Int64(int64(d.Get("port").(int))),
-		Protocol:        aws.String(d.Get("protocol").(string)),
+	}
+
+	if v, ok := d.GetOk("port"); ok {
+		params.Port = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("protocol"); ok {
+		params.Protocol = aws.String(v.(string))
+	} else if strings.Contains(lbArn, "loadbalancer/app/") {
+		// Keep previous default of HTTP for Application Load Balancers
+		params.Protocol = aws.String(elbv2.ProtocolEnumHttp)
 	}
 
 	if sslPolicy, ok := d.GetOk("ssl_policy"); ok {
@@ -744,8 +746,14 @@ func resourceAwsLbListenerUpdate(d *schema.ResourceData, meta interface{}) error
 
 	params := &elbv2.ModifyListenerInput{
 		ListenerArn: aws.String(d.Id()),
-		Port:        aws.Int64(int64(d.Get("port").(int))),
-		Protocol:    aws.String(d.Get("protocol").(string)),
+	}
+
+	if v, ok := d.GetOk("port"); ok {
+		params.Port = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("protocol"); ok {
+		params.Protocol = aws.String(v.(string))
 	}
 
 	if sslPolicy, ok := d.GetOk("ssl_policy"); ok {

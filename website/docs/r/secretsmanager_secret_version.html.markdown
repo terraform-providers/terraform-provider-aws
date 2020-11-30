@@ -66,6 +66,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `arn` - The ARN of the secret.
 * `id` - A pipe delimited combination of secret ID and version ID.
 * `version_id` - The unique identifier of the version of the secret.

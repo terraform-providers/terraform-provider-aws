@@ -277,7 +277,7 @@ func TestAccAWSLBTargetGroup_Protocol_Geneve(t *testing.T) {
 	resourceName := "aws_lb_target_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckElbv2GatewayLoadBalancer(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckAWSLBTargetGroupDestroy,
 		Steps: []resource.TestStep{

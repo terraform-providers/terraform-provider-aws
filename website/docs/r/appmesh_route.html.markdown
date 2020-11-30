@@ -139,10 +139,10 @@ resource "aws_appmesh_route" "serviceb" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the route.
-* `mesh_name` - (Required) The name of the service mesh in which to create the route.
+* `name` - (Required) The name to use for the route. Must be between 1 and 255 characters in length.
+* `mesh_name` - (Required) The name of the service mesh in which to create the route. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
-* `virtual_router_name` - (Required) The name of the virtual router in which to create the route.
+* `virtual_router_name` - (Required) The name of the virtual router in which to create the route. Must be between 1 and 255 characters in length.
 * `spec` - (Required) The route specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.
 
@@ -159,7 +159,7 @@ The `grpc_route` object supports the following:
 
 * `action` - (Required) The action to take if a match is determined.
 * `match` - (Required) The criteria for determining an gRPC request match.
-* `rety_policy` - (Optional) The retry policy.
+* `retry_policy` - (Optional) The retry policy.
 * `timeout` - (Optional) The types of timeouts.
 
 The `http2_route` and `http_route` objects supports the following:
@@ -196,17 +196,17 @@ The `grpc_route`'s `match` object supports the following:
 
 The `metadata` object supports the following:
 
-* `name` - (Required) The name of the route.
+* `name` - (Required) The name of the route. Must be between 1 and 50 characters in length.
 * `invert` - (Optional) If `true`, the match is on the opposite of the `match` criteria. Default is `false`.
 * `match` - (Optional) The data to match from the request.
 
 The `metadata`'s `match` object supports the following:
 
-* `exact` - (Optional) The value sent by the client must match the specified value exactly.
-* `prefix` - (Optional) The value sent by the client must begin with the specified characters.
+* `exact` - (Optional) The value sent by the client must match the specified value exactly. Must be between 1 and 255 characters in length.
+* `prefix` - (Optional) The value sent by the client must begin with the specified characters. Must be between 1 and 255 characters in length.
 * `range`- (Optional) The object that specifies the range of numbers that the value sent by the client must be included in.
-* `regex` - (Optional) The value sent by the client must include the specified characters.
-* `suffix` - (Optional) The value sent by the client must end with the specified characters.
+* `regex` - (Optional) The value sent by the client must include the specified characters. Must be between 1 and 255 characters in length.
+* `suffix` - (Optional) The value sent by the client must end with the specified characters. Must be between 1 and 255 characters in length.
 
 The `grpc_route`'s `retry_policy` object supports the following:
 
@@ -263,7 +263,7 @@ The `per_retry_timeout` object supports the following:
 
 The `weighted_target` object supports the following:
 
-* `virtual_node` - (Required) The virtual node to associate with the weighted target.
+* `virtual_node` - (Required) The virtual node to associate with the weighted target. Must be between 1 and 255 characters in length.
 * `weight` - (Required) The relative weight of the weighted target. An integer between 0 and 100.
 
 The `header` object supports the following:

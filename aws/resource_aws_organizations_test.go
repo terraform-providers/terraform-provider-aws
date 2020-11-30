@@ -10,7 +10,9 @@ func TestAccAWSOrganizations_serial(t *testing.T) {
 			"basic":                      testAccAwsOrganizationsOrganization_basic,
 			"AwsServiceAccessPrincipals": testAccAwsOrganizationsOrganization_AwsServiceAccessPrincipals,
 			"EnabledPolicyTypes":         testAccAwsOrganizationsOrganization_EnabledPolicyTypes,
-			"FeatureSet":                 testAccAwsOrganizationsOrganization_FeatureSet,
+			"FeatureSet_Basic":           testAccAwsOrganizationsOrganization_FeatureSet,
+			"FeatureSet_Update":          testAccAwsOrganizationsOrganization_FeatureSetUpdate,
+			"FeatureSet_ForcesNew":       testAccAwsOrganizationsOrganization_FeatureSetForcesNew,
 			"DataSource":                 testAccDataSourceAwsOrganizationsOrganization_basic,
 		},
 		"Account": {

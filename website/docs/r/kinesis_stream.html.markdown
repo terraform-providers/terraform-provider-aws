@@ -48,6 +48,8 @@ Amazon has guidelines for specifying the Stream size that should be referenced w
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The unique Stream id
 * `name` - The unique Stream name
 * `shard_count` - The count of Shards for this Stream

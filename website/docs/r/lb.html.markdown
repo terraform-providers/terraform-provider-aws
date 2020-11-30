@@ -138,7 +138,7 @@ Subnet Mapping (`subnet_mapping`) blocks support the following:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the load balancer (matches `arn`).
 * `arn` - The ARN of the load balancer (matches `id`).

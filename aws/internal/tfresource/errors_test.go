@@ -32,8 +32,9 @@ func TestNotFound(t *testing.T) {
 			Err:  fmt.Errorf("test: %w", errors.New("test")),
 		},
 		{
-			Name: "wrapped not found error",
-			Err:  fmt.Errorf("test: %w", &resource.NotFoundError{LastError: errors.New("test")}),
+			Name:     "wrapped not found error",
+			Err:      fmt.Errorf("test: %w", &resource.NotFoundError{LastError: errors.New("test")}),
+			Expected: true,
 		},
 	}
 

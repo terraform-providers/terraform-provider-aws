@@ -299,8 +299,7 @@ The following arguments are supported:
 * `target_id` - (Optional) The unique target assignment ID.  If missing, will generate a random, unique id.
 * `arn` - (Required) The Amazon Resource Name (ARN) associated of the target.
 * `input` - (Optional) Valid JSON text passed to the target. Conflicts with `input_path` and `input_transformer`.
-* `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/)
-	that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`.
+* `input_path` - (Optional) The value of the [JSONPath](http://goessner.net/articles/JsonPath/) that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`.
 * `role_arn` - (Optional) The Amazon Resource Name (ARN) of the IAM role to be used for this target when the rule is triggered. Required if `ecs_target` is used.
 * `run_command_targets` - (Optional) Parameters used when you are using the rule to invoke Amazon EC2 Run Command. Documented below. A maximum of 5 are allowed.
 * `ecs_target` - (Optional) Parameters used when you are using the rule to invoke Amazon ECS Task. Documented below. A maximum of 1 are allowed.

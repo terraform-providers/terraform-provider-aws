@@ -1263,6 +1263,12 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			// the provider s3_force_path_style configuration, which defaults to
 			// false, but allows override.
 			r.Config.S3ForcePathStyle = s3conn.Config.S3ForcePathStyle
+
+			// By default, GetBucketRegion uses anonymous credentials when doing
+			// a HEAD request to get the bucket region. This breaks in aws-cn regions
+			// when the account doesn't have an ICP license to host public content.
+			// Use the current credentials when getting the bucket region.
+			r.Config.Credentials = s3conn.Config.Credentials
 		})
 	})
 	if err != nil {

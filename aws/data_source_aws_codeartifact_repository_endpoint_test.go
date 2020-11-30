@@ -18,7 +18,28 @@ func TestAccAWSCodeArtifactRepositoryEndpointDataSource_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName),
+				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, "npm"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "repository_endpoint"),
+					testAccCheckResourceAttrAccountID(dataSourceName, "domain_owner"),
+				),
+			},
+			{
+				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, "pypi"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "repository_endpoint"),
+					testAccCheckResourceAttrAccountID(dataSourceName, "domain_owner"),
+				),
+			},
+			{
+				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, "maven"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "repository_endpoint"),
+					testAccCheckResourceAttrAccountID(dataSourceName, "domain_owner"),
+				),
+			},
+			{
+				Config: testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, "nuget"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "repository_endpoint"),
 					testAccCheckResourceAttrAccountID(dataSourceName, "domain_owner"),
@@ -66,19 +87,21 @@ resource "aws_codeartifact_repository" "test" {
 `, rName)
 }
 
-func testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName string) string {
-	return testAccCheckAWSCodeArtifactRepositoryEndpointBaseConfig(rName) +
+func testAccCheckAWSCodeArtifactRepositoryEndpointBasicConfig(rName, format string) string {
+	return composeConfig(
+		testAccCheckAWSCodeArtifactRepositoryEndpointBaseConfig(rName),
 		fmt.Sprintf(`
 data "aws_codeartifact_repository_endpoint" "test" {
   domain     = aws_codeartifact_domain.test.domain
   repository = aws_codeartifact_repository.test.repository
-  format     = "npm"
+  format     = %[1]q
 }
-`)
+`, format))
 }
 
 func testAccCheckAWSCodeArtifactRepositoryEndpointOwnerConfig(rName string) string {
-	return testAccCheckAWSCodeArtifactRepositoryEndpointBaseConfig(rName) +
+	return composeConfig(
+		testAccCheckAWSCodeArtifactRepositoryEndpointBaseConfig(rName),
 		fmt.Sprintf(`
 data "aws_codeartifact_repository_endpoint" "test" {
   domain       = aws_codeartifact_domain.test.domain
@@ -86,5 +109,5 @@ data "aws_codeartifact_repository_endpoint" "test" {
   domain_owner = aws_codeartifact_domain.test.owner
   format       = "npm"
 }
-`)
+`))
 }

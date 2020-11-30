@@ -3,13 +3,19 @@
 package lister
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/wafv2"
 )
 
 func ListIPSetsPages(conn *wafv2.WAFV2, input *wafv2.ListIPSetsInput, fn func(*wafv2.ListIPSetsOutput, bool) bool) error {
+	return ListIPSetsPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListIPSetsPagesWithContext(ctx context.Context, conn *wafv2.WAFV2, input *wafv2.ListIPSetsInput, fn func(*wafv2.ListIPSetsOutput, bool) bool) error {
 	for {
-		output, err := conn.ListIPSets(input)
+		output, err := conn.ListIPSetsWithContext(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -25,8 +31,12 @@ func ListIPSetsPages(conn *wafv2.WAFV2, input *wafv2.ListIPSetsInput, fn func(*w
 }
 
 func ListRegexPatternSetsPages(conn *wafv2.WAFV2, input *wafv2.ListRegexPatternSetsInput, fn func(*wafv2.ListRegexPatternSetsOutput, bool) bool) error {
+	return ListRegexPatternSetsPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListRegexPatternSetsPagesWithContext(ctx context.Context, conn *wafv2.WAFV2, input *wafv2.ListRegexPatternSetsInput, fn func(*wafv2.ListRegexPatternSetsOutput, bool) bool) error {
 	for {
-		output, err := conn.ListRegexPatternSets(input)
+		output, err := conn.ListRegexPatternSetsWithContext(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -42,8 +52,12 @@ func ListRegexPatternSetsPages(conn *wafv2.WAFV2, input *wafv2.ListRegexPatternS
 }
 
 func ListRuleGroupsPages(conn *wafv2.WAFV2, input *wafv2.ListRuleGroupsInput, fn func(*wafv2.ListRuleGroupsOutput, bool) bool) error {
+	return ListRuleGroupsPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListRuleGroupsPagesWithContext(ctx context.Context, conn *wafv2.WAFV2, input *wafv2.ListRuleGroupsInput, fn func(*wafv2.ListRuleGroupsOutput, bool) bool) error {
 	for {
-		output, err := conn.ListRuleGroups(input)
+		output, err := conn.ListRuleGroupsWithContext(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -59,8 +73,12 @@ func ListRuleGroupsPages(conn *wafv2.WAFV2, input *wafv2.ListRuleGroupsInput, fn
 }
 
 func ListWebACLsPages(conn *wafv2.WAFV2, input *wafv2.ListWebACLsInput, fn func(*wafv2.ListWebACLsOutput, bool) bool) error {
+	return ListWebACLsPagesWithContext(context.Background(), conn, input, fn)
+}
+
+func ListWebACLsPagesWithContext(ctx context.Context, conn *wafv2.WAFV2, input *wafv2.ListWebACLsInput, fn func(*wafv2.ListWebACLsOutput, bool) bool) error {
 	for {
-		output, err := conn.ListWebACLs(input)
+		output, err := conn.ListWebACLsWithContext(ctx, input)
 		if err != nil {
 			return err
 		}

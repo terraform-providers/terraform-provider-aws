@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsBackupPlan_basic(t *testing.T) {
@@ -31,7 +30,7 @@ func TestAccAwsBackupPlan_basic(t *testing.T) {
 					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "backup", regexp.MustCompile(`backup-plan:.+`)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rName,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 12 * * ? *)",
@@ -121,13 +120,13 @@ func TestAccAwsBackupPlan_withRules(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rule1Name,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 12 * * ? *)",
 						"lifecycle.#":       "0",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rule2Name,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 6 * * ? *)",
@@ -147,19 +146,19 @@ func TestAccAwsBackupPlan_withRules(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "3"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rule1Name,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 6 * * ? *)",
 						"lifecycle.#":       "0",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rule2Name,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 12 * * ? *)",
 						"lifecycle.#":       "0",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rule3Name,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 18 * * ? *)",
@@ -174,7 +173,7 @@ func TestAccAwsBackupPlan_withRules(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rName,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 12 * * ? *)",
@@ -203,7 +202,7 @@ func TestAccAwsBackupPlan_withLifecycle(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "7",
@@ -221,7 +220,7 @@ func TestAccAwsBackupPlan_withLifecycle(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                rName,
 						"lifecycle.#":              "1",
 						"lifecycle.0.delete_after": "120",
@@ -234,7 +233,7 @@ func TestAccAwsBackupPlan_withLifecycle(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "30",
@@ -248,7 +247,7 @@ func TestAccAwsBackupPlan_withLifecycle(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":   rName,
 						"lifecycle.#": "0",
 					}),
@@ -274,7 +273,7 @@ func TestAccAwsBackupPlan_withRecoveryPointTags(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                rName,
 						"target_vault_name":        rName,
 						"schedule":                 "cron(0 12 * * ? *)",
@@ -298,7 +297,7 @@ func TestAccAwsBackupPlan_withRecoveryPointTags(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                rName,
 						"target_vault_name":        rName,
 						"schedule":                 "cron(0 12 * * ? *)",
@@ -317,7 +316,7 @@ func TestAccAwsBackupPlan_withRecoveryPointTags(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":         rName,
 						"target_vault_name": rName,
 						"schedule":          "cron(0 12 * * ? *)",
@@ -346,7 +345,7 @@ func TestAccAwsBackupPlan_Rule_CopyAction_SameRegion(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "30",
@@ -366,7 +365,7 @@ func TestAccAwsBackupPlan_Rule_CopyAction_SameRegion(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "30",
@@ -381,10 +380,70 @@ func TestAccAwsBackupPlan_Rule_CopyAction_SameRegion(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":     rName,
 						"lifecycle.#":   "0",
 						"copy_action.#": "0",
+					}),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAwsBackupPlan_Rule_CopyAction_NoLifecycle(t *testing.T) {
+	var plan backup.GetBackupPlanOutput
+	resourceName := "aws_backup_plan.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBackup(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsBackupPlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsBackupPlanConfigRuleCopyActionNoLifecycle(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBackupPlanExists(resourceName, &plan),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"rule_name":     rName,
+						"lifecycle.#":   "0",
+						"copy_action.#": "1",
+					}),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAwsBackupPlanConfigRuleCopyAction(rName, 60, 365),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBackupPlanExists(resourceName, &plan),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"rule_name":                      rName,
+						"lifecycle.#":                    "1",
+						"lifecycle.0.cold_storage_after": "30",
+						"lifecycle.0.delete_after":       "180",
+						"copy_action.#":                  "1",
+					}),
+				),
+			},
+			{
+				Config: testAccAwsBackupPlanConfigRuleCopyActionNoLifecycle(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsBackupPlanExists(resourceName, &plan),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+						"rule_name":     rName,
+						"lifecycle.#":   "0",
+						"copy_action.#": "1",
 					}),
 				),
 			},
@@ -408,7 +467,7 @@ func TestAccAwsBackupPlan_Rule_CopyAction_Multiple(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "30",
@@ -447,7 +506,7 @@ func TestAccAwsBackupPlan_Rule_CopyAction_CrossRegion(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"rule_name":                      rName,
 						"lifecycle.#":                    "1",
 						"lifecycle.0.cold_storage_after": "30",
@@ -482,7 +541,7 @@ func TestAccAwsBackupPlan_AdvancedBackupSetting(t *testing.T) {
 					testAccCheckAwsBackupPlanExists(resourceName, &plan),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_backup_setting.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_backup_setting.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "advanced_backup_setting.*", map[string]string{
 						"backup_options.%":          "1",
 						"backup_options.WindowsVSS": "enabled",
 						"resource_type":             "EC2",
@@ -800,7 +859,7 @@ resource "aws_backup_plan" "test" {
 `, rName)
 }
 
-func testAccAwsBackupPlanConfigRuleCopyAction(rName string, coldStorageAfter int, deleteAfter int) string {
+func testAccAwsBackupPlanConfigRuleCopyAction(rName string, coldStorageAfter, deleteAfter int) string {
 	return fmt.Sprintf(`
 resource "aws_backup_vault" "test" {
   name = "%[1]s-1"
@@ -915,6 +974,32 @@ resource "aws_backup_plan" "test" {
         delete_after       = 180
       }
 
+      destination_vault_arn = aws_backup_vault.test2.arn
+    }
+  }
+}
+`, rName)
+}
+
+func testAccAwsBackupPlanConfigRuleCopyActionNoLifecycle(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_backup_vault" "test" {
+  name = "%[1]s-1"
+}
+
+resource "aws_backup_vault" "test2" {
+  name = "%[1]s-2"
+}
+
+resource "aws_backup_plan" "test" {
+  name = %[1]q
+
+  rule {
+    rule_name         = %[1]q
+    target_vault_name = aws_backup_vault.test.name
+    schedule          = "cron(0 12 * * ? *)"
+
+    copy_action {
       destination_vault_arn = aws_backup_vault.test2.arn
     }
   }

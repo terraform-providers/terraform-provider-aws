@@ -29,6 +29,7 @@ The following arguments are supported:
 * `subnet_ids` - (Required) Identifiers of EC2 Subnets.
 * `transit_gateway_id` - (Required) Identifier of EC2 Transit Gateway.
 * `vpc_id` - (Required) Identifier of EC2 VPC.
+* `appliance_mode_support` - (Optional) Whether Appliance Mode support is enabled. If enabled, a traffic flow between a source and destination uses the same Availability Zone for the VPC attachment for the lifetime of that flow. Valid values: `disable`, `enable`. Default value: `disable`.
 * `dns_support` - (Optional) Whether DNS support is enabled. Valid values: `disable`, `enable`. Default value: `enable`.
 * `ipv6_support` - (Optional) Whether IPv6 support is enabled. Valid values: `disable`, `enable`. Default value: `disable`.
 * `tags` - (Optional) Key-value tags for the EC2 Transit Gateway VPC Attachment.

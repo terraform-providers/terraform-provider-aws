@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAwsLexSlotType_basic(t *testing.T) {
@@ -31,11 +30,11 @@ func TestAccAwsLexSlotType_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(rName, "create_version", "false"),
 					resource.TestCheckResourceAttr(rName, "description", ""),
 					resource.TestCheckResourceAttr(rName, "enumeration_value.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(rName, "enumeration_value.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(rName, "enumeration_value.*", map[string]string{
 						"value": "lilies",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Lirium"),
-					tfawsresource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Martagon"),
+					resource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Lirium"),
+					resource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Martagon"),
 					resource.TestCheckResourceAttr(rName, "name", testSlotTypeID),
 					resource.TestCheckResourceAttr(rName, "value_selection_strategy", lexmodelbuildingservice.SlotValueSelectionStrategyOriginalValue),
 					resource.TestCheckResourceAttrSet(rName, "checksum"),
@@ -164,11 +163,11 @@ func TestAccAwsLexSlotType_enumerationValues(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAwsLexSlotTypeExists(rName, &v),
 					resource.TestCheckResourceAttr(rName, "enumeration_value.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(rName, "enumeration_value.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(rName, "enumeration_value.*", map[string]string{
 						"value": "tulips",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Eduardoregelia"),
-					tfawsresource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Podonix"),
+					resource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Eduardoregelia"),
+					resource.TestCheckTypeSetElemAttr(rName, "enumeration_value.*.synonyms.*", "Podonix"),
 				),
 			},
 			{

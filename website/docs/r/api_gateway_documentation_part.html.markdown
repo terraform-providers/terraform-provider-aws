@@ -51,7 +51,7 @@ See supported entity types for each field in the [official docs](https://docs.aw
 
 ## Attributes Reference
 
-The following attribute is exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The unique ID of the Documentation Part
 

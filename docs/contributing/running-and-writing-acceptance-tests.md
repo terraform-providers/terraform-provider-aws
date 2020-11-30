@@ -26,7 +26,19 @@
 - [Acceptance Test Sweepers](#acceptance-test-sweepers)
     - [Running Test Sweepers](#running-test-sweepers)
     - [Writing Test Sweepers](#writing-test-sweepers)
-- [Acceptance Test Checklist](#acceptance-test-checklist)
+- [Acceptance Test Checklists](#acceptance-test-checklists)
+    - [Basic Acceptance Test Design](#basic-acceptance-test-design)
+    - [Test Implementation](#test-implementation)
+    - [Avoid Hard Coding](#avoid-hard-coding)
+        - [Hardcoded Account IDs](#hardcoded-account-ids)
+        - [Hardcoded AMI IDs](#hardcoded-ami-ids)
+        - [Hardcoded Availability Zones](#hardcoded-availability-zones)
+        - [Hardcoded Database Versions](#hardcoded-database-versions)
+        - [Hardcoded Instance Types](#hardcoded-instance-types)
+        - [Hardcoded Partition DNS Suffix](#hardcoded-partition-dns-suffix)
+        - [Hardcoded Partition in ARN](#hardcoded-partition-in-arn)
+        - [Hardcoded Region](#hardcoded-region)
+        - [Hardcoded Spot Price](#hardcoded-spot-price)
 
 Terraform includes an acceptance test harness that does most of the repetitive
 work involved in testing a resource. For additional information about testing
@@ -1113,7 +1125,18 @@ func testSweepExampleThings(region string) error {
 }
 ```
 
-## Acceptance Test Checklist
+## Acceptance Test Checklists
+
+There are several aspects to writing good acceptance tests. These checklists will help ensure effective testing from the design stage through to implementation details.
+
+### Basic Acceptance Test Design
+
+These are basic principles to help guide the creation of acceptance tests.
+
+- [ ] __Covers Changes__: Every line of resource or data source code added or changed should be covered by one or more tests. For example, if a resource has two ways of functioning, tests should cover both possible paths. Nearly every codebase change needs test coverage to ensure functionality and prevent future regressions. If a bug or other problem prompted a fix, a test should be added that previously would have failed, especially if the report included a configuration.
+- [ ] __Follows the Single Responsibility Principle__: Every test should have a single responsibility and effectively test that responsibility. This may include individual tests for verifying basic functionality of the resource (Create, Read, Delete), separately verifying using and updating a single attribute in a resource, or separately changing between two attributes to verify two "modes"/"types" possible with a resource configuration. In following this principle, test configurations should be as simple as possible. For example, not including extra configuration unless it is necessary for the specific test.
+
+### Test Implementation
 
 The below are required items that will be noted during submission review and prevent immediate merging:
 
@@ -1136,25 +1159,57 @@ The below are style-based items that _may_ be noted during review and are recomm
 - [ ] __Excludes Timeouts Configurations__: Test configurations should not include `timeouts {...}` configuration blocks except for explicit testing of customizable timeouts (typically very short timeouts with `ExpectError`).
 - [ ] __Implements Default and Zero Value Validation__: The basic test for a resource (typically named `TestAccAws{SERVICE}{RESOURCE}_basic`) should utilize available check functions, e.g. `resource.TestCheckResourceAttr()`, to verify default and zero values in the Terraform state for all attributes. Empty/missing configuration blocks can be verified with `resource.TestCheckResourceAttr(resourceName, "{ATTRIBUTE}.#", "0")` and empty maps with `resource.TestCheckResourceAttr(resourceName, "{ATTRIBUTE}.%", "0")`
 
-The below are location-based items that _may_ be noted during review and are recommended for consistency with testing flexibility. Resource testing is expected to pass across multiple AWS environments supported by the Terraform AWS Provider (e.g. AWS Standard and AWS GovCloud (US)). Contributors are not expected or required to perform testing outside of AWS Standard, e.g. running only in the `us-west-2` region is perfectly acceptable, however these are provided for reference:
+### Avoid Hard Coding
 
-- [ ] __Uses aws_ami Data Source__: Any hardcoded AMI ID configuration, e.g. `ami-12345678`, should be replaced with the [`aws_ami` data source](https://www.terraform.io/docs/providers/aws/d/ami.html) pointing to an Amazon Linux image. A common pattern is a configuration like the below, which will likely be moved into a common configuration function in the future:
+Avoid hard coding values in acceptance test checks and configurations for consistency and testing flexibility. Resource testing is expected to pass across multiple AWS environments supported by the Terraform AWS Provider (e.g. AWS Standard and AWS GovCloud (US)). Contributors are not expected or required to perform testing outside of AWS Standard, e.g. running only in the `us-west-2` region is perfectly acceptable. However, contributors are expected to avoid hard coding with these guidelines.
 
-  ```hcl
-  data "aws_ami" "amzn-ami-minimal-hvm-ebs" {
-    most_recent = true
-    owners      = ["amazon"]
+#### Hardcoded Account IDs
 
-    filter {
-      name = "name"
-      values = ["amzn-ami-minimal-hvm-*"]
-    }
-    filter {
-      name = "root-device-type"
-      values = ["ebs"]
-    }
-  }
-  ```
+- [ ] __Uses Account Data Sources__: Any hardcoded account numbers in configuration, e.g., `137112412989`, should be replaced with a data source. Depending on the situation, there are several data sources for account IDs including:
+    - [`aws_caller_identity` data source](https://www.terraform.io/docs/providers/aws/d/caller_identity.html),
+    - [`aws_canonical_user_id` data source](https://www.terraform.io/docs/providers/aws/d/canonical_user_id.html),
+    - [`aws_billing_service_account` data source](https://www.terraform.io/docs/providers/aws/d/billing_service_account.html), and
+    - [`aws_sagemaker_prebuilt_ecr_image` data source](https://www.terraform.io/docs/providers/aws/d/sagemaker_prebuilt_ecr_image.html).
+- [ ] __Uses Account Test Checks__: Any check required to verify an AWS Account ID of the current testing account or another account should use one of the following available helper functions over the usage of `resource.TestCheckResourceAttrSet()` and `resource.TestMatchResourceAttr()`:
+    - `testAccCheckResourceAttrAccountID()`: Validates the state value equals the AWS Account ID of the current account running the test. This is the most common implementation.
+    - `testAccMatchResourceAttrAccountID()`: Validates the state value matches any AWS Account ID (e.g. a 12 digit number). This is typically only used in data source testing of AWS managed components.
+
+Here's an example of using `aws_caller_identity`:
+
+```hcl
+data "aws_caller_identity" "current" {}
+
+resource "aws_backup_selection" "test" {
+  plan_id      = aws_backup_plan.test.id
+  name         = "tf_acc_test_backup_selection_%[1]d"
+  iam_role_arn = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/service-role/AWSBackupDefaultServiceRole"
+}
+```
+
+#### Hardcoded AMI IDs
+
+- [ ] __Uses aws_ami Data Source__: Any hardcoded AMI ID configuration, e.g. `ami-12345678`, should be replaced with the [`aws_ami` data source](https://www.terraform.io/docs/providers/aws/d/ami.html) pointing to an Amazon Linux image. The codebase includes test configuration helper functions to simplify these lookups:
+    - `testAccLatestAmazonLinuxHvmEbsAmiConfig()`: The recommended AMI for most situations, using Amazon Linux, HVM virtualization, and EBS storage. To reference the AMI ID in the test configuration: `data.aws_ami.amzn-ami-minimal-hvm-ebs.id`.
+    - `testAccLatestAmazonLinuxHvmInstanceStoreAmiConfig()`: AMI lookup using Amazon Linux, HVM virtualization, and Instance Store storage. Should only be used in testing that requires Instance Store storage rather than EBS. To reference the AMI ID in the test configuration: `data.aws_ami.amzn-ami-minimal-hvm-instance-store.id`.
+    - `testAccLatestAmazonLinuxPvEbsAmiConfig()`: AMI lookup using Amazon Linux, Paravirtual virtualization, and EBS storage. Should only be used in testing that requires Paravirtual over Hardware Virtual Machine (HVM) virtualization. To reference the AMI ID in the test configuration: `data.aws_ami.amzn-ami-minimal-pv-ebs.id`.
+    - `testAccLatestAmazonLinuxPvInstanceStoreAmiConfig`: AMI lookup using Amazon Linux, Paravirtual virtualization, and Instance Store storage. Should only be used in testing that requires Paravirtual virtualization over HVM and Instance Store storage over EBS. To reference the AMI ID in the test configuration: `data.aws_ami.amzn-ami-minimal-pv-instance-store.id`.
+    - `testAccLatestWindowsServer2016CoreAmiConfig()`: AMI lookup using Windows Server 2016 Core, HVM virtualization, and EBS storage. Should only be used in testing that requires Windows. To reference the AMI ID in the test configuration: `data.aws_ami.win2016core-ami.id`.
+
+Here's an example of using `testAccLatestAmazonLinuxHvmEbsAmiConfig()` and `data.aws_ami.amzn-ami-minimal-hvm-ebs.id`:
+
+```go
+func testAccLaunchConfigurationDataSourceConfig_basic(rName string) string {
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
+resource "aws_launch_configuration" "test" {
+  name          = %[1]q
+  image_id      = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+  instance_type = "m1.small"
+}
+`, rName))
+}
+```
+
+#### Hardcoded Availability Zones
 
 - [ ] __Uses aws_availability_zones Data Source__: Any hardcoded AWS Availability Zone configuration, e.g. `us-west-2a`, should be replaced with the [`aws_availability_zones` data source](https://www.terraform.io/docs/providers/aws/d/availability_zones.html). Use the convenience function called `testAccAvailableAZsNoOptInConfig()` (defined in `resource_aws_instance_test.go`) to declare `data "aws_availability_zones" "available" {...}`. You can then reference the data source via `data.aws_availability_zones.available.names[0]` or `data.aws_availability_zones.available.names[count.index]` in resources utilizing `count`.
 
@@ -1162,21 +1217,172 @@ Here's an example of using `testAccAvailableAZsNoOptInConfig()` and `data.aws_av
 
 ```go
 func testAccAwsInstanceVpcConfigBasic(rName string) string {
-	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_subnet" "test" {
-  availability_zone       = data.aws_availability_zones.available.names[0]
-  cidr_block              = "10.0.0.0/24"
-  vpc_id                  = aws_vpc.test.id
-
-  tags = {
-    Name = %[1]q
-  }
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = "10.0.0.0/24"
+  vpc_id            = aws_vpc.test.id
 }
-`, rName)
+`, rName))
 }
 ```
 
+#### Hardcoded Versions
+
+- [ ] __Uses Version Data Sources__: Hardcoded versions, e.g. RDS MySQL Engine Version `5.7.42`, should be removed (which means the AWS-defined default version will be used) or replaced with a list of preferred versions using a data source. Because versions change over times and version offerings vary from region to region and partition to partition, using the default version or providing a list of preferences ensures a version will be available. Depending on the situation, there are several data sources for versions, including:
+    - [`aws_rds_engine_version` data source](https://www.terraform.io/docs/providers/aws/d/rds_engine_version.html),
+    - [`aws_docdb_engine_version` data source](https://www.terraform.io/docs/providers/aws/d/docdb_engine_version.html), and
+    - [`aws_neptune_engine_version` data source](https://www.terraform.io/docs/providers/aws/d/neptune_engine_version.html).
+
+Here's an example of using `aws_rds_engine_version` and `data.aws_rds_engine_version.default.version`:
+
+```hcl
+data "aws_rds_engine_version" "default" {
+  engine = "mysql"
+}
+
+data "aws_rds_orderable_db_instance" "test" {
+  engine                     = data.aws_rds_engine_version.default.engine
+  engine_version             = data.aws_rds_engine_version.default.version
+  preferred_instance_classes = ["db.t3.small", "db.t2.small", "db.t2.medium"]
+}
+
+resource "aws_db_instance" "bar" {
+  engine               = data.aws_rds_engine_version.default.engine
+  engine_version       = data.aws_rds_engine_version.default.version
+  instance_class       = data.aws_rds_orderable_db_instance.test.instance_class
+  skip_final_snapshot  = true
+  parameter_group_name = "default.${data.aws_rds_engine_version.default.parameter_group_family}"
+}
+```
+
+#### Hardcoded Instance Types
+
+- [ ] __Uses Instance Type Data Source__: Singular hardcoded instance types and classes, e.g., `t2.micro` and `db.t2.micro`, should be replaced with a list of preferences using a data source. Because offerings vary from region to region and partition to partition, providing a list of preferences dramatically improves the likelihood that one of the options will be available. Depending on the situation, there are several data sources for instance types and classes, including:
+    - [`aws_ec2_instance_type_offering` data source](https://www.terraform.io/docs/providers/aws/d/ec2_instance_type_offering.html) - Convenience functions declare configurations that are referenced with `data.aws_ec2_instance_type_offering.available` including:
+        - The `testAccAvailableEc2InstanceTypeForAvailabilityZone()` function for test configurations using an EC2 Subnet which is inherently within a single Availability Zone
+        - The `testAccAvailableEc2InstanceTypeForRegion()` function for test configurations that do not include specific Availability Zones
+    - [`aws_rds_orderable_db_instance` data source](https://www.terraform.io/docs/providers/aws/d/rds_orderable_db_instance.html),
+    - [`aws_neptune_orderable_db_instance` data source](https://www.terraform.io/docs/providers/aws/d/neptune_orderable_db_instance.html), and
+    - [`aws_docdb_orderable_db_instance` data source](https://www.terraform.io/docs/providers/aws/d/docdb_orderable_db_instance.html).
+
+Here's an example of using `testAccAvailableEc2InstanceTypeForRegion()` and `data.aws_ec2_instance_type_offering.available.instance_type`:
+
+```go
+func testAccAWSSpotInstanceRequestConfig(rInt int) string {
+	return composeConfig(testAccAvailableEc2InstanceTypeForRegion("t3.micro", "t2.micro"),
+		fmt.Sprintf(`
+resource "aws_spot_instance_request" "test" {
+  instance_type        = data.aws_ec2_instance_type_offering.available.instance_type
+  spot_price           = "0.05"
+  wait_for_fulfillment = true
+}
+`, rInt))
+}
+```
+
+Here's an example of using `aws_rds_orderable_db_instance` and `data.aws_rds_orderable_db_instance.test.instance_class`:
+
+```hcl
+data "aws_rds_orderable_db_instance" "test" {
+  engine                     = "mysql"
+  engine_version             = "5.7.31"
+  preferred_instance_classes = ["db.t3.micro", "db.t2.micro", "db.t3.small"]
+}
+
+resource "aws_db_instance" "test" {
+  engine              = data.aws_rds_orderable_db_instance.test.engine
+  engine_version      = data.aws_rds_orderable_db_instance.test.engine_version
+  instance_class      = data.aws_rds_orderable_db_instance.test.instance_class
+  skip_final_snapshot = true
+  username            = "test"
+}
+```
+
+#### Hardcoded Partition DNS Suffix
+
+- [ ] __Uses aws_partition Data Source__: Any hardcoded DNS suffix configuration, e.g. the `amazonaws.com` in a `ec2.amazonaws.com` service principal, should be replaced with the [`aws_partition` data source](https://www.terraform.io/docs/providers/aws/d/partition.html). A common pattern is declaring `data "aws_partition" "current" {}` and referencing it via `data.aws_partition.current.dns_suffix`.
+
+Here's an example of using `aws_partition` and `data.aws_partition.current.dns_suffix`:
+
+```hcl
+data "aws_partition" "current" {}
+
+resource "aws_iam_role" "test" {
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudtrail.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+```
+
+#### Hardcoded Partition in ARN
+
+- [ ] __Uses aws_partition Data Source__: Any hardcoded AWS Partition configuration, e.g. the `aws` in a `arn:aws:SERVICE:REGION:ACCOUNT:RESOURCE` ARN, should be replaced with the [`aws_partition` data source](https://www.terraform.io/docs/providers/aws/d/partition.html). A common pattern is declaring `data "aws_partition" "current" {}` and referencing it via `data.aws_partition.current.partition`.
+- [ ] __Uses Builtin ARN Check Functions__: Tests should utilize available ARN check functions to validate ARN attribute values in the Terraform state over `resource.TestCheckResourceAttrSet()` and `resource.TestMatchResourceAttr()`:
+
+    - `testAccCheckResourceAttrRegionalARN()` verifies an ARN matches the account ID and region of the test execution and an exact resource value
+    - `testAccMatchResourceAttrRegionalARN()` verifies an ARN matches the account ID and region of the test execution and a regular expression of the resource value
+    - `testAccCheckResourceAttrGlobalARN()` verifies an ARN matches the account ID of the test execution and an exact resource value
+    - `testAccMatchResourceAttrGlobalARN()` verifies an ARN matches the account ID of the test execution and a regular expression of the resource value
+
+Here's an example of using `aws_partition` and `data.aws_partition.current.partition`:
+
+```hcl
+data "aws_partition" "current" {}
+
+resource "aws_iam_role_policy_attachment" "test" {
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+  role       = aws_iam_role.test.name
+}
+```
+
+#### Hardcoded Region
+
 - [ ] __Uses aws_region Data Source__: Any hardcoded AWS Region configuration, e.g. `us-west-2`, should be replaced with the [`aws_region` data source](https://www.terraform.io/docs/providers/aws/d/region.html). A common pattern is declaring `data "aws_region" "current" {}` and referencing it via `data.aws_region.current.name`
-- [ ] __Uses aws_partition Data Source__: Any hardcoded AWS Partition configuration, e.g. the `aws` in a `arn:aws:SERVICE:REGION:ACCOUNT:RESOURCE` ARN, should be replaced with the [`aws_partition` data source](https://www.terraform.io/docs/providers/aws/d/partition.html). A common pattern is declaring `data "aws_partition" "current" {}` and referencing it via `data.aws_partition.current.partition`
-- [ ] __Uses Builtin ARN Check Functions__: Tests should utilize available ARN check functions, e.g. `testAccMatchResourceAttrRegionalARN()`, to validate ARN attribute values in the Terraform state over `resource.TestCheckResourceAttrSet()` and `resource.TestMatchResourceAttr()`
-- [ ] __Uses testAccCheckResourceAttrAccountID()__: Tests should utilize the available AWS Account ID check function, `testAccCheckResourceAttrAccountID()` to validate account ID attribute values in the Terraform state over `resource.TestCheckResourceAttrSet()` and `resource.TestMatchResourceAttr()`
+
+Here's an example of using `aws_region` and `data.aws_region.current.name`:
+
+```hcl
+data "aws_region" "current" {}
+
+resource "aws_route53_zone" "test" {
+  vpc {
+    vpc_id     = aws_vpc.test.id
+    vpc_region = data.aws_region.current.name
+  }
+}
+```
+
+#### Hardcoded Spot Price
+
+- [ ] __Uses aws_ec2_spot_price Data Source__: Any hardcoded spot prices, e.g. `0.05`, should be replaced with the [`aws_ec2_spot_price` data source](https://www.terraform.io/docs/providers/aws/d/ec2_spot_price.html). A common pattern is declaring `data "aws_ec2_spot_price" "current" {}` and referencing it via `data.aws_ec2_spot_price.current.spot_price`.
+
+Here's an example of using `aws_ec2_spot_price` and `data.aws_ec2_spot_price.current.spot_price`:
+
+```hcl
+data "aws_ec2_spot_price" "current" {
+  instance_type = "t3.medium"
+
+  filter {
+    name   = "product-description"
+    values = ["Linux/UNIX"]
+  }
+}
+
+resource "aws_spot_fleet_request" "test" {
+  spot_price      = data.aws_ec2_spot_price.current.spot_price
+  target_capacity = 2
+}
+```

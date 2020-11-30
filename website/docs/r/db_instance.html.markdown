@@ -125,7 +125,7 @@ set to `false`.
 mappings of AWS Identity and Access Management (IAM) accounts to database
 accounts is enabled.
 * `identifier` - (Optional, Forces new resource) The name of the RDS instance,
-if omitted, Terraform will assign a random, unique identifier.
+if omitted, Terraform will assign a random, unique identifier. Required if `restore_to_point_in_time` is specified.
 * `identifier_prefix` - (Optional, Forces new resource) Creates a unique
 identifier beginning with the specified prefix. Conflicts with `identifier`.
 * `instance_class` - (Required) The instance type of the RDS instance.
@@ -158,6 +158,9 @@ associate.
 * `password` - (Required unless a `snapshot_identifier` or `replicate_source_db`
 is provided) Password for the master DB user. Note that this may show up in
 logs, and it will be stored in the state file.
+* `performance_insights_enabled` - (Optional) Specifies whether Performance Insights are enabled. Defaults to false.
+* `performance_insights_kms_key_id` - (Optional) The ARN for the KMS key to encrypt Performance Insights data. When specifying `performance_insights_kms_key_id`, `performance_insights_enabled` needs to be set to true. Once KMS key is set, it can never be changed.
+* `performance_insights_retention_period` - (Optional) The amount of time in days to retain Performance Insights data. Either 7 (7 days) or 731 (2 years). When specifying `performance_insights_retention_period`, `performance_insights_enabled` needs to be set to true. Defaults to '7'.
 * `port` - (Optional) The port on which the DB accepts connections.
 * `publicly_accessible` - (Optional) Bool to control if instance is publicly
 accessible. Default is `false`.
@@ -170,6 +173,8 @@ creating a cross-region replica of an encrypted database you will also need to
 specify a `kms_key_id`. See [DB Instance Replication][1] and [Working with
 PostgreSQL and MySQL Read Replicas](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html)
 for more information on using Replication.
+* `restore_to_point_in_time` - (Optional, Forces new resource) A configuration block for restoring a DB instance to an arbitrary point in time. Requires the `identifier` argument to be set with the name of the new DB instance to be created. See [Restore To Point In Time](#restore-to-point-in-time) below for details.
+* `s3_import` - (Optional) Restore from a Percona Xtrabackup in S3.  See [Importing Data into an Amazon RDS MySQL DB Instance](http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html)
 * `security_group_names` - (Optional/Deprecated) List of DB Security Groups to
 associate. Only used for [DB Instances on the _EC2-Classic_
 Platform](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.html#USER_VPC.FindDefaultVPC).
@@ -198,14 +203,23 @@ for more information.
 is provided) Username for the master DB user.
 * `vpc_security_group_ids` - (Optional) List of VPC security groups to
 associate.
-* `s3_import` - (Optional) Restore from a Percona Xtrabackup in S3.  See [Importing Data into an Amazon RDS MySQL DB Instance](http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html)
-* `performance_insights_enabled` - (Optional) Specifies whether Performance Insights are enabled. Defaults to false.
-* `performance_insights_kms_key_id` - (Optional) The ARN for the KMS key to encrypt Performance Insights data. When specifying `performance_insights_kms_key_id`, `performance_insights_enabled` needs to be set to true. Once KMS key is set, it can never be changed.
-* `performance_insights_retention_period` - (Optional) The amount of time in days to retain Performance Insights data. Either 7 (7 days) or 731 (2 years). When specifying `performance_insights_retention_period`, `performance_insights_enabled` needs to be set to true. Defaults to '7'.
 
 ~> **NOTE:** Removing the `replicate_source_db` attribute from an existing RDS
 Replicate database managed by Terraform will promote the database to a fully
 standalone database.
+
+### Restore To Point In Time
+
+-> **Note:** You can restore to any point in time before the source DB instance's `latest_restorable_time` or a point up to the number of days specified in the source DB instance's `backup_retention_period`.
+For more information, please refer to the [Developer Guide](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIT.html).
+This setting does not apply to `aurora-mysql` or `aurora-postgresql` DB engines. For Aurora, refer to the [`aws_rds_cluster` resource documentation](https://www.terraform.io/docs/providers/aws/r/rds_cluster.html#restore_in_time).
+
+The `restore_to_point_in_time` block supports the following arguments:
+
+* `restore_time` - (Optional) The date and time to restore from. Value must be a time in Universal Coordinated Time (UTC) format and must be before the latest restorable time for the DB instance. Cannot be specified with `use_latest_restorable_time`.
+* `source_db_instance_identifier` - (Optional) The identifier of the source DB instance from which to restore. Must match the identifier of an existing DB instance. Required if `source_dbi_resource_id` is not specified.
+* `source_dbi_resource_id` - (Optional) The resource ID of the source DB instance from which to restore. Required if `source_db_instance_identifier` is not specified.
+* `use_latest_restorable_time` - (Optional) A boolean value that indicates whether the DB instance is restored from the latest backup time. Defaults to `false`. Cannot be specified with `restore_time`.
 
 ### S3 Import Options
 
@@ -268,6 +282,7 @@ DB instance.
 in a Route 53 Alias record).
 * `id` - The RDS instance ID.
 * `instance_class`- The RDS instance class.
+* `latest_restorable_time` - The latest time, in UTC [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8), to which a database can be restored with point-in-time restore.
 * `maintenance_window` - The instance maintenance window.
 * `multi_az` - If the RDS instance is multi AZ enabled.
 * `name` - The database name.

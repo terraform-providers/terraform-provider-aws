@@ -44,8 +44,8 @@ resource "aws_appmesh_virtual_router" "serviceb" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the virtual router.
-* `mesh_name` - (Required) The name of the service mesh in which to create the virtual router.
+* `name` - (Required) The name to use for the virtual router. Must be between 1 and 255 characters in length.
+* `mesh_name` - (Required) The name of the service mesh in which to create the virtual router. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The virtual router specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.

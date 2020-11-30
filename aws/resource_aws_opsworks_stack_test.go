@@ -355,7 +355,7 @@ resource "aws_iam_instance_profile" "opsworks_instance" {
   name = "%[1]s_profile"
   role = aws_iam_role.opsworks_instance.name
 }
-`, rName, rInt) //lintignore:AWSAT003
+`, rName, rInt) //lintignore:AWSAT003,AT004
 }
 
 func testAccAwsOpsWorksStack_regional_endpoint(rName string, rInt int) string {
@@ -442,7 +442,7 @@ resource "aws_iam_instance_profile" "opsworks_instance" {
   name = "%[1]s_profile"
   role = aws_iam_role.opsworks_instance.name
 }
-`, rName, rInt) //lintignore:AWSAT003
+`, rName, rInt) //lintignore:AWSAT003,AT004
 }
 
 ////////////////////////////

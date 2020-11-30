@@ -33,6 +33,7 @@ func TestAccAWSStorageGatewaySmbFileShare_Authentication_ActiveDirectory(t *test
 					resource.TestCheckResourceAttr(resourceName, "authentication", "ActiveDirectory"),
 					resource.TestCheckResourceAttr(resourceName, "default_storage_class", "S3_STANDARD"),
 					resource.TestMatchResourceAttr(resourceName, "fileshare_id", regexp.MustCompile(`^share-`)),
+					resource.TestMatchResourceAttr(resourceName, "file_share_name", regexp.MustCompile(`^tf-acc-test-`)),
 					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "guess_mime_type_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "invalid_user_list.#", "0"),
@@ -46,6 +47,8 @@ func TestAccAWSStorageGatewaySmbFileShare_Authentication_ActiveDirectory(t *test
 					resource.TestCheckResourceAttrPair(resourceName, "role_arn", iamResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "valid_user_list.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "admin_user_list.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "access_based_enumeration", "false"),
+					resource.TestCheckResourceAttr(resourceName, "notification_policy", "{}"),
 				),
 			},
 			{
@@ -81,6 +84,7 @@ func TestAccAWSStorageGatewaySmbFileShare_Authentication_GuestAccess(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "case_sensitivity", "ClientSpecified"),
 					resource.TestCheckResourceAttr(resourceName, "default_storage_class", "S3_STANDARD"),
 					resource.TestMatchResourceAttr(resourceName, "fileshare_id", regexp.MustCompile(`^share-`)),
+					resource.TestMatchResourceAttr(resourceName, "file_share_name", regexp.MustCompile(`^tf-acc-test-`)),
 					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "guess_mime_type_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "invalid_user_list.#", "0"),
@@ -92,12 +96,94 @@ func TestAccAWSStorageGatewaySmbFileShare_Authentication_GuestAccess(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "requester_pays", "false"),
 					resource.TestCheckResourceAttrPair(resourceName, "role_arn", iamResourceName, "arn"),
 					resource.TestCheckResourceAttr(resourceName, "valid_user_list.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "access_based_enumeration", "false"),
+					resource.TestCheckResourceAttr(resourceName, "notification_policy", "{}"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewaySmbFileShare_accessBasedEnumeration(t *testing.T) {
+	var smbFileShare storagegateway.SMBFileShareInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_smb_file_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewaySmbFileShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfigAccessBasedEnumeration(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "access_based_enumeration", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfigAccessBasedEnumeration(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "access_based_enumeration", "false"),
+				),
+			},
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfigAccessBasedEnumeration(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "access_based_enumeration", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewaySmbFileShare_notificationPolicy(t *testing.T) {
+	var smbFileShare storagegateway.SMBFileShareInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_smb_file_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewaySmbFileShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfigNotificationPolicy(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "notification_policy", "{\"Upload\": {\"SettlingTimeInSeconds\": 60}}"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfig_Authentication_GuestAccess(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "notification_policy", "{}"),
+				),
+			},
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfigNotificationPolicy(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "notification_policy", "{\"Upload\": {\"SettlingTimeInSeconds\": 60}}"),
+				),
 			},
 		},
 	})
@@ -125,6 +211,39 @@ func TestAccAWSStorageGatewaySmbFileShare_DefaultStorageClass(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
 					resource.TestCheckResourceAttr(resourceName, "default_storage_class", "S3_ONEZONE_IA"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewaySmbFileShare_FileShareName(t *testing.T) {
+	var smbFileShare storagegateway.SMBFileShareInfo
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_smb_file_share.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewaySmbFileShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfig_FileShareName(rName, "foo_share"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "file_share_name", "foo_share"),
+				),
+			},
+			{
+				Config: testAccAWSStorageGatewaySmbFileShareConfig_FileShareName(rName, "bar_share"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewaySmbFileShareExists(resourceName, &smbFileShare),
+					resource.TestCheckResourceAttr(resourceName, "file_share_name", "bar_share"),
 				),
 			},
 			{
@@ -868,6 +987,30 @@ resource "aws_storagegateway_smb_file_share" "test" {
 `
 }
 
+func testAccAWSStorageGatewaySmbFileShareConfigAccessBasedEnumeration(rName string, enabled bool) string {
+	return testAccAWSStorageGateway_SmbFileShare_GuestAccessBase(rName) + fmt.Sprintf(`
+resource "aws_storagegateway_smb_file_share" "test" {
+  authentication           = "GuestAccess"
+  gateway_arn              = aws_storagegateway_gateway.test.arn
+  location_arn             = aws_s3_bucket.test.arn
+  role_arn                 = aws_iam_role.test.arn
+  access_based_enumeration = %[1]t
+}
+`, enabled)
+}
+
+func testAccAWSStorageGatewaySmbFileShareConfigNotificationPolicy(rName string) string {
+	return testAccAWSStorageGateway_SmbFileShare_GuestAccessBase(rName) + `
+resource "aws_storagegateway_smb_file_share" "test" {
+  authentication      = "GuestAccess"
+  gateway_arn         = aws_storagegateway_gateway.test.arn
+  location_arn        = aws_s3_bucket.test.arn
+  role_arn            = aws_iam_role.test.arn
+  notification_policy = "{\"Upload\": {\"SettlingTimeInSeconds\": 60}}"
+}
+`
+}
+
 func testAccAWSStorageGatewaySmbFileShareConfig_DefaultStorageClass(rName, defaultStorageClass string) string {
 	return testAccAWSStorageGateway_SmbFileShare_GuestAccessBase(rName) + fmt.Sprintf(`
 resource "aws_storagegateway_smb_file_share" "test" {
@@ -879,6 +1022,19 @@ resource "aws_storagegateway_smb_file_share" "test" {
   role_arn              = aws_iam_role.test.arn
 }
 `, defaultStorageClass)
+}
+
+func testAccAWSStorageGatewaySmbFileShareConfig_FileShareName(rName, fileShareName string) string {
+	return testAccAWSStorageGateway_SmbFileShare_GuestAccessBase(rName) + fmt.Sprintf(`
+resource "aws_storagegateway_smb_file_share" "test" {
+  # Use GuestAccess to simplify testing
+  authentication  = "GuestAccess"
+  file_share_name = %q
+  gateway_arn     = aws_storagegateway_gateway.test.arn
+  location_arn    = aws_s3_bucket.test.arn
+  role_arn        = aws_iam_role.test.arn
+}
+`, fileShareName)
 }
 
 func testAccAWSStorageGatewaySmbFileShareConfig_GuessMIMETypeEnabled(rName string, guessMimeTypeEnabled bool) string {

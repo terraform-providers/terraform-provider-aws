@@ -62,7 +62,7 @@ We’ll also be tackling some of the top reported issues in the provider that ar
 - [#11220](https://github.com/hashicorp/terraform-provider-aws/issues/11220): Set account recovery preference
 - [#12272](https://github.com/hashicorp/terraform-provider-aws/issues/12272): CloudWatch composite alarms
 - [#4058](https://github.com/hashicorp/terraform-provider-aws/issues/4058): Support Firewall Manager Policies
-- [#1093](https://github.com/hashicorp/terraform-provider-aws/issues/1093): Resource aws_sns_topic_subscription, new argument redrive_policy
+- [#10931](https://github.com/hashicorp/terraform-provider-aws/issues/10931): Resource aws_sns_topic_subscription, new argument redrive_policy
 - [#11098](https://github.com/hashicorp/terraform-provider-aws/issues/11098): Support for AWS Config Conformance Packs
 - [#6674](https://github.com/hashicorp/terraform-provider-aws/issues/6674): Feature Request: Security Hub
 - [#3891](https://github.com/hashicorp/terraform-provider-aws/issues/3891): Adding custom cognito user pool attribute forces new resource

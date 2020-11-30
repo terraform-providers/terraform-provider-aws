@@ -468,6 +468,44 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 					ec2.FleetTypeInstant,
 				}, false),
 			},
+			"spot_maintenance_strategies": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == "1" && new == "0" {
+						return true
+					}
+					return false
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"capacity_rebalance": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if old == "1" && new == "0" {
+									return true
+								}
+								return false
+							},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"replacement_strategy": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"launch",
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"spot_request_state": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -832,6 +870,36 @@ func buildLaunchTemplateConfigs(d *schema.ResourceData) []*ec2.LaunchTemplateCon
 	return configs
 }
 
+func expandSpotMaintenanceStrategies(l []interface{}) *ec2.SpotMaintenanceStrategies {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	fleetSpotMaintenanceStrategies := &ec2.SpotMaintenanceStrategies{
+		CapacityRebalance: expandSpotCapacityRebalance(m["capacity_rebalance"].([]interface{})),
+	}
+
+	return fleetSpotMaintenanceStrategies
+}
+
+func expandSpotCapacityRebalance(l []interface{}) *ec2.SpotCapacityRebalance {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
+	m := l[0].(map[string]interface{})
+
+	capacityRebalance := &ec2.SpotCapacityRebalance{}
+
+	if v, ok := m["replacement_strategy"]; ok && v.(string) != "" {
+		capacityRebalance.ReplacementStrategy = aws.String(v.(string))
+	}
+
+	return capacityRebalance
+}
+
 func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{}) error {
 	// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RequestSpotFleet.html
 	conn := meta.(*AWSClient).ec2conn
@@ -876,6 +944,19 @@ func resourceAwsSpotFleetRequestCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("instance_pools_to_use_count"); ok && v.(int) != 1 {
 		spotFleetConfig.InstancePoolsToUseCount = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("spot_maintenance_strategies"); ok {
+		spotFleetConfig.SpotMaintenanceStrategies = expandSpotMaintenanceStrategies(v.([]interface{}))
+	}
+
+	// InvalidSpotFleetConfig: SpotMaintenanceStrategies option is only available with the spot fleet type maintain.
+	if d.Get("fleet_type").(string) != ec2.FleetTypeMaintain {
+		if spotFleetConfig.SpotMaintenanceStrategies != nil {
+			log.Printf("[WARN] Spot Fleet (%s) has an invalid configuration and can not be requested. Capacity Rebalance maintenance strategies can only be specified for spot fleets of type maintain.", spotFleetConfig)
+			d.SetId("")
+			return nil
+		}
 	}
 
 	if v, ok := d.GetOk("spot_price"); ok {
@@ -1153,6 +1234,8 @@ func resourceAwsSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) e
 	if config.IamFleetRole != nil {
 		d.Set("iam_fleet_role", aws.StringValue(config.IamFleetRole))
 	}
+
+	d.Set("spot_maintenance_strategies", flattenSpotMaintenanceStrategies(config.SpotMaintenanceStrategies))
 
 	if config.SpotPrice != nil {
 		d.Set("spot_price", aws.StringValue(config.SpotPrice))
@@ -1707,4 +1790,28 @@ func flattenLaunchTemplateOverrides(overrides []*ec2.LaunchTemplateOverrides) *s
 		overrideSet.Add(flattenSpotFleetRequestLaunchTemplateOverrides(override))
 	}
 	return overrideSet
+}
+
+func flattenSpotMaintenanceStrategies(spotMaintenanceStrategies *ec2.SpotMaintenanceStrategies) []interface{} {
+	if spotMaintenanceStrategies == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"capacity_rebalance": flattenSpotCapacityRebalance(spotMaintenanceStrategies.CapacityRebalance),
+	}
+
+	return []interface{}{m}
+}
+
+func flattenSpotCapacityRebalance(spotCapacityRebalance *ec2.SpotCapacityRebalance) []interface{} {
+	if spotCapacityRebalance == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"replacement_strategy": aws.StringValue(spotCapacityRebalance.ReplacementStrategy),
+	}
+
+	return []interface{}{m}
 }

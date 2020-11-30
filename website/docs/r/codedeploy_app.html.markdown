@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following arguments are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - Amazon's assigned ID for the application.
 * `name` - The application's name.

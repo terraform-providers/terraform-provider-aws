@@ -61,6 +61,7 @@ Glue
 GuardDuty
 IAM
 Identity Store
+Image Builder
 Inspector
 IoT
 KMS
@@ -81,6 +82,7 @@ MediaConvert
 MediaPackage
 MediaStore
 Neptune
+Network Firewall
 OpsWorks
 Organizations
 Outposts
@@ -108,11 +110,13 @@ SWF
 Sagemaker
 Secrets Manager
 Security Hub
+Serverless Application Repository
 Service Catalog
 Service Discovery
 Service Quotas
 Shield
 SimpleDB
+Signer
 Step Function (SFN)
 Storage Gateway
 Synthetics

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSS3ControlBucketLifecycleConfiguration_basic(t *testing.T) {
@@ -30,7 +29,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_basic(t *testing.T) {
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "bucket", "aws_s3control_bucket.test", "arn"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#":      "1",
 						"expiration.0.days": "365",
 						"id":                "test",
@@ -82,7 +81,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_AbortIncompleteMultipa
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"abort_incomplete_multipart_upload.#":                       "1",
 						"abort_incomplete_multipart_upload.0.days_after_initiation": "1",
 					}),
@@ -98,7 +97,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_AbortIncompleteMultipa
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"abort_incomplete_multipart_upload.#":                       "1",
 						"abort_incomplete_multipart_upload.0.days_after_initiation": "2",
 					}),
@@ -124,7 +123,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_Date(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#":      "1",
 						"expiration.0.date": date1,
 					}),
@@ -140,7 +139,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_Date(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#":      "1",
 						"expiration.0.date": date2,
 					}),
@@ -164,7 +163,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_Days(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#":      "1",
 						"expiration.0.days": "7",
 					}),
@@ -180,7 +179,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_Days(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#":      "1",
 						"expiration.0.days": "30",
 					}),
@@ -205,7 +204,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_ExpiredObje
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#": "1",
 						"expiration.0.expired_object_delete_marker": "true",
 					}),
@@ -221,7 +220,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Expiration_ExpiredObje
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"expiration.#": "1",
 						"expiration.0.expired_object_delete_marker": "false",
 					}),
@@ -245,7 +244,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Filter_Prefix(t *testi
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"filter.#":        "1",
 						"filter.0.prefix": "test1/",
 					}),
@@ -261,7 +260,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Filter_Prefix(t *testi
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"filter.#":        "1",
 						"filter.0.prefix": "test2/",
 					}),
@@ -285,7 +284,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Filter_Tags(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"filter.#":           "1",
 						"filter.0.tags.%":    "1",
 						"filter.0.tags.key1": "value1",
@@ -305,7 +304,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Filter_Tags(t *testing
 			// 	Check: resource.ComposeTestCheckFunc(
 			// 		testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 			// 		resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-			// 		tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+			// 		resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 			// 			"filter.#":           "1",
 			// 			"filter.0.tags.%":    "2",
 			// 			"filter.0.tags.key1": "value1updated",
@@ -318,7 +317,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Filter_Tags(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"filter.#":           "1",
 						"filter.0.tags.%":    "1",
 						"filter.0.tags.key2": "value2",
@@ -343,7 +342,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Id(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"id": "test1",
 					}),
 				),
@@ -358,7 +357,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Id(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"id": "test2",
 					}),
 				),
@@ -381,7 +380,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Status(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"status": s3control.ExpirationStatusDisabled,
 					}),
 				),
@@ -396,7 +395,7 @@ func TestAccAWSS3ControlBucketLifecycleConfiguration_Rule_Status(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3ControlBucketLifecycleConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "rule.*", map[string]string{
 						"status": s3control.ExpirationStatusEnabled,
 					}),
 				),

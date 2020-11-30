@@ -67,11 +67,11 @@ Support for AWS Serverless Application Repository will include:
 
 New Resource(s):
 
-- aws_serverlessrepository_stack
+- aws_serverlessapplicationrepository_cloudformation_stack
 
 New Data Source(s):
 
-- aws_serverlessrepository_application
+- aws_serverlessapplicationrepository_application
 
 ## Issues and Enhancements
 

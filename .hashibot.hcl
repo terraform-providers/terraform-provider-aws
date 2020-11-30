@@ -432,6 +432,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     "service/neptune" = [
       "aws_neptune_",
     ],
+    "service/networkfirewall" = [
+      "aws_networkfirewall_",
+    ],
     "service/networkmanager" = [
       "aws_networkmanager_",
     ],
@@ -528,6 +531,9 @@ behavior "regexp_issue_labeler_v2" "service_labels" {
     ],
     "service/shield" = [
       "aws_shield_",
+    ],
+    "service/signer" = [
+      "aws_signer_",
     ],
     "service/simpledb" = [
       "aws_simpledb_",
@@ -1242,6 +1248,11 @@ behavior "pull_request_path_labeler" "service_labels" {
       "**/*_neptune_*",
       "**/neptune_*"
     ]
+    "service/networkfirewall" = [
+      "aws/internal/service/networkfirewall/**/*",
+      "**/*_networkfirewall_*",
+      "**/networkfirewall_*",
+    ]
     "service/networkmanager" = [
       "aws/internal/service/networkmanager/**/*",
       "**/*_networkmanager_*",
@@ -1408,6 +1419,10 @@ behavior "pull_request_path_labeler" "service_labels" {
       "**/*_shield_*",
       "**/shield_*",
     ],
+    "service/signer" = [
+      "**/*_signer_*",
+      "**/signer_*"
+    ]
     "service/simpledb" = [
       "aws/internal/service/simpledb/**/*",
       "**/*_simpledb_*",

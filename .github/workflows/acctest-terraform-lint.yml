@@ -30,7 +30,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - run: cd tools && go install github.com/katbyte/terrafmt
-      # - run: terrafmt diff ./aws --check --pattern '*_test.go' --quiet --fmtcompat
+      # - run: terrafmt diff ./aws --check --pattern '*_test.go' --fmtcompat
       - run: |
           find ./aws -type f -name '*_test.go' \
             | sort -u \
@@ -42,7 +42,7 @@ jobs:
             | grep -v resource_aws_quicksight_user_test.go \
             | grep -v resource_aws_s3_bucket_object_test.go \
             | grep -v resource_aws_sns_platform_application_test.go \
-            | xargs -I {} terrafmt diff --check --quiet --fmtcompat {}
+            | xargs -I {} terrafmt diff --check --fmtcompat {}
 
   validate-terraform:
     runs-on: ubuntu-latest

@@ -51,6 +51,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The instance profile's ID.
 * `arn` - The ARN assigned by AWS to the instance profile.
 * `create_date` - The creation timestamp of the instance profile.

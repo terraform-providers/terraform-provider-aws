@@ -162,17 +162,25 @@ func resourceAwsCloudWatchEventPermissionRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("error setting condition: %w", err)
 	}
 
-	principalString, ok := policyStatement.Principal.(string)
-	if ok && (principalString == "*") {
-		d.Set("principal", "*")
-	} else {
-		principalMap := policyStatement.Principal.(map[string]interface{})
-		policyARN, err := arn.Parse(principalMap["AWS"].(string))
-		if err != nil {
-			return fmt.Errorf("error reading CloudWatch Events permission (%s): %w", d.Id(), err)
+	switch principal := policyStatement.Principal.(type) {
+	case string:
+		d.Set("principal", principal)
+	case map[string]interface{}:
+		if v, ok := principal["AWS"].(string); ok {
+			if arn.IsARN(v) {
+				principalARN, err := arn.Parse(v)
+
+				if err != nil {
+					return fmt.Errorf("error parsing CloudWatch Events Permission (%s) principal as ARN (%s): %w", d.Id(), v, err)
+				}
+
+				d.Set("principal", principalARN.AccountID)
+			} else {
+				d.Set("principal", v)
+			}
 		}
-		d.Set("principal", policyARN.AccountID)
 	}
+
 	d.Set("statement_id", policyStatement.Sid)
 
 	return nil

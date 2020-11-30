@@ -44,9 +44,9 @@ resource "aws_appmesh_gateway_route" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name to use for the gateway route.
-* `mesh_name` - (Required) The name of the service mesh in which to create the gateway route.
-* `virtual_gateway_name` - (Required) The name of the [virtual gateway](/docs/providers/aws/r/appmesh_virtual_gateway.html) to associate the gateway route with.
+* `name` - (Required) The name to use for the gateway route. Must be between 1 and 255 characters in length.
+* `mesh_name` - (Required) The name of the service mesh in which to create the gateway route. Must be between 1 and 255 characters in length.
+* `virtual_gateway_name` - (Required) The name of the [virtual gateway](/docs/providers/aws/r/appmesh_virtual_gateway.html) to associate the gateway route with. Must be between 1 and 255 characters in length.
 * `mesh_owner` - (Optional) The AWS account ID of the service mesh's owner. Defaults to the account ID the [AWS provider][1] is currently connected to.
 * `spec` - (Required) The gateway route specification to apply.
 * `tags` - (Optional) A map of tags to assign to the resource.
@@ -72,7 +72,7 @@ The `target` object supports the following:
 
 The `virtual_service` object supports the following:
 
-* `virtual_service_name` - (Required) The name of the virtual service that traffic is routed to.
+* `virtual_service_name` - (Required) The name of the virtual service that traffic is routed to. Must be between 1 and 255 characters in length.
 
 The `grpc_route`'s `match` object supports the following:
 

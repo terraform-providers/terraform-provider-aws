@@ -69,6 +69,8 @@ resource "aws_lambda_event_source_mapping" "example" {
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `function_arn` - The the ARN of the Lambda function the event source mapping is sending events to. (Note: this is a computed value that differs from `function_name` above.)
 * `last_modified` - The date this resource was last modified.
 * `last_processing_result` - The result of the last AWS Lambda invocation of your Lambda function.

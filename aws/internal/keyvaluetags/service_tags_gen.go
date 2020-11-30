@@ -60,6 +60,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lightsail"
 	"github.com/aws/aws-sdk-go/service/mediastore"
 	"github.com/aws/aws-sdk-go/service/neptune"
+	"github.com/aws/aws-sdk-go/service/networkfirewall"
 	"github.com/aws/aws-sdk-go/service/networkmanager"
 	"github.com/aws/aws-sdk-go/service/organizations"
 	"github.com/aws/aws-sdk-go/service/quicksight"
@@ -428,6 +429,16 @@ func (tags KeyValueTags) SecurityhubTags() map[string]*string {
 
 // SecurityhubKeyValueTags creates KeyValueTags from securityhub service tags.
 func SecurityhubKeyValueTags(tags map[string]*string) KeyValueTags {
+	return New(tags)
+}
+
+// SignerTags returns signer service tags.
+func (tags KeyValueTags) SignerTags() map[string]*string {
+	return aws.StringMap(tags.Map())
+}
+
+// SignerKeyValueTags creates KeyValueTags from signer service tags.
+func SignerKeyValueTags(tags map[string]*string) KeyValueTags {
 	return New(tags)
 }
 
@@ -2072,6 +2083,33 @@ func (tags KeyValueTags) NeptuneTags() []*neptune.Tag {
 
 // NeptuneKeyValueTags creates KeyValueTags from neptune service tags.
 func NeptuneKeyValueTags(tags []*neptune.Tag) KeyValueTags {
+	m := make(map[string]*string, len(tags))
+
+	for _, tag := range tags {
+		m[aws.StringValue(tag.Key)] = tag.Value
+	}
+
+	return New(m)
+}
+
+// NetworkfirewallTags returns networkfirewall service tags.
+func (tags KeyValueTags) NetworkfirewallTags() []*networkfirewall.Tag {
+	result := make([]*networkfirewall.Tag, 0, len(tags))
+
+	for k, v := range tags.Map() {
+		tag := &networkfirewall.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		}
+
+		result = append(result, tag)
+	}
+
+	return result
+}
+
+// NetworkfirewallKeyValueTags creates KeyValueTags from networkfirewall service tags.
+func NetworkfirewallKeyValueTags(tags []*networkfirewall.Tag) KeyValueTags {
 	m := make(map[string]*string, len(tags))
 
 	for _, tag := range tags {

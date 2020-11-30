@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSAPIGatewayIntegration_basic(t *testing.T) {
@@ -228,7 +227,7 @@ func TestAccAWSAPIGatewayIntegration_cache_key_parameters(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.header.X-Foo", "'Bar'"),
 					resource.TestCheckResourceAttr(resourceName, "request_parameters.integration.request.path.param", "method.request.path.param"),
 					resource.TestCheckResourceAttr(resourceName, "cache_key_parameters.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "cache_key_parameters.*", "method.request.path.param"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "cache_key_parameters.*", "method.request.path.param"),
 					resource.TestCheckResourceAttr(resourceName, "cache_namespace", "foobar"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "request_templates.application/json", ""),

@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -271,7 +270,7 @@ func TestAccAWSMqBroker_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "0",
 						"username":       "Test",
@@ -350,16 +349,16 @@ func TestAccAWSMqBroker_allFieldsDefaultVpc(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "true",
 						"groups.#":       "3",
 						"username":       "SecondTest",
 						"password":       "SecondTestTest1234",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "first"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "second"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "third"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "first"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "second"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "third"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "0",
 						"username":       "Test",
@@ -470,16 +469,16 @@ func TestAccAWSMqBroker_allFieldsCustomVpc(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "true",
 						"groups.#":       "3",
 						"username":       "SecondTest",
 						"password":       "SecondTestTest1234",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "first"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "second"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "third"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "first"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "second"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "third"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "0",
 						"username":       "Test",
@@ -643,7 +642,7 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "0",
 						"username":       "first",
@@ -663,13 +662,13 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "0",
 						"username":       "second",
 						"password":       "TestTest2222",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "true",
 						"groups.#":       "0",
 						"username":       "first",
@@ -683,13 +682,13 @@ func TestAccAWSMqBroker_updateUsers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"console_access": "false",
 						"groups.#":       "1",
 						"username":       "second",
 						"password":       "TestTest2222",
 					}),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "admin"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "user.*.groups.*", "admin"),
 				),
 			},
 		},
@@ -783,7 +782,7 @@ func TestAccAWSMqBroker_updateSecurityGroup(t *testing.T) {
 					testAccCheckAwsMqBrokerExists(resourceName, &broker),
 					resource.TestCheckResourceAttr(resourceName, "security_groups.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "user.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "user.*", map[string]string{
 						"username": "Test",
 						"password": "TestTest9999",
 					}),

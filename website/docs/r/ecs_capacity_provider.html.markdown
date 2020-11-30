@@ -20,6 +20,7 @@ resource "aws_autoscaling_group" "test" {
 
   tag {
     key                 = "AmazonECSManaged"
+    value               = ""
     propagate_at_launch = true
   }
 }
