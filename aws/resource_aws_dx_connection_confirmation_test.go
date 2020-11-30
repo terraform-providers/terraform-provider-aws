@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSDxConnectionConfirmation(t *testing.T) {
+func TestAccAWSDxConnectionConfirmation_basic(t *testing.T) {
 	env, err := testAccCheckAwsDxHostedConnectionEnv()
 	if err != nil {
 		TestAccSkip(t, err.Error())

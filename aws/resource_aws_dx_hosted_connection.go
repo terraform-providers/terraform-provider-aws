@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
@@ -136,7 +137,7 @@ func resourceAwsDxHostedConnectionRead(d *schema.ResourceData, meta interface{})
 	d.Set("has_logical_redundancy", conn.HasLogicalRedundancy)
 	d.Set("jumbo_frame_capable", conn.JumboFrameCapable)
 	d.Set("lag_id", conn.LagId)
-	d.Set("loa_issue_time", conn.LoaIssueTime)
+	d.Set("loa_issue_time", aws.TimeValue(conn.LoaIssueTime).Format(time.RFC3339))
 	d.Set("location", conn.Location)
 	d.Set("name", conn.ConnectionName)
 	d.Set("owner_account_id", conn.OwnerAccount)
