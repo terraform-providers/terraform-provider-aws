@@ -14,7 +14,7 @@ Provides a confirmation of the creation of the specified hosted connection on an
 
 ```hcl
 resource "aws_dx_connection_confirmation" "confirmation" {
-    connection_id = "dxcon-ffabc123"
+  connection_id = "dxcon-ffabc123"
 }
 ```
 
