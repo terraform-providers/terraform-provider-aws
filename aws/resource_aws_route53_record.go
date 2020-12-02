@@ -231,9 +231,16 @@ func resourceAwsRoute53Record() *schema.Resource {
 			"records": {
 				Type:          schema.TypeSet,
 				ConflictsWith: []string{"alias"},
-				Elem:          &schema.Schema{Type: schema.TypeString},
 				Optional:      true,
 				Set:           schema.HashString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.Any(
+						// This ensures that strings longer than 255 chars include escaped quote marks
+						validation.StringMatch(regexp.MustCompile(`^[^"]{1,255}((("{1,2}|" ")[^"]{1,255})+)?"?$`), `To specify a single record value longer than 255 characters, add \"\" or \" \" inside the Terraform configuration string (e.g. records = ["first255characters\" \"morecharacters"]).`),
+						validation.StringLenBetween(1, 255),
+					),
+				},
 			},
 
 			"allow_overwrite": {

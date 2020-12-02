@@ -282,7 +282,11 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 		CheckDestroy:    testAccCheckRoute53RecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoute53RecordConfigTXT,
+				Config:      testAccRoute53RecordConfigTXT(`"StringLongerThan255Chars-m391ljwgl9862qkj4c60gluu55ifnw05rc4q898ye7eyl1pgattfe6q9vgs3oc0q3wjcu1w4qh1mljnk70ak5auk7f3tzzftxzo1k38mk3l2x7rkysyqfbdbj7je60djss6pmhc86f51ndbjxtd8o9r7iys7paqjjd5eg4yuqijvhjyo5iuvravh14wu0hr0gxydkkd991b6d738kbye4vh5iiqt3j1a1jb1e1xxt2w2fjnavasdas"`),
+				ExpectError: regexp.MustCompile(`To specify a single record value longer than 255 characters`),
+			},
+			{
+				Config: testAccRoute53RecordConfigTXT(`"lalalala"`),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRoute53RecordExists(resourceName, &record1),
 				),
@@ -292,6 +296,29 @@ func TestAccAWSRoute53Record_txtSupport(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"allow_overwrite", "weight", "zone_id"},
+			},
+			{
+				Config:             testAccRoute53RecordConfigTXT(`"lalalala"`),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Regression test for https://github.com/hashicorp/terraform/issues/8423
+			{
+				Config: testAccRoute53RecordConfigTXT(`"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiajKNMp\" \"/A12roF4p3MBm9QxQu6GDsBlWUWFx8EaS8TCo3Qe8Cj0kTag1JMjzCC1s6oM0a43JhO6mp6z/"`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists(resourceName, &record1),
+				),
+			},
+			{
+				Config: testAccRoute53RecordConfigTXT(`"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiajKNMp\"\"yl1pgattfe6q9vgs3oc0q3wjcu1w4qh1mljnk70ak5auk7f3tzzftxzo1k38mk3l2x7rky\" \"/A12roF4p3MBm9QxQu6GDsBlWUWFx8EaS8TCo3Qe8Cj0kTag1JMjzCC1s6oM0a43JhO6mp6z/\" \"wjcu1w4qh1mljnk70ak5auk7f3tzzftxzo1k38mk3l2x7rkysyqfbdbj7je60djss6pmhc86f51ndbjxtd8o9r7iys7paqjjd5eg4yuqijvhjyo5iuvravh14wu0hr0gxydkkd991b6d73"`),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53RecordExists(resourceName, &record1),
+				),
+			},
+			{
+				Config:             testAccRoute53RecordConfigTXT(`"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiajKNMp\"\"yl1pgattfe6q9vgs3oc0q3wjcu1w4qh1mljnk70ak5auk7f3tzzftxzo1k38mk3l2x7rky\" \"/A12roF4p3MBm9QxQu6GDsBlWUWFx8EaS8TCo3Qe8Cj0kTag1JMjzCC1s6oM0a43JhO6mp6z/\" \"wjcu1w4qh1mljnk70ak5auk7f3tzzftxzo1k38mk3l2x7rkysyqfbdbj7je60djss6pmhc86f51ndbjxtd8o9r7iys7paqjjd5eg4yuqijvhjyo5iuvravh14wu0hr0gxydkkd991b6d73"`),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -922,33 +949,6 @@ func TestAccAWSRoute53Record_empty(t *testing.T) {
 	})
 }
 
-// Regression test for https://github.com/hashicorp/terraform/issues/8423
-func TestAccAWSRoute53Record_longTXTrecord(t *testing.T) {
-	var record1 route53.ResourceRecordSet
-	resourceName := "aws_route53_record.long_txt"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: resourceName,
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckRoute53RecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoute53RecordConfigLongTxtRecord,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoute53RecordExists(resourceName, &record1),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"allow_overwrite", "weight"},
-			},
-		},
-	})
-}
-
 func TestAccAWSRoute53Record_multivalue_answer_basic(t *testing.T) {
 	var record1, record2 route53.ResourceRecordSet
 	resourceName := "aws_route53_record.www-server1"
@@ -1323,20 +1323,6 @@ resource "aws_route53_record" "wildcard" {
   type    = "A"
   ttl     = "60"
   records = ["127.0.0.1"]
-}
-`
-
-const testAccRoute53RecordConfigTXT = `
-resource "aws_route53_zone" "main" {
-  name = "notexample.com"
-}
-
-resource "aws_route53_record" "default" {
-  zone_id = "/hostedzone/${aws_route53_zone.main.zone_id}"
-  name    = "subdomain"
-  type    = "TXT"
-  ttl     = "30"
-  records = ["lalalala"]
 }
 `
 
@@ -1870,6 +1856,22 @@ resource "aws_route53_record" "test" {
 `
 }
 
+func testAccRoute53RecordConfigTXT(txtRecord string) string {
+	return fmt.Sprintf(`
+resource "aws_route53_zone" "test" {
+  name = "notexample.com"
+}
+
+resource "aws_route53_record" "default" {
+  zone_id = "/hostedzone/${aws_route53_zone.test.zone_id}"
+  name    = "subdomain"
+  type    = "TXT"
+  ttl     = "30"
+  records = [%s]
+}
+`, txtRecord)
+}
+
 const testAccRoute53WeightedElbAliasRecord = `
 data "aws_availability_zones" "available" {
   state = "available"
@@ -2156,22 +2158,6 @@ resource "aws_route53_record" "empty" {
   type    = "A"
   ttl     = "30"
   records = ["127.0.0.1"]
-}
-`
-
-const testAccRoute53RecordConfigLongTxtRecord = `
-resource "aws_route53_zone" "main" {
-  name = "notexample.com"
-}
-
-resource "aws_route53_record" "long_txt" {
-  zone_id = aws_route53_zone.main.zone_id
-  name    = "google.notexample.com"
-  type    = "TXT"
-  ttl     = "30"
-  records = [
-    "v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiajKNMp\" \"/A12roF4p3MBm9QxQu6GDsBlWUWFx8EaS8TCo3Qe8Cj0kTag1JMjzCC1s6oM0a43JhO6mp6z/"
-  ]
 }
 `
 
