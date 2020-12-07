@@ -8,6 +8,7 @@ require (
 	github.com/golangci/golangci-lint v1.35.2
 	github.com/hashicorp/go-changelog v0.0.0-20201005170154-56335215ce3a
 	github.com/katbyte/terrafmt v0.2.1-0.20200913185704-5ff4421407b4
+	github.com/pavius/impi v0.0.3 // indirect
 	github.com/terraform-linters/tflint v0.20.3
 )
 
