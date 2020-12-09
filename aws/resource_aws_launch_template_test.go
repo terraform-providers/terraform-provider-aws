@@ -196,6 +196,29 @@ func TestAccAWSLaunchTemplate_BlockDeviceMappings_EBS_DeleteOnTermination(t *tes
 	})
 }
 
+func TestAccAWSLaunchTemplate_Ebs_DeleteOnTerminationDefault(t *testing.T) {
+	var template ec2.LaunchTemplate
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_launch_template.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSLaunchTemplateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSLaunchTemplateConfig_Ebs_DeleteOnTerminationDefault(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSLaunchTemplateExists(resourceName, &template),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "block_device_mappings.0.ebs.0.delete_on_termination", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSLaunchTemplate_EbsOptimized(t *testing.T) {
 	var template ec2.LaunchTemplate
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -1282,6 +1305,55 @@ resource "aws_launch_template" "test" {
   }
 }
 `, rName, deleteOnTermination)
+}
+
+func testAccAWSLaunchTemplateConfig_Ebs_DeleteOnTerminationDefault(rName string) string {
+	return fmt.Sprintf(`
+data "aws_ami" "test" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
+resource "aws_launch_template" "test" {
+  image_id = "${data.aws_ami.test.id}"
+  name     = %q
+
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size           = 15
+    }
+  }
+}
+
+# Creating an AutoScaling Group verifies the launch template
+# ValidationError: You must use a valid fully-formed launch template. the encrypted flag cannot be specified since device /dev/sda1 has a snapshot specified.
+resource "aws_autoscaling_group" "test" {
+  availability_zones = ["${data.aws_availability_zones.available.names[0]}"]
+  desired_capacity = 0
+  max_size         = 0
+  min_size         = 0
+  name             = %q
+
+  launch_template {
+    id      = "${aws_launch_template.test.id}"
+    version = "${aws_launch_template.test.default_version}"
+  }
+}
+`, rName, rName)
 }
 
 func testAccAWSLaunchTemplateConfig_EbsOptimized(rName, ebsOptimized string) string {

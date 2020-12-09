@@ -108,6 +108,7 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 										Optional:         true,
 										DiffSuppressFunc: suppressEquivalentTypeStringBoolean,
 										ValidateFunc:     validateTypeStringNullableBoolean,
+										Default:          "true",
 									},
 									"encrypted": {
 										// Use TypeString to allow an "unspecified" value,
