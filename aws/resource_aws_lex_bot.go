@@ -311,10 +311,7 @@ func resourceAwsLexBotRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error reading Lex Bot (%s) version: %w", d.Id(), err)
 	}
 	d.Set("version", version)
-
-	if resp.VoiceId != nil {
-		d.Set("voice_id", resp.VoiceId)
-	}
+	d.Set("voice_id", resp.VoiceId)
 
 	return nil
 }

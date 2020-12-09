@@ -442,15 +442,9 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 	if instance.Placement != nil {
 		d.Set("availability_zone", instance.Placement.AvailabilityZone)
 	}
-	if instance.Placement.GroupName != nil {
-		d.Set("placement_group", instance.Placement.GroupName)
-	}
-	if instance.Placement.Tenancy != nil {
-		d.Set("tenancy", instance.Placement.Tenancy)
-	}
-	if instance.Placement.HostId != nil {
-		d.Set("host_id", instance.Placement.HostId)
-	}
+	d.Set("placement_group", instance.Placement.GroupName)
+	d.Set("tenancy", instance.Placement.Tenancy)
+	d.Set("host_id", instance.Placement.HostId)
 	d.Set("ami", instance.ImageId)
 	d.Set("instance_type", instance.InstanceType)
 	d.Set("key_name", instance.KeyName)

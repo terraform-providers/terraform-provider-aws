@@ -152,9 +152,7 @@ func resourceAwsCodeCommitRepositoryRead(d *schema.ResourceData, meta interface{
 	d.Set("repository_name", out.RepositoryMetadata.RepositoryName)
 
 	if _, ok := d.GetOk("default_branch"); ok {
-		if out.RepositoryMetadata.DefaultBranch != nil {
-			d.Set("default_branch", out.RepositoryMetadata.DefaultBranch)
-		}
+		d.Set("default_branch", out.RepositoryMetadata.DefaultBranch)
 	}
 
 	tags, err := keyvaluetags.CodecommitListTags(conn, d.Get("arn").(string))

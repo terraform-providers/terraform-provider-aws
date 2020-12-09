@@ -189,7 +189,7 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	// The "STANDARD" (which is also the default) storage
 	// class when set would not be included in the results.
 	d.Set("storage_class", s3.StorageClassStandard)
-	if out.StorageClass != nil {
+	if out.StorageClass != nil { // nosem: helper-schema-ResourceData-Set-extraneous-nil-check
 		d.Set("storage_class", out.StorageClass)
 	}
 

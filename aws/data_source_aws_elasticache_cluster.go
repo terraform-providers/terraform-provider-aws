@@ -177,9 +177,7 @@ func dataSourceAwsElastiCacheClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("parameter_group_name", cluster.CacheParameterGroup.CacheParameterGroupName)
 	}
 
-	if cluster.ReplicationGroupId != nil {
-		d.Set("replication_group_id", cluster.ReplicationGroupId)
-	}
+	d.Set("replication_group_id", cluster.ReplicationGroupId)
 
 	d.Set("maintenance_window", cluster.PreferredMaintenanceWindow)
 	d.Set("snapshot_window", cluster.SnapshotWindow)

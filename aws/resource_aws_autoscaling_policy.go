@@ -342,9 +342,7 @@ func resourceAwsAutoscalingPolicyRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("estimated_instance_warmup", p.EstimatedInstanceWarmup)
 	d.Set("metric_aggregation_type", p.MetricAggregationType)
 	d.Set("policy_type", p.PolicyType)
-	if p.MinAdjustmentMagnitude != nil {
-		d.Set("min_adjustment_magnitude", p.MinAdjustmentMagnitude)
-	}
+	d.Set("min_adjustment_magnitude", p.MinAdjustmentMagnitude)
 	d.Set("arn", p.PolicyARN)
 	d.Set("name", p.PolicyName)
 	d.Set("scaling_adjustment", p.ScalingAdjustment)

@@ -523,3 +523,32 @@ rules:
         - pattern: |
             fmt.Println(...)
     severity: WARNING
+  - id: helper-schema-ResourceData-Set-extraneous-nil-check
+    languages: [go]
+    message: Nil value check before `d.Set()` is extraneous
+    paths:
+      include:
+        - aws/
+    patterns:
+      - pattern-either:
+        - pattern: |
+            if $APIOBJECT != nil {
+              d.Set($ATTRIBUTE, $APIOBJECT)
+            }
+        - pattern: |
+            if $APIOBJECT != nil {
+              if $ERROR := d.Set($ATTRIBUTE, $APIOBJECT); err != nil { $BODY }
+            }
+        - pattern: |
+            if $APIOBJECT != nil {
+              ...
+              $ERROR := d.Set($ATTRIBUTE, $APIOBJECT)
+              ...
+            }
+        - pattern: |
+            if $APIOBJECT != nil {
+              ...
+              $ERROR = d.Set($ATTRIBUTE, $APIOBJECT)
+              ...
+            }
+    severity: WARNING

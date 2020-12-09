@@ -95,23 +95,15 @@ func flattenDistributionConfig(d *schema.ResourceData, distributionConfig *cloud
 		return err
 	}
 
-	if distributionConfig.CallerReference != nil {
-		d.Set("caller_reference", distributionConfig.CallerReference)
-	}
+	d.Set("caller_reference", distributionConfig.CallerReference)
 	if distributionConfig.Comment != nil {
 		if *distributionConfig.Comment != "" {
 			d.Set("comment", distributionConfig.Comment)
 		}
 	}
-	if distributionConfig.DefaultRootObject != nil {
-		d.Set("default_root_object", distributionConfig.DefaultRootObject)
-	}
-	if distributionConfig.HttpVersion != nil {
-		d.Set("http_version", distributionConfig.HttpVersion)
-	}
-	if distributionConfig.WebACLId != nil {
-		d.Set("web_acl_id", distributionConfig.WebACLId)
-	}
+	d.Set("default_root_object", distributionConfig.DefaultRootObject)
+	d.Set("http_version", distributionConfig.HttpVersion)
+	d.Set("web_acl_id", distributionConfig.WebACLId)
 
 	if distributionConfig.CustomErrorResponses != nil {
 		err = d.Set("custom_error_response", flattenCustomErrorResponses(distributionConfig.CustomErrorResponses))

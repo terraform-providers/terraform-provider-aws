@@ -245,9 +245,7 @@ func resourceAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("key_id", detail.KeyId)
 	d.Set("description", detail.Description)
 	d.Set("tier", ssm.ParameterTierStandard)
-	if detail.Tier != nil {
-		d.Set("tier", detail.Tier)
-	}
+	d.Set("tier", detail.Tier)
 	d.Set("allowed_pattern", detail.AllowedPattern)
 	d.Set("data_type", detail.DataType)
 

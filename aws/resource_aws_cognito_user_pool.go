@@ -837,21 +837,13 @@ func resourceAwsCognitoUserPoolRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("endpoint", fmt.Sprintf("%s/%s", meta.(*AWSClient).RegionalHostname("cognito-idp"), d.Id()))
 	d.Set("auto_verified_attributes", flattenStringSet(userPool.AutoVerifiedAttributes))
 
-	if userPool.EmailVerificationSubject != nil {
-		d.Set("email_verification_subject", userPool.EmailVerificationSubject)
-	}
-	if userPool.EmailVerificationMessage != nil {
-		d.Set("email_verification_message", userPool.EmailVerificationMessage)
-	}
+	d.Set("email_verification_subject", userPool.EmailVerificationSubject)
+	d.Set("email_verification_message", userPool.EmailVerificationMessage)
 	if err := d.Set("lambda_config", flattenCognitoUserPoolLambdaConfig(userPool.LambdaConfig)); err != nil {
 		return fmt.Errorf("failed setting lambda_config: %w", err)
 	}
-	if userPool.SmsVerificationMessage != nil {
-		d.Set("sms_verification_message", userPool.SmsVerificationMessage)
-	}
-	if userPool.SmsAuthenticationMessage != nil {
-		d.Set("sms_authentication_message", userPool.SmsAuthenticationMessage)
-	}
+	d.Set("sms_verification_message", userPool.SmsVerificationMessage)
+	d.Set("sms_authentication_message", userPool.SmsAuthenticationMessage)
 
 	if err := d.Set("device_configuration", flattenCognitoUserPoolDeviceConfiguration(userPool.DeviceConfiguration)); err != nil {
 		return fmt.Errorf("failed setting device_configuration: %w", err)

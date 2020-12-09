@@ -470,9 +470,7 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 
 	d.Set("arn", pipeline.Arn)
 
-	if arn := pipeline.AwsKmsKeyArn; arn != nil {
-		d.Set("aws_kms_key_arn", arn)
-	}
+	d.Set("aws_kms_key_arn", pipeline.AwsKmsKeyArn)
 
 	if pipeline.ContentConfig != nil {
 		err := d.Set("content_config", flattenETPipelineOutputConfig(pipeline.ContentConfig))
@@ -492,10 +490,8 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 	d.Set("name", pipeline.Name)
 
 	notifications := flattenETNotifications(pipeline.Notifications)
-	if notifications != nil {
-		if err := d.Set("notifications", notifications); err != nil {
-			return fmt.Errorf("error setting notifications: %s", err)
-		}
+	if err := d.Set("notifications", notifications); err != nil {
+		return fmt.Errorf("error setting notifications: %s", err)
 	}
 
 	d.Set("role", pipeline.Role)
@@ -514,9 +510,7 @@ func resourceAwsElasticTranscoderPipelineRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if pipeline.OutputBucket != nil {
-		d.Set("output_bucket", pipeline.OutputBucket)
-	}
+	d.Set("output_bucket", pipeline.OutputBucket)
 
 	return nil
 }

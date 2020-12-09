@@ -256,18 +256,15 @@ func resourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface{}
 	if stack.TimeoutInMinutes != nil {
 		d.Set("timeout_in_minutes", int(*stack.TimeoutInMinutes))
 	}
-	if stack.Description != nil {
-		d.Set("description", stack.Description)
-	}
-	if stack.DisableRollback != nil {
-		d.Set("disable_rollback", stack.DisableRollback)
+	d.Set("description", stack.Description)
+	d.Set("disable_rollback", stack.DisableRollback)
 
-		// takes into account that disable_rollback conflicts with on_failure and
-		// prevents forced new creation if disable_rollback is reset during refresh
-		if d.Get("on_failure") != nil {
-			d.Set("disable_rollback", false)
-		}
+	// takes into account that disable_rollback conflicts with on_failure and
+	// prevents forced new creation if disable_rollback is reset during refresh
+	if d.Get("on_failure") != nil {
+		d.Set("disable_rollback", false)
 	}
+
 	if len(stack.NotificationARNs) > 0 {
 		err = d.Set("notification_arns", flattenStringSet(stack.NotificationARNs))
 		if err != nil {

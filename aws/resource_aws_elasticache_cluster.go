@@ -408,9 +408,7 @@ func resourceAwsElasticacheClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("port", c.CacheNodes[0].Endpoint.Port)
 	}
 
-	if c.ReplicationGroupId != nil {
-		d.Set("replication_group_id", c.ReplicationGroupId)
-	}
+	d.Set("replication_group_id", c.ReplicationGroupId)
 
 	if c.NotificationConfiguration != nil {
 		if *c.NotificationConfiguration.TopicStatus == "active" {

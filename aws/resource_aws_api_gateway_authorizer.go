@@ -179,7 +179,7 @@ func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{
 
 	d.Set("authorizer_credentials", authorizer.AuthorizerCredentials)
 
-	if authorizer.AuthorizerResultTtlInSeconds != nil {
+	if authorizer.AuthorizerResultTtlInSeconds != nil { // nosem: helper-schema-ResourceData-Set-extraneous-nil-check
 		d.Set("authorizer_result_ttl_in_seconds", authorizer.AuthorizerResultTtlInSeconds)
 	} else {
 		d.Set("authorizer_result_ttl_in_seconds", defaultAuthorizerTTL)
