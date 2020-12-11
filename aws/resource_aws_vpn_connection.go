@@ -174,6 +174,67 @@ func resourceAwsVpnConnection() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"tunnel1_dpd_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"tunnel1_ike_versions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel1_phase1_dh_group_numbers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+			"tunnel1_phase1_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel1_phase1_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel1_phase1_lifetime_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"tunnel1_phase2_dh_group_numbers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+			"tunnel1_phase2_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel1_phase2_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel1_phase2_lifetime_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 
 			"tunnel2_address": {
 				Type:     schema.TypeString,
@@ -194,6 +255,67 @@ func resourceAwsVpnConnection() *schema.Resource {
 			"tunnel2_bgp_holdtime": {
 				Type:     schema.TypeInt,
 				Computed: true,
+			},
+			"tunnel2_dpd_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"tunnel2_ike_versions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel2_phase1_dh_group_numbers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+			"tunnel2_phase1_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel2_phase1_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel2_phase1_lifetime_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"tunnel2_phase2_dh_group_numbers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+			"tunnel2_phase2_encryption_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel2_phase2_integrity_algorithms": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"tunnel2_phase2_lifetime_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 
 			"routes": {
@@ -291,6 +413,86 @@ func resourceAwsVpnConnectionCreate(d *schema.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("tunnel2_preshared_key"); ok {
 		options[1].PreSharedKey = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("tunnel1_dpd_timeout_seconds"); ok {
+		options[0].DPDTimeoutSeconds = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tunnel2_dpd_timeout_seconds"); ok {
+		options[1].DPDTimeoutSeconds = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tunnel1_ike_versions"); ok {
+		options[0].IKEVersions = expandIKEVersions(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase1_dh_group_numbers"); ok {
+		options[0].Phase1DHGroupNumbers = expandPhase1DHGroupNumbers(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase1_encryption_algorithms"); ok {
+		options[0].Phase1EncryptionAlgorithms = expandPhase1EncryptionAlgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase1_integrity_algorithms"); ok {
+		options[0].Phase1IntegrityAlgorithms = expandPhase1Integritylgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase1_lifetime_seconds"); ok {
+		options[0].Phase1LifetimeSeconds = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase2_dh_group_numbers"); ok {
+		options[0].Phase2DHGroupNumbers = expandPhase2DHGroupNumbers(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase2_encryption_algorithms"); ok {
+		options[0].Phase2EncryptionAlgorithms = expandPhase2EncryptionAlgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase2_integrity_algorithms"); ok {
+		options[0].Phase2IntegrityAlgorithms = expandPhase2Integritylgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel1_phase2_lifetime_seconds"); ok {
+		options[0].Phase2LifetimeSeconds = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tunnel2_ike_versions"); ok {
+		options[1].IKEVersions = expandIKEVersions(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase1_dh_group_numbers"); ok {
+		options[1].Phase1DHGroupNumbers = expandPhase1DHGroupNumbers(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase1_encryption_algorithms"); ok {
+		options[1].Phase1EncryptionAlgorithms = expandPhase1EncryptionAlgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase1_integrity_algorithms"); ok {
+		options[1].Phase1IntegrityAlgorithms = expandPhase1Integritylgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase1_lifetime_seconds"); ok {
+		options[1].Phase1LifetimeSeconds = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase2_dh_group_numbers"); ok {
+		options[1].Phase2DHGroupNumbers = expandPhase2DHGroupNumbers(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase2_encryption_algorithms"); ok {
+		options[1].Phase2EncryptionAlgorithms = expandPhase2EncryptionAlgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase2_integrity_algorithms"); ok {
+		options[1].Phase2IntegrityAlgorithms = expandPhase2Integritylgorithms(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("tunnel2_phase2_lifetime_seconds"); ok {
+		options[1].Phase2LifetimeSeconds = aws.Int64(int64(v.(int)))
 	}
 
 	connectOpts := &ec2.VpnConnectionOptionsSpecification{
@@ -438,6 +640,76 @@ func resourceAwsVpnConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	if vpnConnection.Options != nil {
 		if err := d.Set("static_routes_only", vpnConnection.Options.StaticRoutesOnly); err != nil {
 			return err
+		}
+
+		if len(vpnConnection.Options.TunnelOptions) > 0 {
+			d.Set("tunnel1_dpd_timeout_seconds", vpnConnection.Options.TunnelOptions[0].DpdTimeoutSeconds)
+
+			if err := d.Set("tunnel1_ike_versions", flattenIKEVersions(vpnConnection.Options.TunnelOptions[0].IkeVersions)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel1_phase1_dh_group_numbers", flattenPhase1DHGroupNumbers(vpnConnection.Options.TunnelOptions[0].Phase1DHGroupNumbers)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel1_phase1_encryption_algorithms", flattenPhase1EncryptionAlgorithms(vpnConnection.Options.TunnelOptions[0].Phase1EncryptionAlgorithms)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel1_phase1_integrity_algorithms", flattenPhase1Integritylgorithms(vpnConnection.Options.TunnelOptions[0].Phase1IntegrityAlgorithms)); err != nil {
+				return err
+			}
+
+			d.Set("tunnel1_phase1_lifetime_seconds", vpnConnection.Options.TunnelOptions[0].Phase1LifetimeSeconds)
+
+			if err := d.Set("tunnel1_phase2_dh_group_numbers", flattenPhase2DHGroupNumbers(vpnConnection.Options.TunnelOptions[0].Phase2DHGroupNumbers)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel1_phase2_encryption_algorithms", flattenPhase2EncryptionAlgorithms(vpnConnection.Options.TunnelOptions[0].Phase2EncryptionAlgorithms)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel1_phase2_integrity_algorithms", flattenPhase2Integritylgorithms(vpnConnection.Options.TunnelOptions[0].Phase2IntegrityAlgorithms)); err != nil {
+				return err
+			}
+
+			d.Set("tunnel1_phase2_lifetime_seconds", vpnConnection.Options.TunnelOptions[0].Phase2LifetimeSeconds)
+
+			d.Set("tunnel2_dpd_timeout_seconds", vpnConnection.Options.TunnelOptions[1].DpdTimeoutSeconds)
+
+			if err := d.Set("tunnel2_ike_versions", flattenIKEVersions(vpnConnection.Options.TunnelOptions[1].IkeVersions)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel2_phase1_dh_group_numbers", flattenPhase1DHGroupNumbers(vpnConnection.Options.TunnelOptions[1].Phase1DHGroupNumbers)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel2_phase1_encryption_algorithms", flattenPhase1EncryptionAlgorithms(vpnConnection.Options.TunnelOptions[1].Phase1EncryptionAlgorithms)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel2_phase1_integrity_algorithms", flattenPhase1Integritylgorithms(vpnConnection.Options.TunnelOptions[1].Phase1IntegrityAlgorithms)); err != nil {
+				return err
+			}
+
+			d.Set("tunnel2_phase1_lifetime_seconds", vpnConnection.Options.TunnelOptions[1].Phase1LifetimeSeconds)
+
+			if err := d.Set("tunnel2_phase2_dh_group_numbers", flattenPhase2DHGroupNumbers(vpnConnection.Options.TunnelOptions[1].Phase2DHGroupNumbers)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel2_phase2_encryption_algorithms", flattenPhase2EncryptionAlgorithms(vpnConnection.Options.TunnelOptions[1].Phase2EncryptionAlgorithms)); err != nil {
+				return err
+			}
+
+			if err := d.Set("tunnel2_phase2_integrity_algorithms", flattenPhase2Integritylgorithms(vpnConnection.Options.TunnelOptions[1].Phase2IntegrityAlgorithms)); err != nil {
+				return err
+			}
+
+			d.Set("tunnel2_phase2_lifetime_seconds", vpnConnection.Options.TunnelOptions[1].Phase2LifetimeSeconds)
 		}
 	} else {
 		//If there no Options on the connection then we do not support *static_routes*
@@ -652,4 +924,130 @@ func validateVpnConnectionTunnelInsideCIDR() schema.SchemaValidateFunc {
 		validation.StringMatch(regexp.MustCompile(`^169\.254\.`), "must be within 169.254.0.0/16"),
 		validation.StringNotInSlice(disallowedCidrs, false),
 	)
+}
+
+func expandIKEVersions(s []interface{}) []*ec2.IKEVersionsRequestListValue {
+	ikeVersions := []*ec2.IKEVersionsRequestListValue{}
+	for _, ikeVersion := range s {
+		ikeVersions = append(ikeVersions, &ec2.IKEVersionsRequestListValue{
+			Value: aws.String(ikeVersion.(string)),
+		})
+	}
+	return ikeVersions
+}
+
+func flattenIKEVersions(ikeVersions []*ec2.IKEVersionsListValue) []string {
+	var result []string
+	for _, ikeVersion := range ikeVersions {
+		result = append(result, aws.StringValue(ikeVersion.Value))
+	}
+	return result
+}
+
+func expandPhase1DHGroupNumbers(s []interface{}) []*ec2.Phase1DHGroupNumbersRequestListValue {
+	dhGroupNumbers := []*ec2.Phase1DHGroupNumbersRequestListValue{}
+	for _, dhGroupNumber := range s {
+		dhGroupNumbers = append(dhGroupNumbers, &ec2.Phase1DHGroupNumbersRequestListValue{
+			Value: aws.Int64(int64(dhGroupNumber.(int))),
+		})
+	}
+	return dhGroupNumbers
+}
+
+func flattenPhase1DHGroupNumbers(dhGroupNumbers []*ec2.Phase1DHGroupNumbersListValue) []int64 {
+	var result []int64
+	for _, dhGroupNumber := range dhGroupNumbers {
+		result = append(result, aws.Int64Value(dhGroupNumber.Value))
+	}
+	return result
+}
+
+func expandPhase1EncryptionAlgorithms(s []interface{}) []*ec2.Phase1EncryptionAlgorithmsRequestListValue {
+	encryptionAlgorithms := []*ec2.Phase1EncryptionAlgorithmsRequestListValue{}
+	for _, encryptionAlgorithm := range s {
+		encryptionAlgorithms = append(encryptionAlgorithms, &ec2.Phase1EncryptionAlgorithmsRequestListValue{
+			Value: aws.String(encryptionAlgorithm.(string)),
+		})
+	}
+	return encryptionAlgorithms
+}
+
+func flattenPhase1EncryptionAlgorithms(encryptionAlgorithms []*ec2.Phase1EncryptionAlgorithmsListValue) []string {
+	var result []string
+	for _, encryptionAlgorithm := range encryptionAlgorithms {
+		result = append(result, aws.StringValue(encryptionAlgorithm.Value))
+	}
+	return result
+}
+
+func expandPhase1Integritylgorithms(s []interface{}) []*ec2.Phase1IntegrityAlgorithmsRequestListValue {
+	integrityAlgorithms := []*ec2.Phase1IntegrityAlgorithmsRequestListValue{}
+	for _, integrityAlgorithm := range s {
+		integrityAlgorithms = append(integrityAlgorithms, &ec2.Phase1IntegrityAlgorithmsRequestListValue{
+			Value: aws.String(integrityAlgorithm.(string)),
+		})
+	}
+	return integrityAlgorithms
+}
+
+func flattenPhase1Integritylgorithms(integrityAlgorithms []*ec2.Phase1IntegrityAlgorithmsListValue) []string {
+	var result []string
+	for _, integrityAlgorithm := range integrityAlgorithms {
+		result = append(result, aws.StringValue(integrityAlgorithm.Value))
+	}
+	return result
+}
+
+func expandPhase2DHGroupNumbers(s []interface{}) []*ec2.Phase2DHGroupNumbersRequestListValue {
+	dhGroupNumbers := []*ec2.Phase2DHGroupNumbersRequestListValue{}
+	for _, dhGroupNumber := range s {
+		dhGroupNumbers = append(dhGroupNumbers, &ec2.Phase2DHGroupNumbersRequestListValue{
+			Value: aws.Int64(int64(dhGroupNumber.(int))),
+		})
+	}
+	return dhGroupNumbers
+}
+
+func flattenPhase2DHGroupNumbers(dhGroupNumbers []*ec2.Phase2DHGroupNumbersListValue) []int64 {
+	var result []int64
+	for _, dhGroupNumber := range dhGroupNumbers {
+		result = append(result, aws.Int64Value(dhGroupNumber.Value))
+	}
+	return result
+}
+
+func expandPhase2EncryptionAlgorithms(s []interface{}) []*ec2.Phase2EncryptionAlgorithmsRequestListValue {
+	encryptionAlgorithms := []*ec2.Phase2EncryptionAlgorithmsRequestListValue{}
+	for _, encryptionAlgorithm := range s {
+		encryptionAlgorithms = append(encryptionAlgorithms, &ec2.Phase2EncryptionAlgorithmsRequestListValue{
+			Value: aws.String(encryptionAlgorithm.(string)),
+		})
+	}
+	return encryptionAlgorithms
+}
+
+func flattenPhase2EncryptionAlgorithms(encryptionAlgorithms []*ec2.Phase2EncryptionAlgorithmsListValue) []string {
+	var result []string
+	for _, encryptionAlgorithm := range encryptionAlgorithms {
+		result = append(result, aws.StringValue(encryptionAlgorithm.Value))
+	}
+	return result
+}
+
+func expandPhase2Integritylgorithms(s []interface{}) []*ec2.Phase2IntegrityAlgorithmsRequestListValue {
+	integrityAlgorithms := []*ec2.Phase2IntegrityAlgorithmsRequestListValue{}
+	for _, integrityAlgorithm := range s {
+		integrityAlgorithms = append(integrityAlgorithms, &ec2.Phase2IntegrityAlgorithmsRequestListValue{
+			Value: aws.String(integrityAlgorithm.(string)),
+		})
+	}
+	return integrityAlgorithms
+}
+
+func flattenPhase2Integritylgorithms(integrityAlgorithms []*ec2.Phase2IntegrityAlgorithmsListValue) []string {
+	var result []string
+	for _, integrityAlgorithm := range integrityAlgorithms {
+		result = append(result, aws.StringValue(integrityAlgorithm.Value))
+	}
+	return result
 }

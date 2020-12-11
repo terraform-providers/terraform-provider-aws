@@ -573,11 +573,35 @@ resource "aws_vpn_connection" "test" {
   type                = "ipsec.1"
   static_routes_only  = false
 
-  tunnel1_inside_cidr   = "%s"
-  tunnel1_preshared_key = "%s"
+  tunnel1_inside_cidr         = "%s"
+  tunnel1_preshared_key       = "%s"
+  tunnel1_dpd_timeout_seconds = 30
+  tunnel1_ike_versions        = ["ikev2"]
 
-  tunnel2_inside_cidr   = "%s"
-  tunnel2_preshared_key = "%s"
+  tunnel1_phase1_dh_group_numbers      = [14]
+  tunnel1_phase1_encryption_algorithms = ["AES256"]
+  tunnel1_phase1_integrity_algorithms  = ["SHA2-256"]
+  tunnel1_phase1_lifetime_seconds      = 28000
+
+  tunnel1_phase2_dh_group_numbers      = [14]
+  tunnel1_phase2_encryption_algorithms = ["AES256"]
+  tunnel1_phase2_integrity_algorithms  = ["SHA2-256"]
+  tunnel1_phase2_lifetime_seconds      = 3600
+
+  tunnel2_inside_cidr         = "%s"
+  tunnel2_preshared_key       = "%s"
+  tunnel2_dpd_timeout_seconds = 30
+  tunnel2_ike_versions        = ["ikev2"]
+
+  tunnel2_phase1_dh_group_numbers      = [14]
+  tunnel2_phase1_encryption_algorithms = ["AES256"]
+  tunnel2_phase1_integrity_algorithms  = ["SHA2-256"]
+  tunnel2_phase1_lifetime_seconds      = 28000
+
+  tunnel2_phase2_dh_group_numbers      = [14]
+  tunnel2_phase2_encryption_algorithms = ["AES256"]
+  tunnel2_phase2_integrity_algorithms  = ["SHA2-256"]
+  tunnel2_phase2_lifetime_seconds      = 3600
 }
 `, rBgpAsn, tunnelCidr, psk, tunnelCidr2, psk2)
 }

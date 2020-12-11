@@ -61,6 +61,55 @@ resource "aws_vpn_connection" "main" {
 }
 ```
 
+### Tunnel Options
+
+```hcl
+resource "aws_vpc" "vpc" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_vpn_gateway" "vpn_gateway" {
+  vpc_id = "${aws_vpc.vpc.id}"
+}
+
+resource "aws_customer_gateway" "customer_gateway" {
+  bgp_asn    = 65000
+  ip_address = "172.0.0.1"
+  type       = "ipsec.1"
+}
+
+resource "aws_vpn_connection" "main" {
+  vpn_gateway_id      = "${aws_vpn_gateway.vpn_gateway.id}"
+  customer_gateway_id = "${aws_customer_gateway.customer_gateway.id}"
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  tunnel1_ike_versions = ["ikev2"]
+
+  tunnel1_phase1_dh_group_numbers      = [14]
+  tunnel1_phase1_encryption_algorithms = ["AES256"]
+  tunnel1_phase1_integrity_algorithms  = ["SHA2-256"]
+  tunnel1_phase1_lifetime_seconds      = 28000
+
+  tunnel1_phase2_dh_group_numbers      = [14]
+  tunnel1_phase2_encryption_algorithms = ["AES256"]
+  tunnel1_phase2_integrity_algorithms  = ["SHA2-256"]
+  tunnel1_phase2_lifetime_seconds      = 3600
+
+  tunnel2_ike_versions = ["ikev2"]
+
+  tunnel2_phase1_dh_group_numbers      = [14]
+  tunnel2_phase1_encryption_algorithms = ["AES256"]
+  tunnel2_phase1_integrity_algorithms  = ["SHA2-256"]
+  tunnel2_phase1_lifetime_seconds      = 28000
+
+  tunnel2_phase2_dh_group_numbers      = [14]
+  tunnel2_phase2_encryption_algorithms = ["AES256"]
+  tunnel2_phase2_integrity_algorithms  = ["SHA2-256"]
+  tunnel2_phase2_lifetime_seconds      = 3600
+}
+```
+
 ## Argument Reference
 
 The following arguments are required:
@@ -81,6 +130,26 @@ Other arguments:
 * `tunnel2_inside_cidr` - (Optional) The CIDR block of the inside IP addresses for the second VPN tunnel.
 * `tunnel1_preshared_key` - (Optional) The preshared key of the first VPN tunnel.
 * `tunnel2_preshared_key` - (Optional) The preshared key of the second VPN tunnel.
+* `tunnel1_dpd_timeout_seconds` - (Optional) The number of seconds after which a DPD timeout occurs for the first VPN tunnel. Default: 30.
+* `tunnel2_dpd_timeout_seconds` - (Optional) The number of seconds after which a DPD timeout occurs for the second VPN tunnel. Default: 30.
+* `tunnel1_ike_versions` - (Optional) The IKE versions that are permitted for the first VPN tunnel. Possible values are `ikev1` or `ikev2`.
+* `tunnel2_ike_versions` - (Optional) The IKE versions that are permitted for the second VPN tunnel. Possible values are `ikev1` or `ikev2`.
+* `tunnel1_phase1_dh_group_numbers` - (Optional) One or more Diffie-Hellman group numbers that are permitted for the first VPN tunnel for phase 1 IKE negotiations. Possible values are `2`, `14`, `15`, `16`, `17`, `18`, `22`, `23`, or `24`.
+* `tunnel2_phase1_dh_group_numbers` - (Optional) One or more Diffie-Hellman group numbers that are permitted for the second VPN tunnel for phase 1 IKE negotiations. Possible values are `2`, `14`, `15`, `16`, `17`, `18`, `22`, `23`, or `24`.
+* `tunnel1_phase1_encryption_algorithms` - (Optional) One or more encryption algorithms that are permitted for the first VPN tunnel for phase 1 IKE negotiations. Possible values are `AES128` or `AES256`.
+* `tunnel2_phase1_encryption_algorithms` - (Optional) One or more encryption algorithms that are permitted for the second VPN tunnel for phase 1 IKE negotiations. Possible values are `AES128` or `AES256`.
+* `tunnel1_phase1_integrity_algorithms` - (Optional) One or more integrity algorithms that are permitted for the first VPN tunnel for phase 1 IKE negotiations. Possible values are `SHA1` or `SHA2-256`.
+* `tunnel2_phase1_integrity_algorithms` - (Optional) One or more integrity algorithms that are permitted for the second VPN tunnel for phase 1 IKE negotiations. Possible values are `SHA1` or `SHA2-256`.
+* `tunnel1_phase1_lifetime_seconds` - (Optional) The lifetime for phase 1 of the IKE negotiation, in seconds, for the first VPN tunnel. Default: 28800.
+* `tunnel2_phase1_lifetime_seconds` - (Optional) The lifetime for phase 1 of the IKE negotiation, in seconds, for the second VPN tunnel. Default: 28800.
+* `tunnel1_phase2_dh_group_numbers` - (Optional) One or more Diffie-Hellman group numbers that are permitted for the first VPN tunnel for phase 2 IKE negotiations. Possible values are `2`, `5`, `14`, `15`, `16`, `17`, `18`, `22`, `23`, or `24`.
+* `tunnel2_phase2_dh_group_numbers` - (Optional) One or more Diffie-Hellman group numbers that are permitted for the second VPN tunnel for phase 2 IKE negotiations. Possible values are `2`, `5`, `14`, `15`, `16`, `17`, `18`, `22`, `23`, or `24`.
+* `tunnel1_phase2_encryption_algorithms` - (Optional) One or more encryption algorithms that are permitted for the first VPN tunnel for phase 2 IKE negotiations. Possible values are `AES128` or `AES256`.
+* `tunnel2_phase2_encryption_algorithms` - (Optional) One or more encryption algorithms that are permitted for the second VPN tunnel for phase 2 IKE negotiations. Possible values are `AES128` or `AES256`.
+* `tunnel1_phase2_integrity_algorithms` - (Optional) One or more integrity algorithms that are permitted for the first VPN tunnel for phase 2 IKE negotiations. Possible values are `SHA1` or `SHA2-256`.
+* `tunnel2_phase2_integrity_algorithms` - (Optional) One or more integrity algorithms that are permitted for the second VPN tunnel for phase 2 IKE negotiations. Possible values are `SHA1` or `SHA2-256`.
+* `tunnel1_phase2_lifetime_seconds` - (Optional) The lifetime for phase 2 of the IKE negotiation, in seconds, for the first VPN tunnel. Default: 3600.
+* `tunnel2_phase2_lifetime_seconds` - (Optional) The lifetime for phase 2 of the IKE negotiation, in seconds, for the second VPN tunnel. Default: 3600.
 
 ~> **Note:** The preshared key must be between 8 and 64 characters in length and cannot start with zero(0). Allowed characters are alphanumeric characters, periods(.) and underscores(_).
 
