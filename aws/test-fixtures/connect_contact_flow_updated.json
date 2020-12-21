@@ -1,0 +1,24 @@
+{
+    "Version": "2019-10-30",
+    "StartAction": "12345678-1234-1234-1234-123456789012",
+    "Actions": [ 
+        {
+            "Identifier": "12345678-1234-1234-1234-123456789012",
+            "Type": "MessageParticipant",
+            "Transitions": {
+                "NextAction": "abcdef-abcd-abcd-abcd-abcdefghijkl",
+                "Errors": [],
+                "Conditions": []
+            },
+            "Parameters": {
+                "Text": "Thanks for calling the updated sample flow!"
+            }
+        },
+        {
+            "Identifier": "abcdef-abcd-abcd-abcd-abcdefghijkl",
+            "Type": "DisconnectParticipant",
+            "Transitions": {},
+            "Parameters": {}
+        }
+    ]
+}

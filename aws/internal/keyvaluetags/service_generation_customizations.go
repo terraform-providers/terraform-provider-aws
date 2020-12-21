@@ -34,6 +34,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/aws/aws-sdk-go/service/connect"
 	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go/service/dataexchange"
 	"github.com/aws/aws-sdk-go/service/datapipeline"
@@ -183,6 +184,8 @@ func ServiceClientType(serviceName string) string {
 		funcType = reflect.TypeOf(cognitoidentityprovider.New)
 	case "configservice":
 		funcType = reflect.TypeOf(configservice.New)
+	case "connect":
+		funcType = reflect.TypeOf(connect.New)
 	case "databasemigrationservice":
 		funcType = reflect.TypeOf(databasemigrationservice.New)
 	case "dataexchange":
