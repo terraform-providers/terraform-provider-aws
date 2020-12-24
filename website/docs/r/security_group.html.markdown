@@ -10,12 +10,23 @@ description: |-
 
 Provides a security group resource.
 
-~> **NOTE on Security Groups and Security Group Rules:** Terraform currently
-provides both a standalone [Security Group Rule resource](security_group_rule.html) (a single `ingress` or
-`egress` rule), and a Security Group resource with `ingress` and `egress` rules
-defined in-line. At this time you cannot use a Security Group with in-line rules
-in conjunction with any Security Group Rule resources. Doing so will cause
-a conflict of rule settings and will overwrite rules.
+~> **NOTE on Security Groups and Security Group Rules:** Terraform currently provides
+a standalone [Security Group Rules resource](security_group_rules.html)
+(all `ingress` and `egress` rules for a group),
+standalone [Security Group Rule resources](security_group_rule.html)
+(individual `ingress` or `egress` rules), and the ability to define
+`ingress` and `egress` rules in-line with
+this Security Group resource.
+At this time, you cannot combine any of these methods to define rules for the same group.
+Doing so will cause a conflict of rule settings and will overwrite rules.
+
+~> **NOTE on Limitations of Security Groups with In-Line Rules:** AWS supports
+security group rules that refer to other security groups. It is possible to have
+two security groups refer to each other in their rules. However, if this is done
+using only Security Group resources with in-line rules, it may result in a
+circular dependency error. To get around this, consider using the standalone
+[Security Group Rules resource](security_group_rules.html) or
+[Security Group Rule resources](security_group_rule.html) instead of in-line rules.
 
 ~> **NOTE:** Referencing Security Groups across VPC peering has certain restrictions. More information is available in the [VPC Peering User Guide](https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-security-groups.html).
 
@@ -67,9 +78,11 @@ assign a random, unique name
 * `ingress` - (Optional) Can be specified multiple times for each
    ingress rule. Each ingress block supports fields documented below.
    This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+   If no ingress blocks are defined, then ingress rules will not be managed by this resource.
 * `egress` - (Optional, VPC only) Can be specified multiple times for each
       egress rule. Each egress block supports fields documented below.
       This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+      If no egress blocks are defined, then egress rules will not be managed by this resource.
 * `revoke_rules_on_delete` - (Optional) Instruct Terraform to revoke all of the
 Security Groups attached ingress and egress rules before deleting the rule
 itself. This is normally not needed, however certain AWS services such as

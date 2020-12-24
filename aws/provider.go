@@ -910,6 +910,7 @@ func Provider() *schema.Provider {
 			"aws_network_interface_sg_attachment":                     resourceAwsNetworkInterfaceSGAttachment(),
 			"aws_default_security_group":                              resourceAwsDefaultSecurityGroup(),
 			"aws_security_group_rule":                                 resourceAwsSecurityGroupRule(),
+			"aws_security_group_rules":                                resourceAwsSecurityGroupRules(),
 			"aws_securityhub_account":                                 resourceAwsSecurityHubAccount(),
 			"aws_securityhub_action_target":                           resourceAwsSecurityHubActionTarget(),
 			"aws_securityhub_member":                                  resourceAwsSecurityHubMember(),
