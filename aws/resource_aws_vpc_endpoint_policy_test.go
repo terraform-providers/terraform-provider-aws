@@ -113,7 +113,7 @@ resource "aws_vpc_endpoint" "test" {
 
 resource "aws_vpc_endpoint_policy" "test" {
   vpc_endpoint_id = aws_vpc_endpoint.test.id
-  policy = jsonencode({
+  policy          = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
       {
@@ -157,7 +157,7 @@ resource "aws_vpc_endpoint" "test" {
 
 resource "aws_vpc_endpoint_policy" "test" {
   vpc_endpoint_id = aws_vpc_endpoint.test.id
-  policy = jsonencode({
+  policy          = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
       {
