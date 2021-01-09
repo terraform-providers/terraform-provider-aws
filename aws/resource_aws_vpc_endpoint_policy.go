@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -37,9 +36,6 @@ func resourceAwsVpcEndpointPolicy() *schema.Resource {
 					return json
 				},
 			},
-		},
-		Timeouts: &schema.ResourceTimeout{
-			Update: schema.DefaultTimeout(10 * time.Minute),
 		},
 	}
 }
@@ -98,10 +94,6 @@ func resourceAwsVpcEndpointPolicyPut(d *schema.ResourceData, meta interface{}) e
 	if _, err := conn.ModifyVpcEndpoint(req); err != nil {
 		return fmt.Errorf("Error updating VPC Endpoint Policy: %w", err)
 	}
-
-	if err := vpcEndpointWaitUntilAvailable(conn, endpointID, d.Timeout(schema.TimeoutUpdate)); err != nil {
-		return err
-	}
 	d.SetId(endpointID)
 
 	return resourceAwsVpcEndpointPolicyRead(d, meta)
@@ -118,10 +110,6 @@ func resourceAwsVpcEndpointPolicyDelete(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Resetting VPC Endpoint Policy: %#v", req)
 	if _, err := conn.ModifyVpcEndpoint(req); err != nil {
 		return fmt.Errorf("Error Resetting VPC Endpoint Policy: %w", err)
-	}
-
-	if err := vpcEndpointWaitUntilAvailable(conn, d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
-		return err
 	}
 
 	return nil
