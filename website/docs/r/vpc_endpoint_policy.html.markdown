@@ -28,7 +28,7 @@ resource "aws_vpc_endpoint" "example" {
 
 resource "aws_vpc_endpoint_policy" "example" {
   vpc_endpoint_id = aws_vpc_endpoint.example.id
-  policy          = jsonencode({
+  policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
       {
