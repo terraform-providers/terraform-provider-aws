@@ -678,6 +678,7 @@ func Provider() *schema.Provider {
 			"aws_ebs_encryption_by_default":                           resourceAwsEbsEncryptionByDefault(),
 			"aws_ebs_snapshot":                                        resourceAwsEbsSnapshot(),
 			"aws_ebs_snapshot_copy":                                   resourceAwsEbsSnapshotCopy(),
+			"aws_ebs_snapshot_import":                                 resourceAwsEbsSnapshotImport(),
 			"aws_ebs_volume":                                          resourceAwsEbsVolume(),
 			"aws_ec2_availability_zone_group":                         resourceAwsEc2AvailabilityZoneGroup(),
 			"aws_ec2_capacity_reservation":                            resourceAwsEc2CapacityReservation(),
