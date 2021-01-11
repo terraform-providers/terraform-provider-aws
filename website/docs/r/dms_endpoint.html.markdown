@@ -125,6 +125,16 @@ The `s3_settings` configuration block supports the following arguments:
 * `csv_row_delimiter` - (Optional) Delimiter used to separate rows in the source files. Defaults to `\n`.
 * `external_table_definition` - (Optional) JSON document that describes how AWS DMS should interpret the data.
 * `service_access_role_arn` - (Optional) Amazon Resource Name (ARN) of the IAM Role with permissions to read from or write to the S3 Bucket.
+* `data_format` - (Optional) Specify the data format. Valid values are `csv` and `parquet`.
+* `encryption_mode` - (Optional) Set to encrypt target files. Valid vaules are `SSE_S3` and `SSE_KMS`.
+* `server_side_encryption_kms_key_id` - (Optional) When using `encryption_mode` as `SSE_KMS`, provide the arn for the KMS key to use. 
+
+## Timeouts
+
+`aws_dms_endpoint` provides the following
+[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `delete` - (Default `10 minutes`) Used for destroying endpoints.
 
 ## Attributes Reference
 

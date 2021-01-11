@@ -26,6 +26,10 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"certificate_arn": {
 				Type:         schema.TypeString,
@@ -299,6 +303,32 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 							Optional: true,
 							Default:  "NONE",
 						},
+						"data_format": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								dms.DataFormatValueCsv,
+								dms.DataFormatValueParquet,
+							}, false),
+						},
+						"encryption_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								// required to hard-code strings here as the aws-go-sdk uses the
+								// different strings here (sse-s3 vs SSE_S3) and it gets rejected by the AWS API
+								"SSE_S3",  //dms.EncryptionModeValueSseS3,
+								"SSE_KMS", //dms.EncryptionModeValueSseKms,
+							}, false),
+							// API returns this error with ModifyEndpoint:
+							// InvalidParameterCombinationException: Only SSE_S3 encryption mode supported
+							// ^ This message is a bit misleading as SSE_KMS is supported, but requires a new endpoint
+							ForceNew: true,
+						},
+						"server_side_encryption_kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -389,13 +419,16 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		request.DatabaseName = aws.String(d.Get("database_name").(string))
 	case "s3":
 		request.S3Settings = &dms.S3Settings{
-			ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-			ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-			CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-			CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-			BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-			BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-			CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+			ServiceAccessRoleArn:         aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
+			ExternalTableDefinition:      aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
+			CsvRowDelimiter:              aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
+			CsvDelimiter:                 aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
+			BucketFolder:                 aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
+			BucketName:                   aws.String(d.Get("s3_settings.0.bucket_name").(string)),
+			CompressionType:              aws.String(d.Get("s3_settings.0.compression_type").(string)),
+			DataFormat:                   aws.String(d.Get("s3_settings.0.data_format").(string)),
+			EncryptionMode:               aws.String(d.Get("s3_settings.0.encryption_mode").(string)),
+			ServerSideEncryptionKmsKeyId: aws.String(d.Get("s3_settings.0.server_side_encryption_kms_key_id").(string)),
 		}
 	default:
 		request.Password = aws.String(d.Get("password").(string))
@@ -619,18 +652,23 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			hasChanges = true
 		}
 	case "s3":
+		// Purposely excluded s3_settings.0.encryption_mode here as the AWS API disallows setting encryption_mode to SSE_KMS
+		// even if the endpoint is already configured for it. As such, changing that attribute requires a delete+create.
 		if d.HasChanges(
 			"s3_settings.0.service_access_role_arn", "s3_settings.0.external_table_definition",
 			"s3_settings.0.csv_row_delimiter", "s3_settings.0.csv_delimiter", "s3_settings.0.bucket_folder",
-			"s3_settings.0.bucket_name", "s3_settings.0.compression_type") {
+			"s3_settings.0.bucket_name", "s3_settings.0.compression_type", "s3_settings.0.data_format",
+			"s3_settings.0.server_side_encryption_kms_key_id") {
 			request.S3Settings = &dms.S3Settings{
-				ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-				ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-				CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-				CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-				BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-				BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-				CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+				ServiceAccessRoleArn:         aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
+				ExternalTableDefinition:      aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
+				CsvRowDelimiter:              aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
+				CsvDelimiter:                 aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
+				BucketFolder:                 aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
+				BucketName:                   aws.String(d.Get("s3_settings.0.bucket_name").(string)),
+				CompressionType:              aws.String(d.Get("s3_settings.0.compression_type").(string)),
+				DataFormat:                   aws.String(d.Get("s3_settings.0.data_format").(string)),
+				ServerSideEncryptionKmsKeyId: aws.String(d.Get("s3_settings.0.server_side_encryption_kms_key_id").(string)),
 			}
 			request.EngineName = aws.String(d.Get("engine_name").(string)) // Must be included (should be 's3')
 			hasChanges = true
@@ -686,7 +724,52 @@ func resourceAwsDmsEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] DMS delete endpoint: %#v", request)
 
 	_, err := conn.DeleteEndpoint(request)
+	if err != nil {
+		return err
+	}
+
+	err = waitUntilAwsDmsEndpointIsDeleted(d.Id(), conn, d.Timeout(schema.TimeoutDelete))
 	return err
+}
+
+func waitUntilAwsDmsEndpointIsDeleted(endpointId string, conn *dms.DatabaseMigrationService, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"active", "deleting"}, // Did not find constants in the SDK for these, determined by experimentation.
+		Target:     []string{},
+		Refresh:    waitUntilAwsDmsEndpointIsDeletedRefresh(endpointId, conn),
+		Timeout:    timeout,
+		MinTimeout: 10 * time.Second,
+		Delay:      30 * time.Second, // Wait 30 secs before starting
+	}
+	_, err := stateConf.WaitForState()
+	return err
+}
+
+func waitUntilAwsDmsEndpointIsDeletedRefresh(endpointId string, conn *dms.DatabaseMigrationService) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+
+		// query AWS for the status of the endpoint by endpointId.
+		response, err := conn.DescribeEndpoints(&dms.DescribeEndpointsInput{
+			Filters: []*dms.Filter{
+				{
+					Name:   aws.String("endpoint-id"),
+					Values: []*string{aws.String(endpointId)},
+				},
+			},
+		})
+
+		// if there is an error - that may mean the endpoint was removed and thus we can
+		// indicate the deletion was successful (by passing an empty status back to the caller)
+		if err != nil {
+			if isAWSErr(err, "ResourceNotFoundFault", "") {
+				return nil, "", nil // success, the endpoint is removed
+			}
+			log.Printf("Error on retrieving DB Instance when waiting: %s", err)
+			return nil, "", err
+		}
+
+		return response, aws.StringValue(response.Endpoints[0].Status), nil
+	}
 }
 
 func resourceAwsDmsEndpointSetState(d *schema.ResourceData, endpoint *dms.Endpoint) error {
@@ -816,13 +899,16 @@ func flattenDmsS3Settings(settings *dms.S3Settings) []map[string]interface{} {
 	}
 
 	m := map[string]interface{}{
-		"service_access_role_arn":   aws.StringValue(settings.ServiceAccessRoleArn),
-		"external_table_definition": aws.StringValue(settings.ExternalTableDefinition),
-		"csv_row_delimiter":         aws.StringValue(settings.CsvRowDelimiter),
-		"csv_delimiter":             aws.StringValue(settings.CsvDelimiter),
-		"bucket_folder":             aws.StringValue(settings.BucketFolder),
-		"bucket_name":               aws.StringValue(settings.BucketName),
-		"compression_type":          aws.StringValue(settings.CompressionType),
+		"service_access_role_arn":           aws.StringValue(settings.ServiceAccessRoleArn),
+		"external_table_definition":         aws.StringValue(settings.ExternalTableDefinition),
+		"csv_row_delimiter":                 aws.StringValue(settings.CsvRowDelimiter),
+		"csv_delimiter":                     aws.StringValue(settings.CsvDelimiter),
+		"bucket_folder":                     aws.StringValue(settings.BucketFolder),
+		"bucket_name":                       aws.StringValue(settings.BucketName),
+		"compression_type":                  aws.StringValue(settings.CompressionType),
+		"data_format":                       aws.StringValue(settings.DataFormat),
+		"encryption_mode":                   aws.StringValue(settings.EncryptionMode),
+		"server_side_encryption_kms_key_id": aws.StringValue(settings.ServerSideEncryptionKmsKeyId),
 	}
 
 	return []map[string]interface{}{m}
