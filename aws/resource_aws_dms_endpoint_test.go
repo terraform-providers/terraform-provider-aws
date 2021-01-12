@@ -50,7 +50,58 @@ func TestAccAwsDmsEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAwsDmsEndpoint_S3(t *testing.T) {
+type TestCheckFunc func(*terraform.State) error
+
+func TestAccAwsDmsEndpoint_S3_Csv(t *testing.T) {
+	resourceName := "aws_dms_endpoint.dms_endpoint"
+	randId := acctest.RandString(8) + "-s3"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: dmsEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				PreventDiskCleanup: true,
+				Config:             dmsEndpointS3Config(randId),
+				Check: resource.ComposeTestCheckFunc(
+					checkDmsEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.external_table_definition", ""),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_row_delimiter", "\\n"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_delimiter", ","),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_folder", ""),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_name", "bucket_name"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.compression_type", "NONE"),
+					resource.TestCheckNoResourceAttr(resourceName, "s3_settings.0.enable_statistics"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.timestamp_column_name", ""),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
+			},
+			{
+				Config: dmsEndpointS3CsvConfigUpdate(randId),
+				Check: resource.ComposeTestCheckFunc(
+					checkDmsEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "extra_connection_attributes", "key=value;"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.external_table_definition", "new-external_table_definition"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_row_delimiter", "\\r"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_delimiter", "."),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_folder", "new-bucket_folder"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_name", "new-bucket_name"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.compression_type", "GZIP"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAwsDmsEndpoint_S3_Parquet(t *testing.T) {
 	resourceName := "aws_dms_endpoint.dms_endpoint"
 	randId := acctest.RandString(8) + "-s3"
 
@@ -64,12 +115,15 @@ func TestAccAwsDmsEndpoint_S3(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkDmsEndpointExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.external_table_definition", ""),
-					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_row_delimiter", "\\n"),
-					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_delimiter", ","),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_folder", ""),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_name", "bucket_name"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.compression_type", "NONE"),
+					resource.TestCheckNoResourceAttr(resourceName, "s3_settings.0.enable_statistics"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.timestamp_column_name", ""),
+					resource.TestCheckNoResourceAttr(resourceName, "s3_settings.0.enable_statistics"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.data_format", ""),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.parquet_version", ""),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.server_side_encryption_kms_key_id", ""),
 				),
 			},
 			{
@@ -79,17 +133,21 @@ func TestAccAwsDmsEndpoint_S3(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"password"},
 			},
 			{
-				Config: dmsEndpointS3ConfigUpdate(randId),
+				Config: dmsEndpointS3ParquetConfigUpdate(randId),
 				Check: resource.ComposeTestCheckFunc(
 					checkDmsEndpointExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "extra_connection_attributes", "key=value;"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.external_table_definition", "new-external_table_definition"),
-					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_row_delimiter", "\\r"),
-					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.csv_delimiter", "."),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_folder", "new-bucket_folder"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.bucket_name", "new-bucket_name"),
 					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.compression_type", "GZIP"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.timestamp_column_name", "some_timestamp_column_name"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.data_format", "parquet"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.parquet_version", "parquet-2-0"),
+					resource.TestCheckResourceAttr(resourceName, "s3_settings.0.encryption_mode", "SSE_S3"),
+					resource.TestCheckResourceAttrSet(resourceName, "s3_settings.0.data_format"),
+					resource.TestCheckResourceAttrSet(resourceName, "s3_settings.0.server_side_encryption_kms_key_id"),
 				),
 			},
 		},
@@ -768,7 +826,7 @@ EOF
 `, randId)
 }
 
-func dmsEndpointS3ConfigUpdate(randId string) string {
+func dmsEndpointS3CsvConfigUpdate(randId string) string {
 	return fmt.Sprintf(`
 data "aws_partition" "current" {}
 
@@ -819,6 +877,83 @@ resource "aws_iam_role_policy" "dms_s3_access" {
   name = "tf-test-iam-s3-role-policy-%[1]s"
   role = aws_iam_role.iam_role.name
 
+  policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:CreateBucket",
+				"s3:ListBucket",
+				"s3:DeleteBucket",
+				"s3:GetBucketLocation",
+				"s3:GetObject",
+				"s3:PutObject",
+				"s3:DeleteObject",
+				"s3:GetObjectVersion",
+				"s3:GetBucketPolicy",
+				"s3:PutBucketPolicy",
+				"s3:DeleteBucketPolicy"
+			],
+			"Resource": "*"
+		}
+	]
+}
+EOF
+}
+`, randId)
+}
+
+func dmsEndpointS3ParquetConfigUpdate(randId string) string {
+	return fmt.Sprintf(`
+data "aws_kms_alias" "dms" {
+  name = "alias/aws/dms"
+}
+resource "aws_dms_endpoint" "dms_endpoint" {
+  endpoint_id                 = "tf-test-dms-endpoint-%[1]s"
+  endpoint_type               = "target"
+  engine_name                 = "s3"
+  ssl_mode                    = "none"
+  extra_connection_attributes = "key=value;"
+  tags = {
+    Name   = "tf-test-s3-endpoint-%[1]s"
+    Update = "updated"
+    Add    = "added"
+  }
+  s3_settings {
+    service_access_role_arn           = "${aws_iam_role.iam_role.arn}"
+    external_table_definition         = "new-external_table_definition"
+    bucket_folder                     = "new-bucket_folder"
+    bucket_name                       = "new-bucket_name"
+	compression_type                  = "GZIP"
+	timestamp_column_name             = "some_timestamp_column_name"
+	data_format                       = "parquet"
+	parquet_version                   = "parquet-2-0"
+	encryption_mode                   = "SSE_S3"
+	server_side_encryption_kms_key_id = "${data.aws_kms_alias.dms.target_key_arn}"
+  }
+}
+resource "aws_iam_role" "iam_role" {
+  name = "tf-test-iam-s3-role-%[1]s"
+  assume_role_policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "sts:AssumeRole",
+			"Principal": {
+				"Service": "dms.amazonaws.com"
+			},
+			"Effect": "Allow"
+		}
+	]
+}
+EOF
+}
+resource "aws_iam_role_policy" "dms_s3_access" {
+  name = "tf-test-iam-s3-role-policy-%[1]s"
+  role = "${aws_iam_role.iam_role.name}"
   policy = <<EOF
 {
 	"Version": "2012-10-17",
@@ -1293,4 +1428,28 @@ resource "aws_dms_endpoint" "dms_endpoint" {
   username = "tftestupdate"
 }
 `, randId)
+}
+
+func Test_flattenDmsS3Settings_key_should_exist(t *testing.T) {
+	expected := `some resource arn`
+	testSettings := dms.S3Settings{ServiceAccessRoleArn: &expected}
+	result := flattenDmsS3Settings(&testSettings)[0]
+	if result["service_access_role_arn"].(string) != expected {
+		t.Fatalf("test fail")
+	}
+}
+func Test_flattenDmsS3Settings_key_should_not_exist(t *testing.T) {
+	nonTimeStampAttributeValue := `some resource arn`
+	testSettings := dms.S3Settings{ServiceAccessRoleArn: &nonTimeStampAttributeValue}
+	result := flattenDmsS3Settings(&testSettings)[0]
+	if _, ok := result["timestamp_column_name"].(string); ok {
+		t.Fatalf("attribute timestamp_column_name could be found but was never set")
+	}
+}
+func Test_flattenDmsS3Settings_key_should_not_exist_if_set_to_nil(t *testing.T) {
+	testSettings := dms.S3Settings{EncryptionMode: nil}
+	result := flattenDmsS3Settings(&testSettings)[0]
+	if _, ok := result["encryption_mode"].(string); ok {
+		t.Fatalf("attribute encryption_mode is not empty but was set to nil")
+	}
 }

@@ -291,13 +291,32 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 						},
 						"bucket_name": {
 							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Required: true,
 						},
 						"compression_type": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "NONE",
+						},
+						"timestamp_column_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"data_format": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"parquet_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"encryption_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"server_side_encryption_kms_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -328,6 +347,15 @@ func resourceAwsDmsEndpoint() *schema.Resource {
 			},
 		},
 	}
+}
+
+func getStringRefOrNil(d *schema.ResourceData, key string) *string {
+	value, exists := d.GetOk(key)
+	if !exists {
+		return nil
+	}
+	valueString := value.(string)
+	return &valueString
 }
 
 func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) error {
@@ -389,13 +417,18 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		request.DatabaseName = aws.String(d.Get("database_name").(string))
 	case "s3":
 		request.S3Settings = &dms.S3Settings{
-			ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-			ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-			CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-			CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-			BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-			BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-			CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+			ServiceAccessRoleArn:         getStringRefOrNil(d, "s3_settings.0.service_access_role_arn"),
+			ExternalTableDefinition:      getStringRefOrNil(d, "s3_settings.0.external_table_definition"),
+			CsvRowDelimiter:              getStringRefOrNil(d, "s3_settings.0.csv_row_delimiter"),
+			CsvDelimiter:                 getStringRefOrNil(d, "s3_settings.0.csv_delimiter"),
+			BucketFolder:                 getStringRefOrNil(d, "s3_settings.0.bucket_folder"),
+			BucketName:                   getStringRefOrNil(d, "s3_settings.0.bucket_name"),
+			CompressionType:              getStringRefOrNil(d, "s3_settings.0.compression_type"),
+			TimestampColumnName:          getStringRefOrNil(d, "s3_settings.0.timestamp_column_name"),
+			DataFormat:                   getStringRefOrNil(d, "s3_settings.0.data_format"),
+			ParquetVersion:               getStringRefOrNil(d, "s3_settings.0.parquet_version"),
+			EncryptionMode:               getStringRefOrNil(d, "s3_settings.0.encryption_mode"),
+			ServerSideEncryptionKmsKeyId: getStringRefOrNil(d, "s3_settings.0.server_side_encryption_kms_key_id"),
 		}
 	default:
 		request.Password = aws.String(d.Get("password").(string))
@@ -443,14 +476,13 @@ func resourceAwsDmsEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(d.Get("endpoint_id").(string))
+	response, _ := describeEndpointResponse(conn, d)
+	log.Println("[DEBUG] DMS response from create endpoint:", response)
 	return resourceAwsDmsEndpointRead(d, meta)
 }
 
-func resourceAwsDmsEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).dmsconn
-	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
-
-	response, err := conn.DescribeEndpoints(&dms.DescribeEndpointsInput{
+func describeEndpointResponse(conn *dms.DatabaseMigrationService, d *schema.ResourceData) (*dms.DescribeEndpointsOutput, error) {
+	response, err2 := conn.DescribeEndpoints(&dms.DescribeEndpointsInput{
 		Filters: []*dms.Filter{
 			{
 				Name:   aws.String("endpoint-id"),
@@ -458,6 +490,14 @@ func resourceAwsDmsEndpointRead(d *schema.ResourceData, meta interface{}) error 
 			},
 		},
 	})
+	return response, err2
+}
+
+func resourceAwsDmsEndpointRead(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).dmsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
+	response, err := describeEndpointResponse(conn, d)
 	if err != nil {
 		if dmserr, ok := err.(awserr.Error); ok && dmserr.Code() == "ResourceNotFoundFault" {
 			log.Printf("[DEBUG] DMS Replication Endpoint %q Not Found", d.Id())
@@ -622,15 +662,23 @@ func resourceAwsDmsEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		if d.HasChanges(
 			"s3_settings.0.service_access_role_arn", "s3_settings.0.external_table_definition",
 			"s3_settings.0.csv_row_delimiter", "s3_settings.0.csv_delimiter", "s3_settings.0.bucket_folder",
-			"s3_settings.0.bucket_name", "s3_settings.0.compression_type") {
+			"s3_settings.0.bucket_name", "s3_settings.0.compression_type",
+			"s3_settings.0.timestamp_column_name", "s3_settings.0.data_format", "s3_settings.0.parquet_version",
+			"s3_settings.0.parquet_version", "s3_settings.0.encryption_mode",
+			"s3_settings.0.server_side_encryption_kms_key_id") {
 			request.S3Settings = &dms.S3Settings{
-				ServiceAccessRoleArn:    aws.String(d.Get("s3_settings.0.service_access_role_arn").(string)),
-				ExternalTableDefinition: aws.String(d.Get("s3_settings.0.external_table_definition").(string)),
-				CsvRowDelimiter:         aws.String(d.Get("s3_settings.0.csv_row_delimiter").(string)),
-				CsvDelimiter:            aws.String(d.Get("s3_settings.0.csv_delimiter").(string)),
-				BucketFolder:            aws.String(d.Get("s3_settings.0.bucket_folder").(string)),
-				BucketName:              aws.String(d.Get("s3_settings.0.bucket_name").(string)),
-				CompressionType:         aws.String(d.Get("s3_settings.0.compression_type").(string)),
+				ServiceAccessRoleArn:         getStringRefOrNil(d, "s3_settings.0.service_access_role_arn"),
+				ExternalTableDefinition:      getStringRefOrNil(d, "s3_settings.0.external_table_definition"),
+				CsvRowDelimiter:              getStringRefOrNil(d, "s3_settings.0.csv_row_delimiter"),
+				CsvDelimiter:                 getStringRefOrNil(d, "s3_settings.0.csv_delimiter"),
+				BucketFolder:                 getStringRefOrNil(d, "s3_settings.0.bucket_folder"),
+				BucketName:                   getStringRefOrNil(d, "s3_settings.0.bucket_name"),
+				TimestampColumnName:          getStringRefOrNil(d, "s3_settings.0.timestamp_column_name"),
+				CompressionType:              getStringRefOrNil(d, "s3_settings.0.compression_type"),
+				DataFormat:                   getStringRefOrNil(d, "s3_settings.0.data_format"),
+				ParquetVersion:               getStringRefOrNil(d, "s3_settings.0.parquet_version"),
+				EncryptionMode:               getStringRefOrNil(d, "s3_settings.0.encryption_mode"),
+				ServerSideEncryptionKmsKeyId: getStringRefOrNil(d, "s3_settings.0.server_side_encryption_kms_key_id"),
 			}
 			request.EngineName = aws.String(d.Get("engine_name").(string)) // Must be included (should be 's3')
 			hasChanges = true
@@ -811,19 +859,27 @@ func flattenDmsMongoDbSettings(settings *dms.MongoDbSettings) []map[string]inter
 }
 
 func flattenDmsS3Settings(settings *dms.S3Settings) []map[string]interface{} {
-	if settings == nil {
-		return []map[string]interface{}{}
-	}
+	result := make([]map[string]interface{}, 0, 1)
 
-	m := map[string]interface{}{
-		"service_access_role_arn":   aws.StringValue(settings.ServiceAccessRoleArn),
-		"external_table_definition": aws.StringValue(settings.ExternalTableDefinition),
-		"csv_row_delimiter":         aws.StringValue(settings.CsvRowDelimiter),
-		"csv_delimiter":             aws.StringValue(settings.CsvDelimiter),
-		"bucket_folder":             aws.StringValue(settings.BucketFolder),
-		"bucket_name":               aws.StringValue(settings.BucketName),
-		"compression_type":          aws.StringValue(settings.CompressionType),
+	mapWithNils := map[string]interface{}{
+		"service_access_role_arn":           settings.ServiceAccessRoleArn,
+		"external_table_definition":         settings.ExternalTableDefinition,
+		"csv_row_delimiter":                 settings.CsvRowDelimiter,
+		"csv_delimiter":                     settings.CsvDelimiter,
+		"bucket_folder":                     settings.BucketFolder,
+		"bucket_name":                       settings.BucketName,
+		"compression_type":                  settings.CompressionType,
+		"timestamp_column_name":             settings.TimestampColumnName,
+		"data_format":                       settings.DataFormat,
+		"parquet_version":                   settings.ParquetVersion,
+		"encryption_mode":                   settings.EncryptionMode,
+		"server_side_encryption_kms_key_id": settings.ServerSideEncryptionKmsKeyId,
 	}
-
-	return []map[string]interface{}{m}
+	mapWithoutNills := make(map[string]interface{})
+	for key := range mapWithNils {
+		if mapWithNils[key].(*string) != nil {
+			mapWithoutNills[key] = aws.StringValue(mapWithNils[key].(*string))
+		}
+	}
+	return append(result, mapWithoutNills)
 }
