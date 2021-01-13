@@ -66,10 +66,11 @@ func resourceAwsInstance() *schema.Resource {
 			},
 
 			"availability_zone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"subnet_id"},
 			},
 
 			"placement_group": {
@@ -103,10 +104,11 @@ func resourceAwsInstance() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"availability_zone"},
 			},
 
 			"private_ip": {
