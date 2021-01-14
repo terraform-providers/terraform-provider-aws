@@ -117,6 +117,11 @@ func resourceAwsRDSCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"db_instance_parameter_group_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"deletion_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -1131,6 +1136,11 @@ func resourceAwsRDSClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("copy_tags_to_snapshot") {
 		req.CopyTagsToSnapshot = aws.Bool(d.Get("copy_tags_to_snapshot").(bool))
+		requestUpdate = true
+	}
+
+	if d.HasChange("db_instance_parameter_group_name") {
+		req.DBInstanceParameterGroupName = aws.String(d.Get("db_instance_parameter_group_name").(string))
 		requestUpdate = true
 	}
 
