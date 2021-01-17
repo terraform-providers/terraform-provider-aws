@@ -193,6 +193,7 @@ func Provider() *schema.Provider {
 			"aws_cloudhsm_v2_cluster":                        dataSourceCloudHsmV2Cluster(),
 			"aws_cloudtrail_service_account":                 dataSourceAwsCloudTrailServiceAccount(),
 			"aws_cloudwatch_log_group":                       dataSourceAwsCloudwatchLogGroup(),
+			"aws_cloudwatch_log_groups":                      dataSourceAwsCloudwatchLogGroups(),
 			"aws_codeartifact_authorization_token":           dataSourceAwsCodeArtifactAuthorizationToken(),
 			"aws_codeartifact_repository_endpoint":           dataSourceAwsCodeArtifactRepositoryEndpoint(),
 			"aws_cognito_user_pools":                         dataSourceAwsCognitoUserPools(),
