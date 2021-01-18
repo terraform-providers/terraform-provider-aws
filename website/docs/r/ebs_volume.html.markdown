@@ -42,6 +42,15 @@ The following arguments are supported:
 
 ~> **NOTE**: When changing the `size`, `iops` or `type` of an instance, there are [considerations](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/considerations.html) to be aware of that Amazon have written about this.
 
+### Timeouts
+
+`aws_ebs_volume` provides the following
+[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+
+- `create` - (Default `5 minutes`) Used for creating volumes. This includes the time required for the volume to become available.
+- `update` - (Default `5 minutes`) Used for size, type, or iops volume changes.
+- `delete` - (Default `5 minutes`) Used for destroying volumes.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
