@@ -3,13 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
@@ -38,6 +39,10 @@ func resourceAwsDxHostedPrivateVirtualInterface() *schema.Resource {
 				ForceNew: true,
 			},
 			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"amazon_side_asn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -119,16 +124,16 @@ func resourceAwsDxHostedPrivateVirtualInterfaceCreate(d *schema.ResourceData, me
 		},
 		OwnerAccount: aws.String(d.Get("owner_account_id").(string)),
 	}
-	if v, ok := d.GetOk("amazon_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("amazon_address"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.AmazonAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("bgp_auth_key"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("bgp_auth_key"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.AuthKey = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("customer_address"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("customer_address"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.CustomerAddress = aws.String(v.(string))
 	}
-	if v, ok := d.GetOk("mtu"); ok && v.(int) != 0 {
+	if v, ok := d.GetOk("mtu"); ok {
 		req.NewPrivateVirtualInterfaceAllocation.Mtu = aws.Int64(int64(v.(int)))
 	}
 
@@ -161,6 +166,8 @@ func resourceAwsDxHostedPrivateVirtualInterfaceRead(d *schema.ResourceData, meta
 	}
 
 	d.Set("address_family", vif.AddressFamily)
+	d.Set("amazon_address", vif.AmazonAddress)
+	d.Set("amazon_side_asn", strconv.FormatInt(aws.Int64Value(vif.AmazonSideAsn), 10))
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
 		Region:    meta.(*AWSClient).region,
@@ -168,7 +175,6 @@ func resourceAwsDxHostedPrivateVirtualInterfaceRead(d *schema.ResourceData, meta
 		AccountID: meta.(*AWSClient).accountid,
 		Resource:  fmt.Sprintf("dxvif/%s", d.Id()),
 	}.String()
-	d.Set("amazon_address", vif.AmazonAddress)
 	d.Set("arn", arn)
 	d.Set("aws_device", vif.AwsDeviceV2)
 	d.Set("bgp_asn", vif.Asn)

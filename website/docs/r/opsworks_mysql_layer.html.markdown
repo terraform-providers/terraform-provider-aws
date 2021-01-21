@@ -11,13 +11,13 @@ description: |-
 Provides an OpsWorks MySQL layer resource.
 
 ~> **Note:** All arguments including the root password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
 ```hcl
 resource "aws_opsworks_mysql_layer" "db" {
-  stack_id = "${aws_opsworks_stack.main.id}"
+  stack_id = aws_opsworks_stack.main.id
 }
 ```
 
@@ -42,6 +42,7 @@ The following arguments are supported:
 * `use_ebs_optimized_instances` - (Optional) Whether to use EBS-optimized instances.
 * `ebs_volume` - (Optional) `ebs_volume` blocks, as described below, will each create an EBS volume and connect it to the layer's instances.
 * `custom_json` - (Optional) Custom JSON attributes to apply to the layer.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 The following extra optional arguments, all lists of Chef recipe names, allow
 custom Chef recipes to be applied to layer instances at the five different
@@ -67,3 +68,4 @@ An `ebs_volume` block supports the following arguments:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the layer.
+* `arn` - The Amazon Resource Name(ARN) of the layer.

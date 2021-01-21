@@ -5,9 +5,10 @@ import (
 	"log"
 	"sort"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -21,7 +22,6 @@ func dataSourceAwsEbsVolume() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -37,6 +37,10 @@ func dataSourceAwsEbsVolume() *schema.Resource {
 			},
 			"iops": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"multi_attach_enabled": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			"volume_type": {
@@ -55,11 +59,19 @@ func dataSourceAwsEbsVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"outpost_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"volume_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"tags": tagsSchemaComputed(),
+			"throughput": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -122,7 +134,7 @@ func mostRecentVolume(volumes []*ec2.Volume) *ec2.Volume {
 }
 
 func volumeDescriptionAttributes(d *schema.ResourceData, client *AWSClient, volume *ec2.Volume) error {
-	d.SetId(*volume.VolumeId)
+	d.SetId(aws.StringValue(volume.VolumeId))
 	d.Set("volume_id", volume.VolumeId)
 
 	arn := arn.ARN{
@@ -141,8 +153,11 @@ func volumeDescriptionAttributes(d *schema.ResourceData, client *AWSClient, volu
 	d.Set("size", volume.Size)
 	d.Set("snapshot_id", volume.SnapshotId)
 	d.Set("volume_type", volume.VolumeType)
+	d.Set("outpost_arn", volume.OutpostArn)
+	d.Set("multi_attach_enabled", volume.MultiAttachEnabled)
+	d.Set("throughput", volume.Throughput)
 
-	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(volume.Tags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(volume.Tags).IgnoreAws().IgnoreConfig(client.IgnoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // waitForASGCapacityTimeout gathers the current numbers of healthy instances
@@ -41,7 +41,7 @@ func waitForASGCapacity(
 			return resource.NonRetryableError(err)
 		}
 		if g == nil {
-			log.Printf("[WARN] Autoscaling Group (%s) not found, removing from state", d.Id())
+			log.Printf("[WARN] Auto Scaling Group (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -57,11 +57,11 @@ func waitForASGCapacity(
 		g, err := getAwsAutoscalingGroup(d.Id(), meta.(*AWSClient).autoscalingconn)
 
 		if err != nil {
-			return fmt.Errorf("Error getting autoscaling group info: %s", err)
+			return fmt.Errorf("Error getting Auto Scaling Group info: %s", err)
 		}
 
 		if g == nil {
-			log.Printf("[WARN] Autoscaling Group (%s) not found, removing from state", d.Id())
+			log.Printf("[WARN] Auto Scaling Group (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}

@@ -52,6 +52,7 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - EC2 Transit Gateway Route Table Amazon Resource Name (ARN).
 * `default_association_route_table` - Boolean whether this is the default association route table for the EC2 Transit Gateway
 * `default_propagation_route_table` - Boolean whether this is the default propagation route table for the EC2 Transit Gateway
 * `id` - EC2 Transit Gateway Route Table identifier

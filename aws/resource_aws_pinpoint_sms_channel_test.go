@@ -2,26 +2,20 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/service/pinpoint"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSPinpointSMSChannel_basic(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.SMSChannelResponse
 	resourceName := "aws_pinpoint_sms_channel.test_sms_channel"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointSMSChannelDestroy,
@@ -58,10 +52,6 @@ func TestAccAWSPinpointSMSChannel_basic(t *testing.T) {
 	})
 }
 func TestAccAWSPinpointSMSChannel_full(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.SMSChannelResponse
 	resourceName := "aws_pinpoint_sms_channel.test_sms_channel"
 	senderId := "1234"
@@ -69,7 +59,7 @@ func TestAccAWSPinpointSMSChannel_full(t *testing.T) {
 	newShortCode := "7890"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointSMSChannelDestroy,
@@ -144,26 +134,19 @@ func testAccCheckAWSPinpointSMSChannelExists(n string, channel *pinpoint.SMSChan
 }
 
 const testAccAWSPinpointSMSChannelConfig_basic = `
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_sms_channel" "test_sms_channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
-}`
+  application_id = aws_pinpoint_app.test_app.application_id
+}
+`
 
 func testAccAWSPinpointSMSChannelConfig_full(senderId, shortCode string) string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_sms_channel" "test_sms_channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
+  application_id = aws_pinpoint_app.test_app.application_id
   enabled        = "false"
   sender_id      = "%s"
   short_code     = "%s"

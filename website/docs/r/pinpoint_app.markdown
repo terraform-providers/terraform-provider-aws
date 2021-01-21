@@ -37,7 +37,7 @@ The following arguments are supported:
 * `campaign_hook` - (Optional) The default campaign limits for the app. These limits apply to each campaign for the app, unless the campaign overrides the default with limits of its own
 * `limits` - (Optional) The default campaign limits for the app. These limits apply to each campaign for the app, unless the campaign overrides the default with limits of its own
 * `quiet_time` - (Optional) The default quiet time for the app. Each campaign for this app sends no messages during this time unless the campaign overrides the default with a quiet time of its own
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 `campaign_hook` supports the following:
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 `limits` supports the following:
 
-* `daily` - (Optional) The maximum number of messages that the campaign can send daily. 
+* `daily` - (Optional) The maximum number of messages that the campaign can send daily.
 * `maximum_duration` - (Optional) The length of time (in seconds) that the campaign can run before it ends and message deliveries stop. This duration begins at the scheduled start time for the campaign. The minimum value is 60.
 * `messages_per_second` - (Optional) The number of messages that the campaign can send per second. The minimum value is 50, and the maximum is 20000.
 * `total` - (Optional) The maximum total number of messages that the campaign can send.

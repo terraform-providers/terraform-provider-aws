@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/macie"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSMacieMemberAccountAssociation_basic(t *testing.T) {
@@ -128,6 +128,6 @@ const testAccAWSMacieMemberAccountAssociationConfig_self = `
 data "aws_caller_identity" "current" {}
 
 resource "aws_macie_member_account_association" "test" {
-  member_account_id = "${data.aws_caller_identity.current.account_id}"
+  member_account_id = data.aws_caller_identity.current.account_id
 }
 `

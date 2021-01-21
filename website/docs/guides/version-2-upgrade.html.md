@@ -10,7 +10,7 @@ description: |-
 
 Version 2.0.0 of the AWS provider for Terraform is a major release and includes some changes that you will need to consider when upgrading. This guide is intended to help with that process and focuses only on changes from version 1.60.0 to version 2.0.0.
 
-Most of the changes outlined in this guide have been previously marked as deprecated in the Terraform plan/apply output throughout previous provider releases. These changes, such as deprecation notices, can always be found in the [Terraform AWS Provider CHANGELOG](https://github.com/terraform-providers/terraform-provider-aws/blob/master/CHANGELOG.md).
+Most of the changes outlined in this guide have been previously marked as deprecated in the Terraform plan/apply output throughout previous provider releases. These changes, such as deprecation notices, can always be found in the [Terraform AWS Provider CHANGELOG](https://github.com/hashicorp/terraform-provider-aws/blob/master/CHANGELOG.md).
 
 Upgrade topics:
 
@@ -125,7 +125,7 @@ Switch your Terraform configuration to the `name` argument instead.
 
 ### Data Source Removal and Migrating to aws_kms_secrets Data Source
 
-The implementation of the `aws_kms_secret` data source, prior to Terraform AWS provider version 2.0.0, used dynamic attribute behavior which is not supported with Terraform 0.12 and beyond (full details available in [this GitHub issue](https://github.com/terraform-providers/terraform-provider-aws/issues/5144)).
+The implementation of the `aws_kms_secret` data source, prior to Terraform AWS provider version 2.0.0, used dynamic attribute behavior which is not supported with Terraform 0.12 and beyond (full details available in [this GitHub issue](https://github.com/hashicorp/terraform-provider-aws/issues/5144)).
 
 Terraform configuration migration steps:
 
@@ -244,7 +244,7 @@ resource "aws_api_gateway_api_key" "example" {
 }
 
 resource "aws_api_gateway_usage_plan" "example" {
-  name         = "example"
+  name = "example"
 
   api_stages {
     api_id = "${aws_api_gateway_rest_api.example.id}"
@@ -352,7 +352,7 @@ resource "aws_api_gateway_method" "example" {
 
   request_parameters = {
     "method.request.header.Content-Type" = false
-    "method.request.querystring.page" = true
+    "method.request.querystring.page"    = true
   }
 }
 ```
@@ -536,7 +536,7 @@ For example, given this previous configuration:
 resource "aws_dx_lag" "example" {
   name                  = "example"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   number_of_connections = 1
 }
 ```
@@ -547,13 +547,13 @@ An updated configuration:
 resource "aws_dx_connection" "example" {
   name      = "example"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 }
 
 resource "aws_dx_lag" "example" {
   name                  = "example"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
 }
 
 resource "aws_dx_connection_association" "example" {
@@ -735,9 +735,9 @@ resource "aws_redshift_cluster" "example" {
   # ... other configuration ...
 
   logging {
-    bucket_name    = "example"
-    enable         = true
-    s3_key_prefix  = "example"
+    bucket_name   = "example"
+    enable        = true
+    s3_key_prefix = "example"
   }
 }
 ```
@@ -747,7 +747,7 @@ resource "aws_redshift_cluster" "example" {
 ### Import Change
 
 Previously, importing this resource resulted in an `aws_route` resource for each route, in
-addition to the `aws_route_table`, in the Terraform state. Support for importing `aws_route` resources has been added and importing this resource only adds the `aws_route_table` 
+addition to the `aws_route_table`, in the Terraform state. Support for importing `aws_route` resources has been added and importing this resource only adds the `aws_route_table`
 resource, with in-line routes, to the state.
 
 ## Resource: aws_route53_record

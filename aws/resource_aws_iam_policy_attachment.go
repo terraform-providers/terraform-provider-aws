@@ -3,15 +3,12 @@ package aws
 import (
 	"fmt"
 	"log"
-	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsIamPolicyAttachment() *schema.Resource {
@@ -60,9 +57,9 @@ func resourceAwsIamPolicyAttachmentCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	arn := d.Get("policy_arn").(string)
-	users := expandStringList(d.Get("users").(*schema.Set).List())
-	roles := expandStringList(d.Get("roles").(*schema.Set).List())
-	groups := expandStringList(d.Get("groups").(*schema.Set).List())
+	users := expandStringSet(d.Get("users").(*schema.Set))
+	roles := expandStringSet(d.Get("roles").(*schema.Set))
+	groups := expandStringSet(d.Get("groups").(*schema.Set))
 
 	if len(users) == 0 && len(roles) == 0 && len(groups) == 0 {
 		return fmt.Errorf("No Users, Roles, or Groups specified for IAM Policy Attachment %s", name)
@@ -164,9 +161,9 @@ func resourceAwsIamPolicyAttachmentDelete(d *schema.ResourceData, meta interface
 	conn := meta.(*AWSClient).iamconn
 	name := d.Get("name").(string)
 	arn := d.Get("policy_arn").(string)
-	users := expandStringList(d.Get("users").(*schema.Set).List())
-	roles := expandStringList(d.Get("roles").(*schema.Set).List())
-	groups := expandStringList(d.Get("groups").(*schema.Set).List())
+	users := expandStringSet(d.Get("users").(*schema.Set))
+	roles := expandStringSet(d.Get("roles").(*schema.Set))
+	groups := expandStringSet(d.Get("groups").(*schema.Set))
 
 	var userErr, roleErr, groupErr error
 	if len(users) != 0 {
@@ -216,39 +213,6 @@ func attachPolicyToRoles(conn *iam.IAM, roles []*string, arn string) error {
 		if err != nil {
 			return err
 		}
-
-		var attachmentErr = resource.Retry(2*time.Minute, func() *resource.RetryError {
-
-			input := iam.ListRolePoliciesInput{
-				RoleName: r,
-			}
-
-			attachedPolicies, err := conn.ListRolePolicies(&input)
-			if err != nil {
-				return resource.NonRetryableError(err)
-			}
-
-			if len(attachedPolicies.PolicyNames) > 0 {
-				var foundPolicy bool
-				for _, policyName := range attachedPolicies.PolicyNames {
-					if strings.HasSuffix(arn, *policyName) {
-						foundPolicy = true
-						break
-					}
-				}
-
-				if !foundPolicy {
-					return resource.NonRetryableError(err)
-				}
-			}
-
-			return nil
-		})
-
-		if attachmentErr != nil {
-			return attachmentErr
-		}
-
 	}
 	return nil
 }
@@ -275,8 +239,8 @@ func updateUsers(conn *iam.IAM, d *schema.ResourceData) error {
 	}
 	os := o.(*schema.Set)
 	ns := n.(*schema.Set)
-	remove := expandStringList(os.Difference(ns).List())
-	add := expandStringList(ns.Difference(os).List())
+	remove := expandStringSet(os.Difference(ns))
+	add := expandStringSet(ns.Difference(os))
 
 	if rErr := detachPolicyFromUsers(conn, remove, arn); rErr != nil {
 		return rErr
@@ -297,8 +261,8 @@ func updateRoles(conn *iam.IAM, d *schema.ResourceData) error {
 	}
 	os := o.(*schema.Set)
 	ns := n.(*schema.Set)
-	remove := expandStringList(os.Difference(ns).List())
-	add := expandStringList(ns.Difference(os).List())
+	remove := expandStringSet(os.Difference(ns))
+	add := expandStringSet(ns.Difference(os))
 
 	if rErr := detachPolicyFromRoles(conn, remove, arn); rErr != nil {
 		return rErr
@@ -319,8 +283,8 @@ func updateGroups(conn *iam.IAM, d *schema.ResourceData) error {
 	}
 	os := o.(*schema.Set)
 	ns := n.(*schema.Set)
-	remove := expandStringList(os.Difference(ns).List())
-	add := expandStringList(ns.Difference(os).List())
+	remove := expandStringSet(os.Difference(ns))
+	add := expandStringSet(ns.Difference(os))
 
 	if rErr := detachPolicyFromGroups(conn, remove, arn); rErr != nil {
 		return rErr

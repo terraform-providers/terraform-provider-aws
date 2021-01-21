@@ -2,6 +2,7 @@ package aws
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,16 +15,31 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 const s3BucketCreationTimeout = 2 * time.Minute
+
+// These should be defined in the AWS SDK for Go. There is an open issue https://github.com/aws/aws-sdk-go/issues/2683
+const (
+	BucketCannedACLAwsExecRead      = "aws-exec-read"
+	BucketCannedACLLogDeliveryWrite = "log-delivery-write"
+)
+
+func BucketCannedACL_Values() []string {
+	result := s3.BucketCannedACL_Values()
+	result = appendUniqueString(result, BucketCannedACLAwsExecRead)
+	result = appendUniqueString(result, BucketCannedACLLogDeliveryWrite)
+	return result
+}
 
 func resourceAwsS3Bucket() *schema.Resource {
 	return &schema.Resource{
@@ -32,7 +48,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 		Update: resourceAwsS3BucketUpdate,
 		Delete: resourceAwsS3BucketDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceAwsS3BucketImportState,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -69,15 +85,55 @@ func resourceAwsS3Bucket() *schema.Resource {
 			},
 
 			"acl": {
-				Type:     schema.TypeString,
-				Default:  "private",
-				Optional: true,
+				Type:          schema.TypeString,
+				Default:       "private",
+				Optional:      true,
+				ConflictsWith: []string{"grant"},
+				ValidateFunc:  validation.StringInSlice(BucketCannedACL_Values(), false),
+			},
+
+			"grant": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Set:           grantHash,
+				ConflictsWith: []string{"acl"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							// TypeAmazonCustomerByEmail is not currently supported
+							ValidateFunc: validation.StringInSlice([]string{
+								s3.TypeCanonicalUser,
+								s3.TypeGroup,
+							}, false),
+						},
+						"uri": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"permissions": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringInSlice(s3.Permission_Values(), false),
+							},
+						},
+					},
+				},
 			},
 
 			"policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 
@@ -143,7 +199,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 						"routing_rules": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.ValidateJsonString,
+							ValidateFunc: validation.StringIsJSON,
 							StateFunc: func(v interface{}) string {
 								json, _ := structure.NormalizeJsonString(v)
 								return json
@@ -161,7 +217,6 @@ func resourceAwsS3Bucket() *schema.Resource {
 
 			"region": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"website_endpoint": {
@@ -245,9 +300,8 @@ func resourceAwsS3Bucket() *schema.Resource {
 							Optional: true,
 						},
 						"expiration": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
-							Set:      expirationHash,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -269,10 +323,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 							},
 						},
 						"noncurrent_version_expiration": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							Set:      expirationHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days": {
@@ -337,23 +390,17 @@ func resourceAwsS3Bucket() *schema.Resource {
 			},
 
 			"acceleration_status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.BucketAccelerateStatusEnabled,
-					s3.BucketAccelerateStatusSuspended,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(s3.BucketAccelerateStatus_Values(), false),
 			},
 
 			"request_payer": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.PayerRequester,
-					s3.PayerBucketOwner,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(s3.Payer_Values(), false),
 			},
 
 			"replication_configuration": {
@@ -378,11 +425,10 @@ func resourceAwsS3Bucket() *schema.Resource {
 										ValidateFunc: validation.StringLenBetween(0, 255),
 									},
 									"destination": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										MaxItems: 1,
 										MinItems: 1,
 										Required: true,
-										Set:      destinationHash,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"account_id": {
@@ -396,17 +442,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 													ValidateFunc: validateArn,
 												},
 												"storage_class": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														s3.StorageClassStandard,
-														s3.StorageClassReducedRedundancy,
-														s3.StorageClassStandardIa,
-														s3.StorageClassOnezoneIa,
-														s3.StorageClassIntelligentTiering,
-														s3.StorageClassGlacier,
-														s3.StorageClassDeepArchive,
-													}, false),
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(s3.StorageClass_Values(), false),
 												},
 												"replica_kms_key_id": {
 													Type:     schema.TypeString,
@@ -420,11 +458,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"owner": {
-																Type:     schema.TypeString,
-																Required: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	s3.OwnerOverrideDestination,
-																}, false),
+																Type:         schema.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringInSlice(s3.OwnerOverride_Values(), false),
 															},
 														},
 													},
@@ -433,19 +469,17 @@ func resourceAwsS3Bucket() *schema.Resource {
 										},
 									},
 									"source_selection_criteria": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Optional: true,
 										MinItems: 1,
 										MaxItems: 1,
-										Set:      sourceSelectionCriteriaHash,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"sse_kms_encrypted_objects": {
-													Type:     schema.TypeSet,
+													Type:     schema.TypeList,
 													Optional: true,
 													MinItems: 1,
 													MaxItems: 1,
-													Set:      sourceSseKmsObjectsHash,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"enabled": {
@@ -464,12 +498,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 										ValidateFunc: validation.StringLenBetween(0, 1024),
 									},
 									"status": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											s3.ReplicationRuleStatusEnabled,
-											s3.ReplicationRuleStatusDisabled,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(s3.ReplicationRuleStatus_Values(), false),
 									},
 									"priority": {
 										Type:     schema.TypeInt,
@@ -521,12 +552,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 													Optional: true,
 												},
 												"sse_algorithm": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														s3.ServerSideEncryptionAes256,
-														s3.ServerSideEncryptionAwsKms,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(s3.ServerSideEncryption_Values(), false),
 												},
 											},
 										},
@@ -545,12 +573,10 @@ func resourceAwsS3Bucket() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"object_lock_enabled": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								s3.ObjectLockEnabledEnabled,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(s3.ObjectLockEnabled_Values(), false),
 						},
 
 						"rule": {
@@ -567,12 +593,9 @@ func resourceAwsS3Bucket() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"mode": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														s3.ObjectLockRetentionModeGovernance,
-														s3.ObjectLockRetentionModeCompliance,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(s3.ObjectLockRetentionMode_Values(), false),
 												},
 
 												"days": {
@@ -614,26 +637,25 @@ func resourceAwsS3BucketCreate(d *schema.ResourceData, meta interface{}) error {
 		bucket = resource.UniqueId()
 	}
 	d.Set("bucket", bucket)
-	acl := d.Get("acl").(string)
 
-	log.Printf("[DEBUG] S3 bucket create: %s, ACL: %s", bucket, acl)
+	log.Printf("[DEBUG] S3 bucket create: %s", bucket)
 
 	req := &s3.CreateBucketInput{
 		Bucket: aws.String(bucket),
-		ACL:    aws.String(acl),
 	}
 
-	var awsRegion string
-	if region, ok := d.GetOk("region"); ok {
-		awsRegion = region.(string)
-	} else {
-		awsRegion = meta.(*AWSClient).region
+	if acl, ok := d.GetOk("acl"); ok {
+		acl := acl.(string)
+		req.ACL = aws.String(acl)
+		log.Printf("[DEBUG] S3 bucket %s has canned ACL %s", bucket, acl)
 	}
+
+	awsRegion := meta.(*AWSClient).region
 	log.Printf("[DEBUG] S3 bucket create: %s, using region: %s", bucket, awsRegion)
 
 	// Special case us-east-1 region and do not set the LocationConstraint.
 	// See "Request Elements: http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketPUT.html
-	if awsRegion != "us-east-1" {
+	if awsRegion != endpoints.UsEast1RegionID {
 		req.CreateBucketConfiguration = &s3.CreateBucketConfiguration{
 			LocationConstraint: aws.String(awsRegion),
 		}
@@ -683,7 +705,12 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 
-		if err := keyvaluetags.S3BucketUpdateTags(s3conn, d.Id(), o, n); err != nil {
+		// Retry due to S3 eventual consistency
+		_, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+			terr := keyvaluetags.S3BucketUpdateTags(s3conn, d.Id(), o, n)
+			return nil, terr
+		})
+		if err != nil {
 			return fmt.Errorf("error updating S3 Bucket (%s) tags: %s", d.Id(), err)
 		}
 	}
@@ -713,6 +740,12 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	if d.HasChange("acl") && !d.IsNewResource() {
 		if err := resourceAwsS3BucketAclUpdate(s3conn, d); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("grant") {
+		if err := resourceAwsS3BucketGrantsUpdate(s3conn, d); err != nil {
 			return err
 		}
 	}
@@ -764,6 +797,7 @@ func resourceAwsS3BucketUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &s3.HeadBucketInput{
 		Bucket: aws.String(d.Id()),
@@ -806,7 +840,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("bucket", d.Id())
 	}
 
-	d.Set("bucket_domain_name", bucketDomainName(d.Get("bucket").(string)))
+	d.Set("bucket_domain_name", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("%s.s3", d.Get("bucket").(string))))
 
 	// Read the policy
 	if _, ok := d.GetOk("policy"); ok {
@@ -827,12 +861,33 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 					return err
 				}
 			} else {
-				policy, err := structure.NormalizeJsonString(*v)
+				policy, err := structure.NormalizeJsonString(aws.StringValue(v))
 				if err != nil {
 					return fmt.Errorf("policy contains an invalid JSON: %s", err)
 				}
 				d.Set("policy", policy)
 			}
+		}
+	}
+
+	//Read the Grant ACL. Reset if `acl` (canned ACL) is set.
+	if acl, ok := d.GetOk("acl"); ok && acl.(string) != "private" {
+		if err := d.Set("grant", nil); err != nil {
+			return fmt.Errorf("error resetting grant %s", err)
+		}
+	} else {
+		apResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
+			return s3conn.GetBucketAcl(&s3.GetBucketAclInput{
+				Bucket: aws.String(d.Id()),
+			})
+		})
+		if err != nil {
+			return fmt.Errorf("error getting S3 Bucket (%s) ACL: %s", d.Id(), err)
+		}
+		log.Printf("[DEBUG] S3 bucket: %s, read ACL grants policy: %+v", d.Id(), apResponse)
+		grants := flattenGrants(apResponse.(*s3.GetBucketAclOutput))
+		if err := d.Set("grant", schema.NewSet(grantHash, grants)); err != nil {
+			return fmt.Errorf("error setting grant %s", err)
 		}
 	}
 
@@ -859,7 +914,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 				rule["expose_headers"] = flattenStringList(ruleObject.ExposeHeaders)
 			}
 			if ruleObject.MaxAgeSeconds != nil {
-				rule["max_age_seconds"] = int(*ruleObject.MaxAgeSeconds)
+				rule["max_age_seconds"] = int(aws.Int64Value(ruleObject.MaxAgeSeconds))
 			}
 			corsRules = append(corsRules, rule)
 		}
@@ -883,34 +938,34 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		w := make(map[string]interface{})
 
 		if v := ws.IndexDocument; v != nil {
-			w["index_document"] = *v.Suffix
+			w["index_document"] = aws.StringValue(v.Suffix)
 		}
 
 		if v := ws.ErrorDocument; v != nil {
-			w["error_document"] = *v.Key
+			w["error_document"] = aws.StringValue(v.Key)
 		}
 
 		if v := ws.RedirectAllRequestsTo; v != nil {
 			if v.Protocol == nil {
-				w["redirect_all_requests_to"] = *v.HostName
+				w["redirect_all_requests_to"] = aws.StringValue(v.HostName)
 			} else {
 				var host string
 				var path string
 				var query string
-				parsedHostName, err := url.Parse(*v.HostName)
+				parsedHostName, err := url.Parse(aws.StringValue(v.HostName))
 				if err == nil {
 					host = parsedHostName.Host
 					path = parsedHostName.Path
 					query = parsedHostName.RawQuery
 				} else {
-					host = *v.HostName
+					host = aws.StringValue(v.HostName)
 					path = ""
 				}
 
 				w["redirect_all_requests_to"] = (&url.URL{
 					Host:     host,
 					Path:     path,
-					Scheme:   *v.Protocol,
+					Scheme:   aws.StringValue(v.Protocol),
 					RawQuery: query,
 				}).String()
 			}
@@ -948,13 +1003,13 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	vcl := make([]map[string]interface{}, 0, 1)
 	if versioning, ok := versioningResponse.(*s3.GetBucketVersioningOutput); ok {
 		vc := make(map[string]interface{})
-		if versioning.Status != nil && *versioning.Status == s3.BucketVersioningStatusEnabled {
+		if versioning.Status != nil && aws.StringValue(versioning.Status) == s3.BucketVersioningStatusEnabled {
 			vc["enabled"] = true
 		} else {
 			vc["enabled"] = false
 		}
 
-		if versioning.MFADelete != nil && *versioning.MFADelete == s3.MFADeleteEnabled {
+		if versioning.MFADelete != nil && aws.StringValue(versioning.MFADelete) == s3.MFADeleteEnabled {
 			vc["mfa_delete"] = true
 		} else {
 			vc["mfa_delete"] = false
@@ -1012,11 +1067,11 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	if logging, ok := loggingResponse.(*s3.GetBucketLoggingOutput); ok && logging.LoggingEnabled != nil {
 		v := logging.LoggingEnabled
 		lc := make(map[string]interface{})
-		if *v.TargetBucket != "" {
-			lc["target_bucket"] = *v.TargetBucket
+		if aws.StringValue(v.TargetBucket) != "" {
+			lc["target_bucket"] = aws.StringValue(v.TargetBucket)
 		}
-		if *v.TargetPrefix != "" {
-			lc["target_prefix"] = *v.TargetPrefix
+		if aws.StringValue(v.TargetPrefix) != "" {
+			lc["target_prefix"] = aws.StringValue(v.TargetPrefix)
 		}
 		lcl = append(lcl, lc)
 	}
@@ -1044,15 +1099,15 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			rule := make(map[string]interface{})
 
 			// ID
-			if lifecycleRule.ID != nil && *lifecycleRule.ID != "" {
-				rule["id"] = *lifecycleRule.ID
+			if lifecycleRule.ID != nil && aws.StringValue(lifecycleRule.ID) != "" {
+				rule["id"] = aws.StringValue(lifecycleRule.ID)
 			}
 			filter := lifecycleRule.Filter
 			if filter != nil {
 				if filter.And != nil {
 					// Prefix
-					if filter.And.Prefix != nil && *filter.And.Prefix != "" {
-						rule["prefix"] = *filter.And.Prefix
+					if filter.And.Prefix != nil && aws.StringValue(filter.And.Prefix) != "" {
+						rule["prefix"] = aws.StringValue(filter.And.Prefix)
 					}
 					// Tag
 					if len(filter.And.Tags) > 0 {
@@ -1060,8 +1115,8 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 					}
 				} else {
 					// Prefix
-					if filter.Prefix != nil && *filter.Prefix != "" {
-						rule["prefix"] = *filter.Prefix
+					if filter.Prefix != nil && aws.StringValue(filter.Prefix) != "" {
+						rule["prefix"] = aws.StringValue(filter.Prefix)
 					}
 					// Tag
 					if filter.Tag != nil {
@@ -1070,13 +1125,13 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 				}
 			} else {
 				if lifecycleRule.Prefix != nil {
-					rule["prefix"] = *lifecycleRule.Prefix
+					rule["prefix"] = aws.StringValue(lifecycleRule.Prefix)
 				}
 			}
 
 			// Enabled
 			if lifecycleRule.Status != nil {
-				if *lifecycleRule.Status == s3.ExpirationStatusEnabled {
+				if aws.StringValue(lifecycleRule.Status) == s3.ExpirationStatusEnabled {
 					rule["enabled"] = true
 				} else {
 					rule["enabled"] = false
@@ -1086,7 +1141,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			// AbortIncompleteMultipartUploadDays
 			if lifecycleRule.AbortIncompleteMultipartUpload != nil {
 				if lifecycleRule.AbortIncompleteMultipartUpload.DaysAfterInitiation != nil {
-					rule["abort_incomplete_multipart_upload_days"] = int(*lifecycleRule.AbortIncompleteMultipartUpload.DaysAfterInitiation)
+					rule["abort_incomplete_multipart_upload_days"] = int(aws.Int64Value(lifecycleRule.AbortIncompleteMultipartUpload.DaysAfterInitiation))
 				}
 			}
 
@@ -1094,23 +1149,23 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 			if lifecycleRule.Expiration != nil {
 				e := make(map[string]interface{})
 				if lifecycleRule.Expiration.Date != nil {
-					e["date"] = (*lifecycleRule.Expiration.Date).Format("2006-01-02")
+					e["date"] = (aws.TimeValue(lifecycleRule.Expiration.Date)).Format("2006-01-02")
 				}
 				if lifecycleRule.Expiration.Days != nil {
-					e["days"] = int(*lifecycleRule.Expiration.Days)
+					e["days"] = int(aws.Int64Value(lifecycleRule.Expiration.Days))
 				}
 				if lifecycleRule.Expiration.ExpiredObjectDeleteMarker != nil {
-					e["expired_object_delete_marker"] = *lifecycleRule.Expiration.ExpiredObjectDeleteMarker
+					e["expired_object_delete_marker"] = aws.BoolValue(lifecycleRule.Expiration.ExpiredObjectDeleteMarker)
 				}
-				rule["expiration"] = schema.NewSet(expirationHash, []interface{}{e})
+				rule["expiration"] = []interface{}{e}
 			}
 			// noncurrent_version_expiration
 			if lifecycleRule.NoncurrentVersionExpiration != nil {
 				e := make(map[string]interface{})
 				if lifecycleRule.NoncurrentVersionExpiration.NoncurrentDays != nil {
-					e["days"] = int(*lifecycleRule.NoncurrentVersionExpiration.NoncurrentDays)
+					e["days"] = int(aws.Int64Value(lifecycleRule.NoncurrentVersionExpiration.NoncurrentDays))
 				}
-				rule["noncurrent_version_expiration"] = schema.NewSet(expirationHash, []interface{}{e})
+				rule["noncurrent_version_expiration"] = []interface{}{e}
 			}
 			//// transition
 			if len(lifecycleRule.Transitions) > 0 {
@@ -1118,13 +1173,13 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 				for _, v := range lifecycleRule.Transitions {
 					t := make(map[string]interface{})
 					if v.Date != nil {
-						t["date"] = (*v.Date).Format("2006-01-02")
+						t["date"] = (aws.TimeValue(v.Date)).Format("2006-01-02")
 					}
 					if v.Days != nil {
-						t["days"] = int(*v.Days)
+						t["days"] = int(aws.Int64Value(v.Days))
 					}
 					if v.StorageClass != nil {
-						t["storage_class"] = *v.StorageClass
+						t["storage_class"] = aws.StringValue(v.StorageClass)
 					}
 					transitions = append(transitions, t)
 				}
@@ -1136,10 +1191,10 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 				for _, v := range lifecycleRule.NoncurrentVersionTransitions {
 					t := make(map[string]interface{})
 					if v.NoncurrentDays != nil {
-						t["days"] = int(*v.NoncurrentDays)
+						t["days"] = int(aws.Int64Value(v.NoncurrentDays))
 					}
 					if v.StorageClass != nil {
-						t["storage_class"] = *v.StorageClass
+						t["storage_class"] = aws.StringValue(v.StorageClass)
 					}
 					transitions = append(transitions, t)
 				}
@@ -1201,23 +1256,26 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Add the region as an attribute
+	discoveredRegion, err := retryOnAwsCode("NotFound", func() (interface{}, error) {
+		return s3manager.GetBucketRegionWithClient(context.Background(), s3conn, d.Id(), func(r *request.Request) {
+			// By default, GetBucketRegion forces virtual host addressing, which
+			// is not compatible with many non-AWS implementations. Instead, pass
+			// the provider s3_force_path_style configuration, which defaults to
+			// false, but allows override.
+			r.Config.S3ForcePathStyle = s3conn.Config.S3ForcePathStyle
 
-	locationResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.GetBucketLocation(
-			&s3.GetBucketLocationInput{
-				Bucket: aws.String(d.Id()),
-			},
-		)
+			// By default, GetBucketRegion uses anonymous credentials when doing
+			// a HEAD request to get the bucket region. This breaks in aws-cn regions
+			// when the account doesn't have an ICP license to host public content.
+			// Use the current credentials when getting the bucket region.
+			r.Config.Credentials = s3conn.Config.Credentials
+		})
 	})
 	if err != nil {
 		return fmt.Errorf("error getting S3 Bucket location: %s", err)
 	}
 
-	var region string
-	if location, ok := locationResponse.(*s3.GetBucketLocationOutput); ok && location.LocationConstraint != nil {
-		region = *location.LocationConstraint
-	}
-	region = normalizeRegion(region)
+	region := discoveredRegion.(string)
 	if err := d.Set("region", region); err != nil {
 		return err
 	}
@@ -1238,7 +1296,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Add website_endpoint as an attribute
-	websiteEndpoint, err := websiteEndpoint(s3conn, d)
+	websiteEndpoint, err := websiteEndpoint(meta.(*AWSClient), d)
 	if err != nil {
 		return err
 	}
@@ -1260,7 +1318,7 @@ func resourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for S3 Bucket (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -1362,6 +1420,74 @@ func resourceAwsS3BucketPolicyUpdate(s3conn *s3.S3, d *schema.ResourceData) erro
 		}
 	}
 
+	return nil
+}
+
+func resourceAwsS3BucketGrantsUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
+	bucket := d.Get("bucket").(string)
+	rawGrants := d.Get("grant").(*schema.Set).List()
+
+	if len(rawGrants) == 0 {
+		log.Printf("[DEBUG] S3 bucket: %s, Grants fallback to canned ACL", bucket)
+		if err := resourceAwsS3BucketAclUpdate(s3conn, d); err != nil {
+			return fmt.Errorf("Error fallback to canned ACL, %s", err)
+		}
+	} else {
+		apResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
+			return s3conn.GetBucketAcl(&s3.GetBucketAclInput{
+				Bucket: aws.String(d.Id()),
+			})
+		})
+
+		if err != nil {
+			return fmt.Errorf("error getting S3 Bucket (%s) ACL: %s", d.Id(), err)
+		}
+
+		ap := apResponse.(*s3.GetBucketAclOutput)
+		log.Printf("[DEBUG] S3 bucket: %s, read ACL grants policy: %+v", d.Id(), ap)
+
+		grants := make([]*s3.Grant, 0, len(rawGrants))
+		for _, rawGrant := range rawGrants {
+			log.Printf("[DEBUG] S3 bucket: %s, put grant: %#v", bucket, rawGrant)
+			grantMap := rawGrant.(map[string]interface{})
+			for _, rawPermission := range grantMap["permissions"].(*schema.Set).List() {
+				ge := &s3.Grantee{}
+				if i, ok := grantMap["id"].(string); ok && i != "" {
+					ge.SetID(i)
+				}
+				if t, ok := grantMap["type"].(string); ok && t != "" {
+					ge.SetType(t)
+				}
+				if u, ok := grantMap["uri"].(string); ok && u != "" {
+					ge.SetURI(u)
+				}
+
+				g := &s3.Grant{
+					Grantee:    ge,
+					Permission: aws.String(rawPermission.(string)),
+				}
+				grants = append(grants, g)
+			}
+		}
+
+		grantsInput := &s3.PutBucketAclInput{
+			Bucket: aws.String(bucket),
+			AccessControlPolicy: &s3.AccessControlPolicy{
+				Grants: grants,
+				Owner:  ap.Owner,
+			},
+		}
+
+		log.Printf("[DEBUG] S3 bucket: %s, put Grants: %#v", bucket, grantsInput)
+
+		_, err = retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
+			return s3conn.PutBucketAcl(grantsInput)
+		})
+
+		if err != nil {
+			return fmt.Errorf("Error putting S3 Grants: %s", err)
+		}
+	}
 	return nil
 }
 
@@ -1540,7 +1666,7 @@ func resourceAwsS3BucketWebsiteDelete(s3conn *s3.S3, d *schema.ResourceData) err
 	return nil
 }
 
-func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) {
+func websiteEndpoint(client *AWSClient, d *schema.ResourceData) (*S3Website, error) {
 	// If the bucket doesn't have a website configuration, return an empty
 	// endpoint
 	if _, ok := d.GetOk("website"); !ok {
@@ -1552,7 +1678,7 @@ func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) 
 	// Lookup the region for this bucket
 
 	locationResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return s3conn.GetBucketLocation(
+		return client.s3conn.GetBucketLocation(
 			&s3.GetBucketLocationInput{
 				Bucket: aws.String(bucket),
 			},
@@ -1564,14 +1690,10 @@ func websiteEndpoint(s3conn *s3.S3, d *schema.ResourceData) (*S3Website, error) 
 	location := locationResponse.(*s3.GetBucketLocationOutput)
 	var region string
 	if location.LocationConstraint != nil {
-		region = *location.LocationConstraint
+		region = aws.StringValue(location.LocationConstraint)
 	}
 
-	return WebsiteEndpoint(bucket, region), nil
-}
-
-func bucketDomainName(bucket string) string {
-	return fmt.Sprintf("%s.s3.amazonaws.com", bucket)
+	return WebsiteEndpoint(client, bucket, region), nil
 }
 
 // https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -1579,7 +1701,7 @@ func BucketRegionalDomainName(bucket string, region string) (string, error) {
 	// Return a default AWS Commercial domain name if no region is provided
 	// Otherwise EndpointFor() will return BUCKET.s3..amazonaws.com
 	if region == "" {
-		return fmt.Sprintf("%s.s3.amazonaws.com", bucket), nil
+		return fmt.Sprintf("%s.s3.amazonaws.com", bucket), nil //lintignore:AWSR001
 	}
 	endpoint, err := endpoints.DefaultResolver().EndpointFor(endpoints.S3ServiceID, region)
 	if err != nil {
@@ -1588,37 +1710,34 @@ func BucketRegionalDomainName(bucket string, region string) (string, error) {
 	return fmt.Sprintf("%s.%s", bucket, strings.TrimPrefix(endpoint.URL, "https://")), nil
 }
 
-func WebsiteEndpoint(bucket string, region string) *S3Website {
-	domain := WebsiteDomainUrl(region)
+func WebsiteEndpoint(client *AWSClient, bucket string, region string) *S3Website {
+	domain := WebsiteDomainUrl(client, region)
 	return &S3Website{Endpoint: fmt.Sprintf("%s.%s", bucket, domain), Domain: domain}
 }
 
-func WebsiteDomainUrl(region string) string {
+func WebsiteDomainUrl(client *AWSClient, region string) string {
 	region = normalizeRegion(region)
 
 	// Different regions have different syntax for website endpoints
 	// https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html
 	// https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints
 	if isOldRegion(region) {
-		return fmt.Sprintf("s3-website-%s.amazonaws.com", region)
+		return fmt.Sprintf("s3-website-%s.amazonaws.com", region) //lintignore:AWSR001
 	}
-	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), region); ok && partition.ID() == endpoints.AwsCnPartitionID {
-		return fmt.Sprintf("s3-website.%s.amazonaws.com.cn", region)
-	}
-	return fmt.Sprintf("s3-website.%s.amazonaws.com", region)
+	return client.RegionalHostname("s3-website")
 }
 
 func isOldRegion(region string) bool {
 	oldRegions := []string{
-		"ap-northeast-1",
-		"ap-southeast-1",
-		"ap-southeast-2",
-		"eu-west-1",
-		"sa-east-1",
-		"us-east-1",
-		"us-gov-west-1",
-		"us-west-1",
-		"us-west-2",
+		endpoints.ApNortheast1RegionID,
+		endpoints.ApSoutheast1RegionID,
+		endpoints.ApSoutheast2RegionID,
+		endpoints.EuWest1RegionID,
+		endpoints.SaEast1RegionID,
+		endpoints.UsEast1RegionID,
+		endpoints.UsGovWest1RegionID,
+		endpoints.UsWest1RegionID,
+		endpoints.UsWest2RegionID,
 	}
 	for _, r := range oldRegions {
 		if region == r {
@@ -1894,48 +2013,53 @@ func resourceAwsS3BucketReplicationConfigurationUpdate(s3conn *s3.S3, d *schema.
 		}
 
 		ruleDestination := &s3.Destination{}
-		if dest, ok := rr["destination"].(*schema.Set); ok && dest.Len() > 0 {
-			bd := dest.List()[0].(map[string]interface{})
-			ruleDestination.Bucket = aws.String(bd["bucket"].(string))
+		if dest, ok := rr["destination"].([]interface{}); ok && len(dest) > 0 {
+			if dest[0] != nil {
+				bd := dest[0].(map[string]interface{})
+				ruleDestination.Bucket = aws.String(bd["bucket"].(string))
 
-			if storageClass, ok := bd["storage_class"]; ok && storageClass != "" {
-				ruleDestination.StorageClass = aws.String(storageClass.(string))
-			}
+				if storageClass, ok := bd["storage_class"]; ok && storageClass != "" {
+					ruleDestination.StorageClass = aws.String(storageClass.(string))
+				}
 
-			if replicaKmsKeyId, ok := bd["replica_kms_key_id"]; ok && replicaKmsKeyId != "" {
-				ruleDestination.EncryptionConfiguration = &s3.EncryptionConfiguration{
-					ReplicaKmsKeyID: aws.String(replicaKmsKeyId.(string)),
+				if replicaKmsKeyId, ok := bd["replica_kms_key_id"]; ok && replicaKmsKeyId != "" {
+					ruleDestination.EncryptionConfiguration = &s3.EncryptionConfiguration{
+						ReplicaKmsKeyID: aws.String(replicaKmsKeyId.(string)),
+					}
+				}
+
+				if account, ok := bd["account_id"]; ok && account != "" {
+					ruleDestination.Account = aws.String(account.(string))
+				}
+
+				if aclTranslation, ok := bd["access_control_translation"].([]interface{}); ok && len(aclTranslation) > 0 {
+					aclTranslationValues := aclTranslation[0].(map[string]interface{})
+					ruleAclTranslation := &s3.AccessControlTranslation{}
+					ruleAclTranslation.Owner = aws.String(aclTranslationValues["owner"].(string))
+					ruleDestination.AccessControlTranslation = ruleAclTranslation
 				}
 			}
-
-			if account, ok := bd["account_id"]; ok && account != "" {
-				ruleDestination.Account = aws.String(account.(string))
-			}
-
-			if aclTranslation, ok := bd["access_control_translation"].([]interface{}); ok && len(aclTranslation) > 0 {
-				aclTranslationValues := aclTranslation[0].(map[string]interface{})
-				ruleAclTranslation := &s3.AccessControlTranslation{}
-				ruleAclTranslation.Owner = aws.String(aclTranslationValues["owner"].(string))
-				ruleDestination.AccessControlTranslation = ruleAclTranslation
-			}
-
 		}
 		rcRule.Destination = ruleDestination
 
-		if ssc, ok := rr["source_selection_criteria"].(*schema.Set); ok && ssc.Len() > 0 {
-			sscValues := ssc.List()[0].(map[string]interface{})
-			ruleSsc := &s3.SourceSelectionCriteria{}
-			if sseKms, ok := sscValues["sse_kms_encrypted_objects"].(*schema.Set); ok && sseKms.Len() > 0 {
-				sseKmsValues := sseKms.List()[0].(map[string]interface{})
-				sseKmsEncryptedObjects := &s3.SseKmsEncryptedObjects{}
-				if sseKmsValues["enabled"].(bool) {
-					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusEnabled)
-				} else {
-					sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusDisabled)
+		if ssc, ok := rr["source_selection_criteria"].([]interface{}); ok && len(ssc) > 0 {
+			if ssc[0] != nil {
+				sscValues := ssc[0].(map[string]interface{})
+				ruleSsc := &s3.SourceSelectionCriteria{}
+				if sseKms, ok := sscValues["sse_kms_encrypted_objects"].([]interface{}); ok && len(sseKms) > 0 {
+					if sseKms[0] != nil {
+						sseKmsValues := sseKms[0].(map[string]interface{})
+						sseKmsEncryptedObjects := &s3.SseKmsEncryptedObjects{}
+						if sseKmsValues["enabled"].(bool) {
+							sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusEnabled)
+						} else {
+							sseKmsEncryptedObjects.Status = aws.String(s3.SseKmsEncryptedObjectsStatusDisabled)
+						}
+						ruleSsc.SseKmsEncryptedObjects = sseKmsEncryptedObjects
+					}
 				}
-				ruleSsc.SseKmsEncryptedObjects = sseKmsEncryptedObjects
+				rcRule.SourceSelectionCriteria = ruleSsc
 			}
-			rcRule.SourceSelectionCriteria = ruleSsc
 		}
 
 		if f, ok := rr["filter"].([]interface{}); ok && len(f) > 0 && f[0] != nil {
@@ -1995,7 +2119,7 @@ func resourceAwsS3BucketLifecycleUpdate(s3conn *s3.S3, d *schema.ResourceData) e
 
 	lifecycleRules := d.Get("lifecycle_rule").([]interface{})
 
-	if len(lifecycleRules) == 0 {
+	if len(lifecycleRules) == 0 || lifecycleRules[0] == nil {
 		i := &s3.DeleteBucketLifecycleInput{
 			Bucket: aws.String(bucket),
 		}
@@ -2049,11 +2173,10 @@ func resourceAwsS3BucketLifecycleUpdate(s3conn *s3.S3, d *schema.ResourceData) e
 		}
 
 		// Expiration
-		expiration := d.Get(fmt.Sprintf("lifecycle_rule.%d.expiration", i)).(*schema.Set).List()
-		if len(expiration) > 0 {
+		expiration := d.Get(fmt.Sprintf("lifecycle_rule.%d.expiration", i)).([]interface{})
+		if len(expiration) > 0 && expiration[0] != nil {
 			e := expiration[0].(map[string]interface{})
 			i := &s3.LifecycleExpiration{}
-
 			if val, ok := e["date"].(string); ok && val != "" {
 				t, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT00:00:00Z", val))
 				if err != nil {
@@ -2069,8 +2192,8 @@ func resourceAwsS3BucketLifecycleUpdate(s3conn *s3.S3, d *schema.ResourceData) e
 		}
 
 		// NoncurrentVersionExpiration
-		nc_expiration := d.Get(fmt.Sprintf("lifecycle_rule.%d.noncurrent_version_expiration", i)).(*schema.Set).List()
-		if len(nc_expiration) > 0 {
+		nc_expiration := d.Get(fmt.Sprintf("lifecycle_rule.%d.noncurrent_version_expiration", i)).([]interface{})
+		if len(nc_expiration) > 0 && nc_expiration[0] != nil {
 			e := nc_expiration[0].(map[string]interface{})
 
 			if val, ok := e["days"].(int); ok && val > 0 {
@@ -2121,6 +2244,15 @@ func resourceAwsS3BucketLifecycleUpdate(s3conn *s3.S3, d *schema.ResourceData) e
 			}
 		}
 
+		// As a lifecycle rule requires 1 or more transition/expiration actions,
+		// we explicitly pass a default ExpiredObjectDeleteMarker value to be able to create
+		// the rule while keeping the policy unaffected if the conditions are not met.
+		if rule.Expiration == nil && rule.NoncurrentVersionExpiration == nil &&
+			rule.Transitions == nil && rule.NoncurrentVersionTransitions == nil &&
+			rule.AbortIncompleteMultipartUpload == nil {
+			rule.Expiration = &s3.LifecycleExpiration{ExpiredObjectDeleteMarker: aws.Bool(false)}
+		}
+
 		rules = append(rules, rule)
 	}
 
@@ -2169,8 +2301,8 @@ func flattenAwsS3BucketReplicationConfiguration(r *s3.ReplicationConfiguration) 
 
 	m := make(map[string]interface{})
 
-	if r.Role != nil && *r.Role != "" {
-		m["role"] = *r.Role
+	if r.Role != nil && aws.StringValue(r.Role) != "" {
+		m["role"] = aws.StringValue(r.Role)
 	}
 
 	rules := make([]interface{}, 0, len(r.Rules))
@@ -2179,18 +2311,18 @@ func flattenAwsS3BucketReplicationConfiguration(r *s3.ReplicationConfiguration) 
 		if v.Destination != nil {
 			rd := make(map[string]interface{})
 			if v.Destination.Bucket != nil {
-				rd["bucket"] = *v.Destination.Bucket
+				rd["bucket"] = aws.StringValue(v.Destination.Bucket)
 			}
 			if v.Destination.StorageClass != nil {
-				rd["storage_class"] = *v.Destination.StorageClass
+				rd["storage_class"] = aws.StringValue(v.Destination.StorageClass)
 			}
 			if v.Destination.EncryptionConfiguration != nil {
 				if v.Destination.EncryptionConfiguration.ReplicaKmsKeyID != nil {
-					rd["replica_kms_key_id"] = *v.Destination.EncryptionConfiguration.ReplicaKmsKeyID
+					rd["replica_kms_key_id"] = aws.StringValue(v.Destination.EncryptionConfiguration.ReplicaKmsKeyID)
 				}
 			}
 			if v.Destination.Account != nil {
-				rd["account_id"] = *v.Destination.Account
+				rd["account_id"] = aws.StringValue(v.Destination.Account)
 			}
 			if v.Destination.AccessControlTranslation != nil {
 				rdt := map[string]interface{}{
@@ -2198,30 +2330,30 @@ func flattenAwsS3BucketReplicationConfiguration(r *s3.ReplicationConfiguration) 
 				}
 				rd["access_control_translation"] = []interface{}{rdt}
 			}
-			t["destination"] = schema.NewSet(destinationHash, []interface{}{rd})
+			t["destination"] = []interface{}{rd}
 		}
 
 		if v.ID != nil {
-			t["id"] = *v.ID
+			t["id"] = aws.StringValue(v.ID)
 		}
 		if v.Prefix != nil {
-			t["prefix"] = *v.Prefix
+			t["prefix"] = aws.StringValue(v.Prefix)
 		}
 		if v.Status != nil {
-			t["status"] = *v.Status
+			t["status"] = aws.StringValue(v.Status)
 		}
 		if vssc := v.SourceSelectionCriteria; vssc != nil {
 			tssc := make(map[string]interface{})
 			if vssc.SseKmsEncryptedObjects != nil {
 				tSseKms := make(map[string]interface{})
-				if *vssc.SseKmsEncryptedObjects.Status == s3.SseKmsEncryptedObjectsStatusEnabled {
+				if aws.StringValue(vssc.SseKmsEncryptedObjects.Status) == s3.SseKmsEncryptedObjectsStatusEnabled {
 					tSseKms["enabled"] = true
-				} else if *vssc.SseKmsEncryptedObjects.Status == s3.SseKmsEncryptedObjectsStatusDisabled {
+				} else if aws.StringValue(vssc.SseKmsEncryptedObjects.Status) == s3.SseKmsEncryptedObjectsStatusDisabled {
 					tSseKms["enabled"] = false
 				}
-				tssc["sse_kms_encrypted_objects"] = schema.NewSet(sourceSseKmsObjectsHash, []interface{}{tSseKms})
+				tssc["sse_kms_encrypted_objects"] = []interface{}{tSseKms}
 			}
-			t["source_selection_criteria"] = schema.NewSet(sourceSelectionCriteriaHash, []interface{}{tssc})
+			t["source_selection_criteria"] = []interface{}{tssc}
 		}
 
 		if v.Priority != nil {
@@ -2299,7 +2431,7 @@ func normalizeRegion(region string) string {
 	// Default to us-east-1 if the bucket doesn't have a region:
 	// http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGETlocation.html
 	if region == "" {
-		region = "us-east-1"
+		region = endpoints.UsEast1RegionID
 	}
 
 	return region
@@ -2309,7 +2441,7 @@ func normalizeRegion(region string) string {
 // Buckets outside of this region have to be DNS-compliant. After the same restrictions are
 // applied to buckets in the us-east-1 region, this function can be refactored as a SchemaValidateFunc
 func validateS3BucketName(value string, region string) error {
-	if region != "us-east-1" {
+	if region != endpoints.UsEast1RegionID {
 		if (len(value) < 3) || (len(value) > 63) {
 			return fmt.Errorf("%q must contain from 3 to 63 characters", value)
 		}
@@ -2339,24 +2471,37 @@ func validateS3BucketName(value string, region string) error {
 	return nil
 }
 
-func expirationHash(v interface{}) int {
+func grantHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if v, ok := m["date"]; ok {
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
+
+	if v, ok := m["id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
-	if v, ok := m["days"]; ok {
-		buf.WriteString(fmt.Sprintf("%d-", v.(int)))
+	if v, ok := m["type"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
-	if v, ok := m["expired_object_delete_marker"]; ok {
-		buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+	if v, ok := m["uri"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	if p, ok := m["permissions"]; ok {
+		buf.WriteString(fmt.Sprintf("%v-", p.(*schema.Set).List()))
 	}
 	return hashcode.String(buf.String())
 }
 
 func transitionHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
+
 	if v, ok := m["date"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
@@ -2371,7 +2516,11 @@ func transitionHash(v interface{}) int {
 
 func rulesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
 
 	if v, ok := m["id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
@@ -2382,11 +2531,11 @@ func rulesHash(v interface{}) int {
 	if v, ok := m["status"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
-	if v, ok := m["destination"].(*schema.Set); ok && v.Len() > 0 {
-		buf.WriteString(fmt.Sprintf("%d-", destinationHash(v.List()[0])))
+	if v, ok := m["destination"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		buf.WriteString(fmt.Sprintf("%d-", destinationHash(v[0])))
 	}
-	if v, ok := m["source_selection_criteria"].(*schema.Set); ok && v.Len() > 0 && v.List()[0] != nil {
-		buf.WriteString(fmt.Sprintf("%d-", sourceSelectionCriteriaHash(v.List()[0])))
+	if v, ok := m["source_selection_criteria"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		buf.WriteString(fmt.Sprintf("%d-", sourceSelectionCriteriaHash(v[0])))
 	}
 	if v, ok := m["priority"]; ok {
 		buf.WriteString(fmt.Sprintf("%d-", v.(int)))
@@ -2399,7 +2548,12 @@ func rulesHash(v interface{}) int {
 
 func replicationRuleFilterHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
+
 	if v, ok := m["prefix"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 	}
@@ -2411,7 +2565,11 @@ func replicationRuleFilterHash(v interface{}) int {
 
 func destinationHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
 
 	if v, ok := m["bucket"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
@@ -2432,12 +2590,12 @@ func destinationHash(v interface{}) int {
 }
 
 func accessControlTranslationHash(v interface{}) int {
-	// v is nil if empty access_control_translation is given.
-	if v == nil {
+	var buf bytes.Buffer
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
 		return 0
 	}
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
 	if v, ok := m["owner"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
@@ -2446,22 +2604,26 @@ func accessControlTranslationHash(v interface{}) int {
 }
 
 func sourceSelectionCriteriaHash(v interface{}) int {
-	// v is nil if empty source_selection_criteria is given.
-	if v == nil {
+	var buf bytes.Buffer
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
 		return 0
 	}
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	if v, ok := m["sse_kms_encrypted_objects"].(*schema.Set); ok && v.Len() > 0 {
-		buf.WriteString(fmt.Sprintf("%d-", sourceSseKmsObjectsHash(v.List()[0])))
+	if v, ok := m["sse_kms_encrypted_objects"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		buf.WriteString(fmt.Sprintf("%d-", sourceSseKmsObjectsHash(v[0])))
 	}
 	return hashcode.String(buf.String())
 }
 
 func sourceSseKmsObjectsHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+	m, ok := v.(map[string]interface{})
+
+	if !ok {
+		return 0
+	}
 
 	if v, ok := m["enabled"]; ok {
 		buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
@@ -2560,4 +2722,44 @@ func flattenS3ObjectLockConfiguration(conf *s3.ObjectLockConfiguration) []interf
 	}
 
 	return []interface{}{mConf}
+}
+
+func flattenGrants(ap *s3.GetBucketAclOutput) []interface{} {
+	//if ACL grants contains bucket owner FULL_CONTROL only - it is default "private" acl
+	if len(ap.Grants) == 1 && aws.StringValue(ap.Grants[0].Grantee.ID) == aws.StringValue(ap.Owner.ID) &&
+		aws.StringValue(ap.Grants[0].Permission) == s3.PermissionFullControl {
+		return nil
+	}
+
+	getGrant := func(grants []interface{}, grantee map[string]interface{}) (interface{}, bool) {
+		for _, pg := range grants {
+			pgt := pg.(map[string]interface{})
+			if pgt["type"] == grantee["type"] && pgt["id"] == grantee["id"] && pgt["uri"] == grantee["uri"] &&
+				pgt["permissions"].(*schema.Set).Len() > 0 {
+				return pg, true
+			}
+		}
+		return nil, false
+	}
+
+	grants := make([]interface{}, 0, len(ap.Grants))
+	for _, granteeObject := range ap.Grants {
+		grantee := make(map[string]interface{})
+		grantee["type"] = aws.StringValue(granteeObject.Grantee.Type)
+
+		if granteeObject.Grantee.ID != nil {
+			grantee["id"] = aws.StringValue(granteeObject.Grantee.ID)
+		}
+		if granteeObject.Grantee.URI != nil {
+			grantee["uri"] = aws.StringValue(granteeObject.Grantee.URI)
+		}
+		if pg, ok := getGrant(grants, grantee); ok {
+			pg.(map[string]interface{})["permissions"].(*schema.Set).Add(aws.StringValue(granteeObject.Permission))
+		} else {
+			grantee["permissions"] = schema.NewSet(schema.HashString, []interface{}{aws.StringValue(granteeObject.Permission)})
+			grants = append(grants, grantee)
+		}
+	}
+
+	return grants
 }

@@ -12,4 +12,6 @@ Run this example using:
 
     terraform apply -var 'key_name=YOUR_KEY_NAME'
 
+Alternatively to using `-var` with each command, the `terraform.template.tfvars` file can be copied to `terraform.tfvars` and updated.
+
 Wait a couple of minutes for the EC2 userdata to install nginx, and then type the ELB DNS Name from outputs in your browser and see the nginx welcome page

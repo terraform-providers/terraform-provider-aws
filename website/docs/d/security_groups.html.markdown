@@ -31,14 +31,14 @@ data "aws_security_groups" "test" {
 
   filter {
     name   = "vpc-id"
-    values = ["${var.vpc_id}"]
+    values = [var.vpc_id]
   }
 }
 ```
 
 ## Argument Reference
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match for
+* `tags` - (Optional) A map of tags, each pair of which must exactly match for
 desired security groups.
 
 * `filter` - (Optional) One or more name/value pairs to use as filters. There are
@@ -47,6 +47,7 @@ several valid keys, for a full reference, check out
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - IDs of the matches security groups.
 * `vpc_ids` - The VPC IDs of the matched security groups. The data source's tag or filter *will span VPCs*
 unless the `vpc-id` filter is also used.

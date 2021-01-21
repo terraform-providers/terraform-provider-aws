@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSecurityHubStandardsSubscription() *schema.Resource {
@@ -47,7 +47,7 @@ func resourceAwsSecurityHubStandardsSubscriptionCreate(d *schema.ResourceData, m
 
 	standardsSubscription := resp.StandardsSubscriptions[0]
 
-	d.SetId(*standardsSubscription.StandardsSubscriptionArn)
+	d.SetId(aws.StringValue(standardsSubscription.StandardsSubscriptionArn))
 
 	return resourceAwsSecurityHubStandardsSubscriptionRead(d, meta)
 }

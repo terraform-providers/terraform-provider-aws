@@ -1,13 +1,16 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsS3Bucket() *schema.Resource {
@@ -74,9 +77,9 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 		Resource:  bucket,
 	}.String()
 	d.Set("arn", arn)
-	d.Set("bucket_domain_name", bucketDomainName(bucket))
+	d.Set("bucket_domain_name", meta.(*AWSClient).PartitionHostname(fmt.Sprintf("%s.s3", bucket)))
 
-	err = bucketLocation(d, bucket, conn)
+	err = bucketLocation(meta.(*AWSClient), d, bucket)
 	if err != nil {
 		return fmt.Errorf("error getting S3 Bucket location: %s", err)
 	}
@@ -90,20 +93,23 @@ func dataSourceAwsS3BucketRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
-	location, err := conn.GetBucketLocation(
-		&s3.GetBucketLocationInput{
-			Bucket: aws.String(bucket),
-		},
-	)
+func bucketLocation(client *AWSClient, d *schema.ResourceData, bucket string) error {
+	region, err := s3manager.GetBucketRegionWithClient(context.Background(), client.s3conn, bucket, func(r *request.Request) {
+		// By default, GetBucketRegion forces virtual host addressing, which
+		// is not compatible with many non-AWS implementations. Instead, pass
+		// the provider s3_force_path_style configuration, which defaults to
+		// false, but allows override.
+		r.Config.S3ForcePathStyle = client.s3conn.Config.S3ForcePathStyle
+
+		// By default, GetBucketRegion uses anonymous credentials when doing
+		// a HEAD request to get the bucket region. This breaks in aws-cn regions
+		// when the account doesn't have an ICP license to host public content.
+		// Use the current credentials when getting the bucket region.
+		r.Config.Credentials = client.s3conn.Config.Credentials
+	})
 	if err != nil {
 		return err
 	}
-	var region string
-	if location.LocationConstraint != nil {
-		region = *location.LocationConstraint
-	}
-	region = normalizeRegion(region)
 	if err := d.Set("region", region); err != nil {
 		return err
 	}
@@ -115,14 +121,14 @@ func bucketLocation(d *schema.ResourceData, bucket string, conn *s3.S3) error {
 		d.Set("hosted_zone_id", hostedZoneID)
 	}
 
-	_, websiteErr := conn.GetBucketWebsite(
+	_, websiteErr := client.s3conn.GetBucketWebsite(
 		&s3.GetBucketWebsiteInput{
 			Bucket: aws.String(bucket),
 		},
 	)
 
 	if websiteErr == nil {
-		websiteEndpoint := WebsiteEndpoint(bucket, region)
+		websiteEndpoint := WebsiteEndpoint(client, bucket, region)
 		if err := d.Set("website_endpoint", websiteEndpoint.Endpoint); err != nil {
 			return err
 		}

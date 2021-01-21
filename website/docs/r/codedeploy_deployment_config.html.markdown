@@ -25,10 +25,10 @@ resource "aws_codedeploy_deployment_config" "foo" {
 }
 
 resource "aws_codedeploy_deployment_group" "foo" {
-  app_name               = "${aws_codedeploy_app.foo_app.name}"
+  app_name               = aws_codedeploy_app.foo_app.name
   deployment_group_name  = "bar"
-  service_role_arn       = "${aws_iam_role.foo_role.arn}"
-  deployment_config_name = "${aws_codedeploy_deployment_config.foo.id}"
+  service_role_arn       = aws_iam_role.foo_role.arn
+  deployment_config_name = aws_codedeploy_deployment_config.foo.id
 
   ec2_tag_filter {
     key   = "filterkey"
@@ -72,10 +72,10 @@ resource "aws_codedeploy_deployment_config" "foo" {
 }
 
 resource "aws_codedeploy_deployment_group" "foo" {
-  app_name               = "${aws_codedeploy_app.foo_app.name}"
+  app_name               = aws_codedeploy_app.foo_app.name
   deployment_group_name  = "bar"
-  service_role_arn       = "${aws_iam_role.foo_role.arn}"
-  deployment_config_name = "${aws_codedeploy_deployment_config.foo.id}"
+  service_role_arn       = aws_iam_role.foo_role.arn
+  deployment_config_name = aws_codedeploy_deployment_config.foo.id
 
   auto_rollback_configuration {
     enabled = true
@@ -134,5 +134,5 @@ In addition to all arguments above, the following attributes are exported:
 CodeDeploy Deployment Configurations can be imported using the `deployment_config_name`, e.g.
 
 ```
-$ terraform import aws_codedeploy_app.example my-deployment-config
+$ terraform import aws_codedeploy_deployment_config.example my-deployment-config
 ```

@@ -36,3 +36,4 @@ In addition to all arguments above, the following attributes are exported:
 * `status` - The current status of the compute environment (for example, `CREATING` or `VALID`).
 * `status_reason` - A short, human-readable string to provide additional details about the current status of the compute environment.
 * `state` - The state of the compute environment (for example, `ENABLED` or `DISABLED`). If the state is `ENABLED`, then the compute environment accepts jobs from a queue and can scale out automatically based on queues.
+* `tags` - Key-value map of resource tags

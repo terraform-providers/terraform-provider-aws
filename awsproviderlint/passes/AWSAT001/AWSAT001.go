@@ -70,16 +70,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func AttributeNameAppearsArnRelated(attributeName string) bool {
-	if attributeName == "arn" {
+	if attributeName == "arn" || attributeName == "kms_key_id" {
 		return true
 	}
 
-	if strings.HasSuffix(attributeName, "_arn") {
+	if strings.HasSuffix(attributeName, "_arn") || strings.HasSuffix(attributeName, "_kms_key_id") {
 		return true
 	}
 
 	// Handle flatmap nested attribute
-	if strings.HasSuffix(attributeName, ".arn") {
+	if strings.HasSuffix(attributeName, ".arn") || strings.HasSuffix(attributeName, ".kms_key_id") {
 		return true
 	}
 

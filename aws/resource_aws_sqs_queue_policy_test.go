@@ -5,14 +5,14 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSSQSQueuePolicy_basic(t *testing.T) {
 	var queueAttributes map[string]*string
 	resourceName := "aws_sqs_queue_policy.test"
-	queueName := fmt.Sprintf("sqs-queue-%s", acctest.RandString(5))
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,9 +20,9 @@ func TestAccAWSSQSQueuePolicy_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSSQSPolicyConfig_basic(queueName),
+				Config: testAccAWSSQSPolicyConfigBasic(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSSQSQueueExists("aws_sqs_queue.q", &queueAttributes),
+					testAccCheckAWSSQSQueueExists("aws_sqs_queue.test", &queueAttributes),
 					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
 					resource.TestMatchResourceAttr("aws_sqs_queue_policy.test", "policy",
 						regexp.MustCompile("^{\"Version\":\"2012-10-17\".+")),
@@ -33,21 +33,72 @@ func TestAccAWSSQSQueuePolicy_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config:   testAccAWSSQSPolicyConfigBasic(rName),
+				PlanOnly: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(resourceName, "policy", "aws_sqs_queue.test", "policy"),
+				),
+			},
 		},
 	})
 }
 
-func testAccAWSSQSPolicyConfig_basic(r string) string {
-	return fmt.Sprintf(testAccAWSSQSPolicyConfig_basic_tpl, r)
+func TestAccAWSSQSQueuePolicy_disappears_queue(t *testing.T) {
+	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue_policy.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSQSPolicyConfigBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSQSQueueExists("aws_sqs_queue.test", &queueAttributes),
+					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSqsQueue(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
-const testAccAWSSQSPolicyConfig_basic_tpl = `
-resource "aws_sqs_queue" "q" {
-  name = "%s"
+func TestAccAWSSQSQueuePolicy_disappears(t *testing.T) {
+	var queueAttributes map[string]*string
+	resourceName := "aws_sqs_queue_policy.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSQSQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSQSPolicyConfigBasic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSQSQueueExists("aws_sqs_queue.test", &queueAttributes),
+					testAccCheckAWSSQSQueueDefaultAttributes(&queueAttributes),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsSqsQueuePolicy(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func testAccAWSSQSPolicyConfigBasic(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_sqs_queue" "test" {
+  name = %[1]q
 }
 
 resource "aws_sqs_queue_policy" "test" {
-  queue_url = "${aws_sqs_queue.q.id}"
+  queue_url = aws_sqs_queue.test.id
+
   policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -58,10 +109,10 @@ resource "aws_sqs_queue_policy" "test" {
       "Effect": "Allow",
       "Principal": "*",
       "Action": "sqs:SendMessage",
-      "Resource": "${aws_sqs_queue.q.arn}",
+      "Resource": "${aws_sqs_queue.test.arn}",
       "Condition": {
         "ArnEquals": {
-          "aws:SourceArn": "${aws_sqs_queue.q.arn}"
+          "aws:SourceArn": "${aws_sqs_queue.test.arn}"
         }
       }
     }
@@ -69,4 +120,5 @@ resource "aws_sqs_queue_policy" "test" {
 }
 POLICY
 }
-`
+`, rName)
+}

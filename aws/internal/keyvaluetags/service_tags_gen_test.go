@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/athena"
 	"github.com/aws/aws-sdk-go/service/datasync"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/quicksight"
 )
 
 // map[string]*string handling
@@ -466,6 +467,104 @@ func TestKeyValueTagsAppmeshTags(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			got := testCase.tags.AppmeshTags()
+
+			gotMap := make(map[string]string, len(got))
+			for _, tag := range got {
+				gotMap[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
+			}
+
+			wantMap := make(map[string]string, len(testCase.want))
+			for _, tag := range testCase.want {
+				wantMap[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
+			}
+
+			testKeyValueTagsVerifyMap(t, gotMap, wantMap)
+		})
+	}
+}
+
+func TestQuicksightKeyValueTags(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags []*quicksight.Tag
+		want map[string]string
+	}{
+		{
+			name: "empty",
+			tags: []*quicksight.Tag{},
+			want: map[string]string{},
+		},
+		{
+			name: "non_empty",
+			tags: []*quicksight.Tag{
+				{
+					Key:   aws.String("key1"),
+					Value: aws.String("value1"),
+				},
+				{
+					Key:   aws.String("key2"),
+					Value: aws.String("value2"),
+				},
+				{
+					Key:   aws.String("key3"),
+					Value: aws.String("value3"),
+				},
+			},
+			want: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := QuicksightKeyValueTags(testCase.tags)
+
+			testKeyValueTagsVerifyMap(t, got.Map(), testCase.want)
+		})
+	}
+}
+
+func TestKeyValueTagsQuicksightTags(t *testing.T) {
+	testCases := []struct {
+		name string
+		tags KeyValueTags
+		want []*quicksight.Tag
+	}{
+		{
+			name: "empty",
+			tags: New(map[string]string{}),
+			want: []*quicksight.Tag{},
+		},
+		{
+			name: "non_empty",
+			tags: New(map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+				"key3": "value3",
+			}),
+			want: []*quicksight.Tag{
+				{
+					Key:   aws.String("key1"),
+					Value: aws.String("value1"),
+				},
+				{
+					Key:   aws.String("key2"),
+					Value: aws.String("value2"),
+				},
+				{
+					Key:   aws.String("key3"),
+					Value: aws.String("value3"),
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := testCase.tags.QuicksightTags()
 
 			gotMap := make(map[string]string, len(got))
 			for _, tag := range got {

@@ -38,7 +38,7 @@ resource "aws_db_option_group" "example" {
 
     option_settings {
       name  = "IAM_ROLE_ARN"
-      value = "${aws_iam_role.example.arn}"
+      value = aws_iam_role.example.arn
     }
   }
 
@@ -60,7 +60,7 @@ The following arguments are supported:
 * `engine_name` - (Required) Specifies the name of the engine that this option group should be associated with.
 * `major_engine_version` - (Required) Specifies the major version of the engine that this option group should be associated with.
 * `option` - (Optional) A list of Options to apply.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 Option blocks support the following:
 
@@ -86,7 +86,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_db_option_group` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `delete` - (Default `15 minutes`)
 

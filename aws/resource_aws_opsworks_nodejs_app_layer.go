@@ -1,17 +1,18 @@
 package aws
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsOpsworksNodejsAppLayer() *schema.Resource {
 	layerType := &opsworksLayerType{
-		TypeName:         "nodejs-app",
+		TypeName:         opsworks.LayerTypeNodejsApp,
 		DefaultLayerName: "Node.js App Server",
 
 		Attributes: map[string]*opsworksLayerTypeAttribute{
 			"nodejs_version": {
-				AttrName: "NodejsVersion",
+				AttrName: opsworks.LayerAttributesKeysNodejsVersion,
 				Type:     schema.TypeString,
 				Default:  "0.10.38",
 			},

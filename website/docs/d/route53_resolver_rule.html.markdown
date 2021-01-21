@@ -41,4 +41,4 @@ In addition to all arguments above, the following attributes are exported:
 * `owner_id` - When a rule is shared with another AWS account, the account ID of the account that the rule is shared with.
 * `share_status` - Whether the rules is shared and, if so, whether the current account is sharing the rule with another account, or another account is sharing the rule with the current account.
 Values are `NOT_SHARED`, `SHARED_BY_ME` or `SHARED_WITH_ME`
-* `tags` - A mapping of tags assigned to the resolver rule.
+* `tags` - A map of tags assigned to the resolver rule.

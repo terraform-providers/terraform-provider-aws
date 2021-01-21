@@ -9,15 +9,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
-	emrInstanceGroupCreateTimeout = 10 * time.Minute
-	emrInstanceGroupUpdateTimeout = 10 * time.Minute
+	emrInstanceGroupCreateTimeout = 30 * time.Minute
+	emrInstanceGroupUpdateTimeout = 30 * time.Minute
 )
 
 func resourceAwsEMRInstanceGroup() *schema.Resource {
@@ -44,7 +44,7 @@ func resourceAwsEMRInstanceGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 			},
 			"bid_price": {
 				Type:     schema.TypeString,
@@ -60,7 +60,7 @@ func resourceAwsEMRInstanceGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         false,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentJsonDiffs,
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
@@ -185,7 +185,7 @@ func resourceAwsEMRInstanceGroupCreate(d *schema.ResourceData, meta interface{})
 	if resp == nil || len(resp.InstanceGroupIds) == 0 {
 		return fmt.Errorf("Error creating instance groups: no instance group returned")
 	}
-	d.SetId(*resp.InstanceGroupIds[0])
+	d.SetId(aws.StringValue(resp.InstanceGroupIds[0]))
 
 	if err := waitForEmrInstanceGroupStateRunning(conn, d.Get("cluster_id").(string), d.Id(), emrInstanceGroupCreateTimeout); err != nil {
 		return fmt.Errorf("error waiting for EMR Instance Group (%s) creation: %s", d.Id(), err)
@@ -270,7 +270,6 @@ func resourceAwsEMRInstanceGroupRead(d *schema.ResourceData, meta interface{}) e
 	}
 	d.Set("ebs_optimized", ig.EbsOptimized)
 	d.Set("instance_count", ig.RequestedInstanceCount)
-	d.Set("instance_role", ig.InstanceGroupType)
 	d.Set("instance_type", ig.InstanceType)
 	d.Set("name", ig.Name)
 	d.Set("running_instance_count", ig.RunningInstanceCount)
@@ -286,7 +285,7 @@ func resourceAwsEMRInstanceGroupUpdate(d *schema.ResourceData, meta interface{})
 	conn := meta.(*AWSClient).emrconn
 
 	log.Printf("[DEBUG] Modify EMR task group")
-	if d.HasChange("instance_count") || d.HasChange("configurations_json") {
+	if d.HasChanges("instance_count", "configurations_json") {
 		instanceGroupModifyConfig := emr.InstanceGroupModifyConfig{
 			InstanceGroupId: aws.String(d.Id()),
 		}

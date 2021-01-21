@@ -7,9 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/securityhub"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func testAccAWSSecurityHubProductSubscription_basic(t *testing.T) {
@@ -134,8 +133,10 @@ resource "aws_securityhub_account" "example" {}
 
 data "aws_region" "current" {}
 
+data "aws_partition" "current" {}
+
 resource "aws_securityhub_product_subscription" "example" {
-  depends_on  = ["aws_securityhub_account.example"]
-  product_arn = "arn:aws:securityhub:${data.aws_region.current.name}::product/aws/guardduty"
+  depends_on  = [aws_securityhub_account.example]
+  product_arn = "arn:${data.aws_partition.current.partition}:securityhub:${data.aws_region.current.name}::product/aws/guardduty"
 }
 `

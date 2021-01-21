@@ -11,7 +11,7 @@ description: |-
 Provides a Pinpoint ADM (Amazon Device Messaging) Channel resource.
 
 ~> **Note:** All arguments including the Client ID and Client Secret will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 
 ## Example Usage
@@ -20,7 +20,7 @@ Provides a Pinpoint ADM (Amazon Device Messaging) Channel resource.
 resource "aws_pinpoint_app" "app" {}
 
 resource "aws_pinpoint_adm_channel" "channel" {
-  application_id = "${aws_pinpoint_app.app.application_id}"
+  application_id = aws_pinpoint_app.app.application_id
   client_id      = ""
   client_secret  = ""
   enabled        = true

@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -365,78 +365,78 @@ func testAccCheckAWSRedshiftSnapshotScheduleCreateSnapshotScheduleAssociation(cl
 
 const testAccAWSRedshiftSnapshotScheduleConfigWithIdentifierPrefix = `
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier_prefix = "tf-snapshot-schedule-"
-	definitions = [
-		"rate(12 hours)",
-	]
+  identifier_prefix = "tf-snapshot-schedule-"
+  definitions = [
+    "rate(12 hours)",
+  ]
 }
 `
 
 func testAccAWSRedshiftSnapshotScheduleConfig(rName, definition string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[1]s"
-	definitions = [
-		"%[2]s",
-	]
+  identifier = "tf-snapshot-schedule-%[1]s"
+  definitions = [
+    "%[2]s",
+  ]
 }
-	`, rName, definition)
+`, rName, definition)
 }
 
 func testAccAWSRedshiftSnapshotScheduleConfigWithMultipleDefinition(rName, definition1, definition2 string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[1]s"
-	definitions = [
-		"%[2]s",
-		"%[3]s",
-	]
+  identifier = "tf-snapshot-schedule-%[1]s"
+  definitions = [
+    "%[2]s",
+    "%[3]s",
+  ]
 }
-	`, rName, definition1, definition2)
+`, rName, definition1, definition2)
 }
 
 func testAccAWSRedshiftSnapshotScheduleConfigWithDescription(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[1]s"
-	description = "Test Schedule"
-	definitions = [
-		"rate(12 hours)",
-	]
+  identifier  = "tf-snapshot-schedule-%[1]s"
+  description = "Test Schedule"
+  definitions = [
+    "rate(12 hours)",
+  ]
 }
-	`, rName)
+`, rName)
 }
 
 func testAccAWSRedshiftSnapshotScheduleConfigWithTags(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[1]s"
-	definitions = [
-		"rate(12 hours)",
-	]
+  identifier = "tf-snapshot-schedule-%[1]s"
+  definitions = [
+    "rate(12 hours)",
+  ]
 
-	tags = {
-		foo = "bar"
-		fizz = "buzz"
-	}
+  tags = {
+    foo  = "bar"
+    fizz = "buzz"
+  }
 }
-	`, rName)
+`, rName)
 }
 
 func testAccAWSRedshiftSnapshotScheduleConfigWithTagsUpdate(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[1]s"
-	definitions = [
-		"rate(12 hours)",
-	]
+  identifier = "tf-snapshot-schedule-%[1]s"
+  definitions = [
+    "rate(12 hours)",
+  ]
 
-	tags = {
-		foo = "bar2"
-		good = "bad"
-	}
+  tags = {
+    foo  = "bar2"
+    good = "bad"
+  }
 }
-	`, rName)
+`, rName)
 }
 
 func testAccAWSRedshiftSnapshotScheduleConfigWithForceDestroy(rInt int, rName string) string {
@@ -444,12 +444,12 @@ func testAccAWSRedshiftSnapshotScheduleConfigWithForceDestroy(rInt int, rName st
 %s
 
 resource "aws_redshift_snapshot_schedule" "default" {
-	identifier = "tf-snapshot-schedule-%[2]s"
-	description = "Test Schedule"
-	definitions = [
-		"rate(12 hours)",
-	]
-	force_destroy = true
+  identifier  = "tf-snapshot-schedule-%[2]s"
+  description = "Test Schedule"
+  definitions = [
+    "rate(12 hours)",
+  ]
+  force_destroy = true
 }
 `, testAccAWSRedshiftClusterConfig_basic(rInt), rName)
 }

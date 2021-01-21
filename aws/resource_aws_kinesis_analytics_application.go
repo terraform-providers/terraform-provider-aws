@@ -1,18 +1,22 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/kinesisanalytics"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/kinesisanalytics/waiter"
 )
 
 func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
@@ -22,54 +26,20 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 		Update: resourceAwsKinesisAnalyticsApplicationUpdate,
 		Delete: resourceAwsKinesisAnalyticsApplicationDelete,
 
+		CustomizeDiff: customdiff.Sequence(
+			customdiff.ForceNewIfChange("inputs", func(_ context.Context, old, new, meta interface{}) bool {
+				// An existing input configuration cannot be deleted.
+				return len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0
+			}),
+		),
+
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				arns := strings.Split(d.Id(), ":")
-				name := strings.Replace(arns[len(arns)-1], "application/", "", 1)
-				d.Set("name", name)
-				return []*schema.ResourceData{d}, nil
-			},
+			State: resourceAwsKinesisAnalyticsApplicationImport,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"arn": {
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"code": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"create_timestamp": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"last_update_timestamp": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"version": {
-				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -97,6 +67,39 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"code": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 102400),
+			},
+
+			"create_timestamp": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(0, 1024),
+			},
+
+			"last_update_timestamp": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 128),
+					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`), "must only include alphanumeric, underscore, period, or hyphen characters"),
+				),
 			},
 
 			"inputs": {
@@ -155,17 +158,24 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 						"name_prefix": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 32),
+								validation.StringMatch(regexp.MustCompile(`^[^-\s<>&]+$`), "must not include hyphen, whitespace, angle bracket, or ampersand characters"),
+							),
 						},
 
 						"parallelism": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"count": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.IntBetween(1, 64),
 									},
 								},
 							},
@@ -210,6 +220,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 									"record_columns": {
 										Type:     schema.TypeList,
 										Required: true,
+										MaxItems: 1000,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"mapping": {
@@ -218,8 +229,9 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 												},
 
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[^-\s<>&]+$`), "must not include hyphen, whitespace, angle bracket, or ampersand characters"),
 												},
 
 												"sql_type": {
@@ -264,6 +276,10 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 																		},
 																	},
 																},
+																ExactlyOneOf: []string{
+																	"inputs.0.schema.0.record_format.0.mapping_parameters.0.csv",
+																	"inputs.0.schema.0.record_format.0.mapping_parameters.0.json",
+																},
 															},
 
 															"json": {
@@ -277,6 +293,10 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 																			Required: true,
 																		},
 																	},
+																},
+																ExactlyOneOf: []string{
+																	"inputs.0.schema.0.record_format.0.mapping_parameters.0.csv",
+																	"inputs.0.schema.0.record_format.0.mapping_parameters.0.json",
 																},
 															},
 														},
@@ -308,7 +328,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 						},
 
 						"stream_names": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -317,7 +337,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 			},
 
 			"outputs": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 3,
 				Elem: &schema.Resource{
@@ -393,6 +413,10 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 32),
+								validation.StringMatch(regexp.MustCompile(`^[^-\s<>&]+$`), "must not include hyphen, whitespace, angle bracket, or ampersand characters"),
+							),
 						},
 
 						"schema": {
@@ -402,12 +426,9 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"record_format_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											kinesisanalytics.RecordFormatTypeCsv,
-											kinesisanalytics.RecordFormatTypeJson,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(kinesisanalytics.RecordFormatType_Values(), false),
 									},
 								},
 							},
@@ -462,6 +483,7 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 									"record_columns": {
 										Type:     schema.TypeList,
 										Required: true,
+										MaxItems: 1000,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"mapping": {
@@ -470,8 +492,9 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 												},
 
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[^-\s<>&]+$`), "must not include hyphen, whitespace, angle bracket, or ampersand characters"),
 												},
 
 												"sql_type": {
@@ -516,6 +539,10 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 																		},
 																	},
 																},
+																ExactlyOneOf: []string{
+																	"reference_data_sources.0.schema.0.record_format.0.mapping_parameters.0.csv",
+																	"reference_data_sources.0.schema.0.record_format.0.mapping_parameters.0.json",
+																},
 															},
 
 															"json": {
@@ -529,6 +556,10 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 																			Required: true,
 																		},
 																	},
+																},
+																ExactlyOneOf: []string{
+																	"reference_data_sources.0.schema.0.record_format.0.mapping_parameters.0.csv",
+																	"reference_data_sources.0.schema.0.record_format.0.mapping_parameters.0.json",
 																},
 															},
 														},
@@ -547,318 +578,447 @@ func resourceAwsKinesisAnalyticsApplication() *schema.Resource {
 						},
 
 						"table_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 32),
 						},
 					},
 				},
 			},
+
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
+
+			"version": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceAwsKinesisAnalyticsApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
-	name := d.Get("name").(string)
-	createOpts := &kinesisanalytics.CreateApplicationInput{
-		ApplicationName: aws.String(name),
-	}
 
-	if v, ok := d.GetOk("code"); ok && v.(string) != "" {
-		createOpts.ApplicationCode = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("cloudwatch_logging_options"); ok {
-		clo := v.([]interface{})[0].(map[string]interface{})
-		cloudwatchLoggingOption := expandKinesisAnalyticsCloudwatchLoggingOption(clo)
-		createOpts.CloudWatchLoggingOptions = []*kinesisanalytics.CloudWatchLoggingOption{cloudwatchLoggingOption}
-	}
-
-	if v, ok := d.GetOk("inputs"); ok {
-		i := v.([]interface{})[0].(map[string]interface{})
-		inputs := expandKinesisAnalyticsInputs(i)
-		createOpts.Inputs = []*kinesisanalytics.Input{inputs}
-	}
-
-	if v := d.Get("outputs").([]interface{}); len(v) > 0 {
-		outputs := make([]*kinesisanalytics.Output, 0)
-		for _, o := range v {
-			output := expandKinesisAnalyticsOutputs(o.(map[string]interface{}))
-			outputs = append(outputs, output)
-		}
-		createOpts.Outputs = outputs
+	input := &kinesisanalytics.CreateApplicationInput{
+		ApplicationCode:          aws.String(d.Get("code").(string)),
+		ApplicationDescription:   aws.String(d.Get("description").(string)),
+		ApplicationName:          aws.String(d.Get("name").(string)),
+		CloudWatchLoggingOptions: expandKinesisAnalyticsCloudWatchLoggingOptions(d.Get("cloudwatch_logging_options").([]interface{})),
+		Inputs:                   expandKinesisAnalyticsInputs(d.Get("inputs").([]interface{})),
+		Outputs:                  expandKinesisAnalyticsOutputs(d.Get("outputs").(*schema.Set).List()),
 	}
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		createOpts.Tags = keyvaluetags.New(v).IgnoreAws().KinesisanalyticsTags()
+		input.Tags = keyvaluetags.New(v).IgnoreAws().KinesisanalyticsTags()
 	}
 
-	// Retry for IAM eventual consistency
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-		output, err := conn.CreateApplication(createOpts)
-		if err != nil {
-			// Kinesis Stream: https://github.com/terraform-providers/terraform-provider-aws/issues/7032
-			if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics service doesn't have sufficient privileges") {
-				return resource.RetryableError(err)
-			}
-			// Kinesis Firehose: https://github.com/terraform-providers/terraform-provider-aws/issues/7394
-			if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics doesn't have sufficient privileges") {
-				return resource.RetryableError(err)
-			}
-			// InvalidArgumentException: Given IAM role arn : arn:aws:iam::123456789012:role/xxx does not provide Invoke permissions on the Lambda resource : arn:aws:lambda:us-west-2:123456789012:function:yyy
-			if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "does not provide Invoke permissions on the Lambda resource") {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		d.SetId(aws.StringValue(output.ApplicationSummary.ApplicationARN))
-		return nil
+	log.Printf("[DEBUG] Creating Kinesis Analytics Application: %s", input)
+
+	outputRaw, err := waiter.IAMPropagation(func() (interface{}, error) {
+		return conn.CreateApplication(input)
 	})
 
-	if isResourceTimeoutError(err) {
-		var output *kinesisanalytics.CreateApplicationOutput
-		output, err = conn.CreateApplication(createOpts)
-		d.SetId(aws.StringValue(output.ApplicationSummary.ApplicationARN))
-	}
-
 	if err != nil {
-		return fmt.Errorf("Unable to create Kinesis Analytics application: %s", err)
+		return fmt.Errorf("error creating Kinesis Analytics Application: %w", err)
 	}
 
-	return resourceAwsKinesisAnalyticsApplicationUpdate(d, meta)
+	applicationSummary := outputRaw.(*kinesisanalytics.CreateApplicationOutput).ApplicationSummary
+
+	d.SetId(aws.StringValue(applicationSummary.ApplicationARN))
+
+	if v := d.Get("reference_data_sources").([]interface{}); len(v) > 0 && v[0] != nil {
+		// Add new reference data source.
+		input := &kinesisanalytics.AddApplicationReferenceDataSourceInput{
+			ApplicationName:             applicationSummary.ApplicationName,
+			CurrentApplicationVersionId: aws.Int64(1), // Newly created application version.
+			ReferenceDataSource:         expandKinesisAnalyticsReferenceDataSource(v),
+		}
+
+		log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) reference data source: %s", d.Id(), input)
+
+		_, err := waiter.IAMPropagation(func() (interface{}, error) {
+			return conn.AddApplicationReferenceDataSource(input)
+		})
+
+		if err != nil {
+			return fmt.Errorf("error adding Kinesis Analytics Application (%s) reference data source: %w", d.Id(), err)
+		}
+	}
+
+	return resourceAwsKinesisAnalyticsApplicationRead(d, meta)
 }
 
 func resourceAwsKinesisAnalyticsApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
-	name := d.Get("name").(string)
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	describeOpts := &kinesisanalytics.DescribeApplicationInput{
-		ApplicationName: aws.String(name),
-	}
-	resp, err := conn.DescribeApplication(describeOpts)
+	application, err := finder.ApplicationByName(conn, d.Get("name").(string))
+
 	if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
 		log.Printf("[WARN] Kinesis Analytics Application (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
+
 	if err != nil {
-		return fmt.Errorf("error reading Kinesis Analytics Application (%s): %s", d.Id(), err)
+		return fmt.Errorf("error reading Kinesis Analytics Application (%s): %w", d.Id(), err)
 	}
 
-	arn := aws.StringValue(resp.ApplicationDetail.ApplicationARN)
-	d.Set("name", aws.StringValue(resp.ApplicationDetail.ApplicationName))
+	arn := aws.StringValue(application.ApplicationARN)
 	d.Set("arn", arn)
-	d.Set("code", aws.StringValue(resp.ApplicationDetail.ApplicationCode))
-	d.Set("create_timestamp", aws.TimeValue(resp.ApplicationDetail.CreateTimestamp).Format(time.RFC3339))
-	d.Set("description", aws.StringValue(resp.ApplicationDetail.ApplicationDescription))
-	d.Set("last_update_timestamp", aws.TimeValue(resp.ApplicationDetail.LastUpdateTimestamp).Format(time.RFC3339))
-	d.Set("status", aws.StringValue(resp.ApplicationDetail.ApplicationStatus))
-	d.Set("version", int(aws.Int64Value(resp.ApplicationDetail.ApplicationVersionId)))
+	d.Set("code", application.ApplicationCode)
+	d.Set("create_timestamp", aws.TimeValue(application.CreateTimestamp).Format(time.RFC3339))
+	d.Set("description", application.ApplicationDescription)
+	d.Set("last_update_timestamp", aws.TimeValue(application.LastUpdateTimestamp).Format(time.RFC3339))
+	d.Set("name", application.ApplicationName)
+	d.Set("status", application.ApplicationStatus)
+	d.Set("version", int(aws.Int64Value(application.ApplicationVersionId)))
 
-	if err := d.Set("cloudwatch_logging_options", flattenKinesisAnalyticsCloudwatchLoggingOptions(resp.ApplicationDetail.CloudWatchLoggingOptionDescriptions)); err != nil {
-		return fmt.Errorf("error setting cloudwatch_logging_options: %s", err)
+	if err := d.Set("cloudwatch_logging_options", flattenKinesisAnalyticsCloudWatchLoggingOptionDescriptions(application.CloudWatchLoggingOptionDescriptions)); err != nil {
+		return fmt.Errorf("error setting cloudwatch_logging_options: %w", err)
 	}
 
-	if err := d.Set("inputs", flattenKinesisAnalyticsInputs(resp.ApplicationDetail.InputDescriptions)); err != nil {
-		return fmt.Errorf("error setting inputs: %s", err)
+	if err := d.Set("inputs", flattenKinesisAnalyticsInputDescriptions(application.InputDescriptions)); err != nil {
+		return fmt.Errorf("error setting inputs: %w", err)
 	}
 
-	if err := d.Set("outputs", flattenKinesisAnalyticsOutputs(resp.ApplicationDetail.OutputDescriptions)); err != nil {
-		return fmt.Errorf("error setting outputs: %s", err)
+	if err := d.Set("outputs", flattenKinesisAnalyticsOutputDescriptions(application.OutputDescriptions)); err != nil {
+		return fmt.Errorf("error setting outputs: %w", err)
 	}
 
-	if err := d.Set("reference_data_sources", flattenKinesisAnalyticsReferenceDataSources(resp.ApplicationDetail.ReferenceDataSourceDescriptions)); err != nil {
-		return fmt.Errorf("error setting reference_data_sources: %s", err)
+	if err := d.Set("reference_data_sources", flattenKinesisAnalyticsReferenceDataSourceDescriptions(application.ReferenceDataSourceDescriptions)); err != nil {
+		return fmt.Errorf("error setting reference_data_sources: %w", err)
 	}
 
 	tags, err := keyvaluetags.KinesisanalyticsListTags(conn, arn)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for Kinesis Analytics Application (%s): %s", arn, err)
+		return fmt.Errorf("error listing tags for Kinesis Analytics Application (%s): %w", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 
 	return nil
 }
 
 func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	var version int
 	conn := meta.(*AWSClient).kinesisanalyticsconn
-	name := d.Get("name").(string)
 
-	if v, ok := d.GetOk("version"); ok {
-		version = v.(int)
-	} else {
-		version = 1
+	if d.HasChanges("cloudwatch_logging_options", "code", "inputs", "outputs", "reference_data_sources") {
+		applicationName := d.Get("name").(string)
+		currentApplicationVersionId := int64(d.Get("version").(int))
+		updateApplication := false
+
+		input := &kinesisanalytics.UpdateApplicationInput{
+			ApplicationName:   aws.String(applicationName),
+			ApplicationUpdate: &kinesisanalytics.ApplicationUpdate{},
+		}
+
+		if d.HasChange("cloudwatch_logging_options") {
+			o, n := d.GetChange("cloudwatch_logging_options")
+
+			if len(o.([]interface{})) == 0 {
+				// Add new CloudWatch logging options.
+				mNewCloudWatchLoggingOption := n.([]interface{})[0].(map[string]interface{})
+
+				input := &kinesisanalytics.AddApplicationCloudWatchLoggingOptionInput{
+					ApplicationName: aws.String(applicationName),
+					CloudWatchLoggingOption: &kinesisanalytics.CloudWatchLoggingOption{
+						LogStreamARN: aws.String(mNewCloudWatchLoggingOption["log_stream_arn"].(string)),
+						RoleARN:      aws.String(mNewCloudWatchLoggingOption["role_arn"].(string)),
+					},
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+				}
+
+				log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) CloudWatch logging option: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.AddApplicationCloudWatchLoggingOption(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error adding Kinesis Analytics Application (%s) CloudWatch logging option: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			} else if len(n.([]interface{})) == 0 {
+				// Delete existing CloudWatch logging options.
+				mOldCloudWatchLoggingOption := o.([]interface{})[0].(map[string]interface{})
+
+				input := &kinesisanalytics.DeleteApplicationCloudWatchLoggingOptionInput{
+					ApplicationName:             aws.String(applicationName),
+					CloudWatchLoggingOptionId:   aws.String(mOldCloudWatchLoggingOption["id"].(string)),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+				}
+
+				log.Printf("[DEBUG] Deleting Kinesis Analytics Application (%s) CloudWatch logging option: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.DeleteApplicationCloudWatchLoggingOption(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) CloudWatch logging option: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			} else {
+				// Update existing CloudWatch logging options.
+				mOldCloudWatchLoggingOption := o.([]interface{})[0].(map[string]interface{})
+				mNewCloudWatchLoggingOption := n.([]interface{})[0].(map[string]interface{})
+
+				input.ApplicationUpdate.CloudWatchLoggingOptionUpdates = []*kinesisanalytics.CloudWatchLoggingOptionUpdate{
+					{
+						CloudWatchLoggingOptionId: aws.String(mOldCloudWatchLoggingOption["id"].(string)),
+						LogStreamARNUpdate:        aws.String(mNewCloudWatchLoggingOption["log_stream_arn"].(string)),
+						RoleARNUpdate:             aws.String(mNewCloudWatchLoggingOption["role_arn"].(string)),
+					},
+				}
+
+				updateApplication = true
+			}
+		}
+
+		if d.HasChange("code") {
+			input.ApplicationUpdate.ApplicationCodeUpdate = aws.String(d.Get("code").(string))
+
+			updateApplication = true
+		}
+
+		if d.HasChange("inputs") {
+			o, n := d.GetChange("inputs")
+
+			if len(o.([]interface{})) == 0 {
+				// Add new input.
+				input := &kinesisanalytics.AddApplicationInputInput{
+					ApplicationName:             aws.String(applicationName),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+					Input:                       expandKinesisAnalyticsInput(n.([]interface{})),
+				}
+
+				log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) input: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.AddApplicationInput(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error adding Kinesis Analytics Application (%s) input: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			} else if len(n.([]interface{})) == 0 {
+				// The existing input cannot be deleted.
+				// This should be handled by the CustomizeDiff function above.
+				return fmt.Errorf("error deleting Kinesis Analytics Application (%s) input", d.Id())
+			} else {
+				// Update existing input.
+				inputUpdate := expandKinesisAnalyticsInputUpdate(n.([]interface{}))
+
+				if d.HasChange("inputs.0.processing_configuration") {
+					o, n := d.GetChange("inputs.0.processing_configuration")
+
+					// Update of existing input processing configuration is handled via the updating of the existing input.
+
+					if len(o.([]interface{})) == 0 {
+						// Add new input processing configuration.
+						input := &kinesisanalytics.AddApplicationInputProcessingConfigurationInput{
+							ApplicationName:              aws.String(applicationName),
+							CurrentApplicationVersionId:  aws.Int64(currentApplicationVersionId),
+							InputId:                      inputUpdate.InputId,
+							InputProcessingConfiguration: expandKinesisAnalyticsInputProcessingConfiguration(n.([]interface{})),
+						}
+
+						log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) input processing configuration: %s", d.Id(), input)
+
+						_, err := waiter.IAMPropagation(func() (interface{}, error) {
+							return conn.AddApplicationInputProcessingConfiguration(input)
+						})
+
+						if err != nil {
+							return fmt.Errorf("error adding Kinesis Analytics Application (%s) input processing configuration: %w", d.Id(), err)
+						}
+
+						currentApplicationVersionId += 1
+					} else if len(n.([]interface{})) == 0 {
+						// Delete existing input processing configuration.
+						input := &kinesisanalytics.DeleteApplicationInputProcessingConfigurationInput{
+							ApplicationName:             aws.String(applicationName),
+							CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+							InputId:                     inputUpdate.InputId,
+						}
+
+						log.Printf("[DEBUG] Deleting Kinesis Analytics Application (%s) input processing configuration: %s", d.Id(), input)
+
+						_, err := waiter.IAMPropagation(func() (interface{}, error) {
+							return conn.DeleteApplicationInputProcessingConfiguration(input)
+						})
+
+						if err != nil {
+							return fmt.Errorf("error deleting Kinesis Analytics Application (%s) input processing configuration: %w", d.Id(), err)
+						}
+
+						currentApplicationVersionId += 1
+					}
+				}
+
+				input.ApplicationUpdate.InputUpdates = []*kinesisanalytics.InputUpdate{inputUpdate}
+
+				updateApplication = true
+			}
+		}
+
+		if d.HasChange("outputs") {
+			o, n := d.GetChange("outputs")
+			os := o.(*schema.Set)
+			ns := n.(*schema.Set)
+
+			additions := []interface{}{}
+			deletions := []string{}
+
+			// Additions.
+			for _, vOutput := range ns.Difference(os).List() {
+				if outputId, ok := vOutput.(map[string]interface{})["id"].(string); ok && outputId != "" {
+					// Shouldn't be attempting to add an output with an ID.
+					log.Printf("[WARN] Attempting to add invalid Kinesis Analytics Application (%s) output: %#v", d.Id(), vOutput)
+				} else {
+					additions = append(additions, vOutput)
+				}
+			}
+
+			// Deletions.
+			for _, vOutput := range os.Difference(ns).List() {
+				if outputId, ok := vOutput.(map[string]interface{})["id"].(string); ok && outputId != "" {
+					deletions = append(deletions, outputId)
+				} else {
+					// Shouldn't be attempting to delete an output without an ID.
+					log.Printf("[WARN] Attempting to delete invalid Kinesis Analytics Application (%s) output: %#v", d.Id(), vOutput)
+				}
+			}
+
+			// Delete existing outputs.
+			for _, outputId := range deletions {
+				input := &kinesisanalytics.DeleteApplicationOutputInput{
+					ApplicationName:             aws.String(applicationName),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+					OutputId:                    aws.String(outputId),
+				}
+
+				log.Printf("[DEBUG] Deleting Kinesis Analytics Application (%s) output: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.DeleteApplicationOutput(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) output: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			}
+
+			// Add new outputs.
+			for _, vOutput := range additions {
+				input := &kinesisanalytics.AddApplicationOutputInput{
+					ApplicationName:             aws.String(applicationName),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+					Output:                      expandKinesisAnalyticsOutput(vOutput),
+				}
+
+				log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) output: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.AddApplicationOutput(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error adding Kinesis Analytics Application (%s) output: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			}
+		}
+
+		if d.HasChange("reference_data_sources") {
+			o, n := d.GetChange("reference_data_sources")
+
+			if len(o.([]interface{})) == 0 {
+				// Add new reference data source.
+				input := &kinesisanalytics.AddApplicationReferenceDataSourceInput{
+					ApplicationName:             aws.String(applicationName),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+					ReferenceDataSource:         expandKinesisAnalyticsReferenceDataSource(n.([]interface{})),
+				}
+
+				log.Printf("[DEBUG] Adding Kinesis Analytics Application (%s) reference data source: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.AddApplicationReferenceDataSource(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error adding Kinesis Analytics Application (%s) reference data source: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			} else if len(n.([]interface{})) == 0 {
+				// Delete existing reference data source.
+				mOldReferenceDataSource := o.([]interface{})[0].(map[string]interface{})
+
+				input := &kinesisanalytics.DeleteApplicationReferenceDataSourceInput{
+					ApplicationName:             aws.String(applicationName),
+					CurrentApplicationVersionId: aws.Int64(currentApplicationVersionId),
+					ReferenceId:                 aws.String(mOldReferenceDataSource["id"].(string)),
+				}
+
+				log.Printf("[DEBUG] Deleting Kinesis Analytics Application (%s) reference data source: %s", d.Id(), input)
+
+				_, err := waiter.IAMPropagation(func() (interface{}, error) {
+					return conn.DeleteApplicationReferenceDataSource(input)
+				})
+
+				if err != nil {
+					return fmt.Errorf("error deleting Kinesis Analytics Application (%s) reference data source: %w", d.Id(), err)
+				}
+
+				currentApplicationVersionId += 1
+			} else {
+				// Update existing reference data source.
+				referenceDataSourceUpdate := expandKinesisAnalyticsReferenceDataSourceUpdate(n.([]interface{}))
+
+				input.ApplicationUpdate.ReferenceDataSourceUpdates = []*kinesisanalytics.ReferenceDataSourceUpdate{referenceDataSourceUpdate}
+
+				updateApplication = true
+			}
+		}
+
+		if updateApplication {
+			input.CurrentApplicationVersionId = aws.Int64(currentApplicationVersionId)
+
+			log.Printf("[DEBUG] Updating Kinesis Analytics Application (%s): %s", d.Id(), input)
+
+			_, err := waiter.IAMPropagation(func() (interface{}, error) {
+				return conn.UpdateApplication(input)
+			})
+
+			if err != nil {
+				return fmt.Errorf("error updating Kinesis Analytics Application (%s): %w", d.Id(), err)
+			}
+		}
 	}
 
-	if !d.IsNewResource() {
-		updateApplicationOpts := &kinesisanalytics.UpdateApplicationInput{
-			ApplicationName:             aws.String(name),
-			CurrentApplicationVersionId: aws.Int64(int64(version)),
-		}
-
-		applicationUpdate, err := createApplicationUpdateOpts(d)
-		if err != nil {
-			return err
-		}
-
-		if !reflect.DeepEqual(applicationUpdate, &kinesisanalytics.ApplicationUpdate{}) {
-			updateApplicationOpts.SetApplicationUpdate(applicationUpdate)
-			_, updateErr := conn.UpdateApplication(updateApplicationOpts)
-			if updateErr != nil {
-				return updateErr
-			}
-			version = version + 1
-		}
-
-		oldLoggingOptions, newLoggingOptions := d.GetChange("cloudwatch_logging_options")
-		if len(oldLoggingOptions.([]interface{})) == 0 && len(newLoggingOptions.([]interface{})) > 0 {
-			if v, ok := d.GetOk("cloudwatch_logging_options"); ok {
-				clo := v.([]interface{})[0].(map[string]interface{})
-				cloudwatchLoggingOption := expandKinesisAnalyticsCloudwatchLoggingOption(clo)
-				addOpts := &kinesisanalytics.AddApplicationCloudWatchLoggingOptionInput{
-					ApplicationName:             aws.String(name),
-					CurrentApplicationVersionId: aws.Int64(int64(version)),
-					CloudWatchLoggingOption:     cloudwatchLoggingOption,
-				}
-				// Retry for IAM eventual consistency
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.AddApplicationCloudWatchLoggingOption(addOpts)
-					if err != nil {
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics service doesn't have sufficient privileges") {
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
-					}
-					return nil
-				})
-				if isResourceTimeoutError(err) {
-					_, err = conn.AddApplicationCloudWatchLoggingOption(addOpts)
-				}
-
-				if err != nil {
-					return fmt.Errorf("Unable to add CloudWatch logging options: %s", err)
-				}
-				version = version + 1
-			}
-		}
-
-		oldInputs, newInputs := d.GetChange("inputs")
-		if len(oldInputs.([]interface{})) == 0 && len(newInputs.([]interface{})) > 0 {
-			if v, ok := d.GetOk("inputs"); ok {
-				i := v.([]interface{})[0].(map[string]interface{})
-				input := expandKinesisAnalyticsInputs(i)
-				addOpts := &kinesisanalytics.AddApplicationInputInput{
-					ApplicationName:             aws.String(name),
-					CurrentApplicationVersionId: aws.Int64(int64(version)),
-					Input:                       input,
-				}
-				// Retry for IAM eventual consistency
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.AddApplicationInput(addOpts)
-					if err != nil {
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics service doesn't have sufficient privileges") {
-							return resource.RetryableError(err)
-						}
-						// InvalidArgumentException: Given IAM role arn : arn:aws:iam::123456789012:role/xxx does not provide Invoke permissions on the Lambda resource : arn:aws:lambda:us-west-2:123456789012:function:yyy
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "does not provide Invoke permissions on the Lambda resource") {
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
-					}
-					return nil
-				})
-				if isResourceTimeoutError(err) {
-					_, err = conn.AddApplicationInput(addOpts)
-				}
-
-				if err != nil {
-					return fmt.Errorf("Unable to add application inputs: %s", err)
-				}
-				version = version + 1
-			}
-		}
-
-		oldOutputs, newOutputs := d.GetChange("outputs")
-		if len(oldOutputs.([]interface{})) == 0 && len(newOutputs.([]interface{})) > 0 {
-			if v, ok := d.GetOk("outputs"); ok {
-				o := v.([]interface{})[0].(map[string]interface{})
-				output := expandKinesisAnalyticsOutputs(o)
-				addOpts := &kinesisanalytics.AddApplicationOutputInput{
-					ApplicationName:             aws.String(name),
-					CurrentApplicationVersionId: aws.Int64(int64(version)),
-					Output:                      output,
-				}
-				// Retry for IAM eventual consistency
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.AddApplicationOutput(addOpts)
-					if err != nil {
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics service doesn't have sufficient privileges") {
-							return resource.RetryableError(err)
-						}
-						// InvalidArgumentException: Given IAM role arn : arn:aws:iam::123456789012:role/xxx does not provide Invoke permissions on the Lambda resource : arn:aws:lambda:us-west-2:123456789012:function:yyy
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "does not provide Invoke permissions on the Lambda resource") {
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
-					}
-					return nil
-				})
-				if isResourceTimeoutError(err) {
-					_, err = conn.AddApplicationOutput(addOpts)
-				}
-				if err != nil {
-					return fmt.Errorf("Unable to add application outputs: %s", err)
-				}
-				version = version + 1
-			}
-		}
-
+	if d.HasChange("tags") {
 		arn := d.Get("arn").(string)
-		if d.HasChange("tags") {
-			o, n := d.GetChange("tags")
-
-			if err := keyvaluetags.KinesisanalyticsUpdateTags(conn, arn, o, n); err != nil {
-				return fmt.Errorf("error updating Kinesis Analytics Application (%s) tags: %s", arn, err)
-			}
-		}
-	}
-
-	oldReferenceData, newReferenceData := d.GetChange("reference_data_sources")
-	if len(oldReferenceData.([]interface{})) == 0 && len(newReferenceData.([]interface{})) > 0 {
-		if v := d.Get("reference_data_sources").([]interface{}); len(v) > 0 {
-			for _, r := range v {
-				rd := r.(map[string]interface{})
-				referenceData := expandKinesisAnalyticsReferenceData(rd)
-				addOpts := &kinesisanalytics.AddApplicationReferenceDataSourceInput{
-					ApplicationName:             aws.String(name),
-					CurrentApplicationVersionId: aws.Int64(int64(version)),
-					ReferenceDataSource:         referenceData,
-				}
-				// Retry for IAM eventual consistency
-				err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-					_, err := conn.AddApplicationReferenceDataSource(addOpts)
-					if err != nil {
-						if isAWSErr(err, kinesisanalytics.ErrCodeInvalidArgumentException, "Kinesis Analytics service doesn't have sufficient privileges") {
-							return resource.RetryableError(err)
-						}
-						return resource.NonRetryableError(err)
-					}
-					return nil
-				})
-				if isResourceTimeoutError(err) {
-					_, err = conn.AddApplicationReferenceDataSource(addOpts)
-				}
-				if err != nil {
-					return fmt.Errorf("Unable to add application reference data source: %s", err)
-				}
-				version = version + 1
-			}
+		o, n := d.GetChange("tags")
+		if err := keyvaluetags.KinesisanalyticsUpdateTags(conn, arn, o, n); err != nil {
+			return fmt.Errorf("error updating Kinesis Analytics Application (%s) tags: %s", arn, err)
 		}
 	}
 
@@ -867,772 +1027,776 @@ func resourceAwsKinesisAnalyticsApplicationUpdate(d *schema.ResourceData, meta i
 
 func resourceAwsKinesisAnalyticsApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisanalyticsconn
-	name := d.Get("name").(string)
-	createTimestamp, parseErr := time.Parse(time.RFC3339, d.Get("create_timestamp").(string))
-	if parseErr != nil {
-		return parseErr
+
+	createTimestamp, err := time.Parse(time.RFC3339, d.Get("create_timestamp").(string))
+	if err != nil {
+		return fmt.Errorf("error parsing create_timestamp: %w", err)
 	}
 
-	log.Printf("[DEBUG] Kinesis Analytics Application destroy: %v", d.Id())
-	deleteOpts := &kinesisanalytics.DeleteApplicationInput{
-		ApplicationName: aws.String(name),
+	applicationName := d.Get("name").(string)
+
+	log.Printf("[DEBUG] Deleting Kinesis Analytics Application (%s)", d.Id())
+	_, err = conn.DeleteApplication(&kinesisanalytics.DeleteApplicationInput{
+		ApplicationName: aws.String(applicationName),
 		CreateTimestamp: aws.Time(createTimestamp),
-	}
-	_, deleteErr := conn.DeleteApplication(deleteOpts)
-	if isAWSErr(deleteErr, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
+	})
+
+	if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
 		return nil
 	}
-	deleteErr = waitForDeleteKinesisAnalyticsApplication(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
-	if deleteErr != nil {
-		return fmt.Errorf("error waiting for deletion of Kinesis Analytics Application (%s): %s", d.Id(), deleteErr)
+
+	if err != nil {
+		return fmt.Errorf("error deleting Kinesis Analytics Application (%s): %w", d.Id(), err)
 	}
 
-	log.Printf("[DEBUG] Kinesis Analytics Application deleted: %v", d.Id())
+	_, err = waiter.ApplicationDeleted(conn, applicationName, d.Timeout(schema.TimeoutDelete))
+
+	if err != nil {
+		return fmt.Errorf("error waiting for Kinesis Analytics Application (%s) deletion: %w", d.Id(), err)
+	}
+
 	return nil
 }
 
-func expandKinesisAnalyticsCloudwatchLoggingOption(clo map[string]interface{}) *kinesisanalytics.CloudWatchLoggingOption {
-	cloudwatchLoggingOption := &kinesisanalytics.CloudWatchLoggingOption{
-		LogStreamARN: aws.String(clo["log_stream_arn"].(string)),
-		RoleARN:      aws.String(clo["role_arn"].(string)),
+func resourceAwsKinesisAnalyticsApplicationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	arn, err := arn.Parse(d.Id())
+	if err != nil {
+		return []*schema.ResourceData{}, fmt.Errorf("Error parsing ARN %q: %w", d.Id(), err)
 	}
-	return cloudwatchLoggingOption
+
+	// application/<name>
+	parts := strings.Split(arn.Resource, "/")
+	if len(parts) != 2 {
+		return []*schema.ResourceData{}, fmt.Errorf("Unexpected ARN format: %q", d.Id())
+	}
+
+	d.Set("name", parts[1])
+
+	return []*schema.ResourceData{d}, nil
 }
 
-func expandKinesisAnalyticsInputs(i map[string]interface{}) *kinesisanalytics.Input {
-	input := &kinesisanalytics.Input{
-		NamePrefix: aws.String(i["name_prefix"].(string)),
+func expandKinesisAnalyticsCloudWatchLoggingOptions(vCloudWatchLoggingOptions []interface{}) []*kinesisanalytics.CloudWatchLoggingOption {
+	if len(vCloudWatchLoggingOptions) == 0 || vCloudWatchLoggingOptions[0] == nil {
+		return nil
 	}
 
-	if v := i["kinesis_firehose"].([]interface{}); len(v) > 0 {
-		kf := v[0].(map[string]interface{})
-		kfi := &kinesisanalytics.KinesisFirehoseInput{
-			ResourceARN: aws.String(kf["resource_arn"].(string)),
-			RoleARN:     aws.String(kf["role_arn"].(string)),
+	cloudWatchLoggingOption := &kinesisanalytics.CloudWatchLoggingOption{}
+
+	mCloudWatchLoggingOption := vCloudWatchLoggingOptions[0].(map[string]interface{})
+
+	if vLogStreamArn, ok := mCloudWatchLoggingOption["log_stream_arn"].(string); ok && vLogStreamArn != "" {
+		cloudWatchLoggingOption.LogStreamARN = aws.String(vLogStreamArn)
+	}
+	if vRoleArn, ok := mCloudWatchLoggingOption["role_arn"].(string); ok && vRoleArn != "" {
+		cloudWatchLoggingOption.RoleARN = aws.String(vRoleArn)
+	}
+
+	return []*kinesisanalytics.CloudWatchLoggingOption{cloudWatchLoggingOption}
+}
+
+func expandKinesisAnalyticsInputs(vInputs []interface{}) []*kinesisanalytics.Input {
+	if len(vInputs) == 0 || vInputs[0] == nil {
+		return nil
+	}
+
+	return []*kinesisanalytics.Input{expandKinesisAnalyticsInput(vInputs)}
+}
+
+func expandKinesisAnalyticsInput(vInput []interface{}) *kinesisanalytics.Input {
+	if len(vInput) == 0 || vInput[0] == nil {
+		return nil
+	}
+
+	input := &kinesisanalytics.Input{}
+
+	mInput := vInput[0].(map[string]interface{})
+
+	if vInputParallelism, ok := mInput["parallelism"].([]interface{}); ok && len(vInputParallelism) > 0 && vInputParallelism[0] != nil {
+		inputParallelism := &kinesisanalytics.InputParallelism{}
+
+		mInputParallelism := vInputParallelism[0].(map[string]interface{})
+
+		if vCount, ok := mInputParallelism["count"].(int); ok {
+			inputParallelism.Count = aws.Int64(int64(vCount))
 		}
-		input.KinesisFirehoseInput = kfi
+
+		input.InputParallelism = inputParallelism
 	}
 
-	if v := i["kinesis_stream"].([]interface{}); len(v) > 0 {
-		ks := v[0].(map[string]interface{})
-		ksi := &kinesisanalytics.KinesisStreamsInput{
-			ResourceARN: aws.String(ks["resource_arn"].(string)),
-			RoleARN:     aws.String(ks["role_arn"].(string)),
+	if vInputProcessingConfiguration, ok := mInput["processing_configuration"].([]interface{}); ok {
+		input.InputProcessingConfiguration = expandKinesisAnalyticsInputProcessingConfiguration(vInputProcessingConfiguration)
+	}
+
+	if vInputSchema, ok := mInput["schema"].([]interface{}); ok {
+		input.InputSchema = expandKinesisAnalyticsSourceSchema(vInputSchema)
+	}
+
+	if vKinesisFirehoseInput, ok := mInput["kinesis_firehose"].([]interface{}); ok && len(vKinesisFirehoseInput) > 0 && vKinesisFirehoseInput[0] != nil {
+		kinesisFirehoseInput := &kinesisanalytics.KinesisFirehoseInput{}
+
+		mKinesisFirehoseInput := vKinesisFirehoseInput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisFirehoseInput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisFirehoseInput.ResourceARN = aws.String(vResourceArn)
 		}
-		input.KinesisStreamsInput = ksi
-	}
-
-	if v := i["parallelism"].([]interface{}); len(v) > 0 {
-		p := v[0].(map[string]interface{})
-
-		if c, ok := p["count"]; ok {
-			ip := &kinesisanalytics.InputParallelism{
-				Count: aws.Int64(int64(c.(int))),
-			}
-			input.InputParallelism = ip
+		if vRoleArn, ok := mKinesisFirehoseInput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisFirehoseInput.RoleARN = aws.String(vRoleArn)
 		}
+
+		input.KinesisFirehoseInput = kinesisFirehoseInput
 	}
 
-	if v := i["processing_configuration"].([]interface{}); len(v) > 0 {
-		pc := v[0].(map[string]interface{})
+	if vKinesisStreamsInput, ok := mInput["kinesis_stream"].([]interface{}); ok && len(vKinesisStreamsInput) > 0 && vKinesisStreamsInput[0] != nil {
+		kinesisStreamsInput := &kinesisanalytics.KinesisStreamsInput{}
 
-		if l := pc["lambda"].([]interface{}); len(l) > 0 {
-			lp := l[0].(map[string]interface{})
-			ipc := &kinesisanalytics.InputProcessingConfiguration{
-				InputLambdaProcessor: &kinesisanalytics.InputLambdaProcessor{
-					ResourceARN: aws.String(lp["resource_arn"].(string)),
-					RoleARN:     aws.String(lp["role_arn"].(string)),
-				},
-			}
-			input.InputProcessingConfiguration = ipc
+		mKinesisStreamsInput := vKinesisStreamsInput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisStreamsInput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisStreamsInput.ResourceARN = aws.String(vResourceArn)
 		}
+		if vRoleArn, ok := mKinesisStreamsInput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisStreamsInput.RoleARN = aws.String(vRoleArn)
+		}
+
+		input.KinesisStreamsInput = kinesisStreamsInput
 	}
 
-	if v := i["schema"].([]interface{}); len(v) > 0 {
-		vL := v[0].(map[string]interface{})
-		ss := expandKinesisAnalyticsSourceSchema(vL)
-		input.InputSchema = ss
+	if vNamePrefix, ok := mInput["name_prefix"].(string); ok && vNamePrefix != "" {
+		input.NamePrefix = aws.String(vNamePrefix)
 	}
 
 	return input
 }
 
-func expandKinesisAnalyticsSourceSchema(vL map[string]interface{}) *kinesisanalytics.SourceSchema {
-	ss := &kinesisanalytics.SourceSchema{}
-	if v := vL["record_columns"].([]interface{}); len(v) > 0 {
-		var rcs []*kinesisanalytics.RecordColumn
+func expandKinesisAnalyticsInputProcessingConfiguration(vInputProcessingConfiguration []interface{}) *kinesisanalytics.InputProcessingConfiguration {
+	if len(vInputProcessingConfiguration) == 0 || vInputProcessingConfiguration[0] == nil {
+		return nil
+	}
 
-		for _, rc := range v {
-			rcD := rc.(map[string]interface{})
-			rc := &kinesisanalytics.RecordColumn{
-				Name:    aws.String(rcD["name"].(string)),
-				SqlType: aws.String(rcD["sql_type"].(string)),
-			}
+	inputProcessingConfiguration := &kinesisanalytics.InputProcessingConfiguration{}
 
-			if v, ok := rcD["mapping"]; ok {
-				rc.Mapping = aws.String(v.(string))
-			}
+	mInputProcessingConfiguration := vInputProcessingConfiguration[0].(map[string]interface{})
 
-			rcs = append(rcs, rc)
+	if vInputLambdaProcessor, ok := mInputProcessingConfiguration["lambda"].([]interface{}); ok && len(vInputLambdaProcessor) > 0 && vInputLambdaProcessor[0] != nil {
+		inputLambdaProcessor := &kinesisanalytics.InputLambdaProcessor{}
+
+		mInputLambdaProcessor := vInputLambdaProcessor[0].(map[string]interface{})
+
+		if vResourceArn, ok := mInputLambdaProcessor["resource_arn"].(string); ok && vResourceArn != "" {
+			inputLambdaProcessor.ResourceARN = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mInputLambdaProcessor["role_arn"].(string); ok && vRoleArn != "" {
+			inputLambdaProcessor.RoleARN = aws.String(vRoleArn)
 		}
 
-		ss.RecordColumns = rcs
+		inputProcessingConfiguration.InputLambdaProcessor = inputLambdaProcessor
 	}
 
-	if v, ok := vL["record_encoding"]; ok && v.(string) != "" {
-		ss.RecordEncoding = aws.String(v.(string))
-	}
-
-	if v := vL["record_format"].([]interface{}); len(v) > 0 {
-		vL := v[0].(map[string]interface{})
-		rf := &kinesisanalytics.RecordFormat{}
-
-		if v := vL["mapping_parameters"].([]interface{}); len(v) > 0 {
-			vL := v[0].(map[string]interface{})
-			mp := &kinesisanalytics.MappingParameters{}
-
-			if v := vL["csv"].([]interface{}); len(v) > 0 {
-				cL := v[0].(map[string]interface{})
-				cmp := &kinesisanalytics.CSVMappingParameters{
-					RecordColumnDelimiter: aws.String(cL["record_column_delimiter"].(string)),
-					RecordRowDelimiter:    aws.String(cL["record_row_delimiter"].(string)),
-				}
-				mp.CSVMappingParameters = cmp
-				rf.RecordFormatType = aws.String("CSV")
-			}
-
-			if v := vL["json"].([]interface{}); len(v) > 0 {
-				jL := v[0].(map[string]interface{})
-				jmp := &kinesisanalytics.JSONMappingParameters{
-					RecordRowPath: aws.String(jL["record_row_path"].(string)),
-				}
-				mp.JSONMappingParameters = jmp
-				rf.RecordFormatType = aws.String("JSON")
-			}
-			rf.MappingParameters = mp
-		}
-
-		ss.RecordFormat = rf
-	}
-	return ss
+	return inputProcessingConfiguration
 }
 
-func expandKinesisAnalyticsOutputs(o map[string]interface{}) *kinesisanalytics.Output {
-	output := &kinesisanalytics.Output{
-		Name: aws.String(o["name"].(string)),
+func expandKinesisAnalyticsInputUpdate(vInput []interface{}) *kinesisanalytics.InputUpdate {
+	if len(vInput) == 0 || vInput[0] == nil {
+		return nil
 	}
 
-	if v := o["kinesis_firehose"].([]interface{}); len(v) > 0 {
-		kf := v[0].(map[string]interface{})
-		kfo := &kinesisanalytics.KinesisFirehoseOutput{
-			ResourceARN: aws.String(kf["resource_arn"].(string)),
-			RoleARN:     aws.String(kf["role_arn"].(string)),
+	inputUpdate := &kinesisanalytics.InputUpdate{}
+
+	mInput := vInput[0].(map[string]interface{})
+
+	if vInputId, ok := mInput["id"].(string); ok && vInputId != "" {
+		inputUpdate.InputId = aws.String(vInputId)
+	}
+
+	if vInputParallelism, ok := mInput["parallelism"].([]interface{}); ok && len(vInputParallelism) > 0 && vInputParallelism[0] != nil {
+		inputParallelismUpdate := &kinesisanalytics.InputParallelismUpdate{}
+
+		mInputParallelism := vInputParallelism[0].(map[string]interface{})
+
+		if vCount, ok := mInputParallelism["count"].(int); ok {
+			inputParallelismUpdate.CountUpdate = aws.Int64(int64(vCount))
 		}
-		output.KinesisFirehoseOutput = kfo
+
+		inputUpdate.InputParallelismUpdate = inputParallelismUpdate
 	}
 
-	if v := o["kinesis_stream"].([]interface{}); len(v) > 0 {
-		ks := v[0].(map[string]interface{})
-		kso := &kinesisanalytics.KinesisStreamsOutput{
-			ResourceARN: aws.String(ks["resource_arn"].(string)),
-			RoleARN:     aws.String(ks["role_arn"].(string)),
-		}
-		output.KinesisStreamsOutput = kso
-	}
+	if vInputProcessingConfiguration, ok := mInput["processing_configuration"].([]interface{}); ok && len(vInputProcessingConfiguration) > 0 && vInputProcessingConfiguration[0] != nil {
+		inputProcessingConfigurationUpdate := &kinesisanalytics.InputProcessingConfigurationUpdate{}
 
-	if v := o["lambda"].([]interface{}); len(v) > 0 {
-		l := v[0].(map[string]interface{})
-		lo := &kinesisanalytics.LambdaOutput{
-			ResourceARN: aws.String(l["resource_arn"].(string)),
-			RoleARN:     aws.String(l["role_arn"].(string)),
-		}
-		output.LambdaOutput = lo
-	}
+		mInputProcessingConfiguration := vInputProcessingConfiguration[0].(map[string]interface{})
 
-	if v := o["schema"].([]interface{}); len(v) > 0 {
-		ds := v[0].(map[string]interface{})
-		dso := &kinesisanalytics.DestinationSchema{
-			RecordFormatType: aws.String(ds["record_format_type"].(string)),
-		}
-		output.DestinationSchema = dso
-	}
+		if vInputLambdaProcessor, ok := mInputProcessingConfiguration["lambda"].([]interface{}); ok && len(vInputLambdaProcessor) > 0 && vInputLambdaProcessor[0] != nil {
+			inputLambdaProcessorUpdate := &kinesisanalytics.InputLambdaProcessorUpdate{}
 
-	return output
-}
+			mInputLambdaProcessor := vInputLambdaProcessor[0].(map[string]interface{})
 
-func expandKinesisAnalyticsReferenceData(rd map[string]interface{}) *kinesisanalytics.ReferenceDataSource {
-	referenceData := &kinesisanalytics.ReferenceDataSource{
-		TableName: aws.String(rd["table_name"].(string)),
-	}
-
-	if v := rd["s3"].([]interface{}); len(v) > 0 {
-		s3 := v[0].(map[string]interface{})
-		s3rds := &kinesisanalytics.S3ReferenceDataSource{
-			BucketARN:        aws.String(s3["bucket_arn"].(string)),
-			FileKey:          aws.String(s3["file_key"].(string)),
-			ReferenceRoleARN: aws.String(s3["role_arn"].(string)),
-		}
-		referenceData.S3ReferenceDataSource = s3rds
-	}
-
-	if v := rd["schema"].([]interface{}); len(v) > 0 {
-		ss := expandKinesisAnalyticsSourceSchema(v[0].(map[string]interface{}))
-		referenceData.ReferenceSchema = ss
-	}
-
-	return referenceData
-}
-
-func createApplicationUpdateOpts(d *schema.ResourceData) (*kinesisanalytics.ApplicationUpdate, error) {
-	applicationUpdate := &kinesisanalytics.ApplicationUpdate{}
-
-	if d.HasChange("code") {
-		if v, ok := d.GetOk("code"); ok && v.(string) != "" {
-			applicationUpdate.ApplicationCodeUpdate = aws.String(v.(string))
-		}
-	}
-
-	oldLoggingOptions, newLoggingOptions := d.GetChange("cloudwatch_logging_options")
-	if len(oldLoggingOptions.([]interface{})) > 0 && len(newLoggingOptions.([]interface{})) > 0 {
-		if v, ok := d.GetOk("cloudwatch_logging_options"); ok {
-			clo := v.([]interface{})[0].(map[string]interface{})
-			cloudwatchLoggingOption := expandKinesisAnalyticsCloudwatchLoggingOptionUpdate(clo)
-			applicationUpdate.CloudWatchLoggingOptionUpdates = []*kinesisanalytics.CloudWatchLoggingOptionUpdate{cloudwatchLoggingOption}
-		}
-	}
-
-	oldInputs, newInputs := d.GetChange("inputs")
-	if len(oldInputs.([]interface{})) > 0 && len(newInputs.([]interface{})) > 0 {
-		if v, ok := d.GetOk("inputs"); ok {
-			vL := v.([]interface{})[0].(map[string]interface{})
-			inputUpdate := expandKinesisAnalyticsInputUpdate(vL)
-			applicationUpdate.InputUpdates = []*kinesisanalytics.InputUpdate{inputUpdate}
-		}
-	}
-
-	oldOutputs, newOutputs := d.GetChange("outputs")
-	if len(oldOutputs.([]interface{})) > 0 && len(newOutputs.([]interface{})) > 0 {
-		if v, ok := d.GetOk("outputs"); ok {
-			vL := v.([]interface{})[0].(map[string]interface{})
-			outputUpdate := expandKinesisAnalyticsOutputUpdate(vL)
-			applicationUpdate.OutputUpdates = []*kinesisanalytics.OutputUpdate{outputUpdate}
-		}
-	}
-
-	oldReferenceData, newReferenceData := d.GetChange("reference_data_sources")
-	if len(oldReferenceData.([]interface{})) > 0 && len(newReferenceData.([]interface{})) > 0 {
-		if v := d.Get("reference_data_sources").([]interface{}); len(v) > 0 {
-			var rdsus []*kinesisanalytics.ReferenceDataSourceUpdate
-			for _, rd := range v {
-				rdL := rd.(map[string]interface{})
-				rdsu := &kinesisanalytics.ReferenceDataSourceUpdate{
-					ReferenceId:     aws.String(rdL["id"].(string)),
-					TableNameUpdate: aws.String(rdL["table_name"].(string)),
-				}
-
-				if v := rdL["s3"].([]interface{}); len(v) > 0 {
-					vL := v[0].(map[string]interface{})
-					s3rdsu := &kinesisanalytics.S3ReferenceDataSourceUpdate{
-						BucketARNUpdate:        aws.String(vL["bucket_arn"].(string)),
-						FileKeyUpdate:          aws.String(vL["file_key"].(string)),
-						ReferenceRoleARNUpdate: aws.String(vL["role_arn"].(string)),
-					}
-					rdsu.S3ReferenceDataSourceUpdate = s3rdsu
-				}
-
-				if v := rdL["schema"].([]interface{}); len(v) > 0 {
-					vL := v[0].(map[string]interface{})
-					ss := expandKinesisAnalyticsSourceSchema(vL)
-					rdsu.ReferenceSchemaUpdate = ss
-				}
-
-				rdsus = append(rdsus, rdsu)
+			if vResourceArn, ok := mInputLambdaProcessor["resource_arn"].(string); ok && vResourceArn != "" {
+				inputLambdaProcessorUpdate.ResourceARNUpdate = aws.String(vResourceArn)
 			}
-			applicationUpdate.ReferenceDataSourceUpdates = rdsus
-		}
-	}
-
-	return applicationUpdate, nil
-}
-
-func expandKinesisAnalyticsInputUpdate(vL map[string]interface{}) *kinesisanalytics.InputUpdate {
-	inputUpdate := &kinesisanalytics.InputUpdate{
-		InputId:          aws.String(vL["id"].(string)),
-		NamePrefixUpdate: aws.String(vL["name_prefix"].(string)),
-	}
-
-	if v := vL["kinesis_firehose"].([]interface{}); len(v) > 0 {
-		kf := v[0].(map[string]interface{})
-		kfiu := &kinesisanalytics.KinesisFirehoseInputUpdate{
-			ResourceARNUpdate: aws.String(kf["resource_arn"].(string)),
-			RoleARNUpdate:     aws.String(kf["role_arn"].(string)),
-		}
-		inputUpdate.KinesisFirehoseInputUpdate = kfiu
-	}
-
-	if v := vL["kinesis_stream"].([]interface{}); len(v) > 0 {
-		ks := v[0].(map[string]interface{})
-		ksiu := &kinesisanalytics.KinesisStreamsInputUpdate{
-			ResourceARNUpdate: aws.String(ks["resource_arn"].(string)),
-			RoleARNUpdate:     aws.String(ks["role_arn"].(string)),
-		}
-		inputUpdate.KinesisStreamsInputUpdate = ksiu
-	}
-
-	if v := vL["parallelism"].([]interface{}); len(v) > 0 {
-		p := v[0].(map[string]interface{})
-
-		if c, ok := p["count"]; ok {
-			ipu := &kinesisanalytics.InputParallelismUpdate{
-				CountUpdate: aws.Int64(int64(c.(int))),
-			}
-			inputUpdate.InputParallelismUpdate = ipu
-		}
-	}
-
-	if v := vL["processing_configuration"].([]interface{}); len(v) > 0 {
-		pc := v[0].(map[string]interface{})
-
-		if l := pc["lambda"].([]interface{}); len(l) > 0 {
-			lp := l[0].(map[string]interface{})
-			ipc := &kinesisanalytics.InputProcessingConfigurationUpdate{
-				InputLambdaProcessorUpdate: &kinesisanalytics.InputLambdaProcessorUpdate{
-					ResourceARNUpdate: aws.String(lp["resource_arn"].(string)),
-					RoleARNUpdate:     aws.String(lp["role_arn"].(string)),
-				},
-			}
-			inputUpdate.InputProcessingConfigurationUpdate = ipc
-		}
-	}
-
-	if v := vL["schema"].([]interface{}); len(v) > 0 {
-		ss := &kinesisanalytics.InputSchemaUpdate{}
-		vL := v[0].(map[string]interface{})
-
-		if v := vL["record_columns"].([]interface{}); len(v) > 0 {
-			var rcs []*kinesisanalytics.RecordColumn
-
-			for _, rc := range v {
-				rcD := rc.(map[string]interface{})
-				rc := &kinesisanalytics.RecordColumn{
-					Name:    aws.String(rcD["name"].(string)),
-					SqlType: aws.String(rcD["sql_type"].(string)),
-				}
-
-				if v, ok := rcD["mapping"]; ok {
-					rc.Mapping = aws.String(v.(string))
-				}
-
-				rcs = append(rcs, rc)
+			if vRoleArn, ok := mInputLambdaProcessor["role_arn"].(string); ok && vRoleArn != "" {
+				inputLambdaProcessorUpdate.RoleARNUpdate = aws.String(vRoleArn)
 			}
 
-			ss.RecordColumnUpdates = rcs
+			inputProcessingConfigurationUpdate.InputLambdaProcessorUpdate = inputLambdaProcessorUpdate
 		}
 
-		if v, ok := vL["record_encoding"]; ok && v.(string) != "" {
-			ss.RecordEncodingUpdate = aws.String(v.(string))
+		inputUpdate.InputProcessingConfigurationUpdate = inputProcessingConfigurationUpdate
+	}
+
+	if vInputSchema, ok := mInput["schema"].([]interface{}); ok && len(vInputSchema) > 0 && vInputSchema[0] != nil {
+		inputSchemaUpdate := &kinesisanalytics.InputSchemaUpdate{}
+
+		mInputSchema := vInputSchema[0].(map[string]interface{})
+
+		if vRecordColumns, ok := mInputSchema["record_columns"].([]interface{}); ok {
+			inputSchemaUpdate.RecordColumnUpdates = expandKinesisAnalyticsRecordColumns(vRecordColumns)
 		}
 
-		if v := vL["record_format"].([]interface{}); len(v) > 0 {
-			vL := v[0].(map[string]interface{})
-			rf := &kinesisanalytics.RecordFormat{}
-
-			if v := vL["mapping_parameters"].([]interface{}); len(v) > 0 {
-				vL := v[0].(map[string]interface{})
-				mp := &kinesisanalytics.MappingParameters{}
-
-				if v := vL["csv"].([]interface{}); len(v) > 0 {
-					cL := v[0].(map[string]interface{})
-					cmp := &kinesisanalytics.CSVMappingParameters{
-						RecordColumnDelimiter: aws.String(cL["record_column_delimiter"].(string)),
-						RecordRowDelimiter:    aws.String(cL["record_row_delimiter"].(string)),
-					}
-					mp.CSVMappingParameters = cmp
-					rf.RecordFormatType = aws.String("CSV")
-				}
-
-				if v := vL["json"].([]interface{}); len(v) > 0 {
-					jL := v[0].(map[string]interface{})
-					jmp := &kinesisanalytics.JSONMappingParameters{
-						RecordRowPath: aws.String(jL["record_row_path"].(string)),
-					}
-					mp.JSONMappingParameters = jmp
-					rf.RecordFormatType = aws.String("JSON")
-				}
-				rf.MappingParameters = mp
-			}
-			ss.RecordFormatUpdate = rf
+		if vRecordEncoding, ok := mInputSchema["record_encoding"].(string); ok && vRecordEncoding != "" {
+			inputSchemaUpdate.RecordEncodingUpdate = aws.String(vRecordEncoding)
 		}
-		inputUpdate.InputSchemaUpdate = ss
+
+		if vRecordFormat, ok := mInputSchema["record_format"].([]interface{}); ok {
+			inputSchemaUpdate.RecordFormatUpdate = expandKinesisAnalyticsRecordFormat(vRecordFormat)
+		}
+
+		inputUpdate.InputSchemaUpdate = inputSchemaUpdate
+	}
+
+	if vKinesisFirehoseInput, ok := mInput["kinesis_firehose"].([]interface{}); ok && len(vKinesisFirehoseInput) > 0 && vKinesisFirehoseInput[0] != nil {
+		kinesisFirehoseInputUpdate := &kinesisanalytics.KinesisFirehoseInputUpdate{}
+
+		mKinesisFirehoseInput := vKinesisFirehoseInput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisFirehoseInput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisFirehoseInputUpdate.ResourceARNUpdate = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mKinesisFirehoseInput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisFirehoseInputUpdate.RoleARNUpdate = aws.String(vRoleArn)
+		}
+
+		inputUpdate.KinesisFirehoseInputUpdate = kinesisFirehoseInputUpdate
+	}
+
+	if vKinesisStreamsInput, ok := mInput["kinesis_stream"].([]interface{}); ok && len(vKinesisStreamsInput) > 0 && vKinesisStreamsInput[0] != nil {
+		kinesisStreamsInputUpdate := &kinesisanalytics.KinesisStreamsInputUpdate{}
+
+		mKinesisStreamsInput := vKinesisStreamsInput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisStreamsInput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisStreamsInputUpdate.ResourceARNUpdate = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mKinesisStreamsInput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisStreamsInputUpdate.RoleARNUpdate = aws.String(vRoleArn)
+		}
+
+		inputUpdate.KinesisStreamsInputUpdate = kinesisStreamsInputUpdate
+	}
+
+	if vNamePrefix, ok := mInput["name_prefix"].(string); ok && vNamePrefix != "" {
+		inputUpdate.NamePrefixUpdate = aws.String(vNamePrefix)
 	}
 
 	return inputUpdate
 }
 
-func expandKinesisAnalyticsOutputUpdate(vL map[string]interface{}) *kinesisanalytics.OutputUpdate {
-	outputUpdate := &kinesisanalytics.OutputUpdate{
-		OutputId:   aws.String(vL["id"].(string)),
-		NameUpdate: aws.String(vL["name"].(string)),
-	}
-
-	if v := vL["kinesis_firehose"].([]interface{}); len(v) > 0 {
-		kf := v[0].(map[string]interface{})
-		kfou := &kinesisanalytics.KinesisFirehoseOutputUpdate{
-			ResourceARNUpdate: aws.String(kf["resource_arn"].(string)),
-			RoleARNUpdate:     aws.String(kf["role_arn"].(string)),
-		}
-		outputUpdate.KinesisFirehoseOutputUpdate = kfou
-	}
-
-	if v := vL["kinesis_stream"].([]interface{}); len(v) > 0 {
-		ks := v[0].(map[string]interface{})
-		ksou := &kinesisanalytics.KinesisStreamsOutputUpdate{
-			ResourceARNUpdate: aws.String(ks["resource_arn"].(string)),
-			RoleARNUpdate:     aws.String(ks["role_arn"].(string)),
-		}
-		outputUpdate.KinesisStreamsOutputUpdate = ksou
-	}
-
-	if v := vL["lambda"].([]interface{}); len(v) > 0 {
-		l := v[0].(map[string]interface{})
-		lou := &kinesisanalytics.LambdaOutputUpdate{
-			ResourceARNUpdate: aws.String(l["resource_arn"].(string)),
-			RoleARNUpdate:     aws.String(l["role_arn"].(string)),
-		}
-		outputUpdate.LambdaOutputUpdate = lou
-	}
-
-	if v := vL["schema"].([]interface{}); len(v) > 0 {
-		ds := v[0].(map[string]interface{})
-		dsu := &kinesisanalytics.DestinationSchema{
-			RecordFormatType: aws.String(ds["record_format_type"].(string)),
-		}
-		outputUpdate.DestinationSchemaUpdate = dsu
-	}
-
-	return outputUpdate
-}
-
-func expandKinesisAnalyticsCloudwatchLoggingOptionUpdate(clo map[string]interface{}) *kinesisanalytics.CloudWatchLoggingOptionUpdate {
-	cloudwatchLoggingOption := &kinesisanalytics.CloudWatchLoggingOptionUpdate{
-		CloudWatchLoggingOptionId: aws.String(clo["id"].(string)),
-		LogStreamARNUpdate:        aws.String(clo["log_stream_arn"].(string)),
-		RoleARNUpdate:             aws.String(clo["role_arn"].(string)),
-	}
-	return cloudwatchLoggingOption
-}
-
-func flattenKinesisAnalyticsCloudwatchLoggingOptions(options []*kinesisanalytics.CloudWatchLoggingOptionDescription) []interface{} {
-	s := []interface{}{}
-	for _, v := range options {
-		option := map[string]interface{}{
-			"id":             aws.StringValue(v.CloudWatchLoggingOptionId),
-			"log_stream_arn": aws.StringValue(v.LogStreamARN),
-			"role_arn":       aws.StringValue(v.RoleARN),
-		}
-		s = append(s, option)
-	}
-	return s
-}
-
-func flattenKinesisAnalyticsInputs(inputs []*kinesisanalytics.InputDescription) []interface{} {
-	s := []interface{}{}
-
-	if len(inputs) > 0 {
-		id := inputs[0]
-
-		input := map[string]interface{}{
-			"id":          aws.StringValue(id.InputId),
-			"name_prefix": aws.StringValue(id.NamePrefix),
-		}
-
-		list := schema.NewSet(schema.HashString, nil)
-		for _, sn := range id.InAppStreamNames {
-			list.Add(aws.StringValue(sn))
-		}
-		input["stream_names"] = list
-
-		if id.InputParallelism != nil {
-			input["parallelism"] = []interface{}{
-				map[string]interface{}{
-					"count": int(aws.Int64Value(id.InputParallelism.Count)),
-				},
-			}
-		}
-
-		if id.InputProcessingConfigurationDescription != nil {
-			ipcd := id.InputProcessingConfigurationDescription
-
-			if ipcd.InputLambdaProcessorDescription != nil {
-				input["processing_configuration"] = []interface{}{
-					map[string]interface{}{
-						"lambda": []interface{}{
-							map[string]interface{}{
-								"resource_arn": aws.StringValue(ipcd.InputLambdaProcessorDescription.ResourceARN),
-								"role_arn":     aws.StringValue(ipcd.InputLambdaProcessorDescription.RoleARN),
-							},
-						},
-					},
-				}
-			}
-		}
-
-		if id.InputSchema != nil {
-			inputSchema := id.InputSchema
-			is := []interface{}{}
-			rcs := []interface{}{}
-			ss := map[string]interface{}{
-				"record_encoding": aws.StringValue(inputSchema.RecordEncoding),
-			}
-
-			for _, rc := range inputSchema.RecordColumns {
-				rcM := map[string]interface{}{
-					"mapping":  aws.StringValue(rc.Mapping),
-					"name":     aws.StringValue(rc.Name),
-					"sql_type": aws.StringValue(rc.SqlType),
-				}
-				rcs = append(rcs, rcM)
-			}
-			ss["record_columns"] = rcs
-
-			if inputSchema.RecordFormat != nil {
-				rf := inputSchema.RecordFormat
-				rfM := map[string]interface{}{
-					"record_format_type": aws.StringValue(rf.RecordFormatType),
-				}
-
-				if rf.MappingParameters != nil {
-					mps := []interface{}{}
-					if rf.MappingParameters.CSVMappingParameters != nil {
-						cmp := map[string]interface{}{
-							"csv": []interface{}{
-								map[string]interface{}{
-									"record_column_delimiter": aws.StringValue(rf.MappingParameters.CSVMappingParameters.RecordColumnDelimiter),
-									"record_row_delimiter":    aws.StringValue(rf.MappingParameters.CSVMappingParameters.RecordRowDelimiter),
-								},
-							},
-						}
-						mps = append(mps, cmp)
-					}
-
-					if rf.MappingParameters.JSONMappingParameters != nil {
-						jmp := map[string]interface{}{
-							"json": []interface{}{
-								map[string]interface{}{
-									"record_row_path": aws.StringValue(rf.MappingParameters.JSONMappingParameters.RecordRowPath),
-								},
-							},
-						}
-						mps = append(mps, jmp)
-					}
-
-					rfM["mapping_parameters"] = mps
-				}
-				ss["record_format"] = []interface{}{rfM}
-			}
-
-			is = append(is, ss)
-			input["schema"] = is
-		}
-
-		if id.InputStartingPositionConfiguration != nil && id.InputStartingPositionConfiguration.InputStartingPosition != nil {
-			input["starting_position_configuration"] = []interface{}{
-				map[string]interface{}{
-					"starting_position": aws.StringValue(id.InputStartingPositionConfiguration.InputStartingPosition),
-				},
-			}
-		}
-
-		if id.KinesisFirehoseInputDescription != nil {
-			input["kinesis_firehose"] = []interface{}{
-				map[string]interface{}{
-					"resource_arn": aws.StringValue(id.KinesisFirehoseInputDescription.ResourceARN),
-					"role_arn":     aws.StringValue(id.KinesisFirehoseInputDescription.RoleARN),
-				},
-			}
-		}
-
-		if id.KinesisStreamsInputDescription != nil {
-			input["kinesis_stream"] = []interface{}{
-				map[string]interface{}{
-					"resource_arn": aws.StringValue(id.KinesisStreamsInputDescription.ResourceARN),
-					"role_arn":     aws.StringValue(id.KinesisStreamsInputDescription.RoleARN),
-				},
-			}
-		}
-
-		s = append(s, input)
-	}
-	return s
-}
-
-func flattenKinesisAnalyticsOutputs(outputs []*kinesisanalytics.OutputDescription) []interface{} {
-	s := []interface{}{}
-
-	for _, o := range outputs {
-		output := map[string]interface{}{
-			"id":   aws.StringValue(o.OutputId),
-			"name": aws.StringValue(o.Name),
-		}
-
-		if o.KinesisFirehoseOutputDescription != nil {
-			output["kinesis_firehose"] = []interface{}{
-				map[string]interface{}{
-					"resource_arn": aws.StringValue(o.KinesisFirehoseOutputDescription.ResourceARN),
-					"role_arn":     aws.StringValue(o.KinesisFirehoseOutputDescription.RoleARN),
-				},
-			}
-		}
-
-		if o.KinesisStreamsOutputDescription != nil {
-			output["kinesis_stream"] = []interface{}{
-				map[string]interface{}{
-					"resource_arn": aws.StringValue(o.KinesisStreamsOutputDescription.ResourceARN),
-					"role_arn":     aws.StringValue(o.KinesisStreamsOutputDescription.RoleARN),
-				},
-			}
-		}
-
-		if o.LambdaOutputDescription != nil {
-			output["lambda"] = []interface{}{
-				map[string]interface{}{
-					"resource_arn": aws.StringValue(o.LambdaOutputDescription.ResourceARN),
-					"role_arn":     aws.StringValue(o.LambdaOutputDescription.RoleARN),
-				},
-			}
-		}
-
-		if o.DestinationSchema != nil {
-			output["schema"] = []interface{}{
-				map[string]interface{}{
-					"record_format_type": aws.StringValue(o.DestinationSchema.RecordFormatType),
-				},
-			}
-		}
-
-		s = append(s, output)
-	}
-
-	return s
-}
-
-func flattenKinesisAnalyticsReferenceDataSources(dataSources []*kinesisanalytics.ReferenceDataSourceDescription) []interface{} {
-	s := []interface{}{}
-
-	if len(dataSources) > 0 {
-		for _, ds := range dataSources {
-			dataSource := map[string]interface{}{
-				"id":         aws.StringValue(ds.ReferenceId),
-				"table_name": aws.StringValue(ds.TableName),
-			}
-
-			if ds.S3ReferenceDataSourceDescription != nil {
-				dataSource["s3"] = []interface{}{
-					map[string]interface{}{
-						"bucket_arn": aws.StringValue(ds.S3ReferenceDataSourceDescription.BucketARN),
-						"file_key":   aws.StringValue(ds.S3ReferenceDataSourceDescription.FileKey),
-						"role_arn":   aws.StringValue(ds.S3ReferenceDataSourceDescription.ReferenceRoleARN),
-					},
-				}
-			}
-
-			if ds.ReferenceSchema != nil {
-				rs := ds.ReferenceSchema
-				rcs := []interface{}{}
-				ss := map[string]interface{}{
-					"record_encoding": aws.StringValue(rs.RecordEncoding),
-				}
-
-				for _, rc := range rs.RecordColumns {
-					rcM := map[string]interface{}{
-						"mapping":  aws.StringValue(rc.Mapping),
-						"name":     aws.StringValue(rc.Name),
-						"sql_type": aws.StringValue(rc.SqlType),
-					}
-					rcs = append(rcs, rcM)
-				}
-				ss["record_columns"] = rcs
-
-				if rs.RecordFormat != nil {
-					rf := rs.RecordFormat
-					rfM := map[string]interface{}{
-						"record_format_type": aws.StringValue(rf.RecordFormatType),
-					}
-
-					if rf.MappingParameters != nil {
-						mps := []interface{}{}
-						if rf.MappingParameters.CSVMappingParameters != nil {
-							cmp := map[string]interface{}{
-								"csv": []interface{}{
-									map[string]interface{}{
-										"record_column_delimiter": aws.StringValue(rf.MappingParameters.CSVMappingParameters.RecordColumnDelimiter),
-										"record_row_delimiter":    aws.StringValue(rf.MappingParameters.CSVMappingParameters.RecordRowDelimiter),
-									},
-								},
-							}
-							mps = append(mps, cmp)
-						}
-
-						if rf.MappingParameters.JSONMappingParameters != nil {
-							jmp := map[string]interface{}{
-								"json": []interface{}{
-									map[string]interface{}{
-										"record_row_path": aws.StringValue(rf.MappingParameters.JSONMappingParameters.RecordRowPath),
-									},
-								},
-							}
-							mps = append(mps, jmp)
-						}
-
-						rfM["mapping_parameters"] = mps
-					}
-					ss["record_format"] = []interface{}{rfM}
-				}
-
-				dataSource["schema"] = []interface{}{ss}
-			}
-
-			s = append(s, dataSource)
-		}
-	}
-
-	return s
-}
-
-func waitForDeleteKinesisAnalyticsApplication(conn *kinesisanalytics.KinesisAnalytics, applicationId string, timeout time.Duration) error {
-	stateConf := resource.StateChangeConf{
-		Pending: []string{
-			kinesisanalytics.ApplicationStatusRunning,
-			kinesisanalytics.ApplicationStatusDeleting,
-		},
-		Target:  []string{""},
-		Timeout: timeout,
-		Refresh: refreshKinesisAnalyticsApplicationStatus(conn, applicationId),
-	}
-	application, err := stateConf.WaitForState()
-	if err != nil {
-		if isAWSErr(err, kinesisanalytics.ErrCodeResourceNotFoundException, "") {
-			return nil
-		}
-	}
-	if application == nil {
+func expandKinesisAnalyticsOutput(vOutput interface{}) *kinesisanalytics.Output {
+	if vOutput == nil {
 		return nil
 	}
-	return err
+
+	output := &kinesisanalytics.Output{}
+
+	mOutput := vOutput.(map[string]interface{})
+
+	if vDestinationSchema, ok := mOutput["schema"].([]interface{}); ok && len(vDestinationSchema) > 0 && vDestinationSchema[0] != nil {
+		destinationSchema := &kinesisanalytics.DestinationSchema{}
+
+		mDestinationSchema := vDestinationSchema[0].(map[string]interface{})
+
+		if vRecordFormatType, ok := mDestinationSchema["record_format_type"].(string); ok && vRecordFormatType != "" {
+			destinationSchema.RecordFormatType = aws.String(vRecordFormatType)
+		}
+
+		output.DestinationSchema = destinationSchema
+	}
+
+	if vKinesisFirehoseOutput, ok := mOutput["kinesis_firehose"].([]interface{}); ok && len(vKinesisFirehoseOutput) > 0 && vKinesisFirehoseOutput[0] != nil {
+		kinesisFirehoseOutput := &kinesisanalytics.KinesisFirehoseOutput{}
+
+		mKinesisFirehoseOutput := vKinesisFirehoseOutput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisFirehoseOutput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisFirehoseOutput.ResourceARN = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mKinesisFirehoseOutput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisFirehoseOutput.RoleARN = aws.String(vRoleArn)
+		}
+
+		output.KinesisFirehoseOutput = kinesisFirehoseOutput
+	}
+
+	if vKinesisStreamsOutput, ok := mOutput["kinesis_stream"].([]interface{}); ok && len(vKinesisStreamsOutput) > 0 && vKinesisStreamsOutput[0] != nil {
+		kinesisStreamsOutput := &kinesisanalytics.KinesisStreamsOutput{}
+
+		mKinesisStreamsOutput := vKinesisStreamsOutput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mKinesisStreamsOutput["resource_arn"].(string); ok && vResourceArn != "" {
+			kinesisStreamsOutput.ResourceARN = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mKinesisStreamsOutput["role_arn"].(string); ok && vRoleArn != "" {
+			kinesisStreamsOutput.RoleARN = aws.String(vRoleArn)
+		}
+
+		output.KinesisStreamsOutput = kinesisStreamsOutput
+	}
+
+	if vLambdaOutput, ok := mOutput["lambda"].([]interface{}); ok && len(vLambdaOutput) > 0 && vLambdaOutput[0] != nil {
+		lambdaOutput := &kinesisanalytics.LambdaOutput{}
+
+		mLambdaOutput := vLambdaOutput[0].(map[string]interface{})
+
+		if vResourceArn, ok := mLambdaOutput["resource_arn"].(string); ok && vResourceArn != "" {
+			lambdaOutput.ResourceARN = aws.String(vResourceArn)
+		}
+		if vRoleArn, ok := mLambdaOutput["role_arn"].(string); ok && vRoleArn != "" {
+			lambdaOutput.RoleARN = aws.String(vRoleArn)
+		}
+
+		output.LambdaOutput = lambdaOutput
+	}
+
+	if vName, ok := mOutput["name"].(string); ok && vName != "" {
+		output.Name = aws.String(vName)
+	}
+
+	return output
 }
 
-func refreshKinesisAnalyticsApplicationStatus(conn *kinesisanalytics.KinesisAnalytics, applicationId string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		output, err := conn.DescribeApplication(&kinesisanalytics.DescribeApplicationInput{
-			ApplicationName: aws.String(applicationId),
-		})
-		if err != nil {
-			return nil, "", err
-		}
-		application := output.ApplicationDetail
-		if application == nil {
-			return application, "", fmt.Errorf("Kinesis Analytics Application (%s) could not be found.", applicationId)
-		}
-		return application, aws.StringValue(application.ApplicationStatus), nil
+func expandKinesisAnalyticsOutputs(vOutputs []interface{}) []*kinesisanalytics.Output {
+	if len(vOutputs) == 0 {
+		return nil
 	}
+
+	outputs := []*kinesisanalytics.Output{}
+
+	for _, vOutput := range vOutputs {
+		output := expandKinesisAnalyticsOutput(vOutput)
+
+		if output != nil {
+			outputs = append(outputs, output)
+		}
+	}
+
+	return outputs
+}
+
+func expandKinesisAnalyticsRecordColumns(vRecordColumns []interface{}) []*kinesisanalytics.RecordColumn {
+	recordColumns := []*kinesisanalytics.RecordColumn{}
+
+	for _, vRecordColumn := range vRecordColumns {
+		recordColumn := &kinesisanalytics.RecordColumn{}
+
+		mRecordColumn := vRecordColumn.(map[string]interface{})
+
+		if vMapping, ok := mRecordColumn["mapping"].(string); ok && vMapping != "" {
+			recordColumn.Mapping = aws.String(vMapping)
+		}
+		if vName, ok := mRecordColumn["name"].(string); ok && vName != "" {
+			recordColumn.Name = aws.String(vName)
+		}
+		if vSqlType, ok := mRecordColumn["sql_type"].(string); ok && vSqlType != "" {
+			recordColumn.SqlType = aws.String(vSqlType)
+		}
+
+		recordColumns = append(recordColumns, recordColumn)
+	}
+
+	return recordColumns
+}
+
+func expandKinesisAnalyticsRecordFormat(vRecordFormat []interface{}) *kinesisanalytics.RecordFormat {
+	if len(vRecordFormat) == 0 || vRecordFormat[0] == nil {
+		return nil
+	}
+
+	recordFormat := &kinesisanalytics.RecordFormat{}
+
+	mRecordFormat := vRecordFormat[0].(map[string]interface{})
+
+	if vMappingParameters, ok := mRecordFormat["mapping_parameters"].([]interface{}); ok && len(vMappingParameters) > 0 && vMappingParameters[0] != nil {
+		mappingParameters := &kinesisanalytics.MappingParameters{}
+
+		mMappingParameters := vMappingParameters[0].(map[string]interface{})
+
+		if vCsvMappingParameters, ok := mMappingParameters["csv"].([]interface{}); ok && len(vCsvMappingParameters) > 0 && vCsvMappingParameters[0] != nil {
+			csvMappingParameters := &kinesisanalytics.CSVMappingParameters{}
+
+			mCsvMappingParameters := vCsvMappingParameters[0].(map[string]interface{})
+
+			if vRecordColumnDelimiter, ok := mCsvMappingParameters["record_column_delimiter"].(string); ok && vRecordColumnDelimiter != "" {
+				csvMappingParameters.RecordColumnDelimiter = aws.String(vRecordColumnDelimiter)
+			}
+			if vRecordRowDelimiter, ok := mCsvMappingParameters["record_row_delimiter"].(string); ok && vRecordRowDelimiter != "" {
+				csvMappingParameters.RecordRowDelimiter = aws.String(vRecordRowDelimiter)
+			}
+
+			mappingParameters.CSVMappingParameters = csvMappingParameters
+
+			recordFormat.RecordFormatType = aws.String(kinesisanalytics.RecordFormatTypeCsv)
+		}
+
+		if vJsonMappingParameters, ok := mMappingParameters["json"].([]interface{}); ok && len(vJsonMappingParameters) > 0 && vJsonMappingParameters[0] != nil {
+			jsonMappingParameters := &kinesisanalytics.JSONMappingParameters{}
+
+			mJsonMappingParameters := vJsonMappingParameters[0].(map[string]interface{})
+
+			if vRecordRowPath, ok := mJsonMappingParameters["record_row_path"].(string); ok && vRecordRowPath != "" {
+				jsonMappingParameters.RecordRowPath = aws.String(vRecordRowPath)
+			}
+
+			mappingParameters.JSONMappingParameters = jsonMappingParameters
+
+			recordFormat.RecordFormatType = aws.String(kinesisanalytics.RecordFormatTypeJson)
+		}
+
+		recordFormat.MappingParameters = mappingParameters
+	}
+
+	return recordFormat
+}
+
+func expandKinesisAnalyticsReferenceDataSource(vReferenceDataSource []interface{}) *kinesisanalytics.ReferenceDataSource {
+	if len(vReferenceDataSource) == 0 || vReferenceDataSource[0] == nil {
+		return nil
+	}
+
+	referenceDataSource := &kinesisanalytics.ReferenceDataSource{}
+
+	mReferenceDataSource := vReferenceDataSource[0].(map[string]interface{})
+
+	if vReferenceSchema, ok := mReferenceDataSource["schema"].([]interface{}); ok {
+		referenceDataSource.ReferenceSchema = expandKinesisAnalyticsSourceSchema(vReferenceSchema)
+	}
+
+	if vS3ReferenceDataSource, ok := mReferenceDataSource["s3"].([]interface{}); ok && len(vS3ReferenceDataSource) > 0 && vS3ReferenceDataSource[0] != nil {
+		s3ReferenceDataSource := &kinesisanalytics.S3ReferenceDataSource{}
+
+		mS3ReferenceDataSource := vS3ReferenceDataSource[0].(map[string]interface{})
+
+		if vBucketArn, ok := mS3ReferenceDataSource["bucket_arn"].(string); ok && vBucketArn != "" {
+			s3ReferenceDataSource.BucketARN = aws.String(vBucketArn)
+		}
+		if vFileKey, ok := mS3ReferenceDataSource["file_key"].(string); ok && vFileKey != "" {
+			s3ReferenceDataSource.FileKey = aws.String(vFileKey)
+		}
+		if vReferenceRoleArn, ok := mS3ReferenceDataSource["role_arn"].(string); ok && vReferenceRoleArn != "" {
+			s3ReferenceDataSource.ReferenceRoleARN = aws.String(vReferenceRoleArn)
+		}
+
+		referenceDataSource.S3ReferenceDataSource = s3ReferenceDataSource
+	}
+
+	if vTableName, ok := mReferenceDataSource["table_name"].(string); ok && vTableName != "" {
+		referenceDataSource.TableName = aws.String(vTableName)
+	}
+
+	return referenceDataSource
+}
+
+func expandKinesisAnalyticsReferenceDataSourceUpdate(vReferenceDataSource []interface{}) *kinesisanalytics.ReferenceDataSourceUpdate {
+	if len(vReferenceDataSource) == 0 || vReferenceDataSource[0] == nil {
+		return nil
+	}
+
+	referenceDataSourceUpdate := &kinesisanalytics.ReferenceDataSourceUpdate{}
+
+	mReferenceDataSource := vReferenceDataSource[0].(map[string]interface{})
+
+	if vReferenceId, ok := mReferenceDataSource["id"].(string); ok && vReferenceId != "" {
+		referenceDataSourceUpdate.ReferenceId = aws.String(vReferenceId)
+	}
+
+	if vReferenceSchema, ok := mReferenceDataSource["schema"].([]interface{}); ok {
+		referenceDataSourceUpdate.ReferenceSchemaUpdate = expandKinesisAnalyticsSourceSchema(vReferenceSchema)
+	}
+
+	if vS3ReferenceDataSource, ok := mReferenceDataSource["s3"].([]interface{}); ok && len(vS3ReferenceDataSource) > 0 && vS3ReferenceDataSource[0] != nil {
+		s3ReferenceDataSourceUpdate := &kinesisanalytics.S3ReferenceDataSourceUpdate{}
+
+		mS3ReferenceDataSource := vS3ReferenceDataSource[0].(map[string]interface{})
+
+		if vBucketArn, ok := mS3ReferenceDataSource["bucket_arn"].(string); ok && vBucketArn != "" {
+			s3ReferenceDataSourceUpdate.BucketARNUpdate = aws.String(vBucketArn)
+		}
+		if vFileKey, ok := mS3ReferenceDataSource["file_key"].(string); ok && vFileKey != "" {
+			s3ReferenceDataSourceUpdate.FileKeyUpdate = aws.String(vFileKey)
+		}
+		if vReferenceRoleArn, ok := mS3ReferenceDataSource["role_arn"].(string); ok && vReferenceRoleArn != "" {
+			s3ReferenceDataSourceUpdate.ReferenceRoleARNUpdate = aws.String(vReferenceRoleArn)
+		}
+
+		referenceDataSourceUpdate.S3ReferenceDataSourceUpdate = s3ReferenceDataSourceUpdate
+	}
+
+	if vTableName, ok := mReferenceDataSource["table_name"].(string); ok && vTableName != "" {
+		referenceDataSourceUpdate.TableNameUpdate = aws.String(vTableName)
+	}
+
+	return referenceDataSourceUpdate
+}
+
+func expandKinesisAnalyticsSourceSchema(vSourceSchema []interface{}) *kinesisanalytics.SourceSchema {
+	if len(vSourceSchema) == 0 || vSourceSchema[0] == nil {
+		return nil
+	}
+
+	sourceSchema := &kinesisanalytics.SourceSchema{}
+
+	mSourceSchema := vSourceSchema[0].(map[string]interface{})
+
+	if vRecordColumns, ok := mSourceSchema["record_columns"].([]interface{}); ok {
+		sourceSchema.RecordColumns = expandKinesisAnalyticsRecordColumns(vRecordColumns)
+	}
+
+	if vRecordEncoding, ok := mSourceSchema["record_encoding"].(string); ok && vRecordEncoding != "" {
+		sourceSchema.RecordEncoding = aws.String(vRecordEncoding)
+	}
+
+	if vRecordFormat, ok := mSourceSchema["record_format"].([]interface{}); ok && len(vRecordFormat) > 0 && vRecordFormat[0] != nil {
+		sourceSchema.RecordFormat = expandKinesisAnalyticsRecordFormat(vRecordFormat)
+	}
+
+	return sourceSchema
+}
+
+func flattenKinesisAnalyticsCloudWatchLoggingOptionDescriptions(cloudWatchLoggingOptionDescriptions []*kinesisanalytics.CloudWatchLoggingOptionDescription) []interface{} {
+	if len(cloudWatchLoggingOptionDescriptions) == 0 || cloudWatchLoggingOptionDescriptions[0] == nil {
+		return []interface{}{}
+	}
+
+	cloudWatchLoggingOptionDescription := cloudWatchLoggingOptionDescriptions[0]
+
+	mCloudWatchLoggingOption := map[string]interface{}{
+		"id":             aws.StringValue(cloudWatchLoggingOptionDescription.CloudWatchLoggingOptionId),
+		"log_stream_arn": aws.StringValue(cloudWatchLoggingOptionDescription.LogStreamARN),
+		"role_arn":       aws.StringValue(cloudWatchLoggingOptionDescription.RoleARN),
+	}
+
+	return []interface{}{mCloudWatchLoggingOption}
+}
+
+func flattenKinesisAnalyticsInputDescriptions(inputDescriptions []*kinesisanalytics.InputDescription) []interface{} {
+	if len(inputDescriptions) == 0 || inputDescriptions[0] == nil {
+		return []interface{}{}
+	}
+
+	inputDescription := inputDescriptions[0]
+
+	mInput := map[string]interface{}{
+		"id":           aws.StringValue(inputDescription.InputId),
+		"name_prefix":  aws.StringValue(inputDescription.NamePrefix),
+		"stream_names": flattenStringList(inputDescription.InAppStreamNames),
+	}
+
+	if inputParallelism := inputDescription.InputParallelism; inputParallelism != nil {
+		mInputParallelism := map[string]interface{}{
+			"count": int(aws.Int64Value(inputParallelism.Count)),
+		}
+
+		mInput["parallelism"] = []interface{}{mInputParallelism}
+	}
+
+	if inputSchema := inputDescription.InputSchema; inputSchema != nil {
+		mInput["schema"] = flattenKinesisAnalyticsSourceSchema(inputSchema)
+	}
+
+	if inputProcessingConfigurationDescription := inputDescription.InputProcessingConfigurationDescription; inputProcessingConfigurationDescription != nil {
+		mInputProcessingConfiguration := map[string]interface{}{}
+
+		if inputLambdaProcessorDescription := inputProcessingConfigurationDescription.InputLambdaProcessorDescription; inputLambdaProcessorDescription != nil {
+			mInputLambdaProcessor := map[string]interface{}{
+				"resource_arn": aws.StringValue(inputLambdaProcessorDescription.ResourceARN),
+				"role_arn":     aws.StringValue(inputLambdaProcessorDescription.RoleARN),
+			}
+
+			mInputProcessingConfiguration["lambda"] = []interface{}{mInputLambdaProcessor}
+		}
+
+		mInput["processing_configuration"] = []interface{}{mInputProcessingConfiguration}
+	}
+
+	if inputStartingPositionConfiguration := inputDescription.InputStartingPositionConfiguration; inputStartingPositionConfiguration != nil {
+		mInputStartingPositionConfiguration := map[string]interface{}{
+			"starting_position": aws.StringValue(inputStartingPositionConfiguration.InputStartingPosition),
+		}
+
+		mInput["starting_position_configuration"] = []interface{}{mInputStartingPositionConfiguration}
+	}
+
+	if kinesisFirehoseInputDescription := inputDescription.KinesisFirehoseInputDescription; kinesisFirehoseInputDescription != nil {
+		mKinesisFirehoseInput := map[string]interface{}{
+			"resource_arn": aws.StringValue(kinesisFirehoseInputDescription.ResourceARN),
+			"role_arn":     aws.StringValue(kinesisFirehoseInputDescription.RoleARN),
+		}
+
+		mInput["kinesis_firehose"] = []interface{}{mKinesisFirehoseInput}
+	}
+
+	if kinesisStreamsInputDescription := inputDescription.KinesisStreamsInputDescription; kinesisStreamsInputDescription != nil {
+		mKinesisStreamsInput := map[string]interface{}{
+			"resource_arn": aws.StringValue(kinesisStreamsInputDescription.ResourceARN),
+			"role_arn":     aws.StringValue(kinesisStreamsInputDescription.RoleARN),
+		}
+
+		mInput["kinesis_stream"] = []interface{}{mKinesisStreamsInput}
+	}
+
+	return []interface{}{mInput}
+}
+
+func flattenKinesisAnalyticsOutputDescriptions(outputDescriptions []*kinesisanalytics.OutputDescription) []interface{} {
+	if len(outputDescriptions) == 0 {
+		return []interface{}{}
+	}
+
+	vOutputs := []interface{}{}
+
+	for _, outputDescription := range outputDescriptions {
+		if outputDescription != nil {
+			mOutput := map[string]interface{}{
+				"id":   aws.StringValue(outputDescription.OutputId),
+				"name": aws.StringValue(outputDescription.Name),
+			}
+
+			if destinationSchema := outputDescription.DestinationSchema; destinationSchema != nil {
+				mDestinationSchema := map[string]interface{}{
+					"record_format_type": aws.StringValue(destinationSchema.RecordFormatType),
+				}
+
+				mOutput["schema"] = []interface{}{mDestinationSchema}
+			}
+
+			if kinesisFirehoseOutputDescription := outputDescription.KinesisFirehoseOutputDescription; kinesisFirehoseOutputDescription != nil {
+				mKinesisFirehoseOutput := map[string]interface{}{
+					"resource_arn": aws.StringValue(kinesisFirehoseOutputDescription.ResourceARN),
+					"role_arn":     aws.StringValue(kinesisFirehoseOutputDescription.RoleARN),
+				}
+
+				mOutput["kinesis_firehose"] = []interface{}{mKinesisFirehoseOutput}
+			}
+
+			if kinesisStreamsOutputDescription := outputDescription.KinesisStreamsOutputDescription; kinesisStreamsOutputDescription != nil {
+				mKinesisStreamsOutput := map[string]interface{}{
+					"resource_arn": aws.StringValue(kinesisStreamsOutputDescription.ResourceARN),
+					"role_arn":     aws.StringValue(kinesisStreamsOutputDescription.RoleARN),
+				}
+
+				mOutput["kinesis_stream"] = []interface{}{mKinesisStreamsOutput}
+			}
+
+			if lambdaOutputDescription := outputDescription.LambdaOutputDescription; lambdaOutputDescription != nil {
+				mLambdaOutput := map[string]interface{}{
+					"resource_arn": aws.StringValue(lambdaOutputDescription.ResourceARN),
+					"role_arn":     aws.StringValue(lambdaOutputDescription.RoleARN),
+				}
+
+				mOutput["lambda"] = []interface{}{mLambdaOutput}
+			}
+
+			vOutputs = append(vOutputs, mOutput)
+		}
+	}
+
+	return vOutputs
+}
+
+func flattenKinesisAnalyticsReferenceDataSourceDescriptions(referenceDataSourceDescriptions []*kinesisanalytics.ReferenceDataSourceDescription) []interface{} {
+	if len(referenceDataSourceDescriptions) == 0 || referenceDataSourceDescriptions[0] == nil {
+		return []interface{}{}
+	}
+
+	referenceDataSourceDescription := referenceDataSourceDescriptions[0]
+
+	mReferenceDataSource := map[string]interface{}{
+		"id":         aws.StringValue(referenceDataSourceDescription.ReferenceId),
+		"table_name": aws.StringValue(referenceDataSourceDescription.TableName),
+	}
+
+	if referenceSchema := referenceDataSourceDescription.ReferenceSchema; referenceSchema != nil {
+		mReferenceDataSource["schema"] = flattenKinesisAnalyticsSourceSchema(referenceSchema)
+	}
+
+	if s3ReferenceDataSource := referenceDataSourceDescription.S3ReferenceDataSourceDescription; s3ReferenceDataSource != nil {
+		mS3ReferenceDataSource := map[string]interface{}{
+			"bucket_arn": aws.StringValue(s3ReferenceDataSource.BucketARN),
+			"file_key":   aws.StringValue(s3ReferenceDataSource.FileKey),
+			"role_arn":   aws.StringValue(s3ReferenceDataSource.ReferenceRoleARN),
+		}
+
+		mReferenceDataSource["s3"] = []interface{}{mS3ReferenceDataSource}
+	}
+
+	return []interface{}{mReferenceDataSource}
+}
+
+func flattenKinesisAnalyticsSourceSchema(sourceSchema *kinesisanalytics.SourceSchema) []interface{} {
+	if sourceSchema == nil {
+		return []interface{}{}
+	}
+
+	mSourceSchema := map[string]interface{}{
+		"record_encoding": aws.StringValue(sourceSchema.RecordEncoding),
+	}
+
+	if len(sourceSchema.RecordColumns) > 0 {
+		vRecordColumns := []interface{}{}
+
+		for _, recordColumn := range sourceSchema.RecordColumns {
+			if recordColumn != nil {
+				mRecordColumn := map[string]interface{}{
+					"mapping":  aws.StringValue(recordColumn.Mapping),
+					"name":     aws.StringValue(recordColumn.Name),
+					"sql_type": aws.StringValue(recordColumn.SqlType),
+				}
+
+				vRecordColumns = append(vRecordColumns, mRecordColumn)
+			}
+		}
+
+		mSourceSchema["record_columns"] = vRecordColumns
+	}
+
+	if recordFormat := sourceSchema.RecordFormat; recordFormat != nil {
+		mRecordFormat := map[string]interface{}{
+			"record_format_type": aws.StringValue(recordFormat.RecordFormatType),
+		}
+
+		if mappingParameters := recordFormat.MappingParameters; mappingParameters != nil {
+			mMappingParameters := map[string]interface{}{}
+
+			if csvMappingParameters := mappingParameters.CSVMappingParameters; csvMappingParameters != nil {
+				mCsvMappingParameters := map[string]interface{}{
+					"record_column_delimiter": aws.StringValue(csvMappingParameters.RecordColumnDelimiter),
+					"record_row_delimiter":    aws.StringValue(csvMappingParameters.RecordRowDelimiter),
+				}
+
+				mMappingParameters["csv"] = []interface{}{mCsvMappingParameters}
+			}
+
+			if jsonMappingParameters := mappingParameters.JSONMappingParameters; jsonMappingParameters != nil {
+				mJsonMappingParameters := map[string]interface{}{
+					"record_row_path": aws.StringValue(jsonMappingParameters.RecordRowPath),
+				}
+
+				mMappingParameters["json"] = []interface{}{mJsonMappingParameters}
+			}
+
+			mRecordFormat["mapping_parameters"] = []interface{}{mMappingParameters}
+		}
+
+		mSourceSchema["record_format"] = []interface{}{mRecordFormat}
+	}
+
+	return []interface{}{mSourceSchema}
 }

@@ -3,22 +3,19 @@ package aws
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSCustomerGateway_basic(t *testing.T) {
 	var gateway ec2.CustomerGateway
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
-	rInt := acctest.RandInt()
 	resourceName := "aws_customer_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,9 +25,12 @@ func TestAccAWSCustomerGateway_basic(t *testing.T) {
 		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomerGatewayConfig(rInt, rBgpAsn),
+				Config: testAccCustomerGatewayConfig(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCustomerGateway(resourceName, &gateway),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`customer-gateway/cgw-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "bgp_asn", strconv.Itoa(rBgpAsn)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -39,16 +39,52 @@ func TestAccAWSCustomerGateway_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccCustomerGatewayConfigUpdateTags(rInt, rBgpAsn),
+				Config: testAccCustomerGatewayConfigForceReplace(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCustomerGateway(resourceName, &gateway),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAWSCustomerGateway_tags(t *testing.T) {
+	var gateway ec2.CustomerGateway
+	rBgpAsn := acctest.RandIntRange(64512, 65534)
+	resourceName := "aws_customer_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomerGatewayConfigForceReplace(rInt, rBgpAsn),
+				Config: testAccCustomerGatewayConfigTags1(rBgpAsn, "key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCustomerGateway(resourceName, &gateway),
-				),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1")),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccCustomerGatewayConfigTags2(rBgpAsn, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCustomerGateway(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2")),
+			},
+			{
+				Config: testAccCustomerGatewayConfigTags1(rBgpAsn, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCustomerGateway(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2")),
 			},
 		},
 	})
@@ -56,7 +92,6 @@ func TestAccAWSCustomerGateway_basic(t *testing.T) {
 
 func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 	var gateway ec2.CustomerGateway
-	rInt := acctest.RandInt()
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	resourceName := "aws_customer_gateway.test"
 
@@ -67,7 +102,7 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomerGatewayConfig(rInt, rBgpAsn),
+				Config: testAccCustomerGatewayConfig(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCustomerGateway(resourceName, &gateway),
 				),
@@ -78,7 +113,7 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config:      testAccCustomerGatewayConfigIdentical(rInt, rBgpAsn),
+				Config:      testAccCustomerGatewayConfigIdentical(rBgpAsn),
 				ExpectError: regexp.MustCompile("An existing customer gateway"),
 			},
 		},
@@ -86,7 +121,6 @@ func TestAccAWSCustomerGateway_similarAlreadyExists(t *testing.T) {
 }
 
 func TestAccAWSCustomerGateway_disappears(t *testing.T) {
-	rInt := acctest.RandInt()
 	rBgpAsn := acctest.RandIntRange(64512, 65534)
 	var gateway ec2.CustomerGateway
 	resourceName := "aws_customer_gateway.test"
@@ -97,10 +131,10 @@ func TestAccAWSCustomerGateway_disappears(t *testing.T) {
 		CheckDestroy: testAccCheckCustomerGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCustomerGatewayConfig(rInt, rBgpAsn),
+				Config: testAccCustomerGatewayConfig(rBgpAsn),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckCustomerGateway(resourceName, &gateway),
-					testAccAWSCustomerGatewayDisappears(&gateway),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsCustomerGateway(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -108,35 +142,33 @@ func TestAccAWSCustomerGateway_disappears(t *testing.T) {
 	})
 }
 
-func testAccAWSCustomerGatewayDisappears(gateway *ec2.CustomerGateway) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).ec2conn
-		opts := &ec2.DeleteCustomerGatewayInput{
-			CustomerGatewayId: gateway.CustomerGatewayId,
-		}
-		if _, err := conn.DeleteCustomerGateway(opts); err != nil {
-			return err
-		}
-		return resource.Retry(40*time.Minute, func() *resource.RetryError {
-			opts := &ec2.DescribeCustomerGatewaysInput{
-				CustomerGatewayIds: []*string{gateway.CustomerGatewayId},
-			}
-			resp, err := conn.DescribeCustomerGateways(opts)
-			if err != nil {
-				cgw, ok := err.(awserr.Error)
-				if ok && cgw.Code() == "InvalidCustomerGatewayID.NotFound" {
-					return nil
-				}
-				return resource.NonRetryableError(
-					fmt.Errorf("Error retrieving Customer Gateway: %s", err))
-			}
-			if *resp.CustomerGateways[0].State == "deleted" {
-				return nil
-			}
-			return resource.RetryableError(fmt.Errorf(
-				"Waiting for Customer Gateway: %v", gateway.CustomerGatewayId))
-		})
-	}
+func TestAccAWSCustomerGateway_4ByteAsn(t *testing.T) {
+	var gateway ec2.CustomerGateway
+	rBgpAsn := strconv.FormatInt(int64(acctest.RandIntRange(64512, 65534))*10000, 10)
+	resourceName := "aws_customer_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: resourceName,
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckCustomerGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomerGatewayConfig4ByteAsn(rBgpAsn),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckCustomerGateway(resourceName, &gateway),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`customer-gateway/cgw-.+`)),
+					resource.TestCheckResourceAttr(resourceName, "bgp_asn", rBgpAsn),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
 func testAccCheckCustomerGatewayDestroy(s *terraform.State) error {
@@ -156,7 +188,7 @@ func testAccCheckCustomerGatewayDestroy(s *terraform.State) error {
 			Filters: []*ec2.Filter{gatewayFilter},
 		})
 
-		if ae, ok := err.(awserr.Error); ok && ae.Code() == "InvalidCustomerGatewayID.NotFound" {
+		if isAWSErr(err, "InvalidCustomerGatewayID.NotFound", "") {
 			continue
 		}
 
@@ -165,7 +197,7 @@ func testAccCheckCustomerGatewayDestroy(s *terraform.State) error {
 				return fmt.Errorf("Customer gateway still exists: %v", resp.CustomerGateways)
 			}
 
-			if *resp.CustomerGateways[0].State == "deleted" {
+			if aws.StringValue(resp.CustomerGateways[0].State) == "deleted" {
 				continue
 			}
 		}
@@ -213,72 +245,78 @@ func testAccCheckCustomerGateway(gatewayResource string, cgw *ec2.CustomerGatewa
 	}
 }
 
-func testAccCustomerGatewayConfig(rInt, rBgpAsn int) string {
+func testAccCustomerGatewayConfig(rBgpAsn int) string {
 	return fmt.Sprintf(`
 resource "aws_customer_gateway" "test" {
   bgp_asn    = %d
   ip_address = "172.0.0.1"
   type       = "ipsec.1"
-
-  tags = {
-    Name = "test-gateway-%d"
-  }
 }
-`, rBgpAsn, rInt)
+`, rBgpAsn)
 }
 
-func testAccCustomerGatewayConfigIdentical(randInt, rBgpAsn int) string {
+func testAccCustomerGatewayConfigTags1(rBgpAsn int, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_customer_gateway" "test" {
-  bgp_asn    = %d
+  bgp_asn    = %[1]d
   ip_address = "172.0.0.1"
   type       = "ipsec.1"
 
   tags = {
-    Name = "test-gateway-%d"
+    %[2]q = %[3]q
   }
+}
+`, rBgpAsn, tagKey1, tagValue1)
+}
+
+func testAccCustomerGatewayConfigTags2(rBgpAsn int, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]d
+  ip_address = "172.0.0.1"
+  type       = "ipsec.1"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rBgpAsn, tagKey1, tagValue1, tagKey2, tagValue2)
+}
+
+func testAccCustomerGatewayConfigIdentical(rBgpAsn int) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]d
+  ip_address = "172.0.0.1"
+  type       = "ipsec.1"
 }
 
 resource "aws_customer_gateway" "identical" {
-  bgp_asn    = %d
+  bgp_asn    = %[1]d
   ip_address = "172.0.0.1"
   type       = "ipsec.1"
-
-  tags = {
-    Name = "test-gateway-identical-%d"
-  }
 }
-`, rBgpAsn, randInt, rBgpAsn, randInt)
-}
-
-// Add the Another: "tag" tag.
-func testAccCustomerGatewayConfigUpdateTags(rInt, rBgpAsn int) string {
-	return fmt.Sprintf(`
-resource "aws_customer_gateway" "test" {
-  bgp_asn    = %d
-  ip_address = "172.0.0.1"
-  type       = "ipsec.1"
-
-  tags = {
-    Name    = "test-gateway-%d"
-    Another = "tag"
-  }
-}
-`, rBgpAsn, rInt)
+`, rBgpAsn)
 }
 
 // Change the ip_address.
-func testAccCustomerGatewayConfigForceReplace(rInt, rBgpAsn int) string {
+func testAccCustomerGatewayConfigForceReplace(rBgpAsn int) string {
 	return fmt.Sprintf(`
 resource "aws_customer_gateway" "test" {
   bgp_asn    = %d
   ip_address = "172.10.10.1"
   type       = "ipsec.1"
-
-  tags = {
-    Name    = "test-gateway-%d"
-    Another = "tag"
-  }
 }
-`, rBgpAsn, rInt)
+`, rBgpAsn)
+}
+
+func testAccCustomerGatewayConfig4ByteAsn(rBgpAsn string) string {
+	return fmt.Sprintf(`
+resource "aws_customer_gateway" "test" {
+  bgp_asn    = %[1]q
+  ip_address = "172.0.0.1"
+  type       = "ipsec.1"
+}
+`, rBgpAsn)
 }

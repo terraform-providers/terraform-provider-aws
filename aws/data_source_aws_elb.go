@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/elb"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsElb() *schema.Resource {
@@ -27,7 +27,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"access_logs": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"interval": {
@@ -80,7 +79,6 @@ func dataSourceAwsElb() *schema.Resource {
 			"health_check": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"healthy_threshold": {
@@ -198,6 +196,8 @@ func dataSourceAwsElb() *schema.Resource {
 
 func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	elbconn := meta.(*AWSClient).elbconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	lbName := d.Get("name").(string)
 
 	input := &elb.DescribeLoadBalancersInput{
@@ -212,7 +212,7 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	if len(resp.LoadBalancerDescriptions) != 1 {
 		return fmt.Errorf("Search returned %d results, please revise so only one is returned", len(resp.LoadBalancerDescriptions))
 	}
-	d.SetId(*resp.LoadBalancerDescriptions[0].LoadBalancerName)
+	d.SetId(aws.StringValue(resp.LoadBalancerDescriptions[0].LoadBalancerName))
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,
@@ -223,5 +223,5 @@ func dataSourceAwsElbRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("arn", arn.String())
 
-	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0])
+	return flattenAwsELbResource(d, meta.(*AWSClient).ec2conn, elbconn, resp.LoadBalancerDescriptions[0], ignoreTagsConfig)
 }

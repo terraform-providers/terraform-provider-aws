@@ -3,23 +3,19 @@ package aws
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsPricingProductConfigEc2("test", "c5.large"),
+				Config: testAccDataSourceAwsPricingProductConfigEc2(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.aws_pricing_product.test", "result"),
 					testAccPricingCheckValueIsJSON("data.aws_pricing_product.test"),
@@ -30,12 +26,9 @@ func TestAccDataSourceAwsPricingProduct_ec2(t *testing.T) {
 }
 
 func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckPricing(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAwsPricingProductConfigRedshift(),
@@ -48,61 +41,79 @@ func TestAccDataSourceAwsPricingProduct_redshift(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAwsPricingProductConfigEc2(dataName string, instanceType string) string {
-	return fmt.Sprintf(`data "aws_pricing_product" "%s" {
-		service_code = "AmazonEC2"
-	  
-		filters {
-			field = "instanceType"
-			value = "%s"
-		}
-
-		filters {
-			field = "operatingSystem"
-			value = "Linux"
-		}
-
-		filters {
-			field = "location"
-			value = "US East (N. Virginia)"
-		}
-
-		filters {
-			field = "preInstalledSw"
-			value = "NA"
-		}
-
-		filters {
-			field = "licenseModel"
-			value = "No License required"
-		}
-
-		filters {
-			field = "tenancy"
-			value = "Shared"
-		}
-
-		filters {
-			field = "capacitystatus"
-			value = "Used"
-		}
+func testAccDataSourceAwsPricingProductConfigEc2() string {
+	return composeConfig(
+		testAccPricingRegionProviderConfig(),
+		`
+data "aws_ec2_instance_type_offering" "available" {
+  preferred_instance_types = ["c5.large", "c4.large"]
 }
-`, dataName, instanceType)
+
+data "aws_region" "current" {}
+
+data "aws_pricing_product" "test" {
+  service_code = "AmazonEC2"
+
+  filters {
+    field = "instanceType"
+    value = data.aws_ec2_instance_type_offering.available.instance_type
+  }
+
+  filters {
+    field = "operatingSystem"
+    value = "Linux"
+  }
+
+  filters {
+    field = "location"
+    value = data.aws_region.current.description
+  }
+
+  filters {
+    field = "preInstalledSw"
+    value = "NA"
+  }
+
+  filters {
+    field = "licenseModel"
+    value = "No License required"
+  }
+
+  filters {
+    field = "tenancy"
+    value = "Shared"
+  }
+
+  filters {
+    field = "capacitystatus"
+    value = "Used"
+  }
+}
+`)
 }
 
 func testAccDataSourceAwsPricingProductConfigRedshift() string {
-	return fmt.Sprintf(`data "aws_pricing_product" "test" {
-		service_code = "AmazonRedshift"
-	  
-		filters {
-			field = "instanceType"
-			value = "ds1.xlarge"
-		}
+	return composeConfig(
+		testAccPricingRegionProviderConfig(),
+		`
+data "aws_redshift_orderable_cluster" "test" {
+  preferred_node_types = ["dc2.8xlarge", "ds2.8xlarge"]
+}
 
-		filters {
-			field = "location"
-			value = "US East (N. Virginia)"
-		}
+data "aws_region" "current" {}
+
+data "aws_pricing_product" "test" {
+  service_code = "AmazonRedshift"
+
+  filters {
+    field = "instanceType"
+    value = data.aws_redshift_orderable_cluster.test.node_type
+  }
+
+  filters {
+    field = "location"
+    value = data.aws_region.current.description
+  }
 }
 `)
 }

@@ -3,11 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsGlueCatalogTable() *schema.Resource {
@@ -21,6 +24,10 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"catalog_id": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -33,13 +40,18 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 				Required: true,
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 2048),
 			},
 			"name": {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 255),
+					validation.StringDoesNotMatch(regexp.MustCompile(`[A-Z]`), "uppercase characters cannot be used"),
+				),
 			},
 			"owner": {
 				Type:     schema.TypeString,
@@ -56,23 +68,27 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"comment": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 255),
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 255),
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 131072),
 						},
 					},
 				},
 			},
 			"retention": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"storage_descriptor": {
 				Type:     schema.TypeList,
@@ -83,7 +99,10 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 						"bucket_columns": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(1, 255),
+							},
 						},
 						"columns": {
 							Type:     schema.TypeList,
@@ -91,16 +110,24 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"comment": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(0, 255),
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
+									},
+									"parameters": {
+										Type:     schema.TypeMap,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(0, 131072),
 									},
 								},
 							},
@@ -137,8 +164,9 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
 									},
 									"parameters": {
 										Type:     schema.TypeMap,
@@ -146,8 +174,9 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"serialization_library": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -161,7 +190,10 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 									"skewed_column_names": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringLenBetween(1, 255),
+										},
 									},
 									"skewed_column_values": {
 										Type:     schema.TypeList,
@@ -182,12 +214,14 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"column": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringLenBetween(1, 255),
 									},
 									"sort_order": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntInSlice([]int{0, 1}),
 									},
 								},
 							},
@@ -204,12 +238,39 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 				Optional: true,
 			},
 			"view_original_text": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 409600),
 			},
 			"view_expanded_text": {
-				Type:     schema.TypeString,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 409600),
+			},
+			"partition_index": {
+				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
+				MaxItems: 3,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"index_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 255),
+						},
+						"keys": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"index_status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -224,20 +285,22 @@ func readAwsGlueTableID(id string) (catalogID string, dbName string, name string
 }
 
 func resourceAwsGlueCatalogTableCreate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 	catalogID := createAwsGlueCatalogID(d, meta.(*AWSClient).accountid)
 	dbName := d.Get("database_name").(string)
 	name := d.Get("name").(string)
 
 	input := &glue.CreateTableInput{
-		CatalogId:    aws.String(catalogID),
-		DatabaseName: aws.String(dbName),
-		TableInput:   expandGlueTableInput(d),
+		CatalogId:        aws.String(catalogID),
+		DatabaseName:     aws.String(dbName),
+		TableInput:       expandGlueTableInput(d),
+		PartitionIndexes: expandGlueTablePartitionIndexes(d.Get("partition_index").([]interface{})),
 	}
 
-	_, err := glueconn.CreateTable(input)
+	log.Printf("[DEBUG] Glue catalog table input: %#v", input)
+	_, err := conn.CreateTable(input)
 	if err != nil {
-		return fmt.Errorf("Error creating Catalog Table: %s", err)
+		return fmt.Errorf("Error creating Glue Catalog Table: %w", err)
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s:%s", catalogID, dbName, name))
@@ -246,7 +309,7 @@ func resourceAwsGlueCatalogTableCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, name, err := readAwsGlueTableID(d.Id())
 	if err != nil {
@@ -259,7 +322,7 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 		Name:         aws.String(name),
 	}
 
-	out, err := glueconn.GetTable(input)
+	out, err := conn.GetTable(input)
 	if err != nil {
 
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
@@ -268,37 +331,63 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Glue Catalog Table: %s", err)
+		return fmt.Errorf("Error reading Glue Catalog Table: %w", err)
 	}
 
-	d.Set("name", out.Table.Name)
+	table := out.Table
+	tableArn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "glue",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("table/%s/%s", dbName, aws.StringValue(table.Name)),
+	}.String()
+	d.Set("arn", tableArn)
+
+	d.Set("name", table.Name)
 	d.Set("catalog_id", catalogID)
 	d.Set("database_name", dbName)
-	d.Set("description", out.Table.Description)
-	d.Set("owner", out.Table.Owner)
-	d.Set("retention", out.Table.Retention)
+	d.Set("description", table.Description)
+	d.Set("owner", table.Owner)
+	d.Set("retention", table.Retention)
 
-	if err := d.Set("storage_descriptor", flattenGlueStorageDescriptor(out.Table.StorageDescriptor)); err != nil {
-		return fmt.Errorf("error setting storage_descriptor: %s", err)
+	if err := d.Set("storage_descriptor", flattenGlueStorageDescriptor(table.StorageDescriptor)); err != nil {
+		return fmt.Errorf("error setting storage_descriptor: %w", err)
 	}
 
-	if err := d.Set("partition_keys", flattenGlueColumns(out.Table.PartitionKeys)); err != nil {
-		return fmt.Errorf("error setting partition_keys: %s", err)
+	if err := d.Set("partition_keys", flattenGlueColumns(table.PartitionKeys)); err != nil {
+		return fmt.Errorf("error setting partition_keys: %w", err)
 	}
 
-	d.Set("view_original_text", out.Table.ViewOriginalText)
-	d.Set("view_expanded_text", out.Table.ViewExpandedText)
-	d.Set("table_type", out.Table.TableType)
+	d.Set("view_original_text", table.ViewOriginalText)
+	d.Set("view_expanded_text", table.ViewExpandedText)
+	d.Set("table_type", table.TableType)
 
-	if err := d.Set("parameters", aws.StringValueMap(out.Table.Parameters)); err != nil {
-		return fmt.Errorf("error setting parameters: %s", err)
+	if err := d.Set("parameters", aws.StringValueMap(table.Parameters)); err != nil {
+		return fmt.Errorf("error setting parameters: %w", err)
+	}
+
+	partIndexInput := &glue.GetPartitionIndexesInput{
+		CatalogId:    out.Table.CatalogId,
+		TableName:    out.Table.Name,
+		DatabaseName: out.Table.DatabaseName,
+	}
+	partOut, err := conn.GetPartitionIndexes(partIndexInput)
+	if err != nil {
+		return fmt.Errorf("error getting Glue Partition Indexes: %w", err)
+	}
+
+	if partOut != nil && len(partOut.PartitionIndexDescriptorList) > 0 {
+		if err := d.Set("partition_index", flattenGluePartitionIndexes(partOut.PartitionIndexDescriptorList)); err != nil {
+			return fmt.Errorf("error setting partition_index: %w", err)
+		}
 	}
 
 	return nil
 }
 
 func resourceAwsGlueCatalogTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, _, err := readAwsGlueTableID(d.Id())
 	if err != nil {
@@ -311,15 +400,15 @@ func resourceAwsGlueCatalogTableUpdate(d *schema.ResourceData, meta interface{})
 		TableInput:   expandGlueTableInput(d),
 	}
 
-	if _, err := glueconn.UpdateTable(updateTableInput); err != nil {
-		return fmt.Errorf("Error updating Glue Catalog Table: %s", err)
+	if _, err := conn.UpdateTable(updateTableInput); err != nil {
+		return fmt.Errorf("Error updating Glue Catalog Table: %w", err)
 	}
 
 	return resourceAwsGlueCatalogTableRead(d, meta)
 }
 
 func resourceAwsGlueCatalogTableDelete(d *schema.ResourceData, meta interface{}) error {
-	glueconn := meta.(*AWSClient).glueconn
+	conn := meta.(*AWSClient).glueconn
 
 	catalogID, dbName, name, tableIdErr := readAwsGlueTableID(d.Id())
 	if tableIdErr != nil {
@@ -327,13 +416,13 @@ func resourceAwsGlueCatalogTableDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[DEBUG] Glue Catalog Table: %s:%s:%s", catalogID, dbName, name)
-	_, err := glueconn.DeleteTable(&glue.DeleteTableInput{
+	_, err := conn.DeleteTable(&glue.DeleteTableInput{
 		CatalogId:    aws.String(catalogID),
 		Name:         aws.String(name),
 		DatabaseName: aws.String(dbName),
 	})
 	if err != nil {
-		return fmt.Errorf("Error deleting Glue Catalog Table: %s", err.Error())
+		return fmt.Errorf("Error deleting Glue Catalog Table: %w", err)
 	}
 	return nil
 }
@@ -360,8 +449,9 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 	}
 
 	if v, ok := d.GetOk("partition_keys"); ok {
-		columns := expandGlueColumns(v.([]interface{}))
-		tableInput.PartitionKeys = columns
+		tableInput.PartitionKeys = expandGlueColumns(v.([]interface{}))
+	} else {
+		tableInput.PartitionKeys = []*glue.Column{}
 	}
 
 	if v, ok := d.GetOk("view_original_text"); ok {
@@ -377,18 +467,33 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		paramsMap := map[string]string{}
-		for key, value := range v.(map[string]interface{}) {
-			paramsMap[key] = value.(string)
-		}
-		tableInput.Parameters = aws.StringMap(paramsMap)
+		tableInput.Parameters = stringMapToPointers(v.(map[string]interface{}))
 	}
 
 	return tableInput
 }
 
+func expandGlueTablePartitionIndexes(a []interface{}) []*glue.PartitionIndex {
+	partitionIndexes := make([]*glue.PartitionIndex, 0, len(a))
+
+	for _, m := range a {
+		partitionIndexes = append(partitionIndexes, expandGlueTablePartitionIndex(m.(map[string]interface{})))
+	}
+
+	return partitionIndexes
+}
+
+func expandGlueTablePartitionIndex(m map[string]interface{}) *glue.PartitionIndex {
+	partitionIndex := &glue.PartitionIndex{
+		IndexName: aws.String(m["index_name"].(string)),
+		Keys:      expandStringSet(m["keys"].(*schema.Set)),
+	}
+
+	return partitionIndex
+}
+
 func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
@@ -396,8 +501,7 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	storageDescriptor := &glue.StorageDescriptor{}
 
 	if v, ok := s["columns"]; ok {
-		columns := expandGlueColumns(v.([]interface{}))
-		storageDescriptor.Columns = columns
+		storageDescriptor.Columns = expandGlueColumns(v.([]interface{}))
 	}
 
 	if v, ok := s["location"]; ok {
@@ -425,11 +529,7 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	}
 
 	if v, ok := s["bucket_columns"]; ok {
-		bucketColumns := make([]string, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			bucketColumns[i] = fmt.Sprint(item)
-		}
-		storageDescriptor.BucketColumns = aws.StringSlice(bucketColumns)
+		storageDescriptor.BucketColumns = expandStringList(v.([]interface{}))
 	}
 
 	if v, ok := s["sort_columns"]; ok {
@@ -441,11 +541,7 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	}
 
 	if v, ok := s["parameters"]; ok {
-		paramsMap := map[string]string{}
-		for key, value := range v.(map[string]interface{}) {
-			paramsMap[key] = value.(string)
-		}
-		storageDescriptor.Parameters = aws.StringMap(paramsMap)
+		storageDescriptor.Parameters = stringMapToPointers(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["stored_as_sub_directories"]; ok {
@@ -472,6 +568,10 @@ func expandGlueColumns(columns []interface{}) []*glue.Column {
 			column.Type = aws.String(v.(string))
 		}
 
+		if v, ok := elementMap["parameters"]; ok {
+			column.Parameters = stringMapToPointers(v.(map[string]interface{}))
+		}
+
 		columnSlice = append(columnSlice, column)
 	}
 
@@ -479,26 +579,22 @@ func expandGlueColumns(columns []interface{}) []*glue.Column {
 }
 
 func expandGlueSerDeInfo(l []interface{}) *glue.SerDeInfo {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
 	s := l[0].(map[string]interface{})
 	serDeInfo := &glue.SerDeInfo{}
 
-	if v, ok := s["name"]; ok {
+	if v := s["name"]; len(v.(string)) > 0 {
 		serDeInfo.Name = aws.String(v.(string))
 	}
 
-	if v, ok := s["parameters"]; ok {
-		paramsMap := map[string]string{}
-		for key, value := range v.(map[string]interface{}) {
-			paramsMap[key] = value.(string)
-		}
-		serDeInfo.Parameters = aws.StringMap(paramsMap)
+	if v := s["parameters"]; len(v.(map[string]interface{})) > 0 {
+		serDeInfo.Parameters = stringMapToPointers(v.(map[string]interface{}))
 	}
 
-	if v, ok := s["serialization_library"]; ok {
+	if v := s["serialization_library"]; len(v.(string)) > 0 {
 		serDeInfo.SerializationLibrary = aws.String(v.(string))
 	}
 
@@ -526,7 +622,7 @@ func expandGlueSortColumns(columns []interface{}) []*glue.Order {
 }
 
 func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
-	if len(l) == 0 {
+	if len(l) == 0 || l[0] == nil {
 		return nil
 	}
 
@@ -534,27 +630,15 @@ func expandGlueSkewedInfo(l []interface{}) *glue.SkewedInfo {
 	skewedInfo := &glue.SkewedInfo{}
 
 	if v, ok := s["skewed_column_names"]; ok {
-		columnsSlice := make([]string, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			columnsSlice[i] = fmt.Sprint(item)
-		}
-		skewedInfo.SkewedColumnNames = aws.StringSlice(columnsSlice)
+		skewedInfo.SkewedColumnNames = expandStringList(v.([]interface{}))
 	}
 
 	if v, ok := s["skewed_column_value_location_maps"]; ok {
-		typeMap := map[string]string{}
-		for key, value := range v.(map[string]interface{}) {
-			typeMap[key] = value.(string)
-		}
-		skewedInfo.SkewedColumnValueLocationMaps = aws.StringMap(typeMap)
+		skewedInfo.SkewedColumnValueLocationMaps = stringMapToPointers(v.(map[string]interface{}))
 	}
 
 	if v, ok := s["skewed_column_values"]; ok {
-		columnsSlice := make([]string, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			columnsSlice[i] = fmt.Sprint(item)
-		}
-		skewedInfo.SkewedColumnValues = aws.StringSlice(columnsSlice)
+		skewedInfo.SkewedColumnValues = expandStringList(v.([]interface{}))
 	}
 
 	return skewedInfo
@@ -588,8 +672,8 @@ func flattenGlueStorageDescriptor(s *glue.StorageDescriptor) []map[string]interf
 	return storageDescriptors
 }
 
-func flattenGlueColumns(cs []*glue.Column) []map[string]string {
-	columnsSlice := make([]map[string]string, len(cs))
+func flattenGlueColumns(cs []*glue.Column) []map[string]interface{} {
+	columnsSlice := make([]map[string]interface{}, len(cs))
 	if len(cs) > 0 {
 		for i, v := range cs {
 			columnsSlice[i] = flattenGlueColumn(v)
@@ -599,8 +683,8 @@ func flattenGlueColumns(cs []*glue.Column) []map[string]string {
 	return columnsSlice
 }
 
-func flattenGlueColumn(c *glue.Column) map[string]string {
-	column := make(map[string]string)
+func flattenGlueColumn(c *glue.Column) map[string]interface{} {
+	column := make(map[string]interface{})
 
 	if c == nil {
 		return column
@@ -618,7 +702,48 @@ func flattenGlueColumn(c *glue.Column) map[string]string {
 		column["comment"] = v
 	}
 
+	if v := c.Parameters; v != nil {
+		column["parameters"] = aws.StringValueMap(v)
+	}
+
 	return column
+}
+
+func flattenGluePartitionIndexes(cs []*glue.PartitionIndexDescriptor) []map[string]interface{} {
+	partitionIndexSlice := make([]map[string]interface{}, len(cs))
+	if len(cs) > 0 {
+		for i, v := range cs {
+			partitionIndexSlice[i] = flattenGluePartitionIndex(v)
+		}
+	}
+
+	return partitionIndexSlice
+}
+
+func flattenGluePartitionIndex(c *glue.PartitionIndexDescriptor) map[string]interface{} {
+	partitionIndex := make(map[string]interface{})
+
+	if c == nil {
+		return partitionIndex
+	}
+
+	if v := aws.StringValue(c.IndexName); v != "" {
+		partitionIndex["index_name"] = v
+	}
+
+	if v := aws.StringValue(c.IndexStatus); v != "" {
+		partitionIndex["index_status"] = v
+	}
+
+	if c.Keys != nil {
+		names := make([]*string, 0, len(c.Keys))
+		for _, key := range c.Keys {
+			names = append(names, key.Name)
+		}
+		partitionIndex["keys"] = flattenStringSet(names)
+	}
+
+	return partitionIndex
 }
 
 func flattenGlueSerDeInfo(s *glue.SerDeInfo) []map[string]interface{} {
@@ -630,9 +755,15 @@ func flattenGlueSerDeInfo(s *glue.SerDeInfo) []map[string]interface{} {
 	serDeInfos := make([]map[string]interface{}, 1)
 	serDeInfo := make(map[string]interface{})
 
-	serDeInfo["name"] = aws.StringValue(s.Name)
+	if v := aws.StringValue(s.Name); v != "" {
+		serDeInfo["name"] = v
+	}
+
 	serDeInfo["parameters"] = aws.StringValueMap(s.Parameters)
-	serDeInfo["serialization_library"] = aws.StringValue(s.SerializationLibrary)
+
+	if v := aws.StringValue(s.SerializationLibrary); v != "" {
+		serDeInfo["serialization_library"] = v
+	}
 
 	serDeInfos[0] = serDeInfo
 	return serDeInfos

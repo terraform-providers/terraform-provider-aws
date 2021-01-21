@@ -7,10 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appsync"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsAppsyncFunction_basic(t *testing.T) {
@@ -21,7 +20,7 @@ func TestAccAwsAppsyncFunction_basic(t *testing.T) {
 	var config appsync.FunctionConfiguration
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncFunctionDestroy,
 		Steps: []resource.TestStep{
@@ -59,7 +58,7 @@ func TestAccAwsAppsyncFunction_description(t *testing.T) {
 	var config appsync.FunctionConfiguration
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncFunctionDestroy,
 		Steps: []resource.TestStep{
@@ -93,7 +92,7 @@ func TestAccAwsAppsyncFunction_responseMappingTemplate(t *testing.T) {
 	var config appsync.FunctionConfiguration
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncFunctionDestroy,
 		Steps: []resource.TestStep{
@@ -119,7 +118,7 @@ func TestAccAwsAppsyncFunction_disappears(t *testing.T) {
 	var config appsync.FunctionConfiguration
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncFunctionDestroy,
 		Steps: []resource.TestStep{
@@ -127,7 +126,7 @@ func TestAccAwsAppsyncFunction_disappears(t *testing.T) {
 				Config: testAccAWSAppsyncFunctionConfig(rName1, rName2, testAccGetRegion()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsAppsyncFunctionExists(resourceName, &config),
-					testAccCheckAwsAppsyncFunctionDisappears(resourceName),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsAppsyncFunction(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -194,43 +193,15 @@ func testAccCheckAwsAppsyncFunctionExists(name string, config *appsync.FunctionC
 	}
 }
 
-func testAccCheckAwsAppsyncFunctionDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No resource ID is set")
-		}
-
-		conn := testAccProvider.Meta().(*AWSClient).appsyncconn
-		apiID, functionID, err := decodeAppsyncFunctionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		input := &appsync.DeleteFunctionInput{
-			ApiId:      aws.String(apiID),
-			FunctionId: aws.String(functionID),
-		}
-
-		_, err = conn.DeleteFunction(input)
-
-		return err
-	}
-}
-
 func testAccAWSAppsyncFunctionConfig(r1, r2, region string) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "aws_appsync_function" "test" {
-	api_id      = "${aws_appsync_graphql_api.test.id}"
-	data_source = "${aws_appsync_datasource.test.name}"
-	name        = "%[2]s"
-	request_mapping_template = <<EOF
+  api_id                   = aws_appsync_graphql_api.test.id
+  data_source              = aws_appsync_datasource.test.name
+  name                     = "%[2]s"
+  request_mapping_template = <<EOF
 {
 	"version": "2018-05-29",
 	"method": "GET",
@@ -240,7 +211,8 @@ resource "aws_appsync_function" "test" {
 	}
 }
 EOF
-	response_mapping_template = <<EOF
+
+  response_mapping_template = <<EOF
 #if($ctx.result.statusCode == 200)
 	$ctx.result.body
 #else
@@ -248,7 +220,6 @@ EOF
 #end
 EOF
 }
-
 `, testAccAppsyncDatasourceConfig_DynamoDBConfig_Region(r1, region), r2)
 }
 
@@ -257,11 +228,11 @@ func testAccAWSAppsyncFunctionConfigDescription(r1, r2, region, description stri
 %[1]s
 
 resource "aws_appsync_function" "test" {
-	api_id      = "${aws_appsync_graphql_api.test.id}"
-	data_source = "${aws_appsync_datasource.test.name}"
-	name        = "%[2]s"
-	description = "%[3]s"
-	request_mapping_template = <<EOF
+  api_id                   = aws_appsync_graphql_api.test.id
+  data_source              = aws_appsync_datasource.test.name
+  name                     = "%[2]s"
+  description              = "%[3]s"
+  request_mapping_template = <<EOF
 {
 	"version": "2018-05-29",
 	"method": "GET",
@@ -271,7 +242,8 @@ resource "aws_appsync_function" "test" {
 	}
 }
 EOF
-	response_mapping_template = <<EOF
+
+  response_mapping_template = <<EOF
 #if($ctx.result.statusCode == 200)
 	$ctx.result.body
 #else
@@ -279,7 +251,6 @@ EOF
 #end
 EOF
 }
-
 `, testAccAppsyncDatasourceConfig_DynamoDBConfig_Region(r1, region), r2, description)
 }
 
@@ -288,10 +259,10 @@ func testAccAWSAppsyncFunctionConfigResponseMappingTemplate(r1, r2, region strin
 %[1]s
 
 resource "aws_appsync_function" "test" {
-	api_id      = "${aws_appsync_graphql_api.test.id}"
-	data_source = "${aws_appsync_datasource.test.name}"
-	name        = "%[2]s"
-	request_mapping_template = <<EOF
+  api_id                   = aws_appsync_graphql_api.test.id
+  data_source              = aws_appsync_datasource.test.name
+  name                     = "%[2]s"
+  request_mapping_template = <<EOF
 {
 	"version": "2018-05-29",
 	"method": "GET",
@@ -301,7 +272,8 @@ resource "aws_appsync_function" "test" {
 	}
 }
 EOF
-	response_mapping_template = <<EOF
+
+  response_mapping_template = <<EOF
 #if($ctx.result.statusCode == 200)
 	$ctx.result.body
 #else
@@ -309,6 +281,5 @@ EOF
 #end
 EOF
 }
-
 `, testAccAppsyncDatasourceConfig_DynamoDBConfig_Region(r1, region), r2)
 }

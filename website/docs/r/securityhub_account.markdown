@@ -12,8 +12,6 @@ Enables Security Hub for this AWS account.
 
 ~> **NOTE:** Destroying this resource will disable Security Hub for this AWS account.
 
-~> **NOTE:** This AWS service is in Preview and may change before General Availability release. Backwards compatibility is not guaranteed between Terraform AWS Provider releases.
-
 ## Example Usage
 
 ```hcl
@@ -26,7 +24,7 @@ The resource does not support any arguments.
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - AWS Account ID.
 

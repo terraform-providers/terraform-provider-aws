@@ -6,83 +6,55 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
 
 func TestAccAWSVpnGatewayAttachment_basic(t *testing.T) {
-	var vpc ec2.Vpc
-	var vgw ec2.VpnGateway
+	var v ec2.VpcAttachment
+	resourceName := "aws_vpn_gateway_attachment.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_vpn_gateway_attachment.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckVpnGatewayAttachmentDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpnGatewayAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVpnGatewayAttachmentConfig,
+				Config: testAccVpnGatewayAttachmentConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists(
-						"aws_vpc.test",
-						&vpc),
-					testAccCheckVpnGatewayExists(
-						"aws_vpn_gateway.test",
-						&vgw),
-					testAccCheckVpnGatewayAttachmentExists(
-						"aws_vpn_gateway_attachment.test",
-						&vpc, &vgw),
+					testAccCheckVpnGatewayAttachmentExists(resourceName, &v),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSVpnGatewayAttachment_deleted(t *testing.T) {
-	var vpc ec2.Vpc
-	var vgw ec2.VpnGateway
-
-	testDeleted := func(n string) resource.TestCheckFunc {
-		return func(s *terraform.State) error {
-			_, ok := s.RootModule().Resources[n]
-			if ok {
-				return fmt.Errorf("Expected VPN Gateway attachment resource %q to be deleted.", n)
-			}
-			return nil
-		}
-	}
+func TestAccAWSVpnGatewayAttachment_disappears(t *testing.T) {
+	var v ec2.VpcAttachment
+	resourceName := "aws_vpn_gateway_attachment.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
-		IDRefreshName: "aws_vpn_gateway_attachment.test",
-		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckVpnGatewayAttachmentDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckVpnGatewayAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVpnGatewayAttachmentConfig,
+				Config: testAccVpnGatewayAttachmentConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVpcExists(
-						"aws_vpc.test",
-						&vpc),
-					testAccCheckVpnGatewayExists(
-						"aws_vpn_gateway.test",
-						&vgw),
-					testAccCheckVpnGatewayAttachmentExists(
-						"aws_vpn_gateway_attachment.test",
-						&vpc, &vgw),
+					testAccCheckVpnGatewayAttachmentExists(resourceName, &v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsVpnGatewayAttachment(), resourceName),
 				),
-			},
-			{
-				Config: testAccNoVpnGatewayAttachmentConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testDeleted("aws_vpn_gateway_attachment.test"),
-				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
-func testAccCheckVpnGatewayAttachmentExists(n string, vpc *ec2.Vpc, vgw *ec2.VpnGateway) resource.TestCheckFunc {
+func testAccCheckVpnGatewayAttachmentExists(n string, v *ec2.VpcAttachment) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -93,22 +65,19 @@ func testAccCheckVpnGatewayAttachmentExists(n string, vpc *ec2.Vpc, vgw *ec2.Vpn
 			return fmt.Errorf("No ID is set")
 		}
 
-		vpcId := rs.Primary.Attributes["vpc_id"]
-		vgwId := rs.Primary.Attributes["vpn_gateway_id"]
-
-		if len(vgw.VpcAttachments) == 0 {
-			return fmt.Errorf("VPN Gateway %q has no attachments.", vgwId)
+		conn := testAccProvider.Meta().(*AWSClient).ec2conn
+		out, err := finder.VpnGatewayVpcAttachment(conn, rs.Primary.Attributes["vpn_gateway_id"], rs.Primary.Attributes["vpc_id"])
+		if err != nil {
+			return err
+		}
+		if out == nil {
+			return fmt.Errorf("VPN Gateway Attachment not found")
+		}
+		if state := aws.StringValue(out.State); state != ec2.AttachmentStatusAttached {
+			return fmt.Errorf("VPN Gateway Attachment in incorrect state. Expected: %s, got: %s", ec2.AttachmentStatusAttached, state)
 		}
 
-		if *vgw.VpcAttachments[0].State != "attached" {
-			return fmt.Errorf("Expected VPN Gateway %q to be in attached state, but got: %q",
-				vgwId, *vgw.VpcAttachments[0].State)
-		}
-
-		if *vgw.VpcAttachments[0].VpcId != *vpc.VpcId {
-			return fmt.Errorf("Expected VPN Gateway %q to be attached to VPC %q, but got: %q",
-				vgwId, vpcId, *vgw.VpcAttachments[0].VpcId)
-		}
+		*v = *out
 
 		return nil
 	}
@@ -122,48 +91,40 @@ func testAccCheckVpnGatewayAttachmentDestroy(s *terraform.State) error {
 			continue
 		}
 
-		vgwId := rs.Primary.Attributes["vpn_gateway_id"]
-
-		resp, err := conn.DescribeVpnGateways(&ec2.DescribeVpnGatewaysInput{
-			VpnGatewayIds: []*string{aws.String(vgwId)},
-		})
+		out, err := finder.VpnGatewayVpcAttachment(conn, rs.Primary.Attributes["vpn_gateway_id"], rs.Primary.Attributes["vpc_id"])
 		if err != nil {
 			return err
 		}
-
-		vgw := resp.VpnGateways[0]
-		if *vgw.VpcAttachments[0].State != "detached" {
-			return fmt.Errorf("Expected VPN Gateway %q to be in detached state, but got: %q",
-				vgwId, *vgw.VpcAttachments[0].State)
+		if out == nil {
+			continue
+		}
+		if state := aws.StringValue(out.State); state != ec2.AttachmentStatusDetached {
+			return fmt.Errorf("VPN Gateway Attachment in incorrect state. Expected: %s, got: %s", ec2.AttachmentStatusDetached, state)
 		}
 	}
 
 	return nil
 }
 
-const testAccNoVpnGatewayAttachmentConfig = `
+func testAccVpnGatewayAttachmentConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
-	cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-vpn-gateway-attachment-basic"
-	}
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
 }
 
-resource "aws_vpn_gateway" "test" { }
-`
-
-const testAccVpnGatewayAttachmentConfig = `
-resource "aws_vpc" "test" {
-	cidr_block = "10.0.0.0/16"
-	tags = {
-		Name = "terraform-testacc-vpn-gateway-attachment-deleted"
-	}
+resource "aws_vpn_gateway" "test" {
+  tags = {
+    Name = %[1]q
+  }
 }
-
-resource "aws_vpn_gateway" "test" { }
 
 resource "aws_vpn_gateway_attachment" "test" {
-	vpc_id = "${aws_vpc.test.id}"
-	vpn_gateway_id = "${aws_vpn_gateway.test.id}"
+  vpc_id         = aws_vpc.test.id
+  vpn_gateway_id = aws_vpn_gateway.test.id
 }
-`
+`, rName)
+}

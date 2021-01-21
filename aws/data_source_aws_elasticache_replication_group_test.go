@@ -2,14 +2,18 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elasticache_replication_group.test"
+	dataSourceName := "data.aws_elasticache_replication_group.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -17,16 +21,18 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "replication_group_id", fmt.Sprintf("tf-%s", rName)),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "replication_group_description", "test description"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "auth_token_enabled", "false"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "automatic_failover_enabled", "true"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "port", "6379"),
-					resource.TestCheckResourceAttrSet("data.aws_elasticache_replication_group.bar", "primary_endpoint_address"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "number_cache_clusters", "2"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "member_clusters.#", "2"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "node_type", "cache.m1.small"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.bar", "snapshot_window", "01:00-02:00"),
+					resource.TestCheckResourceAttr(dataSourceName, "auth_token_enabled", "false"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "arn", resourceName, "arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "automatic_failover_enabled", resourceName, "automatic_failover_enabled"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "member_clusters.#", resourceName, "member_clusters.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "node_type", resourceName, "node_type"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "number_cache_clusters", resourceName, "number_cache_clusters"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "port", resourceName, "port"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "primary_endpoint_address", resourceName, "primary_endpoint_address"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "reader_endpoint_address", resourceName, "reader_endpoint_address"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_description", resourceName, "replication_group_description"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_id", resourceName, "replication_group_id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "snapshot_window", resourceName, "snapshot_window"),
 				),
 			},
 		},
@@ -34,7 +40,10 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAwsElasticacheReplicationGroup_ClusterMode(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elasticache_replication_group.test"
+	dataSourceName := "data.aws_elasticache_replication_group.test"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -42,46 +51,58 @@ func TestAccDataSourceAwsElasticacheReplicationGroup_ClusterMode(t *testing.T) {
 			{
 				Config: testAccDataSourceAwsElasticacheReplicationGroupConfig_ClusterMode(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "replication_group_id", fmt.Sprintf("tf-%s", rName)),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "replication_group_description", "test description"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "auth_token_enabled", "false"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "automatic_failover_enabled", "true"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "port", "6379"),
-					resource.TestCheckResourceAttrSet("data.aws_elasticache_replication_group.cluster", "configuration_endpoint_address"),
-					resource.TestCheckResourceAttr("data.aws_elasticache_replication_group.cluster", "node_type", "cache.m1.small"),
+					resource.TestCheckResourceAttr(dataSourceName, "auth_token_enabled", "false"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "automatic_failover_enabled", resourceName, "automatic_failover_enabled"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "configuration_endpoint_address", resourceName, "configuration_endpoint_address"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "node_type", resourceName, "node_type"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "port", resourceName, "port"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_description", resourceName, "replication_group_description"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "replication_group_id", resourceName, "replication_group_id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName string) string {
-	return fmt.Sprintf(`
-data "aws_availability_zones" "available" {}
+func TestAccDataSourceAwsElasticacheReplicationGroup_NonExistent(t *testing.T) {
 
-resource "aws_elasticache_replication_group" "bar" {
-  replication_group_id          = "tf-%s"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDataSourceAwsElasticacheReplicationGroupConfig_NonExistent,
+				ExpectError: regexp.MustCompile(`couldn't find resource`),
+			},
+		},
+	})
+}
+
+func testAccDataSourceAwsElasticacheReplicationGroupConfig_basic(rName string) string {
+	return testAccAvailableAZsNoOptInConfig() + fmt.Sprintf(`
+resource "aws_elasticache_replication_group" "test" {
+  replication_group_id          = %[1]q
   replication_group_description = "test description"
-  node_type                     = "cache.m1.small"
+  node_type                     = "cache.t3.small"
   number_cache_clusters         = 2
   port                          = 6379
-  availability_zones            = ["${data.aws_availability_zones.available.names[0]}", "${data.aws_availability_zones.available.names[1]}"]
+  availability_zones            = [data.aws_availability_zones.available.names[0], data.aws_availability_zones.available.names[1]]
   automatic_failover_enabled    = true
   snapshot_window               = "01:00-02:00"
 }
 
-data "aws_elasticache_replication_group" "bar" {
-  replication_group_id = "${aws_elasticache_replication_group.bar.replication_group_id}"
+data "aws_elasticache_replication_group" "test" {
+  replication_group_id = aws_elasticache_replication_group.test.replication_group_id
 }
 `, rName)
 }
 
 func testAccDataSourceAwsElasticacheReplicationGroupConfig_ClusterMode(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_elasticache_replication_group" "cluster" {
-  replication_group_id          = "tf-%s"
+resource "aws_elasticache_replication_group" "test" {
+  replication_group_id          = %[1]q
   replication_group_description = "test description"
-  node_type                     = "cache.m1.small"
+  node_type                     = "cache.t3.small"
   port                          = 6379
   automatic_failover_enabled    = true
 
@@ -91,8 +112,14 @@ resource "aws_elasticache_replication_group" "cluster" {
   }
 }
 
-data "aws_elasticache_replication_group" "cluster" {
-  replication_group_id = "${aws_elasticache_replication_group.cluster.replication_group_id}"
+data "aws_elasticache_replication_group" "test" {
+  replication_group_id = aws_elasticache_replication_group.test.replication_group_id
 }
 `, rName)
 }
+
+const testAccDataSourceAwsElasticacheReplicationGroupConfig_NonExistent = `
+data "aws_elasticache_replication_group" "test" {
+  replication_group_id = "tf-acc-test-nonexistent"
+}
+`

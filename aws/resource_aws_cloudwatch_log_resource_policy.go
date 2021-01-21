@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsCloudWatchLogResourcePolicy() *schema.Resource {
@@ -73,8 +73,7 @@ func resourceAwsCloudWatchLogResourcePolicyRead(d *schema.ResourceData, meta int
 		return nil
 	}
 
-	d.SetId(policyName)
-	d.Set("policy_document", *resourcePolicy.PolicyDocument)
+	d.Set("policy_document", resourcePolicy.PolicyDocument)
 
 	return nil
 }

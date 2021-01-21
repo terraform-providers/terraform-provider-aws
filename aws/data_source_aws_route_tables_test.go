@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsRouteTables(t *testing.T) {
+func TestAccDataSourceAwsRouteTables_basic(t *testing.T) {
 	rInt := acctest.RandIntRange(0, 256)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ resource "aws_vpc" "test2" {
 }
 
 resource "aws_route_table" "test_public_a" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-public-a"
@@ -60,7 +60,7 @@ resource "aws_route_table" "test_public_a" {
 }
 
 resource "aws_route_table" "test_private_a" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-a"
@@ -70,7 +70,7 @@ resource "aws_route_table" "test_private_a" {
 }
 
 resource "aws_route_table" "test_private_b" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-b"
@@ -80,7 +80,7 @@ resource "aws_route_table" "test_private_b" {
 }
 
 resource "aws_route_table" "test_private_c" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-c"
@@ -90,15 +90,15 @@ resource "aws_route_table" "test_private_c" {
 }
 
 data "aws_route_tables" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 }
 
 data "aws_route_tables" "test2" {
-  vpc_id = "${aws_vpc.test2.id}"
+  vpc_id = aws_vpc.test2.id
 }
 
 data "aws_route_tables" "private" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Tier = "Private"
@@ -106,7 +106,7 @@ data "aws_route_tables" "private" {
 }
 
 data "aws_route_tables" "filter_test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   filter {
     name   = "tag:Component"
@@ -127,7 +127,7 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_route_table" "test_public_a" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-public-a"
@@ -137,7 +137,7 @@ resource "aws_route_table" "test_public_a" {
 }
 
 resource "aws_route_table" "test_private_a" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-a"
@@ -147,7 +147,7 @@ resource "aws_route_table" "test_private_a" {
 }
 
 resource "aws_route_table" "test_private_b" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-b"
@@ -157,7 +157,7 @@ resource "aws_route_table" "test_private_b" {
 }
 
 resource "aws_route_table" "test_private_c" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
 
   tags = {
     Name      = "tf-acc-route-tables-data-source-private-c"

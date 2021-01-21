@@ -5,9 +5,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSSsmResourceDataSync_basic(t *testing.T) {
@@ -95,108 +95,116 @@ func testAccCheckAWSSsmResourceDataSyncExists(name string) resource.TestCheckFun
 func testAccSsmResourceDataSyncConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "hoge" {
-  bucket        = "tf-test-bucket-%d"
-  region        = "us-west-2"
+  bucket        = "tf-test-bucket-%[1]d"
   force_destroy = true
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_s3_bucket_policy" "hoge" {
-  bucket = "${aws_s3_bucket.hoge.bucket}"
+  bucket = aws_s3_bucket.hoge.bucket
 
   policy = <<EOF
 {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "SSMBucketPermissionsCheck",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ssm.amazonaws.com"
-                },
-                "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::tf-test-bucket-%d"
-            },
-            {
-                "Sid": " SSMBucketDelivery",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ssm.amazonaws.com"
-                },
-                "Action": "s3:PutObject",
-                "Resource": ["arn:aws:s3:::tf-test-bucket-%d/*"],
-                "Condition": {
-                    "StringEquals": {
-                        "s3:x-amz-acl": "bucket-owner-full-control"
-                    }
-                }
-            }
-          ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SSMBucketPermissionsCheck",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d"
+    },
+    {
+      "Sid": " SSMBucketDelivery",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "s3:PutObject",
+      "Resource": [
+        "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
       }
+    }
+  ]
+}
       EOF
+
 }
 
 resource "aws_ssm_resource_data_sync" "test" {
-  name = "tf-test-ssm-%s"
+  name = "tf-test-ssm-%[2]s"
 
   s3_destination {
-    bucket_name = "${aws_s3_bucket.hoge.bucket}"
-    region      = "${aws_s3_bucket.hoge.region}"
+    bucket_name = aws_s3_bucket.hoge.bucket
+    region      = aws_s3_bucket.hoge.region
   }
 }
-`, rInt, rInt, rInt, rName)
+`, rInt, rName)
 }
 
 func testAccSsmResourceDataSyncConfigUpdate(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "hoge" {
-  bucket        = "tf-test-bucket-%d"
-  region        = "us-west-2"
+  bucket        = "tf-test-bucket-%[1]d"
   force_destroy = true
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_s3_bucket_policy" "hoge" {
-  bucket = "${aws_s3_bucket.hoge.bucket}"
+  bucket = aws_s3_bucket.hoge.bucket
 
   policy = <<EOF
 {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "SSMBucketPermissionsCheck",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ssm.amazonaws.com"
-                },
-                "Action": "s3:GetBucketAcl",
-                "Resource": "arn:aws:s3:::tf-test-bucket-%d"
-            },
-            {
-                "Sid": " SSMBucketDelivery",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ssm.amazonaws.com"
-                },
-                "Action": "s3:PutObject",
-                "Resource": ["arn:aws:s3:::tf-test-bucket-%d/*"],
-                "Condition": {
-                    "StringEquals": {
-                        "s3:x-amz-acl": "bucket-owner-full-control"
-                    }
-                }
-            }
-          ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SSMBucketPermissionsCheck",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d"
+    },
+    {
+      "Sid": " SSMBucketDelivery",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ssm.${data.aws_partition.current.dns_suffix}"
+      },
+      "Action": "s3:PutObject",
+      "Resource": [
+        "arn:${data.aws_partition.current.partition}:s3:::tf-test-bucket-%[1]d/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
       }
+    }
+  ]
+}
       EOF
+
 }
 
 resource "aws_ssm_resource_data_sync" "test" {
-  name = "tf-test-ssm-%s"
+  name = "tf-test-ssm-%[2]s"
 
   s3_destination {
-    bucket_name = "${aws_s3_bucket.hoge.bucket}"
-    region      = "${aws_s3_bucket.hoge.region}"
+    bucket_name = aws_s3_bucket.hoge.bucket
+    region      = aws_s3_bucket.hoge.region
     prefix      = "test-"
   }
 }
-`, rInt, rInt, rInt, rName)
+`, rInt, rName)
 }

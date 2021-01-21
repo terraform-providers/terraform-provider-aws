@@ -4,10 +4,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceAwsAcmpcaCertificateAuthority_Basic(t *testing.T) {
+func TestAccDataSourceAwsAcmpcaCertificateAuthority_basic(t *testing.T) {
 	resourceName := "aws_acmpca_certificate_authority.test"
 	datasourceName := "data.aws_acmpca_certificate_authority.test"
 
@@ -69,10 +69,11 @@ resource "aws_acmpca_certificate_authority" "test" {
 }
 
 data "aws_acmpca_certificate_authority" "test" {
-  arn = "${aws_acmpca_certificate_authority.test.arn}"
+  arn = aws_acmpca_certificate_authority.test.arn
 }
 `
 
+//lintignore:AWSAT003,AWSAT005
 const testAccDataSourceAwsAcmpcaCertificateAuthorityConfig_NonExistent = `
 data "aws_acmpca_certificate_authority" "test" {
   arn = "arn:aws:acm-pca:us-east-1:123456789012:certificate-authority/tf-acc-test-does-not-exist"

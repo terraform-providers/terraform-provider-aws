@@ -14,7 +14,7 @@ description: |-
 
 ```hcl
 data "aws_ram_resource_share" "example" {
-  name = "example"
+  name           = "example"
   resource_owner = "SELF"
 }
 ```
@@ -41,8 +41,8 @@ The following Arguments are supported
 * `resource_owner` (Required) The owner of the resource share. Valid values are SELF or OTHER-ACCOUNTS
 
 * `filter` - (Optional) A filter used to scope the list e.g. by tags. See [related docs] (https://docs.aws.amazon.com/ram/latest/APIReference/API_TagFilter.html).
-  * `name` - (Required) The name of the tag key to filter on.
-  * `values` - (Required) The value of the tag key.
+    * `name` - (Required) The name of the tag key to filter on.
+    * `values` - (Required) The value of the tag key.
 
 ## Attributes Reference
 
@@ -51,4 +51,5 @@ In addition to all arguments above, the following attributes are exported:
 * `arn` - The Amazon Resource Name (ARN) of the resource share.
 * `id` - The Amazon Resource Name (ARN) of the resource share.
 * `status` - The Status of the RAM share.
+* `owning_account_id` - The ID of the AWS account that owns the resource share.
 * `tags` - The Tags attached to the RAM share

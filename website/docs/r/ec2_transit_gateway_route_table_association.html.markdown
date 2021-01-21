@@ -14,8 +14,8 @@ Manages an EC2 Transit Gateway Route Table association.
 
 ```hcl
 resource "aws_ec2_transit_gateway_route_table_association" "example" {
-  transit_gateway_attachment_id  = "${aws_ec2_transit_gateway_vpc_attachment.example.id}"
-  transit_gateway_route_table_id = "${aws_ec2_transit_gateway_route_table.example.id}"
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.example.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
 }
 ```
 
@@ -26,7 +26,7 @@ The following arguments are supported:
 * `transit_gateway_attachment_id` - (Required) Identifier of EC2 Transit Gateway Attachment.
 * `transit_gateway_route_table_id` - (Required) Identifier of EC2 Transit Gateway Route Table.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

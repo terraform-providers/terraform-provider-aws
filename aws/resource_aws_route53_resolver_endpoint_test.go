@@ -8,15 +8,19 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/route53resolver"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
 	resource.AddTestSweepers("aws_route53_resolver_endpoint", &resource.Sweeper{
 		Name: "aws_route53_resolver_endpoint",
 		F:    testSweepRoute53ResolverEndpoints,
+		Dependencies: []string{
+			"aws_route53_resolver_rule",
+		},
 	})
 }
 
@@ -27,6 +31,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 	}
 	conn := client.(*AWSClient).route53resolverconn
 
+	var errors error
 	err = conn.ListResolverEndpointsPages(&route53resolver.ListResolverEndpointsInput{}, func(page *route53resolver.ListResolverEndpointsOutput, isLast bool) bool {
 		if page == nil {
 			return !isLast
@@ -43,7 +48,7 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 				continue
 			}
 			if err != nil {
-				log.Printf("[ERROR] Error deleting Route53 Resolver endpoint (%s): %s", id, err)
+				errors = multierror.Append(errors, fmt.Errorf("error deleting Route53 Resolver endpoint (%s): %w", id, err))
 				continue
 			}
 
@@ -51,7 +56,8 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 				[]string{route53resolver.ResolverEndpointStatusDeleting},
 				[]string{route53ResolverEndpointStatusDeleted})
 			if err != nil {
-				log.Printf("[ERROR] %s", err)
+				errors = multierror.Append(errors, err)
+				continue
 			}
 		}
 
@@ -62,13 +68,13 @@ func testSweepRoute53ResolverEndpoints(region string) error {
 			log.Printf("[WARN] Skipping Route53 Resolver endpoint sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("error retrievingRoute53 Resolver endpoints: %s", err)
+		errors = multierror.Append(errors, fmt.Errorf("error retrievingRoute53 Resolver endpoints: %w", err))
 	}
 
-	return nil
+	return errors
 }
 
-func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
+func TestAccAWSRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 	var ep route53resolver.ResolverEndpoint
 	resourceName := "aws_route53_resolver_endpoint.foo"
 	rInt := acctest.RandInt()
@@ -76,6 +82,7 @@ func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -99,7 +106,7 @@ func TestAccAwsRoute53ResolverEndpoint_basicInbound(t *testing.T) {
 	})
 }
 
-func TestAccAwsRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
+func TestAccAWSRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
 	var ep route53resolver.ResolverEndpoint
 	resourceName := "aws_route53_resolver_endpoint.foo"
 	rInt := acctest.RandInt()
@@ -108,6 +115,7 @@ func TestAccAwsRoute53ResolverEndpoint_updateOutbound(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -211,60 +219,67 @@ resource "aws_vpc" "foo" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "terraform-testacc-r53-resolver-vpc-%d"
+    Name = "terraform-testacc-r53-resolver-vpc-%[1]d"
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_subnet" "sn1" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 0)}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 0)
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn1-%d"
+    Name = "tf-acc-r53-resolver-sn1-%[1]d"
   }
 }
 
 resource "aws_subnet" "sn2" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 1)}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 1)
+  availability_zone = data.aws_availability_zones.available.names[1]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn2-%d"
+    Name = "tf-acc-r53-resolver-sn2-%[1]d"
   }
 }
 
 resource "aws_subnet" "sn3" {
-  vpc_id            = "${aws_vpc.foo.id}"
-  cidr_block        = "${cidrsubnet(aws_vpc.foo.cidr_block, 2, 2)}"
-  availability_zone = "${data.aws_availability_zones.available.names[2]}"
+  vpc_id            = aws_vpc.foo.id
+  cidr_block        = cidrsubnet(aws_vpc.foo.cidr_block, 2, 2)
+  availability_zone = data.aws_availability_zones.available.names[2]
 
   tags = {
-    Name = "tf-acc-r53-resolver-sn3-%d"
+    Name = "tf-acc-r53-resolver-sn3-%[1]d"
   }
 }
 
 resource "aws_security_group" "sg1" {
-  vpc_id = "${aws_vpc.foo.id}"
-  name   = "tf-acc-r53-resolver-sg1-%d"
+  vpc_id = aws_vpc.foo.id
+  name   = "tf-acc-r53-resolver-sg1-%[1]d"
 
   tags = {
-    Name = "tf-acc-r53-resolver-sg1-%d"
+    Name = "tf-acc-r53-resolver-sg1-%[1]d"
   }
 }
 
 resource "aws_security_group" "sg2" {
-  vpc_id = "${aws_vpc.foo.id}"
-  name   = "tf-acc-r53-resolver-sg2-%d"
+  vpc_id = aws_vpc.foo.id
+  name   = "tf-acc-r53-resolver-sg2-%[1]d"
 
   tags = {
-    Name = "tf-acc-r53-resolver-sg2-%d"
+    Name = "tf-acc-r53-resolver-sg2-%[1]d"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt)
 }
 
 func testAccRoute53ResolverEndpointConfig_initial(rInt int, direction, name string) string {
@@ -276,17 +291,17 @@ resource "aws_route53_resolver_endpoint" "foo" {
   name      = "%s"
 
   security_group_ids = [
-    "${aws_security_group.sg1.id}",
-    "${aws_security_group.sg2.id}",
+    aws_security_group.sg1.id,
+    aws_security_group.sg2.id,
   ]
 
   ip_address {
-    subnet_id = "${aws_subnet.sn1.id}"
+    subnet_id = aws_subnet.sn1.id
   }
 
   ip_address {
-    subnet_id = "${aws_subnet.sn2.id}"
-    ip        = "${cidrhost(aws_subnet.sn2.cidr_block, 8)}"
+    subnet_id = aws_subnet.sn2.id
+    ip        = cidrhost(aws_subnet.sn2.cidr_block, 8)
   }
 
   tags = {
@@ -306,16 +321,16 @@ resource "aws_route53_resolver_endpoint" "foo" {
   name      = "%s"
 
   security_group_ids = [
-    "${aws_security_group.sg1.id}",
-    "${aws_security_group.sg2.id}",
+    aws_security_group.sg1.id,
+    aws_security_group.sg2.id,
   ]
 
   ip_address {
-    subnet_id = "${aws_subnet.sn1.id}"
+    subnet_id = aws_subnet.sn1.id
   }
 
   ip_address {
-    subnet_id = "${aws_subnet.sn3.id}"
+    subnet_id = aws_subnet.sn3.id
   }
 
   tags = {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/devicefarm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsDevicefarmProject() *schema.Resource {
@@ -15,6 +15,9 @@ func resourceAwsDevicefarmProject() *schema.Resource {
 		Read:   resourceAwsDevicefarmProjectRead,
 		Update: resourceAwsDevicefarmProjectUpdate,
 		Delete: resourceAwsDevicefarmProjectDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"arn": {
@@ -32,13 +35,6 @@ func resourceAwsDevicefarmProject() *schema.Resource {
 
 func resourceAwsDevicefarmProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).devicefarmconn
-	region := meta.(*AWSClient).region
-
-	//	We need to ensure that DeviceFarm is only being run against us-west-2
-	//	As this is the only place that AWS currently supports it
-	if region != "us-west-2" {
-		return fmt.Errorf("DeviceFarm can only be used with us-west-2. You are trying to use it on %s", region)
-	}
 
 	input := &devicefarm.CreateProjectInput{
 		Name: aws.String(d.Get("name").(string)),
@@ -51,7 +47,7 @@ func resourceAwsDevicefarmProjectCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	log.Printf("[DEBUG] Successsfully Created DeviceFarm Project: %s", *out.Project.Arn)
-	d.SetId(*out.Project.Arn)
+	d.SetId(aws.StringValue(out.Project.Arn))
 
 	return resourceAwsDevicefarmProjectRead(d, meta)
 }
@@ -66,6 +62,11 @@ func resourceAwsDevicefarmProjectRead(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Reading DeviceFarm Project: %s", d.Id())
 	out, err := conn.GetProject(input)
 	if err != nil {
+		if isAWSErr(err, devicefarm.ErrCodeNotFoundException, "") {
+			log.Printf("[WARN] DeviceFarm Project (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DeviceFarm Project: %s", err)
 	}
 

@@ -14,11 +14,11 @@ Manages an S3 Location within AWS DataSync.
 
 ```hcl
 resource "aws_datasync_location_s3" "example" {
-  s3_bucket_arn = "${aws_s3_bucket.example.arn}"
+  s3_bucket_arn = aws_s3_bucket.example.arn
   subdirectory  = "/example/prefix"
 
   s3_config {
-    bucket_access_role_arn = "${aws_iam_role.example.arn}"
+    bucket_access_role_arn = aws_iam_role.example.arn
   }
 }
 ```
@@ -38,7 +38,7 @@ The following arguments are supported inside the `s3_config` configuration block
 
 * `bucket_access_role_arn` - (Required) Amazon Resource Names (ARN) of the IAM Role used to connect to the S3 Bucket.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/inspector"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAWSInspectorResourceGroup() *schema.Resource {
@@ -20,6 +20,7 @@ func resourceAWSInspectorResourceGroup() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 				Type:     schema.TypeMap,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -76,6 +77,7 @@ func resourceAwsInspectorResourceGroupRead(d *schema.ResourceData, meta interfac
 	resourceGroup := resp.ResourceGroups[0]
 	d.Set("arn", resourceGroup.Arn)
 
+	//lintignore:AWSR002
 	if err := d.Set("tags", flattenInspectorResourceGroupTags(resourceGroup.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}

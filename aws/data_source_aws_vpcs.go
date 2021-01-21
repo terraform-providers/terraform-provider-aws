@@ -3,11 +3,11 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsVpcs() *schema.Resource {
@@ -31,18 +31,15 @@ func dataSourceAwsVpcs() *schema.Resource {
 func dataSourceAwsVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	filters, filtersOk := d.GetOk("filter")
-	tags, tagsOk := d.GetOk("tags")
-
 	req := &ec2.DescribeVpcsInput{}
 
-	if tagsOk {
-		req.Filters = buildEC2TagFilterList(
-			tagsFromMap(tags.(map[string]interface{})),
-		)
+	if tags, tagsOk := d.GetOk("tags"); tagsOk {
+		req.Filters = append(req.Filters, buildEC2TagFilterList(
+			keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
+		)...)
 	}
 
-	if filtersOk {
+	if filters, filtersOk := d.GetOk("filter"); filtersOk {
 		req.Filters = append(req.Filters, buildEC2CustomFilterList(
 			filters.(*schema.Set),
 		)...)
@@ -68,7 +65,8 @@ func dataSourceAwsVpcsRead(d *schema.ResourceData, meta interface{}) error {
 		vpcs = append(vpcs, aws.StringValue(vpc.VpcId))
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
+
 	if err := d.Set("ids", vpcs); err != nil {
 		return fmt.Errorf("Error setting vpc ids: %s", err)
 	}

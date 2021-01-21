@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/apigateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -26,7 +27,7 @@ func testSweepAPIGatewayRestApis(region string) error {
 	if err != nil {
 		return fmt.Errorf("error getting client: %s", err)
 	}
-	conn := client.(*AWSClient).apigateway
+	conn := client.(*AWSClient).apigatewayconn
 
 	err = conn.GetRestApisPages(&apigateway.GetRestApisInput{}, func(page *apigateway.GetRestApisOutput, lastPage bool) bool {
 		for _, item := range page.Items {
@@ -69,57 +70,34 @@ func TestAccAWSAPIGatewayRestApi_basic(t *testing.T) {
 	resourceName := "aws_api_gateway_rest_api.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfig(rName),
+				Config: testAccAWSAPIGatewayRestAPIConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
-					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/+.`)),
-					testAccCheckAWSAPIGatewayRestAPINameAttribute(&conf, rName),
-					testAccCheckAWSAPIGatewayRestAPIMinimumCompressionSizeAttribute(&conf, 0),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "api_key_source", "HEADER"),
-					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
-					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
-					resource.TestCheckNoResourceAttr(resourceName, "binary_media_types"),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/restapis/+.`)),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "body"),
+					testAccCheckResourceAttrRfc3339(resourceName, "created_date"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "disable_execute_api_endpoint", "false"),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.#", "1"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "execution_arn", "execute-api", regexp.MustCompile(`[a-z0-9]+`)),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "-1"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
+					resource.TestMatchResourceAttr(resourceName, "root_resource_id", regexp.MustCompile(`[a-z0-9]+`)),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-
-			{
-				Config: testAccAWSAPIGatewayRestAPIUpdateConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
-					testAccCheckAWSAPIGatewayRestAPINameAttribute(&conf, rName),
-					testAccCheckAWSAPIGatewayRestAPIDescriptionAttribute(&conf, "test"),
-					testAccCheckAWSAPIGatewayRestAPIMinimumCompressionSizeAttribute(&conf, 10485760),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "description", "test"),
-					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "10485760"),
-					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
-					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
-					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet-stream"),
-				),
-			},
-
-			{
-				Config: testAccAWSAPIGatewayRestAPIDisableCompressionConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
-					testAccCheckAWSAPIGatewayRestAPIMinimumCompressionSizeAttributeIsNil(&conf),
-					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "-1"),
-				),
 			},
 		},
 	})
@@ -131,7 +109,7 @@ func TestAccAWSAPIGatewayRestApi_tags(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
@@ -180,15 +158,15 @@ func TestAccAWSAPIGatewayRestApi_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfig(rName),
+				Config: testAccAWSAPIGatewayRestAPIConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &restApi),
-					testAccCheckAWSAPIGatewayRestAPIDisappears(&restApi),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayRestApi(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -237,7 +215,7 @@ func TestAccAWSAPIGatewayRestApi_EndpointConfiguration(t *testing.T) {
 					// This can eventually be moved to a PreCheck function
 					// If the region does not support EDGE endpoint type, this test will either show
 					// SKIP (if REGIONAL passed) or FAIL (if REGIONAL failed)
-					conn := testAccProvider.Meta().(*AWSClient).apigateway
+					conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 					output, err := conn.CreateRestApi(&apigateway.CreateRestApiInput{
 						Name: aws.String(acctest.RandomWithPrefix("tf-acc-test-edge-endpoint-precheck")),
 						EndpointConfiguration: &apigateway.EndpointConfiguration{
@@ -285,7 +263,7 @@ func TestAccAWSAPIGatewayRestApi_EndpointConfiguration_Private(t *testing.T) {
 				PreConfig: func() {
 					// Ensure region supports PRIVATE endpoint
 					// This can eventually be moved to a PreCheck function
-					conn := testAccProvider.Meta().(*AWSClient).apigateway
+					conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 					output, err := conn.CreateRestApi(&apigateway.CreateRestApiInput{
 						Name: aws.String(acctest.RandomWithPrefix("tf-acc-test-private-endpoint-precheck")),
 						EndpointConfiguration: &apigateway.EndpointConfiguration{
@@ -338,7 +316,7 @@ func TestAccAWSAPIGatewayRestApi_EndpointConfiguration_VPCEndpoint(t *testing.T)
 				PreConfig: func() {
 					// Ensure region supports PRIVATE endpoint
 					// This can eventually be moved to a PreCheck function
-					conn := testAccProvider.Meta().(*AWSClient).apigateway
+					conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 					output, err := conn.CreateRestApi(&apigateway.CreateRestApiInput{
 						Name: aws.String(acctest.RandomWithPrefix("tf-acc-test-private-endpoint-precheck")),
 						EndpointConfiguration: &apigateway.EndpointConfiguration{
@@ -374,25 +352,43 @@ func TestAccAWSAPIGatewayRestApi_EndpointConfiguration_VPCEndpoint(t *testing.T)
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfig_VPCEndpointConfiguration2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &restApi),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.types.0", "PRIVATE"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.vpc_endpoint_ids.#", "2"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfig_VPCEndpointConfiguration(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &restApi),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.types.0", "PRIVATE"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_configuration.0.vpc_endpoint_ids.#", "1"),
+				),
+			},
 		},
 	})
 }
 
-func TestAccAWSAPIGatewayRestApi_api_key_source(t *testing.T) {
-	expectedAPIKeySource := "HEADER"
-	expectedUpdateAPIKeySource := "AUTHORIZER"
+func TestAccAWSAPIGatewayRestApi_ApiKeySource(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_api_gateway_rest_api.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfigWithAPIKeySource(rName),
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySource(rName, "AUTHORIZER"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "api_key_source", expectedAPIKeySource),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "AUTHORIZER"),
 				),
 			},
 			{
@@ -401,29 +397,583 @@ func TestAccAWSAPIGatewayRestApi_api_key_source(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfigWithUpdateAPIKeySource(rName),
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySource(rName, "HEADER"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "api_key_source", expectedUpdateAPIKeySource),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "HEADER"),
 				),
 			},
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfig(rName),
+				Config: testAccAWSAPIGatewayRestAPIConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "api_key_source", expectedAPIKeySource),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "HEADER"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAWSAPIGatewayRestApi_policy(t *testing.T) {
+func TestAccAWSAPIGatewayRestApi_ApiKeySource_OverrideBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySourceOverrideBody(rName, "AUTHORIZER", "HEADER"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "AUTHORIZER"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify updated API key source still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySourceOverrideBody(rName, "HEADER", "HEADER"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "HEADER"),
+				),
+			},
+			// Verify updated body API key source is still overridden
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySourceOverrideBody(rName, "HEADER", "AUTHORIZER"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "HEADER"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_ApiKeySource_SetByBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigApiKeySourceSetByBody(rName, "AUTHORIZER"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "api_key_source", "AUTHORIZER"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_BinaryMediaTypes(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1(rName, "application/octet-stream"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet-stream"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1(rName, "application/octet"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_BinaryMediaTypes_OverrideBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1OverrideBody(rName, "application/octet-stream", "image/jpeg"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet-stream"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify updated minimum compression size still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1OverrideBody(rName, "application/octet", "image/jpeg"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet"),
+				),
+			},
+			// Verify updated body minimum compression size is still overridden
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1OverrideBody(rName, "application/octet", "image/png"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_BinaryMediaTypes_SetByBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1SetByBody(rName, "application/octet-stream"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "binary_media_types.0", "application/octet-stream"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Body(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			// The body is expected to only set a title (name) and one route
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBody(rName, "/test"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/test"}),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
+					resource.TestCheckNoResourceAttr(resourceName, "binary_media_types"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigBody(rName, "/update"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/update"}),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Description(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescription(rName, "description1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "description1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescription(rName, "description2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "description2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Description_OverrideBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescriptionOverrideBody(rName, "tfdescription1", "oasdescription1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "tfdescription1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify updated description still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescriptionOverrideBody(rName, "tfdescription2", "oasdescription1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "tfdescription2"),
+				),
+			},
+			// Verify updated body description is still overridden
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescriptionOverrideBody(rName, "tfdescription2", "oasdescription2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "tfdescription2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Description_SetByBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigDescriptionSetByBody(rName, "oasdescription1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "description", "oasdescription1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_DisableExecuteApiEndpoint(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfig_DisableExecuteApiEndpoint(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "disable_execute_api_endpoint", `false`),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfig_DisableExecuteApiEndpoint(rName, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "disable_execute_api_endpoint", `true`),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfig_DisableExecuteApiEndpoint(rName, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "disable_execute_api_endpoint", `false`),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_MinimumCompressionSize(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSize(rName, 0),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSize(rName, -1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "-1"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSize(rName, 5242880),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "5242880"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_MinimumCompressionSize_OverrideBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeOverrideBody(rName, 1, 5242880),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "1"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify updated minimum compression size still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeOverrideBody(rName, 2, 5242880),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "2"),
+				),
+			},
+			// Verify updated body minimum compression size is still overridden
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeOverrideBody(rName, 2, 1048576),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_MinimumCompressionSize_SetByBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeSetByBody(rName, 1048576),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "minimum_compression_size", "1048576"),
+				),
+				// TODO: The attribute type must be changed to NullableTypeInt so it can be Computed properly.
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Name_OverrideBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	rName2 := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigNameOverrideBody(rName, "title1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+			// Verify updated name still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigNameOverrideBody(rName2, "title1"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", rName2),
+				),
+			},
+			// Verify updated title still overrides
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigNameOverrideBody(rName2, "title2"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "name", rName2),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Parameters(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigParameters1(rName, "basepath", "prepend"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/foo", "/foo/bar", "/foo/bar/baz", "/foo/bar/baz/test"}),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body", "parameters"},
+			},
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigParameters1(rName, "basepath", "ignore"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/test"}),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayRestApi_Policy(t *testing.T) {
 	resourceName := "aws_api_gateway_rest_api.test"
 	expectedPolicyText := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"*"},"Action":"execute-api:Invoke","Resource":"*","Condition":{"IpAddress":{"aws:SourceIp":"123.123.123.123/32"}}}]}`
 	expectedUpdatePolicyText := `{"Version":"2012-10-17","Statement":[{"Effect":"Deny","Principal":{"AWS":"*"},"Action":"execute-api:Invoke","Resource":"*"}]}`
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
@@ -444,37 +994,26 @@ func TestAccAWSAPIGatewayRestApi_policy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy", expectedUpdatePolicyText),
 				),
 			},
-			{
-				Config: testAccAWSAPIGatewayRestAPIConfig(rName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "policy", ""),
-				),
-			},
 		},
 	})
 }
 
-func TestAccAWSAPIGatewayRestApi_openapi(t *testing.T) {
+func TestAccAWSAPIGatewayRestApi_Policy_OverrideBody(t *testing.T) {
 	var conf apigateway.RestApi
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_api_gateway_rest_api.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSAPIGatewayRestAPIConfigOpenAPI(rName),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccAWSAPIGatewayRestAPIConfigPolicyOverrideBody(rName, "/test", "Allow"),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
-					testAccCheckAWSAPIGatewayRestAPINameAttribute(&conf, rName),
 					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/test"}),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
-					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
-					resource.TestCheckNoResourceAttr(resourceName, "binary_media_types"),
+					resource.TestMatchResourceAttr(resourceName, "policy", regexp.MustCompile(`"Allow"`)),
 				),
 			},
 			{
@@ -483,67 +1022,58 @@ func TestAccAWSAPIGatewayRestApi_openapi(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"body"},
 			},
+			// Verify updated body still has override policy
 			{
-				Config: testAccAWSAPIGatewayRestAPIUpdateConfigOpenAPI(rName),
-				Check: resource.ComposeTestCheckFunc(
+				Config: testAccAWSAPIGatewayRestAPIConfigPolicyOverrideBody(rName, "/test2", "Allow"),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
-					testAccCheckAWSAPIGatewayRestAPINameAttribute(&conf, rName),
-					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/update"}),
-					resource.TestCheckResourceAttr(resourceName, "name", rName),
-					resource.TestCheckResourceAttrSet(resourceName, "created_date"),
-					resource.TestCheckResourceAttrSet(resourceName, "execution_arn"),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/test2"}),
+					resource.TestMatchResourceAttr(resourceName, "policy", regexp.MustCompile(`"Allow"`)),
+				),
+			},
+			// Verify updated policy still overrides body
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigPolicyOverrideBody(rName, "/test2", "Deny"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					testAccCheckAWSAPIGatewayRestAPIRoutes(&conf, []string{"/", "/test2"}),
+					resource.TestMatchResourceAttr(resourceName, "policy", regexp.MustCompile(`"Deny"`)),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAWSAPIGatewayRestAPINameAttribute(conf *apigateway.RestApi, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if *conf.Name != name {
-			return fmt.Errorf("Wrong Name: %q instead of %s", *conf.Name, name)
-		}
+func TestAccAWSAPIGatewayRestApi_Policy_SetByBody(t *testing.T) {
+	var conf apigateway.RestApi
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_api_gateway_rest_api.test"
 
-		return nil
-	}
-}
-
-func testAccCheckAWSAPIGatewayRestAPIDescriptionAttribute(conf *apigateway.RestApi, description string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if *conf.Description != description {
-			return fmt.Errorf("Wrong Description: %q", *conf.Description)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAWSAPIGatewayRestAPIMinimumCompressionSizeAttribute(conf *apigateway.RestApi, minimumCompressionSize int64) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if conf.MinimumCompressionSize == nil {
-			return fmt.Errorf("MinimumCompressionSize should not be nil")
-		}
-		if *conf.MinimumCompressionSize != minimumCompressionSize {
-			return fmt.Errorf("Wrong MinimumCompressionSize: %d", *conf.MinimumCompressionSize)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckAWSAPIGatewayRestAPIMinimumCompressionSizeAttributeIsNil(conf *apigateway.RestApi) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if conf.MinimumCompressionSize != nil {
-			return fmt.Errorf("MinimumCompressionSize should be nil: %d", *conf.MinimumCompressionSize)
-		}
-
-		return nil
-	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccAPIGatewayTypeEDGEPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayRestAPIDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayRestAPIConfigPolicySetByBody(rName, "Allow"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSAPIGatewayRestAPIExists(resourceName, &conf),
+					resource.TestMatchResourceAttr(resourceName, "policy", regexp.MustCompile(`"Allow"`)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"body"},
+			},
+		},
+	})
 }
 
 func testAccCheckAWSAPIGatewayRestAPIRoutes(conf *apigateway.RestApi, routes []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		resp, err := conn.GetResources(&apigateway.GetResourcesInput{
 			RestApiId: conf.Id,
@@ -583,7 +1113,7 @@ func testAccCheckAWSAPIGatewayRestAPIExists(n string, res *apigateway.RestApi) r
 			return fmt.Errorf("No API Gateway ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetRestApiInput{
 			RestApiId: aws.String(rs.Primary.ID),
@@ -604,7 +1134,7 @@ func testAccCheckAWSAPIGatewayRestAPIExists(n string, res *apigateway.RestApi) r
 }
 
 func testAccCheckAWSAPIGatewayRestAPIDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	conn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_rest_api" {
@@ -627,27 +1157,11 @@ func testAccCheckAWSAPIGatewayRestAPIDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSAPIGatewayRestAPIDisappears(restApi *apigateway.RestApi) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
-
-		input := &apigateway.DeleteRestApiInput{
-			RestApiId: restApi.Id,
-		}
-
-		_, err := conn.DeleteRestApi(input)
-
-		return err
+// testAccAPIGatewayTypeEDGEPreCheck checks if endpoint config type EDGE can be used in a test and skips test if not (i.e., not in standard partition).
+func testAccAPIGatewayTypeEDGEPreCheck(t *testing.T) {
+	if testAccGetPartition() != endpoints.AwsPartitionID {
+		t.Skipf("skipping test; Endpoint Configuration type EDGE is not supported in this partition (%s)", testAccGetPartition())
 	}
-}
-
-func testAccAWSAPIGatewayRestAPIConfig(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  minimum_compression_size = 0
-}
-`, rName)
 }
 
 func testAccAWSAPIGatewayRestAPIConfig_EndpointConfiguration(rName, endpointType string) string {
@@ -662,6 +1176,15 @@ resource "aws_api_gateway_rest_api" "test" {
 `, rName, endpointType)
 }
 
+func testAccAWSAPIGatewayRestAPIConfig_DisableExecuteApiEndpoint(rName string, disabled bool) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name                         = "%s"
+  disable_execute_api_endpoint = %t
+}
+`, rName, disabled)
+}
+
 func testAccAWSAPIGatewayRestAPIConfig_Name(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
@@ -673,7 +1196,7 @@ resource "aws_api_gateway_rest_api" "test" {
 func testAccAWSAPIGatewayRestAPIConfig_VPCEndpointConfiguration(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc" "test" {
-  cidr_block = "11.0.0.0/16"
+  cidr_block           = "11.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -683,16 +1206,23 @@ resource "aws_vpc" "test" {
 }
 
 data "aws_security_group" "test" {
-  vpc_id = "${aws_vpc.test.id}"
+  vpc_id = aws_vpc.test.id
   name   = "default"
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 resource "aws_subnet" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
-  cidr_block        = "${aws_vpc.test.cidr_block}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = aws_vpc.test.cidr_block
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = %[1]q
@@ -702,17 +1232,17 @@ resource "aws_subnet" "test" {
 data "aws_region" "current" {}
 
 resource "aws_vpc_endpoint" "test" {
-  vpc_id            = "${aws_vpc.test.id}"
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.execute-api"
-  vpc_endpoint_type = "Interface"
+  vpc_id              = aws_vpc.test.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.execute-api"
+  vpc_endpoint_type   = "Interface"
   private_dns_enabled = false
 
   subnet_ids = [
-    "${aws_subnet.test.id}",
+    aws_subnet.test.id,
   ]
 
   security_group_ids = [
-    "${data.aws_security_group.test.id}",
+    data.aws_security_group.test.id,
   ]
 }
 
@@ -720,8 +1250,87 @@ resource "aws_api_gateway_rest_api" "test" {
   name = %[1]q
 
   endpoint_configuration {
-    types = ["PRIVATE"]
-	vpc_endpoint_ids = ["${aws_vpc_endpoint.test.id}"]
+    types            = ["PRIVATE"]
+    vpc_endpoint_ids = [aws_vpc_endpoint.test.id]
+  }
+}
+`, rName)
+}
+
+func testAccAWSAPIGatewayRestAPIConfig_VPCEndpointConfiguration2(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block           = "11.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+data "aws_security_group" "test" {
+  vpc_id = aws_vpc.test.id
+  name   = "default"
+}
+
+data "aws_availability_zones" "available" {
+  state = "available"
+
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_subnet" "test" {
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = aws_vpc.test.cidr_block
+  availability_zone = data.aws_availability_zones.available.names[0]
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+data "aws_region" "current" {}
+
+resource "aws_vpc_endpoint" "test" {
+  vpc_id              = aws_vpc.test.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.execute-api"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = false
+
+  subnet_ids = [
+    aws_subnet.test.id,
+  ]
+
+  security_group_ids = [
+    data.aws_security_group.test.id,
+  ]
+}
+
+resource "aws_vpc_endpoint" "test2" {
+  vpc_id              = aws_vpc.test.id
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.execute-api"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = false
+
+  subnet_ids = [
+    aws_subnet.test.id,
+  ]
+
+  security_group_ids = [
+    data.aws_security_group.test.id,
+  ]
+}
+
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  endpoint_configuration {
+    types            = ["PRIVATE"]
+    vpc_endpoint_ids = [aws_vpc_endpoint.test.id, aws_vpc_endpoint.test2.id]
   }
 }
 `, rName)
@@ -733,7 +1342,7 @@ resource "aws_api_gateway_rest_api" "test" {
   name = "%s"
 
   tags = {
-	%q = %q
+    %q = %q
   }
 }
 `, rName, tagKey1, tagValue1)
@@ -745,36 +1354,17 @@ resource "aws_api_gateway_rest_api" "test" {
   name = "%s"
 
   tags = {
-	%q = %q
-	%q = %q
+    %q = %q
+    %q = %q
   }
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
 
-func testAccAWSAPIGatewayRestAPIConfigWithAPIKeySource(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-	api_key_source = "HEADER"
-}
-`, rName)
-}
-
-func testAccAWSAPIGatewayRestAPIConfigWithUpdateAPIKeySource(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-	api_key_source = "AUTHORIZER"
-}
-`, rName)
-}
-
 func testAccAWSAPIGatewayRestAPIConfigWithPolicy(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  minimum_compression_size = 0
+  name   = %[1]q
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -802,8 +1392,7 @@ EOF
 func testAccAWSAPIGatewayRestAPIConfigUpdatePolicy(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  minimum_compression_size = 0
+  name   = %[1]q
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -823,106 +1412,594 @@ EOF
 `, rName)
 }
 
-func testAccAWSAPIGatewayRestAPIUpdateConfig(rName string) string {
+func testAccAWSAPIGatewayRestAPIConfigApiKeySource(rName string, apiKeySource string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  description = "test"
-  binary_media_types = ["application/octet-stream"]
-  minimum_compression_size = 10485760
+  api_key_source = %[2]q
+  name           = %[1]q
 }
-`, rName)
+`, rName, apiKeySource)
 }
 
-func testAccAWSAPIGatewayRestAPIDisableCompressionConfig(rName string) string {
+func testAccAWSAPIGatewayRestAPIConfigApiKeySourceOverrideBody(rName string, apiKeySource string, bodyApiKeySource string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  description = "test"
-  binary_media_types = ["application/octet-stream"]
-  minimum_compression_size = -1
-}
-`, rName)
-}
+  api_key_source = %[2]q
+  name           = %[1]q
 
-func testAccAWSAPIGatewayRestAPIConfigOpenAPI(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  body = <<EOF
-{
-  "swagger": "2.0",
-  "info": {
-    "title": "%s",
-    "version": "2017-04-20T04:08:08Z"
-  },
-  "schemes": [
-    "https"
-  ],
-  "paths": {
-    "/test": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "200 response"
-          }
-        },
-        "x-amazon-apigateway-integration": {
-          "type": "HTTP",
-          "uri": "https://www.google.de",
-          "httpMethod": "GET",
-          "responses": {
-            "default": {
-              "statusCode": 200
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
             }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
           }
         }
       }
     }
-  }
+    x-amazon-apigateway-api-key-source = %[3]q
+  })
 }
-EOF
-}
-`, rName, rName)
+`, rName, apiKeySource, bodyApiKeySource)
 }
 
-func testAccAWSAPIGatewayRestAPIUpdateConfigOpenAPI(rName string) string {
+func testAccAWSAPIGatewayRestAPIConfigApiKeySourceSetByBody(rName string, bodyApiKeySource string) string {
 	return fmt.Sprintf(`
 resource "aws_api_gateway_rest_api" "test" {
-  name = "%s"
-  body = <<EOF
-{
-  "swagger": "2.0",
-  "info": {
-    "title": "%s",
-    "version": "2017-04-20T04:08:08Z"
-  },
-  "schemes": [
-    "https"
-  ],
-  "paths": {
-    "/update": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "200 response"
-          }
-        },
-        "x-amazon-apigateway-integration": {
-          "type": "HTTP",
-          "uri": "https://www.google.de",
-          "httpMethod": "GET",
-          "responses": {
-            "default": {
-              "statusCode": 200
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
             }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
           }
         }
       }
     }
+    x-amazon-apigateway-api-key-source = %[2]q
+  })
+}
+`, rName, bodyApiKeySource)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1(rName string, binaryMediaTypes1 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  binary_media_types = [%[2]q]
+  name               = %[1]q
+}
+`, rName, binaryMediaTypes1)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1OverrideBody(rName string, binaryMediaTypes1 string, bodyBinaryMediaTypes1 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  binary_media_types = [%[2]q]
+  name               = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+    x-amazon-apigateway-binary-media-types = [%[3]q]
+  })
+}
+`, rName, binaryMediaTypes1, bodyBinaryMediaTypes1)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigBinaryMediaTypes1SetByBody(rName string, bodyBinaryMediaTypes1 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+    x-amazon-apigateway-binary-media-types = [%[2]q]
+  })
+}
+`, rName, bodyBinaryMediaTypes1)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigBody(rName string, basePath string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      %[2]q = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+}
+`, rName, basePath)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigDescription(rName string, description string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  description = %[2]q
+  name        = %[1]q
+}
+`, rName, description)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigDescriptionOverrideBody(rName string, description string, bodyDescription string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  description = %[2]q
+  name        = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      description = %[3]q
+      title       = "test"
+      version     = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+}
+`, rName, description, bodyDescription)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigDescriptionSetByBody(rName string, bodyDescription string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      description = %[2]q
+      title       = "test"
+      version     = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+}
+`, rName, bodyDescription)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSize(rName string, minimumCompressionSize int) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  minimum_compression_size = %[2]d
+  name                     = %[1]q
+}
+`, rName, minimumCompressionSize)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeOverrideBody(rName string, minimumCompressionSize int, bodyMinimumCompressionSize int) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  minimum_compression_size = %[2]d
+  name                     = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+    x-amazon-apigateway-minimum-compression-size = %[3]d
+  })
+}
+`, rName, minimumCompressionSize, bodyMinimumCompressionSize)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigMinimumCompressionSizeSetByBody(rName string, bodyMinimumCompressionSize int) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+    x-amazon-apigateway-minimum-compression-size = %[2]d
+  })
+}
+`, rName, bodyMinimumCompressionSize)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigName(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+}
+`, rName)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigNameOverrideBody(rName string, title string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = %[2]q
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+}
+`, rName, title)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigParameters1(rName string, parameterKey1 string, parameterValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes  = ["https"]
+    basePath = "/foo/bar/baz"
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+
+  parameters = {
+    %[2]s = %[3]q
   }
 }
-EOF
+`, rName, parameterKey1, parameterValue1)
 }
-`, rName, rName)
+
+func testAccAWSAPIGatewayRestAPIConfigPolicyOverrideBody(rName string, bodyPath string, policyEffect string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      %[2]q = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+  })
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "execute-api:Invoke"
+        Condition = {
+          IpAddress = {
+            "aws:SourceIp" = "123.123.123.123/32"
+          }
+        }
+        Effect = %[3]q
+        Principal = {
+          AWS = "*"
+        }
+        Resource = "*"
+      }
+    ]
+  })
+}
+`, rName, bodyPath, policyEffect)
+}
+
+func testAccAWSAPIGatewayRestAPIConfigPolicySetByBody(rName string, bodyPolicyEffect string) string {
+	return fmt.Sprintf(`
+resource "aws_api_gateway_rest_api" "test" {
+  name = %[1]q
+
+  body = jsonencode({
+    swagger = "2.0"
+    info = {
+      title   = "test"
+      version = "2017-04-20T04:08:08Z"
+    }
+    schemes = ["https"]
+    paths = {
+      "/test" = {
+        get = {
+          responses = {
+            "200" = {
+              description = "OK"
+            }
+          }
+          x-amazon-apigateway-integration = {
+            httpMethod = "GET"
+            type       = "HTTP"
+            responses = {
+              default = {
+                statusCode = 200
+              }
+            }
+            uri = "https://aws.amazon.com/"
+          }
+        }
+      }
+    }
+    x-amazon-apigateway-policy = {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "execute-api:Invoke"
+          Condition = {
+            IpAddress = {
+              "aws:SourceIp" = "123.123.123.123/32"
+            }
+          }
+          Effect = %[2]q
+          Principal = {
+            AWS = "*"
+          }
+          Resource = "*"
+        }
+      ]
+    }
+  })
+}
+`, rName, bodyPolicyEffect)
 }

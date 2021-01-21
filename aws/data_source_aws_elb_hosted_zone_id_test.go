@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSElbHostedZoneId_basic(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccAWSElbHostedZoneId_basic(t *testing.T) {
 			{
 				Config: testAccCheckAwsElbHostedZoneIdConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_elb_hosted_zone_id.main", "id", "Z1H1FL5HABSF5"),
+					resource.TestCheckResourceAttr("data.aws_elb_hosted_zone_id.main", "id", elbHostedZoneIdPerRegionMap[testAccGetRegion()]),
 				),
 			},
 			{
@@ -28,11 +28,12 @@ func TestAccAWSElbHostedZoneId_basic(t *testing.T) {
 }
 
 const testAccCheckAwsElbHostedZoneIdConfig = `
-data "aws_elb_hosted_zone_id" "main" { }
+data "aws_elb_hosted_zone_id" "main" {}
 `
 
+//lintignore:AWSAT003
 const testAccCheckAwsElbHostedZoneIdExplicitRegionConfig = `
 data "aws_elb_hosted_zone_id" "regional" {
-	region = "eu-west-1"
+  region = "eu-west-1"
 }
 `

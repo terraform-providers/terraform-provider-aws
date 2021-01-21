@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceAwsLambdaLayerVersion() *schema.Resource {
@@ -28,13 +28,12 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 			"compatible_runtime": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ValidateFunc:  validation.StringInSlice(validLambdaRuntimes, false),
+				ValidateFunc:  validation.StringInSlice(lambda.Runtime_Values(), false),
 				ConflictsWith: []string{"version"},
 			},
 			"compatible_runtimes": {
 				Type:     schema.TypeSet,
 				Computed: true,
-				MaxItems: 5,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -65,6 +64,14 @@ func dataSourceAwsLambdaLayerVersion() *schema.Resource {
 			},
 			"source_code_size": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"signing_profile_version_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"signing_job_arn": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -142,6 +149,12 @@ func dataSourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{
 	}
 	if err := d.Set("source_code_size", output.Content.CodeSize); err != nil {
 		return fmt.Errorf("error setting lambda layer source code size: %s", err)
+	}
+	if err := d.Set("signing_profile_version_arn", output.Content.SigningProfileVersionArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing profile arn: %s", err)
+	}
+	if err := d.Set("signing_job_arn", output.Content.SigningJobArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing job arn: %s", err)
 	}
 
 	d.SetId(aws.StringValue(output.LayerVersionArn))

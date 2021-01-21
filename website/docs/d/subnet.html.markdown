@@ -24,14 +24,14 @@ group that allows connections from hosts in that subnet.
 variable "subnet_id" {}
 
 data "aws_subnet" "selected" {
-  id = "${var.subnet_id}"
+  id = var.subnet_id
 }
 
 resource "aws_security_group" "subnet" {
-  vpc_id = "${data.aws_subnet.selected.vpc_id}"
+  vpc_id = data.aws_subnet.selected.vpc_id
 
   ingress {
-    cidr_blocks = ["${data.aws_subnet.selected.cidr_block}"]
+    cidr_blocks = [data.aws_subnet.selected.cidr_block]
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -63,7 +63,7 @@ subnet whose data will be exported as attributes.
 
 * `state` - (Optional) The state that the desired subnet must have.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired subnet.
 
 * `vpc_id` - (Optional) The id of the VPC that the desired subnet belongs to.
@@ -79,7 +79,7 @@ which take the following arguments:
 data "aws_subnet" "selected" {
   filter {
     name   = "tag:Name"
-    values = [""]       # insert value here
+    values = [""] # insert value here
   }
 }
 ```
@@ -98,3 +98,4 @@ In addition the following attributes are exported:
 
 * `arn` - The ARN of the subnet.
 * `owner_id` - The ID of the AWS account that owns the subnet.
+* `outpost_arn` - The Amazon Resource Name (ARN) of the Outpost.

@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsEcsContainerDefinition() *schema.Resource {
@@ -18,12 +18,10 @@ func dataSourceAwsEcsContainerDefinition() *schema.Resource {
 			"task_definition": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"container_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			// Computed values.
 			"image": {

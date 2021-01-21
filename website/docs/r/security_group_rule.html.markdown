@@ -27,15 +27,12 @@ a conflict of rule settings and will overwrite rules.
 Basic usage
 
 ```hcl
-resource "aws_security_group_rule" "allow_all" {
-  type            = "ingress"
-  from_port       = 0
-  to_port         = 65535
-  protocol        = "tcp"
-  # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
-  cidr_blocks = # add a CIDR block here
-  prefix_list_ids = ["pl-12c4e678"]
-
+resource "aws_security_group_rule" "example" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "tcp"
+  cidr_blocks       = [aws_vpc.example.cidr_block]
   security_group_id = "sg-123456"
 }
 ```
@@ -48,8 +45,7 @@ The following arguments are supported:
 or `egress` (outbound).
 * `cidr_blocks` - (Optional) List of CIDR blocks. Cannot be specified with `source_security_group_id`.
 * `ipv6_cidr_blocks` - (Optional) List of IPv6 CIDR blocks.
-* `prefix_list_ids` - (Optional) List of prefix list IDs (for allowing access to VPC endpoints).
-Only valid with `egress`.
+* `prefix_list_ids` - (Optional) List of Prefix List IDs.
 * `from_port` - (Required) The start port (or ICMP type number if protocol is "icmp" or "icmpv6").
 * `protocol` - (Required) The protocol. If not icmp, icmpv6, tcp, udp, or all use the [protocol number](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
 * `security_group_id` - (Required) The security group to apply this rule to.
@@ -62,8 +58,10 @@ Only valid with `egress`.
 
 ## Usage with prefix list IDs
 
-Prefix list IDs are manged by AWS internally. Prefix list IDs
-are associated with a prefix list name, or service name, that is linked to a specific region.
+Prefix Lists are either managed by AWS internally, or created by the customer using a
+[Managed Prefix List resource](ec2_managed_prefix_list.html). Prefix Lists provided by
+AWS are associated with a prefix list name, or service name, that is linked to a specific region.
+
 Prefix list IDs are exported on VPC Endpoints, so you can use this format:
 
 ```hcl
@@ -71,7 +69,7 @@ resource "aws_security_group_rule" "allow_all" {
   type              = "egress"
   to_port           = 0
   protocol          = "-1"
-  prefix_list_ids   = ["${aws_vpc_endpoint.my_endpoint.prefix_list_id}"]
+  prefix_list_ids   = [aws_vpc_endpoint.my_endpoint.prefix_list_id]
   from_port         = 0
   security_group_id = "sg-123456"
 }
@@ -81,6 +79,8 @@ resource "aws_vpc_endpoint" "my_endpoint" {
   # ...
 }
 ```
+
+You can also find a specific Prefix List using the `aws_prefix_list` data source.
 
 ## Attributes Reference
 

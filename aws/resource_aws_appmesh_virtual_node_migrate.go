@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func resourceAwsAppmeshVirtualNodeMigrateState(v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
@@ -27,16 +27,13 @@ func migrateAppmeshVirtualNodeStateV0toV1(is *terraform.InstanceState) (*terrafo
 	log.Printf("[DEBUG] Attributes before migration: %#v", is.Attributes)
 	is.Attributes["spec.0.backend.#"] = is.Attributes["spec.0.backends.#"]
 	delete(is.Attributes, "spec.0.backends.#")
+	i := 0
 	for k, v := range is.Attributes {
 		if strings.HasPrefix(k, "spec.0.backends.") {
-			hash := appmeshVirtualNodeBackendHash(map[string]interface{}{
-				"virtual_service": []interface{}{map[string]interface{}{
-					"virtual_service_name": v,
-				}},
-			})
-			is.Attributes[fmt.Sprintf("spec.0.backend.%d.virtual_service.#", hash)] = "1"
-			is.Attributes[fmt.Sprintf("spec.0.backend.%d.virtual_service.0.virtual_service_name", hash)] = v
+			is.Attributes[fmt.Sprintf("spec.0.backend.%d.virtual_service.#", i)] = "1"
+			is.Attributes[fmt.Sprintf("spec.0.backend.%d.virtual_service.0.virtual_service_name", i)] = v
 			delete(is.Attributes, k)
+			i++
 		}
 	}
 

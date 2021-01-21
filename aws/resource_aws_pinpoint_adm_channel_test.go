@@ -5,11 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/service/pinpoint"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/aws/aws-sdk-go/service/pinpoint"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 /**
@@ -25,7 +24,6 @@ type testAccAwsPinpointADMChannelConfiguration struct {
 }
 
 func testAccAwsPinpointADMChannelConfigurationFromEnv(t *testing.T) *testAccAwsPinpointADMChannelConfiguration {
-
 	if os.Getenv("ADM_CLIENT_ID") == "" {
 		t.Skipf("ADM_CLIENT_ID ENV is missing")
 	}
@@ -43,17 +41,13 @@ func testAccAwsPinpointADMChannelConfigurationFromEnv(t *testing.T) *testAccAwsP
 }
 
 func TestAccAWSPinpointADMChannel_basic(t *testing.T) {
-	oldDefaultRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldDefaultRegion)
-
 	var channel pinpoint.ADMChannelResponse
 	resourceName := "aws_pinpoint_adm_channel.channel"
 
 	config := testAccAwsPinpointADMChannelConfigurationFromEnv(t)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:      func() { testAccPreCheck(t) },
+		PreCheck:      func() { testAccPreCheck(t); testAccPreCheckAWSPinpointApp(t) },
 		IDRefreshName: resourceName,
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckAWSPinpointADMChannelDestroy,
@@ -113,14 +107,10 @@ func testAccCheckAWSPinpointADMChannelExists(n string, channel *pinpoint.ADMChan
 
 func testAccAWSPinpointADMChannelConfig_basic(conf *testAccAwsPinpointADMChannelConfiguration) string {
 	return fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
 resource "aws_pinpoint_app" "test_app" {}
 
 resource "aws_pinpoint_adm_channel" "channel" {
-  application_id = "${aws_pinpoint_app.test_app.application_id}"
+  application_id = aws_pinpoint_app.test_app.application_id
 
   client_id     = "%s"
   client_secret = "%s"

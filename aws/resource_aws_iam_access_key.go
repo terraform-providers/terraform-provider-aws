@@ -9,10 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/encryption"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/encryption"
 )
 
 func resourceAwsIamAccessKey() *schema.Resource {
@@ -42,7 +41,7 @@ func resourceAwsIamAccessKey() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-			"ses_smtp_password": {
+			"ses_smtp_password_v4": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -80,7 +79,7 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 		)
 	}
 
-	d.SetId(*createResp.AccessKey.AccessKeyId)
+	d.SetId(aws.StringValue(createResp.AccessKey.AccessKeyId))
 
 	if createResp.AccessKey == nil || createResp.AccessKey.SecretAccessKey == nil {
 		return fmt.Errorf("CreateAccessKey response did not contain a Secret Access Key as expected")
@@ -105,11 +104,11 @@ func resourceAwsIamAccessKeyCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	sesSMTPPassword, err := sesSmtpPasswordFromSecretKey(createResp.AccessKey.SecretAccessKey)
+	sesSMTPPasswordV4, err := sesSmtpPasswordFromSecretKeySigV4(createResp.AccessKey.SecretAccessKey, meta.(*AWSClient).region)
 	if err != nil {
-		return fmt.Errorf("error getting SES SMTP Password from Secret Access Key: %s", err)
+		return fmt.Errorf("error getting SES SigV4 SMTP Password from Secret Access Key: %s", err)
 	}
-	d.Set("ses_smtp_password", sesSMTPPassword)
+	d.Set("ses_smtp_password_v4", sesSMTPPasswordV4)
 
 	return resourceAwsIamAccessKeyReadResult(d, &iam.AccessKeyMetadata{
 		AccessKeyId: createResp.AccessKey.AccessKeyId,
@@ -148,7 +147,7 @@ func resourceAwsIamAccessKeyRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceAwsIamAccessKeyReadResult(d *schema.ResourceData, key *iam.AccessKeyMetadata) error {
-	d.SetId(*key.AccessKeyId)
+	d.SetId(aws.StringValue(key.AccessKeyId))
 	if err := d.Set("user", key.UserName); err != nil {
 		return err
 	}
@@ -197,18 +196,42 @@ func resourceAwsIamAccessKeyStatusUpdate(iamconn *iam.IAM, d *schema.ResourceDat
 	return nil
 }
 
-func sesSmtpPasswordFromSecretKey(key *string) (string, error) {
+func hmacSignature(key []byte, value []byte) ([]byte, error) {
+	h := hmac.New(sha256.New, key)
+	if _, err := h.Write(value); err != nil {
+		return []byte(""), err
+	}
+	return h.Sum(nil), nil
+}
+
+func sesSmtpPasswordFromSecretKeySigV4(key *string, region string) (string, error) {
 	if key == nil {
 		return "", nil
 	}
-	version := byte(0x02)
+	version := byte(0x04)
+	date := []byte("11111111")
+	service := []byte("ses")
+	terminal := []byte("aws4_request")
 	message := []byte("SendRawEmail")
-	hmacKey := []byte(*key)
-	h := hmac.New(sha256.New, hmacKey)
-	if _, err := h.Write(message); err != nil {
+
+	rawSig, err := hmacSignature([]byte("AWS4"+*key), date)
+	if err != nil {
 		return "", err
 	}
-	rawSig := h.Sum(nil)
+
+	if rawSig, err = hmacSignature(rawSig, []byte(region)); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, service); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, terminal); err != nil {
+		return "", err
+	}
+	if rawSig, err = hmacSignature(rawSig, message); err != nil {
+		return "", err
+	}
+
 	versionedSig := make([]byte, 0, len(rawSig)+1)
 	versionedSig = append(versionedSig, version)
 	versionedSig = append(versionedSig, rawSig...)

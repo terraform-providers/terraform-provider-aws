@@ -55,7 +55,7 @@ These inherit their settings from the replication group.
 ```hcl
 resource "aws_elasticache_cluster" "replica" {
   cluster_id           = "cluster-example"
-  replication_group_id = "${aws_elasticache_replication_group.example.id}"
+  replication_group_id = aws_elasticache_replication_group.example.id
 }
 ```
 
@@ -120,7 +120,7 @@ begin taking a daily snapshot of your cache cluster. Example: 05:00-09:00
 retain automatic cache cluster snapshots before deleting them. For example, if you set
 SnapshotRetentionLimit to 5, then a snapshot that was taken today will be retained for 5 days
 before being deleted. If the value of SnapshotRetentionLimit is set to zero (0), backups are turned off.
-Please note that setting a `snapshot_retention_limit` is not supported on cache.t1.micro or cache.t2.* cache nodes
+Please note that setting a `snapshot_retention_limit` is not supported on cache.t1.micro cache nodes
 
 * `notification_topic_arn` – (Optional) An Amazon Resource Name (ARN) of an
 SNS topic to send ElastiCache notifications to. Example:
@@ -132,15 +132,17 @@ SNS topic to send ElastiCache notifications to. Example:
 
 * `preferred_availability_zones` - (Optional, Memcached only) A list of the Availability Zones in which cache nodes are created. If you are creating your cluster in an Amazon VPC you can only locate nodes in Availability Zones that are associated with the subnets in the selected subnet group. The number of Availability Zones listed must equal the value of `num_cache_nodes`. If you want all the nodes in the same Availability Zone, use `availability_zone` instead, or repeat the Availability Zone multiple times in the list. Default: System chosen Availability Zones. Detecting drift of existing node availability zone is not currently supported. Updating this argument by itself to migrate existing node availability zones is not currently supported and will show a perpetual difference.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource
+* `final_snapshot_identifier` - (Optional, Redis only) The name of your final cluster snapshot. If omitted, no final snapshot will be made.
+
+* `tags` - (Optional) A map of tags to assign to the resource
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the created ElastiCache Cluster.
 * `cache_nodes` - List of node objects including `id`, `address`, `port` and `availability_zone`.
    Referenceable e.g. as `${aws_elasticache_cluster.bar.cache_nodes.0.address}`
-
 * `configuration_endpoint` - (Memcached only) The configuration endpoint to allow host discovery.
 * `cluster_address` - (Memcached only) The DNS name of the cache cluster without the port appended.
 

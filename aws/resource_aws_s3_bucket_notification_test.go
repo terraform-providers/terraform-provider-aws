@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSS3BucketNotification_LambdaFunction(t *testing.T) {
@@ -477,17 +476,23 @@ resource "aws_sns_topic" "topic" {
 
   policy = <<POLICY
 {
-	"Version":"2012-10-17",
-	"Statement":[{
-		"Sid": "",
-		"Effect": "Allow",
-		"Principal": {"AWS":"*"},
-		"Action": "SNS:Publish",
-		"Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:%[1]s",
-		"Condition":{
-			"ArnLike":{"aws:SourceArn":"${aws_s3_bucket.bucket.arn}"}
-		}
-	}]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:%[1]s",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "${aws_s3_bucket.bucket.arn}"
+        }
+      }
+    }
+  ]
 }
 POLICY
 }
@@ -498,11 +503,11 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 resource "aws_s3_bucket_notification" "notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   topic {
     id        = "notification-sns1"
-    topic_arn = "${aws_sns_topic.topic.arn}"
+    topic_arn = aws_sns_topic.topic.arn
 
     events = [
       "s3:ObjectCreated:*",
@@ -515,7 +520,7 @@ resource "aws_s3_bucket_notification" "notification" {
 
   topic {
     id        = "notification-sns2"
-    topic_arn = "${aws_sns_topic.topic.arn}"
+    topic_arn = aws_sns_topic.topic.arn
 
     events = [
       "s3:ObjectCreated:*",
@@ -537,18 +542,20 @@ resource "aws_sqs_queue" "queue" {
 
   policy = <<POLICY
 {
-	"Version":"2012-10-17",
-	"Statement": [{
-		"Effect":"Allow",
-		"Principal":"*",
-		"Action":"sqs:SendMessage",
-		"Resource":"arn:${data.aws_partition.current.partition}:sqs:*:*:%[1]s",
-		"Condition":{
-			"ArnEquals":{
-				"aws:SourceArn":"${aws_s3_bucket.bucket.arn}"
-			}
-		}
-	}]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:${data.aws_partition.current.partition}:sqs:*:*:%[1]s",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "${aws_s3_bucket.bucket.arn}"
+        }
+      }
+    }
+  ]
 }
 POLICY
 }
@@ -559,11 +566,11 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 resource "aws_s3_bucket_notification" "notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   queue {
     id        = "notification-sqs"
-    queue_arn = "${aws_sqs_queue.queue.arn}"
+    queue_arn = aws_sqs_queue.queue.arn
 
     events = [
       "s3:ObjectCreated:*",
@@ -602,15 +609,15 @@ EOF
 resource "aws_lambda_permission" "allow_bucket" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.func.arn}"
+  function_name = aws_lambda_function.func.arn
   principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.bucket.arn}"
+  source_arn    = aws_s3_bucket.bucket.arn
 }
 
 resource "aws_lambda_function" "func" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
-  role          = "${aws_iam_role.iam_for_lambda.arn}"
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "exports.example"
   runtime       = "nodejs12.x"
 }
@@ -621,11 +628,11 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 resource "aws_s3_bucket_notification" "notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   lambda_function {
     id                  = "notification-lambda"
-    lambda_function_arn = "${aws_lambda_function.func.arn}"
+    lambda_function_arn = aws_lambda_function.func.arn
 
     events = [
       "s3:ObjectCreated:*",
@@ -642,30 +649,44 @@ resource "aws_s3_bucket_notification" "notification" {
 func testAccAWSS3BucketNotificationConfigLambdaFunctionLambdaFunctionArnAlias(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_iam_role" "test" {
-  assume_role_policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Effect\":\"Allow\"}]}"
-  name               = %[1]q
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+
+  name = %[1]q
 }
 
 resource "aws_lambda_function" "test" {
   filename      = "test-fixtures/lambdatest.zip"
   function_name = %[1]q
   handler       = "exports.example"
-  role          = "${aws_iam_role.test.arn}"
+  role          = aws_iam_role.test.arn
   runtime       = "nodejs12.x"
 }
 
 resource "aws_lambda_alias" "test" {
-  function_name    = "${aws_lambda_function.test.arn}"
+  function_name    = aws_lambda_function.test.arn
   function_version = "$LATEST"
   name             = "testalias"
 }
 
 resource "aws_lambda_permission" "test" {
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.test.arn}"
+  function_name = aws_lambda_function.test.arn
   principal     = "s3.amazonaws.com"
-  qualifier     = "${aws_lambda_alias.test.name}"
-  source_arn    = "${aws_s3_bucket.test.arn}"
+  qualifier     = aws_lambda_alias.test.name
+  source_arn    = aws_s3_bucket.test.arn
   statement_id  = "AllowExecutionFromS3Bucket"
 }
 
@@ -675,12 +696,12 @@ resource "aws_s3_bucket" "test" {
 }
 
 resource "aws_s3_bucket_notification" "test" {
-  bucket = "${aws_s3_bucket.test.id}"
+  bucket = aws_s3_bucket.test.id
 
   lambda_function {
     events              = ["s3:ObjectCreated:*"]
     id                  = "test"
-    lambda_function_arn = "${aws_lambda_alias.test.arn}"
+    lambda_function_arn = aws_lambda_alias.test.arn
   }
 }
 `, rName)
@@ -695,17 +716,23 @@ resource "aws_sns_topic" "topic" {
 
   policy = <<POLICY
 {
-	"Version":"2012-10-17",
-	"Statement":[{
-		"Sid": "",
-		"Effect": "Allow",
-		"Principal": {"AWS":"*"},
-		"Action": "SNS:Publish",
-		"Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:%[1]s",
-		"Condition":{
-			"ArnLike":{"aws:SourceArn":"${aws_s3_bucket.bucket.arn}"}
-		}
-	}]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:${data.aws_partition.current.partition}:sns:*:*:%[1]s",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "${aws_s3_bucket.bucket.arn}"
+        }
+      }
+    }
+  ]
 }
 POLICY
 }
@@ -716,11 +743,11 @@ resource "aws_s3_bucket" "bucket" {
 }
 
 resource "aws_s3_bucket_notification" "notification" {
-  bucket = "${aws_s3_bucket.bucket.id}"
+  bucket = aws_s3_bucket.bucket.id
 
   topic {
     id        = "notification-sns1"
-    topic_arn = "${aws_sns_topic.topic.arn}"
+    topic_arn = aws_sns_topic.topic.arn
 
     events = [
       "s3:ObjectCreated:*",

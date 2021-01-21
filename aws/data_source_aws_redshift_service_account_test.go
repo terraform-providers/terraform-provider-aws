@@ -3,10 +3,14 @@ package aws
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAWSRedshiftServiceAccount_basic(t *testing.T) {
+	expectedAccountID := redshiftServiceAccountPerRegionMap[testAccGetRegion()]
+
+	dataSourceName := "data.aws_redshift_service_account.main"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -14,15 +18,28 @@ func TestAccAWSRedshiftServiceAccount_basic(t *testing.T) {
 			{
 				Config: testAccCheckAwsRedshiftServiceAccountConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_redshift_service_account.main", "id", "902366379725"),
-					resource.TestCheckResourceAttr("data.aws_redshift_service_account.main", "arn", "arn:aws:iam::902366379725:user/logs"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", expectedAccountID),
+					testAccCheckResourceAttrGlobalARNAccountID(dataSourceName, "arn", expectedAccountID, "iam", "user/logs"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAWSRedshiftServiceAccount_Region(t *testing.T) {
+	expectedAccountID := redshiftServiceAccountPerRegionMap[testAccGetRegion()]
+
+	dataSourceName := "data.aws_redshift_service_account.regional"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckAwsRedshiftServiceAccountExplicitRegionConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_redshift_service_account.regional", "id", "307160386991"),
-					resource.TestCheckResourceAttr("data.aws_redshift_service_account.regional", "arn", "arn:aws:iam::307160386991:user/logs"),
+					resource.TestCheckResourceAttr(dataSourceName, "id", expectedAccountID),
+					testAccCheckResourceAttrGlobalARNAccountID(dataSourceName, "arn", expectedAccountID, "iam", "user/logs"),
 				),
 			},
 		},
@@ -30,11 +47,13 @@ func TestAccAWSRedshiftServiceAccount_basic(t *testing.T) {
 }
 
 const testAccCheckAwsRedshiftServiceAccountConfig = `
-data "aws_redshift_service_account" "main" { }
+data "aws_redshift_service_account" "main" {}
 `
 
 const testAccCheckAwsRedshiftServiceAccountExplicitRegionConfig = `
+data "aws_region" "current" {}
+
 data "aws_redshift_service_account" "regional" {
-	region = "eu-west-2"
+  region = data.aws_region.current.name
 }
 `

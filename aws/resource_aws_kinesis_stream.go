@@ -3,16 +3,15 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/kinesis"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -61,7 +60,7 @@ func resourceAwsKinesisStream() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      24,
-				ValidateFunc: validation.IntBetween(24, 168),
+				ValidateFunc: validation.IntBetween(24, 8760),
 			},
 
 			"shard_level_metrics": {
@@ -180,6 +179,8 @@ func resourceAwsKinesisStreamUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).kinesisconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	sn := d.Get("name").(string)
 
 	state, err := readKinesisStreamState(conn, sn)
@@ -212,7 +213,7 @@ func resourceAwsKinesisStreamRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error listing tags for Kinesis Stream (%s): %s", sn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -322,13 +323,14 @@ func updateKinesisShardCount(conn *kinesis.Kinesis, d *schema.ResourceData) erro
 func updateKinesisStreamEncryption(conn *kinesis.Kinesis, d *schema.ResourceData) error {
 	sn := d.Get("name").(string)
 
-	// If this is not a new resource AND there is no change to encryption_type or kms_key_id
-	// return nil
-	if !d.IsNewResource() && (!d.HasChange("encryption_type") || !d.HasChange("kms_key_id")) {
+	// If this is not a new resource and there is no change to encryption_type and kms_key_id
+	if !d.IsNewResource() && !d.HasChange("encryption_type") && !d.HasChange("kms_key_id") {
 		return nil
 	}
 
 	oldType, newType := d.GetChange("encryption_type")
+	oldKey, newKey := d.GetChange("kms_key_id")
+
 	if oldType.(string) != "" && oldType.(string) != "NONE" {
 		// This means that we have an old encryption type - i.e. Encryption is enabled and we want to change it
 		// The quirk about this API is that, when we are disabling the StreamEncryption
@@ -339,8 +341,6 @@ func updateKinesisStreamEncryption(conn *kinesis.Kinesis, d *schema.ResourceData
 		// We get the following error
 		//
 		//        InvalidArgumentException: Encryption type cannot be NONE.
-		oldKey, _ := d.GetChange("kms_key_id")
-		oldType, _ := d.GetChange("encryption_type")
 
 		log.Printf("[INFO] Stopping Stream Encryption for %s", sn)
 		params := &kinesis.StopStreamEncryptionInput{
@@ -351,6 +351,10 @@ func updateKinesisStreamEncryption(conn *kinesis.Kinesis, d *schema.ResourceData
 
 		_, err := conn.StopStreamEncryption(params)
 		if err != nil {
+			return err
+		}
+
+		if err := waitForKinesisToBeActive(conn, d.Timeout(schema.TimeoutUpdate), sn); err != nil {
 			return err
 		}
 	}
@@ -364,29 +368,16 @@ func updateKinesisStreamEncryption(conn *kinesis.Kinesis, d *schema.ResourceData
 		params := &kinesis.StartStreamEncryptionInput{
 			StreamName:     aws.String(sn),
 			EncryptionType: aws.String(newType.(string)),
-			KeyId:          aws.String(d.Get("kms_key_id").(string)),
+			KeyId:          aws.String(newKey.(string)),
 		}
 
 		_, err := conn.StartStreamEncryption(params)
 		if err != nil {
 			return err
 		}
-	}
-
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"UPDATING"},
-		Target:     []string{"ACTIVE"},
-		Refresh:    streamStateRefreshFunc(conn, sn),
-		Timeout:    5 * time.Minute,
-		Delay:      10 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err := stateConf.WaitForState()
-	if err != nil {
-		return fmt.Errorf(
-			"Error waiting for Stream (%s) to be ACTIVE: %s",
-			sn, err)
+		if err := waitForKinesisToBeActive(conn, d.Timeout(schema.TimeoutUpdate), sn); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -408,12 +399,9 @@ func updateKinesisShardLevelMetrics(conn *kinesis.Kinesis, d *schema.ResourceDat
 
 	disableMetrics := os.Difference(ns)
 	if disableMetrics.Len() != 0 {
-		metrics := disableMetrics.List()
-		log.Printf("[DEBUG] Disabling shard level metrics %v for stream %s", metrics, sn)
-
 		props := &kinesis.DisableEnhancedMonitoringInput{
 			StreamName:        aws.String(sn),
-			ShardLevelMetrics: expandStringList(metrics),
+			ShardLevelMetrics: expandStringSet(disableMetrics),
 		}
 
 		_, err := conn.DisableEnhancedMonitoring(props)
@@ -427,12 +415,9 @@ func updateKinesisShardLevelMetrics(conn *kinesis.Kinesis, d *schema.ResourceDat
 
 	enabledMetrics := ns.Difference(os)
 	if enabledMetrics.Len() != 0 {
-		metrics := enabledMetrics.List()
-		log.Printf("[DEBUG] Enabling shard level metrics %v for stream %s", metrics, sn)
-
 		props := &kinesis.EnableEnhancedMonitoringInput{
 			StreamName:        aws.String(sn),
-			ShardLevelMetrics: expandStringList(metrics),
+			ShardLevelMetrics: expandStringSet(enabledMetrics),
 		}
 
 		_, err := conn.EnableEnhancedMonitoring(props)

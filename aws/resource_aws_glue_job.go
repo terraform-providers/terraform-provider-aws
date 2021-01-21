@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -23,14 +23,6 @@ func resourceAwsGlueJob() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"allocated_capacity": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"max_capacity", "number_of_workers", "worker_type"},
-				Deprecated:    "Please use attribute `max_capacity' instead. This attribute might be removed in future releases.",
-				ValidateFunc:  validation.IntAtLeast(2),
-			},
 			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -67,6 +59,7 @@ func resourceAwsGlueJob() *schema.Resource {
 			"default_arguments": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -97,7 +90,7 @@ func resourceAwsGlueJob() *schema.Resource {
 				Type:          schema.TypeFloat,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"allocated_capacity", "number_of_workers", "worker_type"},
+				ConflictsWith: []string{"number_of_workers", "worker_type"},
 			},
 			"max_retries": {
 				Type:         schema.TypeInt,
@@ -109,6 +102,21 @@ func resourceAwsGlueJob() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+			"notification_property": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"notify_delay_after": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
 			},
 			"role_arn": {
 				Type:         schema.TypeString,
@@ -128,18 +136,19 @@ func resourceAwsGlueJob() *schema.Resource {
 			"worker_type": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"allocated_capacity", "max_capacity"},
-				ValidateFunc: validation.StringInSlice([]string{
-					glue.WorkerTypeG1x,
-					glue.WorkerTypeG2x,
-					glue.WorkerTypeStandard,
-				}, false),
+				ConflictsWith: []string{"max_capacity"},
+				ValidateFunc:  validation.StringInSlice(glue.WorkerType_Values(), false),
 			},
 			"number_of_workers": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				ConflictsWith: []string{"allocated_capacity", "max_capacity"},
+				ConflictsWith: []string{"max_capacity"},
 				ValidateFunc:  validation.IntAtLeast(2),
+			},
+			"non_overridable_arguments": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -159,11 +168,6 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("max_capacity"); ok {
 		input.MaxCapacity = aws.Float64(v.(float64))
-	} else {
-		if v, ok := d.GetOk("allocated_capacity"); ok {
-			input.MaxCapacity = aws.Float64(float64(v.(int)))
-			log.Printf("[WARN] Using deprecated `allocated_capacity' attribute.")
-		}
 	}
 
 	if v, ok := d.GetOk("connections"); ok {
@@ -173,11 +177,11 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if kv, ok := d.GetOk("default_arguments"); ok {
-		defaultArgumentsMap := make(map[string]string)
-		for k, v := range kv.(map[string]interface{}) {
-			defaultArgumentsMap[k] = v.(string)
-		}
-		input.DefaultArguments = aws.StringMap(defaultArgumentsMap)
+		input.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+	}
+
+	if kv, ok := d.GetOk("non_overridable_arguments"); ok {
+		input.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -194,6 +198,10 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("max_retries"); ok {
 		input.MaxRetries = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("notification_property"); ok {
+		input.NotificationProperty = expandGlueNotificationProperty(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("security_configuration"); ok {
@@ -221,6 +229,7 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	input := &glue.GetJobInput{
 		JobName: aws.String(d.Id()),
@@ -262,6 +271,9 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("default_arguments", aws.StringValueMap(job.DefaultArguments)); err != nil {
 		return fmt.Errorf("error setting default_arguments: %s", err)
 	}
+	if err := d.Set("non_overridable_arguments", aws.StringValueMap(job.NonOverridableArguments)); err != nil {
+		return fmt.Errorf("error setting non_overridable_arguments: %w", err)
+	}
 	d.Set("description", job.Description)
 	d.Set("glue_version", job.GlueVersion)
 	if err := d.Set("execution_property", flattenGlueExecutionProperty(job.ExecutionProperty)); err != nil {
@@ -269,6 +281,9 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.Set("max_capacity", aws.Float64Value(job.MaxCapacity))
 	d.Set("max_retries", int(aws.Int64Value(job.MaxRetries)))
+	if err := d.Set("notification_property", flattenGlueNotificationProperty(job.NotificationProperty)); err != nil {
+		return fmt.Errorf("error setting notification_property: #{err}")
+	}
 	d.Set("name", job.Name)
 	d.Set("role_arn", job.Role)
 
@@ -278,7 +293,7 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for Glue Job (%s): %s", jobARN, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -290,29 +305,15 @@ func resourceAwsGlueJobRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("worker_type", job.WorkerType)
 	d.Set("number_of_workers", int(aws.Int64Value(job.NumberOfWorkers)))
 
-	// TODO: Deprecated fields - remove in next major version
-	d.Set("allocated_capacity", int(aws.Int64Value(job.AllocatedCapacity)))
-
 	return nil
 }
 
 func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).glueconn
 
-	if d.HasChange("allocated_capacity") ||
-		d.HasChange("command") ||
-		d.HasChange("connections") ||
-		d.HasChange("default_arguments") ||
-		d.HasChange("description") ||
-		d.HasChange("execution_property") ||
-		d.HasChange("glue_version") ||
-		d.HasChange("max_capacity") ||
-		d.HasChange("max_retries") ||
-		d.HasChange("number_of_workers") ||
-		d.HasChange("role_arn") ||
-		d.HasChange("security_configuration") ||
-		d.HasChange("timeout") ||
-		d.HasChange("worker_type") {
+	if d.HasChanges("command", "connections", "default_arguments", "description",
+		"execution_property", "glue_version", "max_capacity", "max_retries", "notification_property", "number_of_workers",
+		"role_arn", "security_configuration", "timeout", "worker_type", "non_overridable_arguments") {
 		jobUpdate := &glue.JobUpdate{
 			Command: expandGlueJobCommand(d.Get("command").([]interface{})),
 			Role:    aws.String(d.Get("role_arn").(string)),
@@ -325,10 +326,6 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 			if v, ok := d.GetOk("max_capacity"); ok {
 				jobUpdate.MaxCapacity = aws.Float64(v.(float64))
 			}
-			if d.HasChange("allocated_capacity") {
-				jobUpdate.MaxCapacity = aws.Float64(float64(d.Get("allocated_capacity").(int)))
-				log.Printf("[WARN] Using deprecated `allocated_capacity' attribute.")
-			}
 		}
 
 		if v, ok := d.GetOk("connections"); ok {
@@ -338,11 +335,11 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if kv, ok := d.GetOk("default_arguments"); ok {
-			defaultArgumentsMap := make(map[string]string)
-			for k, v := range kv.(map[string]interface{}) {
-				defaultArgumentsMap[k] = v.(string)
-			}
-			jobUpdate.DefaultArguments = aws.StringMap(defaultArgumentsMap)
+			jobUpdate.DefaultArguments = stringMapToPointers(kv.(map[string]interface{}))
+		}
+
+		if kv, ok := d.GetOk("non_overridable_arguments"); ok {
+			jobUpdate.NonOverridableArguments = stringMapToPointers(kv.(map[string]interface{}))
 		}
 
 		if v, ok := d.GetOk("description"); ok {
@@ -359,6 +356,10 @@ func resourceAwsGlueJobUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		if v, ok := d.GetOk("max_retries"); ok {
 			jobUpdate.MaxRetries = aws.Int64(int64(v.(int)))
+		}
+
+		if v, ok := d.GetOk("notification_property"); ok {
+			jobUpdate.NotificationProperty = expandGlueNotificationProperty(v.([]interface{}))
 		}
 
 		if v, ok := d.GetOk("security_configuration"); ok {
@@ -444,6 +445,16 @@ func expandGlueJobCommand(l []interface{}) *glue.JobCommand {
 	return jobCommand
 }
 
+func expandGlueNotificationProperty(l []interface{}) *glue.NotificationProperty {
+	m := l[0].(map[string]interface{})
+
+	notificationProperty := &glue.NotificationProperty{
+		NotifyDelayAfter: aws.Int64(int64(m["notify_delay_after"].(int))),
+	}
+
+	return notificationProperty
+}
+
 func flattenGlueConnectionsList(connectionsList *glue.ConnectionsList) []interface{} {
 	if connectionsList == nil {
 		return []interface{}{}
@@ -473,6 +484,18 @@ func flattenGlueJobCommand(jobCommand *glue.JobCommand) []map[string]interface{}
 		"name":            aws.StringValue(jobCommand.Name),
 		"script_location": aws.StringValue(jobCommand.ScriptLocation),
 		"python_version":  aws.StringValue(jobCommand.PythonVersion),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func flattenGlueNotificationProperty(notificationProperty *glue.NotificationProperty) []map[string]interface{} {
+	if notificationProperty == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"notify_delay_after": int(aws.Int64Value(notificationProperty.NotifyDelayAfter)),
 	}
 
 	return []map[string]interface{}{m}

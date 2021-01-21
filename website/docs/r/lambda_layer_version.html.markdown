@@ -19,7 +19,7 @@ resource "aws_lambda_layer_version" "lambda_layer" {
   filename   = "lambda_layer_payload.zip"
   layer_name = "lambda_layer_name"
 
-  compatible_runtimes = ["nodejs8.10"]
+  compatible_runtimes = ["nodejs12.x"]
 }
 ```
 
@@ -49,9 +49,13 @@ large files efficiently.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `arn` - The Amazon Resource Name (ARN) of the Lambda Layer with version.
 * `layer_arn` - The Amazon Resource Name (ARN) of the Lambda Layer without version.
 * `created_date` - The date this resource was created.
+* `signing_job_arn` - The Amazon Resource Name (ARN) of a signing job.
+* `signing_profile_version_arn` - The Amazon Resource Name (ARN) for a signing profile version.
 * `source_code_size` - The size in bytes of the function .zip file.
 * `version` - This Lamba Layer version.
 

@@ -14,7 +14,7 @@ Provides an IP access control group in AWS WorkSpaces Service
 
 ```hcl
 resource "aws_workspaces_ip_group" "contractors" {
-  name = "Contractors"
+  name        = "Contractors"
   description = "Contractors IP access control group"
 }
 ```

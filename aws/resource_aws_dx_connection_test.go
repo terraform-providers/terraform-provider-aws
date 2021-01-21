@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDxConnection_basic(t *testing.T) {
@@ -26,7 +26,7 @@ func TestAccAWSDxConnection_basic(t *testing.T) {
 					testAccCheckAwsDxConnectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", connectionName),
 					resource.TestCheckResourceAttr(resourceName, "bandwidth", "1Gbps"),
-					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2"),
+					resource.TestCheckResourceAttr(resourceName, "location", "EqSe2-EQ"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -116,7 +116,7 @@ func testAccDxConnectionConfig(n string) string {
 resource "aws_dx_connection" "test" {
   name      = "%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 }
 `, n)
 }
@@ -126,7 +126,7 @@ func testAccDxConnectionConfig_tags(n string) string {
 resource "aws_dx_connection" "test" {
   name      = "%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 
   tags = {
     Environment = "production"
@@ -141,7 +141,7 @@ func testAccDxConnectionConfig_tagsChanged(n string) string {
 resource "aws_dx_connection" "test" {
   name      = "%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 
   tags = {
     Usage = "changed"

@@ -23,11 +23,11 @@ and use this data source to obtain the data necessary to create a subnet.
 variable "security_group_id" {}
 
 data "aws_security_group" "selected" {
-  id = "${var.security_group_id}"
+  id = var.security_group_id
 }
 
 resource "aws_subnet" "subnet" {
-  vpc_id     = "${data.aws_security_group.selected.vpc_id}"
+  vpc_id     = data.aws_security_group.selected.vpc_id
   cidr_block = "10.0.1.0/24"
 }
 ```
@@ -45,7 +45,7 @@ security group whose data will be exported as attributes.
 
 * `name` - (Optional) The name that the desired security group must have.
 
-* `tags` - (Optional) A mapping of tags, each pair of which must exactly match
+* `tags` - (Optional) A map of tags, each pair of which must exactly match
   a pair on the desired security group.
 
 * `vpc_id` - (Optional) The id of the VPC that the desired security group belongs to.

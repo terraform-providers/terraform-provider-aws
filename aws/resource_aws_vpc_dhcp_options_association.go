@@ -1,11 +1,12 @@
 package aws
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsVpcDhcpOptionsAssociation() *schema.Resource {
@@ -14,6 +15,9 @@ func resourceAwsVpcDhcpOptionsAssociation() *schema.Resource {
 		Read:   resourceAwsVpcDhcpOptionsAssociationRead,
 		Update: resourceAwsVpcDhcpOptionsAssociationUpdate,
 		Delete: resourceAwsVpcDhcpOptionsAssociationDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsVpcDhcpOptionsAssociationImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"vpc_id": {
@@ -29,29 +33,48 @@ func resourceAwsVpcDhcpOptionsAssociation() *schema.Resource {
 	}
 }
 
+func resourceAwsVpcDhcpOptionsAssociationImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	conn := meta.(*AWSClient).ec2conn
+	// Provide the vpc_id as the id to import
+	vpcRaw, _, err := VPCStateRefreshFunc(conn, d.Id())()
+	if err != nil {
+		return nil, err
+	}
+	if vpcRaw == nil {
+		return nil, nil
+	}
+	vpc := vpcRaw.(*ec2.Vpc)
+	if err = d.Set("vpc_id", vpc.VpcId); err != nil {
+		return nil, err
+	}
+	if err = d.Set("dhcp_options_id", vpc.DhcpOptionsId); err != nil {
+		return nil, err
+	}
+	d.SetId(fmt.Sprintf("%s-%s", aws.StringValue(vpc.DhcpOptionsId), aws.StringValue(vpc.VpcId)))
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceAwsVpcDhcpOptionsAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	log.Printf(
-		"[INFO] Creating DHCP Options association: %s => %s",
-		d.Get("vpc_id").(string),
-		d.Get("dhcp_options_id").(string))
+	vpcId := d.Get("vpc_id").(string)
+	optsID := d.Get("dhcp_options_id").(string)
 
-	optsID := aws.String(d.Get("dhcp_options_id").(string))
-	vpcID := aws.String(d.Get("vpc_id").(string))
+	log.Printf("[INFO] Creating DHCP Options association: %s => %s", vpcId, optsID)
 
 	if _, err := conn.AssociateDhcpOptions(&ec2.AssociateDhcpOptionsInput{
-		DhcpOptionsId: optsID,
-		VpcId:         vpcID,
+		DhcpOptionsId: aws.String(optsID),
+		VpcId:         aws.String(vpcId),
 	}); err != nil {
 		return err
 	}
 
 	// Set the ID and return
-	d.SetId(*optsID + "-" + *vpcID)
-	log.Printf("[INFO] Association ID: %s", d.Id())
+	d.SetId(fmt.Sprintf("%s-%s", optsID, vpcId))
 
-	return nil
+	log.Printf("[INFO] VPC DHCP Association ID: %s", d.Id())
+
+	return resourceAwsVpcDhcpOptionsAssociationRead(d, meta)
 }
 
 func resourceAwsVpcDhcpOptionsAssociationRead(d *schema.ResourceData, meta interface{}) error {
@@ -68,10 +91,14 @@ func resourceAwsVpcDhcpOptionsAssociationRead(d *schema.ResourceData, meta inter
 	}
 
 	vpc := vpcRaw.(*ec2.Vpc)
-	if *vpc.VpcId != d.Get("vpc_id") || *vpc.DhcpOptionsId != d.Get("dhcp_options_id") {
+	if aws.StringValue(vpc.VpcId) != d.Get("vpc_id") ||
+		aws.StringValue(vpc.DhcpOptionsId) != d.Get("dhcp_options_id") {
 		log.Printf("[INFO] It seems the DHCP Options association is gone. Deleting reference from Graph...")
 		d.SetId("")
 	}
+
+	d.Set("vpc_id", vpc.VpcId)
+	d.Set("dhcp_options_id", vpc.DhcpOptionsId)
 
 	return nil
 }
@@ -91,6 +118,10 @@ func resourceAwsVpcDhcpOptionsAssociationDelete(d *schema.ResourceData, meta int
 		DhcpOptionsId: aws.String("default"),
 		VpcId:         aws.String(d.Get("vpc_id").(string)),
 	})
+
+	if isAWSErr(err, "InvalidVpcID.NotFound", "") {
+		return nil
+	}
 
 	return err
 }

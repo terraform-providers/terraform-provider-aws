@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/athena"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSAthenaNamedQuery_basic(t *testing.T) {
@@ -103,18 +103,18 @@ func testAccCheckAWSAthenaNamedQueryExists(name string) resource.TestCheckFunc {
 func testAccAthenaNamedQueryConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket        = "tf-athena-db-%s-%d"
+  bucket        = "tf-test-athena-db-%s-%d"
   force_destroy = true
 }
 
 resource "aws_athena_database" "test" {
   name   = "%s"
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
 }
 
 resource "aws_athena_named_query" "test" {
   name        = "tf-athena-named-query-%s"
-  database    = "${aws_athena_database.test.name}"
+  database    = aws_athena_database.test.name
   query       = "SELECT * FROM ${aws_athena_database.test.name} limit 10;"
   description = "tf test"
 }
@@ -124,7 +124,7 @@ resource "aws_athena_named_query" "test" {
 func testAccAthenaNamedWorkGroupQueryConfig(rInt int, rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
-  bucket        = "tf-athena-db-%s-%d"
+  bucket        = "tf-test-athena-db-%s-%d"
   force_destroy = true
 }
 
@@ -134,13 +134,13 @@ resource "aws_athena_workgroup" "test" {
 
 resource "aws_athena_database" "test" {
   name   = "%s"
-  bucket = "${aws_s3_bucket.test.bucket}"
+  bucket = aws_s3_bucket.test.bucket
 }
 
 resource "aws_athena_named_query" "test" {
   name        = "tf-athena-named-query-%s"
-  workgroup   = "${aws_athena_workgroup.test.id}"
-  database    = "${aws_athena_database.test.name}"
+  workgroup   = aws_athena_workgroup.test.id
+  database    = aws_athena_database.test.name
   query       = "SELECT * FROM ${aws_athena_database.test.name} limit 10;"
   description = "tf test"
 }

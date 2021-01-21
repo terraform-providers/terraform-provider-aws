@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsRoute() *schema.Resource {
@@ -43,6 +43,11 @@ func dataSourceAwsRoute() *schema.Resource {
 				Computed: true,
 			},
 			"nat_gateway_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+			"local_gateway_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -110,6 +115,7 @@ func dataSourceAwsRouteRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("gateway_id", route.GatewayId)
 	d.Set("instance_id", route.InstanceId)
 	d.Set("nat_gateway_id", route.NatGatewayId)
+	d.Set("local_gateway_id", route.LocalGatewayId)
 	d.Set("transit_gateway_id", route.TransitGatewayId)
 	d.Set("vpc_peering_connection_id", route.VpcPeeringConnectionId)
 	d.Set("network_interface_id", route.NetworkInterfaceId)
@@ -165,6 +171,12 @@ func getRoutes(table *ec2.RouteTable, d *schema.ResourceData) []*ec2.Route {
 
 		if v, ok := d.GetOk("nat_gateway_id"); ok {
 			if r.NatGatewayId == nil || *r.NatGatewayId != v.(string) {
+				continue
+			}
+		}
+
+		if v, ok := d.GetOk("local_gateway_id"); ok {
+			if r.LocalGatewayId == nil || *r.LocalGatewayId != v.(string) {
 				continue
 			}
 		}

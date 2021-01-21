@@ -3,12 +3,12 @@ subcategory: "RDS"
 layout: "aws"
 page_title: "AWS: aws_rds_cluster_endpoint"
 description: |-
-  Manages a RDS Aurora Cluster Endpoint
+  Manages an RDS Aurora Cluster Endpoint
 ---
 
 # Resource: aws_rds_cluster_endpoint
 
-Manages a RDS Aurora Cluster Endpoint.
+Manages an RDS Aurora Cluster Endpoint.
 You can refer to the [User Guide][1].
 
 
@@ -27,44 +27,50 @@ resource "aws_rds_cluster" "default" {
 
 resource "aws_rds_cluster_instance" "test1" {
   apply_immediately  = true
-  cluster_identifier = "${aws_rds_cluster.default.id}"
+  cluster_identifier = aws_rds_cluster.default.id
   identifier         = "test1"
   instance_class     = "db.t2.small"
+  engine             = aws_rds_cluster.default.engine
+  engine_version     = aws_rds_cluster.default.engine_version
 }
 
 resource "aws_rds_cluster_instance" "test2" {
   apply_immediately  = true
-  cluster_identifier = "${aws_rds_cluster.default.id}"
+  cluster_identifier = aws_rds_cluster.default.id
   identifier         = "test2"
   instance_class     = "db.t2.small"
+  engine             = aws_rds_cluster.default.engine
+  engine_version     = aws_rds_cluster.default.engine_version
 }
 
 resource "aws_rds_cluster_instance" "test3" {
   apply_immediately  = true
-  cluster_identifier = "${aws_rds_cluster.default.id}"
+  cluster_identifier = aws_rds_cluster.default.id
   identifier         = "test3"
   instance_class     = "db.t2.small"
+  engine             = aws_rds_cluster.default.engine
+  engine_version     = aws_rds_cluster.default.engine_version
 }
 
 resource "aws_rds_cluster_endpoint" "eligible" {
-  cluster_identifier          = "${aws_rds_cluster.default.id}"
+  cluster_identifier          = aws_rds_cluster.default.id
   cluster_endpoint_identifier = "reader"
   custom_endpoint_type        = "READER"
 
   excluded_members = [
-    "${aws_rds_cluster_instance.test1.id}",
-    "${aws_rds_cluster_instance.test2.id}",
+    aws_rds_cluster_instance.test1.id,
+    aws_rds_cluster_instance.test2.id,
   ]
 }
 
 resource "aws_rds_cluster_endpoint" "static" {
-  cluster_identifier          = "${aws_rds_cluster.default.id}"
+  cluster_identifier          = aws_rds_cluster.default.id
   cluster_endpoint_identifier = "static"
   custom_endpoint_type        = "READER"
 
   static_members = [
-    "${aws_rds_cluster_instance.test1.id}",
-    "${aws_rds_cluster_instance.test3.id}",
+    aws_rds_cluster_instance.test1.id,
+    aws_rds_cluster_instance.test3.id,
   ]
 }
 ```
@@ -81,7 +87,7 @@ The following arguments are supported:
 * `custom_endpoint_type` - (Required) The type of the endpoint. One of: READER , ANY .
 * `static_members` - (Optional) List of DB instance identifiers that are part of the custom endpoint group. Conflicts with `excluded_members`.
 * `excluded_members` - (Optional) List of DB instance identifiers that aren't part of the custom endpoint group. All other eligible instances are reachable through the custom endpoint. Only relevant if the list of static members is empty. Conflicts with `static_members`.
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Attributes Reference
 

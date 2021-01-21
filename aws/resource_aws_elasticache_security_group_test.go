@@ -3,15 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -67,24 +66,19 @@ func testSweepElasticacheCacheSecurityGroups(region string) error {
 }
 
 func TestAccAWSElasticacheSecurityGroup_basic(t *testing.T) {
-	// Use EC2-Classic enabled us-east-1 for testing
-	oldRegion := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldRegion)
-
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_elasticache_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSElasticacheSecurityGroupDestroy,
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSElasticacheSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSElasticacheSecurityGroupConfig,
+				Config: testAccAWSElasticacheSecurityGroupConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "description", "Managed by Terraform"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Managed by Terraform"),
 				),
 			},
 			{
@@ -97,7 +91,7 @@ func TestAccAWSElasticacheSecurityGroup_basic(t *testing.T) {
 }
 
 func testAccCheckAWSElasticacheSecurityGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).elasticacheconn
+	conn := testAccProviderEc2Classic.Meta().(*AWSClient).elasticacheconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_elasticache_security_group" {
@@ -129,7 +123,7 @@ func testAccCheckAWSElasticacheSecurityGroupExists(n string) resource.TestCheckF
 			return fmt.Errorf("No cache security group ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).elasticacheconn
+		conn := testAccProviderEc2Classic.Meta().(*AWSClient).elasticacheconn
 		_, err := conn.DescribeCacheSecurityGroups(&elasticache.DescribeCacheSecurityGroupsInput{
 			CacheSecurityGroupName: aws.String(rs.Primary.ID),
 		})
@@ -140,13 +134,12 @@ func testAccCheckAWSElasticacheSecurityGroupExists(n string) resource.TestCheckF
 	}
 }
 
-var testAccAWSElasticacheSecurityGroupConfig = fmt.Sprintf(`
-provider "aws" {
-  region = "us-east-1"
-}
-
+func testAccAWSElasticacheSecurityGroupConfig(rName string) string {
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name = "tf-test-security-group-%03d"
+  name = %[1]q
 
   ingress {
     from_port   = -1
@@ -157,7 +150,8 @@ resource "aws_security_group" "test" {
 }
 
 resource "aws_elasticache_security_group" "test" {
-  name                 = "tf-test-security-group-%03d"
-  security_group_names = ["${aws_security_group.test.name}"]
+  name                 = %[1]q
+  security_group_names = [aws_security_group.test.name]
 }
-`, acctest.RandInt(), acctest.RandInt())
+`, rName))
+}

@@ -5,21 +5,21 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccAWSCloudHsm2Hsm_basic(t *testing.T) {
+func TestAccAWSCloudHsmV2Hsm_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSCloudHsm2HsmDestroy,
+		CheckDestroy: testAccCheckAWSCloudHsmV2HsmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCloudHsm2Hsm(),
+				Config: testAccAWSCloudHsmV2Hsm(),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSCloudHsm2HsmExists("aws_cloudhsm_v2_hsm.hsm"),
+					testAccCheckAWSCloudHsmV2HsmExists("aws_cloudhsm_v2_hsm.hsm"),
 					resource.TestCheckResourceAttrSet("aws_cloudhsm_v2_hsm.hsm", "hsm_id"),
 					resource.TestCheckResourceAttrSet("aws_cloudhsm_v2_hsm.hsm", "hsm_state"),
 					resource.TestCheckResourceAttrSet("aws_cloudhsm_v2_hsm.hsm", "hsm_eni_id"),
@@ -35,16 +35,23 @@ func TestAccAWSCloudHsm2Hsm_basic(t *testing.T) {
 	})
 }
 
-func testAccAWSCloudHsm2Hsm() string {
+func testAccAWSCloudHsmV2Hsm() string {
 	return fmt.Sprintf(`
 variable "subnets" {
   default = ["10.0.1.0/24", "10.0.2.0/24"]
-  type    = "list"
+  type    = list(string)
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  state = "available"
 
-resource "aws_vpc" "cloudhsm2_test_vpc" {
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
+resource "aws_vpc" "cloudhsm_v2_test_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
@@ -52,12 +59,12 @@ resource "aws_vpc" "cloudhsm2_test_vpc" {
   }
 }
 
-resource "aws_subnet" "cloudhsm2_test_subnets" {
+resource "aws_subnet" "cloudhsm_v2_test_subnets" {
   count                   = 2
-  vpc_id                  = "${aws_vpc.cloudhsm2_test_vpc.id}"
-  cidr_block              = "${element(var.subnets, count.index)}"
+  vpc_id                  = aws_vpc.cloudhsm_v2_test_vpc.id
+  cidr_block              = element(var.subnets, count.index)
   map_public_ip_on_launch = false
-  availability_zone       = "${element(data.aws_availability_zones.available.names, count.index)}"
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
 
   tags = {
     Name = "tf-acc-aws_cloudhsm_v2_hsm-resource-basic"
@@ -66,7 +73,7 @@ resource "aws_subnet" "cloudhsm2_test_subnets" {
 
 resource "aws_cloudhsm_v2_cluster" "cloudhsm_v2_cluster" {
   hsm_type   = "hsm1.medium"
-  subnet_ids = ["${aws_subnet.cloudhsm2_test_subnets.*.id[0]}", "${aws_subnet.cloudhsm2_test_subnets.*.id[1]}"]
+  subnet_ids = [aws_subnet.cloudhsm_v2_test_subnets[0].id, aws_subnet.cloudhsm_v2_test_subnets[1].id]
 
   tags = {
     Name = "tf-acc-aws_cloudhsm_v2_hsm-resource-basic-%d"
@@ -74,13 +81,13 @@ resource "aws_cloudhsm_v2_cluster" "cloudhsm_v2_cluster" {
 }
 
 resource "aws_cloudhsm_v2_hsm" "hsm" {
-  subnet_id  = "${aws_subnet.cloudhsm2_test_subnets.0.id}"
-  cluster_id = "${aws_cloudhsm_v2_cluster.cloudhsm_v2_cluster.cluster_id}"
+  subnet_id  = aws_subnet.cloudhsm_v2_test_subnets[0].id
+  cluster_id = aws_cloudhsm_v2_cluster.cloudhsm_v2_cluster.cluster_id
 }
 `, acctest.RandInt())
 }
 
-func testAccCheckAWSCloudHsm2HsmDestroy(s *terraform.State) error {
+func testAccCheckAWSCloudHsmV2HsmDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*AWSClient).cloudhsmv2conn
 
 	for _, rs := range s.RootModule().Resources {
@@ -102,7 +109,7 @@ func testAccCheckAWSCloudHsm2HsmDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSCloudHsm2HsmExists(name string) resource.TestCheckFunc {
+func testAccCheckAWSCloudHsmV2HsmExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*AWSClient).cloudhsmv2conn
 

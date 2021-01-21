@@ -16,7 +16,7 @@ Provides a CloudWatch Log Metric Filter resource.
 resource "aws_cloudwatch_log_metric_filter" "yada" {
   name           = "MyAppAccessCount"
   pattern        = ""
-  log_group_name = "${aws_cloudwatch_log_group.dada.name}"
+  log_group_name = aws_cloudwatch_log_group.dada.name
 
   metric_transformation {
     name      = "EventCount"
@@ -38,8 +38,7 @@ The following arguments are supported:
 * `pattern` - (Required) A valid [CloudWatch Logs filter pattern](https://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/FilterAndPatternSyntax.html)
   for extracting metric data out of ingested log events.
 * `log_group_name` - (Required) The name of the log group to associate the metric filter with.
-* `metric_transformation` - (Required) A block defining collection of information
-	needed to define how metric data gets emitted. See below.
+* `metric_transformation` - (Required) A block defining collection of information needed to define how metric data gets emitted. See below.
 
 The `metric_transformation` block supports the following arguments:
 
@@ -53,3 +52,11 @@ The `metric_transformation` block supports the following arguments:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The name of the metric filter.
+
+## Import
+
+CloudWatch Log Metric Filter can be imported using the `log_group_name:name`, e.g.
+
+```
+$ terraform import aws_cloudwatch_log_metric_filter.test /aws/lambda/function:test
+```

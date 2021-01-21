@@ -1,7 +1,7 @@
 package aws
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsCurReportDefinition() *schema.Resource {
@@ -47,6 +47,14 @@ func dataSourceAwsCurReportDefinition() *schema.Resource {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
+				Computed: true,
+			},
+			"refresh_closed_reports": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"report_versioning": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},

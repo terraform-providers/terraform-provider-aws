@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAwsDaxSubnetGroup_basic(t *testing.T) {
@@ -92,20 +92,20 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test1" {
   cidr_block = "10.0.1.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 }
 
 resource "aws_subnet" "test2" {
   cidr_block = "10.0.2.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 }
 
 resource "aws_dax_subnet_group" "test" {
   name = "%s"
 
   subnet_ids = [
-    "${aws_subnet.test1.id}",
-    "${aws_subnet.test2.id}",
+    aws_subnet.test1.id,
+    aws_subnet.test2.id,
   ]
 }
 `, rName)
@@ -119,17 +119,17 @@ resource "aws_vpc" "test" {
 
 resource "aws_subnet" "test1" {
   cidr_block = "10.0.1.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 }
 
 resource "aws_subnet" "test2" {
   cidr_block = "10.0.2.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 }
 
 resource "aws_subnet" "test3" {
   cidr_block = "10.0.3.0/24"
-  vpc_id     = "${aws_vpc.test.id}"
+  vpc_id     = aws_vpc.test.id
 }
 
 resource "aws_dax_subnet_group" "test" {
@@ -137,9 +137,9 @@ resource "aws_dax_subnet_group" "test" {
   description = "update"
 
   subnet_ids = [
-    "${aws_subnet.test1.id}",
-    "${aws_subnet.test2.id}",
-    "${aws_subnet.test3.id}",
+    aws_subnet.test1.id,
+    aws_subnet.test2.id,
+    aws_subnet.test3.id,
   ]
 }
 `, rName)

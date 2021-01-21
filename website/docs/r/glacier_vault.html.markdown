@@ -23,7 +23,7 @@ resource "aws_glacier_vault" "my_archive" {
   name = "MyArchive"
 
   notification {
-    sns_topic = "${aws_sns_topic.aws_sns_topic.arn}"
+    sns_topic = aws_sns_topic.aws_sns_topic.arn
     events    = ["ArchiveRetrievalCompleted", "InventoryRetrievalCompleted"]
   }
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 * `access_policy` - (Optional) The policy document. This is a JSON formatted string.
   The heredoc syntax or `file` function is helpful here. Use the [Glacier Developer Guide](https://docs.aws.amazon.com/amazonglacier/latest/dev/vault-access-policy.html) for more information on Glacier Vault Policy
 * `notification` - (Optional) The notifications for the Vault. Fields documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 **notification** supports the following:
 

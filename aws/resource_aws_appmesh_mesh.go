@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/appmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -76,6 +76,16 @@ func resourceAwsAppmeshMesh() *schema.Resource {
 				Computed: true,
 			},
 
+			"mesh_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"resource_owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -104,10 +114,16 @@ func resourceAwsAppmeshMeshCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAwsAppmeshMeshRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).appmeshconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	resp, err := conn.DescribeMesh(&appmesh.DescribeMeshInput{
+	req := &appmesh.DescribeMeshInput{
 		MeshName: aws.String(d.Id()),
-	})
+	}
+	if v, ok := d.GetOk("mesh_owner"); ok {
+		req.MeshOwner = aws.String(v.(string))
+	}
+
+	resp, err := conn.DescribeMesh(req)
 	if isAWSErr(err, appmesh.ErrCodeNotFoundException, "") {
 		log.Printf("[WARN] App Mesh service mesh (%s) not found, removing from state", d.Id())
 		d.SetId("")
@@ -127,6 +143,8 @@ func resourceAwsAppmeshMeshRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("arn", arn)
 	d.Set("created_date", resp.Mesh.Metadata.CreatedAt.Format(time.RFC3339))
 	d.Set("last_updated_date", resp.Mesh.Metadata.LastUpdatedAt.Format(time.RFC3339))
+	d.Set("mesh_owner", resp.Mesh.Metadata.MeshOwner)
+	d.Set("resource_owner", resp.Mesh.Metadata.ResourceOwner)
 	err = d.Set("spec", flattenAppmeshMeshSpec(resp.Mesh.Spec))
 	if err != nil {
 		return fmt.Errorf("error setting spec: %s", err)
@@ -138,7 +156,7 @@ func resourceAwsAppmeshMeshRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error listing tags for App Mesh service mesh (%s): %s", arn, err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 

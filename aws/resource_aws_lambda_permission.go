@@ -11,8 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 var LambdaFunctionRegexp = `^(arn:[\w-]+:lambda:)?([a-z]{2}-(?:[a-z]+-){1,2}\d{1}:)?(\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\$LATEST|[a-zA-Z0-9-_]+))?$`
@@ -225,6 +226,16 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 		if err == nil {
 			var psErr error
 			statement, psErr = getLambdaPolicyStatement(out, d.Id())
+
+			// handle the resource not existing
+			if awsErr, ok := psErr.(awserr.Error); ok {
+				if awsErr.Code() == "ResourceNotFoundException" {
+					log.Printf("[WARN] No Lambda Permission Policy found: %v", input)
+					d.SetId("")
+					return nil
+				}
+			}
+
 			if psErr != nil {
 				return psErr
 			}
@@ -242,8 +253,8 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		// Missing permission inside valid policy
-		if nfErr, ok := err.(*resource.NotFoundError); ok {
-			log.Printf("[WARN] %s", nfErr)
+		if tfresource.NotFound(err) {
+			log.Printf("[WARN] %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -335,48 +346,27 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("qualifier"); ok {
 		params.Qualifier = aws.String(v.(string))
 	}
-	var statement *LambdaPolicyStatement
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Looking for Lambda permission: %s", *params)
-		resp, err := conn.GetPolicy(params)
-		if err != nil {
-			if isAWSErr(err, "ResourceNotFoundException", "") {
-				return nil
-			}
-			return resource.NonRetryableError(err)
-		}
-		if resp.Policy == nil {
-			return nil
-		}
 
-		statement, err = getLambdaPolicyStatement(resp, d.Id())
-		if err != nil {
-			return nil
-		}
+	resp, err := conn.GetPolicy(params)
+
+	if isAWSErr(err, "ResourceNotFoundException", "") {
 		return nil
-	})
-
-	if isResourceTimeoutError(err) {
-		resp, err := conn.GetPolicy(params)
-		if isAWSErr(err, "ResourceNotFoundException", "") {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("Error getting Lambda permission policy: %s", err)
-		}
-		if resp.Policy == nil {
-			return nil
-		}
-
-		var psErr error
-		statement, psErr = getLambdaPolicyStatement(resp, d.Id())
-		if psErr != nil {
-			return nil
-		}
 	}
+
 	if err != nil {
-		return fmt.Errorf("Failed removing Lambda permission: %s", err)
+		return fmt.Errorf("error getting Lambda Permission policy: %s", err)
 	}
+
+	if resp.Policy == nil {
+		return nil
+	}
+
+	statement, err := getLambdaPolicyStatement(resp, d.Id())
+
+	if err != nil {
+		return nil
+	}
+
 	if statement != nil {
 		return fmt.Errorf("Failed to delete Lambda permission with ID %s", d.Id())
 	}
@@ -385,7 +375,6 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 
 	return nil
 }
-
 func getLambdaPolicyStatement(out *lambda.GetPolicyOutput, statemendId string) (statement *LambdaPolicyStatement, err error) {
 	policyInBytes := []byte(*out.Policy)
 	policy := LambdaPolicy{}
@@ -394,15 +383,10 @@ func getLambdaPolicyStatement(out *lambda.GetPolicyOutput, statemendId string) (
 		return nil, fmt.Errorf("Error unmarshalling Lambda policy: %s", err)
 	}
 
-	statement, psErr := findLambdaPolicyStatementById(&policy, statemendId)
-	if psErr != nil {
-		return nil, fmt.Errorf("Error finding Lambda policy statement: %s", psErr)
-	}
-	return statement, nil
+	return findLambdaPolicyStatementById(&policy, statemendId)
 }
 
-func findLambdaPolicyStatementById(policy *LambdaPolicy, id string) (
-	*LambdaPolicyStatement, error) {
+func findLambdaPolicyStatementById(policy *LambdaPolicy, id string) (*LambdaPolicyStatement, error) {
 
 	log.Printf("[DEBUG] Received %d statements in Lambda policy: %s", len(policy.Statement), policy.Statement)
 	for _, statement := range policy.Statement {

@@ -16,11 +16,11 @@ Provides a Route53 record resource.
 
 ```hcl
 resource "aws_route53_record" "www" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www.example.com"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_eip.lb.public_ip}"]
+  records = [aws_eip.lb.public_ip]
 }
 ```
 
@@ -29,7 +29,7 @@ Other routing policies are configured similarly. See [AWS Route53 Developer Guid
 
 ```hcl
 resource "aws_route53_record" "www-dev" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
@@ -43,7 +43,7 @@ resource "aws_route53_record" "www-dev" {
 }
 
 resource "aws_route53_record" "www-live" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "www"
   type    = "CNAME"
   ttl     = "5"
@@ -78,13 +78,13 @@ resource "aws_elb" "main" {
 }
 
 resource "aws_route53_record" "www" {
-  zone_id = "${aws_route53_zone.primary.zone_id}"
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "example.com"
   type    = "A"
 
   alias {
-    name                   = "${aws_elb.main.dns_name}"
-    zone_id                = "${aws_elb.main.zone_id}"
+    name                   = aws_elb.main.dns_name
+    zone_id                = aws_elb.main.zone_id
     evaluate_target_health = true
   }
 }
@@ -104,13 +104,13 @@ resource "aws_route53_record" "example" {
   name            = "test.example.com"
   ttl             = 30
   type            = "NS"
-  zone_id         = "${aws_route53_zone.example.zone_id}"
+  zone_id         = aws_route53_zone.example.zone_id
 
   records = [
-    "${aws_route53_zone.example.name_servers.0}",
-    "${aws_route53_zone.example.name_servers.1}",
-    "${aws_route53_zone.example.name_servers.2}",
-    "${aws_route53_zone.example.name_servers.3}",
+    aws_route53_zone.example.name_servers[0],
+    aws_route53_zone.example.name_servers[1],
+    aws_route53_zone.example.name_servers[2],
+    aws_route53_zone.example.name_servers[3],
   ]
 }
 ```
@@ -171,18 +171,13 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Route53 Records can be imported using ID of the record. The ID is made up as ZONEID_RECORDNAME_TYPE_SET-IDENTIFIER
-
-e.g.
+Route53 Records can be imported using ID of the record, which is the zone identifier, record name, and record type, separated by underscores (`_`). e.g.
 
 ```
-Z4KAPRWWNC7JR_dev.example.com_NS_dev
+$ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev.example.com_NS
 ```
 
-In this example, `Z4KAPRWWNC7JR` is the ZoneID, `dev.example.com` is the Record Name, `NS` is the Type and `dev` is the Set Identifier.
-Only the Set Identifier is actually optional in the ID
-
-To import the ID above, it would look as follows:
+If the record also contains a delegated set identifier, it can be appended:
 
 ```
 $ terraform import aws_route53_record.myrecord Z4KAPRWWNC7JR_dev.example.com_NS_dev

@@ -1,0 +1,155 @@
+## These checks will be superseded by documentation.yml
+## when the provider documentation layout is moved to
+## the Terraform Registry layout.
+name: Website Checks
+on:
+  push:
+    branches:
+      - master
+      - 'release/**'
+  pull_request:
+    paths:
+      - .github/workflows/website.yml
+      - .go-version
+      - .markdownlinkcheck.json
+      - .markdownlint.yml
+      - website/docs/**
+      - tools/go.mod
+
+env:
+  GO111MODULE: on
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        name: markdown-link-check website/docs/**/*.markdown
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.markdownlinkcheck.json'
+          folder-path: 'website/docs'
+          file-extension: '.markdown'
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        name: markdown-link-check website/docs/**/*.md
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.markdownlinkcheck.json'
+          folder-path: 'website/docs'
+          file-extension: '.md'
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: avto-dev/markdown-lint@v1
+        with:
+          config: '.markdownlint.yml'
+          args: 'website/docs'
+  misspell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: cd tools && go install github.com/client9/misspell/cmd/misspell
+      - run: misspell -error -source text website/
+  terrafmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: cd tools && go install github.com/katbyte/terrafmt
+      - run: terrafmt diff ./website --check --pattern '*.markdown'
+  validate-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - run: cd tools && go install github.com/katbyte/terrafmt
+      - run: cd tools && go install github.com/terraform-linters/tflint
+      - run: |
+          exit_code=0
+
+          # Configure the rules for tflint.
+          # The *_invalid_* rules disabled here prevent evaluation of expressions.
+          # Do not disable *_invalid_name rules, since these are good checks for e.g. "%s" formatting verbs
+          # being carried over from test cases.
+          shared_rules=(
+              "--enable-rule=terraform_comment_syntax"
+              "--disable-rule=aws_cloudwatch_event_target_invalid_arn"
+              "--disable-rule=aws_cognito_user_pool_domain_invalid_domain"
+              "--disable-rule=aws_db_instance_default_parameter_group"
+              "--disable-rule=aws_elasticache_cluster_default_parameter_group"
+              "--disable-rule=aws_iam_saml_provider_invalid_saml_metadata_document"
+              "--disable-rule=aws_iam_server_certificate_invalid_certificate_body"
+              "--disable-rule=aws_iam_server_certificate_invalid_private_key"
+              "--disable-rule=aws_lb_invalid_load_balancer_type"
+              "--disable-rule=aws_lb_target_group_invalid_protocol"
+              "--disable-rule=aws_transfer_ssh_key_invalid_body"
+              "--disable-rule=aws_worklink_website_certificate_authority_association_invalid_certificate"
+          )
+          while read -r filename; do
+            rules=("${shared_rules[@]}")
+            if [[ "$filename" == "./website/docs/guides/version-2-upgrade.html.md" ]]; then
+                # ./website/docs/guides/version-2-upgrade.html.md should still include pre-0.12 syntax,
+                # since v1.0 does not support Terraform 0.12.
+                rules+=(
+                "--disable-rule=terraform_deprecated_interpolation"
+                "--disable-rule=terraform_deprecated_index"
+                )
+            elif [[ "$filename" == "./website/docs/guides/version-3-upgrade.html.md" ]]; then
+                # ./website/docs/guides/version-3-upgrade.html.md has one example showing migration from
+                # pre-0.12 syntax to 0.12 syntax. We can't customize rules per block, and adding a
+                # tflint-ignore directive to documentation is not ideal.
+                rules+=(
+                "--disable-rule=terraform_deprecated_interpolation"
+                "--enable-rule=terraform_deprecated_index"
+                )
+            else
+                rules+=(
+                "--enable-rule=terraform_deprecated_interpolation"
+                "--enable-rule=terraform_deprecated_index"
+                )
+            fi
+            # echo "Let's go with $filename..."
+            # We need to capture the output and error code here. We don't want to exit on the first error
+            set +e
+            ./scripts/validate-terraform-file.sh "$filename" "${rules[@]}"
+            lint_exitcode=$?
+            set -e
+            if [ $lint_exitcode -ne 0 ]; then exit_code=1; fi
+          done < <(find ./website/docs -type f \( -name '*.md' -o -name '*.markdown' \) | sort -u)
+
+          exit $exit_code

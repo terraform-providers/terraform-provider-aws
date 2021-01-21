@@ -10,9 +10,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dax"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
@@ -48,8 +48,8 @@ func resourceAwsDaxCluster() *schema.Resource {
 					validation.StringLenBetween(1, 20),
 					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
 					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
-					validateStringNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
-					validateStringNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
 				),
 			},
 			"iam_role_arn": {
@@ -181,7 +181,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 	subnetGroupName := d.Get("subnet_group_name").(string)
 	securityIdSet := d.Get("security_group_ids").(*schema.Set)
 
-	securityIds := expandStringList(securityIdSet.List())
+	securityIds := expandStringSet(securityIdSet)
 	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DaxTags()
 
 	req := &dax.CreateClusterInput{
@@ -211,10 +211,9 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 		req.NotificationTopicArn = aws.String(v.(string))
 	}
 
-	preferred_azs := d.Get("availability_zones").(*schema.Set).List()
-	if len(preferred_azs) > 0 {
-		azs := expandStringList(preferred_azs)
-		req.AvailabilityZones = azs
+	preferredAZs := d.Get("availability_zones").(*schema.Set)
+	if preferredAZs.Len() > 0 {
+		req.AvailabilityZones = expandStringSet(preferredAZs)
 	}
 
 	if v, ok := d.GetOk("server_side_encryption"); ok && len(v.([]interface{})) > 0 {
@@ -271,6 +270,8 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).daxconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+
 	req := &dax.DescribeClustersInput{
 		ClusterNames: []*string{aws.String(d.Id())},
 	}
@@ -335,7 +336,7 @@ func resourceAwsDaxClusterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error listing tags for DAX Cluster (%s): %s", aws.StringValue(c.ClusterArn), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -366,7 +367,7 @@ func resourceAwsDaxClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("security_group_ids") {
 		if attr := d.Get("security_group_ids").(*schema.Set); attr.Len() > 0 {
-			req.SecurityGroupIds = expandStringList(attr.List())
+			req.SecurityGroupIds = expandStringSet(attr)
 			requestUpdate = true
 		}
 	}

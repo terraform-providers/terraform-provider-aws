@@ -29,10 +29,11 @@ The following arguments are supported:
 * `description` - (Optional) The description of the environment.
 * `owner_arn` - (Optional) The ARN of the environment owner. This can be ARN of any AWS IAM principal. Defaults to the environment's creator.
 * `subnet_id` - (Optional) The ID of the subnet in Amazon VPC that AWS Cloud9 will use to communicate with the Amazon EC2 instance.
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Attributes Reference
 
-In addition the the arguments listed above the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the environment.
 * `arn` - The ARN of the environment.

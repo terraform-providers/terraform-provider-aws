@@ -67,7 +67,7 @@ data "aws_iam_policy_document" "example" {
 resource "aws_iam_policy" "example" {
   name   = "example_policy"
   path   = "/"
-  policy = "${data.aws_iam_policy_document.example.json}"
+  policy = data.aws_iam_policy_document.example.json
 }
 ```
 
@@ -109,8 +109,8 @@ each accept the following arguments:
   does *not* apply to. Used to apply a policy statement to all resources
   *except* those listed.
 * `principals` (Optional) - A nested configuration block (described below)
-  specifying a resource (or resource pattern) to which this statement applies.
-* `not_principals` (Optional) - Like `principals` except gives resources that
+  specifying a principal (or principal pattern) to which this statement applies.
+* `not_principals` (Optional) - Like `principals` except gives principals that
   the statement does *not* apply to.
 * `condition` (Optional) - A nested configuration block (described below)
   that defines a further, possibly-service-specific condition that constrains
@@ -119,9 +119,11 @@ each accept the following arguments:
 Each policy may have either zero or more `principals` blocks or zero or more
 `not_principals` blocks, both of which each accept the following arguments:
 
-* `type` (Required) The type of principal. For AWS ARNs this is "AWS".  For AWS services (e.g. Lambda), this is "Service".
+* `type` (Required) The type of principal. For AWS ARNs this is "AWS".  For AWS services (e.g. Lambda), this is "Service". For Federated access the type is "Federated".
 * `identifiers` (Required) List of identifiers for principals. When `type`
-  is "AWS", these are IAM user or role ARNs.  When `type` is "Service", these are AWS Service roles e.g. `lambda.amazonaws.com`.
+  is "AWS", these are IAM user or role ARNs.  When `type` is "Service", these are AWS Service roles e.g. `lambda.amazonaws.com`. When `type` is "Federated", these are web identity users or SAML provider ARNs.
+
+For further examples or information about AWS principals then please refer to the [documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html).
 
 Each policy statement may have zero or more `condition` blocks, which each
 accept the following arguments:
@@ -182,7 +184,12 @@ data "aws_iam_policy_document" "event_stream_bucket_role_assume_role_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = ["${var.trusted_role_arn}"]
+      identifiers = [var.trusted_role_arn]
+    }
+
+    principals {
+      type        = "Federated"
+      identifiers = ["arn:aws:iam::${var.account_id}:saml-provider/${var.provider_name}", "cognito-identity.amazonaws.com"]
     }
   }
 }
@@ -208,7 +215,7 @@ data "aws_iam_policy_document" "source" {
 }
 
 data "aws_iam_policy_document" "source_json_example" {
-  source_json = "${data.aws_iam_policy_document.source.json}"
+  source_json = data.aws_iam_policy_document.source.json
 
   statement {
     sid = "SidToOverwrite"
@@ -232,7 +239,7 @@ data "aws_iam_policy_document" "override" {
 }
 
 data "aws_iam_policy_document" "override_json_example" {
-  override_json = "${data.aws_iam_policy_document.override.json}"
+  override_json = data.aws_iam_policy_document.override.json
 
   statement {
     actions   = ["ec2:*"]
@@ -323,8 +330,8 @@ data "aws_iam_policy_document" "override" {
 }
 
 data "aws_iam_policy_document" "politik" {
-  source_json   = "${data.aws_iam_policy_document.source.json}"
-  override_json = "${data.aws_iam_policy_document.override.json}"
+  source_json   = data.aws_iam_policy_document.source.json
+  override_json = data.aws_iam_policy_document.override.json
 }
 ```
 

@@ -3,14 +3,18 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
+
+const rdsDbClusterSnapshotCreateTimeout = 2 * time.Minute
 
 func resourceAwsDbClusterSnapshot() *schema.Resource {
 	return &schema.Resource{
@@ -31,6 +35,13 @@ func resourceAwsDbClusterSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 63),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-z-]+$`), "must contain only lowercase alphanumeric characters and hyphens"),
+					validation.StringMatch(regexp.MustCompile(`^[a-z]`), "must begin with a lowercase letter"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`--`), "cannot contain two consecutive hyphens"),
+					validation.StringDoesNotMatch(regexp.MustCompile(`-$`), "cannot end with a hyphen"),
+				),
 			},
 			"db_cluster_identifier": {
 				Type:     schema.TypeString,
@@ -105,9 +116,22 @@ func resourceAwsDbClusterSnapshotCreate(d *schema.ResourceData, meta interface{}
 		Tags:                        keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().RdsTags(),
 	}
 
-	_, err := conn.CreateDBClusterSnapshot(params)
+	err := resource.Retry(rdsDbClusterSnapshotCreateTimeout, func() *resource.RetryError {
+		_, err := conn.CreateDBClusterSnapshot(params)
+		if err != nil {
+			if isAWSErr(err, rds.ErrCodeInvalidDBClusterStateFault, "") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		_, err = conn.CreateDBClusterSnapshot(params)
+	}
 	if err != nil {
-		return fmt.Errorf("error creating RDS DB Cluster Snapshot: %s", err)
+		return fmt.Errorf("error creating RDS DB Cluster Snapshot: %w", err)
 	}
 	d.SetId(d.Get("db_cluster_snapshot_identifier").(string))
 
@@ -131,6 +155,7 @@ func resourceAwsDbClusterSnapshotCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).rdsconn
+	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
 	params := &rds.DescribeDBClusterSnapshotsInput{
 		DBClusterSnapshotIdentifier: aws.String(d.Id()),
@@ -177,7 +202,7 @@ func resourceAwsDbClusterSnapshotRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error listing tags for RDS DB Cluster Snapshot (%s): %s", d.Get("db_cluster_snapshot_arn").(string), err)
 	}
 
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
+	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %s", err)
 	}
 
@@ -193,8 +218,6 @@ func resourceAwsdbClusterSnapshotUpdate(d *schema.ResourceData, meta interface{}
 		if err := keyvaluetags.RdsUpdateTags(conn, d.Get("db_cluster_snapshot_arn").(string), o, n); err != nil {
 			return fmt.Errorf("error updating RDS DB Cluster Snapshot (%s) tags: %s", d.Get("db_cluster_snapshot_arn").(string), err)
 		}
-
-		d.SetPartial("tags")
 	}
 
 	return nil

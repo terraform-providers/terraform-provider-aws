@@ -11,7 +11,7 @@ description: |-
 Provides a Redshift Cluster Resource.
 
 ~> **Note:** All arguments including the username and password will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+[Read more about sensitive data in state](https://www.terraform.io/docs/state/sensitive-data.html).
 
 ## Example Usage
 
@@ -71,15 +71,15 @@ string.
 * `iam_roles` - (Optional) A list of IAM Role ARNs to associate with the cluster. A Maximum of 10 can be associated to the cluster at any time.
 * `logging` - (Optional) Logging, documented below.
 * `snapshot_copy` - (Optional) Configuration of automatic copy of snapshots from one region to another. Documented below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
 ### Timeouts
 
 `aws_redshift_cluster` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `75 minutes`) Used for creating Clusters.
-- `update` - (Default `40 minutes`) Used for Cluster Argument changes.
+- `update` - (Default `75 minutes`) Used for updating Clusters.
 - `delete` - (Default `40 minutes`) Used for destroying Clusters.
 
 ### Nested Blocks

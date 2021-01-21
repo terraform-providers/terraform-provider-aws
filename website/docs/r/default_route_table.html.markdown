@@ -40,11 +40,11 @@ in conjunction with any Route resources. Doing so will cause
 a conflict of rule settings and will overwrite routes.
 
 
-## Example usage with tags:
+## Example usage with tags
 
 ```hcl
 resource "aws_default_route_table" "r" {
-  default_route_table_id = "${aws_vpc.foo.default_route_table_id}"
+  default_route_table_id = aws_vpc.foo.default_route_table_id
 
   route {
     # ...
@@ -62,8 +62,8 @@ The following arguments are supported:
 
 * `default_route_table_id` - (Required) The ID of the Default Routing Table.
 * `route` - (Optional) A list of route objects. Their keys are documented below.
-  This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+  This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
+* `tags` - (Optional) A map of tags to assign to the resource.
 * `propagating_vgws` - (Optional) A list of virtual gateways for propagation.
 
 ### route Argument Reference
@@ -81,6 +81,7 @@ One of the following target arguments must be supplied:
 * `nat_gateway_id` - (Optional) Identifier of a VPC NAT gateway.
 * `network_interface_id` - (Optional) Identifier of an EC2 network interface.
 * `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
+* `vpc_endpoint_id` - (Optional) Identifier of a VPC Endpoint. This route must be removed prior to VPC Endpoint deletion.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
 
 Note that the default route, mapping the VPC's CIDR block to "local", is created implicitly and cannot be specified.
@@ -92,6 +93,13 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the routing table
 * `owner_id` - The ID of the AWS account that owns the route table
 
+## Import
+
+Default VPC Routing tables can be imported using the `vpc_id`, e.g.
+
+```
+$ terraform import aws_default_route_table.example vpc-33cc44dd
+```
 
 [aws-route-tables]: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html#Route_Replacing_Main_Table
 [tf-route-tables]: /docs/providers/aws/r/route_table.html

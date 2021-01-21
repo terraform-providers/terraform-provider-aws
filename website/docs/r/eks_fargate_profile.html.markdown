@@ -30,11 +30,11 @@ resource "aws_eks_fargate_profile" "example" {
 ```hcl
 resource "aws_iam_role" "example" {
   name = "eks-fargate-profile-example"
-  
+
   assume_role_policy = jsonencode({
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "eks-fargate-pods.amazonaws.com"
       }
@@ -61,7 +61,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `tags` - (Optional) Key-value mapping of resource tags.
+* `tags` - (Optional) Key-value map of resource tags.
 
 ### selector Configuration Block
 
@@ -71,7 +71,7 @@ The following arguments are required:
 
 The following arguments are optional:
 
-* `labels` - (Optional) Key-value mapping of Kubernetes labels for selection.
+* `labels` - (Optional) Key-value map of Kubernetes labels for selection.
 
 ## Attributes Reference
 
@@ -83,7 +83,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_eks_fargate_profile` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_eks_fargate_profile` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be created.
 * `delete` - (Default `10 minutes`) How long to wait for the EKS Fargate Profile to be deleted.

@@ -1,15 +1,21 @@
 package aws
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDefaultSubnet_basic(t *testing.T) {
 	var v ec2.Subnet
+
+	resourceName := "aws_default_subnet.foo"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
+	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -17,20 +23,20 @@ func TestAccAWSDefaultSubnet_basic(t *testing.T) {
 		CheckDestroy: testAccCheckAWSDefaultSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDefaultSubnetConfigBasic,
+				Config: testAccAWSDefaultSubnetConfigBasic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
-					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "availability_zone", "us-west-2a"),
+					testAccCheckSubnetExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "availability_zone", availabilityZonesDataSourceName, "names.0"),
 					resource.TestCheckResourceAttrSet(
-						"aws_default_subnet.foo", "availability_zone_id"),
+						resourceName, "availability_zone_id"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "assign_ipv6_address_on_creation", "false"),
+						resourceName, "assign_ipv6_address_on_creation", "false"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.%", "1"),
+						resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.Name", "terraform-testacc-default-subnet"),
-					testAccCheckResourceAttrAccountID("aws_default_subnet.foo", "owner_id"),
+						resourceName, "tags.Name", fmt.Sprintf("terraform-testacc-default-subnet-%d", rInt)),
+					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 				),
 			},
 		},
@@ -40,41 +46,45 @@ func TestAccAWSDefaultSubnet_basic(t *testing.T) {
 func TestAccAWSDefaultSubnet_publicIp(t *testing.T) {
 	var v ec2.Subnet
 
+	resourceName := "aws_default_subnet.foo"
+	availabilityZonesDataSourceName := "data.aws_availability_zones.available"
+	rInt := acctest.RandInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDefaultSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDefaultSubnetConfigPublicIp,
+				Config: testAccAWSDefaultSubnetConfigPublicIp(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
+					testAccCheckSubnetExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "availability_zone", availabilityZonesDataSourceName, "names.1"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "availability_zone", "us-west-2b"),
+						resourceName, "map_public_ip_on_launch", "true"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "map_public_ip_on_launch", "true"),
+						resourceName, "assign_ipv6_address_on_creation", "false"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "assign_ipv6_address_on_creation", "false"),
+						resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.Name", "terraform-testacc-default-subnet"),
+						resourceName, "tags.Name", fmt.Sprintf("terraform-testacc-default-subnet-%d", rInt)),
 				),
 			},
 			{
-				Config: testAccAWSDefaultSubnetConfigNoPublicIp,
+				Config: testAccAWSDefaultSubnetConfigNoPublicIp(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckSubnetExists("aws_default_subnet.foo", &v),
+					testAccCheckSubnetExists(resourceName, &v),
+					resource.TestCheckResourceAttrPair(
+						resourceName, "availability_zone", availabilityZonesDataSourceName, "names.1"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "availability_zone", "us-west-2b"),
+						resourceName, "map_public_ip_on_launch", "false"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "map_public_ip_on_launch", "false"),
+						resourceName, "assign_ipv6_address_on_creation", "false"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "assign_ipv6_address_on_creation", "false"),
+						resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"aws_default_subnet.foo", "tags.Name", "terraform-testacc-default-subnet"),
+						resourceName, "tags.Name", fmt.Sprintf("terraform-testacc-default-subnet-%d", rInt)),
 				),
 			},
 		},
@@ -86,31 +96,40 @@ func testAccCheckAWSDefaultSubnetDestroy(s *terraform.State) error {
 	return nil
 }
 
-const testAccAWSDefaultSubnetConfigBasic = `
+func testAccAWSDefaultSubnetConfigBasic(rInt int) string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_default_subnet" "foo" {
-  availability_zone = "us-west-2a"
+  availability_zone = data.aws_availability_zones.available.names[0]
+
   tags = {
-    Name = "terraform-testacc-default-subnet"
+    Name = "terraform-testacc-default-subnet-%d"
   }
 }
-`
+`, rInt))
+}
 
-const testAccAWSDefaultSubnetConfigPublicIp = `
+func testAccAWSDefaultSubnetConfigPublicIp(rInt int) string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 resource "aws_default_subnet" "foo" {
-  availability_zone = "us-west-2b"
+  availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = true
-  tags = {
-    Name = "terraform-testacc-default-subnet"
-  }
-}
-`
 
-const testAccAWSDefaultSubnetConfigNoPublicIp = `
-resource "aws_default_subnet" "foo" {
-  availability_zone = "us-west-2b"
-  map_public_ip_on_launch = false
   tags = {
-    Name = "terraform-testacc-default-subnet"
+    Name = "terraform-testacc-default-subnet-%d"
   }
 }
-`
+`, rInt))
+}
+
+func testAccAWSDefaultSubnetConfigNoPublicIp(rInt int) string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+resource "aws_default_subnet" "foo" {
+  availability_zone       = data.aws_availability_zones.available.names[1]
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "terraform-testacc-default-subnet-%d"
+  }
+}
+`, rInt))
+}

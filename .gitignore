@@ -5,6 +5,7 @@ example.tf
 terraform.tfplan
 terraform.tfstate
 bin/
+dist/
 modules-dev/
 /pkg/
 website/.vagrant
@@ -25,8 +26,7 @@ website/node_modules
 *.test
 *.iml
 log.txt
-
-website/vendor
+markdown-link-check*.txt
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

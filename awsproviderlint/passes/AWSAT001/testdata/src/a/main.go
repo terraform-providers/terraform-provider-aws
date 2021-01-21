@@ -3,7 +3,7 @@ package a
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 const resourceName = `aws_example_thing.test`

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSesReceiptRuleSet() *schema.Resource {
@@ -29,7 +29,7 @@ func resourceAwsSesReceiptRuleSet() *schema.Resource {
 }
 
 func resourceAwsSesReceiptRuleSetCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	ruleSetName := d.Get("rule_set_name").(string)
 
@@ -48,7 +48,7 @@ func resourceAwsSesReceiptRuleSetCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsSesReceiptRuleSetRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	input := &ses.DescribeReceiptRuleSetInput{
 		RuleSetName: aws.String(d.Id()),
@@ -72,7 +72,7 @@ func resourceAwsSesReceiptRuleSetRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsSesReceiptRuleSetDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sesConn
+	conn := meta.(*AWSClient).sesconn
 
 	log.Printf("[DEBUG] SES Delete Receipt Rule Set: %s", d.Id())
 	_, err := conn.DeleteReceiptRuleSet(&ses.DeleteReceiptRuleSetInput{

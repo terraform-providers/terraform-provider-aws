@@ -3,13 +3,14 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -32,11 +33,6 @@ func testSweepVpcDhcpOptions(region string) error {
 		for _, dhcpOption := range page.DhcpOptions {
 			var defaultDomainNameFound, defaultDomainNameServersFound bool
 
-			domainName := region + ".compute.internal"
-			if region == "us-east-1" {
-				domainName = "ec2.internal"
-			}
-
 			// This skips the default dhcp configurations so they don't get deleted
 			for _, dhcpConfiguration := range dhcpOption.DhcpConfigurations {
 				if aws.StringValue(dhcpConfiguration.Key) == "domain-name" {
@@ -44,7 +40,7 @@ func testSweepVpcDhcpOptions(region string) error {
 						continue
 					}
 
-					if aws.StringValue(dhcpConfiguration.Values[0].Value) == domainName {
+					if aws.StringValue(dhcpConfiguration.Values[0].Value) == resourceAwsEc2RegionalPrivateDnsSuffix(region) {
 						defaultDomainNameFound = true
 					}
 				} else if aws.StringValue(dhcpConfiguration.Key) == "domain-name-servers" {
@@ -101,6 +97,7 @@ func TestAccAWSDHCPOptions_basic(t *testing.T) {
 				Config: testAccDHCPOptionsConfig(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDHCPOptionsExists(resourceName, &d),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "ec2", regexp.MustCompile(`dhcp-options/dopt-.+`)),
 					resource.TestCheckResourceAttr(resourceName, "domain_name", fmt.Sprintf("service.%s", rName)),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_servers.0", "127.0.0.1"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_servers.1", "10.0.0.2"),
@@ -181,6 +178,28 @@ func TestAccAWSDHCPOptions_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDHCPOptions_disappears(t *testing.T) {
+	var d ec2.DhcpOptions
+	resourceName := "aws_vpc_dhcp_options.test"
+	rName := acctest.RandString(5)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDHCPOptionsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDHCPOptionsConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDHCPOptionsExists(resourceName, &d),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsVpcDhcpOptions(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -272,11 +291,11 @@ func testAccCheckDHCPOptionsDelete(n string) resource.TestCheckFunc {
 func testAccDHCPOptionsConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc_dhcp_options" "test" {
-	domain_name = "service.%s"
-	domain_name_servers = ["127.0.0.1", "10.0.0.2"]
-	ntp_servers = ["127.0.0.1"]
-	netbios_name_servers = ["127.0.0.1"]
-	netbios_node_type = 2
+  domain_name          = "service.%s"
+  domain_name_servers  = ["127.0.0.1", "10.0.0.2"]
+  ntp_servers          = ["127.0.0.1"]
+  netbios_name_servers = ["127.0.0.1"]
+  netbios_node_type    = 2
 }
 `, rName)
 }
@@ -284,11 +303,11 @@ resource "aws_vpc_dhcp_options" "test" {
 func testAccDHCPOptionsConfigTags1(rName, tagKey1, tagValue1 string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc_dhcp_options" "test" {
-	domain_name = "service.%[1]s"
-	domain_name_servers = ["127.0.0.1", "10.0.0.2"]
-	ntp_servers = ["127.0.0.1"]
-	netbios_name_servers = ["127.0.0.1"]
-	netbios_node_type = 2
+  domain_name          = "service.%[1]s"
+  domain_name_servers  = ["127.0.0.1", "10.0.0.2"]
+  ntp_servers          = ["127.0.0.1"]
+  netbios_name_servers = ["127.0.0.1"]
+  netbios_node_type    = 2
 
   tags = {
     %[2]q = %[3]q
@@ -300,11 +319,11 @@ resource "aws_vpc_dhcp_options" "test" {
 func testAccDHCPOptionsConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
 resource "aws_vpc_dhcp_options" "test" {
-	domain_name = "service.%[1]s"
-	domain_name_servers = ["127.0.0.1", "10.0.0.2"]
-	ntp_servers = ["127.0.0.1"]
-	netbios_name_servers = ["127.0.0.1"]
-	netbios_node_type = 2
+  domain_name          = "service.%[1]s"
+  domain_name_servers  = ["127.0.0.1", "10.0.0.2"]
+  ntp_servers          = ["127.0.0.1"]
+  netbios_name_servers = ["127.0.0.1"]
+  netbios_node_type    = 2
 
   tags = {
     %[2]q = %[3]q

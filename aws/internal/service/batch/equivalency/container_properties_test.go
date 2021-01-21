@@ -181,6 +181,66 @@ func TestEquivalentBatchContainerPropertiesJSON(t *testing.T) {
 `,
 			ExpectEquivalent: true,
 		},
+		{
+			Name: "empty environment, mountPoints, ulimits, and volumes",
+			ApiJson: `
+{
+	"image": "example:image",
+	"vcpus": 8,
+	"memory": 2048,
+	"command": ["start.py", "Ref::S3bucket", "Ref::S3key"],
+	"jobRoleArn": "arn:aws:iam::123456789012:role/example",
+	"volumes": [],
+	"environment": [],
+	"mountPoints": [],
+	"ulimits": [],
+	"resourceRequirements": []
+}
+`,
+			ConfigurationJson: `
+{
+	"command": ["start.py", "Ref::S3bucket", "Ref::S3key"],
+	"image": "example:image",
+	"memory": 2048,
+	"vcpus": 8,
+	"jobRoleArn": "arn:aws:iam::123456789012:role/example"
+}
+`,
+			ExpectEquivalent: true,
+		},
+		{
+			Name: "empty command, mountPoints, resourceRequirements, secrets, ulimits, volumes",
+			ApiJson: `
+{
+	"image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+	"vcpus": 1,
+	"memory": 4096,
+	"command": [],
+	"jobRoleArn": "arn:aws:iam::123:role/role-test",
+	"volumes": [],
+	"environment": [{"name":"ENVIRONMENT","value":"test"}],
+	"mountPoints": [],
+	"ulimits": [],
+	"resourceRequirements": [],
+	"secrets": []
+}
+`,
+			ConfigurationJson: `
+{
+    "image": "123.dkr.ecr.us-east-1.amazonaws.com/my-app",
+    "memory": 4096,
+    "vcpus": 1,
+    "jobRoleArn": "arn:aws:iam::123:role/role-test",
+    "environment": [
+      {
+        "name": "ENVIRONMENT",
+        "value": "test"
+      }
+   ]
+}
+`,
+			ExpectEquivalent: true,
+		},
 	}
 
 	for _, testCase := range testCases {

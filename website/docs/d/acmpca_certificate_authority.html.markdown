@@ -35,11 +35,11 @@ In addition to all arguments above, the following attributes are exported:
 * `not_after` - Date and time after which the certificate authority is not valid. Only available after the certificate authority certificate has been imported.
 * `not_before` - Date and time before which the certificate authority is not valid. Only available after the certificate authority certificate has been imported.
 * `revocation_configuration` - Nested attribute containing revocation configuration.
-  * `revocation_configuration.0.crl_configuration` - Nested attribute containing configuration of the certificate revocation list (CRL), if any, maintained by the certificate authority.
-    * `revocation_configuration.0.crl_configuration.0.custom_cname` - Name inserted into the certificate CRL Distribution Points extension that enables the use of an alias for the CRL distribution point.
-    * `revocation_configuration.0.crl_configuration.0.enabled` - Boolean value that specifies whether certificate revocation lists (CRLs) are enabled.
-    * `revocation_configuration.0.crl_configuration.0.expiration_in_days` - Number of days until a certificate expires.
-    * `revocation_configuration.0.crl_configuration.0.s3_bucket_name` - Name of the S3 bucket that contains the CRL.
+    * `revocation_configuration.0.crl_configuration` - Nested attribute containing configuration of the certificate revocation list (CRL), if any, maintained by the certificate authority.
+        * `revocation_configuration.0.crl_configuration.0.custom_cname` - Name inserted into the certificate CRL Distribution Points extension that enables the use of an alias for the CRL distribution point.
+        * `revocation_configuration.0.crl_configuration.0.enabled` - Boolean value that specifies whether certificate revocation lists (CRLs) are enabled.
+        * `revocation_configuration.0.crl_configuration.0.expiration_in_days` - Number of days until a certificate expires.
+        * `revocation_configuration.0.crl_configuration.0.s3_bucket_name` - Name of the S3 bucket that contains the CRL.
 * `serial` - Serial number of the certificate authority. Only available after the certificate authority certificate has been imported.
 * `status` - Status of the certificate authority.
 * `tags` - Specifies a key-value map of user-defined tags that are attached to the certificate authority.

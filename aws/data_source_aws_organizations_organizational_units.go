@@ -5,8 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/organizations"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsOrganizationsOrganizationalUnits() *schema.Resource {
@@ -46,7 +45,6 @@ func dataSourceAwsOrganizationsOrganizationalUnitsRead(d *schema.ResourceData, m
 	conn := meta.(*AWSClient).organizationsconn
 
 	parent_id := d.Get("parent_id").(string)
-	d.SetId(resource.UniqueId())
 
 	params := &organizations.ListOrganizationalUnitsForParentInput{
 		ParentId: aws.String(parent_id),
@@ -64,6 +62,8 @@ func dataSourceAwsOrganizationsOrganizationalUnitsRead(d *schema.ResourceData, m
 	if err != nil {
 		return fmt.Errorf("error listing Organizations Organization Units for parent (%s): %s", parent_id, err)
 	}
+
+	d.SetId(parent_id)
 
 	if err := d.Set("children", flattenOrganizationsOrganizationalUnits(children)); err != nil {
 		return fmt.Errorf("Error setting children: %s", err)

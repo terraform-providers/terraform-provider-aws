@@ -18,7 +18,7 @@ for the effective account in which Terraform is working.
 data "aws_canonical_user_id" "current" {}
 
 output "canonical_user_id" {
-  value = "${data.aws_canonical_user_id.current.id}"
+  value = data.aws_canonical_user_id.current.id
 }
 ```
 

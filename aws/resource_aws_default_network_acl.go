@@ -6,7 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 // ACL Network ACLs all contain explicit deny-all rules that cannot be
@@ -25,8 +27,18 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 		Read:   resourceAwsNetworkAclRead,
 		Delete: resourceAwsDefaultNetworkAclDelete,
 		Update: resourceAwsDefaultNetworkAclUpdate,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				d.Set("default_network_acl_id", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -46,7 +58,6 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 			// We want explicit management of Rules here, so we do not allow them to be
 			// computed. Instead, an empty config will enforce just that; removal of the
@@ -57,20 +68,27 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"to_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"rule_no": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 32766),
 						},
 						"action": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								ec2.RuleActionAllow,
+								ec2.RuleActionDeny,
+							}, true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -79,10 +97,18 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 						"cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validation.IsCIDR,
+							),
 						},
 						"ipv6_cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validation.IsCIDR,
+							),
 						},
 						"icmp_type": {
 							Type:     schema.TypeInt,
@@ -102,20 +128,27 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"from_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"to_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IsPortNumberOrZero,
 						},
 						"rule_no": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 32766),
 						},
 						"action": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								ec2.RuleActionAllow,
+								ec2.RuleActionDeny,
+							}, true),
 						},
 						"protocol": {
 							Type:     schema.TypeString,
@@ -124,10 +157,18 @@ func resourceAwsDefaultNetworkAcl() *schema.Resource {
 						"cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validation.IsCIDR,
+							),
 						},
 						"ipv6_cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								validation.IsCIDR,
+							),
 						},
 						"icmp_type": {
 							Type:     schema.TypeInt,
@@ -168,7 +209,6 @@ func resourceAwsDefaultNetworkAclCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAwsDefaultNetworkAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
-	d.Partial(true)
 
 	if d.HasChange("ingress") {
 		err := updateNetworkAclEntries(d, "ingress", conn)
@@ -232,13 +272,14 @@ func resourceAwsDefaultNetworkAclUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if err := setTags(conn, d); err != nil {
-		return err
-	} else {
-		d.SetPartial("tags")
+	if d.HasChange("tags") {
+		o, n := d.GetChange("tags")
+
+		if err := keyvaluetags.Ec2UpdateTags(conn, d.Id(), o, n); err != nil {
+			return fmt.Errorf("error updating EC2 Default Network ACL (%s) tags: %s", d.Id(), err)
+		}
 	}
 
-	d.Partial(false)
 	// Re-use the exiting Network ACL Resources READ method
 	return resourceAwsNetworkAclRead(d, meta)
 }
@@ -270,14 +311,14 @@ func revokeAllNetworkACLEntries(netaclId string, meta interface{}) error {
 	for _, e := range networkAcl.Entries {
 		// Skip the default rules added by AWS. They can be neither
 		// configured or deleted by users. See http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_ACLs.html#default-network-acl
-		if *e.RuleNumber == awsDefaultAclRuleNumberIpv4 ||
-			*e.RuleNumber == awsDefaultAclRuleNumberIpv6 {
+		if aws.Int64Value(e.RuleNumber) == awsDefaultAclRuleNumberIpv4 ||
+			aws.Int64Value(e.RuleNumber) == awsDefaultAclRuleNumberIpv6 {
 			continue
 		}
 
 		// track if this is an egress or ingress rule, for logging purposes
 		rt := "ingress"
-		if *e.Egress {
+		if aws.BoolValue(e.Egress) {
 			rt = "egress"
 		}
 

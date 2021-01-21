@@ -6,8 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func dataSourceAwsSecurityGroups() *schema.Resource {
@@ -49,7 +49,7 @@ func dataSourceAwsSecurityGroupsRead(d *schema.ResourceData, meta interface{}) e
 	}
 	if tagsOk {
 		req.Filters = append(req.Filters, buildEC2TagFilterList(
-			tagsFromMap(tags.(map[string]interface{})),
+			keyvaluetags.New(tags.(map[string]interface{})).Ec2Tags(),
 		)...)
 	}
 
@@ -79,7 +79,8 @@ func dataSourceAwsSecurityGroupsRead(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Found %d security groups via given filter: %s", len(ids), req)
 
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
+
 	err := d.Set("ids", ids)
 	if err != nil {
 		return err

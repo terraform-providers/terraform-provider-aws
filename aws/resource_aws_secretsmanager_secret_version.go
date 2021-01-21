@@ -1,15 +1,14 @@
 package aws
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
 
-	"encoding/base64"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSecretsManagerSecretVersion() *schema.Resource {
@@ -88,7 +87,7 @@ func resourceAwsSecretsManagerSecretVersionCreate(d *schema.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("version_stages"); ok {
-		input.VersionStages = expandStringList(v.(*schema.Set).List())
+		input.VersionStages = expandStringSet(v.(*schema.Set))
 	}
 
 	log.Printf("[DEBUG] Putting Secrets Manager Secret %q value", secretID)

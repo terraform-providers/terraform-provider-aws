@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsSsmPatchGroup() *schema.Resource {
@@ -43,7 +43,7 @@ func resourceAwsSsmPatchGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	d.SetId(*resp.PatchGroup)
+	d.SetId(aws.StringValue(resp.PatchGroup))
 	return resourceAwsSsmPatchGroupRead(d, meta)
 }
 

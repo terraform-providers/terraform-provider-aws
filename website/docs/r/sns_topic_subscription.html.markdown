@@ -45,20 +45,15 @@ resource "aws_sqs_queue" "user_updates_queue" {
 }
 
 resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
-  topic_arn = "${aws_sns_topic.user_updates.arn}"
+  topic_arn = aws_sns_topic.user_updates.arn
   protocol  = "sqs"
-  endpoint  = "${aws_sqs_queue.user_updates_queue.arn}"
+  endpoint  = aws_sqs_queue.user_updates_queue.arn
 }
 ```
 
 You can subscribe SNS topics to SQS queues in different Amazon accounts and regions:
 
 ```hcl
-/*
-#
-# Variables
-#
-*/
 variable "sns" {
   default = {
     account-id   = "111111111111"
@@ -99,7 +94,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       variable = "AWS:SourceOwner"
 
       values = [
-        "${var.sns["account-id"]}",
+        var.sns["account-id"],
       ]
     }
 
@@ -181,7 +176,7 @@ data "aws_iam_policy_document" "sqs-queue-policy" {
 # provider to manage SNS topics
 provider "aws" {
   alias  = "sns"
-  region = "${var.sns["region"]}"
+  region = var.sns["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sns["account-id"]}:role/${var.sns["role-name"]}"
@@ -192,7 +187,7 @@ provider "aws" {
 # provider to manage SQS queues
 provider "aws" {
   alias  = "sqs"
-  region = "${var.sqs["region"]}"
+  region = var.sqs["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sqs["account-id"]}:role/${var.sqs["role-name"]}"
@@ -203,7 +198,7 @@ provider "aws" {
 # provider to subscribe SQS to SNS (using the SQS account but the SNS region)
 provider "aws" {
   alias  = "sns2sqs"
-  region = "${var.sns["region"]}"
+  region = var.sns["region"]
 
   assume_role {
     role_arn     = "arn:aws:iam::${var.sqs["account-id"]}:role/${var.sqs["role-name"]}"
@@ -213,22 +208,22 @@ provider "aws" {
 
 resource "aws_sns_topic" "sns-topic" {
   provider     = "aws.sns"
-  name         = "${var.sns["name"]}"
-  display_name = "${var.sns["display_name"]}"
-  policy       = "${data.aws_iam_policy_document.sns-topic-policy.json}"
+  name         = var.sns["name"]
+  display_name = var.sns["display_name"]
+  policy       = data.aws_iam_policy_document.sns-topic-policy.json
 }
 
 resource "aws_sqs_queue" "sqs-queue" {
   provider = "aws.sqs"
-  name     = "${var.sqs["name"]}"
-  policy   = "${data.aws_iam_policy_document.sqs-queue-policy.json}"
+  name     = var.sqs["name"]
+  policy   = data.aws_iam_policy_document.sqs-queue-policy.json
 }
 
 resource "aws_sns_topic_subscription" "sns-topic" {
   provider  = "aws.sns2sqs"
-  topic_arn = "${aws_sns_topic.sns-topic.arn}"
+  topic_arn = aws_sns_topic.sns-topic.arn
   protocol  = "sqs"
-  endpoint  = "${aws_sqs_queue.sqs-queue.arn}"
+  endpoint  = aws_sqs_queue.sqs-queue.arn
 }
 ```
 

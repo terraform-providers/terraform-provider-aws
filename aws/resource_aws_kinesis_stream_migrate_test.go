@@ -1,13 +1,14 @@
 package aws
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
 
 func testResourceAwsKinesisStreamStateDataV0() map[string]interface{} {
 	return map[string]interface{}{
-		"arn":                 "arn:aws:test:us-east-1:123456789012:test",
+		"arn":                 "arn:aws:test:us-east-1:123456789012:test", //lintignore:AWSAT003,AWSAT005
 		"encryption_type":     "NONE",
 		"kms_key_id":          "",
 		"name":                "test",
@@ -35,7 +36,7 @@ func testResourceAwsKinesisStreamStateDataV1() map[string]interface{} {
 
 func TestResourceAwsKinesisStreamStateUpgradeV0(t *testing.T) {
 	expected := testResourceAwsKinesisStreamStateDataV1()
-	actual, err := resourceAwsKinesisStreamStateUpgradeV0(testResourceAwsKinesisStreamStateDataV0(), nil)
+	actual, err := resourceAwsKinesisStreamStateUpgradeV0(context.Background(), testResourceAwsKinesisStreamStateDataV0(), nil)
 	if err != nil {
 		t.Fatalf("error migrating state: %s", err)
 	}

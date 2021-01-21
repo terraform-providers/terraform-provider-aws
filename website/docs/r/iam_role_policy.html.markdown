@@ -8,7 +8,7 @@ description: |-
 
 # Resource: aws_iam_role_policy
 
-Provides an IAM role policy.
+Provides an IAM role inline policy.
 
 ## Example Usage
 
@@ -62,10 +62,12 @@ The following arguments are supported:
 assign a random, unique name.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified
   prefix. Conflicts with `name`.
-* `policy` - (Required) The policy document. This is a JSON formatted string. For more information about building IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy)
+* `policy` - (Required) The inline policy document. This is a JSON formatted string. For more information about building IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy)
 * `role` - (Required) The IAM role to attach to the policy.
 
 ## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The role policy ID, in the form of `role_name:role_policy_name`.
 * `name` - The name of the policy.

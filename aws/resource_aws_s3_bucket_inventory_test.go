@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSS3BucketInventory_basic(t *testing.T) {
@@ -106,7 +106,7 @@ func TestAccAWSS3BucketInventory_encryptWithSSEKMS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3BucketInventoryConfigExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.0.key_id", regexp.MustCompile("^arn:aws:kms:")),
+					resource.TestMatchResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.0.key_id", regexp.MustCompile(fmt.Sprintf("^arn:%s:kms:", testAccGetPartition()))),
 				),
 			},
 			{
@@ -203,7 +203,7 @@ func testAccAWSS3BucketInventoryConfig(bucketName, inventoryName string) string 
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.test.id}"
+  bucket = aws_s3_bucket.test.id
   name   = %[1]q
 
   included_object_versions = "All"
@@ -224,8 +224,8 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "ORC"
-      bucket_arn = "${aws_s3_bucket.test.arn}"
-      account_id = "${data.aws_caller_identity.current.account_id}"
+      bucket_arn = aws_s3_bucket.test.arn
+      account_id = data.aws_caller_identity.current.account_id
       prefix     = "inventory"
     }
   }
@@ -236,7 +236,7 @@ resource "aws_s3_bucket_inventory" "test" {
 func testAccAWSS3BucketInventoryConfigEncryptWithSSES3(bucketName, inventoryName string) string {
 	return testAccAWSS3BucketInventoryConfigBucket(bucketName) + fmt.Sprintf(`
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.test.id}"
+  bucket = aws_s3_bucket.test.id
   name   = %[1]q
 
   included_object_versions = "Current"
@@ -248,7 +248,7 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "CSV"
-      bucket_arn = "${aws_s3_bucket.test.arn}"
+      bucket_arn = aws_s3_bucket.test.arn
 
       encryption {
         sse_s3 {}
@@ -267,7 +267,7 @@ resource "aws_kms_key" "test" {
 }
 
 resource "aws_s3_bucket_inventory" "test" {
-  bucket = "${aws_s3_bucket.test.id}"
+  bucket = aws_s3_bucket.test.id
   name   = %[2]q
 
   included_object_versions = "Current"
@@ -279,11 +279,11 @@ resource "aws_s3_bucket_inventory" "test" {
   destination {
     bucket {
       format     = "Parquet"
-      bucket_arn = "${aws_s3_bucket.test.arn}"
+      bucket_arn = aws_s3_bucket.test.arn
 
       encryption {
         sse_kms {
-          key_id = "${aws_kms_key.test.arn}"
+          key_id = aws_kms_key.test.arn
         }
       }
     }

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSIPRanges_basic(t *testing.T) {
@@ -81,6 +81,7 @@ func testAccAWSIPRangesCheckAttributes(n string) resource.TestCheckFunc {
 
 			if regionMember.MatchString(k) {
 
+				// lintignore:AWSAT003
 				if !(v == "eu-west-1" || v == "eu-central-1") {
 					return fmt.Errorf("unexpected region %s", v)
 				}
@@ -128,7 +129,7 @@ func testAccAWSIPRangesCheckCidrBlocksAttribute(name, attribute string) resource
 		}
 
 		if cidrBlockSize < 5 {
-			return fmt.Errorf("%s for eu-west-1 seem suspiciously low: %d", attribute, cidrBlockSize)
+			return fmt.Errorf("%s for eu-west-1 seem suspiciously low: %d", attribute, cidrBlockSize) // lintignore:AWSAT003
 		}
 
 		cidrBlocks = make([]string, cidrBlockSize)
@@ -152,17 +153,19 @@ func testAccAWSIPRangesCheckCidrBlocksAttribute(name, attribute string) resource
 	}
 }
 
+// lintignore:AWSAT003
 const testAccAWSIPRangesConfig = `
 data "aws_ip_ranges" "some" {
-  regions = [ "eu-west-1", "eu-central-1" ]
-  services = [ "ec2" ]
+  regions  = ["eu-west-1", "eu-central-1"]
+  services = ["ec2"]
 }
 `
 
+// lintignore:AWSAT003
 const testAccAWSIPRangesConfigUrl = `
 data "aws_ip_ranges" "some" {
-  regions  = [ "eu-west-1", "eu-central-1" ]
-  services = [ "ec2" ]
+  regions  = ["eu-west-1", "eu-central-1"]
+  services = ["ec2"]
   url      = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 }
 `

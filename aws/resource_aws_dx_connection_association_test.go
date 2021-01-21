@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/directconnect"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSDxConnectionAssociation_basic(t *testing.T) {
@@ -85,19 +85,19 @@ func testAccDxConnectionAssociationConfig(rName string) string {
 resource "aws_dx_connection" "test" {
   name      = "tf-dx-%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 }
 
 resource "aws_dx_lag" "test" {
   name                  = "tf-dx-%s"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   force_destroy         = true
 }
 
 resource "aws_dx_connection_association" "test" {
-  connection_id = "${aws_dx_connection.test.id}"
-  lag_id        = "${aws_dx_lag.test.id}"
+  connection_id = aws_dx_connection.test.id
+  lag_id        = aws_dx_lag.test.id
 }
 `, rName, rName)
 }
@@ -107,30 +107,30 @@ func testAccDxConnectionAssociationConfig_multiConns(rName string) string {
 resource "aws_dx_connection" "test1" {
   name      = "tf-dxconn1-%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 }
 
 resource "aws_dx_connection" "test2" {
   name      = "tf-dxconn2-%s"
   bandwidth = "1Gbps"
-  location  = "EqSe2"
+  location  = "EqSe2-EQ"
 }
 
 resource "aws_dx_lag" "test" {
   name                  = "tf-dx-%s"
   connections_bandwidth = "1Gbps"
-  location              = "EqSe2"
+  location              = "EqSe2-EQ"
   force_destroy         = true
 }
 
 resource "aws_dx_connection_association" "test1" {
-  connection_id = "${aws_dx_connection.test1.id}"
-  lag_id        = "${aws_dx_lag.test.id}"
+  connection_id = aws_dx_connection.test1.id
+  lag_id        = aws_dx_lag.test.id
 }
 
 resource "aws_dx_connection_association" "test2" {
-  connection_id = "${aws_dx_connection.test2.id}"
-  lag_id        = "${aws_dx_lag.test.id}"
+  connection_id = aws_dx_connection.test2.id
+  lag_id        = aws_dx_lag.test.id
 }
 `, rName, rName, rName)
 }

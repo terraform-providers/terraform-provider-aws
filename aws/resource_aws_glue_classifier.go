@@ -1,14 +1,15 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsGlueClassifier() *schema.Resource {
@@ -21,7 +22,7 @@ func resourceAwsGlueClassifier() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		CustomizeDiff: customdiff.Sequence(
-			func(diff *schema.ResourceDiff, v interface{}) error {
+			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				// ForceNew when changing classifier type
 				// InvalidInputException: UpdateClassifierRequest can't change the type of the classifier
 				if diff.HasChange("csv_classifier") && diff.HasChange("grok_classifier") {
@@ -67,7 +68,7 @@ func resourceAwsGlueClassifier() *schema.Resource {
 						"contains_header": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateHeaderOptions(),
+							ValidateFunc: validation.StringInSlice(glue.CsvHeaderOption_Values(), false),
 						},
 						"delimiter": {
 							Type:     schema.TypeString,
@@ -76,6 +77,7 @@ func resourceAwsGlueClassifier() *schema.Resource {
 						"disable_value_trimming": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 						"header": {
 							Type:     schema.TypeList,
@@ -284,14 +286,6 @@ func resourceAwsGlueClassifierDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func validateHeaderOptions() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		"UNKNOWN",
-		"PRESENT",
-		"ABSENT",
-	}, true)
-}
-
 func deleteGlueClassifier(conn *glue.Glue, name string) error {
 	input := &glue.DeleteClassifierInput{
 		Name: aws.String(name),
@@ -315,15 +309,14 @@ func expandGlueCsvClassifierCreate(name string, m map[string]interface{}) *glue.
 		Delimiter:            aws.String(m["delimiter"].(string)),
 		DisableValueTrimming: aws.Bool(m["disable_value_trimming"].(bool)),
 		Name:                 aws.String(name),
-		QuoteSymbol:          aws.String(m["quote_symbol"].(string)),
 	}
 
-	if v, ok := m["header"]; ok {
-		header := make([]string, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			header[i] = fmt.Sprint(item)
-		}
-		csvClassifier.Header = aws.StringSlice(header)
+	if v, ok := m["quote_symbol"].(string); ok && v != "" {
+		csvClassifier.QuoteSymbol = aws.String(v)
+	}
+
+	if v, ok := m["header"].([]interface{}); ok {
+		csvClassifier.Header = expandStringList(v)
 	}
 
 	return csvClassifier
@@ -336,15 +329,14 @@ func expandGlueCsvClassifierUpdate(name string, m map[string]interface{}) *glue.
 		Delimiter:            aws.String(m["delimiter"].(string)),
 		DisableValueTrimming: aws.Bool(m["disable_value_trimming"].(bool)),
 		Name:                 aws.String(name),
-		QuoteSymbol:          aws.String(m["quote_symbol"].(string)),
 	}
 
-	if v, ok := m["header"]; ok {
-		header := make([]string, len(v.([]interface{})))
-		for i, item := range v.([]interface{}) {
-			header[i] = fmt.Sprint(item)
-		}
-		csvClassifier.Header = aws.StringSlice(header)
+	if v, ok := m["quote_symbol"].(string); ok && v != "" {
+		csvClassifier.QuoteSymbol = aws.String(v)
+	}
+
+	if v, ok := m["header"].([]interface{}); ok {
+		csvClassifier.Header = expandStringList(v)
 	}
 
 	return csvClassifier

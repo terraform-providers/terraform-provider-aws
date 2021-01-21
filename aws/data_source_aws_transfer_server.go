@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/transfer"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceAwsTransferServer() *schema.Resource {
@@ -60,7 +60,7 @@ func dataSourceAwsTransferServerRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error describing Transfer Server (%s): %s", serverID, err)
 	}
 
-	endpoint := fmt.Sprintf("%s.server.transfer.%s.amazonaws.com", serverID, meta.(*AWSClient).region)
+	endpoint := meta.(*AWSClient).RegionalHostname(fmt.Sprintf("%s.server.transfer", serverID))
 
 	d.SetId(serverID)
 	d.Set("arn", resp.Server.Arn)

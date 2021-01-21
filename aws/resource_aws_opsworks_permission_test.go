@@ -7,16 +7,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSOpsworksPermission_basic(t *testing.T) {
 	sName := fmt.Sprintf("tf-ops-perm-%d", acctest.RandInt())
 	var opsperm opsworks.Permission
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksPermissionDestroy,
 		Steps: []resource.TestStep{
@@ -92,14 +92,14 @@ func TestAccAWSOpsworksPermission_basic(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/4804
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/4804
 func TestAccAWSOpsworksPermission_Self(t *testing.T) {
 	var opsperm opsworks.Permission
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_permission.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: nil, // Cannot delete own OpsWorks Permission
 		Steps: []resource.TestStep{
@@ -226,15 +226,21 @@ resource "aws_subnet" "test" {
 }
 
 resource "aws_opsworks_stack" "test" {
-  name                          = %[1]q
-  region                        = data.aws_region.current.name
-  vpc_id                        = aws_vpc.test.id
-  default_subnet_id             = aws_subnet.test.id
-  service_role_arn              = aws_iam_role.service.arn
-  default_instance_profile_arn  = aws_iam_instance_profile.test.arn
-  default_os                    = "Amazon Linux 2016.09"
-  default_root_device_type      = "ebs"
-  custom_json                   = "{\"key\": \"value\"}"
+  name                         = %[1]q
+  region                       = data.aws_region.current.name
+  vpc_id                       = aws_vpc.test.id
+  default_subnet_id            = aws_subnet.test.id
+  service_role_arn             = aws_iam_role.service.arn
+  default_instance_profile_arn = aws_iam_instance_profile.test.arn
+  default_os                   = "Amazon Linux 2016.09"
+  default_root_device_type     = "ebs"
+
+  custom_json = <<EOF
+{
+  "key": "value"
+}
+EOF
+
   configuration_manager_version = "11.10"
   use_opsworks_security_groups  = false
 }
@@ -275,7 +281,9 @@ resource "aws_iam_role_policy" "service" {
         "rds:*"
       ],
       "Effect": "Allow",
-      "Resource": ["*"]
+      "Resource": [
+        "*"
+      ]
     }
   ]
 }
@@ -312,26 +320,24 @@ resource "aws_iam_instance_profile" "test" {
 func testAccAwsOpsworksPermissionCreate(name, ssh, sudo, level string) string {
 	return fmt.Sprintf(`
 resource "aws_opsworks_permission" "tf-acc-perm" {
-  stack_id = "${aws_opsworks_stack.tf-acc.id}"
+  stack_id = aws_opsworks_stack.tf-acc.id
 
   allow_ssh  = %s
   allow_sudo = %s
-  user_arn   = "${aws_opsworks_user_profile.user.user_arn}"
+  user_arn   = aws_opsworks_user_profile.user.user_arn
   level      = "%s"
 }
 
 resource "aws_opsworks_user_profile" "user" {
-  user_arn     = "${aws_iam_user.user.arn}"
-  ssh_username = "${aws_iam_user.user.name}"
+  user_arn     = aws_iam_user.user.arn
+  ssh_username = aws_iam_user.user.name
 }
 
 resource "aws_iam_user" "user" {
   name = "%s"
   path = "/"
 }
-
 %s
-
 `, ssh, sudo, level, name, testAccAwsOpsworksStackConfigVpcCreate(name))
 }
 

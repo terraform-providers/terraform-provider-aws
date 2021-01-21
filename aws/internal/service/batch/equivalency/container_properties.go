@@ -19,8 +19,39 @@ func (cp *containerProperties) Reduce() error {
 		return aws.StringValue(cp.Environment[i].Name) < aws.StringValue(cp.Environment[j].Name)
 	})
 
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Command) == 0 {
+		cp.Command = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Environment) == 0 {
+		cp.Environment = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.MountPoints) == 0 {
+		cp.MountPoints = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
 	if len(cp.ResourceRequirements) == 0 {
 		cp.ResourceRequirements = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Secrets) == 0 {
+		cp.Secrets = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Ulimits) == 0 {
+		cp.Ulimits = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Volumes) == 0 {
+		cp.Volumes = nil
 	}
 
 	return nil

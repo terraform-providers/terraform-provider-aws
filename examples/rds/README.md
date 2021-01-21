@@ -16,3 +16,5 @@ Once ready run `terraform plan` to review.
 At the minimum, provide the vpc_id as input variable.
 
 Once satisfied with plan, run `terraform apply`  
+
+Alternatively to using `-var` with each command, the `terraform.template.tfvars` file can be copied to `terraform.tfvars` and updated.

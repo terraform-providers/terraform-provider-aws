@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/shield"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceAwsShieldProtection() *schema.Resource {
@@ -45,7 +45,7 @@ func resourceAwsShieldProtectionCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error creating Shield Protection: %s", err)
 	}
-	d.SetId(*resp.ProtectionId)
+	d.SetId(aws.StringValue(resp.ProtectionId))
 	return resourceAwsShieldProtectionRead(d, meta)
 }
 

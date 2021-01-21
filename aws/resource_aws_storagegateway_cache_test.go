@@ -2,14 +2,13 @@ package aws
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/storagegateway"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestDecodeStorageGatewayCacheID(t *testing.T) {
@@ -20,8 +19,8 @@ func TestDecodeStorageGatewayCacheID(t *testing.T) {
 		ErrCount           int
 	}{
 		{
-			Input:              "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678:pci-0000:03:00.0-scsi-0:0:0:0",
-			ExpectedGatewayARN: "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",
+			Input:              "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678:pci-0000:03:00.0-scsi-0:0:0:0", //lintignore:AWSAT003,AWSAT005
+			ExpectedGatewayARN: "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",                               //lintignore:AWSAT003,AWSAT005
 			ExpectedDiskID:     "pci-0000:03:00.0-scsi-0:0:0:0",
 			ErrCount:           0,
 		},
@@ -34,7 +33,7 @@ func TestDecodeStorageGatewayCacheID(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Input:    "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",
+			Input:    "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 1,
 		},
 		{
@@ -71,19 +70,21 @@ func TestDecodeStorageGatewayCacheID(t *testing.T) {
 func TestAccAWSStorageGatewayCache_FileGateway(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_storagegateway_cache.test"
+	gatewayResourceName := "aws_storagegateway_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// Storage Gateway API does not support removing caches
-		CheckDestroy: nil,
+		// Storage Gateway API does not support removing caches,
+		// but we want to ensure other resources are removed.
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSStorageGatewayCacheConfig_FileGateway(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayCacheExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "disk_id"),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 				),
 			},
 			{
@@ -98,19 +99,21 @@ func TestAccAWSStorageGatewayCache_FileGateway(t *testing.T) {
 func TestAccAWSStorageGatewayCache_TapeAndVolumeGateway(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_storagegateway_cache.test"
+	gatewayResourceName := "aws_storagegateway_gateway.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// Storage Gateway API does not support removing caches
-		CheckDestroy: nil,
+		// Storage Gateway API does not support removing caches,
+		// but we want to ensure other resources are removed.
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSStorageGatewayCacheConfig_TapeAndVolumeGateway(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSStorageGatewayCacheExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "disk_id"),
-					resource.TestMatchResourceAttr(resourceName, "gateway_arn", regexp.MustCompile(`^arn:[^:]+:storagegateway:[^:]+:[^:]+:gateway/sgw-.+$`)),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_arn", gatewayResourceName, "arn"),
 				),
 			},
 			{
@@ -163,7 +166,7 @@ func testAccCheckAWSStorageGatewayCacheExists(resourceName string) resource.Test
 func testAccAWSStorageGatewayCacheConfig_FileGateway(rName string) string {
 	return testAccAWSStorageGatewayGatewayConfig_GatewayType_FileS3(rName) + fmt.Sprintf(`
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = "10"
   type              = "gp2"
 
@@ -175,18 +178,28 @@ resource "aws_ebs_volume" "test" {
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/xvdb"
   force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.test.id}"
+  instance_id  = aws_instance.test.id
+  volume_id    = aws_ebs_volume.test.id
 }
 
 data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_node   = aws_volume_attachment.test.device_name
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_cache" "test" {
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  # ACCEPTANCE TESTING WORKAROUND:
+  # Data sources are not refreshed before plan after apply in TestStep
+  # Step 0 error: After applying this step, the plan was not empty:
+  #   disk_id:     "877ee674-99d3-4cd4-99f0-aadae7e3942b" => "/dev/nvme1n1" (forces new resource)
+  # We expect this data source value to change due to how Storage Gateway works.
+
+  lifecycle {
+    ignore_changes = ["disk_id"]
+  }
+
+  disk_id     = data.aws_storagegateway_local_disk.test.id
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 `, rName)
 }
@@ -194,7 +207,7 @@ resource "aws_storagegateway_cache" "test" {
 func testAccAWSStorageGatewayCacheConfig_TapeAndVolumeGateway(rName string) string {
 	return testAccAWSStorageGatewayGatewayConfig_GatewayType_Cached(rName) + fmt.Sprintf(`
 resource "aws_ebs_volume" "test" {
-  availability_zone = "${aws_instance.test.availability_zone}"
+  availability_zone = aws_instance.test.availability_zone
   size              = "10"
   type              = "gp2"
 
@@ -206,13 +219,13 @@ resource "aws_ebs_volume" "test" {
 resource "aws_volume_attachment" "test" {
   device_name  = "/dev/xvdc"
   force_detach = true
-  instance_id  = "${aws_instance.test.id}"
-  volume_id    = "${aws_ebs_volume.test.id}"
+  instance_id  = aws_instance.test.id
+  volume_id    = aws_ebs_volume.test.id
 }
 
 data "aws_storagegateway_local_disk" "test" {
-  disk_path   = "${aws_volume_attachment.test.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_node   = aws_volume_attachment.test.device_name
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 
 resource "aws_storagegateway_cache" "test" {
@@ -221,12 +234,13 @@ resource "aws_storagegateway_cache" "test" {
   # Step 0 error: After applying this step, the plan was not empty:
   #   disk_id:     "0b68f77a-709b-4c79-ad9d-d7728014b291" => "/dev/xvdc" (forces new resource)
   # We expect this data source value to change due to how Storage Gateway works.
+
   lifecycle {
     ignore_changes = ["disk_id"]
   }
 
-  disk_id     = "${data.aws_storagegateway_local_disk.test.id}"
-  gateway_arn = "${aws_storagegateway_gateway.test.arn}"
+  disk_id     = data.aws_storagegateway_local_disk.test.id
+  gateway_arn = aws_storagegateway_gateway.test.arn
 }
 `, rName)
 }

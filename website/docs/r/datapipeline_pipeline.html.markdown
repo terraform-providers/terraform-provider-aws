@@ -14,7 +14,7 @@ Provides a Data Pipeline resource.
 
 ```hcl
 resource "aws_datapipeline_pipeline" "default" {
-	name      	= "tf-pipeline-default"
+  name = "tf-pipeline-default"
 }
 ```
 
@@ -24,9 +24,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of Pipeline.
 * `description` - (Optional) The description of Pipeline.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A map of tags to assign to the resource.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

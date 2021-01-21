@@ -9,27 +9,23 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
-
-func timePtr(t time.Time) *time.Time {
-	return &t
-}
 
 func TestResourceSortByExpirationDate(t *testing.T) {
 	certs := []*iam.ServerCertificateMetadata{
 		{
 			ServerCertificateName: aws.String("oldest"),
-			Expiration:            timePtr(time.Now()),
+			Expiration:            aws.Time(time.Now()),
 		},
 		{
 			ServerCertificateName: aws.String("latest"),
-			Expiration:            timePtr(time.Now().Add(3 * time.Hour)),
+			Expiration:            aws.Time(time.Now().Add(3 * time.Hour)),
 		},
 		{
 			ServerCertificateName: aws.String("in between"),
-			Expiration:            timePtr(time.Now().Add(2 * time.Hour)),
+			Expiration:            aws.Time(time.Now().Add(2 * time.Hour)),
 		},
 	}
 	sort.Sort(certificateByExpiration(certs))
@@ -112,7 +108,7 @@ resource "aws_iam_server_certificate" "test_cert" {
 }
 
 data "aws_iam_server_certificate" "test" {
-  name   = "${aws_iam_server_certificate.test_cert.name}"
+  name   = aws_iam_server_certificate.test_cert.name
   latest = true
 }
 `, rName, tlsPemEscapeNewlines(certificate), tlsPemEscapeNewlines(key))
@@ -128,7 +124,7 @@ resource "aws_iam_server_certificate" "test_cert" {
 }
 
 data "aws_iam_server_certificate" "test" {
-  name        = "${aws_iam_server_certificate.test_cert.name}"
+  name        = aws_iam_server_certificate.test_cert.name
   path_prefix = "%[5]s"
   latest      = true
 }
@@ -138,6 +134,6 @@ data "aws_iam_server_certificate" "test" {
 var testAccAwsDataIAMServerCertConfigMatchNamePrefix = `
 data "aws_iam_server_certificate" "test" {
   name_prefix = "MyCert"
-  latest = true
+  latest      = true
 }
 `

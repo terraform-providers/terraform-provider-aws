@@ -24,6 +24,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the http namespace.
 * `description` - (Optional) The description that you specify for the namespace when you create it.
+* `tags` - (Optional) A map of tags to assign to the namespace.
 
 ## Attributes Reference
 

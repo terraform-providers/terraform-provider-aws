@@ -8,9 +8,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsS3BucketInventory() *schema.Resource {
@@ -197,10 +197,10 @@ func resourceAwsS3BucketInventoryPut(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("optional_fields"); ok {
-		inventoryConfiguration.OptionalFields = expandStringList(v.(*schema.Set).List())
+		inventoryConfiguration.OptionalFields = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("schedule"); ok {
+	if v, ok := d.GetOk("schedule"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		scheduleList := v.([]interface{})
 		scheduleMap := scheduleList[0].(map[string]interface{})
 		inventoryConfiguration.Schedule = &s3.InventorySchedule{
@@ -208,13 +208,13 @@ func resourceAwsS3BucketInventoryPut(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if v, ok := d.GetOk("filter"); ok {
+	if v, ok := d.GetOk("filter"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		filterList := v.([]interface{})
 		filterMap := filterList[0].(map[string]interface{})
 		inventoryConfiguration.Filter = expandS3InventoryFilter(filterMap)
 	}
 
-	if v, ok := d.GetOk("destination"); ok {
+	if v, ok := d.GetOk("destination"); ok && len(v.([]interface{})) > 0 && v.([]interface{})[0] != nil {
 		destinationList := v.([]interface{})
 		destinationMap := destinationList[0].(map[string]interface{})
 		bucketList := destinationMap["bucket"].([]interface{})

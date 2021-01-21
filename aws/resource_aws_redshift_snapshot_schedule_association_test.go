@@ -6,9 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/redshift"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSRedshiftSnapshotScheduleAssociation_basic(t *testing.T) {
@@ -108,12 +108,11 @@ func testAccCheckAWSRedshiftSnapshotScheduleAssociationExists(n string) resource
 func testAccAWSRedshiftSnapshotScheduleAssociationConfig(rInt int, rName, definition string) string {
 	return fmt.Sprintf(`
 %s
-
 %s
 
 resource "aws_redshift_snapshot_schedule_association" "default" {
-	schedule_identifier = "${aws_redshift_snapshot_schedule.default.id}"
-	cluster_identifier = "${aws_redshift_cluster.default.id}"
+  schedule_identifier = aws_redshift_snapshot_schedule.default.id
+  cluster_identifier  = aws_redshift_cluster.default.id
 }
 `, testAccAWSRedshiftClusterConfig_basic(rInt), testAccAWSRedshiftSnapshotScheduleConfig(rName, definition))
 }

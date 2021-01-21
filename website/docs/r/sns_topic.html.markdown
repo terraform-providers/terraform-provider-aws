@@ -45,7 +45,7 @@ EOF
 }
 ```
 
-##  Example with Server-side encryption (SSE)
+## Example with Server-side encryption (SSE)
 
 ```hcl
 resource "aws_sns_topic" "user_updates" {
@@ -80,7 +80,7 @@ The following arguments are supported:
 * `sqs_success_feedback_role_arn` - (Optional) The IAM role permitted to receive success feedback for this topic
 * `sqs_success_feedback_sample_rate` - (Optional) Percentage of success to sample
 * `sqs_failure_feedback_role_arn` - (Optional) IAM role for failure feedback
-* `tags` - (Optional) Key-value mapping of resource tags
+* `tags` - (Optional) Key-value map of resource tags
 
 ## Attributes Reference
 

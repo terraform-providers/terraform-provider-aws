@@ -3,14 +3,16 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsIamServiceLinkedRole() *schema.Resource {
@@ -25,17 +27,10 @@ func resourceAwsIamServiceLinkedRole() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"aws_service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, es []error) {
-					value := v.(string)
-					if !strings.HasSuffix(value, ".amazonaws.com") {
-						es = append(es, fmt.Errorf(
-							"%q must be a service URL e.g. elasticbeanstalk.amazonaws.com", k))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`\.`), "must be a full service hostname e.g. elasticbeanstalk.amazonaws.com"),
 			},
 
 			"name": {
@@ -92,11 +87,11 @@ func resourceAwsIamServiceLinkedRoleCreate(d *schema.ResourceData, meta interfac
 		AWSServiceName: aws.String(serviceName),
 	}
 
-	if v, ok := d.GetOk("custom_suffix"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("custom_suffix"); ok {
 		params.CustomSuffix = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("description"); ok && v.(string) != "" {
+	if v, ok := d.GetOk("description"); ok {
 		params.Description = aws.String(v.(string))
 	}
 
@@ -105,7 +100,7 @@ func resourceAwsIamServiceLinkedRoleCreate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("Error creating service-linked role with name %s: %s", serviceName, err)
 	}
-	d.SetId(*resp.Role.Arn)
+	d.SetId(aws.StringValue(resp.Role.Arn))
 
 	return resourceAwsIamServiceLinkedRoleRead(d, meta)
 }

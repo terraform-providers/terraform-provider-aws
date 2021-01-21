@@ -84,12 +84,10 @@ Cloudformation Stacks can be imported using the `name`, e.g.
 $ terraform import aws_cloudformation_stack.stack networking-stack
 ```
 
-
-<a id="timeouts"></a>
 ## Timeouts
 
 `aws_cloudformation_stack` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for Creating Stacks
 - `update` - (Default `30 minutes`) Used for Stack modifications

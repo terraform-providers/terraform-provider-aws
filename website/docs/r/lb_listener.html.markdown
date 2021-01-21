@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "front_end" {
 }
 
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.front_end.arn}"
+  load_balancer_arn = aws_lb.front_end.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
@@ -34,7 +34,7 @@ resource "aws_lb_listener" "front_end" {
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.front_end.arn}"
+    target_group_arn = aws_lb_target_group.front_end.arn
   }
 }
 ```
@@ -47,7 +47,7 @@ resource "aws_lb" "front_end" {
 }
 
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.front_end.arn}"
+  load_balancer_arn = aws_lb.front_end.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -71,7 +71,7 @@ resource "aws_lb" "front_end" {
 }
 
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.front_end.arn}"
+  load_balancer_arn = aws_lb.front_end.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -111,7 +111,7 @@ resource "aws_cognito_user_pool_domain" "domain" {
 }
 
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.front_end.arn}"
+  load_balancer_arn = aws_lb.front_end.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -119,15 +119,15 @@ resource "aws_lb_listener" "front_end" {
     type = "authenticate-cognito"
 
     authenticate_cognito {
-      user_pool_arn       = "${aws_cognito_user_pool.pool.arn}"
-      user_pool_client_id = "${aws_cognito_user_pool_client.client.id}"
-      user_pool_domain    = "${aws_cognito_user_pool_domain.domain.domain}"
+      user_pool_arn       = aws_cognito_user_pool.pool.arn
+      user_pool_client_id = aws_cognito_user_pool_client.client.id
+      user_pool_domain    = aws_cognito_user_pool_domain.domain.domain
     }
   }
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.front_end.arn}"
+    target_group_arn = aws_lb_target_group.front_end.arn
   }
 }
 ```
@@ -144,7 +144,7 @@ resource "aws_lb_target_group" "front_end" {
 }
 
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.front_end.arn}"
+  load_balancer_arn = aws_lb.front_end.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -163,19 +163,52 @@ resource "aws_lb_listener" "front_end" {
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.front_end.arn}"
+    target_group_arn = aws_lb_target_group.front_end.arn
   }
 }
 ```
 
+### Gateway Load Balancer Listener
+
+```hcl
+resource "aws_lb" "example" {
+  load_balancer_type = "gateway"
+  name               = "example"
+
+  subnet_mapping {
+    subnet_id = aws_subnet.example.id
+  }
+}
+
+resource "aws_lb_target_group" "example" {
+  name     = "example"
+  port     = 6081
+  protocol = "GENEVE"
+  vpc_id   = aws_vpc.example.id
+
+  health_check {
+    port     = 80
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_lb_listener" "example" {
+  load_balancer_arn = aws_lb.example.id
+
+  default_action {
+    target_group_arn = aws_lb_target_group.example.id
+    type             = "forward"
+  }
+}
+```
 
 ## Argument Reference
 
 The following arguments are supported:
 
 * `load_balancer_arn` - (Required, Forces New Resource) The ARN of the load balancer.
-* `port` - (Required) The port on which the load balancer is listening.
-* `protocol` - (Optional) The protocol for connections from clients to the load balancer. Valid values are `TCP`, `TLS`, `UDP`, `TCP_UDP`, `HTTP` and `HTTPS`. Defaults to `HTTP`.
+* `port` - (Optional) The port on which the load balancer is listening. Not valid for Gateway Load Balancers.
+* `protocol` - (Optional) The protocol for connections from clients to the load balancer. For Application Load Balancers, valid values are `HTTP` and `HTTPS`, with a default of `HTTP`. For Network Load Balancers, valid values are `TCP`, `TLS`, `UDP`, and `TCP_UDP`. Not valid to use `UDP` or `TCP_UDP` if dual-stack mode is enabled. Not valid for Gateway Load Balancers.
 * `ssl_policy` - (Optional) The name of the SSL Policy for the listener. Required if `protocol` is `HTTPS` or `TLS`.
 * `certificate_arn` - (Optional) The ARN of the default SSL server certificate. Exactly one certificate is required if the protocol is HTTPS. For adding additional SSL certificates, see the [`aws_lb_listener_certificate` resource](/docs/providers/aws/r/lb_listener_certificate.html).
 * `default_action` - (Required) An Action block. Action blocks are documented below.
@@ -185,9 +218,26 @@ The following arguments are supported:
 Action Blocks (for `default_action`) support the following:
 
 * `type` - (Required) The type of routing action. Valid values are `forward`, `redirect`, `fixed-response`, `authenticate-cognito` and `authenticate-oidc`.
-* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Required if `type` is `forward`.
+* `target_group_arn` - (Optional) The ARN of the Target Group to which to route traffic. Specify only if `type` is `forward` and you want to route to a single target group. To route to one or more target groups, use a `forward` block instead.
+* `forward` - (Optional) Information for creating an action that distributes requests among one or more target groups. Specify only if `type` is `forward`. If you specify both `forward` block and `target_group_arn` attribute, you can specify only one target group using `forward` and it must be the same target group specified in `target_group_arn`.
 * `redirect` - (Optional) Information for creating a redirect action. Required if `type` is `redirect`.
 * `fixed_response` - (Optional) Information for creating an action that returns a custom HTTP response. Required if `type` is `fixed-response`.
+
+Forward Blocks (for `forward`) support the following:
+
+* `target_group` - (Required) One or more target groups block.
+* `stickiness` - (Optional) The target group stickiness for the rule.
+
+Target Group Blocks (for `target_group`) supports the following:
+
+* `arn` - (Required) The Amazon Resource Name (ARN) of the target group.
+* `weight` - (Optional) The weight. The range is 0 to 999.
+
+Target Group Stickiness Config Blocks (for `stickiness`) supports the following:
+
+* `enabled` - (Required) Indicates whether target group stickiness is enabled.
+* `duration` - (Optional) The time period, in seconds, during which requests from a client should be routed to the same target group. The range is 1-604800 seconds (7 days).
+
 
 Redirect Blocks (for `redirect`) support the following:
 
@@ -238,7 +288,7 @@ Authentication Request Extra Params Blocks (for `authentication_request_extra_pa
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the listener (matches `arn`)
 * `arn` - The ARN of the listener (matches `id`)

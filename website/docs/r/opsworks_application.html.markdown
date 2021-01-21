@@ -16,7 +16,7 @@ Provides an OpsWorks application resource.
 resource "aws_opsworks_application" "foo-app" {
   name        = "foobar application"
   short_name  = "foobar"
-  stack_id    = "${aws_opsworks_stack.main.id}"
+  stack_id    = aws_opsworks_stack.main.id
   type        = "rails"
   description = "This is a Rails application"
 
@@ -40,8 +40,8 @@ resource "aws_opsworks_application" "foo-app" {
   enable_ssl = true
 
   ssl_configuration {
-    private_key = "${file("./foobar.key")}"
-    certificate = "${file("./foobar.crt")}"
+    private_key = file("./foobar.key")
+    certificate = file("./foobar.crt")
   }
 
   document_root         = "public"
@@ -98,3 +98,11 @@ A `ssl_configuration` block supports the following arguments (can only be define
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The id of the application.
+
+## Import
+
+Opsworks Application can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_opsworks_application.test <id>
+```

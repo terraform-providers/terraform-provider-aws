@@ -40,7 +40,7 @@ resource "aws_autoscaling_group" "foobar" {
 
 resource "aws_autoscaling_lifecycle_hook" "foobar" {
   name                   = "foobar"
-  autoscaling_group_name = "${aws_autoscaling_group.foobar.name}"
+  autoscaling_group_name = aws_autoscaling_group.foobar.name
   default_result         = "CONTINUE"
   heartbeat_timeout      = 2000
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
@@ -74,5 +74,5 @@ The following arguments are supported:
 AutoScaling Lifecycle Hooks can be imported using the role autoscaling_group_name and name separated by `/`.
 
 ```
-$ terraform import aws_aws_autoscaling_lifecycle_hook.test-lifecycle-hook asg-name/lifecycle-hook-name
+$ terraform import aws_autoscaling_lifecycle_hook.test-lifecycle-hook asg-name/lifecycle-hook-name
 ```
