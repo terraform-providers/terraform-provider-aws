@@ -1,7 +1,9 @@
 package aws
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"regexp"
 
@@ -15,10 +17,10 @@ import (
 
 func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAwsServiceDiscoveryInstanceCreate,
-		Read:   resourceAwsServiceDiscoveryInstanceRead,
-		Update: resourceAwsServiceDiscoveryInstanceUpdate,
-		Delete: resourceAwsServiceDiscoveryInstanceDelete,
+		CreateContext: resourceAwsServiceDiscoveryInstanceCreate,
+		ReadContext:   resourceAwsServiceDiscoveryInstanceRead,
+		Update:        resourceAwsServiceDiscoveryInstanceUpdate,
+		Delete:        resourceAwsServiceDiscoveryInstanceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -72,20 +74,21 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 	}
 }
 
-func resourceAwsServiceDiscoveryInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsServiceDiscoveryInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	conn := meta.(*AWSClient).sdconn
 
 	input := &servicediscovery.RegisterInstanceInput{
-		ServiceId: aws.String(d.Get("service_id").(string)),
+		ServiceId:  aws.String(d.Get("service_id").(string)),
 		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
+
+	input.Attributes = make(map[string]*string)
 
 	for _, attr := range d.Get("attributes").([]interface{}) {
 		v := attr.(map[string]interface{})
 		input.Attributes[v["key"].(string)] = aws.String(v["value"].(string))
 	}
-
 
 	if v, ok := d.GetOk("creator_request_id"); ok {
 		input.CreatorRequestId = aws.String(v.(string))
@@ -93,54 +96,38 @@ func resourceAwsServiceDiscoveryInstanceCreate(d *schema.ResourceData, meta inte
 
 	resp, err := conn.RegisterInstance(input)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	fmt.Println(resp.OperationId)
+	if resp != nil && resp.OperationId != nil {
+		if _, err := waiter.OperationSuccess(conn, aws.StringValue(resp.OperationId)); err != nil {
+			return diag.FromErr(fmt.Errorf("error waiting for Service Discovery Service Instance (%s) create: %w", d.Id(), err))
+		}
+	}
 
-	return nil
-	//d.SetId(aws.StringValue(resp.Service.Id))
-	//
-	//return resourceAwsServiceDiscoveryInstanceRead(d, meta)
+	return resourceAwsServiceDiscoveryInstanceRead(ctx, d, meta)
 }
 
-func resourceAwsServiceDiscoveryInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).sdconn
-	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
 
-	input := &servicediscovery.GetServiceInput{
-		Id: aws.String(d.Id()),
+	input := &servicediscovery.GetInstanceInput{
+		ServiceId:  aws.String(d.Get("service_id").(string)),
+		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	resp, err := conn.GetService(input)
+	resp, err := conn.GetInstanceWithContext(ctx, input)
 	if err != nil {
-		if isAWSErr(err, servicediscovery.ErrCodeServiceNotFound, "") {
-			log.Printf("[WARN] Service Discovery Service (%s) not found, removing from state", d.Id())
+		if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
+			log.Printf("[WARN] Service Discovery Instance (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return err
+		return diag.FromErr(err)
 	}
 
-	service := resp.Service
-	arn := aws.StringValue(service.Arn)
-	d.Set("arn", arn)
-	d.Set("name", service.Name)
-	d.Set("description", service.Description)
-	d.Set("namespace_id", service.NamespaceId)
-	d.Set("dns_config", flattenServiceDiscoveryDnsConfig(service.DnsConfig))
-	d.Set("health_check_config", flattenServiceDiscoveryHealthCheckConfig(service.HealthCheckConfig))
-	d.Set("health_check_custom_config", flattenServiceDiscoveryHealthCheckCustomConfig(service.HealthCheckCustomConfig))
-
-	tags, err := keyvaluetags.ServicediscoveryListTags(conn, arn)
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for resource (%s): %s", arn, err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
-	}
+	instance := resp.Instance
+	d.Set("attributes", flattenServiceDiscoveryInstanceAttributes(instance.Attributes))
 
 	return nil
 }
@@ -203,6 +190,17 @@ func resourceAwsServiceDiscoveryInstanceDelete(d *schema.ResourceData, meta inte
 	}
 
 	return nil
+}
+
+func flattenServiceDiscoveryInstanceAttributes(input map[string]*string) []map[string]interface{} {
+	var output []map[string]interface{}
+	for key, value := range input {
+		elem := make(map[string]interface{})
+		elem[key] = aws.StringValue(value)
+		output = append(output, elem)
+	}
+
+	return output
 }
 
 //func expandServiceDiscoveryDnsConfig(configured map[string]interface{}) *servicediscovery.DnsConfig {
