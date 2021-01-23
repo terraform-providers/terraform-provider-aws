@@ -20,39 +20,39 @@ import (
 func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-//		CheckDestroy: #TODO
+		//		CheckDestroy: #TODO
 		Steps: []resource.TestStep{
 			{
-				Config: composeConfig(testAccAWSServiceDiscoveryInstanceBaseConfig(), testAccAWSServiceDiscoveryInstanceConfig(rName)),
-				Check: resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists("instance")),
+				//Config: composeConfig(testAccAWSServiceDiscoveryInstanceBaseConfig(), testAccAWSServiceDiscoveryInstanceConfig(rName)),
+				Config: testAccAWSServiceDiscoveryInstanceConfig(rName),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists("instance")),
 			},
 		},
-
 	})
 
 }
 
 func testAccAWSServiceDiscoveryInstanceBaseConfig() string {
 	return `
-resource "aws_vpc" "example" {
+resource "aws_vpc" "sd_register_instance" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
 }
 
-resource "aws_service_discovery_private_dns_namespace" "example" {
-  name        = "example.terraform.local"
-  description = "example"
-  vpc         = aws_vpc.example.id
+resource "aws_service_discovery_private_dns_namespace" "sd_register_instance" {
+  name        = "sd-register-instance.local"
+  description = "SD Register Instance"
+  vpc         = aws_vpc.sd_register_instance.id
 }
 
-resource "aws_service_discovery_service" "service" {
+resource "aws_service_discovery_service" "sd_register_instance" {
   name = "service"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.example.id
+    namespace_id = aws_service_discovery_private_dns_namespace.sd_register_instance.id
 
     dns_records {
       ttl  = 10
@@ -72,11 +72,16 @@ resource "aws_service_discovery_service" "service" {
 func testAccAWSServiceDiscoveryInstanceConfig(instanceID string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_instance" "instance" {
-  service_id = aws_service_discovery_service.service.id
-  instance_id = %s
+//  service_id = aws_service_discovery_service.sd_register_instance.id
+  service_id = "srv-ic3q6zrah7q7yxdd"
+  instance_id = "%s"
   attributes {
     key = "AWS_INSTANCE_IPV4"
     value = "10.0.0.1"
+  }
+  attributes {
+    key = "AWS_INSTANCE_IPV6"
+    value = "2001:0db8:85a3:0000:0000:abcd:0001:2345"
   }
 }
 `, instanceID)

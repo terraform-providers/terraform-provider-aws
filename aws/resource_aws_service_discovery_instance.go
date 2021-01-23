@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter"
 )
 
@@ -26,38 +26,37 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"service_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringLenBetween(1,64),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 			"instance_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringLenBetween(1,64),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 			"attributes": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.All(
-								validation.StringLenBetween(1,64),
+								validation.StringLenBetween(1, 64),
 								validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9!-~]+$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
 							),
 						},
 						"value": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.All(
-								validation.StringLenBetween(1,1024),
+								validation.StringLenBetween(1, 1024),
 								validation.StringMatch(regexp.MustCompile(`^([a-zA-Z0-9!-~][ \ta-zA-Z0-9!-~]*){0,1}[a-zA-Z0-9!-~]{0,1}$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
 							),
 						},
@@ -65,8 +64,8 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 				},
 			},
 			"creator_request_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
 		},
@@ -74,44 +73,35 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 }
 
 func resourceAwsServiceDiscoveryInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+
 	conn := meta.(*AWSClient).sdconn
 
-	input := &servicediscovery.CreateServiceInput{
-		Name: aws.String(d.Get("name").(string)),
-		Tags: keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().ServicediscoveryTags(),
+	input := &servicediscovery.RegisterInstanceInput{
+		ServiceId: aws.String(d.Get("service_id").(string)),
+		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	dnsConfig := d.Get("dns_config").([]interface{})
-	if len(dnsConfig) > 0 {
-		input.DnsConfig = expandServiceDiscoveryDnsConfig(dnsConfig[0].(map[string]interface{}))
+	for _, attr := range d.Get("attributes").([]interface{}) {
+		v := attr.(map[string]interface{})
+		input.Attributes[v["key"].(string)] = aws.String(v["value"].(string))
 	}
 
-	if v, ok := d.GetOk("description"); ok {
-		input.Description = aws.String(v.(string))
+
+	if v, ok := d.GetOk("creator_request_id"); ok {
+		input.CreatorRequestId = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("namespace_id"); ok {
-		input.NamespaceId = aws.String(v.(string))
-	}
-
-	hcconfig := d.Get("health_check_config").([]interface{})
-	if len(hcconfig) > 0 {
-		input.HealthCheckConfig = expandServiceDiscoveryHealthCheckConfig(hcconfig[0].(map[string]interface{}))
-	}
-
-	healthCustomConfig := d.Get("health_check_custom_config").([]interface{})
-	if len(healthCustomConfig) > 0 {
-		input.HealthCheckCustomConfig = expandServiceDiscoveryHealthCheckCustomConfig(healthCustomConfig[0].(map[string]interface{}))
-	}
-
-	resp, err := conn.CreateService(input)
+	resp, err := conn.RegisterInstance(input)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(aws.StringValue(resp.Service.Id))
+	fmt.Println(resp.OperationId)
 
-	return resourceAwsServiceDiscoveryInstanceRead(d, meta)
+	return nil
+	//d.SetId(aws.StringValue(resp.Service.Id))
+	//
+	//return resourceAwsServiceDiscoveryInstanceRead(d, meta)
 }
 
 func resourceAwsServiceDiscoveryInstanceRead(d *schema.ResourceData, meta interface{}) error {
