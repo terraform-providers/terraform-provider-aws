@@ -39,15 +39,15 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
-			"attributes": {
+			"attribute": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 30,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.All(
 								validation.StringLenBetween(1, 64),
 								validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9!-~]+$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
@@ -56,7 +56,6 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 						"value": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.All(
 								validation.StringLenBetween(1, 1024),
 								validation.StringMatch(regexp.MustCompile(`^([a-zA-Z0-9!-~][ \ta-zA-Z0-9!-~]*){0,1}[a-zA-Z0-9!-~]{0,1}$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
@@ -81,13 +80,7 @@ func resourceAwsServiceDiscoveryInstanceCreate(ctx context.Context, d *schema.Re
 	input := &servicediscovery.RegisterInstanceInput{
 		ServiceId:  aws.String(d.Get("service_id").(string)),
 		InstanceId: aws.String(d.Get("instance_id").(string)),
-	}
-
-	input.Attributes = make(map[string]*string)
-
-	for _, attr := range d.Get("attributes").([]interface{}) {
-		v := attr.(map[string]interface{})
-		input.Attributes[v["key"].(string)] = aws.String(v["value"].(string))
+		Attributes: expandServiceDiscoveryInstanceAttributes(d.Get("attribute").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("creator_request_id"); ok {
@@ -118,7 +111,9 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	resp, err := conn.GetInstanceWithContext(ctx, input)
+	//TODO: understand how to deal with it
+	//resp, err := conn.GetInstanceWithContext(ctx, input)
+	_, err := conn.GetInstanceWithContext(ctx, input)
 	if err != nil {
 		if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
 			log.Printf("[WARN] Service Discovery Instance (%s) not found, removing from state", d.Id())
@@ -128,8 +123,8 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	instance := resp.Instance
-	d.Set("attributes", flattenServiceDiscoveryInstanceAttributes(instance.Attributes))
+	//instance := resp.Instance
+	//d.Set("attribute", flattenServiceDiscoveryInstanceAttributes(instance.Attributes))
 
 	return nil
 }
@@ -193,6 +188,17 @@ func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.Re
 	}
 
 	return nil
+}
+
+func expandServiceDiscoveryInstanceAttributes(input []interface{}) map[string]*string {
+	output := make(map[string]*string)
+
+	for _, attr := range input {
+		v := attr.(map[string]interface{})
+		output[v["key"].(string)] = aws.String(v["value"].(string))
+	}
+
+	return output
 }
 
 func flattenServiceDiscoveryInstanceAttributes(input map[string]*string) []interface{} {

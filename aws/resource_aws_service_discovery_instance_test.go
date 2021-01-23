@@ -76,11 +76,11 @@ resource "aws_service_discovery_instance" "instance" {
 //  service_id = aws_service_discovery_service.sd_register_instance.id
   service_id = "srv-ic3q6zrah7q7yxdd"
   instance_id = "%s"
-  attributes {
+  attribute {
     key = "AWS_INSTANCE_IPV4"
     value = "10.0.0.1"
   }
-  attributes {
+  attribute {
     key = "AWS_INSTANCE_IPV6"
     value = "2001:0db8:85a3:0000:0000:abcd:0001:2345"
   }
