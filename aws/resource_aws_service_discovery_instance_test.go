@@ -18,16 +18,17 @@ import (
 //}
 
 func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
+	resourceName := "aws_service_discovery_instance.instance"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		//		CheckDestroy: #TODO
+		//CheckDestroy: testAccCheckAwsServiceDiscoveryInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				//Config: composeConfig(testAccAWSServiceDiscoveryInstanceBaseConfig(), testAccAWSServiceDiscoveryInstanceConfig(rName)),
 				Config: testAccAWSServiceDiscoveryInstanceConfig(rName),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists("instance")),
+				Check:  resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, "srv-ic3q6zrah7q7yxdd")),
 			},
 		},
 	})
@@ -87,7 +88,7 @@ resource "aws_service_discovery_instance" "instance" {
 `, instanceID)
 }
 
-func testAccCheckAwsServiceDiscoveryInstanceExists(name string) resource.TestCheckFunc {
+func testAccCheckAwsServiceDiscoveryInstanceExists(name, serviceID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -96,14 +97,38 @@ func testAccCheckAwsServiceDiscoveryInstanceExists(name string) resource.TestChe
 
 		conn := testAccProvider.Meta().(*AWSClient).sdconn
 
-		input := &servicediscovery.GetServiceInput{
-			Id: aws.String(rs.Primary.ID),
+		input := &servicediscovery.GetInstanceInput{
+			InstanceId: aws.String(rs.Primary.ID),
+			ServiceId:  aws.String(serviceID),
 		}
 
-		_, err := conn.GetService(input)
+		_, err := conn.GetInstance(input)
 		return err
 	}
 }
+
+//func testAccCheckAwsServiceDiscoveryInstanceDestroy(s *terraform.State) error {
+//	conn := testAccProvider.Meta().(*AWSClient).sdconn
+//
+//	for _, rs := range s.RootModule().Resources {
+//		if rs.Type != "aws_service_discovery_instance" {
+//			continue
+//		}
+//
+//		input := &servicediscovery.GetInstanceInput{
+//			Id: aws.String(rs.Primary.ID),
+//		}
+//
+//		_, err := conn.GetService(input)
+//		if err != nil {
+//			if isAWSErr(err, servicediscovery.ErrCodeServiceNotFound, "") {
+//				return nil
+//			}
+//			return err
+//		}
+//	}
+//	return nil
+//}
 
 //func testSweepServiceDiscoveryInstances(region string) error {
 //	client, err := sharedClientForRegion(region)
@@ -395,28 +420,6 @@ func testAccCheckAwsServiceDiscoveryInstanceExists(name string) resource.TestChe
 //	})
 //}
 //
-//func testAccCheckAwsServiceDiscoveryServiceDestroy(s *terraform.State) error {
-//	conn := testAccProvider.Meta().(*AWSClient).sdconn
-//
-//	for _, rs := range s.RootModule().Resources {
-//		if rs.Type != "aws_service_discovery_service" {
-//			continue
-//		}
-//
-//		input := &servicediscovery.GetServiceInput{
-//			Id: aws.String(rs.Primary.ID),
-//		}
-//
-//		_, err := conn.GetService(input)
-//		if err != nil {
-//			if isAWSErr(err, servicediscovery.ErrCodeServiceNotFound, "") {
-//				return nil
-//			}
-//			return err
-//		}
-//	}
-//	return nil
-//}
 //
 //func testAccCheckAwsServiceDiscoveryServiceExists(name string) resource.TestCheckFunc {
 //	return func(s *terraform.State) error {

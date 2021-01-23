@@ -20,7 +20,7 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 		CreateContext: resourceAwsServiceDiscoveryInstanceCreate,
 		ReadContext:   resourceAwsServiceDiscoveryInstanceRead,
 		Update:        resourceAwsServiceDiscoveryInstanceUpdate,
-		Delete:        resourceAwsServiceDiscoveryInstanceDelete,
+		DeleteContext: resourceAwsServiceDiscoveryInstanceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -105,6 +105,8 @@ func resourceAwsServiceDiscoveryInstanceCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
+	d.SetId(d.Get("instance_id").(string))
+
 	return resourceAwsServiceDiscoveryInstanceRead(ctx, d, meta)
 }
 
@@ -172,31 +174,33 @@ func resourceAwsServiceDiscoveryInstanceUpdate(d *schema.ResourceData, meta inte
 	return resourceAwsServiceDiscoveryServiceRead(d, meta)
 }
 
-func resourceAwsServiceDiscoveryInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn := meta.(*AWSClient).sdconn
 
-	input := &servicediscovery.DeleteServiceInput{
-		Id: aws.String(d.Id()),
+	input := &servicediscovery.DeregisterInstanceInput{
+		ServiceId:  aws.String(d.Get("service_id").(string)),
+		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	_, err := conn.DeleteService(input)
+	_, err := conn.DeregisterInstanceWithContext(ctx, input)
 
-	if isAWSErr(err, servicediscovery.ErrCodeServiceNotFound, "") {
+	if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
 		return nil
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Service Discovery Service (%s): %w", d.Id(), err)
+		return diag.FromErr(fmt.Errorf("error deregistering Service Discovery Instance (%s): %w", d.Id(), err))
 	}
 
 	return nil
 }
 
-func flattenServiceDiscoveryInstanceAttributes(input map[string]*string) []map[string]interface{} {
-	var output []map[string]interface{}
+func flattenServiceDiscoveryInstanceAttributes(input map[string]*string) []interface{} {
+	var output []interface{}
 	for key, value := range input {
 		elem := make(map[string]interface{})
-		elem[key] = aws.StringValue(value)
+		elem["key"] = key
+		elem["value"] = aws.StringValue(value)
 		output = append(output, elem)
 	}
 
