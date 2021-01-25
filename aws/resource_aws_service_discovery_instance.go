@@ -3,16 +3,14 @@ package aws
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"log"
-	"regexp"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter"
+	"log"
 )
 
 func resourceAwsServiceDiscoveryInstance() *schema.Resource {
@@ -39,30 +37,10 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
 			},
-			"attribute": {
-				Type:     schema.TypeList,
+			"attributes": {
+				Type:     schema.TypeMap,
 				Required: true,
-				MaxItems: 30,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.All(
-								validation.StringLenBetween(1, 64),
-								validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9!-~]+$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
-							),
-						},
-						"value": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.All(
-								validation.StringLenBetween(1, 1024),
-								validation.StringMatch(regexp.MustCompile(`^([a-zA-Z0-9!-~][ \ta-zA-Z0-9!-~]*){0,1}[a-zA-Z0-9!-~]{0,1}$`), "See https://docs.aws.amazon.com/cloud-map/latest/api/API_RegisterInstance.html#API_RegisterInstance_RequestSyntax"),
-							),
-						},
-					},
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"creator_request_id": {
 				Type:         schema.TypeString,
@@ -80,7 +58,7 @@ func resourceAwsServiceDiscoveryInstanceCreate(ctx context.Context, d *schema.Re
 	input := &servicediscovery.RegisterInstanceInput{
 		ServiceId:  aws.String(d.Get("service_id").(string)),
 		InstanceId: aws.String(d.Get("instance_id").(string)),
-		Attributes: expandServiceDiscoveryInstanceAttributes(d.Get("attribute").([]interface{})),
+		Attributes: stringMapToPointers(d.Get("attributes").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("creator_request_id"); ok {
@@ -111,9 +89,7 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	//TODO: understand how to deal with it
-	//resp, err := conn.GetInstanceWithContext(ctx, input)
-	_, err := conn.GetInstanceWithContext(ctx, input)
+	resp, err := conn.GetInstanceWithContext(ctx, input)
 	if err != nil {
 		if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
 			log.Printf("[WARN] Service Discovery Instance (%s) not found, removing from state", d.Id())
@@ -123,8 +99,7 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	//instance := resp.Instance
-	//d.Set("attribute", flattenServiceDiscoveryInstanceAttributes(instance.Attributes))
+	d.Set("attributes", aws.StringValueMap(resp.Instance.Attributes))
 
 	return nil
 }
@@ -188,29 +163,6 @@ func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.Re
 	}
 
 	return nil
-}
-
-func expandServiceDiscoveryInstanceAttributes(input []interface{}) map[string]*string {
-	output := make(map[string]*string)
-
-	for _, attr := range input {
-		v := attr.(map[string]interface{})
-		output[v["key"].(string)] = aws.String(v["value"].(string))
-	}
-
-	return output
-}
-
-func flattenServiceDiscoveryInstanceAttributes(input map[string]*string) []interface{} {
-	var output []interface{}
-	for key, value := range input {
-		elem := make(map[string]interface{})
-		elem["key"] = key
-		elem["value"] = aws.StringValue(value)
-		output = append(output, elem)
-	}
-
-	return output
 }
 
 //func expandServiceDiscoveryDnsConfig(configured map[string]interface{}) *servicediscovery.DnsConfig {
