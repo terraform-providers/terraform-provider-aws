@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter"
 	"log"
+	"strings"
 )
 
 func resourceAwsServiceDiscoveryInstance() *schema.Resource {
@@ -21,7 +22,7 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 		DeleteContext: resourceAwsServiceDiscoveryInstanceDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: resourceAwsServiceDiscoveryInstanceImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -163,6 +164,22 @@ func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.Re
 	}
 
 	return nil
+}
+
+func resourceAwsServiceDiscoveryInstanceImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	idParts := strings.SplitN(d.Id(), "/", 2)
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		return nil, fmt.Errorf("unexpected format (%q), expected <service-id>/<instance-id>", d.Id())
+	}
+
+	serviceId := idParts[0]
+	instanceId := idParts[1]
+
+	d.Set("service_id", serviceId)
+	d.Set("instance_id", instanceId)
+	d.SetId(instanceId)
+
+	return []*schema.ResourceData{d}, nil
 }
 
 //func expandServiceDiscoveryDnsConfig(configured map[string]interface{}) *servicediscovery.DnsConfig {

@@ -23,12 +23,18 @@ func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		//CheckDestroy: testAccCheckAwsServiceDiscoveryInstanceDestroy,
+		CheckDestroy:      testAccCheckAwsServiceDiscoveryInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				//Config: composeConfig(testAccAWSServiceDiscoveryInstanceBaseConfig(), testAccAWSServiceDiscoveryInstanceConfig(rName)),
 				Config: testAccAWSServiceDiscoveryInstanceConfig(rName),
 				Check:  resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, "srv-ic3q6zrah7q7yxdd")),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSServiceDiscoveryInstanceImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -103,28 +109,40 @@ func testAccCheckAwsServiceDiscoveryInstanceExists(name, serviceID string) resou
 	}
 }
 
-//func testAccCheckAwsServiceDiscoveryInstanceDestroy(s *terraform.State) error {
-//	conn := testAccProvider.Meta().(*AWSClient).sdconn
-//
-//	for _, rs := range s.RootModule().Resources {
-//		if rs.Type != "aws_service_discovery_instance" {
-//			continue
-//		}
-//
-//		input := &servicediscovery.GetInstanceInput{
-//			Id: aws.String(rs.Primary.ID),
-//		}
-//
-//		_, err := conn.GetService(input)
-//		if err != nil {
-//			if isAWSErr(err, servicediscovery.ErrCodeServiceNotFound, "") {
-//				return nil
-//			}
-//			return err
-//		}
-//	}
-//	return nil
-//}
+func testAccAWSServiceDiscoveryInstanceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["service_id"], rs.Primary.Attributes["instance_id"]), nil
+	}
+}
+
+func testAccCheckAwsServiceDiscoveryInstanceDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*AWSClient).sdconn
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "aws_service_discovery_instance" {
+			continue
+		}
+
+		input := &servicediscovery.GetInstanceInput{
+			InstanceId: aws.String(rs.Primary.ID),
+			ServiceId:  aws.String(rs.Primary.Attributes["service_id"]),
+		}
+
+		_, err := conn.GetInstance(input)
+		if err != nil {
+			if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
+				return nil
+			}
+			return err
+		}
+	}
+	return nil
+}
 
 //func testSweepServiceDiscoveryInstances(region string) error {
 //	client, err := sharedClientForRegion(region)
