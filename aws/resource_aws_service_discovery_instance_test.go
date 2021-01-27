@@ -10,15 +10,19 @@ import (
 	"testing"
 )
 
-//func init() {
-//	resource.AddTestSweepers("aws_service_discovery_instance", &resource.Sweeper{
-//		Name: "aws_service_discovery_instance",
-//		F:    testSweepServiceDiscoveryInstances,
-//	})
-//}
+func init() {
+	resource.AddTestSweepers("aws_service_discovery_instance", &resource.Sweeper{
+		Name: "aws_service_discovery_instance",
+		//F:    testSweepServiceDiscoveryInstances,
+		Dependencies: []string{
+			"aws_service_discovery_service",
+		},
+	})
+}
 
 func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 	resourceName := "aws_service_discovery_instance.instance"
+	serviceResourceName := "aws_service_discovery_service.sd_register_instance"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -26,9 +30,18 @@ func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckAwsServiceDiscoveryInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				//Config: composeConfig(testAccAWSServiceDiscoveryInstanceBaseConfig(), testAccAWSServiceDiscoveryInstanceConfig(rName)),
-				Config: testAccAWSServiceDiscoveryInstanceConfig(rName),
-				Check:  resource.ComposeTestCheckFunc(testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, "srv-ic3q6zrah7q7yxdd")),
+				Config: composeConfig(
+					testAccAWSServiceDiscoveryInstanceBaseConfig(rName),
+					testAccAWSServiceDiscoveryInstancePrivateNamespaceConfig(rName),
+					testAccAWSServiceDiscoveryInstanceConfig(rName),
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, serviceResourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "service_id"),
+					resource.TestCheckResourceAttr(resourceName, "instance_id", rName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV4", "10.0.0.1"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV6", "2001:0db8:85a3:0000:0000:abcd:0001:2345"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -38,25 +51,31 @@ func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
-func testAccAWSServiceDiscoveryInstanceBaseConfig() string {
-	return `
+func testAccAWSServiceDiscoveryInstanceBaseConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_vpc" "sd_register_instance" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
+
+  tags = {
+    Name = %q
+  }
+}`, rName)
 }
 
+func testAccAWSServiceDiscoveryInstancePrivateNamespaceConfig(rName string) string {
+	return fmt.Sprintf(`
 resource "aws_service_discovery_private_dns_namespace" "sd_register_instance" {
   name        = "sd-register-instance.local"
-  description = "SD Register Instance"
+  description = "SD Register Instance - %[1]s"
   vpc         = aws_vpc.sd_register_instance.id
 }
 
 resource "aws_service_discovery_service" "sd_register_instance" {
-  name = "service"
+  name = "%[1]s-service"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.sd_register_instance.id
@@ -73,14 +92,13 @@ resource "aws_service_discovery_service" "sd_register_instance" {
     failure_threshold = 1
   }
 } 
-`
+`, rName)
 }
 
 func testAccAWSServiceDiscoveryInstanceConfig(instanceID string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_instance" "instance" {
-//  service_id = aws_service_discovery_service.sd_register_instance.id
-  service_id = "srv-ic3q6zrah7q7yxdd"
+  service_id = aws_service_discovery_service.sd_register_instance.id
   instance_id = "%s"
   attributes = {
     AWS_INSTANCE_IPV4 = "10.0.0.1" 
@@ -90,18 +108,23 @@ resource "aws_service_discovery_instance" "instance" {
 `, instanceID)
 }
 
-func testAccCheckAwsServiceDiscoveryInstanceExists(name, serviceID string) resource.TestCheckFunc {
+func testAccCheckAwsServiceDiscoveryInstanceExists(name, rServiceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rsInstance, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
+		}
+
+		rsService, ok := s.RootModule().Resources[rServiceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", rServiceName)
 		}
 
 		conn := testAccProvider.Meta().(*AWSClient).sdconn
 
 		input := &servicediscovery.GetInstanceInput{
-			InstanceId: aws.String(rs.Primary.ID),
-			ServiceId:  aws.String(serviceID),
+			InstanceId: aws.String(rsInstance.Primary.ID),
+			ServiceId:  aws.String(rsService.Primary.ID),
 		}
 
 		_, err := conn.GetInstance(input)

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/servicediscovery/waiter"
 	"log"
 	"strings"
@@ -18,7 +17,7 @@ func resourceAwsServiceDiscoveryInstance() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAwsServiceDiscoveryInstanceCreate,
 		ReadContext:   resourceAwsServiceDiscoveryInstanceRead,
-		Update:        resourceAwsServiceDiscoveryInstanceUpdate,
+		UpdateContext: resourceAwsServiceDiscoveryInstanceUpdate,
 		DeleteContext: resourceAwsServiceDiscoveryInstanceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -100,49 +99,16 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	d.Set("attributes", aws.StringValueMap(resp.Instance.Attributes))
+	err = d.Set("attributes", aws.StringValueMap(resp.Instance.Attributes))
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
 
-func resourceAwsServiceDiscoveryInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).sdconn
-
-	if d.HasChanges("description", "dns_config", "health_check_config") {
-		input := &servicediscovery.UpdateServiceInput{
-			Id: aws.String(d.Id()),
-			Service: &servicediscovery.ServiceChange{
-				Description: aws.String(d.Get("description").(string)),
-				DnsConfig:   expandServiceDiscoveryDnsConfigChange(d.Get("dns_config").([]interface{})[0].(map[string]interface{})),
-			},
-		}
-
-		hcconfig := d.Get("health_check_config").([]interface{})
-		if len(hcconfig) > 0 {
-			input.Service.HealthCheckConfig = expandServiceDiscoveryHealthCheckConfig(hcconfig[0].(map[string]interface{}))
-		}
-
-		output, err := conn.UpdateService(input)
-
-		if err != nil {
-			return fmt.Errorf("error updating Service Discovery Service (%s): %w", d.Id(), err)
-		}
-
-		if output != nil && output.OperationId != nil {
-			if _, err := waiter.OperationSuccess(conn, aws.StringValue(output.OperationId)); err != nil {
-				return fmt.Errorf("error waiting for Service Discovery Service (%s) update: %w", d.Id(), err)
-			}
-		}
-	}
-
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-		if err := keyvaluetags.ServicediscoveryUpdateTags(conn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating Service Discovery Private DNS Namespace (%s) tags: %s", d.Id(), err)
-		}
-	}
-
-	return resourceAwsServiceDiscoveryServiceRead(d, meta)
+func resourceAwsServiceDiscoveryInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceAwsServiceDiscoveryInstanceCreate(ctx, d, meta)
 }
 
 func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
