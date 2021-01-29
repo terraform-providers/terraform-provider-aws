@@ -1,0 +1,3 @@
+```release-note:new-resource
+vpc_endpoint_policy
+```
