@@ -18,7 +18,7 @@ func TestAccAWSOpsworksJavaAppLayer_basic(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_java_app_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksJavaAppLayerDestroy,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ func TestAccAWSOpsworksJavaAppLayer_tags(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_java_app_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksJavaAppLayerDestroy,
 		Steps: []resource.TestStep{

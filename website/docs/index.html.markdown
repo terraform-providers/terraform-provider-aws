@@ -67,8 +67,8 @@ explained below:
 
 ### Static Credentials
 
-!> **Warning:** Hard-coding credentials into any Terraform configuration is not
-recommended, and risks secret leakage should this file ever be committed to a
+!> **Warning:** Hard-coded credentials are not recommended in any Terraform
+configuration and risks secret leakage should this file ever be committed to a
 public version control system.
 
 Static credentials can be provided by adding an `access_key` and `secret_key`
@@ -199,12 +199,12 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
 * `shared_credentials_file` = (Optional) This is the path to the shared credentials file.
   If this is not set and a profile is specified, `~/.aws/credentials` will be used.
 
-* `token` - (Optional) Session token for validating temporary credentials. Typically provided after successful identity federation or Multi-Factor Authentication (MFA) login. With MFA login, this is the session token provided afterwards, not the 6 digit MFA code used to get temporary credentials.  It can also be sourced from the `AWS_SESSION_TOKEN` environment variable.
+* `token` - (Optional) Session token for validating temporary credentials. Typically provided after successful identity federation or Multi-Factor Authentication (MFA) login. With MFA login, this is the session token provided afterward, not the 6 digit MFA code used to get temporary credentials.  It can also be sourced from the `AWS_SESSION_TOKEN` environment variable.
 
 * `max_retries` - (Optional) This is the maximum number of times an API
   call is retried, in the case where requests are being throttled or
   experiencing transient failures. The delay between the subsequent API
-  calls increases exponentially. If omitted, default value is `25`.
+  calls increases exponentially. If omitted, the default value is `25`.
 
 * `allowed_account_ids` - (Optional) List of allowed AWS
   account IDs to prevent you from mistakenly using an incorrect one (and
@@ -212,14 +212,14 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
   `forbidden_account_ids`.
 
 * `forbidden_account_ids` - (Optional) List of forbidden
-  AWS account IDs to prevent you mistakenly using a wrong one (and
+  AWS account IDs to prevent you from mistakenly using the wrong one (and
   potentially end up destroying a live environment). Conflicts with
   `allowed_account_ids`.
 
-* `ignore_tags` - (Optional) Configuration block with resource tag settings to ignore across all resources handled by this provider (except any individual service tag resources such as `aws_ec2_tag`) for situations where external systems are managing certain resource tags. Arguments to the configuration block are described below in the `ignore_tags` Configuration Block section. See the [Terraform multiple provider instances documentation](/docs/configuration/providers.html#alias-multiple-provider-instances) for more information about additional provider configurations.
+* `ignore_tags` - (Optional) Configuration block with resource tag settings to ignore across all resources handled by this provider (except any individual service tag resources such as `aws_ec2_tag`) for situations where external systems are managing certain resource tags. Arguments to the configuration block are described below in the `ignore_tags` Configuration Block section. See the [Terraform multiple provider instances documentation](https://www.terraform.io/docs/configuration/providers.html#alias-multiple-provider-configurations) for more information about additional provider configurations.
 
 * `insecure` - (Optional) Explicitly allow the provider to
-  perform "insecure" SSL requests. If omitted, default value is `false`.
+  perform "insecure" SSL requests. If omitted, the default value is `false`.
 
 * `skip_credentials_validation` - (Optional) Skip the credentials
   validation via the STS API. Useful for AWS API implementations that do
@@ -246,7 +246,6 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_athena_workgroup` resource](/docs/providers/aws/r/athena_workgroup.html)
     - [`aws_budgets_budget` resource](/docs/providers/aws/r/budgets_budget.html)
     - [`aws_cognito_identity_pool` resource](/docs/providers/aws/r/cognito_identity_pool.html)
-    - [`aws_cognito_user_pool` resource](/docs/providers/aws/r/cognito_user_pool.html)
     - [`aws_cognito_user_pools` data source](/docs/providers/aws/d/cognito_user_pools.html)
     - [`aws_default_network_acl` resource](/docs/providers/aws/r/default_network_acl.html)
     - [`aws_default_vpc_dhcp_options`](/docs/providers/aws/r/default_vpc_dhcp_options.html)
@@ -268,6 +267,8 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_ec2_client_vpn_endpoint` resource](/docs/providers/aws/r/ec2_client_vpn_endpoint.html)
     - [`aws_ec2_traffic_mirror_session` resource](/docs/providers/aws/r/ec2_traffic_mirror_session.html)
     - [`aws_ec2_traffic_mirror_target` resource](/docs/providers/aws/r/ec2_traffic_mirror_target.html)
+    - [`aws_ec2_transit_gateway_route_table` data source](/docs/providers/aws/d/ec2_transit_gateway_route_table.html)  
+    - [`aws_ec2_transit_gateway_route_table` resource](/docs/providers/aws/r/ec2_transit_gateway_route_table.html)  
     - [`aws_ecs_capacity_provider` resource (import)](/docs/providers/aws/r/ecs_capacity_provider.html)
     - [`aws_ecs_cluster` resource (import)](/docs/providers/aws/r/ecs_cluster.html)
     - [`aws_ecs_service` resource (import)](/docs/providers/aws/r/ecs_service.html)
@@ -289,6 +290,7 @@ for more information about connecting to alternate AWS endpoints or AWS compatib
     - [`aws_glue_connection` resource](/docs/providers/aws/r/glue_connection.html)
     - [`aws_glue_crawler` resource](/docs/providers/aws/r/glue_crawler.html)
     - [`aws_glue_job` resource](/docs/providers/aws/r/glue_job.html)
+    - [`aws_glue_ml_transform` resource](/docs/providers/aws/r/glue_ml_transform.html)
     - [`aws_glue_trigger` resource](/docs/providers/aws/r/glue_trigger.html)
     - [`aws_glue_user_defined_function` resource](/docs/providers/aws/r/glue_user_defined_function.html)
     - [`aws_glue_workflow` resource](/docs/providers/aws/r/glue_workflow.html)
@@ -386,8 +388,8 @@ provider "aws" {
 
 The `ignore_tags` configuration block supports the following arguments:
 
-* `keys` - (Optional) List of exact resource tag keys to ignore across all resources handled by this provider. This configuration prevents Terraform from returning the tag in any `tags` attributes and displaying any configuration difference for the tag value. If any resource configuration still has this tag key configured in the `tags` argument, it will display a perpetual difference until the tag is removed from the argument or [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) is also used.
-* `key_prefixes` - (Optional) List of resource tag key prefixes to ignore across all resources handled by this provider. This configuration prevents Terraform from returning any tag key matching the prefixes in any `tags` attributes and displaying any configuration difference for those tag values. If any resource configuration still has a tag matching one of the prefixes configured in the `tags` argument, it will display a perpetual difference until the tag is removed from the argument or [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) is also used.
+* `keys` - (Optional) List of exact resource tag keys to ignore across all resources handled by this provider. This configuration prevents Terraform from returning the tag in any `tags` attributes and displaying any configuration difference for the tag value. If any resource configuration still has this tag key configured in the `tags` argument, it will display a perpetual difference until the tag is removed from the argument or [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) is also used.
+* `key_prefixes` - (Optional) List of resource tag key prefixes to ignore across all resources handled by this provider. This configuration prevents Terraform from returning any tag key matching the prefixes in any `tags` attributes and displaying any configuration difference for those tag values. If any resource configuration still has a tag matching one of the prefixes configured in the `tags` argument, it will display a perpetual difference until the tag is removed from the argument or [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) is also used.
 
 ## Getting the Account ID
 
@@ -410,4 +412,4 @@ Approaches differ per authentication providers:
       need to be _assuming_ an IAM role which allows `iam:ListRoles`.
       Used in Terraform `0.6.16+`.
       There used to be no better way to get account ID out of the API
-      when using federated account until `sts:GetCallerIdentity` was introduced.
+      when using the federated account until `sts:GetCallerIdentity` was introduced.

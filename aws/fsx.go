@@ -48,6 +48,36 @@ func refreshFsxFileSystemLifecycle(conn *fsx.FSx, id string) resource.StateRefre
 	}
 }
 
+func refreshFsxFileSystemAdministrativeActionsStatusFileSystemUpdate(conn *fsx.FSx, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		filesystem, err := describeFsxFileSystem(conn, id)
+
+		if isAWSErr(err, fsx.ErrCodeFileSystemNotFound, "") {
+			return nil, "", nil
+		}
+
+		if err != nil {
+			return nil, "", err
+		}
+
+		if filesystem == nil {
+			return nil, "", nil
+		}
+
+		for _, administrativeAction := range filesystem.AdministrativeActions {
+			if administrativeAction == nil {
+				continue
+			}
+
+			if aws.StringValue(administrativeAction.AdministrativeActionType) == fsx.AdministrativeActionTypeFileSystemUpdate {
+				return filesystem, aws.StringValue(administrativeAction.Status), nil
+			}
+		}
+
+		return filesystem, fsx.StatusCompleted, nil
+	}
+}
+
 func waitForFsxFileSystemCreation(conn *fsx.FSx, id string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{fsx.FileSystemLifecycleCreating},
@@ -81,6 +111,26 @@ func waitForFsxFileSystemUpdate(conn *fsx.FSx, id string, timeout time.Duration)
 		Pending: []string{fsx.FileSystemLifecycleUpdating},
 		Target:  []string{fsx.FileSystemLifecycleAvailable},
 		Refresh: refreshFsxFileSystemLifecycle(conn, id),
+		Timeout: timeout,
+		Delay:   30 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+
+	return err
+}
+
+func waitForFsxFileSystemUpdateAdministrativeActionsStatusFileSystemUpdate(conn *fsx.FSx, id string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			fsx.StatusInProgress,
+			fsx.StatusPending,
+		},
+		Target: []string{
+			fsx.StatusCompleted,
+			fsx.StatusUpdatedOptimizing,
+		},
+		Refresh: refreshFsxFileSystemAdministrativeActionsStatusFileSystemUpdate(conn, id),
 		Timeout: timeout,
 		Delay:   30 * time.Second,
 	}

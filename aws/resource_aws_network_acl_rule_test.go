@@ -68,7 +68,7 @@ func TestAccAWSNetworkAclRule_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAWSNetworkAclRule_ingressEgressSameNumberDisappears(t *testing.T) {
+func TestAccAWSNetworkAclRule_disappears_IngressEgressSameNumber(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -168,7 +168,7 @@ func TestAccAWSNetworkAclRule_ipv6ICMP(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/6710
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/6710
 func TestAccAWSNetworkAclRule_ipv6VpcAssignGeneratedIpv6CidrBlockUpdate(t *testing.T) {
 	var vpc ec2.Vpc
 	vpcResourceName := "aws_vpc.test"
@@ -680,7 +680,7 @@ resource "aws_network_acl_rule" "test" {
 }
 
 func testAccAWSNetworkAclRuleConfigIpv6VpcAssignGeneratedIpv6CidrBlockUpdate() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "test" {
   assign_generated_ipv6_cidr_block = true
   cidr_block                       = "10.3.0.0/16"
@@ -707,11 +707,11 @@ resource "aws_network_acl_rule" "test" {
   rule_number     = 150
   to_port         = 22
 }
-`)
+`
 }
 
 func testAccAWSNetworkAclRuleConfigIpv6VpcNotAssignGeneratedIpv6CidrBlockUpdate() string {
-	return fmt.Sprint(`
+	return `
 resource "aws_vpc" "test" {
   assign_generated_ipv6_cidr_block = false
   cidr_block                       = "10.3.0.0/16"
@@ -727,7 +727,7 @@ resource "aws_network_acl" "test" {
   tags = {
     Name = "tf-acc-test-network-acl-rule-ipv6-not-enabled"
   }
-}`)
+}`
 }
 
 func testAccAWSNetworkAclRuleImportStateIdFunc(resourceName, resourceProtocol string) resource.ImportStateIdFunc {

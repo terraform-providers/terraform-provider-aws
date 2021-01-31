@@ -66,7 +66,7 @@ func dataSourceAwsIAMInstanceProfileRead(d *schema.ResourceData, meta interface{
 
 	instanceProfile := resp.InstanceProfile
 
-	d.SetId(*instanceProfile.InstanceProfileId)
+	d.SetId(aws.StringValue(instanceProfile.InstanceProfileId))
 	d.Set("arn", instanceProfile.Arn)
 	d.Set("create_date", fmt.Sprintf("%v", instanceProfile.CreateDate))
 	d.Set("path", instanceProfile.Path)

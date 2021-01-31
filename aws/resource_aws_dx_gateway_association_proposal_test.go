@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -92,7 +91,7 @@ func TestAccAwsDxGatewayAssociationProposal_basicVpnGateway(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxGatewayAssociationProposalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +129,7 @@ func TestAccAwsDxGatewayAssociationProposal_basicTransitGateway(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxGatewayAssociationProposalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,8 +141,8 @@ func TestAccAwsDxGatewayAssociationProposal_basicTransitGateway(t *testing.T) {
 					testAccCheckResourceAttrAccountID(resourceName, "associated_gateway_owner_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "associated_gateway_type", "transitGateway"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_prefixes.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_prefixes.*", "10.255.255.0/30"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_prefixes.*", "10.255.255.8/30"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_prefixes.*", "10.255.255.0/30"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_prefixes.*", "10.255.255.8/30"),
 				),
 			},
 			{
@@ -168,7 +167,7 @@ func TestAccAwsDxGatewayAssociationProposal_disappears(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxGatewayAssociationProposalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -195,7 +194,7 @@ func TestAccAwsDxGatewayAssociationProposal_AllowedPrefixes(t *testing.T) {
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAwsDxGatewayAssociationProposalDestroy,
 		Steps: []resource.TestStep{
 			{

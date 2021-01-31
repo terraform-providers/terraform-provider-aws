@@ -7,11 +7,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
@@ -605,7 +604,7 @@ func resourceAwsSsmMaintenanceWindowTaskCreate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	d.SetId(*resp.WindowTaskId)
+	d.SetId(aws.StringValue(resp.WindowTaskId))
 
 	return resourceAwsSsmMaintenanceWindowTaskRead(d, meta)
 }

@@ -58,6 +58,7 @@ func resourceAwsSecretsManagerSecret() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},

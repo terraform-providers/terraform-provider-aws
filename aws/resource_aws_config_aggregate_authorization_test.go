@@ -60,8 +60,7 @@ func testSweepConfigAggregateAuthorizations(region string) error {
 func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 	rString := acctest.RandStringFromCharSet(12, "0123456789")
 	resourceName := "aws_config_aggregate_authorization.example"
-
-	region := "eu-west-1"
+	dataSourceName := "data.aws_region.current"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -72,8 +71,8 @@ func TestAccAWSConfigAggregateAuthorization_basic(t *testing.T) {
 				Config: testAccAWSConfigAggregateAuthorizationConfig_basic(rString),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "account_id", rString),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "config", regexp.MustCompile(fmt.Sprintf(`aggregation-authorization/%s/%s$`, rString, region))),
+					resource.TestCheckResourceAttrPair(resourceName, "region", dataSourceName, "name"),
+					testAccMatchResourceAttrRegionalARN(resourceName, "arn", "config", regexp.MustCompile(fmt.Sprintf(`aggregation-authorization/%s/%s$`, rString, testAccGetRegion()))),
 				),
 			},
 			{
@@ -158,18 +157,22 @@ func testAccCheckAWSConfigAggregateAuthorizationDestroy(s *terraform.State) erro
 
 func testAccAWSConfigAggregateAuthorizationConfig_basic(rString string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_config_aggregate_authorization" "example" {
   account_id = %[1]q
-  region     = "eu-west-1"
+  region     = data.aws_region.current.name
 }
 `, rString)
 }
 
 func testAccAWSConfigAggregateAuthorizationConfig_tags(rString, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_config_aggregate_authorization" "example" {
   account_id = %[1]q
-  region     = "eu-west-1"
+  region     = data.aws_region.current.name
 
   tags = {
     Name = %[1]q

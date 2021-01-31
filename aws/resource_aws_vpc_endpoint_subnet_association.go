@@ -53,7 +53,7 @@ func resourceAwsVpcEndpointSubnetAssociationCreate(d *schema.ResourceData, meta 
 		return err
 	}
 
-	// See https://github.com/terraform-providers/terraform-provider-aws/issues/3382.
+	// See https://github.com/hashicorp/terraform-provider-aws/issues/3382.
 	// Prevent concurrent subnet association requests and delay between requests.
 	mk := "vpc_endpoint_subnet_association_" + endpointId
 	awsMutexKV.Lock(mk)

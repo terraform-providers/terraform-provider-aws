@@ -168,14 +168,47 @@ resource "aws_lb_listener" "front_end" {
 }
 ```
 
+### Gateway Load Balancer Listener
+
+```hcl
+resource "aws_lb" "example" {
+  load_balancer_type = "gateway"
+  name               = "example"
+
+  subnet_mapping {
+    subnet_id = aws_subnet.example.id
+  }
+}
+
+resource "aws_lb_target_group" "example" {
+  name     = "example"
+  port     = 6081
+  protocol = "GENEVE"
+  vpc_id   = aws_vpc.example.id
+
+  health_check {
+    port     = 80
+    protocol = "HTTP"
+  }
+}
+
+resource "aws_lb_listener" "example" {
+  load_balancer_arn = aws_lb.example.id
+
+  default_action {
+    target_group_arn = aws_lb_target_group.example.id
+    type             = "forward"
+  }
+}
+```
 
 ## Argument Reference
 
 The following arguments are supported:
 
 * `load_balancer_arn` - (Required, Forces New Resource) The ARN of the load balancer.
-* `port` - (Required) The port on which the load balancer is listening.
-* `protocol` - (Optional) The protocol for connections from clients to the load balancer. Valid values are `TCP`, `TLS`, `UDP`, `TCP_UDP`, `HTTP` and `HTTPS`. Defaults to `HTTP`.
+* `port` - (Optional) The port on which the load balancer is listening. Not valid for Gateway Load Balancers.
+* `protocol` - (Optional) The protocol for connections from clients to the load balancer. For Application Load Balancers, valid values are `HTTP` and `HTTPS`, with a default of `HTTP`. For Network Load Balancers, valid values are `TCP`, `TLS`, `UDP`, and `TCP_UDP`. Not valid to use `UDP` or `TCP_UDP` if dual-stack mode is enabled. Not valid for Gateway Load Balancers.
 * `ssl_policy` - (Optional) The name of the SSL Policy for the listener. Required if `protocol` is `HTTPS` or `TLS`.
 * `certificate_arn` - (Optional) The ARN of the default SSL server certificate. Exactly one certificate is required if the protocol is HTTPS. For adding additional SSL certificates, see the [`aws_lb_listener_certificate` resource](/docs/providers/aws/r/lb_listener_certificate.html).
 * `default_action` - (Required) An Action block. Action blocks are documented below.
@@ -255,7 +288,7 @@ Authentication Request Extra Params Blocks (for `authentication_request_extra_pa
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the listener (matches `arn`)
 * `arn` - The ARN of the listener (matches `id`)

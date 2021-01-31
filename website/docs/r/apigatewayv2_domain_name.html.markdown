@@ -60,8 +60,9 @@ resource "aws_route53_record" "example" {
 
 The following arguments are supported:
 
-* `domain_name` - (Required) The domain name.
+* `domain_name` - (Required) The domain name. Must be between 1 and 512 characters in length.
 * `domain_name_configuration` - (Required) The domain name configuration.
+* `mutual_tls_authentication` - (Optional) The mutual TLS authentication configuration for the domain name.
 * `tags` - (Optional) A map of tags to assign to the domain name.
 
 The `domain_name_configuration` object supports the following:
@@ -73,7 +74,13 @@ Use the [`aws_acm_certificate`](/docs/providers/aws/r/acm_certificate.html) reso
 * `hosted_zone_id` - (Computed) The Amazon Route 53 Hosted Zone ID of the endpoint.
 * `target_domain_name` - (Computed) The target domain name.
 
-## Attribute Reference
+The `mutual_tls_authentication` object supports the following:
+
+* `truststore_uri` - (Required) An Amazon S3 URL that specifies the truststore for mutual TLS authentication, for example, `s3://bucket-name/key-name`.
+The truststore can contain certificates from public or private certificate authorities. To update the truststore, upload a new version to S3, and then update your custom domain name to use the new version.
+* `truststore_version` - (Optional) The version of the S3 object that contains the truststore. To specify a version, you must have versioning enabled for the S3 bucket.
+
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -83,7 +90,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_apigatewayv2_domain_name` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_apigatewayv2_domain_name` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `update` - (Default `60 minutes`) Used for updating the domain name
 

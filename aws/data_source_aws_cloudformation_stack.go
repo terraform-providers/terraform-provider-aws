@@ -84,7 +84,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Expected 1 CloudFormation stack (%s), found %d", name, l)
 	}
 	stack := out.Stacks[0]
-	d.SetId(*stack.StackId)
+	d.SetId(aws.StringValue(stack.StackId))
 
 	d.Set("description", stack.Description)
 	d.Set("disable_rollback", stack.DisableRollback)
@@ -92,7 +92,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	d.Set("iam_role_arn", stack.RoleARN)
 
 	if len(stack.NotificationARNs) > 0 {
-		d.Set("notification_arns", schema.NewSet(schema.HashString, flattenStringList(stack.NotificationARNs)))
+		d.Set("notification_arns", flattenStringSet(stack.NotificationARNs))
 	}
 
 	d.Set("parameters", flattenAllCloudFormationParameters(stack.Parameters))
@@ -102,7 +102,7 @@ func dataSourceAwsCloudFormationStackRead(d *schema.ResourceData, meta interface
 	d.Set("outputs", flattenCloudFormationOutputs(stack.Outputs))
 
 	if len(stack.Capabilities) > 0 {
-		d.Set("capabilities", schema.NewSet(schema.HashString, flattenStringList(stack.Capabilities)))
+		d.Set("capabilities", flattenStringSet(stack.Capabilities))
 	}
 
 	tInput := cloudformation.GetTemplateInput{

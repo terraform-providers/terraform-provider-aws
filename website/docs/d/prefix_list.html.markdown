@@ -1,7 +1,7 @@
 ---
 subcategory: "VPC"
 layout: "aws"
-page_title: "AWS: aws_prefix-list"
+page_title: "AWS: aws_prefix_list"
 description: |-
     Provides details about a specific prefix list
 ---

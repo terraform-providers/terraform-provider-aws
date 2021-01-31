@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -62,7 +61,7 @@ func resourceAwsIamGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error creating IAM Group %s: %s", name, err)
 	}
-	d.SetId(*createResp.Group.GroupName)
+	d.SetId(aws.StringValue(createResp.Group.GroupName))
 
 	return resourceAwsIamGroupReadResult(d, createResp.Group)
 }

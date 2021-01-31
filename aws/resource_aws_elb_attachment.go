@@ -66,6 +66,7 @@ func resourceAwsElbAttachmentCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Failure registering instances with ELB: %s", err)
 	}
 
+	//lintignore:R016 // Allow legacy unstable ID usage in managed resource
 	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-", elbName)))
 
 	return nil

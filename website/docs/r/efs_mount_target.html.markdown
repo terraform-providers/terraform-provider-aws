@@ -44,7 +44,7 @@ be for the same VPC as subnet specified) in effect for the mount target.
 
 ~> **Note:** The `dns_name` and `mount_target_dns_name` attributes are only useful if the mount target is in a VPC that has
 support for DNS hostnames enabled. See [Using DNS with Your VPC](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-dns.html)
-and [VPC resource](https://www.terraform.io/docs/providers/aws/r/vpc.html#enable_dns_hostnames) in Terraform for more information.
+and [VPC resource](/docs/providers/aws/r/vpc.html#enable_dns_hostnames) in Terraform for more information.
 
 In addition to all arguments above, the following attributes are exported:
 

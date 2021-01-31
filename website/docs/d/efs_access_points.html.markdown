@@ -29,5 +29,5 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `arns` - Set of Amazon Resource Names (ARNs).
-* `id` - RFC3339 timestamp when the data source was invoked.
+* `id` - EFS File System identifier.
 * `ids` - Set of identifiers.

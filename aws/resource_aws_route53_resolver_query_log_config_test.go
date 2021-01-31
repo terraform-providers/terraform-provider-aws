@@ -74,6 +74,7 @@ func TestAccAWSRoute53ResolverQueryLogConfig_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverQueryLogConfigDestroy,
 		Steps: []resource.TestStep{
@@ -104,6 +105,7 @@ func TestAccAWSRoute53ResolverQueryLogConfig_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverQueryLogConfigDestroy,
 		Steps: []resource.TestStep{
@@ -127,6 +129,7 @@ func TestAccAWSRoute53ResolverQueryLogConfig_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSRoute53Resolver(t) },
+		ErrorCheck:   testAccErrorCheckSkipRoute53(t),
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRoute53ResolverQueryLogConfigDestroy,
 		Steps: []resource.TestStep{

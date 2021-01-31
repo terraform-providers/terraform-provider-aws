@@ -169,7 +169,7 @@ func resourceAwsWafWebAclCreate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 	resp := out.(*waf.CreateWebACLOutput)
-	d.SetId(*resp.WebACL.WebACLId)
+	d.SetId(aws.StringValue(resp.WebACL.WebACLId))
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

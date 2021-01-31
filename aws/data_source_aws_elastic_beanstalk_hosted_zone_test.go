@@ -34,15 +34,15 @@ func TestAccAWSDataSourceElasticBeanstalkHostedZone_Region(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckAwsElasticBeanstalkHostedZoneDataSource_byRegion("ap-southeast-2"),
+				Config: testAccCheckAwsElasticBeanstalkHostedZoneDataSource_byRegion("ap-southeast-2"), //lintignore:AWSAT003 // passes in GovCloud
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsElasticBeanstalkHostedZone(dataSourceName, "ap-southeast-2"),
+					testAccCheckAwsElasticBeanstalkHostedZone(dataSourceName, "ap-southeast-2"), //lintignore:AWSAT003 // passes in GovCloud
 				),
 			},
 			{
-				Config: testAccCheckAwsElasticBeanstalkHostedZoneDataSource_byRegion("eu-west-1"),
+				Config: testAccCheckAwsElasticBeanstalkHostedZoneDataSource_byRegion("eu-west-1"), //lintignore:AWSAT003 // passes in GovCloud
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsElasticBeanstalkHostedZone(dataSourceName, "eu-west-1"),
+					testAccCheckAwsElasticBeanstalkHostedZone(dataSourceName, "eu-west-1"), //lintignore:AWSAT003 // passes in GovCloud
 				),
 			},
 			{

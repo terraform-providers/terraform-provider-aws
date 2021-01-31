@@ -74,16 +74,13 @@ func resourceAwsAppmeshVirtualRouter() *schema.Resource {
 												"port": {
 													Type:         schema.TypeInt,
 													Required:     true,
-													ValidateFunc: validation.IntBetween(1, 65535),
+													ValidateFunc: validation.IsPortNumber,
 												},
 
 												"protocol": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														appmesh.PortProtocolHttp,
-														appmesh.PortProtocolTcp,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(appmesh.PortProtocol_Values(), false),
 												},
 											},
 										},

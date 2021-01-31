@@ -93,6 +93,11 @@ func resourceAwsDefaultRouteTable() *schema.Resource {
 							Optional: true,
 						},
 
+						"vpc_endpoint_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"vpc_peering_connection_id": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -179,7 +184,7 @@ func resourceAwsDefaultRouteTableRead(d *schema.ResourceData, meta interface{}) 
 	rt := resp.RouteTables[0]
 
 	d.Set("default_route_table_id", rt.RouteTableId)
-	d.SetId(*rt.RouteTableId)
+	d.SetId(aws.StringValue(rt.RouteTableId))
 
 	// re-use regular AWS Route Table READ. This is an extra API call but saves us
 	// from trying to manually keep parity

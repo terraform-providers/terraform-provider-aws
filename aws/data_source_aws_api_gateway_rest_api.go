@@ -105,7 +105,7 @@ func dataSourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}
 
 	match := matchedApis[0]
 
-	d.SetId(*match.Id)
+	d.SetId(aws.StringValue(match.Id))
 
 	restApiArn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

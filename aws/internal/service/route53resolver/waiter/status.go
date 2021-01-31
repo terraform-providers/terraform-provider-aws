@@ -14,6 +14,9 @@ const (
 
 	resolverQueryLogConfigStatusNotFound = "NotFound"
 	resolverQueryLogConfigStatusUnknown  = "Unknown"
+
+	resolverDnssecConfigStatusNotFound = "NotFound"
+	resolverDnssecConfigStatusUnknown  = "Unknown"
 )
 
 // QueryLogConfigAssociationStatus fetches the QueryLogConfigAssociation and its Status
@@ -55,5 +58,22 @@ func QueryLogConfigStatus(conn *route53resolver.Route53Resolver, queryLogConfigI
 		}
 
 		return queryLogConfig, aws.StringValue(queryLogConfig.Status), nil
+	}
+}
+
+// DnssecConfigStatus fetches the DnssecConfig and its Status
+func DnssecConfigStatus(conn *route53resolver.Route53Resolver, dnssecConfigID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		dnssecConfig, err := finder.ResolverDnssecConfigByID(conn, dnssecConfigID)
+
+		if err != nil {
+			return nil, resolverDnssecConfigStatusUnknown, err
+		}
+
+		if dnssecConfig == nil {
+			return nil, resolverDnssecConfigStatusNotFound, nil
+		}
+
+		return dnssecConfig, aws.StringValue(dnssecConfig.ValidationStatus), nil
 	}
 }

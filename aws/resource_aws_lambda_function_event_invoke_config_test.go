@@ -276,7 +276,7 @@ func TestAccAWSLambdaFunctionEventInvokeConfig_Qualifier_FunctionName_Arn(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionEventInvokeConfigExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "function_name", lambdaFunctionResourceName, "arn"),
-					resource.TestCheckResourceAttr(resourceName, "qualifier", "$LATEST"),
+					resource.TestCheckResourceAttr(resourceName, "qualifier", LambdaFunctionVersionLatest),
 				),
 			},
 			{
@@ -425,7 +425,7 @@ func TestAccAWSLambdaFunctionEventInvokeConfig_Qualifier_Latest(t *testing.T) {
 				Config: testAccAWSLambdaFunctionEventInvokeConfigQualifierLatest(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsLambdaFunctionEventInvokeConfigExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "qualifier", "$LATEST"),
+					resource.TestCheckResourceAttr(resourceName, "qualifier", LambdaFunctionVersionLatest),
 				),
 			},
 			{

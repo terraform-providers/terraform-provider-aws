@@ -50,7 +50,7 @@ The following arguments are supported:
 * `description` - (Optional) A brief description of the authorization rule.
 * `target_vpc_subnet_id` - (Required) The ID of the Subnet to route the traffic through. It must already be attached to the Client VPN.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

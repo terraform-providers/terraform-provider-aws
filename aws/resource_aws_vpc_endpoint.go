@@ -127,14 +127,11 @@ func resourceAwsVpcEndpoint() *schema.Resource {
 			},
 			"tags": tagsSchema(),
 			"vpc_endpoint_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  ec2.VpcEndpointTypeGateway,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.VpcEndpointTypeGateway,
-					ec2.VpcEndpointTypeInterface,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      ec2.VpcEndpointTypeGateway,
+				ValidateFunc: validation.StringInSlice(ec2.VpcEndpointType_Values(), false),
 			},
 			"vpc_id": {
 				Type:     schema.TypeString,
@@ -473,11 +470,11 @@ func vpcEndpointWaitUntilAvailable(conn *ec2.EC2, vpceId string, timeout time.Du
 	return err
 }
 
-func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceId string, timeout time.Duration) error {
+func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceID string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"available", "pending", "deleting"},
 		Target:     []string{"deleted"},
-		Refresh:    vpcEndpointStateRefresh(conn, vpceId),
+		Refresh:    vpcEndpointStateRefresh(conn, vpceID),
 		Timeout:    timeout,
 		Delay:      5 * time.Second,
 		MinTimeout: 5 * time.Second,
@@ -490,9 +487,9 @@ func vpcEndpointWaitUntilDeleted(conn *ec2.EC2, vpceId string, timeout time.Dura
 
 func setVpcEndpointCreateList(d *schema.ResourceData, key string, c *[]*string) {
 	if v, ok := d.GetOk(key); ok {
-		list := v.(*schema.Set).List()
-		if len(list) > 0 {
-			*c = expandStringList(list)
+		list := v.(*schema.Set)
+		if list.Len() > 0 {
+			*c = expandStringSet(list)
 		}
 	}
 }
@@ -503,12 +500,12 @@ func setVpcEndpointUpdateLists(d *schema.ResourceData, key string, a, r *[]*stri
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		add := expandStringList(ns.Difference(os).List())
+		add := expandStringSet(ns.Difference(os))
 		if len(add) > 0 {
 			*a = add
 		}
 
-		remove := expandStringList(os.Difference(ns).List())
+		remove := expandStringSet(os.Difference(ns))
 		if len(remove) > 0 {
 			*r = remove
 		}

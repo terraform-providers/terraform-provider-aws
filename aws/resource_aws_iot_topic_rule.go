@@ -68,7 +68,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 						"metric_timestamp": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateIoTTopicRuleCloudWatchMetricTimestamp,
+							ValidateFunc: validateUTCTimestamp,
 						},
 						"metric_unit": {
 							Type:     schema.TypeString,
@@ -489,7 +489,7 @@ func resourceAwsIotTopicRule() *schema.Resource {
 									"metric_timestamp": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validateIoTTopicRuleCloudWatchMetricTimestamp,
+										ValidateFunc: validateUTCTimestamp,
 									},
 									"metric_unit": {
 										Type:     schema.TypeString,

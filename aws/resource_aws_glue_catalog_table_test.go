@@ -6,46 +6,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func TestAccAWSGlueCatalogTable_recreates(t *testing.T) {
-	resourceName := "aws_glue_catalog_table.test"
-	rName := acctest.RandomWithPrefix("tf-acc-test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckGlueTableDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccGlueCatalogTable_basic(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckGlueCatalogTableExists(resourceName),
-				),
-			},
-			{
-				PreConfig: func() {
-					conn := testAccProvider.Meta().(*AWSClient).glueconn
-					input := &glue.DeleteTableInput{
-						Name:         aws.String(rName),
-						DatabaseName: aws.String(rName),
-					}
-					_, err := conn.DeleteTable(input)
-					if err != nil {
-						t.Fatalf("error deleting Glue Catalog Table: %s", err)
-					}
-				},
-				Config:             testAccGlueCatalogTable_basic(rName),
-				ExpectNonEmptyPlan: true,
-				PlanOnly:           true,
-			},
-		},
-	})
-}
 
 func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -64,6 +28,37 @@ func TestAccAWSGlueCatalogTable_basic(t *testing.T) {
 					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("table/%s/%s", rName, rName)),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "partition_keys.#", "0"),
+					testAccCheckResourceAttrAccountID(resourceName, "catalog_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueCatalogTable_columnParameters(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTableColumnParameters(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.columns.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.columns.0.name", "my_column_1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.columns.0.parameters.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.columns.0.parameters.param2", "param2_val"),
 				),
 			},
 			{
@@ -323,7 +318,7 @@ func TestAccAWSGlueCatalogTable_update_replaceValues(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11784
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/11784
 func TestAccAWSGlueCatalogTable_StorageDescriptor_EmptyConfigurationBlock(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_catalog_table.test"
@@ -345,7 +340,7 @@ func TestAccAWSGlueCatalogTable_StorageDescriptor_EmptyConfigurationBlock(t *tes
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11784
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/11784
 func TestAccAWSGlueCatalogTable_StorageDescriptor_SerDeInfo_EmptyConfigurationBlock(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_catalog_table.test"
@@ -367,7 +362,46 @@ func TestAccAWSGlueCatalogTable_StorageDescriptor_SerDeInfo_EmptyConfigurationBl
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11784
+func TestAccAWSGlueCatalogTable_StorageDescriptor_SerDeInfo_UpdateValues(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTableConfigStorageDescriptorSerDeInfo(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.ser_de_info.0.name", "ser_de_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config:  testAccGlueCatalogTableConfigStorageDescriptorSerDeInfoUpdate(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "database_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.ser_de_info.0.parameters.param1", "param_val_1"),
+					resource.TestCheckResourceAttr(resourceName, "storage_descriptor.0.ser_de_info.0.serialization_library", "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"),
+				),
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/11784
 func TestAccAWSGlueCatalogTable_StorageDescriptor_SkewedInfo_EmptyConfigurationBlock(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_glue_catalog_table.test"
@@ -384,6 +418,69 @@ func TestAccAWSGlueCatalogTable_StorageDescriptor_SkewedInfo_EmptyConfigurationB
 				),
 				// Expect non-empty instead of panic
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueCatalogTable_partitionIndexesSingle(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTablePartitionIndexesSingle(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("table/%s/%s", rName, rName)),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.index_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.index_status", "ACTIVE"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.keys.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSGlueCatalogTable_partitionIndexesMultiple(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_glue_catalog_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckGlueTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:  testAccGlueCatalogTablePartitionIndexesMultiple(rName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckGlueCatalogTableExists(resourceName),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "glue", fmt.Sprintf("table/%s/%s", rName, rName)),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.index_name", rName),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.index_status", "ACTIVE"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.0.keys.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.1.index_name", fmt.Sprintf("%s-2", rName)),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.1.index_status", "ACTIVE"),
+					resource.TestCheckResourceAttr(resourceName, "partition_index.1.keys.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -641,6 +738,47 @@ resource "aws_glue_catalog_table" "test" {
 `, rName)
 }
 
+func testAccGlueCatalogTableConfigStorageDescriptorSerDeInfo(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  database_name = aws_glue_catalog_database.test.name
+  name          = %[1]q
+
+  storage_descriptor {
+    ser_de_info {
+      name = "ser_de_name"
+    }
+  }
+}
+`, rName)
+}
+
+func testAccGlueCatalogTableConfigStorageDescriptorSerDeInfoUpdate(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  database_name = aws_glue_catalog_database.test.name
+  name          = %[1]q
+
+  storage_descriptor {
+    ser_de_info {
+      parameters = {
+        param1 = "param_val_1"
+      }
+      serialization_library = "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
+    }
+  }
+}
+`, rName)
+}
+
 func testAccGlueCatalogTableConfigStorageDescriptorSkewedInfoEmptyConfigurationBlock(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_glue_catalog_database" "test" {
@@ -658,6 +796,87 @@ resource "aws_glue_catalog_table" "test" {
       skewed_column_value_location_maps = {}
       skewed_column_values              = []
     }
+  }
+}
+`, rName)
+}
+
+func testAccGlueCatalogTableColumnParameters(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  name               = %[1]q
+  database_name      = aws_glue_catalog_database.test.name
+  owner              = "my_owner"
+  retention          = 1
+  table_type         = "VIRTUAL_VIEW"
+  view_expanded_text = "view_expanded_text_1"
+  view_original_text = "view_original_text_1"
+
+  storage_descriptor {
+    bucket_columns            = ["bucket_column_1"]
+    compressed                = false
+    input_format              = "SequenceFileInputFormat"
+    location                  = "my_location"
+    number_of_buckets         = 1
+    output_format             = "SequenceFileInputFormat"
+    stored_as_sub_directories = false
+
+    parameters = {
+      param1 = "param1_val"
+    }
+
+    columns {
+      name    = "my_column_1"
+      type    = "int"
+      comment = "my_column1_comment"
+
+      parameters = {
+        param2 = "param2_val"
+      }
+    }
+
+    ser_de_info {
+      name = "ser_de_name"
+
+      parameters = {
+        param1 = "param_val_1"
+      }
+
+      serialization_library = "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
+    }
+
+    sort_columns {
+      column     = "my_column_1"
+      sort_order = 1
+    }
+
+    skewed_info {
+      skewed_column_names = [
+        "my_column_1",
+      ]
+
+      skewed_column_value_location_maps = {
+        my_column_1 = "my_column_1_val_loc_map"
+      }
+
+      skewed_column_values = [
+        "skewed_val_1",
+      ]
+    }
+  }
+
+  partition_keys {
+    name    = "my_column_1"
+    type    = "int"
+    comment = "my_column_1_comment"
+  }
+
+  parameters = {
+    param1 = "param1_val"
   }
 }
 `, rName)
@@ -732,4 +951,197 @@ func testAccCheckGlueCatalogTableExists(name string) resource.TestCheckFunc {
 
 		return nil
 	}
+}
+
+func testAccGlueCatalogTablePartitionIndexesSingle(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  name               = %[1]q
+  database_name      = aws_glue_catalog_database.test.name
+  owner              = "my_owner"
+  retention          = 1
+  table_type         = "VIRTUAL_VIEW"
+  view_expanded_text = "view_expanded_text_1"
+  view_original_text = "view_original_text_1"
+
+  storage_descriptor {
+    bucket_columns            = ["bucket_column_1"]
+    compressed                = false
+    input_format              = "SequenceFileInputFormat"
+    location                  = "my_location"
+    number_of_buckets         = 1
+    output_format             = "SequenceFileInputFormat"
+    stored_as_sub_directories = false
+
+    parameters = {
+      param1 = "param1_val"
+    }
+
+    columns {
+      name    = "my_column_1"
+      type    = "int"
+      comment = "my_column1_comment"
+    }
+
+    columns {
+      name    = "my_column_2"
+      type    = "string"
+      comment = "my_column2_comment"
+    }
+
+    ser_de_info {
+      name = "ser_de_name"
+
+      parameters = {
+        param1 = "param_val_1"
+      }
+
+      serialization_library = "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
+    }
+
+    sort_columns {
+      column     = "my_column_1"
+      sort_order = 1
+    }
+
+    skewed_info {
+      skewed_column_names = [
+        "my_column_1",
+      ]
+
+      skewed_column_value_location_maps = {
+        my_column_1 = "my_column_1_val_loc_map"
+      }
+
+      skewed_column_values = [
+        "skewed_val_1",
+      ]
+    }
+  }
+
+  partition_keys {
+    name    = "my_column_1"
+    type    = "int"
+    comment = "my_column_1_comment"
+  }
+
+  partition_keys {
+    name    = "my_column_2"
+    type    = "string"
+    comment = "my_column_2_comment"
+  }
+
+  parameters = {
+    param1 = "param1_val"
+  }
+
+  partition_index {
+    index_name = %[1]q
+    keys       = ["my_column_1", "my_column_2"]
+  }
+}
+`, rName)
+}
+
+func testAccGlueCatalogTablePartitionIndexesMultiple(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_glue_catalog_database" "test" {
+  name = %[1]q
+}
+
+resource "aws_glue_catalog_table" "test" {
+  name               = %[1]q
+  database_name      = aws_glue_catalog_database.test.name
+  owner              = "my_owner"
+  retention          = 1
+  table_type         = "VIRTUAL_VIEW"
+  view_expanded_text = "view_expanded_text_1"
+  view_original_text = "view_original_text_1"
+
+  storage_descriptor {
+    bucket_columns            = ["bucket_column_1"]
+    compressed                = false
+    input_format              = "SequenceFileInputFormat"
+    location                  = "my_location"
+    number_of_buckets         = 1
+    output_format             = "SequenceFileInputFormat"
+    stored_as_sub_directories = false
+
+    parameters = {
+      param1 = "param1_val"
+    }
+
+    columns {
+      name    = "my_column_1"
+      type    = "int"
+      comment = "my_column1_comment"
+    }
+
+    columns {
+      name    = "my_column_2"
+      type    = "string"
+      comment = "my_column2_comment"
+    }
+
+    ser_de_info {
+      name = "ser_de_name"
+
+      parameters = {
+        param1 = "param_val_1"
+      }
+
+      serialization_library = "org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe"
+    }
+
+    sort_columns {
+      column     = "my_column_1"
+      sort_order = 1
+    }
+
+    skewed_info {
+      skewed_column_names = [
+        "my_column_1",
+      ]
+
+      skewed_column_value_location_maps = {
+        my_column_1 = "my_column_1_val_loc_map"
+      }
+
+      skewed_column_values = [
+        "skewed_val_1",
+      ]
+    }
+  }
+
+  partition_keys {
+    name    = "my_column_1"
+    type    = "int"
+    comment = "my_column_1_comment"
+  }
+
+  partition_keys {
+    name    = "my_column_2"
+    type    = "string"
+    comment = "my_column_2_comment"
+  }
+
+  parameters = {
+    param1 = "param1_val"
+  }
+
+  partition_index {
+    index_name = %[1]q
+    keys       = ["my_column_1", "my_column_2"]
+  }
+
+  partition_index {
+    index_name = "%[1]s-2"
+    keys       = ["my_column_1"]
+  }
+}
+`, rName)
 }

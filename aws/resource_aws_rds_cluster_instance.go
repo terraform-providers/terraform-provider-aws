@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
@@ -298,10 +297,10 @@ func resourceAwsRDSClusterInstanceCreate(d *schema.ResourceData, meta interface{
 		resp, err = conn.CreateDBInstance(createOpts)
 	}
 	if err != nil {
-		return fmt.Errorf("error creating RDS DB Instance: %s", err)
+		return fmt.Errorf("error creating RDS Cluster (%s) Instance: %w", d.Get("cluster_identifier").(string), err)
 	}
 
-	d.SetId(*resp.DBInstance.DBInstanceIdentifier)
+	d.SetId(aws.StringValue(resp.DBInstance.DBInstanceIdentifier))
 
 	// reuse db_instance refresh func
 	stateConf := &resource.StateChangeConf{

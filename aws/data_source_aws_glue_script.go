@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/glue"
@@ -123,7 +122,7 @@ func dataSourceAwsGlueScriptRead(d *schema.ResourceData, meta interface{}) error
 		return errors.New("script not created")
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 	d.Set("python_script", output.PythonScript)
 	d.Set("scala_code", output.ScalaCode)
 

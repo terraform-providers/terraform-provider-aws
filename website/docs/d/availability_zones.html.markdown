@@ -93,6 +93,7 @@ The following arguments are supported by the `filter` configuration block:
 In addition to all arguments above, the following attributes are exported:
 
 * `group_names` A set of the Availability Zone Group names. For Availability Zones, this is the same value as the Region name. For Local Zones, the name of the associated group, for example `us-west-2-lax-1`.
+* `id` - Region of the Availability Zones.
 * `names` - A list of the Availability Zone names available to the account.
 * `zone_ids` - A list of the Availability Zone IDs available to the account.
 

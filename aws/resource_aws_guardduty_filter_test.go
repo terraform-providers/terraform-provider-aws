@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/guardduty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func testAccAwsGuardDutyFilter_basic(t *testing.T) {
@@ -38,18 +37,18 @@ func testAccAwsGuardDutyFilter_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "finding_criteria.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "finding_criteria.0.criterion.#", "3"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":    "region",
 						"equals.#": "1",
-						"equals.0": "eu-west-1",
+						"equals.0": testAccGetRegion(),
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":        "service.additionalInfo.threatListName",
 						"not_equals.#": "2",
 						"not_equals.0": "some-threat",
 						"not_equals.1": "another-threat",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":                 "updatedAt",
 						"greater_than_or_equal": startDate,
 						"less_than":             endDate,
@@ -104,12 +103,12 @@ func testAccAwsGuardDutyFilter_update(t *testing.T) {
 					testAccCheckAwsGuardDutyFilterExists(resourceName, &v2),
 					resource.TestCheckResourceAttr(resourceName, "finding_criteria.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "finding_criteria.0.criterion.#", "2"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":    "region",
 						"equals.#": "1",
 						"equals.0": testAccGetRegion(),
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "finding_criteria.0.criterion.*", map[string]string{
 						"field":        "service.additionalInfo.threatListName",
 						"not_equals.#": "2",
 						"not_equals.0": "some-threat",
@@ -249,6 +248,8 @@ func testAccCheckAwsGuardDutyFilterExists(name string, filter *guardduty.GetFilt
 
 func testAccGuardDutyFilterConfig_full(startDate, endDate string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_guardduty_filter" "test" {
   detector_id = aws_guardduty_detector.test.id
   name        = "test-filter"
@@ -258,7 +259,7 @@ resource "aws_guardduty_filter" "test" {
   finding_criteria {
     criterion {
       field  = "region"
-      equals = ["eu-west-1"]
+      equals = [data.aws_region.current.name]
     }
 
     criterion {
@@ -282,6 +283,8 @@ resource "aws_guardduty_detector" "test" {
 
 func testAccGuardDutyFilterConfigNoop_full(startDate, endDate string) string {
 	return fmt.Sprintf(`
+data "aws_region" "current" {}
+
 resource "aws_guardduty_filter" "test" {
   detector_id = aws_guardduty_detector.test.id
   name        = "test-filter"
@@ -292,7 +295,7 @@ resource "aws_guardduty_filter" "test" {
   finding_criteria {
     criterion {
       field  = "region"
-      equals = ["eu-west-1"]
+      equals = [data.aws_region.current.name]
     }
 
     criterion {

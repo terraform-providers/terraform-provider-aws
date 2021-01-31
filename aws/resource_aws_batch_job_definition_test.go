@@ -82,6 +82,7 @@ func TestAccAWSBatchJobDefinition_basic(t *testing.T) {
 				Config: testAccBatchJobDefinitionConfigName(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckBatchJobDefinitionExists(resourceName, &jd),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -117,6 +118,7 @@ func TestAccAWSBatchJobDefinition_ContainerProperties_Advanced(t *testing.T) {
 				{ContainerPath: aws.String("/tmp"), ReadOnly: aws.Bool(false), SourceVolume: aws.String("tmp")},
 			},
 			ResourceRequirements: []*batch.ResourceRequirement{},
+			Secrets:              []*batch.Secret{},
 			Ulimits: []*batch.Ulimit{
 				{HardLimit: aws.Int64(int64(1024)), Name: aws.String("nofile"), SoftLimit: aws.Int64(int64(1024))},
 			},
@@ -181,6 +183,50 @@ func TestAccAWSBatchJobDefinition_updateForcesNewResource(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSBatchJobDefinition_Tags(t *testing.T) {
+	var jd batch.JobDefinition
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_batch_job_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSBatch(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckBatchJobDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBatchJobDefinitionConfigTags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobDefinitionExists(resourceName, &jd),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccBatchJobDefinitionConfigTags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobDefinitionExists(resourceName, &jd),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccBatchJobDefinitionConfigTags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckBatchJobDefinitionExists(resourceName, &jd),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
 			},
 		},
 	})
@@ -373,4 +419,43 @@ resource "aws_batch_job_definition" "test" {
   type = "container"
 }
 `, rName)
+}
+
+func testAccBatchJobDefinitionConfigTags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_batch_job_definition" "test" {
+  container_properties = jsonencode({
+    command = ["echo", "test"]
+    image   = "busybox"
+    memory  = 128
+    vcpus   = 1
+  })
+  name = %[1]q
+  type = "container"
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccBatchJobDefinitionConfigTags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_batch_job_definition" "test" {
+  container_properties = jsonencode({
+    command = ["echo", "test"]
+    image   = "busybox"
+    memory  = 128
+    vcpus   = 1
+  })
+  name = %[1]q
+  type = "container"
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }

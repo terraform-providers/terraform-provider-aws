@@ -47,6 +47,13 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"capacity_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(eks.CapacityTypes_Values(), false),
+			},
 			"cluster_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -68,9 +75,6 @@ func resourceAwsEksNodeGroup() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
-				// Multiple instance types returns an API error currently:
-				// InvalidParameterException: Instance type list not valid, only one instance type is supported!
-				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"labels": {
@@ -232,6 +236,10 @@ func resourceAwsEksNodeGroupCreate(d *schema.ResourceData, meta interface{}) err
 		input.AmiType = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("capacity_type"); ok {
+		input.CapacityType = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("disk_size"); ok {
 		input.DiskSize = aws.Int64(int64(v.(int)))
 	}
@@ -327,6 +335,7 @@ func resourceAwsEksNodeGroupRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("ami_type", nodeGroup.AmiType)
 	d.Set("arn", nodeGroup.NodegroupArn)
+	d.Set("capacity_type", nodeGroup.CapacityType)
 	d.Set("cluster_name", nodeGroup.ClusterName)
 	d.Set("disk_size", nodeGroup.DiskSize)
 

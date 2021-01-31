@@ -158,7 +158,7 @@ func resourceAwsEc2CapacityReservationCreate(d *schema.ResourceData, meta interf
 	if err != nil {
 		return fmt.Errorf("Error creating EC2 Capacity Reservation: %s", err)
 	}
-	d.SetId(*out.CapacityReservation.CapacityReservationId)
+	d.SetId(aws.StringValue(out.CapacityReservation.CapacityReservationId))
 	return resourceAwsEc2CapacityReservationRead(d, meta)
 }
 

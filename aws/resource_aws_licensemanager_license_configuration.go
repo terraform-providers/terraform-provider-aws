@@ -99,7 +99,7 @@ func resourceAwsLicenseManagerLicenseConfigurationCreate(d *schema.ResourceData,
 	if err != nil {
 		return fmt.Errorf("Error creating License Manager license configuration: %s", err)
 	}
-	d.SetId(*resp.LicenseConfigurationArn)
+	d.SetId(aws.StringValue(resp.LicenseConfigurationArn))
 	return resourceAwsLicenseManagerLicenseConfigurationRead(d, meta)
 }
 

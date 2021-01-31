@@ -262,7 +262,7 @@ func resourceAwsSecurityGroupCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Security Group: %s", err)
 	}
 
-	d.SetId(*createResp.GroupId)
+	d.SetId(aws.StringValue(createResp.GroupId))
 
 	log.Printf("[INFO] Security Group ID: %s", d.Id())
 
@@ -1229,7 +1229,7 @@ func resourceAwsSecurityGroupCollapseRules(ruleset string, rules []interface{}) 
 // resourceAwsSecurityGroupExpandRules works in pair with
 // resourceAwsSecurityGroupCollapseRules and is used as a
 // workaround for the problem explained in
-// https://github.com/terraform-providers/terraform-provider-aws/pull/4726
+// https://github.com/hashicorp/terraform-provider-aws/pull/4726
 //
 // This function converts every ingress/egress block that
 // contains multiple rules to multiple blocks with only one

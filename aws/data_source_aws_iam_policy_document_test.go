@@ -1,9 +1,11 @@
 package aws
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -19,7 +21,7 @@ func TestAccAWSDataSourceIAMPolicyDocument_basic(t *testing.T) {
 				Config: testAccAWSIAMPolicyDocumentConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.aws_iam_policy_document.test", "json",
-						testAccAWSIAMPolicyDocumentExpectedJSON,
+						testAccAWSIAMPolicyDocumentExpectedJSON(),
 					),
 				),
 			},
@@ -39,7 +41,7 @@ func TestAccAWSDataSourceIAMPolicyDocument_source(t *testing.T) {
 				Config: testAccAWSIAMPolicyDocumentSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.aws_iam_policy_document.test_source", "json",
-						testAccAWSIAMPolicyDocumentSourceExpectedJSON,
+						testAccAWSIAMPolicyDocumentSourceExpectedJSON(),
 					),
 				),
 			},
@@ -144,7 +146,7 @@ func TestAccAWSDataSourceIAMPolicyDocument_duplicateSid(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/10777
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/10777
 func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_StringAndSlice(t *testing.T) {
 	dataSourceName := "data.aws_iam_policy_document.test"
 
@@ -155,25 +157,42 @@ func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_Strin
 			{
 				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersStringAndSlice,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice),
+					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice()),
 				),
 			},
 		},
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/10777
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/10777
 func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_MultiplePrincipals(t *testing.T) {
 	dataSourceName := "data.aws_iam_policy_document.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsPartitionID, t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipals),
+					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipalsAWS()),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSDataSourceIAMPolicyDocument_Statement_Principal_Identifiers_MultiplePrincipalsGov(t *testing.T) {
+	dataSourceName := "data.aws_iam_policy_document.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t); testAccPartitionPreCheck(endpoints.AwsUsGovPartitionID, t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "json", testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipalsGov()),
 				),
 			},
 		},
@@ -216,6 +235,8 @@ func TestAccAWSDataSourceIAMPolicyDocument_Version_20081017(t *testing.T) {
 }
 
 var testAccAWSIAMPolicyDocumentConfig = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   policy_id = "policy_id"
 
@@ -226,7 +247,7 @@ data "aws_iam_policy_document" "test" {
       "s3:GetBucketLocation",
     ]
     resources = [
-      "arn:aws:s3:::*",
+      "arn:${data.aws_partition.current.partition}:s3:::*",
     ]
   }
 
@@ -236,7 +257,7 @@ data "aws_iam_policy_document" "test" {
     ]
 
     resources = [
-      "arn:aws:s3:::foo",
+      "arn:${data.aws_partition.current.partition}:s3:::foo",
     ]
 
     condition {
@@ -260,8 +281,8 @@ data "aws_iam_policy_document" "test" {
     ]
 
     resources = [
-      "arn:aws:s3:::foo/home/&{aws:username}",
-      "arn:aws:s3:::foo/home/&{aws:username}/*",
+      "arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}",
+      "arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}/*",
     ]
 
     principals {
@@ -273,7 +294,7 @@ data "aws_iam_policy_document" "test" {
   statement {
     effect        = "Deny"
     not_actions   = ["s3:*"]
-    not_resources = ["arn:aws:s3:::*"]
+    not_resources = ["arn:${data.aws_partition.current.partition}:s3:::*"]
   }
 
   # Normalization of wildcard principals
@@ -300,7 +321,8 @@ data "aws_iam_policy_document" "test" {
 }
 `
 
-var testAccAWSIAMPolicyDocumentExpectedJSON = `{
+func testAccAWSIAMPolicyDocumentExpectedJSON() string {
+	return fmt.Sprintf(`{
   "Version": "2012-10-17",
   "Id": "policy_id",
   "Statement": [
@@ -311,13 +333,13 @@ var testAccAWSIAMPolicyDocumentExpectedJSON = `{
         "s3:ListAllMyBuckets",
         "s3:GetBucketLocation"
       ],
-      "Resource": "arn:aws:s3:::*"
+      "Resource": "arn:%[1]s:s3:::*"
     },
     {
       "Sid": "",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::foo",
+      "Resource": "arn:%[1]s:s3:::foo",
       "NotPrincipal": {
         "AWS": "arn:blahblah:example"
       },
@@ -335,8 +357,8 @@ var testAccAWSIAMPolicyDocumentExpectedJSON = `{
       "Effect": "Allow",
       "Action": "s3:*",
       "Resource": [
-        "arn:aws:s3:::foo/home/${aws:username}/*",
-        "arn:aws:s3:::foo/home/${aws:username}"
+        "arn:%[1]s:s3:::foo/home/${aws:username}/*",
+        "arn:%[1]s:s3:::foo/home/${aws:username}"
       ],
       "Principal": {
         "AWS": "arn:blahblah:example"
@@ -346,7 +368,7 @@ var testAccAWSIAMPolicyDocumentExpectedJSON = `{
       "Sid": "",
       "Effect": "Deny",
       "NotAction": "s3:*",
-      "NotResource": "arn:aws:s3:::*"
+      "NotResource": "arn:%[1]s:s3:::*"
     },
     {
       "Sid": "",
@@ -363,9 +385,12 @@ var testAccAWSIAMPolicyDocumentExpectedJSON = `{
       "Principal": "*"
     }
   ]
-}`
+}`, testAccGetPartition())
+}
 
 var testAccAWSIAMPolicyDocumentSourceConfig = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   policy_id = "policy_id"
 
@@ -376,7 +401,7 @@ data "aws_iam_policy_document" "test" {
       "s3:GetBucketLocation",
     ]
     resources = [
-      "arn:aws:s3:::*",
+      "arn:${data.aws_partition.current.partition}:s3:::*",
     ]
   }
 
@@ -386,7 +411,7 @@ data "aws_iam_policy_document" "test" {
     ]
 
     resources = [
-      "arn:aws:s3:::foo",
+      "arn:${data.aws_partition.current.partition}:s3:::foo",
     ]
 
     condition {
@@ -410,8 +435,8 @@ data "aws_iam_policy_document" "test" {
     ]
 
     resources = [
-      "arn:aws:s3:::foo/home/&{aws:username}",
-      "arn:aws:s3:::foo/home/&{aws:username}/*",
+      "arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}",
+      "arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}/*",
     ]
 
     principals {
@@ -426,7 +451,7 @@ data "aws_iam_policy_document" "test" {
   statement {
     effect        = "Deny"
     not_actions   = ["s3:*"]
-    not_resources = ["arn:aws:s3:::*"]
+    not_resources = ["arn:${data.aws_partition.current.partition}:s3:::*"]
   }
 
   # Normalization of wildcard principals
@@ -463,7 +488,8 @@ data "aws_iam_policy_document" "test_source" {
 }
 `
 
-var testAccAWSIAMPolicyDocumentSourceExpectedJSON = `{
+func testAccAWSIAMPolicyDocumentSourceExpectedJSON() string {
+	return fmt.Sprintf(`{
   "Version": "2012-10-17",
   "Id": "policy_id",
   "Statement": [
@@ -474,13 +500,13 @@ var testAccAWSIAMPolicyDocumentSourceExpectedJSON = `{
         "s3:ListAllMyBuckets",
         "s3:GetBucketLocation"
       ],
-      "Resource": "arn:aws:s3:::*"
+      "Resource": "arn:%[1]s:s3:::*"
     },
     {
       "Sid": "",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::foo",
+      "Resource": "arn:%[1]s:s3:::foo",
       "NotPrincipal": {
         "AWS": "arn:blahblah:example"
       },
@@ -498,8 +524,8 @@ var testAccAWSIAMPolicyDocumentSourceExpectedJSON = `{
       "Effect": "Allow",
       "Action": "s3:*",
       "Resource": [
-        "arn:aws:s3:::foo/home/${aws:username}/*",
-        "arn:aws:s3:::foo/home/${aws:username}"
+        "arn:%[1]s:s3:::foo/home/${aws:username}/*",
+        "arn:%[1]s:s3:::foo/home/${aws:username}"
       ],
       "Principal": {
         "AWS": [
@@ -512,7 +538,7 @@ var testAccAWSIAMPolicyDocumentSourceExpectedJSON = `{
       "Sid": "",
       "Effect": "Deny",
       "NotAction": "s3:*",
-      "NotResource": "arn:aws:s3:::*"
+      "NotResource": "arn:%[1]s:s3:::*"
     },
     {
       "Sid": "",
@@ -535,7 +561,8 @@ var testAccAWSIAMPolicyDocumentSourceExpectedJSON = `{
       "Resource": "*"
     }
   ]
-}`
+}`, testAccGetPartition())
+}
 
 var testAccAWSIAMPolicyDocumentSourceBlankConfig = `
 data "aws_iam_policy_document" "test_source_blank" {
@@ -594,6 +621,8 @@ var testAccAWSIAMPolicyDocumentSourceConflictingExpectedJSON = `{
 }`
 
 var testAccAWSIAMPolicyDocumentOverrideConfig = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "override" {
   statement {
     sid = "SidToOverwrite"
@@ -617,8 +646,8 @@ data "aws_iam_policy_document" "test_override" {
     actions = ["s3:*"]
 
     resources = [
-      "arn:aws:s3:::somebucket",
-      "arn:aws:s3:::somebucket/*",
+      "arn:${data.aws_partition.current.partition}:s3:::somebucket",
+      "arn:${data.aws_partition.current.partition}:s3:::somebucket/*",
     ]
   }
 }
@@ -832,12 +861,14 @@ data "aws_iam_policy_document" "test" {
 `
 
 const testAccAWSIAMPolicyDocumentDataSourceConfigVersion20081017ConversionNotResources = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   version = "2008-10-17"
 
   statement {
     actions       = ["*"]
-    not_resources = ["arn:aws:s3:::foo/home/&{aws:username}", ]
+    not_resources = ["arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}", ]
   }
 }
 `
@@ -859,17 +890,21 @@ data "aws_iam_policy_document" "test" {
 `
 
 const testAccAWSIAMPolicyDocumentDataSourceConfigVersion20081017ConversionResources = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   version = "2008-10-17"
 
   statement {
     actions   = ["*"]
-    resources = ["arn:aws:s3:::foo/home/&{aws:username}", ]
+    resources = ["arn:${data.aws_partition.current.partition}:s3:::foo/home/&{aws:username}", ]
   }
 }
 `
 
 var testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersStringAndSlice = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   statement {
     actions   = ["*"]
@@ -877,19 +912,20 @@ data "aws_iam_policy_document" "test" {
     sid       = "StatementPrincipalIdentifiersStringAndSlice"
 
     principals {
-      identifiers = ["arn:aws:iam::111111111111:root"]
+      identifiers = ["arn:${data.aws_partition.current.partition}:iam::111111111111:root"]
       type        = "AWS"
     }
 
     principals {
-      identifiers = ["arn:aws:iam::222222222222:root", "arn:aws:iam::333333333333:root"]
+      identifiers = ["arn:${data.aws_partition.current.partition}:iam::222222222222:root", "arn:${data.aws_partition.current.partition}:iam::333333333333:root"]
       type        = "AWS"
     }
   }
 }
 `
 
-var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice = `{
+func testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAndSlice() string {
+	return fmt.Sprintf(`{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -899,16 +935,19 @@ var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersStringAn
       "Resource": "*",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::111111111111:root",
-          "arn:aws:iam::333333333333:root",
-          "arn:aws:iam::222222222222:root"
+          "arn:%[1]s:iam::111111111111:root",
+          "arn:%[1]s:iam::333333333333:root",
+          "arn:%[1]s:iam::222222222222:root"
         ]
       }
     }
   ]
-}`
+}`, testAccGetPartition())
+}
 
 var testAccAWSIAMPolicyDocumentConfigStatementPrincipalIdentifiersMultiplePrincipals = `
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "test" {
   statement {
     actions   = ["*"]
@@ -917,22 +956,22 @@ data "aws_iam_policy_document" "test" {
 
     principals {
       identifiers = [
-        "arn:aws:iam::111111111111:root",
-        "arn:aws:iam::222222222222:root",
+        "arn:${data.aws_partition.current.partition}:iam::111111111111:root",
+        "arn:${data.aws_partition.current.partition}:iam::222222222222:root",
       ]
       type = "AWS"
     }
 
     principals {
       identifiers = [
-        "arn:aws:iam::333333333333:root",
+        "arn:${data.aws_partition.current.partition}:iam::333333333333:root",
       ]
       type = "AWS"
     }
 
     principals {
       identifiers = [
-        "arn:aws:iam::444444444444:root",
+        "arn:${data.aws_partition.current.partition}:iam::444444444444:root",
       ]
       type = "AWS"
     }
@@ -940,7 +979,8 @@ data "aws_iam_policy_document" "test" {
 }
 `
 
-var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipals = `{
+func testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipalsAWS() string {
+	return fmt.Sprintf(`{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -950,12 +990,35 @@ var testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiple
       "Resource": "*",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::333333333333:root",
-          "arn:aws:iam::444444444444:root",
-          "arn:aws:iam::222222222222:root",
-          "arn:aws:iam::111111111111:root"
+          "arn:%[1]s:iam::333333333333:root",
+          "arn:%[1]s:iam::444444444444:root",
+          "arn:%[1]s:iam::222222222222:root",
+          "arn:%[1]s:iam::111111111111:root"
         ]
       }
     }
   ]
-}`
+}`, testAccGetPartition())
+}
+
+func testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultiplePrincipalsGov() string {
+	return fmt.Sprintf(`{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StatementPrincipalIdentifiersStringAndSlice",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*",
+      "Principal": {
+        "AWS": [
+          "arn:%[1]s:iam::333333333333:root",
+          "arn:%[1]s:iam::222222222222:root",
+          "arn:%[1]s:iam::111111111111:root",
+          "arn:%[1]s:iam::444444444444:root"
+        ]
+      }
+    }
+  ]
+}`, testAccGetPartition())
+}

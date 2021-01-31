@@ -142,7 +142,7 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating Cognito Identity Pool: %s", err)
 	}
 
-	d.SetId(*entity.IdentityPoolId)
+	d.SetId(aws.StringValue(entity.IdentityPoolId))
 
 	return resourceAwsCognitoIdentityPoolRead(d, meta)
 }

@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceAWSELB_basic(t *testing.T) {
 	// Must be less than 32 characters for ELB name
-	rName := fmt.Sprintf("TestAccDataSourceAWSELB-%s", acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("TestAccDataSourceAWSELB-%s", acctest.RandString(5))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

@@ -26,7 +26,7 @@ The following arguments are supported:
 * `tags` - (Optional) Key-value map of resource tags
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

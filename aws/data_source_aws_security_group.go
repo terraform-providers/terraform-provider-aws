@@ -90,7 +90,7 @@ func dataSourceAwsSecurityGroupRead(d *schema.ResourceData, meta interface{}) er
 
 	sg := resp.SecurityGroups[0]
 
-	d.SetId(*sg.GroupId)
+	d.SetId(aws.StringValue(sg.GroupId))
 	d.Set("name", sg.GroupName)
 	d.Set("description", sg.Description)
 	d.Set("vpc_id", sg.VpcId)

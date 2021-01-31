@@ -46,7 +46,7 @@ The following arguments are supported:
 * `key` - (Required) The tag name.
 * `value` - (Required) The value of the tag.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

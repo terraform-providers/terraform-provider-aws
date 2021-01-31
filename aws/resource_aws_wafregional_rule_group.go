@@ -100,7 +100,7 @@ func resourceAwsWafRegionalRuleGroupCreate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resp := out.(*waf.CreateRuleGroupOutput)
-	d.SetId(*resp.RuleGroup.RuleGroupId)
+	d.SetId(aws.StringValue(resp.RuleGroup.RuleGroupId))
 
 	activatedRule := d.Get("activated_rule").(*schema.Set).List()
 	if len(activatedRule) > 0 {

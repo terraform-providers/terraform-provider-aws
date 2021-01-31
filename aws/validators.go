@@ -23,9 +23,15 @@ import (
 )
 
 const (
-	awsAccountIDRegexpPattern = `^(aws|\d{12})$`
-	awsPartitionRegexpPattern = `^aws(-[a-z]+)*$`
-	awsRegionRegexpPattern    = `^[a-z]{2}(-[a-z]+)+-\d$`
+	awsAccountIDRegexpInternalPattern = `(aws|\d{12})`
+	awsPartitionRegexpInternalPattern = `aws(-[a-z]+)*`
+	awsRegionRegexpInternalPattern    = `[a-z]{2}(-[a-z]+)+-\d`
+)
+
+const (
+	awsAccountIDRegexpPattern = "^" + awsAccountIDRegexpInternalPattern + "$"
+	awsPartitionRegexpPattern = "^" + awsPartitionRegexpInternalPattern + "$"
+	awsRegionRegexpPattern    = "^" + awsRegionRegexpInternalPattern + "$"
 )
 
 var awsAccountIDRegexp = regexp.MustCompile(awsAccountIDRegexpPattern)
@@ -91,8 +97,8 @@ func validateTransferServerID(v interface{}, k string) (ws []string, errors []er
 func validateTransferUserName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	// https://docs.aws.amazon.com/transfer/latest/userguide/API_CreateUser.html
-	if !regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_-]{2,31}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("Invalid %q: must be between 3 and 32 alphanumeric or special characters hyphen and underscore. However, %q cannot begin with a hyphen", k, k))
+	if !regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_-]{2,99}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("Invalid %q: must be between 3 and 100 alphanumeric or special characters hyphen and underscore. However, %q cannot begin with a hyphen", k, k))
 	}
 	return
 }
@@ -654,18 +660,37 @@ func validateAwsAccountId(v interface{}, k string) (ws []string, errors []error)
 	return
 }
 
+func validatePrincipal(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if value == "IAM_ALLOWED_PRINCIPALS" {
+		return ws, errors
+	}
+
+	wsARN, errorsARN := validateArn(v, k)
+	ws = append(ws, wsARN...)
+	errors = append(errors, errorsARN...)
+
+	pattern := `\d{12}:(role|user)/`
+	if !regexp.MustCompile(pattern).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q doesn't look like a user or role: %q", k, value))
+	}
+
+	return ws, errors
+}
+
 func validateArn(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
 	if value == "" {
-		return
+		return ws, errors
 	}
 
 	parsedARN, err := arn.Parse(value)
 
 	if err != nil {
 		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: %s", k, value, err))
-		return
+		return ws, errors
 	}
 
 	if parsedARN.Partition == "" {
@@ -686,7 +711,7 @@ func validateArn(v interface{}, k string) (ws []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%q (%s) is an invalid ARN: missing resource value", k, value))
 	}
 
-	return
+	return ws, errors
 }
 
 func validateEC2AutomateARN(v interface{}, k string) (ws []string, errors []error) {
@@ -831,6 +856,17 @@ func cidrBlocksEqual(cidr1, cidr2 string) bool {
 	}
 
 	return ip2.String() == ip1.String() && ipnet2.String() == ipnet1.String()
+}
+
+// canonicalCidrBlock returns the canonical representation of a CIDR block.
+// This function is especially useful for hash functions for sets which include IPv6 CIDR blocks.
+func canonicalCidrBlock(cidr string) string {
+	_, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return cidr
+	}
+
+	return ipnet.String()
 }
 
 func validateHTTPMethod() schema.SchemaValidateFunc {
@@ -1066,6 +1102,18 @@ func validateOnceADayWindowFormat(v interface{}, k string) (ws []string, errors 
 	if !regexp.MustCompile(validTimeFormatConsolidated).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q must satisfy the format of \"hh24:mi-hh24:mi\".", k))
+	}
+	return
+}
+
+// validateUTCTimestamp validates a string in UTC Format required by APIs including:
+// https://docs.aws.amazon.com/iot/latest/apireference/API_CloudwatchMetricAction.html
+// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBInstanceToPointInTime.html
+func validateUTCTimestamp(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	_, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%q must be in RFC3339 time format %q. Example: %s", k, time.RFC3339, err))
 	}
 	return
 }
@@ -1506,8 +1554,8 @@ func validateAwsKmsGrantName(v interface{}, k string) (ws []string, es []error) 
 
 func validateCognitoIdentityPoolName(v interface{}, k string) (ws []string, errors []error) {
 	val := v.(string)
-	if !regexp.MustCompile(`^[\w _]+$`).MatchString(val) {
-		errors = append(errors, fmt.Errorf("%q must contain only alphanumeric characters and spaces", k))
+	if !regexp.MustCompile(`^[\w\s+=,.@-]+$`).MatchString(val) {
+		errors = append(errors, fmt.Errorf("%q must contain only alphanumeric characters, dots, underscores and hyphens", k))
 	}
 
 	return
@@ -1945,16 +1993,6 @@ func validateIoTTopicRuleCloudWatchAlarmStateValue(v interface{}, s string) ([]s
 	return nil, []error{fmt.Errorf("State must be one of OK, ALARM, or INSUFFICIENT_DATA")}
 }
 
-func validateIoTTopicRuleCloudWatchMetricTimestamp(v interface{}, s string) ([]string, []error) {
-	dateString := v.(string)
-
-	// https://docs.aws.amazon.com/iot/latest/apireference/API_CloudwatchMetricAction.html
-	if _, err := time.Parse(time.RFC3339, dateString); err != nil {
-		return nil, []error{err}
-	}
-	return nil, nil
-}
-
 func validateIoTTopicRuleElasticSearchEndpoint(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
@@ -2100,7 +2138,7 @@ func validateAmazonSideAsn(v interface{}, k string) (ws []string, errors []error
 		return
 	}
 
-	// https://github.com/terraform-providers/terraform-provider-aws/issues/5263
+	// https://github.com/hashicorp/terraform-provider-aws/issues/5263
 	isLegacyAsn := func(a int64) bool {
 		return a == 7224 || a == 9059 || a == 10124 || a == 17493
 	}
@@ -2122,6 +2160,15 @@ func validate4ByteAsn(v interface{}, k string) (ws []string, errors []error) {
 
 	if asn < 0 || asn > 4294967295 {
 		errors = append(errors, fmt.Errorf("%q (%q) must be in the range 0 to 4294967295", k, v))
+	}
+	return
+}
+
+func validateLinuxFileMode(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-7]{4}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only valid linux mode is allowed in %q", k))
 	}
 	return
 }
@@ -2443,7 +2490,71 @@ func validateRoute53ResolverName(v interface{}, k string) (ws []string, errors [
 	return
 }
 
+var validateCloudWatchEventCustomEventBusName = validation.All(
+	validation.StringLenBetween(1, 256),
+	validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9._\-]+$`), ""),
+	validation.StringDoesNotMatch(regexp.MustCompile(`^default$`), "cannot be 'default'"),
+)
+
+var validateCloudWatchEventBusName = validation.All(
+	validation.StringLenBetween(1, 256),
+	validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9._\-]+$`), ""),
+)
+
 var validateServiceDiscoveryNamespaceName = validation.All(
 	validation.StringLenBetween(1, 1024),
 	validation.StringMatch(regexp.MustCompile(`^[0-9A-Za-z._-]+$`), ""),
 )
+
+// validateNestedExactlyOneOf is called on the map representing a nested schema element
+// Once ExactlyOneOf is supported for nested elements, this should be deprecated.
+func validateNestedExactlyOneOf(m map[string]interface{}, valid []string) error {
+	specified := make([]string, 0)
+	for _, k := range valid {
+		if v, ok := m[k].(string); ok && v != "" {
+			specified = append(specified, k)
+		}
+	}
+
+	if len(specified) == 0 {
+		return fmt.Errorf("one of `%s` must be specified", strings.Join(valid, ", "))
+	}
+	if len(specified) > 1 {
+		return fmt.Errorf("only one of `%s` can be specified, but `%s` were specified.", strings.Join(valid, ", "), strings.Join(specified, ", "))
+	}
+	return nil
+}
+
+func MapMaxItems(max int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		m, ok := i.(map[string]interface{})
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be map", k))
+			return warnings, errors
+		}
+
+		if len(m) > max {
+			errors = append(errors, fmt.Errorf("expected number of items in %s to be less than or equal to %d, got %d", k, max, len(m)))
+		}
+
+		return warnings, errors
+	}
+}
+
+func MapKeysDoNotMatch(r *regexp.Regexp, message string) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		m, ok := i.(map[string]interface{})
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %s to be map", k))
+			return warnings, errors
+		}
+
+		for key := range m {
+			if ok := r.MatchString(key); ok {
+				errors = append(errors, fmt.Errorf("%s: %s: %s", k, message, key))
+			}
+		}
+
+		return warnings, errors
+	}
+}

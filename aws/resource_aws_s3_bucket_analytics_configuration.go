@@ -8,10 +8,12 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsS3BucketAnalyticsConfiguration() *schema.Resource {
@@ -411,28 +413,36 @@ func flattenS3AnalyticsS3BucketDestination(bucketDestination *s3.AnalyticsS3Buck
 }
 
 func waitForDeleteS3BucketAnalyticsConfiguration(conn *s3.S3, bucket, name string, timeout time.Duration) error {
+	input := &s3.GetBucketAnalyticsConfigurationInput{
+		Bucket: aws.String(bucket),
+		Id:     aws.String(name),
+	}
+
 	err := resource.Retry(timeout, func() *resource.RetryError {
-		input := &s3.GetBucketAnalyticsConfigurationInput{
-			Bucket: aws.String(bucket),
-			Id:     aws.String(name),
-		}
-		log.Printf("[DEBUG] Reading S3 bucket analytics configuration: %s", input)
 		output, err := conn.GetBucketAnalyticsConfiguration(input)
+
 		if err != nil {
-			if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
-				return nil
-			}
 			return resource.NonRetryableError(err)
 		}
-		if output.AnalyticsConfiguration != nil {
+
+		if output != nil && output.AnalyticsConfiguration != nil {
 			return resource.RetryableError(fmt.Errorf("S3 bucket analytics configuration exists: %v", output))
 		}
 
 		return nil
 	})
 
+	if tfresource.TimedOut(err) {
+		_, err = conn.GetBucketAnalyticsConfiguration(input)
+	}
+
+	if tfawserr.ErrCodeEquals(err, s3.ErrCodeNoSuchBucket) || tfawserr.ErrMessageContains(err, "NoSuchConfiguration", "The specified configuration does not exist.") {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("error deleting S3 Bucket Analytics Configuration \"%s:%s\": %w", bucket, name, err)
 	}
+
 	return nil
 }

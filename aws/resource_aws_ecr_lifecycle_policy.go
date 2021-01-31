@@ -50,7 +50,7 @@ func resourceAwsEcrLifecyclePolicyCreate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	d.SetId(*resp.RepositoryName)
+	d.SetId(aws.StringValue(resp.RepositoryName))
 	d.Set("registry_id", resp.RegistryId)
 	return resourceAwsEcrLifecyclePolicyRead(d, meta)
 }

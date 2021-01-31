@@ -2,7 +2,6 @@ package aws
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -42,15 +41,11 @@ func TestAccAWSDbInstanceDataSource_basic(t *testing.T) {
 }
 
 func TestAccAWSDbInstanceDataSource_ec2Classic(t *testing.T) {
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSDBInstanceDataSourceConfig_ec2Classic(rInt),
@@ -99,7 +94,9 @@ data "aws_db_instance" "bar" {
 }
 
 func testAccAWSDBInstanceDataSourceConfig_ec2Classic(rInt int) string {
-	return fmt.Sprintf(`
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		fmt.Sprintf(`
 data "aws_rds_orderable_db_instance" "test" {
   engine                     = "mysql"
   engine_version             = "5.6.41"
@@ -124,5 +121,5 @@ resource "aws_db_instance" "bar" {
 data "aws_db_instance" "bar" {
   db_instance_identifier = aws_db_instance.bar.identifier
 }
-`, rInt)
+`, rInt))
 }

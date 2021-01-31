@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,7 +32,7 @@ func TestAccAWSLBTargetGroupAttachment_basic(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroupAttachment_disappears(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -51,7 +51,7 @@ func TestAccAWSLBTargetGroupAttachment_disappears(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroupAttachment_BackwardsCompatibility(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -69,7 +69,7 @@ func TestAccAWSLBTargetGroupAttachment_BackwardsCompatibility(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroupAttachment_Port(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,7 +87,7 @@ func TestAccAWSLBTargetGroupAttachment_Port(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroupAttachment_ipAddress(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -105,7 +105,7 @@ func TestAccAWSLBTargetGroupAttachment_ipAddress(t *testing.T) {
 }
 
 func TestAccAWSLBTargetGroupAttachment_lambda(t *testing.T) {
-	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	targetGroupName := fmt.Sprintf("test-target-group-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -137,7 +137,7 @@ func resourceAwsEc2TrafficMirrorFilterRuleCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("error creating EC2 Traffic Mirror Filter Rule (%s): %w", filterId, err)
 	}
 
-	d.SetId(*out.TrafficMirrorFilterRule.TrafficMirrorFilterRuleId)
+	d.SetId(aws.StringValue(out.TrafficMirrorFilterRule.TrafficMirrorFilterRuleId))
 	return resourceAwsEc2TrafficMirrorFilterRuleRead(d, meta)
 }
 
@@ -167,7 +167,7 @@ func resourceAwsEc2TrafficMirrorFilterRuleRead(d *schema.ResourceData, meta inte
 		return nil
 	}
 
-	d.SetId(*rule.TrafficMirrorFilterRuleId)
+	d.SetId(aws.StringValue(rule.TrafficMirrorFilterRuleId))
 	d.Set("traffic_mirror_filter_id", rule.TrafficMirrorFilterId)
 	d.Set("destination_cidr_block", rule.DestinationCidrBlock)
 	d.Set("source_cidr_block", rule.SourceCidrBlock)

@@ -20,6 +20,7 @@ func dataSourceAwsEc2TransitGatewayPeeringAttachment() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"peer_account_id": {
 				Type:     schema.TypeString,

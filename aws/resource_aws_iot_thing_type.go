@@ -96,7 +96,7 @@ func resourceAwsIotThingTypeCreate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	d.SetId(*out.ThingTypeName)
+	d.SetId(aws.StringValue(out.ThingTypeName))
 
 	if v := d.Get("deprecated").(bool); v {
 		params := &iot.DeprecateThingTypeInput{

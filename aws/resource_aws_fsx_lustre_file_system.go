@@ -115,15 +115,11 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				),
 			},
 			"deployment_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  fsx.LustreDeploymentTypeScratch1,
-				ValidateFunc: validation.StringInSlice([]string{
-					fsx.LustreDeploymentTypeScratch1,
-					fsx.LustreDeploymentTypeScratch2,
-					fsx.LustreDeploymentTypePersistent1,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      fsx.LustreDeploymentTypeScratch1,
+				ValidateFunc: validation.StringInSlice(fsx.LustreDeploymentType_Values(), false),
 			},
 			"kms_key_id": {
 				Type:         schema.TypeString,
@@ -137,6 +133,8 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.IntInSlice([]int{
+					12,
+					40,
 					50,
 					100,
 					200,
@@ -146,7 +144,41 @@ func resourceAwsFsxLustreFileSystem() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 35),
+				ValidateFunc: validation.IntBetween(0, 90),
+			},
+			"daily_automatic_backup_start_time": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(5, 5),
+					validation.StringMatch(regexp.MustCompile(`^([01]\d|2[0-3]):?([0-5]\d)$`), "must be in the format HH:MM"),
+				),
+			},
+			"storage_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      fsx.StorageTypeSsd,
+				ValidateFunc: validation.StringInSlice(fsx.StorageType_Values(), false),
+			},
+			"drive_cache_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(fsx.DriveCacheType_Values(), false),
+			},
+			"auto_import_policy": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(fsx.AutoImportPolicyType_Values(), false),
+			},
+			"copy_tags_to_backups": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 		},
 	}
@@ -159,6 +191,7 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 		ClientRequestToken: aws.String(resource.UniqueId()),
 		FileSystemType:     aws.String(fsx.FileSystemTypeLustre),
 		StorageCapacity:    aws.Int64(int64(d.Get("storage_capacity").(int))),
+		StorageType:        aws.String(d.Get("storage_type").(string)),
 		SubnetIds:          expandStringList(d.Get("subnet_ids").([]interface{})),
 		LustreConfiguration: &fsx.CreateFileSystemLustreConfiguration{
 			DeploymentType: aws.String(d.Get("deployment_type").(string)),
@@ -172,6 +205,10 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("automatic_backup_retention_days"); ok {
 		input.LustreConfiguration.AutomaticBackupRetentionDays = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("daily_automatic_backup_start_time"); ok {
+		input.LustreConfiguration.DailyAutomaticBackupStartTime = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("export_path"); ok {
@@ -200,6 +237,18 @@ func resourceAwsFsxLustreFileSystemCreate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("per_unit_storage_throughput"); ok {
 		input.LustreConfiguration.PerUnitStorageThroughput = aws.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("drive_cache_type"); ok {
+		input.LustreConfiguration.DriveCacheType = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("auto_import_policy"); ok {
+		input.LustreConfiguration.AutoImportPolicy = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("copy_tags_to_backups"); ok {
+		input.LustreConfiguration.CopyTagsToBackups = aws.Bool(v.(bool))
 	}
 
 	result, err := conn.CreateFileSystem(input)
@@ -243,6 +292,16 @@ func resourceAwsFsxLustreFileSystemUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("automatic_backup_retention_days") {
 		input.LustreConfiguration.AutomaticBackupRetentionDays = aws.Int64(int64(d.Get("automatic_backup_retention_days").(int)))
+		requestUpdate = true
+	}
+
+	if d.HasChange("daily_automatic_backup_start_time") {
+		input.LustreConfiguration.DailyAutomaticBackupStartTime = aws.String(d.Get("daily_automatic_backup_start_time").(string))
+		requestUpdate = true
+	}
+
+	if d.HasChange("auto_import_policy") {
+		input.LustreConfiguration.AutoImportPolicy = aws.String(d.Get("auto_import_policy").(string))
 		requestUpdate = true
 	}
 
@@ -303,12 +362,17 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 	d.Set("dns_name", filesystem.DNSName)
 	d.Set("export_path", lustreConfig.DataRepositoryConfiguration.ExportPath)
 	d.Set("import_path", lustreConfig.DataRepositoryConfiguration.ImportPath)
+	d.Set("auto_import_policy", lustreConfig.DataRepositoryConfiguration.AutoImportPolicy)
 	d.Set("imported_file_chunk_size", lustreConfig.DataRepositoryConfiguration.ImportedFileChunkSize)
 	d.Set("deployment_type", lustreConfig.DeploymentType)
 	if lustreConfig.PerUnitStorageThroughput != nil {
 		d.Set("per_unit_storage_throughput", lustreConfig.PerUnitStorageThroughput)
 	}
 	d.Set("mount_name", filesystem.LustreConfiguration.MountName)
+	d.Set("storage_type", filesystem.StorageType)
+	if filesystem.LustreConfiguration.DriveCacheType != nil {
+		d.Set("drive_cache_type", filesystem.LustreConfiguration.DriveCacheType)
+	}
 
 	if filesystem.KmsKeyId != nil {
 		d.Set("kms_key_id", filesystem.KmsKeyId)
@@ -332,6 +396,8 @@ func resourceAwsFsxLustreFileSystemRead(d *schema.ResourceData, meta interface{}
 	d.Set("vpc_id", filesystem.VpcId)
 	d.Set("weekly_maintenance_start_time", lustreConfig.WeeklyMaintenanceStartTime)
 	d.Set("automatic_backup_retention_days", lustreConfig.AutomaticBackupRetentionDays)
+	d.Set("daily_automatic_backup_start_time", lustreConfig.DailyAutomaticBackupStartTime)
+	d.Set("copy_tags_to_backups", filesystem.LustreConfiguration.CopyTagsToBackups)
 
 	return nil
 }

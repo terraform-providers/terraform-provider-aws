@@ -72,6 +72,7 @@ func resourceAwsLbAttachmentCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error registering targets with target group: %s", err)
 	}
 
+	//lintignore:R016 // Allow legacy unstable ID usage in managed resource
 	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-", d.Get("target_group_arn"))))
 
 	return nil

@@ -46,4 +46,5 @@ In addition to all arguments above, the following attributes are exported:
 
 * `keys` - List of strings representing object keys
 * `common_prefixes` - List of any keys between `prefix` and the next occurrence of `delimiter` (i.e., similar to subdirectories of the `prefix` "directory"); the list is only returned when you specify `delimiter`
+* `id` - S3 Bucket.
 * `owners` - List of strings representing object owner IDs (see `fetch_owner` above)

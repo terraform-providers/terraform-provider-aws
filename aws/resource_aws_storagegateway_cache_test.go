@@ -19,8 +19,8 @@ func TestDecodeStorageGatewayCacheID(t *testing.T) {
 		ErrCount           int
 	}{
 		{
-			Input:              "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678:pci-0000:03:00.0-scsi-0:0:0:0",
-			ExpectedGatewayARN: "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",
+			Input:              "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678:pci-0000:03:00.0-scsi-0:0:0:0", //lintignore:AWSAT003,AWSAT005
+			ExpectedGatewayARN: "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",                               //lintignore:AWSAT003,AWSAT005
 			ExpectedDiskID:     "pci-0000:03:00.0-scsi-0:0:0:0",
 			ErrCount:           0,
 		},
@@ -33,7 +33,7 @@ func TestDecodeStorageGatewayCacheID(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Input:    "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678",
+			Input:    "arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678", //lintignore:AWSAT003,AWSAT005
 			ErrCount: 1,
 		},
 		{

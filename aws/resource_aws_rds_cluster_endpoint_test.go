@@ -208,14 +208,14 @@ func testAccCheckAWSRDSClusterEndpointExistsWithProvider(resourceName string, en
 func testAccAWSClusterEndpointConfigBase(n int) string {
 	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
 data "aws_rds_orderable_db_instance" "test" {
-   engine                     = aws_rds_cluster.default.engine
-   engine_version             = aws_rds_cluster.default.engine_version
-   preferred_instance_classes = ["db.t3.small", "db.t2.small", "db.t3.medium"]
+  engine                     = aws_rds_cluster.default.engine
+  engine_version             = aws_rds_cluster.default.engine_version
+  preferred_instance_classes = ["db.t3.small", "db.t2.small", "db.t3.medium"]
 }
 
 resource "aws_rds_cluster" "default" {
-  cluster_identifier              = "tf-aurora-cluster-%[1]d"
-  availability_zones              = [
+  cluster_identifier = "tf-aurora-cluster-%[1]d"
+  availability_zones = [
     data.aws_availability_zones.available.names[0],
     data.aws_availability_zones.available.names[1],
     data.aws_availability_zones.available.names[2]

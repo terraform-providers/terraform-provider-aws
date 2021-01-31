@@ -77,6 +77,16 @@ func dataSourceAwsSubnet() *schema.Resource {
 				Computed: true,
 			},
 
+			"customer_owned_ipv4_pool": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"map_customer_owned_ip_on_launch": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"map_public_ip_on_launch": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -166,7 +176,7 @@ func dataSourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	subnet := resp.Subnets[0]
 
-	d.SetId(*subnet.SubnetId)
+	d.SetId(aws.StringValue(subnet.SubnetId))
 	d.Set("vpc_id", subnet.VpcId)
 	d.Set("availability_zone", subnet.AvailabilityZone)
 	d.Set("availability_zone_id", subnet.AvailabilityZoneId)
@@ -180,6 +190,8 @@ func dataSourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("assign_ipv6_address_on_creation", subnet.AssignIpv6AddressOnCreation)
+	d.Set("customer_owned_ipv4_pool", subnet.CustomerOwnedIpv4Pool)
+	d.Set("map_customer_owned_ip_on_launch", subnet.MapCustomerOwnedIpOnLaunch)
 	d.Set("map_public_ip_on_launch", subnet.MapPublicIpOnLaunch)
 
 	for _, a := range subnet.Ipv6CidrBlockAssociationSet {

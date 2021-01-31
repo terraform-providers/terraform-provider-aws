@@ -18,7 +18,7 @@ func TestAccAwsAppsyncResolver_basic(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +48,7 @@ func TestAccAwsAppsyncResolver_disappears(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -71,7 +71,7 @@ func TestAccAwsAppsyncResolver_DataSource(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -104,7 +104,7 @@ func TestAccAwsAppsyncResolver_RequestTemplate(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -137,7 +137,7 @@ func TestAccAwsAppsyncResolver_ResponseTemplate(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -170,7 +170,7 @@ func TestAccAwsAppsyncResolver_multipleResolvers(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -199,7 +199,7 @@ func TestAccAwsAppsyncResolver_PipelineConfig(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{
@@ -226,7 +226,7 @@ func TestAccAwsAppsyncResolver_CachingConfig(t *testing.T) {
 	resourceName := "aws_appsync_resolver.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncResolverDestroy,
 		Steps: []resource.TestStep{

@@ -33,11 +33,6 @@ func testSweepVpcDhcpOptions(region string) error {
 		for _, dhcpOption := range page.DhcpOptions {
 			var defaultDomainNameFound, defaultDomainNameServersFound bool
 
-			domainName := region + ".compute.internal"
-			if region == "us-east-1" {
-				domainName = "ec2.internal"
-			}
-
 			// This skips the default dhcp configurations so they don't get deleted
 			for _, dhcpConfiguration := range dhcpOption.DhcpConfigurations {
 				if aws.StringValue(dhcpConfiguration.Key) == "domain-name" {
@@ -45,7 +40,7 @@ func testSweepVpcDhcpOptions(region string) error {
 						continue
 					}
 
-					if aws.StringValue(dhcpConfiguration.Values[0].Value) == domainName {
+					if aws.StringValue(dhcpConfiguration.Values[0].Value) == resourceAwsEc2RegionalPrivateDnsSuffix(region) {
 						defaultDomainNameFound = true
 					}
 				} else if aws.StringValue(dhcpConfiguration.Key) == "domain-name-servers" {

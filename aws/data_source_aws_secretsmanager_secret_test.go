@@ -147,6 +147,7 @@ const testAccDataSourceAwsSecretsManagerSecretConfig_MissingRequired = `
 data "aws_secretsmanager_secret" "test" {}
 `
 
+//lintignore:AWSAT003,AWSAT005
 const testAccDataSourceAwsSecretsManagerSecretConfig_MultipleSpecified = `
 data "aws_secretsmanager_secret" "test" {
   arn  = "arn:aws:secretsmanager:us-east-1:123456789012:secret:tf-acc-test-does-not-exist"

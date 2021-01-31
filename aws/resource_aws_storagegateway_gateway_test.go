@@ -86,6 +86,11 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Cached(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "smb_guest_password", ""),
 					resource.TestCheckResourceAttr(resourceName, "smb_security_strategy", ""),
 					resource.TestCheckResourceAttr(resourceName, "tape_drive_type", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "ec2_instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_type", "STANDARD"),
+					resource.TestCheckResourceAttr(resourceName, "host_environment", "EC2"),
+					resource.TestCheckResourceAttr(resourceName, "gateway_network_interface.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_network_interface.0.ipv4_address", "aws_instance.test", "private_ip"),
 				),
 			},
 			{
@@ -121,6 +126,11 @@ func TestAccAWSStorageGatewayGateway_GatewayType_FileS3(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "smb_guest_password", ""),
 					resource.TestCheckResourceAttr(resourceName, "tape_drive_type", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "ec2_instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_type", "STANDARD"),
+					resource.TestCheckResourceAttr(resourceName, "host_environment", "EC2"),
+					resource.TestCheckResourceAttr(resourceName, "gateway_network_interface.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_network_interface.0.ipv4_address", "aws_instance.test", "private_ip"),
 				),
 			},
 			{
@@ -156,6 +166,11 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Stored(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "smb_guest_password", ""),
 					resource.TestCheckResourceAttr(resourceName, "tape_drive_type", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "ec2_instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_type", "STANDARD"),
+					resource.TestCheckResourceAttr(resourceName, "host_environment", "EC2"),
+					resource.TestCheckResourceAttr(resourceName, "gateway_network_interface.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "gateway_network_interface.0.ipv4_address", "aws_instance.test", "private_ip"),
 				),
 			},
 			{
@@ -191,6 +206,9 @@ func TestAccAWSStorageGatewayGateway_GatewayType_Vtl(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "smb_guest_password", ""),
 					resource.TestCheckResourceAttr(resourceName, "tape_drive_type", ""),
+					resource.TestCheckResourceAttrPair(resourceName, "ec2_instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_type", "STANDARD"),
+					resource.TestCheckResourceAttr(resourceName, "host_environment", "EC2"),
 				),
 			},
 			{
@@ -390,6 +408,37 @@ func TestAccAWSStorageGatewayGateway_SmbActiveDirectorySettings(t *testing.T) {
 					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
 					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.0.domain_name", "terraformtesting.com"),
+					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.0.username", "Administrator"),
+					resource.TestCheckResourceAttrSet(resourceName, "smb_active_directory_settings.0.active_directory_status"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"activation_key", "gateway_ip_address", "smb_active_directory_settings"},
+			},
+		},
+	})
+}
+
+func TestAccAWSStorageGatewayGateway_SmbActiveDirectorySettings_timeout(t *testing.T) {
+	var gateway storagegateway.DescribeGatewayInformationOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_storagegateway_gateway.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSStorageGatewayGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSStorageGatewayGatewayConfig_SmbActiveDirectorySettingsTimeout(rName, 50),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSStorageGatewayGatewayExists(resourceName, &gateway),
+					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.0.domain_name", "terraformtesting.com"),
+					resource.TestCheckResourceAttr(resourceName, "smb_active_directory_settings.0.timeout_in_seconds", "50"),
 				),
 			},
 			{
@@ -675,7 +724,8 @@ func testAccCheckAWSStorageGatewayGatewayExists(resourceName string, gateway *st
 // testAccAWSStorageGateway_VPCBase provides a publicly accessible subnet
 // and security group, suitable for Storage Gateway EC2 instances of any type
 func testAccAWSStorageGateway_VPCBase(rName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
@@ -685,8 +735,9 @@ resource "aws_vpc" "test" {
 }
 
 resource "aws_subnet" "test" {
-  cidr_block = "10.0.0.0/24"
-  vpc_id     = aws_vpc.test.id
+  cidr_block        = "10.0.0.0/24"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = %[1]q
@@ -728,7 +779,7 @@ resource "aws_security_group" "test" {
     Name = %[1]q
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSStorageGateway_FileGatewayBase(rName string) string {
@@ -881,21 +932,13 @@ resource "aws_storagegateway_gateway" "test" {
 `, rName)
 }
 
-func testAccAWSStorageGatewayGatewayConfig_SmbActiveDirectorySettings(rName string) string {
+func testAccAWSStorageGatewayGatewayConfigSmbActiveDirectorySettingsBase(rName string) string {
 	return composeConfig(
 		// Reference: https://docs.aws.amazon.com/storagegateway/latest/userguide/Requirements.html
 		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test[0].availability_zone", "m5.xlarge", "m4.xlarge"),
+		testAccAvailableAZsNoOptInConfig(),
 		fmt.Sprintf(`
 # Directory Service Directories must be deployed across multiple EC2 Availability Zones
-data "aws_availability_zones" "available" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
 resource "aws_vpc" "test" {
   cidr_block = "10.0.0.0/16"
 
@@ -999,7 +1042,13 @@ resource "aws_instance" "test" {
     Name = %[1]q
   }
 }
+`, rName))
+}
 
+func testAccAWSStorageGatewayGatewayConfig_SmbActiveDirectorySettings(rName string) string {
+	return composeConfig(
+		testAccAWSStorageGatewayGatewayConfigSmbActiveDirectorySettingsBase(rName),
+		fmt.Sprintf(`
 resource "aws_storagegateway_gateway" "test" {
   gateway_ip_address = aws_instance.test.public_ip
   gateway_name       = %[1]q
@@ -1013,6 +1062,26 @@ resource "aws_storagegateway_gateway" "test" {
   }
 }
 `, rName))
+}
+
+func testAccAWSStorageGatewayGatewayConfig_SmbActiveDirectorySettingsTimeout(rName string, timeout int) string {
+	return composeConfig(
+		testAccAWSStorageGatewayGatewayConfigSmbActiveDirectorySettingsBase(rName),
+		fmt.Sprintf(`
+resource "aws_storagegateway_gateway" "test" {
+  gateway_ip_address = aws_instance.test.public_ip
+  gateway_name       = %[1]q
+  gateway_timezone   = "GMT"
+  gateway_type       = "FILE_S3"
+
+  smb_active_directory_settings {
+    domain_name        = aws_directory_service_directory.test.name
+    password           = aws_directory_service_directory.test.password
+    username           = "Administrator"
+    timeout_in_seconds = %[2]d
+  }
+}
+`, rName, timeout))
 }
 
 func testAccAWSStorageGatewayGatewayConfig_SmbGuestPassword(rName, smbGuestPassword string) string {
@@ -1073,11 +1142,11 @@ resource "aws_storagegateway_gateway" "test" {
 func testAccAWSStorageGatewayGatewayBandwidthConfigUpload(rName string, rate int) string {
 	return testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName) + fmt.Sprintf(`
 resource "aws_storagegateway_gateway" "test" {
-  gateway_ip_address                          = aws_instance.test.public_ip
-  gateway_name                                = %[1]q
-  gateway_timezone                            = "GMT"
-  gateway_type                                = "CACHED"
-  average_upload_rate_limit_in_bits_per_sec   = %[2]d
+  gateway_ip_address                        = aws_instance.test.public_ip
+  gateway_name                              = %[1]q
+  gateway_timezone                          = "GMT"
+  gateway_type                              = "CACHED"
+  average_upload_rate_limit_in_bits_per_sec = %[2]d
 }
 `, rName, rate)
 }
@@ -1085,11 +1154,11 @@ resource "aws_storagegateway_gateway" "test" {
 func testAccAWSStorageGatewayGatewayBandwidthConfigDownload(rName string, rate int) string {
 	return testAccAWSStorageGateway_TapeAndVolumeGatewayBase(rName) + fmt.Sprintf(`
 resource "aws_storagegateway_gateway" "test" {
- gateway_ip_address                          = aws_instance.test.public_ip
- gateway_name                                = %[1]q
- gateway_timezone                            = "GMT"
- gateway_type                                = "CACHED"
- average_download_rate_limit_in_bits_per_sec = %[2]d
+  gateway_ip_address                          = aws_instance.test.public_ip
+  gateway_name                                = %[1]q
+  gateway_timezone                            = "GMT"
+  gateway_type                                = "CACHED"
+  average_download_rate_limit_in_bits_per_sec = %[2]d
 }
 `, rName, rate)
 }

@@ -215,7 +215,7 @@ func resourceAwsCloudTrailCreate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] CloudTrail created: %s", t)
 
-	d.SetId(*t.Name)
+	d.SetId(aws.StringValue(t.Name))
 
 	// AWS CloudTrail sets newly-created trails to false.
 	if v, ok := d.GetOk("enable_logging"); ok && v.(bool) {

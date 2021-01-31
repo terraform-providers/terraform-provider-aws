@@ -66,6 +66,7 @@ One of the following target arguments must be supplied:
 * `local_gateway_id` - (Optional) Identifier of a Outpost local gateway.
 * `network_interface_id` - (Optional) Identifier of an EC2 network interface.
 * `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
+* `vpc_endpoint_id` - (Optional) Identifier of a VPC Endpoint.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
 
 Note that the default route, mapping the VPC's CIDR block to "local", is
@@ -83,7 +84,7 @@ will be exported as an attribute once the resource is created.
 ## Timeouts
 
 `aws_route` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `2 minutes`) Used for route creation
 - `delete` - (Default `5 minutes`) Used for route deletion

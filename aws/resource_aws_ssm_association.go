@@ -186,7 +186,7 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("AssociationDescription was nil")
 	}
 
-	d.SetId(*resp.AssociationDescription.AssociationId)
+	d.SetId(aws.StringValue(resp.AssociationDescription.AssociationId))
 	d.Set("association_id", resp.AssociationDescription.AssociationId)
 
 	return resourceAwsSsmAssociationRead(d, meta)

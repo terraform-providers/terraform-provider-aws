@@ -136,14 +136,14 @@ func resourceAwsSesEventDestinationCreate(d *schema.ResourceData, meta interface
 	configurationSetName := d.Get("configuration_set_name").(string)
 	eventDestinationName := d.Get("name").(string)
 	enabled := d.Get("enabled").(bool)
-	matchingEventTypes := d.Get("matching_types").(*schema.Set).List()
+	matchingEventTypes := d.Get("matching_types").(*schema.Set)
 
 	createOpts := &ses.CreateConfigurationSetEventDestinationInput{
 		ConfigurationSetName: aws.String(configurationSetName),
 		EventDestination: &ses.EventDestination{
 			Name:               aws.String(eventDestinationName),
 			Enabled:            aws.Bool(enabled),
-			MatchingEventTypes: expandStringList(matchingEventTypes),
+			MatchingEventTypes: expandStringSet(matchingEventTypes),
 		},
 	}
 

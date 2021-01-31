@@ -75,7 +75,7 @@ The following arguments are supported:
 * `gateway_type` - (Optional) Type of the gateway. The default value is `STORED`. Valid values: `CACHED`, `FILE_S3`, `STORED`, `VTL`.
 * `gateway_vpc_endpoint` - (Optional) VPC endpoint address to be used when activating your gateway. This should be used when your instance is in a private subnet. Requires HTTP access from client computer running terraform. More info on what ports are required by your VPC Endpoint Security group in [Activating a Gateway in a Virtual Private Cloud](https://docs.aws.amazon.com/storagegateway/latest/userguide/gateway-private-link.html).
 * `cloudwatch_log_group_arn` - (Optional) The Amazon Resource Name (ARN) of the Amazon CloudWatch log group to use to monitor and log events in the gateway.
-* `medium_changer_type` - (Optional) Type of medium changer to use for tape gateway. Terraform cannot detect drift of this argument. Valid values: `STK-L700`, `AWS-Gateway-VTL`.
+* `medium_changer_type` - (Optional) Type of medium changer to use for tape gateway. Terraform cannot detect drift of this argument. Valid values: `STK-L700`, `AWS-Gateway-VTL`, `IBM-03584L32-0402`.
 * `smb_active_directory_settings` - (Optional) Nested argument with Active Directory domain join information for Server Message Block (SMB) file shares. Only valid for `FILE_S3` gateway type. Must be set before creating `ActiveDirectory` authentication SMB file shares. More details below.
 * `smb_guest_password` - (Optional) Guest password for Server Message Block (SMB) file shares. Only valid for `FILE_S3` gateway type. Must be set before creating `GuestAccess` authentication SMB file shares. Terraform can only detect drift of the existence of a guest password, not its actual value from the gateway. Terraform can however update the password with changing the argument.
 * `smb_security_strategy` - (Optional) Specifies the type of security strategy. Valid values are: `ClientSpecified`, `MandatorySigning`, and `MandatoryEncryption`. See [Setting a Security Level for Your Gateway](https://docs.aws.amazon.com/storagegateway/latest/userguide/managing-gateway-file.html#security-strategy) for more information.
@@ -91,18 +91,31 @@ Information to join the gateway to an Active Directory domain for Server Message
 * `domain_name` - (Required) The name of the domain that you want the gateway to join.
 * `password` - (Required) The password of the user who has permission to add the gateway to the Active Directory domain.
 * `username` - (Required) The user name of user who has permission to add the gateway to the Active Directory domain.
+* `timeout_in_seconds` - (Optional) Specifies the time in seconds, in which the JoinDomain operation must complete. The default is `20` seconds.
+* `organizational_unit` - (Optional) The organizational unit (OU) is a container in an Active Directory that can hold users, groups,
+ computers, and other OUs and this parameter specifies the OU that the gateway will join within the AD domain.
+* `domain_controllers` - (Optional) List of IPv4 addresses, NetBIOS names, or host names of your domain server.
+ If you need to specify the port number include it after the colon (“:”). For example, `mydc.mydomain.com:389`.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Amazon Resource Name (ARN) of the gateway.
 * `arn` - Amazon Resource Name (ARN) of the gateway.
 * `gateway_id` - Identifier of the gateway.
+* `ec2_instance_id` - The ID of the Amazon EC2 instance that was used to launch the gateway.
+* `endpoint_type` - The type of endpoint for your gateway.
+* `host_environment` - The type of hypervisor environment used by the host.
+* `gateway_network_interface` - An array that contains descriptions of the gateway network interfaces. See [Gateway Network Interface](#gateway-network-interface).
+
+### Gateway Network Interface
+
+* `ipv4_address` - The Internet Protocol version 4 (IPv4) address of the interface.
 
 ## Timeouts
 
-`aws_storagegateway_gateway` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_storagegateway_gateway` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for gateway activation and connection to Storage Gateway.
 
@@ -114,7 +127,7 @@ In addition to all arguments above, the following attributes are exported:
 $ terraform import aws_storagegateway_gateway.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678
 ```
 
-Certain resource arguments, like `gateway_ip_address` do not have a Storage Gateway API method for reading the information after creation, either omit the argument from the Terraform configuration or use [`ignore_changes`](/docs/configuration/resources.html#ignore_changes) to hide the difference, e.g.
+Certain resource arguments, like `gateway_ip_address` do not have a Storage Gateway API method for reading the information after creation, either omit the argument from the Terraform configuration or use [`ignore_changes`](https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html#ignore_changes) to hide the difference, e.g.
 
 
 ```hcl

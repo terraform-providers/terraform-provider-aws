@@ -19,6 +19,7 @@ func TestAccAWSSESReceiptRule_basic(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSSES(t)
+			testAccPreCheckSESReceiptRule(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
@@ -44,6 +45,7 @@ func TestAccAWSSESReceiptRule_s3Action(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSSES(t)
+			testAccPreCheckSESReceiptRule(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
@@ -69,6 +71,7 @@ func TestAccAWSSESReceiptRule_order(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSSES(t)
+			testAccPreCheckSESReceiptRule(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
@@ -94,6 +97,7 @@ func TestAccAWSSESReceiptRule_actions(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSSES(t)
+			testAccPreCheckSESReceiptRule(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
@@ -122,6 +126,7 @@ func TestAccAWSSESReceiptRule_disappears(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSSES(t)
+			testAccPreCheckSESReceiptRule(t)
 		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptRuleDestroy,
@@ -315,6 +320,29 @@ func testAccCheckAwsSESReceiptRuleActions(n string) resource.TestCheckFunc {
 		}
 
 		return nil
+	}
+}
+
+func testAccPreCheckSESReceiptRule(t *testing.T) {
+	conn := testAccProvider.Meta().(*AWSClient).sesconn
+
+	input := &ses.DescribeReceiptRuleInput{
+		RuleName:    aws.String("MyRule"),
+		RuleSetName: aws.String("MyRuleSet"),
+	}
+
+	_, err := conn.DescribeReceiptRule(input)
+
+	if testAccPreCheckSkipError(err) {
+		t.Skipf("skipping acceptance testing: %s", err)
+	}
+
+	if isAWSErr(err, "RuleSetDoesNotExist", "") {
+		return
+	}
+
+	if err != nil {
+		t.Fatalf("unexpected PreCheck error: %s", err)
 	}
 }
 

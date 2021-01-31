@@ -60,7 +60,7 @@ func resourceAwsElasticacheSubnetGroupCreate(d *schema.ResourceData, meta interf
 
 	log.Printf("[DEBUG] Cache subnet group create: name: %s, description: %s", name, desc)
 
-	subnetIds := expandStringList(subnetIdsSet.List())
+	subnetIds := expandStringSet(subnetIdsSet)
 
 	req := &elasticache.CreateCacheSubnetGroupInput{
 		CacheSubnetGroupDescription: aws.String(desc),

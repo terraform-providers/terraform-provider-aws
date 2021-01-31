@@ -5,12 +5,11 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/route53"
 )
 
 func TestAccAWSRoute53DelegationSet_basic(t *testing.T) {
@@ -20,6 +19,7 @@ func TestAccAWSRoute53DelegationSet_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheckSkipRoute53(t),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"reference_name"},
 		Providers:       testAccProviders,
@@ -52,6 +52,7 @@ func TestAccAWSRoute53DelegationSet_withZones(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:        func() { testAccPreCheck(t) },
+		ErrorCheck:      testAccErrorCheckSkipRoute53(t),
 		IDRefreshName:   resourceName,
 		IDRefreshIgnore: []string{"reference_name"},
 		Providers:       testAccProviders,

@@ -282,7 +282,7 @@ func resourceAwsDmsReplicationTaskDelete(d *schema.ResourceData, meta interface{
 }
 
 func resourceAwsDmsReplicationTaskSetState(d *schema.ResourceData, task *dms.ReplicationTask) error {
-	d.SetId(*task.ReplicationTaskIdentifier)
+	d.SetId(aws.StringValue(task.ReplicationTaskIdentifier))
 
 	d.Set("migration_type", task.MigrationType)
 	d.Set("replication_instance_arn", task.ReplicationInstanceArn)

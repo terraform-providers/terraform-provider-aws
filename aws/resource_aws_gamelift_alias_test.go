@@ -92,7 +92,11 @@ func TestAccAWSGameliftAlias_basic(t *testing.T) {
 	uMessage := fmt.Sprintf("tf test updated message %s", rString)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +142,11 @@ func TestAccAWSGameliftAlias_tags(t *testing.T) {
 	aliasName := acctest.RandomWithPrefix("tf-acc-alias")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -207,7 +215,11 @@ func TestAccAWSGameliftAlias_fleetRouting(t *testing.T) {
 	resourceName := "aws_gamelift_alias.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{
@@ -244,7 +256,11 @@ func TestAccAWSGameliftAlias_disappears(t *testing.T) {
 	message := fmt.Sprintf("tf test message %s", rString)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSGamelift(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(gamelift.EndpointsID, t)
+			testAccPreCheckAWSGamelift(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSGameliftAliasDestroy,
 		Steps: []resource.TestStep{

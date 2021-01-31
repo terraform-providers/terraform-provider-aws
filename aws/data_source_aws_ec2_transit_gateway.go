@@ -52,6 +52,7 @@ func dataSourceAwsEc2TransitGateway() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"owner_id": {
 				Type:     schema.TypeString,

@@ -119,6 +119,25 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 				},
 			},
 
+			"mutual_tls_authentication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"truststore_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"truststore_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"regional_certificate_arn": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -154,7 +173,8 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Creating API Gateway Domain Name")
 
 	params := &apigateway.CreateDomainNameInput{
-		DomainName: aws.String(d.Get("domain_name").(string)),
+		DomainName:              aws.String(d.Get("domain_name").(string)),
+		MutualTlsAuthentication: expandApiGatewayMutualTlsAuthentication(d.Get("mutual_tls_authentication").([]interface{})),
 	}
 
 	if v, ok := d.GetOk("certificate_arn"); ok {
@@ -202,7 +222,7 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating API Gateway Domain Name: %s", err)
 	}
 
-	d.SetId(*domainName.DomainName)
+	d.SetId(aws.StringValue(domainName.DomainName))
 
 	return resourceAwsApiGatewayDomainNameRead(d, meta)
 }
@@ -249,6 +269,10 @@ func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{
 
 	if err := d.Set("endpoint_configuration", flattenApiGatewayEndpointConfiguration(domainName.EndpointConfiguration)); err != nil {
 		return fmt.Errorf("error setting endpoint_configuration: %s", err)
+	}
+	err = d.Set("mutual_tls_authentication", flattenApiGatewayMutualTlsAuthentication(domainName.MutualTlsAuthentication))
+	if err != nil {
+		return fmt.Errorf("error setting mutual_tls_authentication: %s", err)
 	}
 
 	d.Set("regional_certificate_arn", domainName.RegionalCertificateArn)
@@ -316,6 +340,25 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 		}
 	}
 
+	if d.HasChange("mutual_tls_authentication") {
+		vMutualTlsAuthentication := d.Get("mutual_tls_authentication").([]interface{})
+
+		if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+			// To disable mutual TLS for a custom domain name, remove the truststore from your custom domain name.
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/mutualTlsAuthentication/truststoreUri"),
+				Value: aws.String(""),
+			})
+		} else {
+			operations = append(operations, &apigateway.PatchOperation{
+				Op:    aws.String(apigateway.OpReplace),
+				Path:  aws.String("/mutualTlsAuthentication/truststoreVersion"),
+				Value: aws.String(vMutualTlsAuthentication[0].(map[string]interface{})["truststore_version"].(string)),
+			})
+		}
+	}
+
 	return operations
 }
 
@@ -359,4 +402,32 @@ func resourceAwsApiGatewayDomainNameDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func expandApiGatewayMutualTlsAuthentication(vMutualTlsAuthentication []interface{}) *apigateway.MutualTlsAuthenticationInput {
+	if len(vMutualTlsAuthentication) == 0 || vMutualTlsAuthentication[0] == nil {
+		return nil
+	}
+	mMutualTlsAuthentication := vMutualTlsAuthentication[0].(map[string]interface{})
+
+	mutualTlsAuthentication := &apigateway.MutualTlsAuthenticationInput{
+		TruststoreUri: aws.String(mMutualTlsAuthentication["truststore_uri"].(string)),
+	}
+
+	if vTruststoreVersion, ok := mMutualTlsAuthentication["truststore_version"].(string); ok && vTruststoreVersion != "" {
+		mutualTlsAuthentication.TruststoreVersion = aws.String(vTruststoreVersion)
+	}
+
+	return mutualTlsAuthentication
+}
+
+func flattenApiGatewayMutualTlsAuthentication(mutualTlsAuthentication *apigateway.MutualTlsAuthentication) []interface{} {
+	if mutualTlsAuthentication == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"truststore_uri":     aws.StringValue(mutualTlsAuthentication.TruststoreUri),
+		"truststore_version": aws.StringValue(mutualTlsAuthentication.TruststoreVersion),
+	}}
 }

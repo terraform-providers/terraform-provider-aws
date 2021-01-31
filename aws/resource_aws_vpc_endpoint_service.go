@@ -52,13 +52,23 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 				Computed: true,
 				Set:      schema.HashString,
 			},
+			"gateway_load_balancer_arns": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateArn,
+				},
+				Set: schema.HashString,
+			},
 			"manages_vpc_endpoints": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 			"network_load_balancer_arns": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -69,6 +79,31 @@ func resourceAwsVpcEndpointService() *schema.Resource {
 			"private_dns_name": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
+			},
+			"private_dns_name_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 			"service_name": {
 				Type:     schema.TypeString,
@@ -91,9 +126,23 @@ func resourceAwsVpcEndpointServiceCreate(d *schema.ResourceData, meta interface{
 	conn := meta.(*AWSClient).ec2conn
 
 	req := &ec2.CreateVpcEndpointServiceConfigurationInput{
-		AcceptanceRequired:      aws.Bool(d.Get("acceptance_required").(bool)),
-		NetworkLoadBalancerArns: expandStringSet(d.Get("network_load_balancer_arns").(*schema.Set)),
-		TagSpecifications:       ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
+		AcceptanceRequired: aws.Bool(d.Get("acceptance_required").(bool)),
+		TagSpecifications:  ec2TagSpecificationsFromMap(d.Get("tags").(map[string]interface{}), "vpc-endpoint-service"),
+	}
+	if v, ok := d.GetOk("private_dns_name"); ok {
+		req.PrivateDnsName = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("gateway_load_balancer_arns"); ok {
+		if v, ok := v.(*schema.Set); ok && v.Len() > 0 {
+			req.GatewayLoadBalancerArns = expandStringSet(v)
+		}
+	}
+
+	if v, ok := d.GetOk("network_load_balancer_arns"); ok {
+		if v, ok := v.(*schema.Set); ok && v.Len() > 0 {
+			req.NetworkLoadBalancerArns = expandStringSet(v)
+		}
 	}
 
 	log.Printf("[DEBUG] Creating VPC Endpoint Service configuration: %#v", req)
@@ -161,11 +210,17 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error setting base_endpoint_dns_names: %s", err)
 	}
-	d.Set("manages_vpc_endpoints", svcCfg.ManagesVpcEndpoints)
-	err = d.Set("network_load_balancer_arns", flattenStringSet(svcCfg.NetworkLoadBalancerArns))
-	if err != nil {
-		return fmt.Errorf("error setting network_load_balancer_arns: %s", err)
+
+	if err := d.Set("gateway_load_balancer_arns", flattenStringSet(svcCfg.GatewayLoadBalancerArns)); err != nil {
+		return fmt.Errorf("error setting gateway_load_balancer_arns: %w", err)
 	}
+
+	d.Set("manages_vpc_endpoints", svcCfg.ManagesVpcEndpoints)
+
+	if err := d.Set("network_load_balancer_arns", flattenStringSet(svcCfg.NetworkLoadBalancerArns)); err != nil {
+		return fmt.Errorf("error setting network_load_balancer_arns: %w", err)
+	}
+
 	d.Set("private_dns_name", svcCfg.PrivateDnsName)
 	d.Set("service_name", svcCfg.ServiceName)
 	d.Set("service_type", svcCfg.ServiceType[0].ServiceType)
@@ -187,20 +242,62 @@ func resourceAwsVpcEndpointServiceRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error setting allowed_principals: %s", err)
 	}
 
+	err = d.Set("private_dns_name_configuration", flattenPrivateDnsNameConfiguration(svcCfg.PrivateDnsNameConfiguration))
+	if err != nil {
+		return fmt.Errorf("error setting private_dns_name_configuration: %w", err)
+	}
+
 	return nil
+}
+
+func flattenPrivateDnsNameConfiguration(privateDnsNameConfiguration *ec2.PrivateDnsNameConfiguration) []interface{} {
+	if privateDnsNameConfiguration == nil {
+		return nil
+	}
+	tfMap := map[string]interface{}{}
+
+	if v := privateDnsNameConfiguration.Name; v != nil {
+		tfMap["name"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.State; v != nil {
+		tfMap["state"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.Type; v != nil {
+		tfMap["type"] = aws.StringValue(v)
+	}
+
+	if v := privateDnsNameConfiguration.Value; v != nil {
+		tfMap["value"] = aws.StringValue(v)
+	}
+
+	// The EC2 API can return a XML structure with no elements
+	if len(tfMap) == 0 {
+		return nil
+	}
+
+	return []interface{}{tfMap}
 }
 
 func resourceAwsVpcEndpointServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 
-	if d.HasChanges("acceptance_required", "network_load_balancer_arns") {
+	if d.HasChanges("acceptance_required", "gateway_load_balancer_arns", "network_load_balancer_arns", "private_dns_name") {
 		modifyCfgReq := &ec2.ModifyVpcEndpointServiceConfigurationInput{
 			ServiceId: aws.String(d.Id()),
+		}
+
+		if d.HasChange("private_dns_name") {
+			modifyCfgReq.PrivateDnsName = aws.String(d.Get("private_dns_name").(string))
 		}
 
 		if d.HasChange("acceptance_required") {
 			modifyCfgReq.AcceptanceRequired = aws.Bool(d.Get("acceptance_required").(bool))
 		}
+
+		setVpcEndpointServiceUpdateLists(d, "gateway_load_balancer_arns",
+			&modifyCfgReq.AddGatewayLoadBalancerArns, &modifyCfgReq.RemoveGatewayLoadBalancerArns)
 
 		setVpcEndpointServiceUpdateLists(d, "network_load_balancer_arns",
 			&modifyCfgReq.AddNetworkLoadBalancerArns, &modifyCfgReq.RemoveNetworkLoadBalancerArns)
@@ -323,12 +420,12 @@ func setVpcEndpointServiceUpdateLists(d *schema.ResourceData, key string, a, r *
 		os := o.(*schema.Set)
 		ns := n.(*schema.Set)
 
-		add := expandStringList(ns.Difference(os).List())
+		add := expandStringSet(ns.Difference(os))
 		if len(add) > 0 {
 			*a = add
 		}
 
-		remove := expandStringList(os.Difference(ns).List())
+		remove := expandStringSet(os.Difference(ns))
 		if len(remove) > 0 {
 			*r = remove
 		}

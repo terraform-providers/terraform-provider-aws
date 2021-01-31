@@ -21,6 +21,13 @@ resource "aws_backup_plan" "example" {
     target_vault_name = aws_backup_vault.test.name
     schedule          = "cron(0 12 * * ? *)"
   }
+
+  advanced_backup_setting {
+    backup_options = {
+      WindowsVSS = "enabled"
+    }
+    resource_type = "EC2"
+  }
 }
 ```
 
@@ -30,6 +37,7 @@ The following arguments are supported:
 
 * `name` - (Required) The display name of a backup plan.
 * `rule` - (Required) A rule object that specifies a scheduled task that is used to back up a selection of resources.
+* `advanced_backup_setting` - (Optional) An object that specifies backup options for each resource type.
 * `tags` - (Optional) Metadata that you can assign to help organize the plans you create.
 
 ### Rule Arguments
@@ -55,6 +63,12 @@ For **copy_action** the following attributes are supported:
 
 * `lifecycle` - (Optional) The lifecycle defines when a protected resource is copied over to a backup vault and when it expires.  Fields documented above.
 * `destination_vault_arn` - (Required) An Amazon Resource Name (ARN) that uniquely identifies the destination backup vault for the copied backup.
+
+### Advanced Backup Setting Arguments
+For `advanced_backup_setting` the following attibutes are supported:
+
+* `backup_options` - (Optional) Specifies the backup option for a selected resource. This option is only available for Windows VSS backup jobs. Set to `{ WindowsVSS = "enabled" }` to enable Windows VSS backup option and create a VSS Windows backup.
+* `resource_type` - (Optional) The type of AWS resource to be backed up. For VSS Windows backups, the only supported resource type is Amazon EC2. Valid values: `EC2`.
 
 ## Attributes Reference
 

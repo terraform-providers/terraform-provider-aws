@@ -74,7 +74,7 @@ func resourceAwsApiGatewayVpcLinkCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	d.SetId(*resp.Id)
+	d.SetId(aws.StringValue(resp.Id))
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{apigateway.VpcLinkStatusPending},

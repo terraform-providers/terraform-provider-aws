@@ -44,4 +44,5 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - Set of all the Local Gateway identifiers

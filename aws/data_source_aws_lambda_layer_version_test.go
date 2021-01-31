@@ -30,6 +30,8 @@ func TestAccDataSourceAWSLambdaLayerVersion_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "created_date", resourceName, "created_date"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "source_code_hash", resourceName, "source_code_hash"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "source_code_size", resourceName, "source_code_size"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "signing_profile_version_arn", resourceName, "signing_profile_version_arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "signing_job_arn", resourceName, "signing_job_arn"),
 				),
 			},
 		},

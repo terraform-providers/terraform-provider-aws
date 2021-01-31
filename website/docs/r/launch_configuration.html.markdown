@@ -144,6 +144,10 @@ The following arguments are supported:
 * `iam_instance_profile` - (Optional) The name attribute of the IAM instance profile to associate
      with launched instances.
 * `key_name` - (Optional) The key name that should be used for the instance.
+* `metadata_options` - The metadata options for the instance.
+    * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+    * `http_tokens` - If session tokens are required: `optional`, `required`.
+    * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 * `security_groups` - (Optional) A list of associated security group IDS.
 * `associate_public_ip_address` - (Optional) Associate a public ip address with an instance in a VPC.
 * `vpc_classic_link_id` - (Optional) The ID of a ClassicLink-enabled VPC. Only applies to EC2-Classic instances. (eg. `vpc-2730681a`)
@@ -218,7 +222,7 @@ identified by the `virtual_name` in the format `"ephemeral{0..N}"`.
 ~> **NOTE:** Changes to `*_block_device` configuration of _existing_ resources
 cannot currently be detected by Terraform. After updating to block device
 configuration, resource recreation can be manually triggered by using the
-[`taint` command](/docs/commands/taint.html).
+[`taint` command](https://www.terraform.io/docs/commands/taint.html).
 
 ## Attributes Reference
 
@@ -229,7 +233,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - The name of the launch configuration.
 
 [1]: /docs/providers/aws/r/autoscaling_group.html
-[2]: /docs/configuration/resources.html#lifecycle
+[2]: https://www.terraform.io/docs/configuration/meta-arguments/lifecycle.html
 [3]: /docs/providers/aws/r/spot_instance_request.html
 
 ## Import

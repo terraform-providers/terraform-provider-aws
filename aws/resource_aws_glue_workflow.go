@@ -121,6 +121,7 @@ func resourceAwsGlueWorkflowRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting default_run_properties: %w", err)
 	}
 	d.Set("description", workflow.Description)
+	d.Set("max_concurrent_runs", workflow.MaxConcurrentRuns)
 	d.Set("name", workflow.Name)
 
 	tags, err := keyvaluetags.GlueListTags(conn, workFlowArn)

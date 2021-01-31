@@ -145,7 +145,7 @@ func resourceAwsVpcCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Get the ID and store it
 	vpc := vpcResp.Vpc
-	d.SetId(*vpc.VpcId)
+	d.SetId(aws.StringValue(vpc.VpcId))
 	log.Printf("[INFO] VPC ID: %s", d.Id())
 
 	// Wait for the VPC to become available

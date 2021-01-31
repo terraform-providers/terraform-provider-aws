@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -235,7 +236,7 @@ func resourceAwsEMRInstanceFleetCreate(d *schema.ResourceData, meta interface{})
 	if resp == nil {
 		return fmt.Errorf("error creating instance fleet: no instance fleet returned")
 	}
-	d.SetId(*resp.InstanceFleetId)
+	d.SetId(aws.StringValue(resp.InstanceFleetId))
 
 	return nil
 }
@@ -356,6 +357,11 @@ func resourceAwsEMRInstanceFleetDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	_, err := conn.ModifyInstanceFleet(modifyInstanceFleetInput)
+
+	if tfawserr.ErrMessageContains(err, emr.ErrCodeInvalidRequestException, "instance fleet may only be modified when the cluster is running or waiting") {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("error deleting/modifying EMR Instance Fleet (%s): %w", d.Id(), err)
 	}

@@ -65,8 +65,8 @@ resource "aws_iam_role_policy_attachment" "test-attach" {
 
 The following arguments are supported:
 
-* `role`		(Required) - The role the policy should be applied to
-* `policy_arn`	(Required) - The ARN of the policy you want to apply
+* `role`  (Required) - The role the policy should be applied to
+* `policy_arn` (Required) - The ARN of the policy you want to apply
 
 ## Import
 

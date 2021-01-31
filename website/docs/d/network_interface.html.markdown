@@ -2,7 +2,7 @@
 subcategory: "VPC"
 layout: "aws"
 page_title: "AWS: aws_network_interface"
-description: |-  
+description: |-
   Get information on a Network Interface resource.
 ---
 
@@ -52,6 +52,8 @@ Additionally, the following attributes are exported:
 
 * `allocation_id` - The allocation ID.
 * `association_id` - The association ID.
+* `carrier_ip` - The carrier IP address associated with the network interface. This attribute is only set when the network interface is in a subnet which is associated with a Wavelength Zone.
+* `customer_owned_ip` - The customer-owned IP address.
 * `ip_owner_id` - The ID of the Elastic IP address owner.
 * `public_dns_name` - The public DNS name.
 * `public_ip` - The address of the Elastic IP address bound to the network interface.

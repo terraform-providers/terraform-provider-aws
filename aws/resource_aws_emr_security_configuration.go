@@ -75,7 +75,7 @@ func resourceAwsEmrSecurityConfigurationCreate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	d.SetId(*resp.Name)
+	d.SetId(aws.StringValue(resp.Name))
 	return resourceAwsEmrSecurityConfigurationRead(d, meta)
 }
 

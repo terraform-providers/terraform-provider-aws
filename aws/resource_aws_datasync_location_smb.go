@@ -167,7 +167,7 @@ func resourceAwsDataSyncLocationSmbRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error parsing Location SMB (%s) URI (%s): %s", d.Id(), aws.StringValue(output.LocationUri), err)
 	}
 
-	d.Set("agent_arns", schema.NewSet(schema.HashString, flattenStringList(output.AgentArns)))
+	d.Set("agent_arns", flattenStringSet(output.AgentArns))
 
 	d.Set("arn", output.LocationArn)
 

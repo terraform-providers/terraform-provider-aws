@@ -214,7 +214,7 @@ func resourceAwsSsmDocumentCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating SSM document: %s", err)
 	}
 
-	d.SetId(*resp.DocumentDescription.Name)
+	d.SetId(aws.StringValue(resp.DocumentDescription.Name))
 
 	if v, ok := d.GetOk("permissions"); ok && v != nil {
 		if err := setDocumentPermissions(d, meta); err != nil {

@@ -74,7 +74,7 @@ The following additional atttributes are provided:
 
 ## Timeouts
 
-`aws_db_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts)
+`aws_db_event_subscription` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts)
 configuration options:
 
 - `create` - (Default `40m`) How long to wait for an RDS event notification subscription to be ready.

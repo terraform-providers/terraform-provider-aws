@@ -81,6 +81,7 @@ Each route supports the following:
 * `local_gateway_id` - The Local Gateway ID.
 * `instance_id` - The EC2 instance ID.
 * `transit_gateway_id` - The EC2 Transit Gateway ID.
+* `vpc_endpoint_id` - The VPC Endpoint ID.
 * `vpc_peering_connection_id` - The VPC Peering ID.
 * `network_interface_id` - The ID of the elastic network interface (eni) to use.
 

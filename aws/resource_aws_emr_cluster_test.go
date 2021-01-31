@@ -1643,8 +1643,15 @@ func testAccAWSEmrComposeConfig(mapPublicIPOnLaunch bool, config ...string) stri
 	return composeConfig(append(config, testAccAWSEmrClusterConfigBaseVpc(mapPublicIPOnLaunch))...)
 }
 
+func testAccAWSEmrClusterConfigCurrentPartition() string {
+	return `
+data "aws_partition" "current" {}
+`
+}
+
 func testAccAWSEmrClusterConfig_bootstrap(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigBootstrapActionBucket(r),
@@ -1707,6 +1714,7 @@ resource "aws_emr_cluster" "test" {
 
 func testAccAWSEmrClusterConfig_bootstrapAdd(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigBootstrapActionBucket(r),
@@ -1775,6 +1783,7 @@ resource "aws_emr_cluster" "test" {
 
 func testAccAWSEmrClusterConfig_bootstrapReorder(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigBootstrapActionBucket(r),
@@ -1843,6 +1852,7 @@ resource "aws_emr_cluster" "test" {
 
 func testAccAWSEmrClusterConfig(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -1899,6 +1909,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigAdditionalInfo(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -1964,6 +1975,7 @@ EOF
 
 func testAccAWSEmrClusterConfigConfigurationsJson(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		fmt.Sprintf(`
@@ -2087,6 +2099,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfig_SecurityConfiguration(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2265,7 +2278,9 @@ resource "aws_s3_bucket" "test" {
 }
 
 func testAccAWSEmrClusterConfigCoreInstanceGroupAutoscalingPolicy(rName, autoscalingPolicy string) string {
-	return testAccAWSEmrComposeConfig(false, fmt.Sprintf(`
+	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
+		fmt.Sprintf(`
 data "aws_iam_policy_document" "test" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -2273,15 +2288,13 @@ data "aws_iam_policy_document" "test" {
 
     principals {
       identifiers = [
-        "application-autoscaling.amazonaws.com",
-        "elasticmapreduce.amazonaws.com",
+        "application-autoscaling.${data.aws_partition.current.dns_suffix}",
+        "elasticmapreduce.${data.aws_partition.current.dns_suffix}",
       ]
       type = "Service"
     }
   }
 }
-
-data "aws_partition" "current" {}
 
 resource "aws_iam_role" "test" {
   name               = %[1]q
@@ -2329,7 +2342,9 @@ POLICY
 }
 
 func testAccAWSEmrClusterConfigCoreInstanceGroupAutoscalingPolicyRemoved(rName string) string {
-	return testAccAWSEmrComposeConfig(false, fmt.Sprintf(`
+	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
+		fmt.Sprintf(`
 data "aws_iam_policy_document" "test" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -2337,15 +2352,13 @@ data "aws_iam_policy_document" "test" {
 
     principals {
       identifiers = [
-        "application-autoscaling.amazonaws.com",
-        "elasticmapreduce.amazonaws.com",
+        "application-autoscaling.${data.aws_partition.current.dns_suffix}",
+        "elasticmapreduce.${data.aws_partition.current.dns_suffix}",
       ]
       type = "Service"
     }
   }
 }
-
-data "aws_partition" "current" {}
 
 resource "aws_iam_role" "test" {
   name               = %[1]q
@@ -2653,6 +2666,7 @@ resource "aws_emr_cluster" "test" {
 
 func testAccAWSEmrClusterConfigTerminationPolicy(r string, term string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2706,6 +2720,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfig_keepJob(r string, keepJob string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2769,6 +2784,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigVisibleToAllUsersUpdated(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2822,6 +2838,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigUpdatedTags(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2874,6 +2891,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigUpdatedRootVolumeSize(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -2927,7 +2945,9 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 }
 
 func testAccAWSEmrClusterConfigS3Logging(r string) string {
-	return testAccAWSEmrComposeConfig(false, fmt.Sprintf(`
+	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
+		fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
   bucket        = "%[1]s"
   force_destroy = true
@@ -2953,13 +2973,13 @@ resource "aws_emr_cluster" "tf-test-cluster" {
   log_uri = "s3://${aws_s3_bucket.test.bucket}/"
 
   ec2_attributes {
-    instance_profile                  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/EMR_EC2_DefaultRole"
+    instance_profile                  = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:instance-profile/EMR_EC2_DefaultRole"
     emr_managed_master_security_group = aws_security_group.test.id
     emr_managed_slave_security_group  = aws_security_group.test.id
     subnet_id                         = aws_subnet.test.id
   }
 
-  service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/EMR_DefaultRole"
+  service_role = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/EMR_DefaultRole"
 }
 
 data "aws_caller_identity" "current" {}
@@ -2969,6 +2989,7 @@ data "aws_caller_identity" "current" {}
 
 func testAccAWSEmrClusterConfigCustomAmiID(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleCustomAmiID(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigIAMAutoscalingRole(r),
@@ -3021,7 +3042,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 data "aws_ami" "emr-custom-ami" {
   most_recent = true
-  owners      = ["137112412989"]
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
@@ -3171,7 +3192,7 @@ resource "aws_iam_role" "emr_service" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "elasticmapreduce.amazonaws.com"
+        "Service": "elasticmapreduce.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -3182,7 +3203,7 @@ EOT
 
 resource "aws_iam_role_policy_attachment" "emr_service" {
   role       = aws_iam_role.emr_service.id
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
 }
 
 `, r)
@@ -3201,7 +3222,7 @@ resource "aws_iam_role" "emr_service" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "elasticmapreduce.amazonaws.com"
+        "Service": "elasticmapreduce.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -3305,7 +3326,7 @@ resource "aws_iam_role" "emr_instance_profile" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Action": "sts:AssumeRole"
     }
@@ -3373,14 +3394,14 @@ data "aws_iam_policy_document" "emr_autoscaling_role" {
 
     principals {
       type        = "Service"
-      identifiers = ["elasticmapreduce.amazonaws.com", "application-autoscaling.amazonaws.com"]
+      identifiers = ["elasticmapreduce.${data.aws_partition.current.dns_suffix}", "application-autoscaling.${data.aws_partition.current.dns_suffix}"]
     }
   }
 }
 
 resource "aws_iam_role_policy_attachment" "emr_autoscaling_role" {
   role       = aws_iam_role.emr_autoscaling_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole"
 }
 `, r)
 }
@@ -3453,6 +3474,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigInstanceFleets(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigBootstrapActionBucket(r),
@@ -3539,6 +3561,7 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 
 func testAccAWSEmrClusterConfigInstanceFleetsMasterOnly(r string) string {
 	return testAccAWSEmrComposeConfig(false,
+		testAccAWSEmrClusterConfigCurrentPartition(),
 		testAccAWSEmrClusterConfigIAMServiceRoleBase(r),
 		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		testAccAWSEmrClusterConfigBootstrapActionBucket(r),

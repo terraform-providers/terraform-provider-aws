@@ -113,7 +113,7 @@ func dataSourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Found EFS access point: %#v", ap)
 
-	d.SetId(*ap.AccessPointId)
+	d.SetId(aws.StringValue(ap.AccessPointId))
 
 	fsARN := arn.ARN{
 		AccountID: meta.(*AWSClient).accountid,

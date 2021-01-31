@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -313,7 +312,7 @@ func TestAccAWSNetworkAcl_EgressAndIngressRules(t *testing.T) {
 				Config: testAccAWSNetworkAclEgressNIngressConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":   "6",
 						"rule_no":    "1",
 						"from_port":  "80",
@@ -321,7 +320,7 @@ func TestAccAWSNetworkAcl_EgressAndIngressRules(t *testing.T) {
 						"action":     "allow",
 						"cidr_block": "10.3.0.0/18",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "egress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "egress.*", map[string]string{
 						"protocol":   "6",
 						"rule_no":    "2",
 						"from_port":  "443",
@@ -355,7 +354,7 @@ func TestAccAWSNetworkAcl_OnlyIngressRules_basic(t *testing.T) {
 				Config: testAccAWSNetworkAclIngressConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":   "6",
 						"rule_no":    "2",
 						"from_port":  "443",
@@ -390,14 +389,14 @@ func TestAccAWSNetworkAcl_OnlyIngressRules_update(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
 					testIngressRuleLength(&networkAcl, 2),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":  "6",
 						"rule_no":   "1",
 						"from_port": "0",
 						"to_port":   "22",
 						"action":    "deny",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"cidr_block": "10.2.0.0/18",
 						"from_port":  "443",
 						"rule_no":    "2",
@@ -415,7 +414,7 @@ func TestAccAWSNetworkAcl_OnlyIngressRules_update(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
 					testIngressRuleLength(&networkAcl, 1),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":   "6",
 						"rule_no":    "1",
 						"from_port":  "0",
@@ -628,7 +627,7 @@ func TestAccAWSNetworkAcl_ipv6Rules(t *testing.T) {
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
 					resource.TestCheckResourceAttr(
 						resourceName, "ingress.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"protocol":        "6",
 						"rule_no":         "1",
 						"from_port":       "0",
@@ -683,7 +682,7 @@ func TestAccAWSNetworkAcl_ipv6VpcRules(t *testing.T) {
 					testAccCheckAWSNetworkAclExists(resourceName, &networkAcl),
 					resource.TestCheckResourceAttr(
 						resourceName, "ingress.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "ingress.*", map[string]string{
 						"ipv6_cidr_block": "2600:1f16:d1e:9a00::/56",
 					}),
 				),

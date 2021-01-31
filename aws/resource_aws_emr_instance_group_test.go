@@ -172,7 +172,7 @@ func TestAccAWSEMRInstanceGroup_AutoScalingPolicy(t *testing.T) {
 }
 
 // Confirm we can scale down the instance count.
-// Regression test for https://github.com/terraform-providers/terraform-provider-aws/issues/1264
+// Regression test for https://github.com/hashicorp/terraform-provider-aws/issues/1264
 func TestAccAWSEMRInstanceGroup_InstanceCount(t *testing.T) {
 	var ig emr.InstanceGroup
 	rInt := acctest.RandInt()
@@ -201,8 +201,8 @@ func TestAccAWSEMRInstanceGroup_InstanceCount(t *testing.T) {
 	})
 }
 
-// Regression test for https://github.com/terraform-providers/terraform-provider-aws/issues/1355
-func TestAccAWSEMRInstanceGroup_EmrClusterDisappears(t *testing.T) {
+// Regression test for https://github.com/hashicorp/terraform-provider-aws/issues/1355
+func TestAccAWSEMRInstanceGroup_disappears_EmrCluster(t *testing.T) {
 	var cluster emr.Cluster
 	var ig emr.InstanceGroup
 	rInt := acctest.RandInt()

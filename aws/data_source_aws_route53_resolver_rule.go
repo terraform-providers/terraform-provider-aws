@@ -132,7 +132,7 @@ func dataSourceAwsRoute53ResolverRuleRead(d *schema.ResourceData, meta interface
 	d.Set("rule_type", rule.RuleType)
 	shareStatus := aws.StringValue(rule.ShareStatus)
 	d.Set("share_status", shareStatus)
-	// https://github.com/terraform-providers/terraform-provider-aws/issues/10211
+	// https://github.com/hashicorp/terraform-provider-aws/issues/10211
 	if shareStatus != route53resolver.ShareStatusSharedWithMe {
 		tags, err := keyvaluetags.Route53resolverListTags(conn, arn)
 

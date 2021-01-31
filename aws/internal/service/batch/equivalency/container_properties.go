@@ -40,6 +40,11 @@ func (cp *containerProperties) Reduce() error {
 	}
 
 	// Prevent difference of API response that adds an empty array when not configured during the request
+	if len(cp.Secrets) == 0 {
+		cp.Secrets = nil
+	}
+
+	// Prevent difference of API response that adds an empty array when not configured during the request
 	if len(cp.Ulimits) == 0 {
 		cp.Ulimits = nil
 	}

@@ -67,6 +67,11 @@ func resourceAwsAmiFromInstance() *schema.Resource {
 							Computed: true,
 						},
 
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -197,17 +202,16 @@ func resourceAwsAmiFromInstanceCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	id := *res.ImageId
-	d.SetId(id)
+	d.SetId(aws.StringValue(res.ImageId))
 	d.Set("manage_ebs_snapshots", true)
 
 	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		if err := keyvaluetags.Ec2CreateTags(client, id, v); err != nil {
+		if err := keyvaluetags.Ec2CreateTags(client, d.Id(), v); err != nil {
 			return fmt.Errorf("error adding tags: %s", err)
 		}
 	}
 
-	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), id, client)
+	_, err = resourceAwsAmiWaitForAvailable(d.Timeout(schema.TimeoutCreate), d.Id(), client)
 	if err != nil {
 		return err
 	}

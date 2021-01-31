@@ -73,11 +73,12 @@ func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interf
 	}
 
 	up, err := conn.CreateUsagePlanKey(params)
+
 	if err != nil {
-		return fmt.Errorf("Error creating API Gateway Usage Plan Key: %s", err)
+		return fmt.Errorf("error creating API Gateway Usage Plan Key: %w", err)
 	}
 
-	d.SetId(*up.Id)
+	d.SetId(aws.StringValue(up.Id))
 
 	return resourceAwsApiGatewayUsagePlanKeyRead(d, meta)
 }

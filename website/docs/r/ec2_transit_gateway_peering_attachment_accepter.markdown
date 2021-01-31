@@ -22,7 +22,7 @@ resource "aws_ec2_transit_gateway_peering_attachment_accepter" "example" {
 }
 ```
 
-A full example of how to create a Transit Gateway in one AWS account, share it with a second AWS account, and attach a to a Transit Gateway in the second account via the `aws_ec2_transit_gateway_peering_attachment` resource can be found in [the `./examples/transit-gateway-cross-account-peering-attachment` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-aws/tree/master/examples/transit-gateway-cross-account-peering-attachment).
+A full example of how to create a Transit Gateway in one AWS account, share it with a second AWS account, and attach a to a Transit Gateway in the second account via the `aws_ec2_transit_gateway_peering_attachment` resource can be found in [the `./examples/transit-gateway-cross-account-peering-attachment` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-aws/tree/master/examples/transit-gateway-cross-account-peering-attachment).
 
 ## Argument Reference
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 * `transit_gateway_attachment_id` - (Required) The ID of the EC2 Transit Gateway Peering Attachment to manage.
 * `tags` - (Optional) Key-value tags for the EC2 Transit Gateway Peering Attachment.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

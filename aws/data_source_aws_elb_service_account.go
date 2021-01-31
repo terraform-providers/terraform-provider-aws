@@ -4,36 +4,37 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // See http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html#attach-bucket-policy
 var elbAccountIdPerRegionMap = map[string]string{
-	"af-south-1":     "098369216593",
-	"ap-east-1":      "754344448648",
-	"ap-northeast-1": "582318560864",
-	"ap-northeast-2": "600734575887",
-	"ap-northeast-3": "383597477331",
-	"ap-south-1":     "718504428378",
-	"ap-southeast-1": "114774131450",
-	"ap-southeast-2": "783225319266",
-	"ca-central-1":   "985666609251",
-	"cn-north-1":     "638102146993",
-	"cn-northwest-1": "037604701340",
-	"eu-central-1":   "054676820928",
-	"eu-north-1":     "897822967062",
-	"eu-south-1":     "635631232127",
-	"eu-west-1":      "156460612806",
-	"eu-west-2":      "652711504416",
-	"eu-west-3":      "009996457667",
-	"me-south-1":     "076674570225",
-	"sa-east-1":      "507241528517",
-	"us-east-1":      "127311923021",
-	"us-east-2":      "033677994240",
-	"us-gov-east-1":  "190560391635",
-	"us-gov-west-1":  "048591011584",
-	"us-west-1":      "027434742980",
-	"us-west-2":      "797873946194",
+	endpoints.AfSouth1RegionID:     "098369216593",
+	endpoints.ApEast1RegionID:      "754344448648",
+	endpoints.ApNortheast1RegionID: "582318560864",
+	endpoints.ApNortheast2RegionID: "600734575887",
+	"ap-northeast-3":               "383597477331", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApSouth1RegionID:     "718504428378",
+	endpoints.ApSoutheast1RegionID: "114774131450",
+	endpoints.ApSoutheast2RegionID: "783225319266",
+	endpoints.CaCentral1RegionID:   "985666609251",
+	endpoints.CnNorth1RegionID:     "638102146993",
+	endpoints.CnNorthwest1RegionID: "037604701340",
+	endpoints.EuCentral1RegionID:   "054676820928",
+	endpoints.EuNorth1RegionID:     "897822967062",
+	endpoints.EuSouth1RegionID:     "635631232127",
+	endpoints.EuWest1RegionID:      "156460612806",
+	endpoints.EuWest2RegionID:      "652711504416",
+	endpoints.EuWest3RegionID:      "009996457667",
+	endpoints.MeSouth1RegionID:     "076674570225",
+	endpoints.SaEast1RegionID:      "507241528517",
+	endpoints.UsEast1RegionID:      "127311923021",
+	endpoints.UsEast2RegionID:      "033677994240",
+	endpoints.UsGovEast1RegionID:   "190560391635",
+	endpoints.UsGovWest1RegionID:   "048591011584",
+	endpoints.UsWest1RegionID:      "027434742980",
+	endpoints.UsWest2RegionID:      "797873946194",
 }
 
 func dataSourceAwsElbServiceAccount() *schema.Resource {

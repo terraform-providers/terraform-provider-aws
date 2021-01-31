@@ -49,7 +49,9 @@ The following arguments are supported:
 * `path` - (Optional, default "/") Path in which to create the profile.
 * `role` - (Optional) The role name to include in the profile.
 
-## Attribute Reference
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The instance profile's ID.
 * `arn` - The ARN assigned by AWS to the instance profile.

@@ -16,7 +16,7 @@ func TestAccAWSSESReceiptFilter_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t); testAccPreCheckSESReceiptRule(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptFilterDestroy,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccAWSSESReceiptFilter_disappears(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSSES(t); testAccPreCheckSESReceiptRule(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckSESReceiptFilterDestroy,
 		Steps: []resource.TestStep{

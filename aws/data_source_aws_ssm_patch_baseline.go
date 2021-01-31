@@ -107,7 +107,7 @@ func dataAwsSsmPatchBaselineRead(d *schema.ResourceData, meta interface{}) error
 
 	baseline := *filteredBaselines[0]
 
-	d.SetId(*baseline.BaselineId)
+	d.SetId(aws.StringValue(baseline.BaselineId))
 	d.Set("name", baseline.BaselineName)
 	d.Set("description", baseline.BaselineDescription)
 	d.Set("default_baseline", baseline.DefaultBaseline)

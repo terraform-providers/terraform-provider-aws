@@ -88,7 +88,7 @@ func resourceAwsNetworkInterfaceAttachmentCreate(d *schema.ResourceData, meta in
 			"Error waiting for Volume (%s) to attach to Instance: %s, error: %s", network_interface_id, instance_id, err)
 	}
 
-	d.SetId(*resp.AttachmentId)
+	d.SetId(aws.StringValue(resp.AttachmentId))
 	return resourceAwsNetworkInterfaceAttachmentRead(d, meta)
 }
 

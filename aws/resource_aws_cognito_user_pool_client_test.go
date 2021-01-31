@@ -10,13 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSCognitoUserPoolClient_basic(t *testing.T) {
 	var client cognitoidentityprovider.UserPoolClientType
 	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
-	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	clientName := acctest.RandString(10)
 	resourceName := "aws_cognito_user_pool_client.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +29,7 @@ func TestAccAWSCognitoUserPoolClient_basic(t *testing.T) {
 					testAccCheckAWSCognitoUserPoolClientExists(resourceName, &client),
 					resource.TestCheckResourceAttr(resourceName, "name", clientName),
 					resource.TestCheckResourceAttr(resourceName, "explicit_auth_flows.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
 				),
 			},
 			{
@@ -114,7 +113,7 @@ func TestAccAWSCognitoUserPoolClient_Name(t *testing.T) {
 func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
 	var client cognitoidentityprovider.UserPoolClientType
 	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
-	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	clientName := acctest.RandString(10)
 	resourceName := "aws_cognito_user_pool_client.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -128,31 +127,31 @@ func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
 					testAccCheckAWSCognitoUserPoolClientExists(resourceName, &client),
 					resource.TestCheckResourceAttr(resourceName, "name", clientName),
 					resource.TestCheckResourceAttr(resourceName, "explicit_auth_flows.#", "3"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "CUSTOM_AUTH_FLOW_ONLY"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "USER_PASSWORD_AUTH"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "CUSTOM_AUTH_FLOW_ONLY"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "USER_PASSWORD_AUTH"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
 					resource.TestCheckResourceAttr(resourceName, "generate_secret", "true"),
 					resource.TestCheckResourceAttr(resourceName, "read_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "read_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "read_attributes.*", "email"),
 					resource.TestCheckResourceAttr(resourceName, "write_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "write_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "write_attributes.*", "email"),
 					resource.TestCheckResourceAttr(resourceName, "refresh_token_validity", "300"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_flows.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "code"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "implicit"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "code"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "implicit"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_flows_user_pool_client", "true"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_scopes.#", "5"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "openid"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "email"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "phone"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "aws.cognito.signin.user.admin"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "profile"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "openid"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "phone"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "aws.cognito.signin.user.admin"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "profile"),
 					resource.TestCheckResourceAttr(resourceName, "callback_urls.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/callback"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/redirect"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/callback"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/redirect"),
 					resource.TestCheckResourceAttr(resourceName, "default_redirect_uri", "https://www.example.com/redirect"),
 					resource.TestCheckResourceAttr(resourceName, "logout_urls.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "logout_urls.*", "https://www.example.com/login"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "logout_urls.*", "https://www.example.com/login"),
 					resource.TestCheckResourceAttr(resourceName, "prevent_user_existence_errors", "LEGACY"),
 				),
 			},
@@ -170,7 +169,7 @@ func TestAccAWSCognitoUserPoolClient_allFields(t *testing.T) {
 func TestAccAWSCognitoUserPoolClient_allFieldsUpdatingOneField(t *testing.T) {
 	var client cognitoidentityprovider.UserPoolClientType
 	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
-	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	clientName := acctest.RandString(10)
 	resourceName := "aws_cognito_user_pool_client.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -187,31 +186,31 @@ func TestAccAWSCognitoUserPoolClient_allFieldsUpdatingOneField(t *testing.T) {
 					testAccCheckAWSCognitoUserPoolClientExists(resourceName, &client),
 					resource.TestCheckResourceAttr(resourceName, "name", clientName),
 					resource.TestCheckResourceAttr(resourceName, "explicit_auth_flows.#", "3"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "CUSTOM_AUTH_FLOW_ONLY"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "USER_PASSWORD_AUTH"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "CUSTOM_AUTH_FLOW_ONLY"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "USER_PASSWORD_AUTH"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "explicit_auth_flows.*", "ADMIN_NO_SRP_AUTH"),
 					resource.TestCheckResourceAttr(resourceName, "generate_secret", "true"),
 					resource.TestCheckResourceAttr(resourceName, "read_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "read_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "read_attributes.*", "email"),
 					resource.TestCheckResourceAttr(resourceName, "write_attributes.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "write_attributes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "write_attributes.*", "email"),
 					resource.TestCheckResourceAttr(resourceName, "refresh_token_validity", "299"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_flows.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "code"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "implicit"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "code"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_flows.*", "implicit"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_flows_user_pool_client", "true"),
 					resource.TestCheckResourceAttr(resourceName, "allowed_oauth_scopes.#", "5"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "openid"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "email"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "phone"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "aws.cognito.signin.user.admin"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "profile"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "openid"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "email"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "phone"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "aws.cognito.signin.user.admin"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "allowed_oauth_scopes.*", "profile"),
 					resource.TestCheckResourceAttr(resourceName, "callback_urls.#", "2"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/callback"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/redirect"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/callback"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "callback_urls.*", "https://www.example.com/redirect"),
 					resource.TestCheckResourceAttr(resourceName, "default_redirect_uri", "https://www.example.com/redirect"),
 					resource.TestCheckResourceAttr(resourceName, "logout_urls.#", "1"),
-					tfawsresource.TestCheckTypeSetElemAttr(resourceName, "logout_urls.*", "https://www.example.com/login"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "logout_urls.*", "https://www.example.com/login"),
 					resource.TestCheckResourceAttr(resourceName, "prevent_user_existence_errors", "LEGACY"),
 				),
 			},
@@ -229,11 +228,15 @@ func TestAccAWSCognitoUserPoolClient_allFieldsUpdatingOneField(t *testing.T) {
 func TestAccAWSCognitoUserPoolClient_analyticsConfig(t *testing.T) {
 	var client cognitoidentityprovider.UserPoolClientType
 	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
-	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	clientName := acctest.RandString(10)
 	resourceName := "aws_cognito_user_pool_client.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCognitoIdentityProvider(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSCognitoIdentityProvider(t)
+			testAccPreCheckAWSPinpointApp(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCognitoUserPoolClientDestroy,
 		Steps: []resource.TestStep{
@@ -275,7 +278,7 @@ func TestAccAWSCognitoUserPoolClient_analyticsConfig(t *testing.T) {
 func TestAccAWSCognitoUserPoolClient_disappears(t *testing.T) {
 	var client cognitoidentityprovider.UserPoolClientType
 	userPoolName := fmt.Sprintf("tf-acc-cognito-user-pool-%s", acctest.RandString(7))
-	clientName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	clientName := acctest.RandString(10)
 	resourceName := "aws_cognito_user_pool_client.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -469,8 +472,9 @@ resource "aws_cognito_user_pool_client" "test" {
 
 func testAccAWSCognitoUserPoolClientConfigAnalyticsConfigBase(userPoolName, clientName string) string {
 	return fmt.Sprintf(`
-data "aws_caller_identity" "current" {
-}
+data "aws_caller_identity" "current" {}
+
+data "aws_partition" "current" {}
 
 resource "aws_cognito_user_pool" "test" {
   name = "%[1]s"
@@ -490,7 +494,7 @@ resource "aws_iam_role" "test" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "cognito-idp.amazonaws.com"
+        "Service": "cognito-idp.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -514,7 +518,7 @@ resource "aws_iam_role_policy" "test" {
         "mobiletargeting:PutItems"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:mobiletargeting:*:${data.aws_caller_identity.current.account_id}:apps/${aws_pinpoint_app.test.application_id}*"
+      "Resource": "arn:${data.aws_partition.current.partition}:mobiletargeting:*:${data.aws_caller_identity.current.account_id}:apps/${aws_pinpoint_app.test.application_id}*"
     }
   ]
 }

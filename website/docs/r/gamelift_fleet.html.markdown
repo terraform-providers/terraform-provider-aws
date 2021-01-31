@@ -81,7 +81,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_gamelift_fleet` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_gamelift_fleet` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `70m`) How long to wait for a fleet to be created.
 * `delete` - (Default `20m`) How long to wait for a fleet to be deleted.

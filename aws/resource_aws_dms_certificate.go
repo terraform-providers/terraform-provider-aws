@@ -118,7 +118,7 @@ func resourceAwsDmsCertificateDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsDmsCertificateSetState(d *schema.ResourceData, cert *dms.Certificate) error {
-	d.SetId(*cert.CertificateIdentifier)
+	d.SetId(aws.StringValue(cert.CertificateIdentifier))
 
 	d.Set("certificate_id", cert.CertificateIdentifier)
 	d.Set("certificate_arn", cert.CertificateArn)

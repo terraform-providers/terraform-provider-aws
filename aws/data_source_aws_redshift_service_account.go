@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -11,31 +12,31 @@ import (
 // See https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-redshift.html
 // See https://docs.amazonaws.cn/en_us/redshift/latest/mgmt/db-auditing.html#db-auditing-bucket-permissions
 var redshiftServiceAccountPerRegionMap = map[string]string{
-	"us-east-1":      "193672423079",
-	"us-east-2":      "391106570357",
-	"us-west-1":      "262260360010",
-	"us-west-2":      "902366379725",
-	"af-south-1":     "365689465814",
-	"ap-east-1":      "313564881002",
-	"ap-south-1":     "865932855811",
-	"ap-northeast-3": "090321488786",
-	"ap-northeast-2": "760740231472",
-	"ap-southeast-1": "361669875840",
-	"ap-southeast-2": "762762565011",
-	"ap-northeast-1": "404641285394",
-	"ca-central-1":   "907379612154",
-	"cn-north-1":     "111890595117",
-	"cn-northwest-1": "660998842044",
-	"eu-central-1":   "053454850223",
-	"eu-west-1":      "210876761215",
-	"eu-west-2":      "307160386991",
-	"eu-west-3":      "915173422425",
-	"eu-north-1":     "729911121831",
-	"eu-south-1":     "945612479654",
-	"me-south-1":     "013126148197",
-	"sa-east-1":      "075028567923",
-	"us-gov-east-1":  "665727464434",
-	"us-gov-west-1":  "665727464434",
+	endpoints.AfSouth1RegionID:     "365689465814",
+	endpoints.ApEast1RegionID:      "313564881002",
+	endpoints.ApNortheast1RegionID: "404641285394",
+	endpoints.ApNortheast2RegionID: "760740231472",
+	"ap-northeast-3":               "090321488786", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApSouth1RegionID:     "865932855811",
+	endpoints.ApSoutheast1RegionID: "361669875840",
+	endpoints.ApSoutheast2RegionID: "762762565011",
+	endpoints.CaCentral1RegionID:   "907379612154",
+	endpoints.CnNorth1RegionID:     "111890595117",
+	endpoints.CnNorthwest1RegionID: "660998842044",
+	endpoints.EuCentral1RegionID:   "053454850223",
+	endpoints.EuNorth1RegionID:     "729911121831",
+	endpoints.EuSouth1RegionID:     "945612479654",
+	endpoints.EuWest1RegionID:      "210876761215",
+	endpoints.EuWest2RegionID:      "307160386991",
+	endpoints.EuWest3RegionID:      "915173422425",
+	endpoints.MeSouth1RegionID:     "013126148197",
+	endpoints.SaEast1RegionID:      "075028567923",
+	endpoints.UsEast1RegionID:      "193672423079",
+	endpoints.UsEast2RegionID:      "391106570357",
+	endpoints.UsGovEast1RegionID:   "665727464434",
+	endpoints.UsGovWest1RegionID:   "665727464434",
+	endpoints.UsWest1RegionID:      "262260360010",
+	endpoints.UsWest2RegionID:      "902366379725",
 }
 
 func dataSourceAwsRedshiftServiceAccount() *schema.Resource {

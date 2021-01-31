@@ -5,7 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -79,7 +78,7 @@ func dataSourceAwsEc2InstanceTypeOfferingsRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("error setting instance_types: %s", err)
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(meta.(*AWSClient).region)
 
 	return nil
 }

@@ -77,7 +77,7 @@ func TestAccAWSAPIGatewayStage_basic(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/12756
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/12756
 func TestAccAWSAPIGatewayStage_disappears_ReferencingDeployment(t *testing.T) {
 	var stage apigateway.Stage
 	rName := acctest.RandomWithPrefix("tf-acc-test")

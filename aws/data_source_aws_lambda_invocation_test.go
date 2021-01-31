@@ -107,8 +107,10 @@ resource "aws_iam_role" "lambda_role" {
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role_policy_attachment" "lambda_role_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
   role       = aws_iam_role.lambda_role.name
 }
 `, roleName)

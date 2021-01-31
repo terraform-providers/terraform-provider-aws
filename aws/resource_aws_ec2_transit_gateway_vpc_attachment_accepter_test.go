@@ -26,13 +26,14 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_basic(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayVpcAttachmentExists(resourceName, &transitGatewayVpcAttachment),
+					resource.TestCheckResourceAttr(resourceName, "appliance_mode_support", ec2.ApplianceModeSupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "dns_support", ec2.DnsSupportValueEnable),
 					resource.TestCheckResourceAttr(resourceName, "ipv6_support", ec2.Ipv6SupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
@@ -71,13 +72,14 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_Tags(t *testing.T) {
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_tags(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayVpcAttachmentExists(resourceName, &transitGatewayVpcAttachment),
+					resource.TestCheckResourceAttr(resourceName, "appliance_mode_support", ec2.ApplianceModeSupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "dns_support", ec2.DnsSupportValueEnable),
 					resource.TestCheckResourceAttr(resourceName, "ipv6_support", ec2.Ipv6SupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
@@ -98,6 +100,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_Tags(t *testing.T) {
 				Config: testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_tagsUpdated(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2TransitGatewayVpcAttachmentExists(resourceName, &transitGatewayVpcAttachment),
+					resource.TestCheckResourceAttr(resourceName, "appliance_mode_support", ec2.ApplianceModeSupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "dns_support", ec2.DnsSupportValueEnable),
 					resource.TestCheckResourceAttr(resourceName, "ipv6_support", ec2.Ipv6SupportValueDisable),
 					resource.TestCheckResourceAttr(resourceName, "subnet_ids.#", "1"),
@@ -138,7 +141,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_TransitGatewayDefaultRoute
 			testAccAlternateAccountPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayVpcAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -190,18 +193,7 @@ func TestAccAWSEc2TransitGatewayVpcAttachmentAccepter_TransitGatewayDefaultRoute
 }
 
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_base(rName string) string {
-	return testAccAlternateAccountProviderConfig() + fmt.Sprintf(`
-data "aws_availability_zones" "available" {
-  # IncorrectState: Transit Gateway is not available in availability zone us-west-2d
-  exclude_zone_ids = ["usw2-az4"]
-  state            = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+	return composeConfig(testAccAlternateAccountProviderConfig(), testAccAvailableAZsNoOptInDefaultExcludeConfig(), fmt.Sprintf(`
 resource "aws_ec2_transit_gateway" "test" {
   tags = {
     Name = %[1]q
@@ -267,7 +259,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "test" {
     Side = "Creator"
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSEc2TransitGatewayVpcAttachmentAccepterConfig_basic(rName string) string {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -13,7 +14,7 @@ func TestAccAWSDataSourceCloudFrontDistribution_basic(t *testing.T) {
 	resourceName := "aws_cloudfront_distribution.s3_distribution"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloudfront.EndpointsID, t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

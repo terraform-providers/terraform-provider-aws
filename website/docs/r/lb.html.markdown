@@ -22,7 +22,7 @@ resource "aws_lb" "test" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [aws_subnet.public.*.id]
+  subnets            = aws_subnet.public.*.id
 
   enable_deletion_protection = true
 
@@ -45,7 +45,7 @@ resource "aws_lb" "test" {
   name               = "test-lb-tf"
   internal           = false
   load_balancer_type = "network"
-  subnets            = [aws_subnet.public.*.id]
+  subnets            = aws_subnet.public.*.id
 
   enable_deletion_protection = true
 
@@ -106,7 +106,7 @@ must contain only alphanumeric characters or hyphens, and must not begin or end 
 Terraform will autogenerate a name beginning with `tf-lb`.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
 * `internal` - (Optional) If true, the LB will be internal.
-* `load_balancer_type` - (Optional) The type of load balancer to create. Possible values are `application` or `network`. The default value is `application`.
+* `load_balancer_type` - (Optional) The type of load balancer to create. Possible values are `application`, `gateway`, or `network`. The default value is `application`.
 * `security_groups` - (Optional) A list of security group IDs to assign to the LB. Only valid for Load Balancers of type `application`.
 * `drop_invalid_header_fields` - (Optional) Indicates whether HTTP headers with header fields that are not valid are removed by the load balancer (true) or routed to targets (false). The default is false. Elastic Load Balancing requires that message header names contain only alphanumeric characters and hyphens. Only valid for Load Balancers of type `application`.
 * `access_logs` - (Optional) An Access Logs block. Access Logs documented below.
@@ -138,7 +138,7 @@ Subnet Mapping (`subnet_mapping`) blocks support the following:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of the load balancer (matches `arn`).
 * `arn` - The ARN of the load balancer (matches `id`).
@@ -150,7 +150,7 @@ The following attributes are exported in addition to the arguments listed above:
 ## Timeouts
 
 `aws_lb` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for Creating LB
 - `update` - (Default `10 minutes`) Used for LB modifications

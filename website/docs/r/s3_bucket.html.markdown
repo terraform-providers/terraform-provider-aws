@@ -10,6 +10,8 @@ description: |-
 
 Provides a S3 bucket resource.
 
+-> This functionality is for managing S3 in an AWS Partition. To manage [S3 on Outposts](https://docs.aws.amazon.com/AmazonS3/latest/dev/S3onOutposts.html), see the [`aws_s3control_bucket` resource](/docs/providers/aws/r/s3control_bucket.html).
+
 ## Example Usage
 
 ### Private Bucket w/ Tags
@@ -333,9 +335,9 @@ resource "aws_s3_bucket" "bucket" {
 
 The following arguments are supported:
 
-* `bucket` - (Optional, Forces new resource) The name of the bucket. If omitted, Terraform will assign a random, unique name.
-* `bucket_prefix` - (Optional, Forces new resource) Creates a unique bucket name beginning with the specified prefix. Conflicts with `bucket`.
-* `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Defaults to "private".  Conflicts with `grant`.
+* `bucket` - (Optional, Forces new resource) The name of the bucket. If omitted, Terraform will assign a random, unique name. Must be less than or equal to 63 characters in length.
+* `bucket_prefix` - (Optional, Forces new resource) Creates a unique bucket name beginning with the specified prefix. Conflicts with `bucket`. Must be less than or equal to 37 characters in length.
+* `acl` - (Optional) The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply. Valid values are `private`, `public-read`, `public-read-write`, `aws-exec-read`, `authenticated-read`, and `log-delivery-write`. Defaults to `private`.  Conflicts with `grant`.
 * `grant` - (Optional) An [ACL policy grant](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#sample-acl) (documented below). Conflicts with `acl`.
 * `policy` - (Optional) A valid [bucket policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) JSON document. Note that if the policy document is not specific enough (but still valid), Terraform may view the policy as constantly changing in a `terraform plan`. In this case, please make sure you use the verbose/specific version of the policy. For more information about building AWS IAM policy documents with Terraform, see the [AWS IAM Policy Document Guide](https://learn.hashicorp.com/terraform/aws/iam-policy).
 
@@ -385,7 +387,7 @@ The `logging` object supports the following:
 
 The `lifecycle_rule` object supports the following:
 
-* `id` - (Optional) Unique identifier for the rule.
+* `id` - (Optional) Unique identifier for the rule. Must be less than or equal to 255 characters in length.
 * `prefix` - (Optional) Object key prefix identifying one or more objects to which the rule applies.
 * `tags` - (Optional) Specifies object tags key and value.
 * `enabled` - (Required) Specifies lifecycle rule status.
@@ -395,7 +397,7 @@ The `lifecycle_rule` object supports the following:
 * `noncurrent_version_expiration` - (Optional) Specifies when noncurrent object versions expire (documented below).
 * `noncurrent_version_transition` - (Optional) Specifies when noncurrent object versions transitions (documented below).
 
-At least one of `expiration`, `transition`, `noncurrent_version_expiration`, `noncurrent_version_transition` must be specified.
+At least one of `abort_incomplete_multipart_upload_days`, `expiration`, `transition`, `noncurrent_version_expiration`, `noncurrent_version_transition` must be specified.
 
 The `expiration` object supports the following
 
@@ -425,11 +427,11 @@ The `replication_configuration` object supports the following:
 
 The `rules` object supports the following:
 
-* `id` - (Optional) Unique identifier for the rule.
+* `id` - (Optional) Unique identifier for the rule. Must be less than or equal to 255 characters in length.
 * `priority` - (Optional) The priority associated with the rule.
 * `destination` - (Required) Specifies the destination for the rule (documented below).
 * `source_selection_criteria` - (Optional) Specifies special object selection criteria (documented below).
-* `prefix` - (Optional) Object keyname prefix identifying one or more objects to which the rule applies.
+* `prefix` - (Optional) Object keyname prefix identifying one or more objects to which the rule applies. Must be less than or equal to 1024 characters in length.
 * `status` - (Required) The status of the rule. Either `Enabled` or `Disabled`. The rule is ignored if status is not Enabled.
 * `filter` - (Optional) Filter that identifies subset of objects to which the replication rule applies (documented below).
 
@@ -461,7 +463,7 @@ The `sse_kms_encrypted_objects` object supports the following:
 
 The `filter` object supports the following:
 
-* `prefix` - (Optional) Object keyname prefix that identifies subset of objects to which the rule applies.
+* `prefix` - (Optional) Object keyname prefix that identifies subset of objects to which the rule applies. Must be less than or equal to 1024 characters in length.
 * `tags` - (Optional)  A map of tags that identifies subset of objects to which the rule applies.
 The rule applies only to objects having all the tags in its tagset.
 

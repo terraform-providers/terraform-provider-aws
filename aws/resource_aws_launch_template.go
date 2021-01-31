@@ -133,6 +133,12 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
+									"throughput": {
+										Type:         schema.TypeInt,
+										Computed:     true,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(125, 1000),
+									},
 									"volume_size": {
 										Type:     schema.TypeInt,
 										Optional: true,
@@ -399,6 +405,20 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 				},
 			},
 
+			"enclave_options": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"monitoring": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -418,6 +438,12 @@ func resourceAwsLaunchTemplate() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"associate_carrier_ip_address": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppressEquivalentTypeStringBoolean,
+							ValidateFunc:     validateTypeStringNullableBoolean,
+						},
 						"associate_public_ip_address": {
 							Type:             schema.TypeString,
 							Optional:         true,
@@ -654,7 +680,7 @@ func resourceAwsLaunchTemplateCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	launchTemplate := resp.LaunchTemplate
-	d.SetId(*launchTemplate.LaunchTemplateId)
+	d.SetId(aws.StringValue(launchTemplate.LaunchTemplateId))
 
 	log.Printf("[DEBUG] Launch Template created: %q (version %d)",
 		*launchTemplate.LaunchTemplateId, *launchTemplate.LatestVersionNumber)
@@ -789,6 +815,10 @@ func resourceAwsLaunchTemplateRead(d *schema.ResourceData, meta interface{}) err
 
 	if err := d.Set("metadata_options", flattenLaunchTemplateInstanceMetadataOptions(ltData.MetadataOptions)); err != nil {
 		return fmt.Errorf("error setting metadata_options: %s", err)
+	}
+
+	if err := d.Set("enclave_options", getEnclaveOptions(ltData.EnclaveOptions)); err != nil {
+		return fmt.Errorf("error setting enclave_options: %s", err)
 	}
 
 	if err := d.Set("monitoring", getMonitoring(ltData.Monitoring)); err != nil {
@@ -928,6 +958,9 @@ func getBlockDeviceMappings(m []*ec2.LaunchTemplateBlockDeviceMapping) []interfa
 			}
 			if v.Ebs.SnapshotId != nil {
 				ebs["snapshot_id"] = aws.StringValue(v.Ebs.SnapshotId)
+			}
+			if v.Ebs.Throughput != nil {
+				ebs["throughput"] = aws.Int64Value(v.Ebs.Throughput)
 			}
 
 			mapping["ebs"] = []interface{}{ebs}
@@ -1105,6 +1138,17 @@ func flattenLaunchTemplateInstanceMetadataOptions(opts *ec2.LaunchTemplateInstan
 	return []interface{}{m}
 }
 
+func getEnclaveOptions(m *ec2.LaunchTemplateEnclaveOptions) []interface{} {
+	s := []interface{}{}
+	if m != nil {
+		mo := map[string]interface{}{
+			"enabled": aws.BoolValue(m.Enabled),
+		}
+		s = append(s, mo)
+	}
+	return s
+}
+
 func getMonitoring(m *ec2.LaunchTemplatesMonitoring) []interface{} {
 	s := []interface{}{}
 	if m != nil {
@@ -1130,6 +1174,11 @@ func getNetworkInterfaces(n []*ec2.LaunchTemplateInstanceNetworkInterfaceSpecifi
 			"private_ip_address":   aws.StringValue(v.PrivateIpAddress),
 			"subnet_id":            aws.StringValue(v.SubnetId),
 		}
+
+		if v.AssociateCarrierIpAddress != nil {
+			networkInterface["associate_carrier_ip_address"] = strconv.FormatBool(aws.BoolValue(v.AssociateCarrierIpAddress))
+		}
+
 		if v.AssociatePublicIpAddress != nil {
 			networkInterface["associate_public_ip_address"] = strconv.FormatBool(aws.BoolValue(v.AssociatePublicIpAddress))
 		}
@@ -1274,11 +1323,11 @@ func buildLaunchTemplateData(d *schema.ResourceData) (*ec2.RequestLaunchTemplate
 	}
 
 	if v, ok := d.GetOk("security_group_names"); ok {
-		opts.SecurityGroups = expandStringList(v.(*schema.Set).List())
+		opts.SecurityGroups = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("vpc_security_group_ids"); ok {
-		opts.SecurityGroupIds = expandStringList(v.(*schema.Set).List())
+		opts.SecurityGroupIds = expandStringSet(v.(*schema.Set))
 	}
 
 	if v, ok := d.GetOk("block_device_mappings"); ok {
@@ -1371,6 +1420,17 @@ func buildLaunchTemplateData(d *schema.ResourceData) (*ec2.RequestLaunchTemplate
 
 	if v, ok := d.GetOk("metadata_options"); ok {
 		opts.MetadataOptions = expandLaunchTemplateInstanceMetadataOptions(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("enclave_options"); ok {
+		m := v.([]interface{})
+		if len(m) > 0 && m[0] != nil {
+			mData := m[0].(map[string]interface{})
+			enclaveOptions := &ec2.LaunchTemplateEnclaveOptionsRequest{
+				Enabled: aws.Bool(mData["enabled"].(bool)),
+			}
+			opts.EnclaveOptions = enclaveOptions
+		}
 	}
 
 	if v, ok := d.GetOk("monitoring"); ok {
@@ -1496,6 +1556,10 @@ func readEbsBlockDeviceFromConfig(ebs map[string]interface{}) (*ec2.LaunchTempla
 		ebsDevice.SnapshotId = aws.String(v)
 	}
 
+	if v := ebs["throughput"].(int); v > 0 {
+		ebsDevice.Throughput = aws.Int64(int64(v))
+	}
+
 	if v := ebs["volume_size"]; v != nil {
 		ebsDevice.VolumeSize = aws.Int64(int64(v.(int)))
 	}
@@ -1531,6 +1595,14 @@ func readNetworkInterfacesFromConfig(ni map[string]interface{}) (*ec2.LaunchTemp
 
 	if v, ok := ni["network_interface_id"].(string); ok && v != "" {
 		networkInterface.NetworkInterfaceId = aws.String(v)
+	}
+
+	if v, ok := ni["associate_carrier_ip_address"]; ok && v.(string) != "" {
+		vBool, err := strconv.ParseBool(v.(string))
+		if err != nil {
+			return nil, fmt.Errorf("error converting associate_carrier_ip_address %q from string to boolean: %s", v.(string), err)
+		}
+		networkInterface.AssociateCarrierIpAddress = aws.Bool(vBool)
 	}
 
 	if v, ok := ni["associate_public_ip_address"]; ok && v.(string) != "" {
@@ -1784,6 +1856,7 @@ var updateKeys = []string{
 	"ebs_optimized",
 	"elastic_gpu_specifications",
 	"elastic_inference_accelerator",
+	"enclave_options",
 	"hibernation_options",
 	"iam_instance_profile",
 	"image_id",

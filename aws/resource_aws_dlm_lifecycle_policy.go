@@ -162,7 +162,7 @@ func resourceAwsDlmLifecyclePolicyCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("error creating DLM Lifecycle Policy: %s", err)
 	}
 
-	d.SetId(*out.PolicyId)
+	d.SetId(aws.StringValue(out.PolicyId))
 
 	return resourceAwsDlmLifecyclePolicyRead(d, meta)
 }

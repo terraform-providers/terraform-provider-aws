@@ -694,7 +694,7 @@ func resourceAwsCloudFrontDistributionCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("error creating CloudFront Distribution: %s", err)
 	}
 
-	d.SetId(*resp.Distribution.Id)
+	d.SetId(aws.StringValue(resp.Distribution.Id))
 
 	if d.Get("wait_for_deployment").(bool) {
 		log.Printf("[DEBUG] Waiting until CloudFront Distribution (%s) is deployed", d.Id())

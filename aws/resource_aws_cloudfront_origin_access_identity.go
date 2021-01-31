@@ -61,7 +61,7 @@ func resourceAwsCloudFrontOriginAccessIdentityCreate(d *schema.ResourceData, met
 	if err != nil {
 		return err
 	}
-	d.SetId(*resp.CloudFrontOriginAccessIdentity.Id)
+	d.SetId(aws.StringValue(resp.CloudFrontOriginAccessIdentity.Id))
 	return resourceAwsCloudFrontOriginAccessIdentityRead(d, meta)
 }
 
@@ -84,7 +84,7 @@ func resourceAwsCloudFrontOriginAccessIdentityRead(d *schema.ResourceData, meta 
 	// Update attributes from DistributionConfig
 	flattenOriginAccessIdentityConfig(d, resp.CloudFrontOriginAccessIdentity.CloudFrontOriginAccessIdentityConfig)
 	// Update other attributes outside of DistributionConfig
-	d.SetId(*resp.CloudFrontOriginAccessIdentity.Id)
+	d.SetId(aws.StringValue(resp.CloudFrontOriginAccessIdentity.Id))
 	d.Set("etag", resp.ETag)
 	d.Set("s3_canonical_user_id", resp.CloudFrontOriginAccessIdentity.S3CanonicalUserId)
 	d.Set("cloudfront_access_identity_path", fmt.Sprintf("origin-access-identity/cloudfront/%s", *resp.CloudFrontOriginAccessIdentity.Id))

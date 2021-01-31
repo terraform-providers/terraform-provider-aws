@@ -5,12 +5,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/configservice"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
+)
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/configservice"
+const (
+	// Maximum amount of time to wait for Config service eventual consistency on deletion
+	configRemediationConfigurationDeletionTimeout = 2 * time.Minute
 )
 
 func resourceAwsConfigRemediationConfiguration() *schema.Resource {
@@ -201,7 +207,7 @@ func resourceAwsConfigRemediationConfigurationRead(d *schema.ResourceData, meta 
 	d.Set("target_type", remediationConfiguration.TargetType)
 	d.Set("target_version", remediationConfiguration.TargetVersion)
 	d.Set("parameter", flattenRemediationConfigurationParameters(remediationConfiguration.Parameters))
-	d.SetId(*remediationConfiguration.ConfigRuleName)
+	d.SetId(aws.StringValue(remediationConfiguration.ConfigRuleName))
 
 	return nil
 }
@@ -211,30 +217,36 @@ func resourceAwsConfigRemediationConfigurationDelete(d *schema.ResourceData, met
 
 	name := d.Get("config_rule_name").(string)
 
-	deleteRemediationConfigurationInput := configservice.DeleteRemediationConfigurationInput{
+	input := &configservice.DeleteRemediationConfigurationInput{
 		ConfigRuleName: aws.String(name),
 	}
 
 	if v, ok := d.GetOk("resource_type"); ok {
-		deleteRemediationConfigurationInput.ResourceType = aws.String(v.(string))
+		input.ResourceType = aws.String(v.(string))
 	}
 
 	log.Printf("[DEBUG] Deleting AWS Config remediation configurations for rule %q", name)
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteRemediationConfiguration(&deleteRemediationConfigurationInput)
+	err := resource.Retry(configRemediationConfigurationDeletionTimeout, func() *resource.RetryError {
+		_, err := conn.DeleteRemediationConfiguration(input)
+
+		if tfawserr.ErrCodeEquals(err, configservice.ErrCodeResourceInUseException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, configservice.ErrCodeResourceInUseException, "") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
-	if err != nil {
-		return fmt.Errorf("Deleting Remediation Configurations failed: %s", err)
+
+	if tfresource.TimedOut(err) {
+		_, err = conn.DeleteRemediationConfiguration(input)
 	}
 
-	log.Printf("[DEBUG] AWS Config remediation configurations for rule %q deleted", name)
+	if err != nil {
+		return fmt.Errorf("error deleting Config Remediation Configuration (%s): %w", d.Id(), err)
+	}
 
 	return nil
 }

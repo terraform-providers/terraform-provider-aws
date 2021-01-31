@@ -35,6 +35,10 @@ In addition to all arguments above, the following attributes are exported:
 * `instance_type` - The Instance Type of the instance to launch.
 * `iam_instance_profile` - The IAM Instance Profile to associate with launched instances.
 * `key_name` - The Key Name that should be used for the instance.
+* `metadata_options` - The metadata options for the instance.
+    * `http_endpoint` - The state of the metadata service: `enabled`, `disabled`.
+    * `http_tokens` - If session tokens are required: `optional`, `required`.
+    * `http_put_response_hop_limit` - The desired HTTP PUT response hop limit for instance metadata requests.
 * `security_groups` - A list of associated Security Group IDS.
 * `associate_public_ip_address` - Whether a Public IP address is associated with the instance.
 * `vpc_classic_link_id` - The ID of a ClassicLink-enabled VPC.

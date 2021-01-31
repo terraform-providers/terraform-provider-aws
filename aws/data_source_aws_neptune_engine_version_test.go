@@ -105,15 +105,15 @@ data "aws_neptune_engine_version" "test" {
 }
 
 func testAccAWSNeptuneEngineVersionDataSourcePreferredConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_neptune_engine_version" "test" {
   preferred_versions = ["85.9.12", "1.0.3.0", "1.0.2.2"]
 }
-`)
+`
 }
 
 func testAccAWSNeptuneEngineVersionDataSourceDefaultOnlyConfig() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_neptune_engine_version" "test" {}
-`)
+`
 }

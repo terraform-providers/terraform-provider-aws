@@ -181,7 +181,7 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 	subnetGroupName := d.Get("subnet_group_name").(string)
 	securityIdSet := d.Get("security_group_ids").(*schema.Set)
 
-	securityIds := expandStringList(securityIdSet.List())
+	securityIds := expandStringSet(securityIdSet)
 	tags := keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().DaxTags()
 
 	req := &dax.CreateClusterInput{
@@ -211,10 +211,9 @@ func resourceAwsDaxClusterCreate(d *schema.ResourceData, meta interface{}) error
 		req.NotificationTopicArn = aws.String(v.(string))
 	}
 
-	preferred_azs := d.Get("availability_zones").(*schema.Set).List()
-	if len(preferred_azs) > 0 {
-		azs := expandStringList(preferred_azs)
-		req.AvailabilityZones = azs
+	preferredAZs := d.Get("availability_zones").(*schema.Set)
+	if preferredAZs.Len() > 0 {
+		req.AvailabilityZones = expandStringSet(preferredAZs)
 	}
 
 	if v, ok := d.GetOk("server_side_encryption"); ok && len(v.([]interface{})) > 0 {
@@ -368,7 +367,7 @@ func resourceAwsDaxClusterUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("security_group_ids") {
 		if attr := d.Get("security_group_ids").(*schema.Set); attr.Len() > 0 {
-			req.SecurityGroupIds = expandStringList(attr.List())
+			req.SecurityGroupIds = expandStringSet(attr)
 			requestUpdate = true
 		}
 	}

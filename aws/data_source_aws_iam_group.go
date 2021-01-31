@@ -85,7 +85,7 @@ func dataSourceAwsIAMGroupRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("no IAM group found")
 	}
 
-	d.SetId(*group.GroupId)
+	d.SetId(aws.StringValue(group.GroupId))
 	d.Set("arn", group.Arn)
 	d.Set("path", group.Path)
 	d.Set("group_id", group.GroupId)

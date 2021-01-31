@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/opsworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 ///////////////////////////////
@@ -23,7 +22,11 @@ func TestAccAWSOpsworksStack_noVpcBasic(t *testing.T) {
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOpsWorksStacks(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
+			testAccPreCheckAWSOpsWorksStacks(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -49,7 +52,11 @@ func TestAccAWSOpsworksStack_noVpcChangeServiceRoleForceNew(t *testing.T) {
 	var before, after opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOpsWorksStacks(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
+			testAccPreCheckAWSOpsWorksStacks(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -81,7 +88,11 @@ func TestAccAWSOpsworksStack_vpc(t *testing.T) {
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOpsWorksStacks(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
+			testAccPreCheckAWSOpsWorksStacks(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -125,7 +136,11 @@ func TestAccAWSOpsworksStack_noVpcCreateTags(t *testing.T) {
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOpsWorksStacks(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
+			testAccPreCheckAWSOpsWorksStacks(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -164,7 +179,11 @@ func TestAccAWSOpsworksStack_CustomCookbooks_SetPrivateProperties(t *testing.T) 
 	var opsstack opsworks.Stack
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOpsWorksStacks(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t)
+			testAccPreCheckAWSOpsWorksStacks(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksStackDestroy,
 		Steps: []resource.TestStep{
@@ -336,7 +355,7 @@ resource "aws_iam_instance_profile" "opsworks_instance" {
   name = "%[1]s_profile"
   role = aws_iam_role.opsworks_instance.name
 }
-`, rName, rInt) //lintignore:AWSAT003
+`, rName, rInt) //lintignore:AWSAT003,AT004
 }
 
 func testAccAwsOpsWorksStack_regional_endpoint(rName string, rInt int) string {
@@ -423,7 +442,7 @@ resource "aws_iam_instance_profile" "opsworks_instance" {
   name = "%[1]s_profile"
   role = aws_iam_role.opsworks_instance.name
 }
-`, rName, rInt) //lintignore:AWSAT003
+`, rName, rInt) //lintignore:AWSAT003,AT004
 }
 
 ////////////////////////////

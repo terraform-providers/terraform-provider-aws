@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
@@ -52,7 +51,6 @@ func dataSourceAwsAutoscalingGroupsRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).autoscalingconn
 
 	log.Printf("[DEBUG] Reading Autoscaling Groups.")
-	d.SetId(time.Now().UTC().String())
 
 	var rawName []string
 	var rawArn []string
@@ -103,6 +101,8 @@ func dataSourceAwsAutoscalingGroupsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error fetching Autoscaling Groups: %s", err)
 	}
 
+	d.SetId(meta.(*AWSClient).region)
+
 	sort.Strings(rawName)
 	sort.Strings(rawArn)
 
@@ -122,7 +122,7 @@ func expandAsgTagFilters(in []interface{}) []*autoscaling.Filter {
 	out := make([]*autoscaling.Filter, len(in))
 	for i, filter := range in {
 		m := filter.(map[string]interface{})
-		values := expandStringList(m["values"].(*schema.Set).List())
+		values := expandStringSet(m["values"].(*schema.Set))
 
 		out[i] = &autoscaling.Filter{
 			Name:   aws.String(m["name"].(string)),

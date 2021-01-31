@@ -156,6 +156,8 @@ func TestAccAWSSubnet_basic(t *testing.T) {
 					testAccCheckResourceAttrAccountID(resourceName, "owner_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone"),
 					resource.TestCheckResourceAttrSet(resourceName, "availability_zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "customer_owned_ipv4_pool", ""),
+					resource.TestCheckResourceAttr(resourceName, "map_customer_owned_ip_on_launch", "false"),
 					resource.TestCheckResourceAttr(resourceName, "outpost_arn", ""),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -220,7 +222,7 @@ func TestAccAWSSubnet_ignoreTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesInternal(&providers),
 		CheckDestroy:      testAccCheckVpcDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -369,6 +371,57 @@ func TestAccAWSSubnet_disappears(t *testing.T) {
 					testAccCheckResourceDisappears(testAccProvider, resourceAwsSubnet(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSubnet_CustomerOwnedIpv4Pool(t *testing.T) {
+	var subnet ec2.Subnet
+	coipDataSourceName := "data.aws_ec2_coip_pool.test"
+	resourceName := "aws_subnet.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubnetConfigCustomerOwnedIpv4Pool(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttrPair(resourceName, "customer_owned_ipv4_pool", coipDataSourceName, "pool_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSSubnet_MapCustomerOwnedIpOnLaunch(t *testing.T) {
+	var subnet ec2.Subnet
+	resourceName := "aws_subnet.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSubnetConfigMapCustomerOwnedIpOnLaunch(true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckSubnetExists(resourceName, &subnet),
+					resource.TestCheckResourceAttr(resourceName, "map_customer_owned_ip_on_launch", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -673,6 +726,112 @@ resource "aws_subnet" "test" {
   }
 }
 `)
+}
+
+func testAccSubnetConfigCustomerOwnedIpv4Pool() string {
+	return `
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_ec2_local_gateway_route_tables" "test" {
+  filter {
+    name   = "outpost-arn"
+    values = [data.aws_outposts_outpost.test.arn]
+  }
+}
+
+data "aws_ec2_coip_pools" "test" {
+  # Filtering by Local Gateway Route Table ID is documented but not working in EC2 API.
+  # If there are multiple Outposts in the test account, this lookup can
+  # be misaligned and cause downstream resource errors.
+  #
+  # filter {
+  #   name   = "coip-pool.local-gateway-route-table-id"
+  #   values = [tolist(data.aws_ec2_local_gateway_route_tables.test.ids)[0]]
+  # }
+}
+
+data "aws_ec2_coip_pool" "test" {
+  pool_id = tolist(data.aws_ec2_coip_pools.test.pool_ids)[0]
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-subnet-outpost"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone               = data.aws_outposts_outpost.test.availability_zone
+  cidr_block                      = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  customer_owned_ipv4_pool        = data.aws_ec2_coip_pool.test.pool_id
+  map_customer_owned_ip_on_launch = true
+  outpost_arn                     = data.aws_outposts_outpost.test.arn
+  vpc_id                          = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-subnet-outpost"
+  }
+}
+`
+}
+
+func testAccSubnetConfigMapCustomerOwnedIpOnLaunch(mapCustomerOwnedIpOnLaunch bool) string {
+	return fmt.Sprintf(`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+data "aws_ec2_local_gateway_route_tables" "test" {
+  filter {
+    name   = "outpost-arn"
+    values = [data.aws_outposts_outpost.test.arn]
+  }
+}
+
+data "aws_ec2_coip_pools" "test" {
+  # Filtering by Local Gateway Route Table ID is documented but not working in EC2 API.
+  # If there are multiple Outposts in the test account, this lookup can
+  # be misaligned and cause downstream resource errors.
+  #
+  # filter {
+  #   name   = "coip-pool.local-gateway-route-table-id"
+  #   values = [tolist(data.aws_ec2_local_gateway_route_tables.test.ids)[0]]
+  # }
+}
+
+data "aws_ec2_coip_pool" "test" {
+  pool_id = tolist(data.aws_ec2_coip_pools.test.pool_ids)[0]
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-subnet-outpost"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone               = data.aws_outposts_outpost.test.availability_zone
+  cidr_block                      = cidrsubnet(aws_vpc.test.cidr_block, 8, 0)
+  customer_owned_ipv4_pool        = data.aws_ec2_coip_pool.test.pool_id
+  map_customer_owned_ip_on_launch = %[1]t
+  outpost_arn                     = data.aws_outposts_outpost.test.arn
+  vpc_id                          = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-subnet-outpost"
+  }
+}
+`, mapCustomerOwnedIpOnLaunch)
 }
 
 func testAccSubnetConfigOutpost() string {

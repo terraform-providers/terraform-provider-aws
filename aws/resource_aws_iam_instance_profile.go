@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -235,7 +234,7 @@ func resourceAwsIamInstanceProfileDelete(d *schema.ResourceData, meta interface{
 }
 
 func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfile) error {
-	d.SetId(*result.InstanceProfileName)
+	d.SetId(aws.StringValue(result.InstanceProfileName))
 	if err := d.Set("name", result.InstanceProfileName); err != nil {
 		return err
 	}

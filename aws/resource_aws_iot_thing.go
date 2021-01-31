@@ -75,7 +75,7 @@ func resourceAwsIotThingCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(*out.ThingName)
+	d.SetId(aws.StringValue(out.ThingName))
 
 	return resourceAwsIotThingRead(d, meta)
 }

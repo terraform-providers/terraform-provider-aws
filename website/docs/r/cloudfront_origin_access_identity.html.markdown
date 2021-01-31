@@ -29,7 +29,7 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 
 * `comment` (Optional) - An optional comment for the origin access identity.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

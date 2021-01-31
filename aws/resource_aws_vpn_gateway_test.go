@@ -140,6 +140,7 @@ func TestAccAWSVpnGateway_basic(t *testing.T) {
 func TestAccAWSVpnGateway_withAvailabilityZoneSetToState(t *testing.T) {
 	var v ec2.VpnGateway
 	resourceName := "aws_vpn_gateway.test"
+	azDataSourceName := "data.aws_availability_zones.available"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -147,10 +148,10 @@ func TestAccAWSVpnGateway_withAvailabilityZoneSetToState(t *testing.T) {
 		CheckDestroy: testAccCheckVpnGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVpnGatewayConfigWithAZ,
+				Config: testAccVpnGatewayConfigWithAZ(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVpnGatewayExists(resourceName, &v),
-					resource.TestCheckResourceAttr(resourceName, "availability_zone", "us-west-2a"),
+					resource.TestCheckResourceAttrPair(resourceName, "availability_zone", azDataSourceName, "names.0"),
 				),
 			},
 			{
@@ -612,16 +613,8 @@ resource "aws_vpn_gateway" "test2" {
 }
 `
 
-const testAccVpnGatewayConfigWithAZ = `
-data "aws_availability_zones" "azs" {
-  state = "available"
-
-  filter {
-    name   = "opt-in-status"
-    values = ["opt-in-not-required"]
-  }
-}
-
+func testAccVpnGatewayConfigWithAZ() string {
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "10.1.0.0/16"
 
@@ -632,13 +625,14 @@ resource "aws_vpc" "test" {
 
 resource "aws_vpn_gateway" "test" {
   vpc_id            = aws_vpc.test.id
-  availability_zone = data.aws_availability_zones.azs.names[0]
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "terraform-testacc-vpn-gateway-with-az"
   }
 }
-`
+`)
+}
 
 const testAccVpnGatewayConfigWithASN = `
 resource "aws_vpc" "test" {

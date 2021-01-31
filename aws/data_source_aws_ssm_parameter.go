@@ -63,7 +63,7 @@ func dataAwsSsmParameterRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	param := resp.Parameter
-	d.SetId(*param.Name)
+	d.SetId(aws.StringValue(param.Name))
 
 	arn := arn.ARN{
 		Partition: meta.(*AWSClient).partition,

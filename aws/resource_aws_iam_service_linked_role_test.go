@@ -90,25 +90,25 @@ func TestDecodeIamServiceLinkedRoleID(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Input:    "arn:aws:iam::123456789012:role/not-service-linked-role",
+			Input:    "arn:aws:iam::123456789012:role/not-service-linked-role", //lintignore:AWSAT005
 			ErrCount: 1,
 		},
 		{
-			Input:        "arn:aws:iam::123456789012:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+			Input:        "arn:aws:iam::123456789012:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling", //lintignore:AWSAT005
 			ServiceName:  "autoscaling.amazonaws.com",
 			RoleName:     "AWSServiceRoleForAutoScaling",
 			CustomSuffix: "",
 			ErrCount:     0,
 		},
 		{
-			Input:        "arn:aws:iam::123456789012:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_custom-suffix",
+			Input:        "arn:aws:iam::123456789012:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_custom-suffix", //lintignore:AWSAT005
 			ServiceName:  "autoscaling.amazonaws.com",
 			RoleName:     "AWSServiceRoleForAutoScaling_custom-suffix",
 			CustomSuffix: "custom-suffix",
 			ErrCount:     0,
 		},
 		{
-			Input:        "arn:aws:iam::123456789012:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable",
+			Input:        "arn:aws:iam::123456789012:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable", //lintignore:AWSAT005
 			ServiceName:  "dynamodb.application-autoscaling.amazonaws.com",
 			RoleName:     "AWSServiceRoleForApplicationAutoScaling_DynamoDBTable",
 			CustomSuffix: "DynamoDBTable",
@@ -218,7 +218,7 @@ func TestAccAWSIAMServiceLinkedRole_CustomSuffix(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/4439
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/4439
 func TestAccAWSIAMServiceLinkedRole_CustomSuffix_DiffSuppressFunc(t *testing.T) {
 	resourceName := "aws_iam_service_linked_role.test"
 	awsServiceName := "custom-resource.application-autoscaling.amazonaws.com"

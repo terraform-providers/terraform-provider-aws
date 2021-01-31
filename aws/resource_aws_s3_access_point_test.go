@@ -141,7 +141,7 @@ func TestAccAWSS3AccessPoint_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAWSS3AccessPoint_bucketDisappears(t *testing.T) {
+func TestAccAWSS3AccessPoint_disappears_Bucket(t *testing.T) {
 	var v s3control.GetAccessPointOutput
 	bucketName := acctest.RandomWithPrefix("tf-acc-test")
 	accessPointName := acctest.RandomWithPrefix("tf-acc-test")
@@ -160,6 +160,46 @@ func TestAccAWSS3AccessPoint_bucketDisappears(t *testing.T) {
 					testAccCheckAWSS3DestroyBucket(bucketResourceName),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSS3AccessPoint_Bucket_Arn(t *testing.T) {
+	var v s3control.GetAccessPointOutput
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_access_point.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSOutpostsOutposts(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3AccessPointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3AccessPointConfig_Bucket_Arn(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3AccessPointExists(resourceName, &v),
+					testAccCheckResourceAttrAccountID(resourceName, "account_id"),
+					testAccCheckResourceAttrRegionalARN(resourceName, "arn", "s3-outposts", fmt.Sprintf("outpost/[^/]+/accesspoint/%s", rName)),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "aws_s3control_bucket.test", "arn"),
+					testAccMatchResourceAttrRegionalHostname(resourceName, "domain_name", "s3-accesspoint", regexp.MustCompile(fmt.Sprintf("^%s-\\d{12}", rName))),
+					resource.TestCheckResourceAttr(resourceName, "has_public_access_policy", "false"),
+					resource.TestCheckResourceAttr(resourceName, "name", rName),
+					resource.TestCheckResourceAttr(resourceName, "network_origin", "Vpc"),
+					resource.TestCheckResourceAttr(resourceName, "policy", ""),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.block_public_acls", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.block_public_policy", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.ignore_public_acls", "true"),
+					resource.TestCheckResourceAttr(resourceName, "public_access_block_configuration.0.restrict_public_buckets", "true"),
+					resource.TestCheckResourceAttr(resourceName, "vpc_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_configuration.0.vpc_id", "aws_vpc.test", "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -475,6 +515,38 @@ resource "aws_s3_access_point" "test" {
   name   = %[2]q
 }
 `, bucketName, accessPointName)
+}
+
+func testAccAWSS3AccessPointConfig_Bucket_Arn(rName string) string {
+	return fmt.Sprintf(`
+data "aws_outposts_outposts" "test" {}
+
+data "aws_outposts_outpost" "test" {
+  id = tolist(data.aws_outposts_outposts.test.ids)[0]
+}
+
+resource "aws_s3control_bucket" "test" {
+  bucket     = %[1]q
+  outpost_id = data.aws_outposts_outpost.test.id
+}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = %[1]q
+  }
+}
+
+resource "aws_s3_access_point" "test" {
+  bucket = aws_s3control_bucket.test.arn
+  name   = %[1]q
+
+  vpc_configuration {
+    vpc_id = aws_vpc.test.id
+  }
+}
+`, rName)
 }
 
 func testAccAWSS3AccessPointConfig_policy(rName string) string {

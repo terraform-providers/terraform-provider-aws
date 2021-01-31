@@ -69,7 +69,7 @@ func testSweepKmsKeys(region string) error {
 
 func TestAccAWSKmsKey_basic(t *testing.T) {
 	var key kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -97,7 +97,7 @@ func TestAccAWSKmsKey_basic(t *testing.T) {
 
 func TestAccAWSKmsKey_asymmetricKey(t *testing.T) {
 	var key kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -119,7 +119,7 @@ func TestAccAWSKmsKey_asymmetricKey(t *testing.T) {
 
 func TestAccAWSKmsKey_disappears(t *testing.T) {
 	var key kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -141,7 +141,7 @@ func TestAccAWSKmsKey_disappears(t *testing.T) {
 
 func TestAccAWSKmsKey_policy(t *testing.T) {
 	var key kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 	expectedPolicyText := `{"Version":"2012-10-17","Id":"kms-tf-1","Statement":[{"Sid":"Enable IAM User Permissions","Effect":"Allow","Principal":{"AWS":"*"},"Action":"kms:*","Resource":"*"}]}`
 
@@ -199,7 +199,7 @@ func TestAccAWSKmsKey_Policy_IamRole(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/7646
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/7646
 func TestAccAWSKmsKey_Policy_IamServiceLinkedRole(t *testing.T) {
 	var key kms.KeyMetadata
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -228,7 +228,7 @@ func TestAccAWSKmsKey_Policy_IamServiceLinkedRole(t *testing.T) {
 
 func TestAccAWSKmsKey_isEnabled(t *testing.T) {
 	var key1, key2, key3 kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -275,7 +275,7 @@ func TestAccAWSKmsKey_isEnabled(t *testing.T) {
 
 func TestAccAWSKmsKey_tags(t *testing.T) {
 	var key kms.KeyMetadata
-	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
+	rName := fmt.Sprintf("tf-testacc-kms-key-%s", acctest.RandString(13))
 	resourceName := "aws_kms_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{

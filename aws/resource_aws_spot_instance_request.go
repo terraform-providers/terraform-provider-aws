@@ -211,7 +211,7 @@ func resourceAwsSpotInstanceRequestCreate(d *schema.ResourceData, meta interface
 	}
 
 	sir := *resp.SpotInstanceRequests[0]
-	d.SetId(*sir.SpotInstanceRequestId)
+	d.SetId(aws.StringValue(sir.SpotInstanceRequestId))
 
 	if d.Get("wait_for_fulfillment").(bool) {
 		spotStateConf := &resource.StateChangeConf{

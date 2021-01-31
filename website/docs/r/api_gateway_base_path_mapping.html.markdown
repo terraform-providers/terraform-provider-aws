@@ -14,11 +14,13 @@ custom domain name.
 
 ## Example Usage
 
+An end-to-end example of a REST API configured with OpenAPI can be found in the [`/examples/api-gateway-rest-api-openapi` directory within the GitHub repository](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples/api-gateway-rest-api-openapi).
+
 ```hcl
-resource "aws_api_gateway_deployment" "example" {
-  # See aws_api_gateway_rest_api docs for how to create this
-  rest_api_id = aws_api_gateway_rest_api.MyDemoAPI.id
-  stage_name  = "live"
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.example.id
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  stage_name    = "example"
 }
 
 resource "aws_api_gateway_domain_name" "example" {
@@ -30,9 +32,9 @@ resource "aws_api_gateway_domain_name" "example" {
   certificate_private_key = file("${path.module}/example.com/example.key")
 }
 
-resource "aws_api_gateway_base_path_mapping" "test" {
-  api_id      = aws_api_gateway_rest_api.MyDemoAPI.id
-  stage_name  = aws_api_gateway_deployment.example.stage_name
+resource "aws_api_gateway_base_path_mapping" "example" {
+  api_id      = aws_api_gateway_rest_api.example.id
+  stage_name  = aws_api_gateway_stage.example.stage_name
   domain_name = aws_api_gateway_domain_name.example.domain_name
 }
 ```

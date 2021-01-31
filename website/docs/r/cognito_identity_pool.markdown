@@ -66,7 +66,7 @@ backend and the Cognito service to communicate about the developer provider.
 
 ## Attributes Reference
 
-In addition to the arguments, which are exported, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - An identity pool ID in the format REGION:GUID.
 * `arn` - The ARN of the identity pool.

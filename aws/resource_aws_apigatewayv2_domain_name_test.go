@@ -91,6 +91,7 @@ func TestAccAWSAPIGatewayV2DomainName_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -120,7 +121,7 @@ func TestAccAWSAPIGatewayV2DomainName_disappears(t *testing.T) {
 				Config: testAccAWSAPIGatewayV2DomainNameConfig_basic(rName, certificate, key, 1, 0),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSAPIGatewayV2DomainNameExists(resourceName, &v),
-					testAccCheckAWSAPIGatewayV2DomainNameDisappears(&v),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsApiGatewayV2DomainName(), resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -154,6 +155,7 @@ func TestAccAWSAPIGatewayV2DomainName_Tags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value2"),
@@ -176,6 +178,7 @@ func TestAccAWSAPIGatewayV2DomainName_Tags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -210,6 +213,7 @@ func TestAccAWSAPIGatewayV2DomainName_UpdateCertificate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -225,6 +229,7 @@ func TestAccAWSAPIGatewayV2DomainName_UpdateCertificate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -240,6 +245,7 @@ func TestAccAWSAPIGatewayV2DomainName_UpdateCertificate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key1", "Value1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Key2", "Value2"),
@@ -249,6 +255,83 @@ func TestAccAWSAPIGatewayV2DomainName_UpdateCertificate(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSAPIGatewayV2DomainName_MutualTlsAuthentication(t *testing.T) {
+	rootDomain := testAccAwsAcmCertificateDomainFromEnv(t)
+	domain := testAccAwsAcmCertificateRandomSubDomain(rootDomain)
+
+	var v apigatewayv2.GetDomainNameOutput
+	resourceName := "aws_apigatewayv2_domain_name.test"
+	acmCertificateResourceName := "aws_acm_certificate.test"
+	s3BucketObjectResourceName := "aws_s3_bucket_object.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSAPIGatewayV2DomainNameDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthentication(rootDomain, domain, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2DomainNameExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/domainnames/.+`)),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name", acmCertificateResourceName, "domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name_configuration.0.certificate_arn", acmCertificateResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.endpoint_type", "REGIONAL"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.0.truststore_uri", fmt.Sprintf("s3://%s/%s.1", rName, rName)),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.0.truststore_version", ""),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config: testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthenticationUpdated(rootDomain, domain, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2DomainNameExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/domainnames/.+`)),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name", acmCertificateResourceName, "domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name_configuration.0.certificate_arn", acmCertificateResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.endpoint_type", "REGIONAL"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.0.truststore_uri", fmt.Sprintf("s3://%s/%s.2", rName, rName)),
+					resource.TestCheckResourceAttrPair(resourceName, "mutual_tls_authentication.0.truststore_version", s3BucketObjectResourceName, "version_id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Test disabling mutual TLS authentication.
+			{
+				Config: testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthenticationMissing(rootDomain, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSAPIGatewayV2DomainNameExists(resourceName, &v),
+					testAccMatchResourceAttrRegionalARNNoAccount(resourceName, "arn", "apigateway", regexp.MustCompile(`/domainnames/.+`)),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name", acmCertificateResourceName, "domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "domain_name_configuration.0.certificate_arn", acmCertificateResourceName, "arn"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.endpoint_type", "REGIONAL"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.hosted_zone_id"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_configuration.0.security_policy", "TLS_1_2"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_name_configuration.0.target_domain_name"),
+					resource.TestCheckResourceAttr(resourceName, "mutual_tls_authentication.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
 			},
 		},
 	})
@@ -278,18 +361,6 @@ func testAccCheckAWSAPIGatewayV2DomainNameDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSAPIGatewayV2DomainNameDisappears(v *apigatewayv2.GetDomainNameOutput) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigatewayv2conn
-
-		_, err := conn.DeleteDomainName(&apigatewayv2.DeleteDomainNameInput{
-			DomainName: v.DomainName,
-		})
-
-		return err
-	}
-}
-
 func testAccCheckAWSAPIGatewayV2DomainNameExists(n string, v *apigatewayv2.GetDomainNameOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -316,7 +387,7 @@ func testAccCheckAWSAPIGatewayV2DomainNameExists(n string, v *apigatewayv2.GetDo
 	}
 }
 
-func testAccAWSAPIGatewayV2DomainNameConfig_base(rName, certificate, key string, count int) string {
+func testAccAWSAPIGatewayV2DomainNameConfigImportedCerts(rName, certificate, key string, count int) string {
 	return fmt.Sprintf(`
 resource "aws_acm_certificate" "test" {
   count = %[4]d
@@ -331,8 +402,58 @@ resource "aws_acm_certificate" "test" {
 `, rName, certificate, key, count)
 }
 
+func testAccAWSAPIGatewayV2DomainNameConfigPublicCert(rootDomain, domain string) string {
+	return fmt.Sprintf(`
+data "aws_route53_zone" "test" {
+  name         = %[1]q
+  private_zone = false
+}
+
+resource "aws_acm_certificate" "test" {
+  domain_name       = %[2]q
+  validation_method = "DNS"
+}
+
+ #
+ # for_each acceptance testing requires:
+ # https://github.com/hashicorp/terraform-plugin-sdk/issues/536
+ #
+ # resource "aws_route53_record" "test" {
+ #   for_each = {
+ #     for dvo in aws_acm_certificate.test.domain_validation_options: dvo.domain_name => {
+ #       name   = dvo.resource_record_name
+ #       record = dvo.resource_record_value
+ #       type   = dvo.resource_record_type
+ #     }
+ #   }
+ #   allow_overwrite = true
+ #   name            = each.value.name
+ #   records         = [each.value.record]
+ #   ttl             = 60
+ #   type            = each.value.type
+ #   zone_id         = data.aws_route53_zone.test.zone_id
+ # }
+
+resource "aws_route53_record" "test" {
+  allow_overwrite = true
+  name            = tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_name
+  records         = [tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_value]
+  ttl             = 60
+  type            = tolist(aws_acm_certificate.test.domain_validation_options)[0].resource_record_type
+  zone_id         = data.aws_route53_zone.test.zone_id
+}
+
+resource "aws_acm_certificate_validation" "test" {
+  certificate_arn         = aws_acm_certificate.test.arn
+  validation_record_fqdns = [aws_route53_record.test.fqdn]
+}
+`, rootDomain, domain)
+}
+
 func testAccAWSAPIGatewayV2DomainNameConfig_basic(rName, certificate, key string, count, index int) string {
-	return testAccAWSAPIGatewayV2DomainNameConfig_base(rName, certificate, key, count) + fmt.Sprintf(`
+	return composeConfig(
+		testAccAWSAPIGatewayV2DomainNameConfigImportedCerts(rName, certificate, key, count),
+		fmt.Sprintf(`
 resource "aws_apigatewayv2_domain_name" "test" {
   domain_name = "%[1]s.example.com"
 
@@ -342,11 +463,13 @@ resource "aws_apigatewayv2_domain_name" "test" {
     security_policy = "TLS_1_2"
   }
 }
-`, rName, index)
+`, rName, index))
 }
 
 func testAccAWSAPIGatewayV2DomainNameConfig_tags(rName, certificate, key string, count, index int) string {
-	return testAccAWSAPIGatewayV2DomainNameConfig_base(rName, certificate, key, count) + fmt.Sprintf(`
+	return composeConfig(
+		testAccAWSAPIGatewayV2DomainNameConfigImportedCerts(rName, certificate, key, count),
+		fmt.Sprintf(`
 resource "aws_apigatewayv2_domain_name" "test" {
   domain_name = "%[1]s.example.com"
 
@@ -361,5 +484,90 @@ resource "aws_apigatewayv2_domain_name" "test" {
     Key2 = "Value2"
   }
 }
-`, rName, index)
+`, rName, index))
+}
+
+func testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthentication(rootDomain, domain, rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2DomainNameConfigPublicCert(rootDomain, domain),
+		fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.id
+  key    = "%[1]s.1"
+  source = "test-fixtures/apigateway-domain-name-truststore-1.pem"
+}
+
+resource "aws_apigatewayv2_domain_name" "test" {
+  domain_name = aws_acm_certificate.test.domain_name
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate_validation.test.certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+
+  mutual_tls_authentication {
+    truststore_uri = "s3://${aws_s3_bucket_object.test.bucket}/${aws_s3_bucket_object.test.key}"
+  }
+}
+`, rName))
+}
+
+func testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthenticationUpdated(rootDomain, domain, rName string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2DomainNameConfigPublicCert(rootDomain, domain),
+		fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+
+  force_destroy = true
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_s3_bucket_object" "test" {
+  bucket = aws_s3_bucket.test.id
+  key    = "%[1]s.2"
+  source = "test-fixtures/apigateway-domain-name-truststore-2.pem"
+}
+
+resource "aws_apigatewayv2_domain_name" "test" {
+  domain_name = aws_acm_certificate.test.domain_name
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate_validation.test.certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+
+  mutual_tls_authentication {
+    truststore_uri     = "s3://${aws_s3_bucket_object.test.bucket}/${aws_s3_bucket_object.test.key}"
+    truststore_version = aws_s3_bucket_object.test.version_id
+  }
+}
+`, rName))
+}
+
+func testAccAWSAPIGatewayV2DomainNameConfigMututalTlsAuthenticationMissing(rootDomain, domain string) string {
+	return composeConfig(
+		testAccAWSAPIGatewayV2DomainNameConfigPublicCert(rootDomain, domain),
+		`
+resource "aws_apigatewayv2_domain_name" "test" {
+  domain_name = aws_acm_certificate.test.domain_name
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate_validation.test.certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+}
+`)
 }

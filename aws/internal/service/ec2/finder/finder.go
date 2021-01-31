@@ -6,6 +6,25 @@ import (
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 )
 
+// CarrierGatewayByID returns the carrier gateway corresponding to the specified identifier.
+// Returns nil and potentially an error if no carrier gateway is found.
+func CarrierGatewayByID(conn *ec2.EC2, id string) (*ec2.CarrierGateway, error) {
+	input := &ec2.DescribeCarrierGatewaysInput{
+		CarrierGatewayIds: aws.StringSlice([]string{id}),
+	}
+
+	output, err := conn.DescribeCarrierGateways(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.CarrierGateways) == 0 {
+		return nil, nil
+	}
+
+	return output.CarrierGateways[0], nil
+}
+
 func ClientVpnAuthorizationRule(conn *ec2.EC2, endpointID, targetNetworkCidr, accessGroupID string) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
 	filters := map[string]string{
 		"destination-cidr": targetNetworkCidr,
@@ -72,6 +91,44 @@ func SecurityGroupByID(conn *ec2.EC2, id string) (*ec2.SecurityGroup, error) {
 	return result.SecurityGroups[0], nil
 }
 
+// SubnetByID looks up a Subnet by ID. When not found, returns nil and potentially an API error.
+func SubnetByID(conn *ec2.EC2, id string) (*ec2.Subnet, error) {
+	input := &ec2.DescribeSubnetsInput{
+		SubnetIds: aws.StringSlice([]string{id}),
+	}
+
+	output, err := conn.DescribeSubnets(input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.Subnets) == 0 || output.Subnets[0] == nil {
+		return nil, nil
+	}
+
+	return output.Subnets[0], nil
+}
+
+// VpcPeeringConnectionByID returns the VPC peering connection corresponding to the specified identifier.
+// Returns nil and potentially an error if no VPC peering connection is found.
+func VpcPeeringConnectionByID(conn *ec2.EC2, id string) (*ec2.VpcPeeringConnection, error) {
+	input := &ec2.DescribeVpcPeeringConnectionsInput{
+		VpcPeeringConnectionIds: aws.StringSlice([]string{id}),
+	}
+
+	output, err := conn.DescribeVpcPeeringConnections(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.VpcPeeringConnections) == 0 {
+		return nil, nil
+	}
+
+	return output.VpcPeeringConnections[0], nil
+}
+
 // VpnGatewayVpcAttachment returns the attachment between the specified VPN gateway and VPC.
 // Returns nil and potentially an error if no attachment is found.
 func VpnGatewayVpcAttachment(conn *ec2.EC2, vpnGatewayID, vpcID string) (*ec2.VpcAttachment, error) {
@@ -110,4 +167,21 @@ func VpnGatewayByID(conn *ec2.EC2, id string) (*ec2.VpnGateway, error) {
 	}
 
 	return output.VpnGateways[0], nil
+}
+
+func ManagedPrefixListByID(conn *ec2.EC2, id string) (*ec2.ManagedPrefixList, error) {
+	input := &ec2.DescribeManagedPrefixListsInput{
+		PrefixListIds: aws.StringSlice([]string{id}),
+	}
+
+	output, err := conn.DescribeManagedPrefixLists(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || len(output.PrefixLists) == 0 {
+		return nil, nil
+	}
+
+	return output.PrefixLists[0], nil
 }

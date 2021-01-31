@@ -458,7 +458,7 @@ The `xss_match_statement` block supports the following arguments:
 
 The `excluded_rule` block supports the following arguments:
 
-* `name` - (Required) The name of the rule to exclude.
+* `name` - (Required) The name of the rule to exclude. If the rule group is managed by AWS, see the [documentation](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html) for a list of names in the appropriate rule group in use.
 
 ### Field to Match
 
@@ -466,7 +466,7 @@ The part of a web request that you want AWS WAF to inspect. Include the single `
 
 The `field_to_match` block supports the following arguments:
 
-~> **NOTE**: An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, or `query_string` attributes
+~> **NOTE**: An empty configuration block `{}` should be used when specifying `all_query_arguments`, `body`, `method`, `query_string`, or `uri_path` attributes
 
 * `all_query_arguments` - (Optional) Inspect all query arguments.
 * `body` - (Optional) Inspect the request body, which immediately follows the request headers.

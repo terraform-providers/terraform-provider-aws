@@ -3,69 +3,81 @@ subcategory: "API Gateway (REST APIs)"
 layout: "aws"
 page_title: "AWS: aws_api_gateway_method_settings"
 description: |-
-  Provides an API Gateway Method Settings, e.g. logging or monitoring.
+  Manages API Gateway Stage Method Settings
 ---
 
 # Resource: aws_api_gateway_method_settings
 
-Provides an API Gateway Method Settings, e.g. logging or monitoring.
+Manages API Gateway Stage Method Settings. For example, CloudWatch logging and metrics.
+
+~> **NOTE:** It is recommended to use this resource in conjunction with the [`aws_api_gateway_stage` resource](api_gateway_stage.html) instead of a stage managed by the [`aws_api_gateway_deployment` resource](api_gateway_deployment.html) optional `stage_name` argument. Stages managed by the `aws_api_gateway_deployment` resource are recreated on redeployment and this resource will require a second apply to recreate the method settings.
 
 ## Example Usage
 
+An end-to-end example of a REST API configured with OpenAPI can be found in the [`/examples/api-gateway-rest-api-openapi` directory within the GitHub repository](https://github.com/hashicorp/terraform-provider-aws/tree/main/examples/api-gateway-rest-api-openapi).
+
 ```hcl
-resource "aws_api_gateway_method_settings" "s" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = aws_api_gateway_stage.test.stage_name
-  method_path = "${aws_api_gateway_resource.test.path_part}/${aws_api_gateway_method.test.http_method}"
+resource "aws_api_gateway_rest_api" "example" {
+  body = jsonencode({
+    openapi = "3.0.1"
+    info = {
+      title   = "example"
+      version = "1.0"
+    }
+    paths = {
+      "/path1" = {
+        get = {
+          x-amazon-apigateway-integration = {
+            httpMethod           = "GET"
+            payloadFormatVersion = "1.0"
+            type                 = "HTTP_PROXY"
+            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+          }
+        }
+      }
+    }
+  })
+
+  name = "example"
+}
+
+resource "aws_api_gateway_deployment" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.example.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.example.id
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  stage_name    = "example"
+}
+
+resource "aws_api_gateway_method_settings" "all" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  stage_name  = aws_api_gateway_stage.example.stage_name
+  method_path = "*/*"
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "ERROR"
+  }
+}
+
+resource "aws_api_gateway_method_settings" "path_specific" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+  stage_name  = aws_api_gateway_stage.example.stage_name
+  method_path = "path1/GET"
 
   settings {
     metrics_enabled = true
     logging_level   = "INFO"
-  }
-}
-
-resource "aws_api_gateway_rest_api" "test" {
-  name        = "MyDemoAPI"
-  description = "This is my API for demonstration purposes"
-}
-
-resource "aws_api_gateway_deployment" "test" {
-  depends_on  = [aws_api_gateway_integration.test]
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  stage_name  = "dev"
-}
-
-resource "aws_api_gateway_stage" "test" {
-  stage_name    = "prod"
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-  deployment_id = aws_api_gateway_deployment.test.id
-}
-
-resource "aws_api_gateway_resource" "test" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
-  path_part   = "mytestresource"
-}
-
-resource "aws_api_gateway_method" "test" {
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-  resource_id   = aws_api_gateway_resource.test.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "test" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  resource_id = aws_api_gateway_resource.test.id
-  http_method = aws_api_gateway_method.test.http_method
-  type        = "MOCK"
-
-  request_templates = {
-    "application/xml" = <<EOF
-{
-   "body" : $input.json('$')
-}
-EOF
   }
 }
 ```
@@ -76,7 +88,7 @@ The following arguments are supported:
 
 * `rest_api_id` - (Required) The ID of the REST API
 * `stage_name` - (Required) The name of the stage
-* `method_path` - (Required) Method path defined as `{resource_path}/{http_method}` for an individual method override, or `*/*` for overriding all methods in the stage.
+* `method_path` - (Required) Method path defined as `{resource_path}/{http_method}` for an individual method override, or `*/*` for overriding all methods in the stage. Ensure to trim any leading forward slashes in the path (e.g. `trimprefix(aws_api_gateway_resource.example.path, "/")`).
 * `settings` - (Required) The settings block, see below.
 
 ### `settings`

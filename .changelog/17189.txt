@@ -1,0 +1,7 @@
+```release-note:bug
+resource/lakeformation_permissions: Handle resources with multiple permissions
+```
+
+```release-note:bug
+resource/lakeformation_data_lake_settings: Avoid unnecessary resource cycling
+```

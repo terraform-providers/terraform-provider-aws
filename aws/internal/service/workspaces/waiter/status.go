@@ -34,10 +34,17 @@ func WorkspaceState(conn *workspaces.WorkSpaces, workspaceID string) resource.St
 		}
 
 		if len(output.Workspaces) == 0 {
-			return nil, workspaces.WorkspaceStateTerminated, nil
+			return output, workspaces.WorkspaceStateTerminated, nil
 		}
 
 		workspace := output.Workspaces[0]
+
+		// https://docs.aws.amazon.com/workspaces/latest/api/API_TerminateWorkspaces.html
+		// State TERMINATED is overridden with TERMINATING to catch up directory metadata clean up.
+		if aws.StringValue(workspace.State) == workspaces.WorkspaceStateTerminated {
+			return workspace, workspaces.WorkspaceStateTerminating, nil
+		}
+
 		return workspace, aws.StringValue(workspace.State), nil
 	}
 }

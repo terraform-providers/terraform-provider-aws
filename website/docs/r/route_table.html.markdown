@@ -56,7 +56,7 @@ resource "aws_route_table" "r" {
 The following arguments are supported:
 
 * `vpc_id` - (Required) The VPC ID.
-* `route` - (Optional) A list of route objects. Their keys are documented below. This argument is processed in [attribute-as-blocks mode](/docs/configuration/attr-as-blocks.html).
+* `route` - (Optional) A list of route objects. Their keys are documented below. This argument is processed in [attribute-as-blocks mode](https://www.terraform.io/docs/configuration/attr-as-blocks.html).
 * `tags` - (Optional) A map of tags to assign to the resource.
 * `propagating_vgws` - (Optional) A list of virtual gateways for propagation.
 
@@ -76,6 +76,7 @@ One of the following target arguments must be supplied:
 * `local_gateway_id` - (Optional) Identifier of a Outpost local gateway.
 * `network_interface_id` - (Optional) Identifier of an EC2 network interface.
 * `transit_gateway_id` - (Optional) Identifier of an EC2 Transit Gateway.
+* `vpc_endpoint_id` - (Optional) Identifier of a VPC Endpoint.
 * `vpc_peering_connection_id` - (Optional) Identifier of a VPC peering connection.
 
 Note that the default route, mapping the VPC's CIDR block to "local", is created implicitly and cannot be specified.

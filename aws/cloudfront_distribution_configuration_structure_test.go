@@ -35,12 +35,12 @@ func lambdaFunctionAssociationsConf() *schema.Set {
 	x := []interface{}{
 		map[string]interface{}{
 			"event_type":   "viewer-request",
-			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function1:alias",
+			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function1:alias", //lintignore:AWSAT003,AWSAT005
 			"include_body": true,
 		},
 		map[string]interface{}{
 			"event_type":   "origin-response",
-			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function2:alias",
+			"lambda_arn":   "arn:aws:lambda:us-east-1:999999999:function2:alias", //lintignore:AWSAT003,AWSAT005
 			"include_body": true,
 		},
 	}
@@ -257,7 +257,7 @@ func viewerCertificateConfSetIAM() map[string]interface{} {
 
 func viewerCertificateConfSetACM() map[string]interface{} {
 	return map[string]interface{}{
-		"acm_certificate_arn":            "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+		"acm_certificate_arn":            "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012", //lintignore:AWSAT003,AWSAT005
 		"cloudfront_default_certificate": false,
 		"iam_certificate_id":             "",
 		"ssl_support_method":             "sni-only",
@@ -301,10 +301,10 @@ func TestCloudFrontStructure_expandCloudFrontDefaultCacheBehavior(t *testing.T) 
 	if *dcb.LambdaFunctionAssociations.Quantity != 2 {
 		t.Fatalf("Expected LambdaFunctionAssociations to be 2, got %v", *dcb.LambdaFunctionAssociations.Quantity)
 	}
-	if !reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringList(allowedMethodsConf().List())) {
+	if !reflect.DeepEqual(dcb.AllowedMethods.Items, expandStringSet(allowedMethodsConf())) {
 		t.Fatalf("Expected AllowedMethods.Items to be %v, got %v", allowedMethodsConf().List(), dcb.AllowedMethods.Items)
 	}
-	if !reflect.DeepEqual(dcb.AllowedMethods.CachedMethods.Items, expandStringList(cachedMethodsConf().List())) {
+	if !reflect.DeepEqual(dcb.AllowedMethods.CachedMethods.Items, expandStringSet(cachedMethodsConf())) {
 		t.Fatalf("Expected AllowedMethods.CachedMethods.Items to be %v, got %v", cachedMethodsConf().List(), dcb.AllowedMethods.CachedMethods.Items)
 	}
 }
@@ -502,7 +502,7 @@ func TestCloudFrontStructure_expandAllowedMethods(t *testing.T) {
 	if *am.Quantity != 7 {
 		t.Fatalf("Expected Quantity to be 7, got %v", *am.Quantity)
 	}
-	if !reflect.DeepEqual(am.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(am.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be %v, got %v", data, am.Items)
 	}
 }
@@ -523,7 +523,7 @@ func TestCloudFrontStructure_expandCachedMethods(t *testing.T) {
 	if *cm.Quantity != 3 {
 		t.Fatalf("Expected Quantity to be 3, got %v", *cm.Quantity)
 	}
-	if !reflect.DeepEqual(cm.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(cm.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be %v, got %v", data, cm.Items)
 	}
 }
@@ -870,7 +870,7 @@ func TestCloudFrontStructure_expandAliases(t *testing.T) {
 	if *a.Quantity != 2 {
 		t.Fatalf("Expected Quantity to be 2, got %v", *a.Quantity)
 	}
-	if !reflect.DeepEqual(a.Items, expandStringList(data.List())) {
+	if !reflect.DeepEqual(a.Items, expandStringSet(data)) {
 		t.Fatalf("Expected Items to be [example.com www.example.com], got %v", a.Items)
 	}
 }
@@ -991,8 +991,10 @@ func TestCloudFrontStructure_expandViewerCertificate_iam_certificate_id(t *testi
 func TestCloudFrontStructure_expandViewerCertificate_acm_certificate_arn(t *testing.T) {
 	data := viewerCertificateConfSetACM()
 	vc := expandViewerCertificate(data)
+
+	// lintignore:AWSAT003,AWSAT005
 	if *vc.ACMCertificateArn != "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012" {
-		t.Fatalf("Expected ACMCertificateArn to be arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012, got %v", *vc.ACMCertificateArn)
+		t.Fatalf("Expected ACMCertificateArn to be arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012, got %v", *vc.ACMCertificateArn) // lintignore:AWSAT003,AWSAT005
 	}
 	if vc.CloudFrontDefaultCertificate != nil {
 		t.Fatalf("Expected CloudFrontDefaultCertificate to be unset, got %v", *vc.CloudFrontDefaultCertificate)

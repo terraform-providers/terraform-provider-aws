@@ -3,12 +3,12 @@ package aws
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/workspaces/waiter"
 )
@@ -133,6 +133,11 @@ func resourceAwsWorkspacesWorkspace() *schema.Resource {
 			},
 			"tags": tagsSchema(),
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(waiter.WorkspaceAvailableTimeout),
+			Update: schema.DefaultTimeout(waiter.WorkspaceUpdatingTimeout),
+			Delete: schema.DefaultTimeout(waiter.WorkspaceTerminatedTimeout),
+		},
 	}
 }
 
@@ -166,13 +171,13 @@ func resourceAwsWorkspacesWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	wsFail := resp.FailedRequests
 	if len(wsFail) > 0 {
-		return fmt.Errorf("workspace creation failed: %s", *wsFail[0].ErrorMessage)
+		return fmt.Errorf("workspace creation failed: %s: %s", aws.StringValue(wsFail[0].ErrorCode), aws.StringValue(wsFail[0].ErrorMessage))
 	}
 
 	workspaceID := aws.StringValue(resp.PendingRequests[0].WorkspaceId)
 
 	log.Printf("[DEBUG] Waiting for workspace %q to be available...", workspaceID)
-	_, err = waiter.WorkspaceAvailable(conn, workspaceID)
+	_, err = waiter.WorkspaceAvailable(conn, workspaceID, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return fmt.Errorf("workspace %q is not available: %s", workspaceID, err)
 	}
@@ -273,7 +278,7 @@ func resourceAwsWorkspacesWorkspaceUpdate(d *schema.ResourceData, meta interface
 func resourceAwsWorkspacesWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).workspacesconn
 
-	err := workspaceDelete(d.Id(), conn)
+	err := workspaceDelete(conn, d.Id(), d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return err
 	}
@@ -281,9 +286,9 @@ func resourceAwsWorkspacesWorkspaceDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func workspaceDelete(id string, conn *workspaces.WorkSpaces) error {
+func workspaceDelete(conn *workspaces.WorkSpaces, id string, timeout time.Duration) error {
 	log.Printf("[DEBUG] Terminating workspace %q", id)
-	_, err := conn.TerminateWorkspaces(&workspaces.TerminateWorkspacesInput{
+	resp, err := conn.TerminateWorkspaces(&workspaces.TerminateWorkspacesInput{
 		TerminateWorkspaceRequests: []*workspaces.TerminateRequest{
 			{
 				WorkspaceId: aws.String(id),
@@ -294,8 +299,13 @@ func workspaceDelete(id string, conn *workspaces.WorkSpaces) error {
 		return err
 	}
 
+	wsFail := resp.FailedRequests
+	if len(wsFail) > 0 {
+		return fmt.Errorf("workspace termination failed: %s: %s", aws.StringValue(wsFail[0].ErrorCode), aws.StringValue(wsFail[0].ErrorMessage))
+	}
+
 	log.Printf("[DEBUG] Waiting for workspace %q to be terminated", id)
-	_, err = waiter.WorkspaceTerminated(conn, id)
+	_, err = waiter.WorkspaceTerminated(conn, id, timeout)
 	if err != nil {
 		return fmt.Errorf("workspace %q was not terminated: %s", id, err)
 	}
@@ -348,7 +358,7 @@ func workspacePropertyUpdate(p string, conn *workspaces.WorkSpaces, d *schema.Re
 	}
 
 	log.Printf("[DEBUG] Waiting for workspace %q %s property to be modified...", d.Id(), p)
-	_, err = waiter.WorkspaceUpdated(conn, d.Id())
+	_, err = waiter.WorkspaceUpdated(conn, d.Id(), d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return fmt.Errorf("error modifying workspace %q property %q was not modified: %w", d.Id(), p, err)
 	}
@@ -373,7 +383,7 @@ func expandWorkspaceProperties(properties []interface{}) *workspaces.WorkspacePr
 		UserVolumeSizeGib: aws.Int64(int64(p["user_volume_size_gib"].(int))),
 	}
 
-	if p["running_mode"] == workspaces.RunningModeAutoStop {
+	if p["running_mode"].(string) == workspaces.RunningModeAutoStop {
 		workspaceProperties.RunningModeAutoStopTimeoutInMinutes = aws.Int64(int64(p["running_mode_auto_stop_timeout_in_minutes"].(int)))
 	}
 

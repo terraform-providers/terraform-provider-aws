@@ -13,11 +13,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/acm"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/hashcode"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 const (
@@ -283,7 +285,7 @@ func resourceAwsAcmCertificateCreateRequested(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error requesting certificate: %s", err)
 	}
 
-	d.SetId(*resp.CertificateArn)
+	d.SetId(aws.StringValue(resp.CertificateArn))
 
 	return resourceAwsAcmCertificateRead(d, meta)
 }
@@ -461,18 +463,28 @@ func resourceAwsAcmCertificateDelete(d *schema.ResourceData, meta interface{}) e
 
 	err := resource.Retry(AcmCertificateCrossServicePropagationTimeout, func() *resource.RetryError {
 		_, err := acmconn.DeleteCertificate(params)
+
+		if tfawserr.ErrCodeEquals(err, acm.ErrCodeResourceInUseException) {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, acm.ErrCodeResourceInUseException, "") {
-				log.Printf("[WARN] Conflict deleting certificate in use: %s, retrying", err.Error())
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 
-	if err != nil && !isAWSErr(err, acm.ErrCodeResourceNotFoundException, "") {
-		return fmt.Errorf("Error deleting certificate: %s", err)
+	if tfresource.TimedOut(err) {
+		_, err = acmconn.DeleteCertificate(params)
+	}
+
+	if tfawserr.ErrCodeEquals(err, acm.ErrCodeResourceNotFoundException) {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error deleting ACM Certificate (%s): %w", d.Id(), err)
 	}
 
 	return nil

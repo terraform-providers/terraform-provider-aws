@@ -70,7 +70,7 @@ The `criterion` block suports the following:
 
 ## Attributes Reference
 
-In addition to all arguments above, the following attribute is exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `arn` - The ARN of the GuardDuty filter.
 * `id` - A compound field, consisting of the ID of the GuardDuty detector and the name of the filter.

@@ -28,7 +28,7 @@ The following arguments are supported:
 * `disk_id` - (Required) Local disk identifier. For example, `pci-0000:03:00.0-scsi-0:0:0:0`.
 * `gateway_arn` - (Required) The Amazon Resource Name (ARN) of the gateway.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

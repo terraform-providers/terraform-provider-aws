@@ -38,6 +38,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `arn` - Amazon Resource Name (ARN) of snapshot copy grant
 
 ## Import

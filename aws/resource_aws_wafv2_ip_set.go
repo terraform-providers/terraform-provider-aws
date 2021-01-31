@@ -206,7 +206,7 @@ func resourceAwsWafv2IPSetUpdate(d *schema.ResourceData, meta interface{}) error
 		params.Addresses = expandStringSet(v.(*schema.Set))
 	}
 
-	if v, ok := d.GetOk("description"); ok && len(v.(string)) > 0 {
+	if v, ok := d.GetOk("description"); ok {
 		params.Description = aws.String(v.(string))
 	}
 

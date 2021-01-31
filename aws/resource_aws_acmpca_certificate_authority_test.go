@@ -538,7 +538,7 @@ func testAccCheckAwsAcmpcaCertificateAuthorityActivateCA(certificateAuthority *a
 			Csr:                     []byte(aws.StringValue(getCsrResp.Csr)),
 			IdempotencyToken:        aws.String(resource.UniqueId()),
 			SigningAlgorithm:        certificateAuthority.CertificateAuthorityConfiguration.SigningAlgorithm,
-			TemplateArn:             aws.String("arn:aws:acm-pca:::template/RootCACertificate/V1"),
+			TemplateArn:             aws.String(fmt.Sprintf("arn:%s:acm-pca:::template/RootCACertificate/V1", testAccGetPartition())),
 			Validity: &acmpca.Validity{
 				Type:  aws.String(acmpca.ValidityPeriodTypeYears),
 				Value: aws.Int64(10),
@@ -572,6 +572,19 @@ func testAccCheckAwsAcmpcaCertificateAuthorityActivateCA(certificateAuthority *a
 		if err != nil {
 			return fmt.Errorf("error importing ACMPCA Certificate Authority (%s) Root CA certificate: %s", arn, err)
 		}
+
+		return err
+	}
+}
+
+func testAccCheckAwsAcmpcaCertificateAuthorityDisableCA(certificateAuthority *acmpca.CertificateAuthority) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := testAccProvider.Meta().(*AWSClient).acmpcaconn
+
+		_, err := conn.UpdateCertificateAuthority(&acmpca.UpdateCertificateAuthorityInput{
+			CertificateAuthorityArn: certificateAuthority.Arn,
+			Status:                  aws.String(acmpca.CertificateAuthorityStatusDisabled),
+		})
 
 		return err
 	}

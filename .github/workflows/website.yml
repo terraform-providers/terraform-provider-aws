@@ -5,19 +5,19 @@ name: Website Checks
 on:
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request:
     paths:
       - .github/workflows/website.yml
+      - .go-version
       - .markdownlinkcheck.json
       - .markdownlint.yml
       - website/docs/**
+      - tools/go.mod
 
 env:
-  GO_VERSION: "1.14"
   GO111MODULE: on
-  TFLINT_VERSION: "v0.18.0"
 
 jobs:
   markdown-link-check:
@@ -52,6 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -61,12 +63,14 @@ jobs:
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-      - run: go install github.com/client9/misspell/cmd/misspell
+      - run: cd tools && go install github.com/client9/misspell/cmd/misspell
       - run: misspell -error -source text website/
   terrafmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -76,12 +80,14 @@ jobs:
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-      - run: go install github.com/katbyte/terrafmt
-      - run: terrafmt diff ./website --check --pattern '*.markdown' --quiet
+      - run: cd tools && go install github.com/katbyte/terrafmt
+      - run: terrafmt diff ./website --check --pattern '*.markdown'
   validate-terraform:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # See also: https://github.com/actions/setup-go/pull/62
+      - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -91,12 +97,8 @@ jobs:
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-      - run: |
-          # go get github.com/katbyte/terrafmt
-          git clone --branch json-output --single-branch https://github.com/gdavison/terrafmt terrafmt
-          cd terrafmt
-          go install
-      - run: curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+      - run: cd tools && go install github.com/katbyte/terrafmt
+      - run: cd tools && go install github.com/terraform-linters/tflint
       - run: |
           exit_code=0
 
@@ -113,12 +115,12 @@ jobs:
               "--disable-rule=aws_iam_saml_provider_invalid_saml_metadata_document"
               "--disable-rule=aws_iam_server_certificate_invalid_certificate_body"
               "--disable-rule=aws_iam_server_certificate_invalid_private_key"
+              "--disable-rule=aws_lb_invalid_load_balancer_type"
+              "--disable-rule=aws_lb_target_group_invalid_protocol"
               "--disable-rule=aws_transfer_ssh_key_invalid_body"
               "--disable-rule=aws_worklink_website_certificate_authority_association_invalid_certificate"
           )
-          find ./website/docs -type f \( -name '*.md' -o -name '*.markdown' \) \
-            | sort -u \
-            | while read -r filename ; do
+          while read -r filename; do
             rules=("${shared_rules[@]}")
             if [[ "$filename" == "./website/docs/guides/version-2-upgrade.html.md" ]]; then
                 # ./website/docs/guides/version-2-upgrade.html.md should still include pre-0.12 syntax,
@@ -126,6 +128,14 @@ jobs:
                 rules+=(
                 "--disable-rule=terraform_deprecated_interpolation"
                 "--disable-rule=terraform_deprecated_index"
+                )
+            elif [[ "$filename" == "./website/docs/guides/version-3-upgrade.html.md" ]]; then
+                # ./website/docs/guides/version-3-upgrade.html.md has one example showing migration from
+                # pre-0.12 syntax to 0.12 syntax. We can't customize rules per block, and adding a
+                # tflint-ignore directive to documentation is not ideal.
+                rules+=(
+                "--disable-rule=terraform_deprecated_interpolation"
+                "--enable-rule=terraform_deprecated_index"
                 )
             else
                 rules+=(
@@ -140,6 +150,6 @@ jobs:
             lint_exitcode=$?
             set -e
             if [ $lint_exitcode -ne 0 ]; then exit_code=1; fi
-          done
+          done < <(find ./website/docs -type f \( -name '*.md' -o -name '*.markdown' \) | sort -u)
 
           exit $exit_code

@@ -40,7 +40,7 @@ resource "aws_iot_certificate" "cert" {
 
 ## Attributes Reference
 
-In addition to the arguments, the following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The internal ID assigned to this certificate.
 * `arn` - The ARN of the created certificate.

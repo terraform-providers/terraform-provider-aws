@@ -45,7 +45,7 @@ func resourceAwsShieldProtectionCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("error creating Shield Protection: %s", err)
 	}
-	d.SetId(*resp.ProtectionId)
+	d.SetId(aws.StringValue(resp.ProtectionId))
 	return resourceAwsShieldProtectionRead(d, meta)
 }
 

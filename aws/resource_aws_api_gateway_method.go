@@ -93,6 +93,11 @@ func resourceAwsApiGatewayMethod() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+
+			"operation_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -133,7 +138,11 @@ func resourceAwsApiGatewayMethodCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("authorization_scopes"); ok {
-		input.AuthorizationScopes = expandStringList(v.(*schema.Set).List())
+		input.AuthorizationScopes = expandStringSet(v.(*schema.Set))
+	}
+
+	if v, ok := d.GetOk("operation_name"); ok {
+		input.OperationName = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("request_validator_id"); ok {
@@ -178,6 +187,7 @@ func resourceAwsApiGatewayMethodRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("authorization", out.AuthorizationType)
 	d.Set("authorizer_id", out.AuthorizerId)
+	d.Set("operation_name", out.OperationName)
 
 	if err := d.Set("request_models", aws.StringValueMap(out.RequestModels)); err != nil {
 		return fmt.Errorf("error setting request_models: %s", err)
@@ -286,6 +296,20 @@ func resourceAwsApiGatewayMethodUpdate(d *schema.ResourceData, meta interface{})
 			Op:    aws.String(apigateway.OpReplace),
 			Path:  aws.String("/requestValidatorId"),
 			Value: request_validator_id,
+		})
+	}
+
+	if d.HasChange("operation_name") {
+		var operation_name *string
+		if v, ok := d.GetOk("operation_name"); ok {
+			if s := v.(string); len(s) > 0 {
+				operation_name = &s
+			}
+		}
+		operations = append(operations, &apigateway.PatchOperation{
+			Op:    aws.String("replace"),
+			Path:  aws.String("/operationName"),
+			Value: operation_name,
 		})
 	}
 

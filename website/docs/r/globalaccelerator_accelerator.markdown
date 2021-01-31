@@ -60,6 +60,14 @@ In addition to all arguments above, the following attributes are exported:
 
 [1]: https://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
 
+## Timeouts
+
+`aws_globalaccelerator_accelerator` provides the following
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
+
+* `create` - (Default `30 minutes`) How long to wait for the Global Accelerator Accelerator to be created.
+* `update` - (Default `30 minutes`) How long to wait for the Global Accelerator Accelerator to be updated.
+
 ## Import
 
 Global Accelerator accelerators can be imported using the `id`, e.g.

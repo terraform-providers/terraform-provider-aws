@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"testing"
 
@@ -270,18 +269,18 @@ func TestAccAWSWafWebAcl_Rules(t *testing.T) {
 }
 
 func TestAccAWSWafWebAcl_LoggingConfiguration(t *testing.T) {
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
 	var webACL waf.WebACL
 	rName := fmt.Sprintf("wafacl%s", acctest.RandString(5))
 	resourceName := "aws_waf_web_acl.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSWaf(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSWafWebAclDestroy,
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPreCheckAWSWaf(t)
+			testAccPreCheckWafLoggingConfiguration(t)
+		},
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSWafWebAclDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAWSWafWebAclConfig_Logging(rName),
@@ -294,6 +293,7 @@ func TestAccAWSWafWebAcl_LoggingConfiguration(t *testing.T) {
 			},
 			// Test resource import
 			{
+				Config:            testAccAWSWafWebAclConfig_Logging(rName),
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -309,7 +309,7 @@ func TestAccAWSWafWebAcl_LoggingConfiguration(t *testing.T) {
 			},
 			// Test logging configuration removal
 			{
-				Config: testAccAWSWafWebAclConfig_Required(rName),
+				Config: testAccAWSWafWebAclConfig_LoggingRemoved(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSWafWebAclExists(resourceName, &webACL),
 					resource.TestCheckResourceAttr(resourceName, "logging_configuration.#", "0"),
@@ -632,7 +632,9 @@ resource "aws_waf_web_acl" "test" {
 }
 
 func testAccAWSWafWebAclConfig_Logging(rName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(
+		testAccWafLoggingConfigurationRegionProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_waf_web_acl" "test" {
   name        = %[1]q
   metric_name = %[1]q
@@ -693,11 +695,28 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
     bucket_arn = aws_s3_bucket.test.arn
   }
 }
-`, rName)
+`, rName))
+}
+
+func testAccAWSWafWebAclConfig_LoggingRemoved(rName string) string {
+	return composeConfig(
+		testAccWafLoggingConfigurationRegionProviderConfig(),
+		fmt.Sprintf(`
+resource "aws_waf_web_acl" "test" {
+  metric_name = %[1]q
+  name        = %[1]q
+
+  default_action {
+    type = "ALLOW"
+  }
+}
+`, rName))
 }
 
 func testAccAWSWafWebAclConfig_LoggingUpdate(rName string) string {
-	return fmt.Sprintf(`
+	return composeConfig(
+		testAccWafLoggingConfigurationRegionProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_waf_web_acl" "test" {
   metric_name = %[1]q
   name        = %[1]q
@@ -747,7 +766,7 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
     bucket_arn = aws_s3_bucket.test.arn
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSWafWebAclConfigTags1(rName, tag1Key, tag1Value string) string {

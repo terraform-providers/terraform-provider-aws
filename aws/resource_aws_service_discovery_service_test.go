@@ -118,7 +118,11 @@ func TestAccAWSServiceDiscoveryService_private(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceDiscovery(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(servicediscovery.EndpointsID, t)
+			testAccPreCheckAWSServiceDiscovery(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
 		Steps: []resource.TestStep{
@@ -164,7 +168,11 @@ func TestAccAWSServiceDiscoveryService_public(t *testing.T) {
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSServiceDiscovery(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(servicediscovery.EndpointsID, t)
+			testAccPreCheckAWSServiceDiscovery(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
 		Steps: []resource.TestStep{
@@ -217,7 +225,7 @@ func TestAccAWSServiceDiscoveryService_http(t *testing.T) {
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(servicediscovery.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
 		Steps: []resource.TestStep{
@@ -244,7 +252,7 @@ func TestAccAWSServiceDiscoveryService_disappears(t *testing.T) {
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(servicediscovery.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
 		Steps: []resource.TestStep{
@@ -265,7 +273,7 @@ func TestAccAWSServiceDiscoveryService_Tags(t *testing.T) {
 	resourceName := "aws_service_discovery_service.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(servicediscovery.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsServiceDiscoveryServiceDestroy,
 		Steps: []resource.TestStep{

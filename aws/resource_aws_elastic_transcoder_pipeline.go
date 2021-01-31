@@ -225,7 +225,7 @@ func resourceAwsElasticTranscoderPipelineCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating Elastic Transcoder Pipeline: %s", err)
 	}
 
-	d.SetId(*resp.Pipeline.Id)
+	d.SetId(aws.StringValue(resp.Pipeline.Id))
 
 	for _, w := range resp.Warnings {
 		log.Printf("[WARN] Elastic Transcoder Pipeline %v: %v", *w.Code, *w.Message)

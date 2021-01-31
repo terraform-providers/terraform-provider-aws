@@ -18,6 +18,7 @@ const filename = `get_tag_gen.go`
 
 var serviceNames = []string{
 	"autoscaling",
+	"batch",
 	"dynamodb",
 	"ec2",
 	"ecs",

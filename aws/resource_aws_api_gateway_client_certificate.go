@@ -63,7 +63,7 @@ func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Failed to generate client certificate: %s", err)
 	}
 
-	d.SetId(*out.ClientCertificateId)
+	d.SetId(aws.StringValue(out.ClientCertificateId))
 
 	return resourceAwsApiGatewayClientCertificateRead(d, meta)
 }

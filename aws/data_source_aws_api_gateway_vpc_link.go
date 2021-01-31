@@ -76,7 +76,7 @@ func dataSourceAwsApiGatewayVpcLinkRead(d *schema.ResourceData, meta interface{}
 
 	match := matchedVpcLinks[0]
 
-	d.SetId(*match.Id)
+	d.SetId(aws.StringValue(match.Id))
 	d.Set("name", match.Name)
 	d.Set("status", match.Status)
 	d.Set("status_message", match.StatusMessage)

@@ -44,7 +44,8 @@ func resourceAwsDbProxyDefaultTargetGroup() *schema.Resource {
 			},
 			"connection_pool_config": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

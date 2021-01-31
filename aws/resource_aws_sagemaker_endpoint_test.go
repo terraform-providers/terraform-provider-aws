@@ -225,13 +225,15 @@ data "aws_iam_policy_document" "access" {
   }
 }
 
+data "aws_partition" "current" {}
+
 data "aws_iam_policy_document" "assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
 
     principals {
       type        = "Service"
-      identifiers = ["sagemaker.amazonaws.com"]
+      identifiers = ["sagemaker.${data.aws_partition.current.dns_suffix}"]
     }
   }
 }
@@ -258,12 +260,17 @@ resource "aws_s3_bucket_object" "test" {
   source = "test-fixtures/sagemaker-tensorflow-serving-test-model.tar.gz"
 }
 
+data "aws_sagemaker_prebuilt_ecr_image" "test" {
+  repository_name = "sagemaker-tensorflow-serving"
+  image_tag       = "1.12-cpu"
+}
+
 resource "aws_sagemaker_model" "test" {
   name               = %[1]q
   execution_role_arn = aws_iam_role.test.arn
 
   primary_container {
-    image          = "520713654638.dkr.ecr.us-west-2.amazonaws.com/sagemaker-tensorflow-serving:1.12-cpu"
+    image          = data.aws_sagemaker_prebuilt_ecr_image.test.registry_path
     model_data_url = "https://${aws_s3_bucket.test.bucket_regional_domain_name}/${aws_s3_bucket_object.test.key}"
   }
 

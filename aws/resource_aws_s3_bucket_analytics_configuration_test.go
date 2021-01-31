@@ -365,7 +365,7 @@ func TestAccAWSS3BucketAnalyticsConfiguration_WithStorageClassAnalysis_Empty(t *
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSS3BucketAnalyticsConfigurationWithEmptyStorageClassAnalysis(rName, rName),
-				ExpectError: regexp.MustCompile(`required field is not set`),
+				ExpectError: regexp.MustCompile(`running pre-apply refresh`),
 			},
 		},
 	})
@@ -919,7 +919,7 @@ func TestExpandS3StorageClassAnalysis(t *testing.T) {
 								map[string]interface{}{
 									"s3_bucket_destination": []interface{}{
 										map[string]interface{}{
-											"bucket_arn":        "arn:aws:s3",
+											"bucket_arn":        "arn:aws:s3", //lintignore:AWSAT005
 											"bucket_account_id": "1234567890",
 											"format":            s3.AnalyticsS3ExportFileFormatCsv,
 											"prefix":            "prefix/",
@@ -935,7 +935,7 @@ func TestExpandS3StorageClassAnalysis(t *testing.T) {
 				DataExport: &s3.StorageClassAnalysisDataExport{
 					Destination: &s3.AnalyticsExportDestination{
 						S3BucketDestination: &s3.AnalyticsS3BucketDestination{
-							Bucket:          aws.String("arn:aws:s3"),
+							Bucket:          aws.String("arn:aws:s3"), //lintignore:AWSAT005
 							BucketAccountId: aws.String("1234567890"),
 							Format:          aws.String(s3.AnalyticsS3ExportFileFormatCsv),
 							Prefix:          aws.String("prefix/"),
@@ -953,7 +953,7 @@ func TestExpandS3StorageClassAnalysis(t *testing.T) {
 								map[string]interface{}{
 									"s3_bucket_destination": []interface{}{
 										map[string]interface{}{
-											"bucket_arn": "arn:aws:s3",
+											"bucket_arn": "arn:aws:s3", //lintignore:AWSAT005
 											"format":     s3.AnalyticsS3ExportFileFormatCsv,
 										},
 									},
@@ -967,7 +967,7 @@ func TestExpandS3StorageClassAnalysis(t *testing.T) {
 				DataExport: &s3.StorageClassAnalysisDataExport{
 					Destination: &s3.AnalyticsExportDestination{
 						S3BucketDestination: &s3.AnalyticsS3BucketDestination{
-							Bucket:          aws.String("arn:aws:s3"),
+							Bucket:          aws.String("arn:aws:s3"), //lintignore:AWSAT005
 							BucketAccountId: nil,
 							Format:          aws.String(s3.AnalyticsS3ExportFileFormatCsv),
 							Prefix:          nil,
@@ -1154,7 +1154,7 @@ func TestFlattenS3StorageClassAnalysis(t *testing.T) {
 				DataExport: &s3.StorageClassAnalysisDataExport{
 					Destination: &s3.AnalyticsExportDestination{
 						S3BucketDestination: &s3.AnalyticsS3BucketDestination{
-							Bucket: aws.String("arn:aws:s3"),
+							Bucket: aws.String("arn:aws:s3"), //lintignore:AWSAT005
 							Format: aws.String(s3.AnalyticsS3ExportFileFormatCsv),
 						},
 					},
@@ -1168,7 +1168,7 @@ func TestFlattenS3StorageClassAnalysis(t *testing.T) {
 								map[string]interface{}{
 									"s3_bucket_destination": []interface{}{
 										map[string]interface{}{
-											"bucket_arn": "arn:aws:s3",
+											"bucket_arn": "arn:aws:s3", //lintignore:AWSAT005
 											"format":     s3.AnalyticsS3ExportFileFormatCsv,
 										},
 									},
@@ -1184,7 +1184,7 @@ func TestFlattenS3StorageClassAnalysis(t *testing.T) {
 				DataExport: &s3.StorageClassAnalysisDataExport{
 					Destination: &s3.AnalyticsExportDestination{
 						S3BucketDestination: &s3.AnalyticsS3BucketDestination{
-							Bucket:          aws.String("arn:aws:s3"),
+							Bucket:          aws.String("arn:aws:s3"), //lintignore:AWSAT005
 							BucketAccountId: aws.String("1234567890"),
 							Format:          aws.String(s3.AnalyticsS3ExportFileFormatCsv),
 							Prefix:          aws.String("prefix/"),
@@ -1200,7 +1200,7 @@ func TestFlattenS3StorageClassAnalysis(t *testing.T) {
 								map[string]interface{}{
 									"s3_bucket_destination": []interface{}{
 										map[string]interface{}{
-											"bucket_arn":        "arn:aws:s3",
+											"bucket_arn":        "arn:aws:s3", //lintignore:AWSAT005
 											"bucket_account_id": "1234567890",
 											"format":            s3.AnalyticsS3ExportFileFormatCsv,
 											"prefix":            "prefix/",

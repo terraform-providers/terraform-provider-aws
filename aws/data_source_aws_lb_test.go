@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAWSLB_basic(t *testing.T) {
-	lbName := fmt.Sprintf("testaccawslb-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testaccawslb-basic-%s", acctest.RandString(10))
 	dataSourceName := "data.aws_lb.alb_test_with_arn"
 	dataSourceName2 := "data.aws_lb.alb_test_with_name"
 	resourceName := "aws_lb.alb_test"
@@ -56,7 +56,7 @@ func TestAccDataSourceAWSLB_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLB_outpost(t *testing.T) {
-	lbName := fmt.Sprintf("testaccawslb-outpost-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testaccawslb-outpost-%s", acctest.RandString(10))
 	dataSourceName := "data.aws_lb.alb_test_with_arn"
 	resourceName := "aws_lb.alb_test"
 
@@ -89,7 +89,7 @@ func TestAccDataSourceAWSLB_outpost(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLB_BackwardsCompatibility(t *testing.T) {
-	lbName := fmt.Sprintf("testaccawsalb-basic-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testaccawsalb-basic-%s", acctest.RandString(10))
 	dataSourceName1 := "data.aws_alb.alb_test_with_arn"
 	dataSourceName2 := "data.aws_alb.alb_test_with_name"
 	resourceName := "aws_alb.alb_test"

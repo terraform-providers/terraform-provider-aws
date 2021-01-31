@@ -142,7 +142,7 @@ func resourceAwsEfsAccessPointCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error creating EFS Access Point for File System (%s): %w", fsId, err)
 	}
 
-	d.SetId(*ap.AccessPointId)
+	d.SetId(aws.StringValue(ap.AccessPointId))
 	log.Printf("[INFO] EFS access point ID: %s", d.Id())
 
 	stateConf := &resource.StateChangeConf{
@@ -218,7 +218,7 @@ func resourceAwsEfsAccessPointRead(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[DEBUG] Found EFS access point: %#v", ap)
 
-	d.SetId(*ap.AccessPointId)
+	d.SetId(aws.StringValue(ap.AccessPointId))
 
 	fsARN := arn.ARN{
 		AccountID: meta.(*AWSClient).accountid,

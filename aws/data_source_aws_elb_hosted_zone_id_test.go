@@ -14,7 +14,7 @@ func TestAccAWSElbHostedZoneId_basic(t *testing.T) {
 			{
 				Config: testAccCheckAwsElbHostedZoneIdConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.aws_elb_hosted_zone_id.main", "id", "Z1H1FL5HABSF5"),
+					resource.TestCheckResourceAttr("data.aws_elb_hosted_zone_id.main", "id", elbHostedZoneIdPerRegionMap[testAccGetRegion()]),
 				),
 			},
 			{
@@ -31,6 +31,7 @@ const testAccCheckAwsElbHostedZoneIdConfig = `
 data "aws_elb_hosted_zone_id" "main" {}
 `
 
+//lintignore:AWSAT003
 const testAccCheckAwsElbHostedZoneIdExplicitRegionConfig = `
 data "aws_elb_hosted_zone_id" "regional" {
   region = "eu-west-1"

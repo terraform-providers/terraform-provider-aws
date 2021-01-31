@@ -88,7 +88,7 @@ func resourceAwsWafRegionalRuleCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	resp := out.(*waf.CreateRuleOutput)
-	d.SetId(*resp.Rule.RuleId)
+	d.SetId(aws.StringValue(resp.Rule.RuleId))
 
 	newPredicates := d.Get("predicate").(*schema.Set).List()
 	if len(newPredicates) > 0 {

@@ -123,60 +123,50 @@ resource "aws_wafregional_web_acl" "foo" {
   }
 }
 
-resource "aws_api_gateway_rest_api" "test" {
-  name = "foo"
+resource "aws_api_gateway_rest_api" "example" {
+  body = jsonencode({
+    openapi = "3.0.1"
+    info = {
+      title   = "example"
+      version = "1.0"
+    }
+    paths = {
+      "/path1" = {
+        get = {
+          x-amazon-apigateway-integration = {
+            httpMethod           = "GET"
+            payloadFormatVersion = "1.0"
+            type                 = "HTTP_PROXY"
+            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+          }
+        }
+      }
+    }
+  })
+
+  name = "example"
 }
 
-resource "aws_api_gateway_resource" "test" {
-  parent_id   = aws_api_gateway_rest_api.test.root_resource_id
-  path_part   = "test"
-  rest_api_id = aws_api_gateway_rest_api.test.id
+resource "aws_api_gateway_deployment" "example" {
+  rest_api_id = aws_api_gateway_rest_api.example.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.example.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-resource "aws_api_gateway_method" "test" {
-  authorization = "NONE"
-  http_method   = "GET"
-  resource_id   = aws_api_gateway_resource.test.id
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-}
-
-resource "aws_api_gateway_method_response" "test" {
-  http_method = aws_api_gateway_method.test.http_method
-  resource_id = aws_api_gateway_resource.test.id
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  status_code = "400"
-}
-
-resource "aws_api_gateway_integration" "test" {
-  http_method             = aws_api_gateway_method.test.http_method
-  integration_http_method = "GET"
-  resource_id             = aws_api_gateway_resource.test.id
-  rest_api_id             = aws_api_gateway_rest_api.test.id
-  type                    = "HTTP"
-  uri                     = "http://www.example.com"
-}
-
-resource "aws_api_gateway_integration_response" "test" {
-  rest_api_id = aws_api_gateway_rest_api.test.id
-  resource_id = aws_api_gateway_resource.test.id
-  http_method = aws_api_gateway_integration.test.http_method
-  status_code = aws_api_gateway_method_response.test.status_code
-}
-
-resource "aws_api_gateway_deployment" "test" {
-  depends_on = [aws_api_gateway_integration_response.test]
-
-  rest_api_id = aws_api_gateway_rest_api.test.id
-}
-
-resource "aws_api_gateway_stage" "test" {
-  deployment_id = aws_api_gateway_deployment.test.id
-  rest_api_id   = aws_api_gateway_rest_api.test.id
-  stage_name    = "test"
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.example.id
+  rest_api_id   = aws_api_gateway_rest_api.example.id
+  stage_name    = "example"
 }
 
 resource "aws_wafregional_web_acl_association" "association" {
-  resource_arn = aws_api_gateway_stage.test.arn
+  resource_arn = aws_api_gateway_stage.example.arn
   web_acl_id   = aws_wafregional_web_acl.foo.id
 }
 ```

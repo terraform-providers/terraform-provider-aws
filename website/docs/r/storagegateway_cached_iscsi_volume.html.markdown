@@ -67,7 +67,7 @@ The following arguments are supported:
 * `kms_key` - (Optional) The Amazon Resource Name (ARN) of the AWS KMS key used for Amazon S3 server side encryption. Is required when `kms_encrypted` is set.
 * `tags` - (Optional) Key-value map of resource tags
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -85,5 +85,5 @@ In addition to all arguments above, the following attributes are exported:
 `aws_storagegateway_cached_iscsi_volume` can be imported by using the volume Amazon Resource Name (ARN), e.g.
 
 ```
-$ terraform import aws_storagegateway_cache.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
+$ terraform import aws_storagegateway_cached_iscsi_volume.example arn:aws:storagegateway:us-east-1:123456789012:gateway/sgw-12345678/volume/vol-12345678
 ```

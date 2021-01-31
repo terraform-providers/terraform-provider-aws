@@ -116,7 +116,7 @@ func resourceAwsSnsPlatformApplicationCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error creating SNS platform application: %s", err)
 	}
 
-	d.SetId(*output.PlatformApplicationArn)
+	d.SetId(aws.StringValue(output.PlatformApplicationArn))
 
 	return resourceAwsSnsPlatformApplicationUpdate(d, meta)
 }

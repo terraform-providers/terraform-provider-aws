@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/emr"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -181,8 +182,12 @@ func testAccCheckAWSEmrManagedScalingPolicyDestroy(s *terraform.State) error {
 			ClusterId: aws.String(rs.Primary.ID),
 		})
 
-		if isAWSErr(err, "InvalidRequestException", "does not exist") {
-			return nil
+		if tfawserr.ErrMessageContains(err, "InvalidRequestException", "does not exist") {
+			continue
+		}
+
+		if tfawserr.ErrMessageContains(err, "ValidationException", "A job flow that is shutting down, terminated, or finished may not be modified") {
+			continue
 		}
 
 		if err != nil {
@@ -192,8 +197,6 @@ func testAccCheckAWSEmrManagedScalingPolicyDestroy(s *terraform.State) error {
 		if resp != nil {
 			return fmt.Errorf("Error: EMR Managed Scaling Policy still exists")
 		}
-
-		return nil
 	}
 
 	return nil
@@ -439,10 +442,12 @@ EOT
 }
 
 resource "aws_emr_cluster" "test" {
-  name          = "%[1]s"
-  release_label = "emr-5.30.1"
-  applications  = ["Hadoop", "Hive"]
-  log_uri       = "s3n://terraform/testlog/"
+  applications                      = ["Hadoop", "Hive"]
+  keep_job_flow_alive_when_no_steps = true
+  log_uri                           = "s3n://terraform/testlog/"
+  name                              = "%[1]s"
+  release_label                     = "emr-5.30.1"
+  service_role                      = aws_iam_role.emr_service.arn
 
   master_instance_group {
     instance_type = "c4.large"
@@ -453,7 +458,6 @@ resource "aws_emr_cluster" "test" {
     instance_type  = "c4.large"
   }
 
-  service_role = aws_iam_role.emr_service.arn
   depends_on = [
     aws_route_table_association.test,
     aws_iam_role_policy_attachment.emr_service,

@@ -97,7 +97,7 @@ func resourceAwsMqConfigurationCreate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	d.SetId(*out.Id)
+	d.SetId(aws.StringValue(out.Id))
 	d.Set("arn", out.Arn)
 
 	return resourceAwsMqConfigurationUpdate(d, meta)

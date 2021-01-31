@@ -138,7 +138,7 @@ The following arguments are supported:
 * `role_arn` - (Required) The ARN of an IAM role that authorizes Amazon Cognito to publish events to Amazon Pinpoint analytics.
 * `user_data_shared` (Optional) If set to `true`, Amazon Cognito will include user data in the events it publishes to Amazon Pinpoint analytics.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

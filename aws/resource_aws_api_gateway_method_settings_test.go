@@ -382,7 +382,7 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingBurstLimit(t *testing
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/5690
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/5690
 func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingBurstLimitDisabledByDefault(t *testing.T) {
 	var stage1, stage2 apigateway.Stage
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -455,7 +455,7 @@ func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingRateLimit(t *testing.
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/5690
+// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/5690
 func TestAccAWSAPIGatewayMethodSettings_Settings_ThrottlingRateLimitDisabledByDefault(t *testing.T) {
 	var stage1, stage2 apigateway.Stage
 	rName := acctest.RandomWithPrefix("tf-acc-test")

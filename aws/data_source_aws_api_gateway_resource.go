@@ -59,7 +59,7 @@ func dataSourceAwsApiGatewayResourceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("no Resources with path %q found for rest api %q", target, restApiId)
 	}
 
-	d.SetId(*match.Id)
+	d.SetId(aws.StringValue(match.Id))
 	d.Set("path_part", match.PathPart)
 	d.Set("parent_id", match.ParentId)
 

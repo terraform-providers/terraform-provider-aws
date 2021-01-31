@@ -208,6 +208,13 @@ func dataSourceAwsInstance() *schema.Resource {
 							Computed: true,
 						},
 
+						"tags": tagsSchemaComputed(),
+
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -263,6 +270,13 @@ func dataSourceAwsInstance() *schema.Resource {
 							Computed: true,
 						},
 
+						"tags": tagsSchemaComputed(),
+
+						"throughput": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"volume_size": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -315,6 +329,18 @@ func dataSourceAwsInstance() *schema.Resource {
 			"disable_api_termination": {
 				Type:     schema.TypeBool,
 				Computed: true,
+			},
+			"enclave_options": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -409,7 +435,7 @@ func dataSourceAwsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 
 // Populate instance attribute fields with the returned instance
 func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instance, conn *ec2.EC2, ignoreTagsConfig *keyvaluetags.IgnoreConfig) error {
-	d.SetId(*instance.InstanceId)
+	d.SetId(aws.StringValue(instance.InstanceId))
 	// Set the easy attributes
 	d.Set("instance_state", instance.State.Name)
 	if instance.Placement != nil {
@@ -515,13 +541,13 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 	var creditSpecifications []map[string]interface{}
 
 	// AWS Standard will return InstanceCreditSpecification.NotSupported errors for EC2 Instance IDs outside T2 and T3 instance types
-	// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/8055
+	// Reference: https://github.com/hashicorp/terraform-provider-aws/issues/8055
 	if strings.HasPrefix(aws.StringValue(instance.InstanceType), "t2") || strings.HasPrefix(aws.StringValue(instance.InstanceType), "t3") {
 		var err error
 		creditSpecifications, err = getCreditSpecifications(conn, d.Id())
 
 		// Ignore UnsupportedOperation errors for AWS China and GovCloud (US)
-		// Reference: https://github.com/terraform-providers/terraform-provider-aws/pull/4362
+		// Reference: https://github.com/hashicorp/terraform-provider-aws/pull/4362
 		if err != nil && !isAWSErr(err, "UnsupportedOperation", "") {
 			return fmt.Errorf("error getting EC2 Instance (%s) Credit Specifications: %s", d.Id(), err)
 		}
@@ -533,6 +559,10 @@ func instanceDescriptionAttributes(d *schema.ResourceData, instance *ec2.Instanc
 
 	if err := d.Set("metadata_options", flattenEc2InstanceMetadataOptions(instance.MetadataOptions)); err != nil {
 		return fmt.Errorf("error setting metadata_options: %s", err)
+	}
+
+	if err := d.Set("enclave_options", flattenEc2EnclaveOptions(instance.EnclaveOptions)); err != nil {
+		return fmt.Errorf("error setting enclave_options: %s", err)
 	}
 
 	return nil

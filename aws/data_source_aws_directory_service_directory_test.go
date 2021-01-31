@@ -197,7 +197,8 @@ data "aws_directory_service_directory" "test-microsoft-ad" {
 }
 
 func testAccDataSourceDirectoryServiceDirectoryConfig_connector() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(),
+		`
 resource "aws_directory_service_directory" "test" {
   name     = "corp.notexample.com"
   password = "SuperSecretPassw0rd"
@@ -254,5 +255,5 @@ resource "aws_subnet" "test" {
 data "aws_directory_service_directory" "test-ad-connector" {
   directory_id = aws_directory_service_directory.connector.id
 }
-`))
+`)
 }

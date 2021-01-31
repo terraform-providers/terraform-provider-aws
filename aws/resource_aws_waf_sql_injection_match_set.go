@@ -76,7 +76,7 @@ func resourceAwsWafSqlInjectionMatchSetCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error creating SqlInjectionMatchSet: %s", err)
 	}
 	resp := out.(*waf.CreateSqlInjectionMatchSetOutput)
-	d.SetId(*resp.SqlInjectionMatchSet.SqlInjectionMatchSetId)
+	d.SetId(aws.StringValue(resp.SqlInjectionMatchSet.SqlInjectionMatchSetId))
 
 	return resourceAwsWafSqlInjectionMatchSetUpdate(d, meta)
 }

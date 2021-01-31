@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -53,7 +52,7 @@ func dataSourceAwsRegionsRead(d *schema.ResourceData, meta interface{}) error {
 		names = append(names, aws.StringValue(v.RegionName))
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).partition)
 	if err := d.Set("names", names); err != nil {
 		return fmt.Errorf("error setting names: %s", err)
 	}

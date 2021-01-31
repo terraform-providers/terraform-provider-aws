@@ -87,7 +87,7 @@ func testAccAwsAppmeshVirtualService_virtualNode(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{
@@ -140,7 +140,7 @@ func testAccAwsAppmeshVirtualService_virtualRouter(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{
@@ -186,7 +186,7 @@ func testAccAwsAppmeshVirtualService_tags(t *testing.T) {
 	vsName := fmt.Sprintf("tf-acc-test-%d.mesh.local", acctest.RandInt())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualServiceDestroy,
 		Steps: []resource.TestStep{

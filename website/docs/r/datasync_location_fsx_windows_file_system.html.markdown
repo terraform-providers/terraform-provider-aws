@@ -33,7 +33,7 @@ The following arguments are supported:
 * `subdirectory` - (Optional) Subdirectory to perform actions as source or destination.
 * `tags` - (Optional) Key-value pairs of resource tags to assign to the DataSync Location.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

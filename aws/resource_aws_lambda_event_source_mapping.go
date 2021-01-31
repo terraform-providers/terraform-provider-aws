@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/sqs"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -256,7 +255,7 @@ func resourceAwsLambdaEventSourceMappingCreate(d *schema.ResourceData, meta inte
 
 	// No error
 	d.Set("uuid", eventSourceMappingConfiguration.UUID)
-	d.SetId(*eventSourceMappingConfiguration.UUID)
+	d.SetId(aws.StringValue(eventSourceMappingConfiguration.UUID))
 	return resourceAwsLambdaEventSourceMappingRead(d, meta)
 }
 
@@ -353,10 +352,11 @@ func resourceAwsLambdaEventSourceMappingUpdate(d *schema.ResourceData, meta inte
 	log.Printf("[DEBUG] Updating Lambda event source mapping: %s", d.Id())
 
 	params := &lambda.UpdateEventSourceMappingInput{
-		UUID:         aws.String(d.Id()),
-		BatchSize:    aws.Int64(int64(d.Get("batch_size").(int))),
-		FunctionName: aws.String(d.Get("function_name").(string)),
-		Enabled:      aws.Bool(d.Get("enabled").(bool)),
+		UUID:                           aws.String(d.Id()),
+		BatchSize:                      aws.Int64(int64(d.Get("batch_size").(int))),
+		FunctionName:                   aws.String(d.Get("function_name").(string)),
+		Enabled:                        aws.Bool(d.Get("enabled").(bool)),
+		MaximumBatchingWindowInSeconds: aws.Int64(int64(d.Get("maximum_batching_window_in_seconds").(int))),
 	}
 
 	// AWS API will fail if this parameter is set (even as default value) for sqs event source.  Ideally this should be implemented in GO SDK or AWS API itself.
@@ -366,8 +366,6 @@ func resourceAwsLambdaEventSourceMappingUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if eventSourceArn.Service != "sqs" {
-		params.MaximumBatchingWindowInSeconds = aws.Int64(int64(d.Get("maximum_batching_window_in_seconds").(int)))
-
 		if parallelizationFactor, ok := d.GetOk("parallelization_factor"); ok {
 			params.SetParallelizationFactor(int64(parallelizationFactor.(int)))
 		}

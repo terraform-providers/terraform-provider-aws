@@ -3,34 +3,35 @@ package aws
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // See http://docs.aws.amazon.com/general/latest/gr/rande.html#elasticbeanstalk_region
 var elasticBeanstalkHostedZoneIds = map[string]string{
-	"af-south-1":     "Z1EI3BVKMKK4AM",
-	"ap-southeast-1": "Z16FZ9L249IFLT",
-	"ap-southeast-2": "Z2PCDNR3VC2G1N",
-	"ap-east-1":      "ZPWYUBWRU171A",
-	"ap-northeast-1": "Z1R25G3KIG2GBW",
-	"ap-northeast-2": "Z3JE5OI70TWKCP",
-	"ap-northeast-3": "ZNE5GEY1TIAGY",
-	"ap-south-1":     "Z18NTBI3Y7N9TZ",
-	"ca-central-1":   "ZJFCZL7SSZB5I",
-	"eu-central-1":   "Z1FRNW7UH4DEZJ",
-	"eu-north-1":     "Z23GO28BZ5AETM",
-	"eu-south-1":     "Z10VDYYOA2JFKM",
-	"eu-west-1":      "Z2NYPWQ7DFZAZH",
-	"eu-west-2":      "Z1GKAAAUGATPF1",
-	"eu-west-3":      "Z5WN6GAYWG5OB",
-	"me-south-1":     "Z2BBTEKR2I36N2",
-	"sa-east-1":      "Z10X7K2B4QSOFV",
-	"us-east-1":      "Z117KPS5GTRQ2G",
-	"us-east-2":      "Z14LCN19Q5QHIC",
-	"us-west-1":      "Z1LQECGX5PH1X",
-	"us-west-2":      "Z38NKT9BP95V3O",
-	"us-gov-east-1":  "Z35TSARG0EJ4VU",
-	"us-gov-west-1":  "Z4KAURWC4UUUG",
+	endpoints.AfSouth1RegionID:     "Z1EI3BVKMKK4AM",
+	endpoints.ApSoutheast1RegionID: "Z16FZ9L249IFLT",
+	endpoints.ApSoutheast2RegionID: "Z2PCDNR3VC2G1N",
+	endpoints.ApEast1RegionID:      "ZPWYUBWRU171A",
+	endpoints.ApNortheast1RegionID: "Z1R25G3KIG2GBW",
+	endpoints.ApNortheast2RegionID: "Z3JE5OI70TWKCP",
+	"ap-northeast-3":               "ZNE5GEY1TIAGY", //lintignore:AWSAT003 // https://github.com/aws/aws-sdk-go/issues/1863
+	endpoints.ApSouth1RegionID:     "Z18NTBI3Y7N9TZ",
+	endpoints.CaCentral1RegionID:   "ZJFCZL7SSZB5I",
+	endpoints.EuCentral1RegionID:   "Z1FRNW7UH4DEZJ",
+	endpoints.EuNorth1RegionID:     "Z23GO28BZ5AETM",
+	endpoints.EuSouth1RegionID:     "Z10VDYYOA2JFKM",
+	endpoints.EuWest1RegionID:      "Z2NYPWQ7DFZAZH",
+	endpoints.EuWest2RegionID:      "Z1GKAAAUGATPF1",
+	endpoints.EuWest3RegionID:      "Z5WN6GAYWG5OB",
+	endpoints.MeSouth1RegionID:     "Z2BBTEKR2I36N2",
+	endpoints.SaEast1RegionID:      "Z10X7K2B4QSOFV",
+	endpoints.UsEast1RegionID:      "Z117KPS5GTRQ2G",
+	endpoints.UsEast2RegionID:      "Z14LCN19Q5QHIC",
+	endpoints.UsWest1RegionID:      "Z1LQECGX5PH1X",
+	endpoints.UsWest2RegionID:      "Z38NKT9BP95V3O",
+	endpoints.UsGovEast1RegionID:   "Z35TSARG0EJ4VU",
+	endpoints.UsGovWest1RegionID:   "Z4KAURWC4UUUG",
 }
 
 func dataSourceAwsElasticBeanstalkHostedZone() *schema.Resource {

@@ -9,8 +9,8 @@ import (
 )
 
 func TestAccDataSourceAWSLBListener_basic(t *testing.T) {
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -40,8 +40,8 @@ func TestAccDataSourceAWSLBListener_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLBListener_BackwardsCompatibility(t *testing.T) {
-	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-basic-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -71,8 +71,8 @@ func TestAccDataSourceAWSLBListener_BackwardsCompatibility(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLBListener_https(t *testing.T) {
-	lbName := fmt.Sprintf("testlistener-https-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlistener-https-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 	key := tlsRsaPrivateKeyPem(2048)
 	certificate := tlsRsaX509SelfSignedCertificatePem(key, "example.com")
 
@@ -101,6 +101,26 @@ func TestAccDataSourceAWSLBListener_https(t *testing.T) {
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "default_action.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "default_action.0.type", "forward"),
 					resource.TestCheckResourceAttr("data.aws_lb_listener.from_lb_and_port", "ssl_policy", "ELBSecurityPolicy-2016-08"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAWSLBListener_DefaultAction_Forward(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_lb_listener.test"
+	resourceName := "aws_lb_listener.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAWSLBListenerConfigDefaultActionForward(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "default_action.#", resourceName, "default_action.#"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "default_action.0.forward.#", resourceName, "default_action.0.forward.#"),
 				),
 			},
 		},
@@ -478,4 +498,77 @@ data "aws_lb_listener" "from_lb_and_port" {
   port              = aws_lb_listener.front_end.port
 }
 `, lbName, targetGroupName, acctest.RandInt(), certificate, key)
+}
+
+func testAccDataSourceAWSLBListenerConfigDefaultActionForward(rName string) string {
+	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_subnet" "test" {
+  count = 2
+
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 8, count.index)
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_lb" "test" {
+  internal = true
+  name     = %[1]q
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test[0].id
+  }
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test[1].id
+  }
+}
+
+resource "aws_lb_target_group" "test" {
+  count = 2
+
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.test.id
+}
+
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = aws_lb.test.id
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "forward"
+
+    forward {
+      target_group {
+        arn    = aws_lb_target_group.test[0].arn
+        weight = 1
+      }
+
+      target_group {
+        arn    = aws_lb_target_group.test[1].arn
+        weight = 2
+      }
+    }
+  }
+}
+
+data "aws_lb_listener" "test" {
+  arn = aws_lb_listener.test.arn
+}
+`, rName))
 }

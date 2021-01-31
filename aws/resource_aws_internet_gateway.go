@@ -58,7 +58,7 @@ func resourceAwsInternetGatewayCreate(d *schema.ResourceData, meta interface{}) 
 
 	// Get the ID and store it
 	ig := *resp.InternetGateway
-	d.SetId(*ig.InternetGatewayId)
+	d.SetId(aws.StringValue(ig.InternetGatewayId))
 	log.Printf("[INFO] InternetGateway ID: %s", d.Id())
 	var igRaw interface{}
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {

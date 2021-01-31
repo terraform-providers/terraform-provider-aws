@@ -88,7 +88,7 @@ func resourceAwsWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resp := out.(*waf.CreateRuleOutput)
-	d.SetId(*resp.Rule.RuleId)
+	d.SetId(aws.StringValue(resp.Rule.RuleId))
 
 	newPredicates := d.Get("predicates").(*schema.Set).List()
 	if len(newPredicates) > 0 {

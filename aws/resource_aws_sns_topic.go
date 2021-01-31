@@ -154,7 +154,7 @@ func resourceAwsSnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating SNS topic: %s", err)
 	}
 
-	d.SetId(*output.TopicArn)
+	d.SetId(aws.StringValue(output.TopicArn))
 
 	// update mutable attributes
 	if d.HasChange("application_failure_feedback_role_arn") {

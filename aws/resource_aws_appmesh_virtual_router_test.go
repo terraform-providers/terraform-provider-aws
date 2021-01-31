@@ -88,7 +88,7 @@ func testAccAwsAppmeshVirtualRouter_basic(t *testing.T) {
 	vrName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualRouterDestroy,
 		Steps: []resource.TestStep{
@@ -141,7 +141,7 @@ func testAccAwsAppmeshVirtualRouter_tags(t *testing.T) {
 	vrName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appmesh.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAppmeshVirtualRouterDestroy,
 		Steps: []resource.TestStep{

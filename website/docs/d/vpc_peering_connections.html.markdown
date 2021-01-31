@@ -54,4 +54,5 @@ which take the following arguments:
 
 All of the argument attributes except `filter` are also exported as result attributes.
 
+* `id` - AWS Region.
 * `ids` - The IDs of the VPC Peering Connections.

@@ -155,7 +155,7 @@ func resourceAwsIamUserLoginProfileCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error creating IAM User Login Profile for %q: %s", username, err)
 	}
 
-	d.SetId(*createResp.LoginProfile.UserName)
+	d.SetId(aws.StringValue(createResp.LoginProfile.UserName))
 	d.Set("key_fingerprint", fingerprint)
 	d.Set("encrypted_password", encrypted)
 	return nil

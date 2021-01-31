@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -39,6 +40,9 @@ func TestAccDataSourceAWSLambdaFunction_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "tracing_config.#", resourceName, "tracing_config.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "tracing_config.0.mode", resourceName, "tracing_config.0.mode"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "version", resourceName, "version"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "signing_profile_version_arn", resourceName, "signing_profile_version_arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "signing_job_arn", resourceName, "signing_job_arn"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "code_signing_config_arn", resourceName, "code_signing_config_arn"),
 				),
 			},
 		},
@@ -171,6 +175,27 @@ func TestAccDataSourceAWSLambdaFunction_fileSystemConfig(t *testing.T) {
 					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.#", resourceName, "file_system_config.#"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.0.arn", resourceName, "file_system_config.0.arn"),
 					resource.TestCheckResourceAttrPair(dataSourceName, "file_system_config.0.local_mount_path", resourceName, "file_system_config.0.local_mount_path"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAWSLambdaFunction_imageConfig(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	dataSourceName := "data.aws_lambda_function.test"
+	resourceName := "aws_lambda_function.test"
+
+	imageLatestID := os.Getenv("AWS_LAMBDA_IMAGE_LATEST_ID")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t); testAccDataSourceLambdaImagePreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAWSLambdaFunctionConfigImageConfig(rName, imageLatestID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "code_signing_config_arn", resourceName, "code_signing_config_arn"),
 				),
 			},
 		},
@@ -491,4 +516,32 @@ data "aws_lambda_function" "test" {
   function_name = aws_lambda_function.test.function_name
 }
 `, rName)
+}
+
+func testAccDataSourceAWSLambdaFunctionConfigImageConfig(rName, imageID string) string {
+	return composeConfig(
+		testAccDataSourceAWSLambdaFunctionConfigBase(rName),
+		fmt.Sprintf(`
+resource "aws_lambda_function" "test" {
+  image_uri     = %q
+  function_name = %q
+  role          = aws_iam_role.lambda.arn
+  package_type  = "Image"
+  image_config {
+    entry_point       = ["/bootstrap-with-handler"]
+    command           = ["app.lambda_handler"]
+    working_directory = "/var/task"
+  }
+}
+
+data "aws_lambda_function" "test" {
+  function_name = aws_lambda_function.test.function_name
+}
+`, imageID, rName))
+}
+
+func testAccDataSourceLambdaImagePreCheck(t *testing.T) {
+	if os.Getenv("AWS_LAMBDA_IMAGE_LATEST_ID") == "" {
+		t.Skip("AWS_LAMBDA_IMAGE_LATEST_ID env var must be set for Lambda Function Data Source Image Support acceptance tests.")
+	}
 }

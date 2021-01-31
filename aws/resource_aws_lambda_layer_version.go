@@ -97,6 +97,14 @@ func resourceAwsLambdaLayerVersion() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
+			"signing_profile_version_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"signing_job_arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"source_code_size": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -154,7 +162,7 @@ func resourceAwsLambdaLayerVersionPublish(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("compatible_runtimes"); ok && v.(*schema.Set).Len() > 0 {
-		params.CompatibleRuntimes = expandStringList(v.(*schema.Set).List())
+		params.CompatibleRuntimes = expandStringSet(v.(*schema.Set))
 	}
 
 	log.Printf("[DEBUG] Publishing Lambda layer: %s", params)
@@ -213,6 +221,12 @@ func resourceAwsLambdaLayerVersionRead(d *schema.ResourceData, meta interface{})
 	}
 	if err := d.Set("source_code_hash", layerVersion.Content.CodeSha256); err != nil {
 		return fmt.Errorf("Error setting lambda layer source code hash: %s", err)
+	}
+	if err := d.Set("signing_profile_version_arn", layerVersion.Content.SigningProfileVersionArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing profile arn: %s", err)
+	}
+	if err := d.Set("signing_job_arn", layerVersion.Content.SigningJobArn); err != nil {
+		return fmt.Errorf("Error setting lambda layer signing job arn: %s", err)
 	}
 	if err := d.Set("source_code_size", layerVersion.Content.CodeSize); err != nil {
 		return fmt.Errorf("Error setting lambda layer source code size: %s", err)

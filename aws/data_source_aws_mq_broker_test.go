@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/service/mq"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
@@ -18,7 +19,7 @@ func TestAccDataSourceAWSMqBroker_basic(t *testing.T) {
 	resourceName := "aws_mq_broker.acctest"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(mq.EndpointsID, t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{

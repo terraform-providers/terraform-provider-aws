@@ -100,7 +100,7 @@ func resourceAwsIamServiceLinkedRoleCreate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("Error creating service-linked role with name %s: %s", serviceName, err)
 	}
-	d.SetId(*resp.Role.Arn)
+	d.SetId(aws.StringValue(resp.Role.Arn))
 
 	return resourceAwsIamServiceLinkedRoleRead(d, meta)
 }

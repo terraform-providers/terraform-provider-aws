@@ -329,6 +329,7 @@ func amiBlockDeviceMappings(m []*ec2.BlockDeviceMapping) *schema.Set {
 				"delete_on_termination": fmt.Sprintf("%t", aws.BoolValue(v.Ebs.DeleteOnTermination)),
 				"encrypted":             fmt.Sprintf("%t", aws.BoolValue(v.Ebs.Encrypted)),
 				"iops":                  fmt.Sprintf("%d", aws.Int64Value(v.Ebs.Iops)),
+				"throughput":            fmt.Sprintf("%d", aws.Int64Value(v.Ebs.Throughput)),
 				"volume_size":           fmt.Sprintf("%d", aws.Int64Value(v.Ebs.VolumeSize)),
 				"snapshot_id":           aws.StringValue(v.Ebs.SnapshotId),
 				"volume_type":           aws.StringValue(v.Ebs.VolumeType),

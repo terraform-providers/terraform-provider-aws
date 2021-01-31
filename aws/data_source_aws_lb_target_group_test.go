@@ -9,8 +9,8 @@ import (
 )
 
 func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
-	lbName := fmt.Sprintf("testlb-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlb-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 	resourceNameArn := "data.aws_lb_target_group.alb_tg_test_with_arn"
 	resourceName := "data.aws_lb_target_group.alb_tg_test_with_name"
 
@@ -69,8 +69,8 @@ func TestAccDataSourceAWSALBTargetGroup_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAWSLBTargetGroup_BackwardsCompatibility(t *testing.T) {
-	lbName := fmt.Sprintf("testlb-%s", acctest.RandStringFromCharSet(13, acctest.CharSetAlphaNum))
-	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	lbName := fmt.Sprintf("testlb-%s", acctest.RandString(13))
+	targetGroupName := fmt.Sprintf("testtargetgroup-%s", acctest.RandString(10))
 	resourceNameArn := "data.aws_alb_target_group.alb_tg_test_with_arn"
 	resourceName := "data.aws_alb_target_group.alb_tg_test_with_name"
 

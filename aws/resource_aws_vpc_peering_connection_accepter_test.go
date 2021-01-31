@@ -75,10 +75,9 @@ func TestAccAWSVPCPeeringConnectionAccepter_differentRegionSameAccount(t *testin
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccAwsVPCPeeringConnectionAccepterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,7 +122,7 @@ func TestAccAWSVPCPeeringConnectionAccepter_sameRegionDifferentAccount(t *testin
 			testAccPreCheck(t)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccAwsVPCPeeringConnectionAccepterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -157,11 +156,10 @@ func TestAccAWSVPCPeeringConnectionAccepter_differentRegionDifferentAccount(t *t
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccAwsVPCPeeringConnectionAccepterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -206,7 +204,7 @@ resource "aws_vpc" "peer" {
   }
 }
 
-// Requester's side of the connection.
+# Requester's side of the connection.
 resource "aws_vpc_peering_connection" "main" {
   vpc_id      = aws_vpc.main.id
   peer_vpc_id = aws_vpc.peer.id
@@ -217,7 +215,7 @@ resource "aws_vpc_peering_connection" "main" {
   }
 }
 
-// Accepter's side of the connection.
+# Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
   vpc_peering_connection_id = aws_vpc_peering_connection.main.id
   auto_accept               = true
@@ -249,7 +247,7 @@ resource "aws_vpc" "peer" {
   }
 }
 
-// Requester's side of the connection.
+# Requester's side of the connection.
 resource "aws_vpc_peering_connection" "main" {
   vpc_id      = aws_vpc.main.id
   peer_vpc_id = aws_vpc.peer.id
@@ -261,7 +259,7 @@ resource "aws_vpc_peering_connection" "main" {
   }
 }
 
-// Accepter's side of the connection.
+# Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
   provider = "awsalternate"
 
@@ -299,7 +297,7 @@ data "aws_caller_identity" "peer" {
   provider = "awsalternate"
 }
 
-// Requester's side of the connection.
+# Requester's side of the connection.
 resource "aws_vpc_peering_connection" "main" {
   vpc_id        = aws_vpc.main.id
   peer_vpc_id   = aws_vpc.peer.id
@@ -312,7 +310,7 @@ resource "aws_vpc_peering_connection" "main" {
   }
 }
 
-// Accepter's side of the connection.
+# Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
   provider = "awsalternate"
 
@@ -350,7 +348,7 @@ data "aws_caller_identity" "peer" {
   provider = "awsalternate"
 }
 
-// Requester's side of the connection.
+# Requester's side of the connection.
 resource "aws_vpc_peering_connection" "main" {
   vpc_id        = aws_vpc.main.id
   peer_vpc_id   = aws_vpc.peer.id
@@ -363,7 +361,7 @@ resource "aws_vpc_peering_connection" "main" {
   }
 }
 
-// Accepter's side of the connection.
+# Accepter's side of the connection.
 resource "aws_vpc_peering_connection_accepter" "peer" {
   provider = "awsalternate"
 

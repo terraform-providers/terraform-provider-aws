@@ -156,6 +156,27 @@ func dataSourceAwsLaunchConfiguration() *schema.Resource {
 				},
 			},
 
+			"metadata_options": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_tokens": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_put_response_hop_limit": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"root_block_device": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -243,6 +264,10 @@ func dataSourceAwsLaunchConfigurationRead(d *schema.ResourceData, meta interface
 	}
 	if err := d.Set("security_groups", vpcSGs); err != nil {
 		return fmt.Errorf("error setting security_groups: %s", err)
+	}
+
+	if err := d.Set("metadata_options", flattenLaunchConfigInstanceMetadataOptions(lc.MetadataOptions)); err != nil {
+		return fmt.Errorf("error setting metadata_options: %s", err)
 	}
 
 	classicSGs := make([]string, 0, len(lc.ClassicLinkVPCSecurityGroups))

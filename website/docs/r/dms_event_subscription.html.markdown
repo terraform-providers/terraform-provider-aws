@@ -40,7 +40,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-`aws_dms_event_subscription` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_dms_event_subscription` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10m`) Used for creating event subscriptions.
 - `update` - (Default `10m`) Used for event subscription modifications.

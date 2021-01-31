@@ -501,6 +501,34 @@ func TestAccAWSRoute_ConditionalCidrBlock(t *testing.T) {
 	})
 }
 
+func TestAccAWSRoute_VpcEndpointId(t *testing.T) {
+	var route ec2.Route
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_route.test"
+	vpcEndpointResourceName := "aws_vpc_endpoint.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckElbv2GatewayLoadBalancer(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSRouteResourceConfigVpcEndpointId(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSRouteExists(resourceName, &route),
+					resource.TestCheckResourceAttrPair(resourceName, "vpc_endpoint_id", vpcEndpointResourceName, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSRouteImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccCheckAWSRouteExists(n string, res *ec2.Route) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -573,7 +601,7 @@ func testAccAWSRouteImportStateIdFunc(resourceName string) resource.ImportStateI
 }
 
 func testAccAWSRouteBasicConfig() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
@@ -599,11 +627,11 @@ resource "aws_route" "bar" {
   destination_cidr_block = "10.3.0.0/16"
   gateway_id             = aws_internet_gateway.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteConfigIpv6InternetGateway() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -634,13 +662,13 @@ resource "aws_route" "igw" {
   destination_ipv6_cidr_block = "::/0"
   gateway_id                  = aws_internet_gateway.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteConfigIpv6NetworkInterface() string {
-	return testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small") +
-		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small"),
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 resource "aws_vpc" "examplevpc" {
   cidr_block                       = "10.100.0.0/16"
   enable_dns_hostnames             = true
@@ -747,9 +775,9 @@ resource "aws_route" "internal-default-route-ipv6" {
 }
 
 func testAccAWSRouteConfigIpv6Instance() string {
-	return testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small") +
-		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small"),
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 resource "aws_vpc" "examplevpc" {
   cidr_block                       = "10.100.0.0/16"
   enable_dns_hostnames             = true
@@ -845,9 +873,9 @@ resource "aws_route" "internal-default-route-ipv6" {
 }
 
 func testAccAWSRouteConfigIpv6InstanceExpanded() string {
-	return testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small") +
-		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
-		fmt.Sprintf(`
+	return composeConfig(
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.router-network.availability_zone", "t2.small", "t3.small"),
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 resource "aws_vpc" "examplevpc" {
   cidr_block                       = "10.100.0.0/16"
   enable_dns_hostnames             = true
@@ -943,7 +971,7 @@ resource "aws_route" "internal-default-route-ipv6" {
 }
 
 func testAccAWSRouteConfigIpv6PeeringConnection() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block                       = "10.0.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -973,11 +1001,11 @@ resource "aws_route" "pc" {
   destination_ipv6_cidr_block = aws_vpc.bar.ipv6_cidr_block
   vpc_peering_connection_id   = aws_vpc_peering_connection.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteConfigIpv6() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -1000,11 +1028,11 @@ resource "aws_route" "bar" {
   destination_ipv6_cidr_block = "::/0"
   egress_only_gateway_id      = aws_egress_only_internet_gateway.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteConfigIpv6Expanded() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block                       = "10.1.0.0/16"
   assign_generated_ipv6_cidr_block = true
@@ -1027,11 +1055,11 @@ resource "aws_route" "bar" {
   destination_ipv6_cidr_block = "::0/0"
   egress_only_gateway_id      = aws_egress_only_internet_gateway.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteBasicConfigChangeCidr() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
@@ -1057,13 +1085,13 @@ resource "aws_route" "bar" {
   destination_cidr_block = "10.2.0.0/16"
   gateway_id             = aws_internet_gateway.foo.id
 }
-`)
+`
 }
 
 func testAccAWSRouteNoopChange() string {
-	return testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t2.nano", "t3.nano") +
-		testAccLatestAmazonLinuxHvmEbsAmiConfig() +
-		fmt.Sprint(`
+	return composeConfig(
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.test.availability_zone", "t2.nano", "t3.nano"),
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -1110,7 +1138,7 @@ resource "aws_instance" "nat" {
 }
 
 func testAccAWSRouteWithVPCEndpoint() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_region" "current" {}
 
 resource "aws_vpc" "foo" {
@@ -1147,11 +1175,11 @@ resource "aws_vpc_endpoint" "baz" {
   service_name    = "com.amazonaws.${data.aws_region.current.name}.s3"
   route_table_ids = [aws_route_table.foo.id]
 }
-`)
+`
 }
 
 func testAccAWSRouteNewRouteTable() string {
-	return fmt.Sprintf(`
+	return `
 resource "aws_vpc" "foo" {
   cidr_block = "10.1.0.0/16"
 
@@ -1205,12 +1233,12 @@ resource "aws_route" "bar" {
   destination_cidr_block = "10.4.0.0/16"
   gateway_id             = aws_internet_gateway.bar.id
 }
-`)
+`
 }
 
 func testAccAWSRouteConfigTransitGatewayIDDestinatationCidrBlock() string {
-	return testAccAvailableAZsNoOptInDefaultExcludeConfig() +
-		fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInDefaultExcludeConfig(),
+		`
 # IncorrectState: Transit Gateway is not available in availability zone usw2-az4	
 
 resource "aws_vpc" "test" {
@@ -1299,7 +1327,7 @@ resource "aws_route" "test" {
 }
 
 func testAccAWSRouteResourceConfigLocalGatewayID() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ec2_local_gateways" "all" {}
 data "aws_ec2_local_gateway" "first" {
   id = tolist(data.aws_ec2_local_gateways.all.ids)[0]
@@ -1329,5 +1357,63 @@ resource "aws_route" "test" {
   destination_cidr_block = "172.16.1.0/24"
   local_gateway_id       = data.aws_ec2_local_gateway.first.id
 }
-`)
+`
+}
+
+func testAccAWSRouteResourceConfigVpcEndpointId(rName string) string {
+	return composeConfig(
+		testAccAvailableAZsNoOptInConfig(),
+		fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+
+resource "aws_vpc" "test" {
+  cidr_block = "10.10.10.0/25"
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_subnet" "test" {
+  availability_zone = data.aws_availability_zones.available.names[0]
+  cidr_block        = cidrsubnet(aws_vpc.test.cidr_block, 2, 0)
+  vpc_id            = aws_vpc.test.id
+
+  tags = {
+    Name = "tf-acc-test-load-balancer"
+  }
+}
+
+resource "aws_lb" "test" {
+  load_balancer_type = "gateway"
+  name               = %[1]q
+
+  subnet_mapping {
+    subnet_id = aws_subnet.test.id
+  }
+}
+
+resource "aws_vpc_endpoint_service" "test" {
+  acceptance_required        = false
+  allowed_principals         = [data.aws_caller_identity.current.arn]
+  gateway_load_balancer_arns = [aws_lb.test.arn]
+}
+
+resource "aws_vpc_endpoint" "test" {
+  service_name      = aws_vpc_endpoint_service.test.service_name
+  subnet_ids        = [aws_subnet.test.id]
+  vpc_endpoint_type = aws_vpc_endpoint_service.test.service_type
+  vpc_id            = aws_vpc.test.id
+}
+
+resource "aws_route_table" "test" {
+  vpc_id = aws_vpc.test.id
+}
+
+resource "aws_route" "test" {
+  route_table_id         = aws_route_table.test.id
+  destination_cidr_block = "172.16.1.0/24"
+  vpc_endpoint_id        = aws_vpc_endpoint.test.id
+}
+`, rName))
 }

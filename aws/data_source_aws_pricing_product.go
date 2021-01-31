@@ -1,10 +1,9 @@
 package aws
 
 import (
-	"log"
-
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/pricing"

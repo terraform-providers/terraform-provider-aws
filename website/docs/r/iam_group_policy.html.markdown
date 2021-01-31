@@ -52,6 +52,8 @@ assign a random, unique name.
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The group policy ID.
 * `group` - The group to which this policy applies.
 * `name` - The name of the policy.

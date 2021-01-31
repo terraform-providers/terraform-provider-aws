@@ -42,7 +42,7 @@ Currently available standards:
 
 ## Attributes Reference
 
-The following attributes are exported in addition to the arguments listed above:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ARN of a resource that represents your subscription to a supported standard.
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codebuild"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -18,7 +17,7 @@ func TestAccAWSCodeBuildReportGroup_basic(t *testing.T) {
 	resourceName := "aws_codebuild_report_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuildReportGroup(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildReportGroupDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +47,7 @@ func TestAccAWSCodeBuildReportGroup_export_s3(t *testing.T) {
 	resourceName := "aws_codebuild_report_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuildReportGroup(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildReportGroupDestroy,
 		Steps: []resource.TestStep{
@@ -96,7 +95,7 @@ func TestAccAWSCodeBuildReportGroup_tags(t *testing.T) {
 	resourceName := "aws_codebuild_report_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuildReportGroup(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildReportGroupDestroy,
 		Steps: []resource.TestStep{
@@ -140,7 +139,7 @@ func TestAccAWSCodeBuildReportGroup_disappears(t *testing.T) {
 	resourceName := "aws_codebuild_report_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuild(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCodeBuildReportGroup(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCodeBuildReportGroupDestroy,
 		Steps: []resource.TestStep{
@@ -154,6 +153,22 @@ func TestAccAWSCodeBuildReportGroup_disappears(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccPreCheckAWSCodeBuildReportGroup(t *testing.T) {
+	conn := testAccProvider.Meta().(*AWSClient).codebuildconn
+
+	input := &codebuild.ListReportGroupsInput{}
+
+	_, err := conn.ListReportGroups(input)
+
+	if testAccPreCheckSkipError(err) {
+		t.Skipf("skipping acceptance testing: %s", err)
+	}
+
+	if err != nil {
+		t.Fatalf("unexpected PreCheck error: %s", err)
+	}
 }
 
 func testAccCheckAWSCodeBuildReportGroupDestroy(s *terraform.State) error {

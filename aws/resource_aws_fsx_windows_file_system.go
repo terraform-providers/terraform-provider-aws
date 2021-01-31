@@ -29,8 +29,9 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(45 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,7 +49,7 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      7,
-				ValidateFunc: validation.IntBetween(0, 35),
+				ValidateFunc: validation.IntBetween(0, 90),
 			},
 			"copy_tags_to_backups": {
 				Type:     schema.TypeBool,
@@ -146,7 +147,6 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 			"storage_capacity": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(32, 65536),
 			},
 			"subnet_ids": {
@@ -160,7 +160,6 @@ func resourceAwsFsxWindowsFileSystem() *schema.Resource {
 			"throughput_capacity": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(8, 2048),
 			},
 			"vpc_id": {
@@ -275,7 +274,7 @@ func resourceAwsFsxWindowsFileSystemCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating FSx filesystem: %s", err)
 	}
 
-	d.SetId(*result.FileSystem.FileSystemId)
+	d.SetId(aws.StringValue(result.FileSystem.FileSystemId))
 
 	log.Println("[DEBUG] Waiting for filesystem to become available")
 
@@ -309,6 +308,16 @@ func resourceAwsFsxWindowsFileSystemUpdate(d *schema.ResourceData, meta interfac
 		requestUpdate = true
 	}
 
+	if d.HasChange("throughput_capacity") {
+		input.WindowsConfiguration.ThroughputCapacity = aws.Int64(int64(d.Get("throughput_capacity").(int)))
+		requestUpdate = true
+	}
+
+	if d.HasChange("storage_capacity") {
+		input.StorageCapacity = aws.Int64(int64(d.Get("storage_capacity").(int)))
+		requestUpdate = true
+	}
+
 	if d.HasChange("daily_automatic_backup_start_time") {
 		input.WindowsConfiguration.DailyAutomaticBackupStartTime = aws.String(d.Get("daily_automatic_backup_start_time").(string))
 		requestUpdate = true
@@ -326,8 +335,13 @@ func resourceAwsFsxWindowsFileSystemUpdate(d *schema.ResourceData, meta interfac
 
 	if requestUpdate {
 		_, err := conn.UpdateFileSystem(input)
+
 		if err != nil {
-			return fmt.Errorf("error updating FSX File System (%s): %s", d.Id(), err)
+			return fmt.Errorf("error updating FSx Windows File System (%s): %w", d.Id(), err)
+		}
+
+		if err := waitForFsxFileSystemUpdateAdministrativeActionsStatusFileSystemUpdate(conn, d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return fmt.Errorf("error waiting for FSx Windows File System (%s) update: %w", d.Id(), err)
 		}
 	}
 

@@ -27,7 +27,7 @@ resource "aws_apigatewayv2_route" "example" {
 The following arguments are supported:
 
 * `api_id` - (Required) The API identifier.
-* `route_key` - (Required) The route key for the route.
+* `route_key` - (Required) The route key for the route. For HTTP APIs, the route key can be either `$default`, or a combination of an HTTP method and resource path, for example, `GET /pets`.
 * `api_key_required` - (Optional) Boolean whether an API key is required for the route. Defaults to `false`.
 * `authorization_scopes` - (Optional) The authorization scopes supported by this route. The scopes are used with a JWT authorizer to authorize the method invocation.
 * `authorization_type` - (Optional) The authorization type for the route.
@@ -36,12 +36,12 @@ For HTTP APIs, valid values are `NONE` for open access, or `JWT` for using JSON 
 Defaults to `NONE`.
 * `authorizer_id` - (Optional) The identifier of the [`aws_apigatewayv2_authorizer`](/docs/providers/aws/r/apigatewayv2_authorizer.html) resource to be associated with this route, if the authorizationType is `CUSTOM`.
 * `model_selection_expression` - (Optional) The [model selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-model-selection-expressions) for the route.
-* `operation_name` - (Optional) The operation name for the route.
+* `operation_name` - (Optional) The operation name for the route. Must be between 1 and 64 characters in length.
 * `request_models` - (Optional) The request models for the route.
 * `route_response_selection_expression` - (Optional) The [route response selection expression](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-selection-expressions.html#apigateway-websocket-api-route-response-selection-expressions) for the route.
-* `target` - (Optional) The target for the route.
+* `target` - (Optional) The target for the route. Must be between 1 and 128 characters in length.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

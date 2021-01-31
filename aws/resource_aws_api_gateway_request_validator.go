@@ -72,7 +72,7 @@ func resourceAwsApiGatewayRequestValidatorCreate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error creating Request Validator: %s", err)
 	}
 
-	d.SetId(*out.Id)
+	d.SetId(aws.StringValue(out.Id))
 
 	return nil
 }

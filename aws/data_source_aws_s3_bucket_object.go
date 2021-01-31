@@ -149,7 +149,7 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("Failed getting S3 object: %s Bucket: %q Object: %q", err, bucket, key)
 	}
-	if out.DeleteMarker != nil && *out.DeleteMarker {
+	if aws.BoolValue(out.DeleteMarker) {
 		return fmt.Errorf("Requested S3 object %q%s has been deleted",
 			bucket+key, versionText)
 	}
@@ -165,10 +165,14 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("content_length", out.ContentLength)
 	d.Set("content_type", out.ContentType)
 	// See https://forums.aws.amazon.com/thread.jspa?threadID=44003
-	d.Set("etag", strings.Trim(*out.ETag, `"`))
+	d.Set("etag", strings.Trim(aws.StringValue(out.ETag), `"`))
 	d.Set("expiration", out.Expiration)
 	d.Set("expires", out.Expires)
-	d.Set("last_modified", out.LastModified.Format(time.RFC1123))
+	if out.LastModified != nil {
+		d.Set("last_modified", out.LastModified.Format(time.RFC1123))
+	} else {
+		d.Set("last_modified", "")
+	}
 	d.Set("metadata", pointersMapToStringList(out.Metadata))
 	d.Set("object_lock_legal_hold_status", out.ObjectLockLegalHoldStatus)
 	d.Set("object_lock_mode", out.ObjectLockMode)

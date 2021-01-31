@@ -672,15 +672,13 @@ resource "aws_datasync_location_s3" "destination" {
 }
 
 func testAccAWSDataSyncTaskConfigSourceLocationNfsBase(rName string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "source-aws-thinstaller" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["aws-thinstaller-*"]
-  }
+	return composeConfig(
+		// Reference: https://docs.aws.amazon.com/datasync/latest/userguide/agent-requirements.html
+		testAccAvailableEc2InstanceTypeForAvailabilityZone("aws_subnet.source.availability_zone", "m5.2xlarge", "m5.4xlarge"),
+		fmt.Sprintf(`
+# Reference: https://docs.aws.amazon.com/datasync/latest/userguide/deploy-agents.html
+data "aws_ssm_parameter" "aws_service_datasync_ami" {
+  name = "/aws/service/datasync/ami"
 }
 
 resource "aws_vpc" "source" {
@@ -691,15 +689,6 @@ resource "aws_vpc" "source" {
   tags = {
     Name = "tf-acc-test-datasync-task"
   }
-}
-
-resource "aws_vpc_dhcp_options" "source" {
-  domain_name_servers = ["AmazonProvidedDNS"]
-}
-
-resource "aws_vpc_dhcp_options_association" "source" {
-  dhcp_options_id = aws_vpc_dhcp_options.source.id
-  vpc_id          = aws_vpc.source.id
 }
 
 resource "aws_subnet" "source" {
@@ -719,8 +708,8 @@ resource "aws_internet_gateway" "source" {
   }
 }
 
-resource "aws_route_table" "source" {
-  vpc_id = aws_vpc.source.id
+resource "aws_default_route_table" "source" {
+  default_route_table_id = aws_vpc.source.default_route_table_id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -730,11 +719,6 @@ resource "aws_route_table" "source" {
   tags = {
     Name = "tf-acc-test-datasync-task"
   }
-}
-
-resource "aws_route_table_association" "source" {
-  subnet_id      = aws_subnet.source.id
-  route_table_id = aws_route_table.source.id
 }
 
 resource "aws_security_group" "source" {
@@ -771,17 +755,14 @@ resource "aws_efs_mount_target" "source" {
 
 resource "aws_instance" "source" {
   depends_on = [
-    aws_internet_gateway.source,
-    aws_vpc_dhcp_options_association.source,
+    aws_default_route_table.source,
   ]
 
-  ami                         = data.aws_ami.source-aws-thinstaller.id
+  ami                         = data.aws_ssm_parameter.aws_service_datasync_ami.value
   associate_public_ip_address = true
-
-  # Default instance type from sync.sh
-  instance_type          = "c5.2xlarge"
-  vpc_security_group_ids = [aws_security_group.source.id]
-  subnet_id              = aws_subnet.source.id
+  instance_type               = data.aws_ec2_instance_type_offering.available.instance_type
+  vpc_security_group_ids      = [aws_security_group.source.id]
+  subnet_id                   = aws_subnet.source.id
 
   tags = {
     Name = "tf-acc-test-datasync-task"
@@ -793,18 +774,15 @@ resource "aws_datasync_agent" "source" {
   name       = %q
 }
 
-# Using EFS File System DNS name due to DNS propagation delays
 resource "aws_datasync_location_nfs" "source" {
-  depends_on = [aws_efs_mount_target.source]
-
-  server_hostname = aws_efs_file_system.source.dns_name
+  server_hostname = aws_efs_mount_target.source.dns_name
   subdirectory    = "/"
 
   on_prem_config {
     agent_arns = [aws_datasync_agent.source.arn]
   }
 }
-`, rName)
+`, rName))
 }
 
 func testAccAWSDataSyncTaskConfig(rName string) string {

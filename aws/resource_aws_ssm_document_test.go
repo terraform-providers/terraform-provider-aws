@@ -803,24 +803,16 @@ DOC
 }
 
 func testAccAWSSSMDocumentTypeAutomationConfig(rName string) string {
-	return fmt.Sprintf(`
-data "aws_ami" "ssm_ami" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["*hvm-ssd/ubuntu-trusty-14.04*"]
-  }
-}
-
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), fmt.Sprintf(`
 resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "ssm_profile-%s"
+  name = "ssm_profile-%[1]s"
   role = aws_iam_role.ssm_role.name
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "ssm_role" {
-  name = "ssm_role-%s"
+  name = "ssm_role-%[1]s"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -830,7 +822,7 @@ resource "aws_iam_role" "ssm_role" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -842,7 +834,7 @@ EOF
 }
 
 resource "aws_ssm_document" "test" {
-  name          = "test_document-%s"
+  name          = "test_document-%[1]s"
   document_type = "Automation"
 
   content = <<DOC
@@ -858,7 +850,7 @@ resource "aws_ssm_document" "test" {
       "maxAttempts": 1,
       "onFailure": "Abort",
       "inputs": {
-        "ImageId": "${data.aws_ami.ssm_ami.id}",
+        "ImageId": "${data.aws_ami.amzn-ami-minimal-hvm-ebs.id}",
         "InstanceType": "t2.small",
         "MinInstanceCount": 1,
         "MaxInstanceCount": 1,
@@ -894,28 +886,20 @@ resource "aws_ssm_document" "test" {
 DOC
 
 }
-`, rName, rName, rName)
+`, rName))
 }
 
 func testAccAWSSSMDocumentTypePackageConfig(rName, source string, rInt int) string {
 	return fmt.Sprintf(`
-data "aws_ami" "test" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["*hvm-ssd/ubuntu-trusty-14.04*"]
-  }
-}
-
 resource "aws_iam_instance_profile" "test" {
-  name = "ssm_profile-%s"
+  name = "ssm_profile-%[1]s"
   role = aws_iam_role.test.name
 }
 
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "test" {
-  name = "ssm_role-%s"
+  name = "ssm_role-%[1]s"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -925,7 +909,7 @@ resource "aws_iam_role" "test" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "ec2.${data.aws_partition.current.dns_suffix}"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -937,18 +921,18 @@ EOF
 }
 
 resource "aws_s3_bucket" "test" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "tf-object-test-bucket-%[2]d"
 }
 
 resource "aws_s3_bucket_object" "test" {
   bucket       = aws_s3_bucket.test.bucket
   key          = "test.zip"
-  source       = %q
+  source       = %[3]q
   content_type = "binary/octet-stream"
 }
 
 resource "aws_ssm_document" "test" {
-  name          = "test_document-%s"
+  name          = "test_document-%[1]s"
   document_type = "Package"
 
   attachments_source {
@@ -982,7 +966,7 @@ resource "aws_ssm_document" "test" {
 DOC
 
 }
-`, rName, rName, rInt, source, rName)
+`, rName, rInt, source)
 }
 
 func testAccAWSSSMDocumentTypeSessionConfig(rName string) string {
@@ -1028,7 +1012,7 @@ DOC
 func testAccAWSSSMDocumentConfigSchemaVersion1(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_document" "test" {
-  name          = %[1]q
+  name          = %q
   document_type = "Session"
 
   content = <<DOC
@@ -1053,7 +1037,7 @@ DOC
 func testAccAWSSSMDocumentConfigSchemaVersion1Update(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_ssm_document" "test" {
-  name          = %[1]q
+  name          = %q
   document_type = "Session"
 
   content = <<DOC

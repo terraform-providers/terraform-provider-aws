@@ -4,19 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/elasticache/waiter"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func init() {
@@ -32,37 +32,37 @@ func init() {
 func testSweepElasticacheClusters(region string) error {
 	client, err := sharedClientForRegion(region)
 	if err != nil {
-		return fmt.Errorf("error getting client: %s", err)
+		return fmt.Errorf("error getting client: %w", err)
 	}
 	conn := client.(*AWSClient).elasticacheconn
 
 	err = conn.DescribeCacheClustersPages(&elasticache.DescribeCacheClustersInput{}, func(page *elasticache.DescribeCacheClustersOutput, isLast bool) bool {
 		if len(page.CacheClusters) == 0 {
-			log.Print("[DEBUG] No Elasticache Replicaton Groups to sweep")
+			log.Print("[DEBUG] No ElastiCache Replicaton Groups to sweep")
 			return false
 		}
 
 		for _, cluster := range page.CacheClusters {
 			id := aws.StringValue(cluster.CacheClusterId)
 
-			log.Printf("[INFO] Deleting Elasticache Cluster: %s", id)
-			err := deleteElasticacheCacheCluster(conn, id)
+			log.Printf("[INFO] Deleting ElastiCache Cluster: %s", id)
+			err := deleteElasticacheCacheCluster(conn, id, "")
 			if err != nil {
-				log.Printf("[ERROR] Failed to delete Elasticache Cache Cluster (%s): %s", id, err)
+				log.Printf("[ERROR] Failed to delete ElastiCache Cache Cluster (%s): %s", id, err)
 			}
-			err = waitForDeleteElasticacheCacheCluster(conn, id, 40*time.Minute)
+			_, err = waiter.CacheClusterDeleted(conn, id, waiter.CacheClusterDeletedTimeout)
 			if err != nil {
-				log.Printf("[ERROR] Failed waiting for Elasticache Cache Cluster (%s) to be deleted: %s", id, err)
+				log.Printf("[ERROR] Failed waiting for ElastiCache Cache Cluster (%s) to be deleted: %s", id, err)
 			}
 		}
 		return !isLast
 	})
 	if err != nil {
 		if testSweepSkipSweepError(err) {
-			log.Printf("[WARN] Skipping Elasticache Cluster sweep for %s: %s", region, err)
+			log.Printf("[WARN] Skipping ElastiCache Cluster sweep for %s: %s", region, err)
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Elasticache Clusters: %s", err)
+		return fmt.Errorf("Error retrieving ElastiCache Clusters: %s", err)
 	}
 	return nil
 }
@@ -216,24 +216,21 @@ func TestAccAWSElasticacheCluster_Port(t *testing.T) {
 }
 
 func TestAccAWSElasticacheCluster_SecurityGroup_Ec2Classic(t *testing.T) {
-	oldvar := os.Getenv("AWS_DEFAULT_REGION")
-	os.Setenv("AWS_DEFAULT_REGION", "us-east-1")
-	defer os.Setenv("AWS_DEFAULT_REGION", oldvar)
-
 	var ec elasticache.CacheCluster
 	resourceName := "aws_elasticache_cluster.test"
 	resourceSecurityGroupName := "aws_elasticache_security_group.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t); testAccEC2ClassicPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSElasticacheClusterConfig_SecurityGroup_Ec2Classic,
+				Config: testAccAWSElasticacheClusterConfig_SecurityGroup_Ec2Classic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists(resourceSecurityGroupName),
-					testAccCheckAWSElasticacheClusterExists(resourceName, &ec),
+					testAccCheckAWSElasticacheClusterEc2ClassicExists(resourceName, &ec),
 					resource.TestCheckResourceAttr(resourceName, "cache_nodes.0.id", "0001"),
 					resource.TestCheckResourceAttrSet(resourceName, "configuration_endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "cluster_address"),
@@ -694,6 +691,43 @@ func TestAccAWSElasticacheCluster_ReplicationGroupID_MultipleReplica(t *testing.
 	})
 }
 
+func TestAccAWSElasticacheCluster_Memcached_FinalSnapshot(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSElasticacheClusterConfig_Memcached_FinalSnapshot(rName),
+				ExpectError: regexp.MustCompile(`engine "memcached" does not support final_snapshot_identifier`),
+			},
+		},
+	})
+}
+
+func TestAccAWSElasticacheCluster_Redis_FinalSnapshot(t *testing.T) {
+	var cluster elasticache.CacheCluster
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_elasticache_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSElasticacheClusterConfig_Redis_FinalSnapshot(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheClusterExists(resourceName, &cluster),
+					resource.TestCheckResourceAttr(resourceName, "final_snapshot_identifier", rName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSElasticacheClusterAttributes(v *elasticache.CacheCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if v.NotificationConfiguration == nil {
@@ -725,7 +759,7 @@ func testAccCheckAWSElasticacheClusterReplicationGroupIDAttribute(cluster *elast
 func testAccCheckAWSElasticacheClusterNotRecreated(i, j *elasticache.CacheCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if aws.TimeValue(i.CacheClusterCreateTime) != aws.TimeValue(j.CacheClusterCreateTime) {
-			return errors.New("Elasticache Cluster was recreated")
+			return errors.New("ElastiCache Cluster was recreated")
 		}
 
 		return nil
@@ -735,7 +769,7 @@ func testAccCheckAWSElasticacheClusterNotRecreated(i, j *elasticache.CacheCluste
 func testAccCheckAWSElasticacheClusterRecreated(i, j *elasticache.CacheCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if aws.TimeValue(i.CacheClusterCreateTime) == aws.TimeValue(j.CacheClusterCreateTime) {
-			return errors.New("Elasticache Cluster was not recreated")
+			return errors.New("ElastiCache Cluster was not recreated")
 		}
 
 		return nil
@@ -749,19 +783,14 @@ func testAccCheckAWSElasticacheClusterDestroy(s *terraform.State) error {
 		if rs.Type != "aws_elasticache_cluster" {
 			continue
 		}
-		res, err := conn.DescribeCacheClusters(&elasticache.DescribeCacheClustersInput{
-			CacheClusterId: aws.String(rs.Primary.ID),
-		})
+		_, err := finder.CacheClusterByID(conn, rs.Primary.ID)
+		if tfresource.NotFound(err) {
+			continue
+		}
 		if err != nil {
-			// Verify the error is what we want
-			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "CacheClusterNotFound" {
-				continue
-			}
 			return err
 		}
-		if len(res.CacheClusters) > 0 {
-			return fmt.Errorf("still exist.")
-		}
+		return fmt.Errorf("ElastiCache Cache Cluster (%s) still exists", rs.Primary.ID)
 	}
 	return nil
 }
@@ -782,7 +811,7 @@ func testAccCheckAWSElasticacheClusterExists(n string, v *elasticache.CacheClust
 			CacheClusterId: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
-			return fmt.Errorf("Elasticache error: %v", err)
+			return fmt.Errorf("ElastiCache error: %v", err)
 		}
 
 		for _, c := range resp.CacheClusters {
@@ -792,6 +821,41 @@ func testAccCheckAWSElasticacheClusterExists(n string, v *elasticache.CacheClust
 		}
 
 		return nil
+	}
+}
+
+func testAccCheckAWSElasticacheClusterEc2ClassicExists(n string, v *elasticache.CacheCluster) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No cache cluster ID is set")
+		}
+
+		conn := testAccProviderEc2Classic.Meta().(*AWSClient).elasticacheconn
+
+		input := &elasticache.DescribeCacheClustersInput{
+			CacheClusterId: aws.String(rs.Primary.ID),
+		}
+
+		output, err := conn.DescribeCacheClusters(input)
+
+		if err != nil {
+			return fmt.Errorf("error describing ElastiCache Cluster (%s): %w", rs.Primary.ID, err)
+		}
+
+		for _, c := range output.CacheClusters {
+			if aws.StringValue(c.CacheClusterId) == rs.Primary.ID {
+				*v = *c
+
+				return nil
+			}
+		}
+
+		return fmt.Errorf("ElastiCache Cluster (%s) not found", rs.Primary.ID)
 	}
 }
 
@@ -842,9 +906,12 @@ resource "aws_elasticache_cluster" "test" {
 `, rName, port)
 }
 
-var testAccAWSElasticacheClusterConfig_SecurityGroup_Ec2Classic = fmt.Sprintf(`
+func testAccAWSElasticacheClusterConfig_SecurityGroup_Ec2Classic(rName string) string {
+	return composeConfig(
+		testAccEc2ClassicRegionProviderConfig(),
+		fmt.Sprintf(`
 resource "aws_security_group" "test" {
-  name        = "tf-test-security-group-%03d"
+  name        = %[1]q
   description = "tf-test-security-group-descr"
 
   ingress {
@@ -855,18 +922,18 @@ resource "aws_security_group" "test" {
   }
 
   tags = {
-    Name = "TestAccAWSElasticacheCluster_basic"
+    Name = "TestAccAWSElastiCacheCluster_basic"
   }
 }
 
 resource "aws_elasticache_security_group" "test" {
-  name                 = "tf-test-security-group-%03d"
+  name                 = %[1]q
   description          = "tf-test-security-group-descr"
   security_group_names = [aws_security_group.test.name]
 }
 
 resource "aws_elasticache_cluster" "test" {
-  cluster_id = "tf-%s"
+  cluster_id = %[1]q
   engine     = "memcached"
 
   # tflint-ignore: aws_elasticache_cluster_previous_type
@@ -875,7 +942,8 @@ resource "aws_elasticache_cluster" "test" {
   port                 = 11211
   security_group_names = [aws_elasticache_security_group.test.name]
 }
-`, acctest.RandInt(), acctest.RandInt(), acctest.RandString(10))
+`, rName))
+}
 
 func testAccAWSElasticacheClusterConfig_snapshots(rName string) string {
 	return fmt.Sprintf(`
@@ -1261,4 +1329,30 @@ resource "aws_elasticache_cluster" "test" {
   replication_group_id = aws_elasticache_replication_group.test.id
 }
 `, rName, count)
+}
+
+func testAccAWSElasticacheClusterConfig_Memcached_FinalSnapshot(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticache_cluster" "test" {
+  cluster_id      = %[1]q
+  engine          = "memcached"
+  node_type       = "cache.t3.small"
+  num_cache_nodes = 1
+
+  final_snapshot_identifier = %[1]q
+}
+`, rName)
+}
+
+func testAccAWSElasticacheClusterConfig_Redis_FinalSnapshot(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_elasticache_cluster" "test" {
+  cluster_id      = %[1]q
+  engine          = "redis"
+  node_type       = "cache.t3.small"
+  num_cache_nodes = 1
+
+  final_snapshot_identifier = %[1]q
+}
+`, rName)
 }

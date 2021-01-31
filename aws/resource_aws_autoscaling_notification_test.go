@@ -324,7 +324,7 @@ resource "aws_autoscaling_notification" "example" {
 }
 
 func testAccASGNotificationConfig_pagination() string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + fmt.Sprintf(`
+	return composeConfig(testAccLatestAmazonLinuxHvmEbsAmiConfig(), `
 resource "aws_sns_topic" "user_updates" {
   name = "user-updates-topic"
 }

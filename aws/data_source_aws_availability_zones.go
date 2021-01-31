@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -65,7 +64,6 @@ func dataSourceAwsAvailabilityZonesRead(d *schema.ResourceData, meta interface{}
 	conn := meta.(*AWSClient).ec2conn
 
 	log.Printf("[DEBUG] Reading Availability Zones.")
-	d.SetId(time.Now().UTC().String())
 
 	request := &ec2.DescribeAvailabilityZonesInput{}
 
@@ -129,6 +127,8 @@ func dataSourceAwsAvailabilityZonesRead(d *schema.ResourceData, meta interface{}
 		names = append(names, name)
 		zoneIds = append(zoneIds, zoneID)
 	}
+
+	d.SetId(meta.(*AWSClient).region)
 
 	if err := d.Set("group_names", groupNames); err != nil {
 		return fmt.Errorf("error setting group_names: %s", err)

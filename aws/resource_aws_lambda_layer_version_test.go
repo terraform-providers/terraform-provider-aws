@@ -83,6 +83,8 @@ func TestAccAWSLambdaLayerVersion_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "license_info", ""),
 					testAccCheckResourceAttrRegionalARN(resourceName, "layer_arn", "lambda", fmt.Sprintf("layer:%s", layerName)),
 					resource.TestCheckResourceAttr(resourceName, "version", "1"),
+					resource.TestCheckResourceAttr(resourceName, "signing_profile_version_arn", ""),
+					resource.TestCheckResourceAttr(resourceName, "signing_job_arn", ""),
 				),
 			},
 

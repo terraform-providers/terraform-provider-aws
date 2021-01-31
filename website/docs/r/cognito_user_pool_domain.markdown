@@ -63,7 +63,7 @@ The following arguments are supported:
 * `user_pool_id` - (Required) The user pool ID.
 * `certificate_arn` - (Optional) The ARN of an ISSUED ACM certificate in us-east-1 for a custom domain.
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 

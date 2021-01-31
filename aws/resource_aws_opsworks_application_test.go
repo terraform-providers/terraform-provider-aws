@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func TestAccAWSOpsworksApplication_basic(t *testing.T) {
@@ -20,7 +19,7 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 	resourceName := "aws_opsworks_application.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -35,7 +34,7 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "ssl_configuration"),
 					resource.TestCheckNoResourceAttr(resourceName, "domains"),
 					resource.TestCheckNoResourceAttr(resourceName, "app_source"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
 						"key":    "key1",
 						"value":  "value1",
 						"secret": "",
@@ -47,9 +46,8 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// TODO: TypeSet check ImportStateVerifyIgnore with hash keys
-				ImportStateVerifyIgnore: []string{"environment.3077298702.key", "environment.#",
-					"environment.3077298702.secure", "environment.3077298702.value"},
+				// Environment variable import is not supported currently.
+				ImportStateVerifyIgnore: []string{"environment"},
 			},
 			{
 				Config: testAccAwsOpsworksApplicationUpdate(rName),
@@ -69,12 +67,12 @@ func TestAccAWSOpsworksApplication_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.type", "git"),
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.url", "https://github.com/aws/example.git"),
 					resource.TestCheckResourceAttr(resourceName, "app_source.0.username", ""),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
 						"key":    "key2",
 						"value":  "value2",
 						"secure": "true",
 					}),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "environment.*", map[string]string{
 						"key":    "key1",
 						"value":  "value1",
 						"secret": "",

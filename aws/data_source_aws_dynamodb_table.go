@@ -224,7 +224,7 @@ func dataSourceAwsDynamoDbTableRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving DynamoDB table: %s", err)
 	}
 
-	d.SetId(*result.Table.TableName)
+	d.SetId(aws.StringValue(result.Table.TableName))
 
 	err = flattenAwsDynamoDbTableResource(d, result.Table)
 	if err != nil {

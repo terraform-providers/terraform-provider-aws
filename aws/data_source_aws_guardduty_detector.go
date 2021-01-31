@@ -16,6 +16,7 @@ func dataSourceAwsGuarddutyDetector() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"status": {
 				Type:     schema.TypeString,

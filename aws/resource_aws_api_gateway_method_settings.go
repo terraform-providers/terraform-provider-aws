@@ -251,7 +251,9 @@ func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta inte
 		PatchOperations: ops,
 	}
 	log.Printf("[DEBUG] Updating API Gateway Stage: %s", input)
+
 	_, err := conn.UpdateStage(&input)
+
 	if err != nil {
 		return fmt.Errorf("updating API Gateway Stage failed: %w", err)
 	}
@@ -276,7 +278,9 @@ func resourceAwsApiGatewayMethodSettingsDelete(d *schema.ResourceData, meta inte
 		},
 	}
 	log.Printf("[DEBUG] Updating API Gateway Stage: %s", input)
+
 	_, err := conn.UpdateStage(&input)
+
 	if err != nil {
 		return fmt.Errorf("updating API Gateway Stage failed: %w", err)
 	}

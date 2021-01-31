@@ -113,7 +113,9 @@ func testAccDataSourceAwsRouteCheck(name string) resource.TestCheckFunc {
 }
 
 func testAccDataSourceAwsRouteGroupConfig() string {
-	return testAccLatestAmazonLinuxHvmEbsAmiConfig() + `
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		testAccAvailableAZsNoOptInDefaultExcludeConfig(), `
 resource "aws_vpc" "test" {
   cidr_block = "172.16.0.0/16"
 
@@ -137,8 +139,9 @@ resource "aws_vpc_peering_connection" "test" {
 }
 
 resource "aws_subnet" "test" {
-  cidr_block = "172.16.0.0/24"
-  vpc_id     = aws_vpc.test.id
+  cidr_block        = "172.16.0.0/24"
+  vpc_id            = aws_vpc.test.id
+  availability_zone = data.aws_availability_zones.available.names[0]
 
   tags = {
     Name = "tf-acc-route-table-data-source"
@@ -200,7 +203,7 @@ data "aws_route" "by_instance_id" {
   instance_id    = aws_instance.web.id
   depends_on     = [aws_route.test]
 }
-`
+`)
 }
 
 func testAccAWSRouteDataSourceConfigTransitGatewayID() string {
@@ -247,7 +250,7 @@ data "aws_route" "test" {
 }
 
 func testAccAWSRouteDataSourceConfigLocalGatewayID() string {
-	return fmt.Sprintf(`
+	return `
 data "aws_ec2_local_gateways" "all" {}
 data "aws_ec2_local_gateway" "first" {
   id = tolist(data.aws_ec2_local_gateways.all.ids)[0]
@@ -283,5 +286,5 @@ data "aws_route" "by_local_gateway_id" {
   local_gateway_id = data.aws_ec2_local_gateway.first.id
   depends_on       = [aws_route.test]
 }
-`)
+`
 }

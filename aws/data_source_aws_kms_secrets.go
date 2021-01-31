@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -99,7 +98,7 @@ func dataSourceAwsKmsSecretsRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("error setting plaintext: %s", err)
 	}
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(meta.(*AWSClient).region)
 
 	return nil
 }

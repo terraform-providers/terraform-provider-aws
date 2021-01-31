@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -78,6 +79,11 @@ func dataSourceAwsRouteTable() *schema.Resource {
 						},
 
 						"transit_gateway_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"vpc_endpoint_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -228,7 +234,11 @@ func dataSourceRoutesRead(ec2Routes []*ec2.Route) []map[string]interface{} {
 			m["egress_only_gateway_id"] = *r.EgressOnlyInternetGatewayId
 		}
 		if r.GatewayId != nil {
-			m["gateway_id"] = *r.GatewayId
+			if strings.HasPrefix(*r.GatewayId, "vpce-") {
+				m["vpc_endpoint_id"] = *r.GatewayId
+			} else {
+				m["gateway_id"] = *r.GatewayId
+			}
 		}
 		if r.NatGatewayId != nil {
 			m["nat_gateway_id"] = *r.NatGatewayId

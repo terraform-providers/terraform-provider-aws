@@ -261,7 +261,7 @@ func resourceAwsCognitoUserPoolClientCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Cognito User Pool Client: %s", err)
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 
 	return resourceAwsCognitoUserPoolClientRead(d, meta)
 }
@@ -287,7 +287,7 @@ func resourceAwsCognitoUserPoolClientRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	d.SetId(*resp.UserPoolClient.ClientId)
+	d.SetId(aws.StringValue(resp.UserPoolClient.ClientId))
 	d.Set("user_pool_id", resp.UserPoolClient.UserPoolId)
 	d.Set("name", resp.UserPoolClient.ClientName)
 	d.Set("explicit_auth_flows", flattenStringSet(resp.UserPoolClient.ExplicitAuthFlows))

@@ -98,7 +98,7 @@ func resourceAwsRedshiftParameterGroupCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error creating Redshift Parameter Group: %s", err)
 	}
 
-	d.SetId(*createOpts.ParameterGroupName)
+	d.SetId(aws.StringValue(createOpts.ParameterGroupName))
 
 	if v := d.Get("parameter").(*schema.Set); v.Len() > 0 {
 		parameters := expandRedshiftParameters(v.List())

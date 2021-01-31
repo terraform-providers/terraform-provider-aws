@@ -17,7 +17,7 @@ func TestAccAwsAppsyncDatasource_basic(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -49,7 +49,7 @@ func TestAccAwsAppsyncDatasource_Description(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -81,7 +81,7 @@ func TestAccAwsAppsyncDatasource_DynamoDBConfig_Region(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccAwsAppsyncDatasource_DynamoDBConfig_UseCallerCredentials(t *testing.
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -149,7 +149,7 @@ func TestAccAwsAppsyncDatasource_ElasticsearchConfig_Region(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -183,7 +183,7 @@ func TestAccAwsAppsyncDatasource_HTTPConfig_Endpoint(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -219,7 +219,7 @@ func TestAccAwsAppsyncDatasource_Type(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -248,7 +248,7 @@ func TestAccAwsAppsyncDatasource_Type_DynamoDB(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -278,7 +278,7 @@ func TestAccAwsAppsyncDatasource_Type_Elasticsearch(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -307,7 +307,7 @@ func TestAccAwsAppsyncDatasource_Type_HTTP(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -336,7 +336,7 @@ func TestAccAwsAppsyncDatasource_Type_Lambda(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{
@@ -364,7 +364,7 @@ func TestAccAwsAppsyncDatasource_Type_None(t *testing.T) {
 	resourceName := "aws_appsync_datasource.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSAppSync(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
 		Steps: []resource.TestStep{

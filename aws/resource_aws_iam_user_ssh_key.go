@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -85,7 +84,7 @@ func resourceAwsIamUserSshKeyCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating IAM User SSH Key %s: %s", username, err)
 	}
 
-	d.SetId(*createResp.SSHPublicKey.SSHPublicKeyId)
+	d.SetId(aws.StringValue(createResp.SSHPublicKey.SSHPublicKeyId))
 
 	return resourceAwsIamUserSshKeyUpdate(d, meta)
 }

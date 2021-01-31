@@ -284,7 +284,7 @@ func resourceAwsElasticBeanstalkEnvironmentCreate(d *schema.ResourceData, meta i
 	}
 
 	// Assign the application name as the resource ID
-	d.SetId(*resp.EnvironmentId)
+	d.SetId(aws.StringValue(resp.EnvironmentId))
 
 	waitForReadyTimeOut, err := time.ParseDuration(d.Get("wait_for_ready_timeout").(string))
 	if err != nil {

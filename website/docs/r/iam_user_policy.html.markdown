@@ -54,6 +54,8 @@ The following arguments are supported:
 
 ## Attributes Reference
 
+In addition to all arguments above, the following attributes are exported:
+
 * `id` - The user policy ID, in the form of `user_name:user_policy_name`.
 * `name` - The name of the policy (always set).
 

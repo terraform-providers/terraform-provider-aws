@@ -71,7 +71,7 @@ func TestAccDataSourceAwsEbsSnapshotIds_empty(t *testing.T) {
 }
 
 func testAccDataSourceAwsEbsSnapshotIdsConfig_basic() string {
-	return composeConfig(testAccAvailableAZsNoOptInConfig(), fmt.Sprintf(`
+	return composeConfig(testAccAvailableAZsNoOptInConfig(), `
 resource "aws_ebs_volume" "test" {
   availability_zone = data.aws_availability_zones.available.names[0]
   size              = 1
@@ -84,7 +84,7 @@ resource "aws_ebs_snapshot" "test" {
 data "aws_ebs_snapshot_ids" "test" {
   owners = ["self"]
 }
-`))
+`)
 }
 
 func testAccDataSourceAwsEbsSnapshotIdsConfig_sorted1(rName string) string {

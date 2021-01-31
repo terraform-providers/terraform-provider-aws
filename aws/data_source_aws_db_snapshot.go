@@ -195,7 +195,7 @@ func mostRecentDbSnapshot(snapshots []*rds.DBSnapshot) *rds.DBSnapshot {
 }
 
 func dbSnapshotDescriptionAttributes(d *schema.ResourceData, snapshot *rds.DBSnapshot) error {
-	d.SetId(*snapshot.DBSnapshotIdentifier)
+	d.SetId(aws.StringValue(snapshot.DBSnapshotIdentifier))
 	d.Set("db_instance_identifier", snapshot.DBInstanceIdentifier)
 	d.Set("db_snapshot_identifier", snapshot.DBSnapshotIdentifier)
 	d.Set("snapshot_type", snapshot.SnapshotType)

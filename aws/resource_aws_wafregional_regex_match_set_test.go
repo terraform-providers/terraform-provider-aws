@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/wafregional/finder"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfawsresource"
 )
 
 func init() {
@@ -120,7 +119,7 @@ func testAccAWSWafRegionalRegexMatchSet_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRegexMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -132,7 +131,7 @@ func testAccAWSWafRegionalRegexMatchSet_basic(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &fieldToMatch, "NONE", &idx),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "user-agent",
 						"field_to_match.0.type": "HEADER",
@@ -159,7 +158,7 @@ func testAccAWSWafRegionalRegexMatchSet_changePatterns(t *testing.T) {
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRegexMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -171,7 +170,7 @@ func testAccAWSWafRegionalRegexMatchSet_changePatterns(t *testing.T) {
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("User-Agent"), Type: aws.String("HEADER")}, "NONE", &idx1),
 					resource.TestCheckResourceAttr(resourceName, "name", matchSetName),
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "user-agent",
 						"field_to_match.0.type": "HEADER",
@@ -187,7 +186,7 @@ func testAccAWSWafRegionalRegexMatchSet_changePatterns(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "regex_match_tuple.#", "1"),
 
 					computeWafRegexMatchSetTuple(&patternSet, &waf.FieldToMatch{Data: aws.String("Referer"), Type: aws.String("HEADER")}, "COMPRESS_WHITE_SPACE", &idx2),
-					tfawsresource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "regex_match_tuple.*", map[string]string{
 						"field_to_match.#":      "1",
 						"field_to_match.0.data": "referer",
 						"field_to_match.0.type": "HEADER",
@@ -210,7 +209,7 @@ func testAccAWSWafRegionalRegexMatchSet_noPatterns(t *testing.T) {
 	matchSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRegexMatchSetDestroy,
 		Steps: []resource.TestStep{
@@ -238,7 +237,7 @@ func testAccAWSWafRegionalRegexMatchSet_disappears(t *testing.T) {
 	patternSetName := fmt.Sprintf("tfacc-%s", acctest.RandString(5))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(wafregional.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSWafRegionalRegexMatchSetDestroy,
 		Steps: []resource.TestStep{

@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/worklink"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -439,7 +438,7 @@ resource "aws_worklink_fleet" "test" {
 
   network {
     vpc_id             = aws_vpc.test.id
-    subnet_ids         = [aws_subnet.test[0].id, aws_subnet.test[1].id]
+    subnet_ids         = aws_subnet.test[*].id
     security_group_ids = [aws_security_group.test.id]
   }
 }

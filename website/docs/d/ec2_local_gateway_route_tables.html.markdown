@@ -40,4 +40,5 @@ which take the following arguments:
 
 ## Attributes Reference
 
+* `id` - AWS Region.
 * `ids` - Set of Local Gateway Route Table identifiers

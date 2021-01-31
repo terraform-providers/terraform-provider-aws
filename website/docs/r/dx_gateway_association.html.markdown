@@ -87,7 +87,7 @@ resource "aws_dx_gateway_association" "example" {
 }
 ```
 
-A full example of how to create a VPN Gateway in one AWS account, create a Direct Connect Gateway in a second AWS account, and associate the VPN Gateway with the Direct Connect Gateway via the `aws_dx_gateway_association_proposal` and `aws_dx_gateway_association` resources can be found in [the `./examples/dx-gateway-cross-account-vgw-association` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-aws/tree/master/examples/dx-gateway-cross-account-vgw-association).
+A full example of how to create a VPN Gateway in one AWS account, create a Direct Connect Gateway in a second AWS account, and associate the VPN Gateway with the Direct Connect Gateway via the `aws_dx_gateway_association_proposal` and `aws_dx_gateway_association` resources can be found in [the `./examples/dx-gateway-cross-account-vgw-association` directory within the Github Repository](https://github.com/hashicorp/terraform-provider-aws/tree/master/examples/dx-gateway-cross-account-vgw-association).
 
 ## Argument Reference
 
@@ -116,7 +116,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_gateway_association` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `30 minutes`) Used for creating the association
 - `update` - (Default `30 minutes`) Used for updating the association

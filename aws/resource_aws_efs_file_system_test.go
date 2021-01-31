@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/efs"
-
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -193,7 +192,7 @@ func TestAccAWSEFSFileSystem_pagedTags(t *testing.T) {
 				Config: testAccAWSEFSFileSystemConfigPagedTags(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEfsFileSystem(resourceName, &desc),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "11"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "10"),
 				),
 			},
 			{
@@ -658,7 +657,7 @@ func testAccAWSEFSFileSystemConfigPagedTags(rInt int) string {
 	return fmt.Sprintf(`
 resource "aws_efs_file_system" "test" {
   tags = {
-    Name           = "test-efs-%d"
+    Name           = "test-efs-%[1]d"
     Another        = "tag"
     Test           = "yes"
     User           = "root"
@@ -668,7 +667,6 @@ resource "aws_efs_file_system" "test" {
     AcceptanceTest = "PagedTags"
     CreationToken  = "radek"
     PerfMode       = "max"
-    Region         = "us-west-2"
   }
 }
 `, rInt)

@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/tfresource"
 )
 
 func resourceAwsGlueCrawler() *schema.Resource {
@@ -31,6 +33,10 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(1, 255),
+					validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9-_$#]+$`), ""),
+				),
 			},
 			"arn": {
 				Type:     schema.TypeString,
@@ -56,8 +62,9 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				},
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 2048),
 			},
 			"schedule": {
 				Type:     schema.TypeString,
@@ -96,13 +103,15 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				},
 			},
 			"table_prefix": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 128),
 			},
 			"s3_target": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"s3_target", "dynamodb_target", "mongodb_target", "jdbc_target", "catalog_target"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"connection_name": {
@@ -122,9 +131,10 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				},
 			},
 			"dynamodb_target": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"s3_target", "dynamodb_target", "mongodb_target", "jdbc_target", "catalog_target"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"path": {
@@ -144,10 +154,34 @@ func resourceAwsGlueCrawler() *schema.Resource {
 					},
 				},
 			},
+			"mongodb_target": {
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"s3_target", "dynamodb_target", "mongodb_target", "jdbc_target", "catalog_target"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connection_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"path": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"scan_all": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
+			},
 			"jdbc_target": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"s3_target", "dynamodb_target", "mongodb_target", "jdbc_target", "catalog_target"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"connection_name": {
@@ -167,9 +201,10 @@ func resourceAwsGlueCrawler() *schema.Resource {
 				},
 			},
 			"catalog_target": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MinItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"s3_target", "dynamodb_target", "mongodb_target", "jdbc_target", "catalog_target"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"database_name": {
@@ -193,6 +228,48 @@ func resourceAwsGlueCrawler() *schema.Resource {
 					return json
 				},
 				ValidateFunc: validation.StringIsJSON,
+			},
+			"lineage_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == "1" && new == "0" {
+						return true
+					}
+					return false
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"crawler_lineage_settings": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      glue.CrawlerLineageSettingsDisable,
+							ValidateFunc: validation.StringInSlice(glue.CrawlerLineageSettings_Values(), false),
+						},
+					},
+				},
+			},
+			"recrawl_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if old == "1" && new == "0" {
+						return true
+					}
+					return false
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"recrawl_behavior": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      glue.RecrawlBehaviorCrawlEverything,
+							ValidateFunc: validation.StringInSlice(glue.RecrawlBehavior_Values(), false),
+						},
+					},
+				},
 			},
 			"security_configuration": {
 				Type:     schema.TypeString,
@@ -231,7 +308,7 @@ func resourceAwsGlueCrawlerCreate(d *schema.ResourceData, meta interface{}) erro
 		_, err = glueConn.CreateCrawler(crawlerInput)
 	}
 	if err != nil {
-		return fmt.Errorf("error creating Glue crawler: %s", err)
+		return fmt.Errorf("error creating Glue crawler: %w", err)
 	}
 	d.SetId(name)
 
@@ -239,16 +316,12 @@ func resourceAwsGlueCrawlerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func createCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.CreateCrawlerInput, error) {
-	crawlerTargets, err := expandGlueCrawlerTargets(d)
-	if err != nil {
-		return nil, err
-	}
 	crawlerInput := &glue.CreateCrawlerInput{
 		Name:         aws.String(crawlerName),
 		DatabaseName: aws.String(d.Get("database_name").(string)),
 		Role:         aws.String(d.Get("role").(string)),
 		Tags:         keyvaluetags.New(d.Get("tags").(map[string]interface{})).IgnoreAws().GlueTags(),
-		Targets:      crawlerTargets,
+		Targets:      expandGlueCrawlerTargets(d),
 	}
 	if description, ok := d.GetOk("description"); ok {
 		crawlerInput.Description = aws.String(description.(string))
@@ -281,19 +354,23 @@ func createCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.Creat
 		crawlerInput.CrawlerSecurityConfiguration = aws.String(securityConfiguration.(string))
 	}
 
+	if v, ok := d.GetOk("lineage_configuration"); ok {
+		crawlerInput.LineageConfiguration = expandGlueCrawlerLineageConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("recrawl_policy"); ok {
+		crawlerInput.RecrawlPolicy = expandGlueCrawlerRecrawlPolicy(v.([]interface{}))
+	}
+
 	return crawlerInput, nil
 }
 
 func updateCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.UpdateCrawlerInput, error) {
-	crawlerTargets, err := expandGlueCrawlerTargets(d)
-	if err != nil {
-		return nil, err
-	}
 	crawlerInput := &glue.UpdateCrawlerInput{
 		Name:         aws.String(crawlerName),
 		DatabaseName: aws.String(d.Get("database_name").(string)),
 		Role:         aws.String(d.Get("role").(string)),
-		Targets:      crawlerTargets,
+		Targets:      expandGlueCrawlerTargets(d),
 	}
 	if description, ok := d.GetOk("description"); ok {
 		crawlerInput.Description = aws.String(description.(string))
@@ -329,6 +406,14 @@ func updateCrawlerInput(crawlerName string, d *schema.ResourceData) (*glue.Updat
 		crawlerInput.CrawlerSecurityConfiguration = aws.String(securityConfiguration.(string))
 	}
 
+	if v, ok := d.GetOk("lineage_configuration"); ok {
+		crawlerInput.LineageConfiguration = expandGlueCrawlerLineageConfiguration(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("recrawl_policy"); ok {
+		crawlerInput.RecrawlPolicy = expandGlueCrawlerRecrawlPolicy(v.([]interface{}))
+	}
+
 	return crawlerInput, nil
 }
 
@@ -351,24 +436,32 @@ func expandGlueSchemaChangePolicy(v []interface{}) *glue.SchemaChangePolicy {
 	return schemaPolicy
 }
 
-func expandGlueCrawlerTargets(d *schema.ResourceData) (*glue.CrawlerTargets, error) {
+func expandGlueCrawlerTargets(d *schema.ResourceData) *glue.CrawlerTargets {
 	crawlerTargets := &glue.CrawlerTargets{}
 
-	dynamodbTargets, dynamodbTargetsOk := d.GetOk("dynamodb_target")
-	jdbcTargets, jdbcTargetsOk := d.GetOk("jdbc_target")
-	s3Targets, s3TargetsOk := d.GetOk("s3_target")
-	catalogTargets, catalogTargetsOk := d.GetOk("catalog_target")
-	if !dynamodbTargetsOk && !jdbcTargetsOk && !s3TargetsOk && !catalogTargetsOk {
-		return nil, fmt.Errorf("One of the following configurations is required: dynamodb_target, jdbc_target, s3_target, catalog_target")
+	log.Print("[DEBUG] Creating crawler target")
+
+	if v, ok := d.GetOk("dynamodb_target"); ok {
+		crawlerTargets.DynamoDBTargets = expandGlueDynamoDBTargets(v.([]interface{}))
 	}
 
-	log.Print("[DEBUG] Creating crawler target")
-	crawlerTargets.DynamoDBTargets = expandGlueDynamoDBTargets(dynamodbTargets.([]interface{}))
-	crawlerTargets.JdbcTargets = expandGlueJdbcTargets(jdbcTargets.([]interface{}))
-	crawlerTargets.S3Targets = expandGlueS3Targets(s3Targets.([]interface{}))
-	crawlerTargets.CatalogTargets = expandGlueCatalogTargets(catalogTargets.([]interface{}))
+	if v, ok := d.GetOk("jdbc_target"); ok {
+		crawlerTargets.JdbcTargets = expandGlueJdbcTargets(v.([]interface{}))
+	}
 
-	return crawlerTargets, nil
+	if v, ok := d.GetOk("s3_target"); ok {
+		crawlerTargets.S3Targets = expandGlueS3Targets(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("catalog_target"); ok {
+		crawlerTargets.CatalogTargets = expandGlueCatalogTargets(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("mongodb_target"); ok {
+		crawlerTargets.MongoDBTargets = expandGlueMongoDBTargets(v.([]interface{}))
+	}
+
+	return crawlerTargets
 }
 
 func expandGlueDynamoDBTargets(targets []interface{}) []*glue.DynamoDBTarget {
@@ -472,13 +565,34 @@ func expandGlueCatalogTarget(cfg map[string]interface{}) *glue.CatalogTarget {
 	return target
 }
 
+func expandGlueMongoDBTargets(targets []interface{}) []*glue.MongoDBTarget {
+	if len(targets) < 1 {
+		return []*glue.MongoDBTarget{}
+	}
+
+	perms := make([]*glue.MongoDBTarget, len(targets))
+	for i, rawCfg := range targets {
+		cfg := rawCfg.(map[string]interface{})
+		perms[i] = expandGlueMongoDBTarget(cfg)
+	}
+	return perms
+}
+
+func expandGlueMongoDBTarget(cfg map[string]interface{}) *glue.MongoDBTarget {
+	target := &glue.MongoDBTarget{
+		ConnectionName: aws.String(cfg["connection_name"].(string)),
+		Path:           aws.String(cfg["path"].(string)),
+		ScanAll:        aws.Bool(cfg["scan_all"].(bool)),
+	}
+
+	return target
+}
+
 func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) error {
 	glueConn := meta.(*AWSClient).glueconn
 	name := d.Get("name").(string)
 
-	if d.HasChanges(
-		"catalog_target", "classifiers", "configuration", "description", "dynamodb_target", "jdbc_target", "role",
-		"s3_target", "schedule", "schema_change_policy", "security_configuration", "table_prefix") {
+	if d.HasChangesExcept("tags") {
 		updateCrawlerInput, err := updateCrawlerInput(name, d)
 		if err != nil {
 			return err
@@ -500,15 +614,19 @@ func resourceAwsGlueCrawlerUpdate(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		})
 
+		if tfresource.TimedOut(err) {
+			_, err = glueConn.UpdateCrawler(updateCrawlerInput)
+		}
+
 		if err != nil {
-			return fmt.Errorf("error updating Glue crawler: %s", err)
+			return fmt.Errorf("error updating Glue crawler: %w", err)
 		}
 	}
 
 	if d.HasChange("tags") {
 		o, n := d.GetChange("tags")
 		if err := keyvaluetags.GlueUpdateTags(glueConn, d.Get("arn").(string), o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
+			return fmt.Errorf("error updating tags: %w", err)
 		}
 	}
 
@@ -531,10 +649,11 @@ func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("error reading Glue crawler: %s", err.Error())
+		return fmt.Errorf("error reading Glue crawler: %w", err)
 	}
 
-	if crawlerOutput.Crawler == nil {
+	crawler := crawlerOutput.Crawler
+	if crawler == nil {
 		log.Printf("[WARN] Glue Crawler (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
@@ -548,58 +667,65 @@ func resourceAwsGlueCrawlerRead(d *schema.ResourceData, meta interface{}) error 
 		Resource:  fmt.Sprintf("crawler/%s", d.Id()),
 	}.String()
 	d.Set("arn", crawlerARN)
-	d.Set("name", crawlerOutput.Crawler.Name)
-	d.Set("database_name", crawlerOutput.Crawler.DatabaseName)
-	d.Set("role", crawlerOutput.Crawler.Role)
-	d.Set("configuration", crawlerOutput.Crawler.Configuration)
-	d.Set("description", crawlerOutput.Crawler.Description)
-	d.Set("security_configuration", crawlerOutput.Crawler.CrawlerSecurityConfiguration)
+	d.Set("name", crawler.Name)
+	d.Set("database_name", crawler.DatabaseName)
+	d.Set("role", crawler.Role)
+	d.Set("configuration", crawler.Configuration)
+	d.Set("description", crawler.Description)
+	d.Set("security_configuration", crawler.CrawlerSecurityConfiguration)
 	d.Set("schedule", "")
-	if crawlerOutput.Crawler.Schedule != nil {
-		d.Set("schedule", crawlerOutput.Crawler.Schedule.ScheduleExpression)
+	if crawler.Schedule != nil {
+		d.Set("schedule", crawler.Schedule.ScheduleExpression)
 	}
-	if err := d.Set("classifiers", flattenStringList(crawlerOutput.Crawler.Classifiers)); err != nil {
-		return fmt.Errorf("error setting classifiers: %s", err)
+	if err := d.Set("classifiers", flattenStringList(crawler.Classifiers)); err != nil {
+		return fmt.Errorf("error setting classifiers: %w", err)
 	}
-	d.Set("table_prefix", crawlerOutput.Crawler.TablePrefix)
+	d.Set("table_prefix", crawler.TablePrefix)
 
-	if crawlerOutput.Crawler.SchemaChangePolicy != nil {
-		schemaPolicy := map[string]string{
-			"delete_behavior": aws.StringValue(crawlerOutput.Crawler.SchemaChangePolicy.DeleteBehavior),
-			"update_behavior": aws.StringValue(crawlerOutput.Crawler.SchemaChangePolicy.UpdateBehavior),
-		}
-
-		if err := d.Set("schema_change_policy", []map[string]string{schemaPolicy}); err != nil {
-			return fmt.Errorf("error setting schema_change_policy: %s", schemaPolicy)
+	if crawler.SchemaChangePolicy != nil {
+		if err := d.Set("schema_change_policy", flattenGlueCrawlerSchemaChangePolicy(crawler.SchemaChangePolicy)); err != nil {
+			return fmt.Errorf("error setting schema_change_policy: %w", err)
 		}
 	}
 
-	if crawlerOutput.Crawler.Targets != nil {
-		if err := d.Set("dynamodb_target", flattenGlueDynamoDBTargets(crawlerOutput.Crawler.Targets.DynamoDBTargets)); err != nil {
-			return fmt.Errorf("error setting dynamodb_target: %s", err)
+	if crawler.Targets != nil {
+		if err := d.Set("dynamodb_target", flattenGlueDynamoDBTargets(crawler.Targets.DynamoDBTargets)); err != nil {
+			return fmt.Errorf("error setting dynamodb_target: %w", err)
 		}
 
-		if err := d.Set("jdbc_target", flattenGlueJdbcTargets(crawlerOutput.Crawler.Targets.JdbcTargets)); err != nil {
-			return fmt.Errorf("error setting jdbc_target: %s", err)
+		if err := d.Set("jdbc_target", flattenGlueJdbcTargets(crawler.Targets.JdbcTargets)); err != nil {
+			return fmt.Errorf("error setting jdbc_target: %w", err)
 		}
 
-		if err := d.Set("s3_target", flattenGlueS3Targets(crawlerOutput.Crawler.Targets.S3Targets)); err != nil {
-			return fmt.Errorf("error setting s3_target: %s", err)
+		if err := d.Set("s3_target", flattenGlueS3Targets(crawler.Targets.S3Targets)); err != nil {
+			return fmt.Errorf("error setting s3_target: %w", err)
 		}
 
-		if err := d.Set("catalog_target", flattenGlueCatalogTargets(crawlerOutput.Crawler.Targets.CatalogTargets)); err != nil {
-			return fmt.Errorf("error setting catalog_target: %s", err)
+		if err := d.Set("catalog_target", flattenGlueCatalogTargets(crawler.Targets.CatalogTargets)); err != nil {
+			return fmt.Errorf("error setting catalog_target: %w", err)
+		}
+
+		if err := d.Set("mongodb_target", flattenGlueMongoDBTargets(crawler.Targets.MongoDBTargets)); err != nil {
+			return fmt.Errorf("error setting mongodb_target: %w", err)
 		}
 	}
 
 	tags, err := keyvaluetags.GlueListTags(glueConn, crawlerARN)
 
 	if err != nil {
-		return fmt.Errorf("error listing tags for Glue Crawler (%s): %s", crawlerARN, err)
+		return fmt.Errorf("error listing tags for Glue Crawler (%s): %w", crawlerARN, err)
 	}
 
 	if err := d.Set("tags", tags.IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
+		return fmt.Errorf("error setting tags: %w", err)
+	}
+
+	if err := d.Set("lineage_configuration", flattenGlueCrawlerLineageConfiguration(crawler.LineageConfiguration)); err != nil {
+		return fmt.Errorf("error setting lineage_configuration: %w", err)
+	}
+
+	if err := d.Set("recrawl_policy", flattenGlueCrawlerRecrawlPolicy(crawler.RecrawlPolicy)); err != nil {
+		return fmt.Errorf("error setting recrawl_policy: %w", err)
 	}
 
 	return nil
@@ -660,6 +786,20 @@ func flattenGlueJdbcTargets(jdbcTargets []*glue.JdbcTarget) []map[string]interfa
 	return result
 }
 
+func flattenGlueMongoDBTargets(mongoDBTargets []*glue.MongoDBTarget) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	for _, mongoDBTarget := range mongoDBTargets {
+		attrs := make(map[string]interface{})
+		attrs["connection_name"] = aws.StringValue(mongoDBTarget.ConnectionName)
+		attrs["path"] = aws.StringValue(mongoDBTarget.Path)
+		attrs["scan_all"] = aws.BoolValue(mongoDBTarget.ScanAll)
+
+		result = append(result, attrs)
+	}
+	return result
+}
+
 func resourceAwsGlueCrawlerDelete(d *schema.ResourceData, meta interface{}) error {
 	glueConn := meta.(*AWSClient).glueconn
 
@@ -671,7 +811,62 @@ func resourceAwsGlueCrawlerDelete(d *schema.ResourceData, meta interface{}) erro
 		if isAWSErr(err, glue.ErrCodeEntityNotFoundException, "") {
 			return nil
 		}
-		return fmt.Errorf("error deleting Glue crawler: %s", err.Error())
+		return fmt.Errorf("error deleting Glue crawler: %w", err)
 	}
 	return nil
+}
+
+func flattenGlueCrawlerSchemaChangePolicy(cfg *glue.SchemaChangePolicy) []map[string]interface{} {
+	if cfg == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"delete_behavior": aws.StringValue(cfg.DeleteBehavior),
+		"update_behavior": aws.StringValue(cfg.UpdateBehavior),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func expandGlueCrawlerLineageConfiguration(cfg []interface{}) *glue.LineageConfiguration {
+	m := cfg[0].(map[string]interface{})
+
+	target := &glue.LineageConfiguration{
+		CrawlerLineageSettings: aws.String(m["crawler_lineage_settings"].(string)),
+	}
+	return target
+}
+
+func flattenGlueCrawlerLineageConfiguration(cfg *glue.LineageConfiguration) []map[string]interface{} {
+	if cfg == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"crawler_lineage_settings": aws.StringValue(cfg.CrawlerLineageSettings),
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func expandGlueCrawlerRecrawlPolicy(cfg []interface{}) *glue.RecrawlPolicy {
+	m := cfg[0].(map[string]interface{})
+
+	target := &glue.RecrawlPolicy{
+		RecrawlBehavior: aws.String(m["recrawl_behavior"].(string)),
+	}
+	return target
+}
+
+func flattenGlueCrawlerRecrawlPolicy(cfg *glue.RecrawlPolicy) []map[string]interface{} {
+	if cfg == nil {
+		return []map[string]interface{}{}
+	}
+
+	m := map[string]interface{}{
+		"recrawl_behavior": aws.StringValue(cfg.RecrawlBehavior),
+	}
+
+	return []map[string]interface{}{m}
 }

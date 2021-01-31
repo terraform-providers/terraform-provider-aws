@@ -194,7 +194,7 @@ func resourceAwsWafRegionalWebAclCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	resp := out.(*waf.CreateWebACLOutput)
-	d.SetId(*resp.WebACL.WebACLId)
+	d.SetId(aws.StringValue(resp.WebACL.WebACLId))
 
 	// The WAF API currently omits this, but use it when it becomes available
 	webACLARN := aws.StringValue(resp.WebACL.WebACLArn)

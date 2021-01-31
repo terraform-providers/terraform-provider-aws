@@ -21,7 +21,7 @@ func TestAccAWSCloud9EnvironmentEc2_basic(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAWSCloud9EnvironmentEc2_allFields(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -111,7 +111,7 @@ func TestAccAWSCloud9EnvironmentEc2_tags(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -157,7 +157,7 @@ func TestAccAWSCloud9EnvironmentEc2_disappears(t *testing.T) {
 	resourceName := "aws_cloud9_environment_ec2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSCloud9(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(cloud9.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSCloud9EnvironmentEc2Destroy,
 		Steps: []resource.TestStep{
@@ -271,22 +271,6 @@ func testAccCheckAWSCloud9EnvironmentEc2Destroy(s *terraform.State) error {
 		return fmt.Errorf("Cloud9 Environment EC2 %q still exists.", rs.Primary.ID)
 	}
 	return nil
-}
-
-func testAccPreCheckAWSCloud9(t *testing.T) {
-	conn := testAccProvider.Meta().(*AWSClient).cloud9conn
-
-	input := &cloud9.ListEnvironmentsInput{}
-
-	_, err := conn.ListEnvironments(input)
-
-	if testAccPreCheckSkipError(err) {
-		t.Skipf("skipping acceptance testing: %s", err)
-	}
-
-	if err != nil {
-		t.Fatalf("unexpected PreCheck error: %s", err)
-	}
 }
 
 func testAccAWSCloud9EnvironmentEc2ConfigBase() string {

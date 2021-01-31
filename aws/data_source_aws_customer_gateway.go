@@ -21,6 +21,7 @@ func dataSourceAwsCustomerGateway() *schema.Resource {
 			"id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"bgp_asn": {

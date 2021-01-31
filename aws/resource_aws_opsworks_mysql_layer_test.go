@@ -18,7 +18,7 @@ func TestAccAWSOpsworksMysqlLayer_basic(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_mysql_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksMysqlLayerDestroy,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ func TestAccAWSOpsworksMysqlLayer_tags(t *testing.T) {
 	stackName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_opsworks_mysql_layer.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(opsworks.EndpointsID, t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAwsOpsworksMysqlLayerDestroy,
 		Steps: []resource.TestStep{

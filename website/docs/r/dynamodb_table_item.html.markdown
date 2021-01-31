@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-All of the arguments above are exported as attributes.
+In addition to all arguments above, the following attributes are exported:
 
 ## Import
 

@@ -2,22 +2,23 @@ name: Examples Checks
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     paths:
+      - .github/workflows/examples.yml
+      - .go-version
       - examples/**
+      - tools/go.mod
 
 env:
   AWS_DEFAULT_REGION: us-west-2
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
 
 jobs:
-  terraform:
+  validate-terraform:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        go_version: ["1.14"]
         terraform_version: ["0.12.29"]
     steps:
     - uses: actions/checkout@v2
@@ -27,26 +28,22 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    # See also: https://github.com/actions/setup-go/pull/62
+    - run: echo "GO_VERSION=$(cat .go-version)" >> $GITHUB_ENV
     - uses: actions/setup-go@v2
       with:
-        go-version: ${{ matrix.go_version }}
+        go-version: ${{ env.GO_VERSION }}
     - name: go build
-      run: |
-        GOOS=$(go env GOOS)
-        GOARCH=$(go env GOARCH)
-        # Substitute as latest release
-        VERSION=$(git describe --abbrev=0 --match='v*.*.*' --tags || echo -n "v99.99.99")
-        go build -o ${TF_PLUGIN_CACHE_DIR}/${GOOS}_${GOARCH}/terraform-provider-aws_${VERSION}_x4 .
+      run: go build -o terraform-plugin-dir/terraform-provider-aws_v99.99.99_x5 .
+    - name: override plugin
+      run: mkdir -p ~/.terraform.d/plugins && cp terraform-plugin-dir/terraform-provider-aws_v99.99.99_x5 ~/.terraform.d/plugins
     - uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: ${{ matrix.terraform_version }}
         # Needed to use the output of `terraform validate -json`
         terraform_wrapper: false
     - name: install tflint
-      env:
-        TFLINT_VERSION: "v0.18.0"
-      run: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sh
+      run: cd tools && go install github.com/terraform-linters/tflint
     - name: terraform
       run: |
         for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do

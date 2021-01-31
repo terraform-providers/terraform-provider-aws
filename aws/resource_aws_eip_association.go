@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/waiter"
 )
 
 func resourceAwsEipAssociation() *schema.Resource {
@@ -94,15 +94,28 @@ func resourceAwsEipAssociationCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] EIP association configuration: %#v", request)
 
 	var resp *ec2.AssociateAddressOutput
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
 		var err error
 		resp, err = conn.AssociateAddress(request)
+
+		// EC2-VPC error for new addresses
+		if tfawserr.ErrCodeEquals(err, "InvalidAllocationID.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		// EC2-Classic error for new addresses
+		if tfawserr.ErrMessageContains(err, "AuthFailure", "does not belong to you") {
+			return resource.RetryableError(err)
+		}
+
+		if tfawserr.ErrMessageContains(err, "InvalidInstanceID", "pending instance") {
+			return resource.RetryableError(err)
+		}
+
 		if err != nil {
-			if isAWSErr(err, "InvalidInstanceID", "pending instance") {
-				return resource.RetryableError(err)
-			}
 			return resource.NonRetryableError(err)
 		}
+
 		return nil
 	})
 	if isResourceTimeoutError(err) {
@@ -122,11 +135,15 @@ func resourceAwsEipAssociationCreate(d *schema.ResourceData, meta interface{}) e
 			supportedPlatforms, resp)
 	}
 
-	if resp.AssociationId == nil {
-		// This is required field for EC2 Classic per docs
-		d.SetId(*request.PublicIp)
+	if resp.AssociationId != nil {
+		d.SetId(aws.StringValue(resp.AssociationId))
 	} else {
-		d.SetId(*resp.AssociationId)
+		// EC2-Classic
+		d.SetId(aws.StringValue(request.PublicIp))
+
+		if err := waitForEc2AddressAssociationClassic(conn, aws.StringValue(request.PublicIp), aws.StringValue(request.InstanceId)); err != nil {
+			return fmt.Errorf("error waiting for EC2 Address (%s) to associate with EC2-Classic Instance (%s): %w", aws.StringValue(request.PublicIp), aws.StringValue(request.InstanceId), err)
+		}
 	}
 
 	return resourceAwsEipAssociationRead(d, meta)
@@ -140,7 +157,36 @@ func resourceAwsEipAssociationRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	response, err := conn.DescribeAddresses(request)
+	var response *ec2.DescribeAddressesOutput
+	err = resource.Retry(waiter.PropagationTimeout, func() *resource.RetryError {
+		var err error
+		response, err = conn.DescribeAddresses(request)
+
+		if d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidAssociationID.NotFound") {
+			return resource.RetryableError(err)
+		}
+
+		if d.IsNewResource() && (response.Addresses == nil || len(response.Addresses) == 0) {
+			return resource.RetryableError(&resource.NotFoundError{})
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+
+	if isResourceTimeoutError(err) {
+		response, err = conn.DescribeAddresses(request)
+	}
+
+	if !d.IsNewResource() && tfawserr.ErrCodeEquals(err, "InvalidAssociationID.NotFound") {
+		log.Printf("[WARN] EIP Association (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error reading EC2 Elastic IP %s: %#v", d.Get("allocation_id").(string), err)
 	}

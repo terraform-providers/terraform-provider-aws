@@ -2,13 +2,46 @@ package waiter
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/aws-sdk-go-base/tfawserr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	tfec2 "github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ec2/finder"
 )
+
+const (
+	carrierGatewayStateNotFound = "NotFound"
+	carrierGatewayStateUnknown  = "Unknown"
+)
+
+// CarrierGatewayState fetches the CarrierGateway and its State
+func CarrierGatewayState(conn *ec2.EC2, carrierGatewayID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		carrierGateway, err := finder.CarrierGatewayByID(conn, carrierGatewayID)
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidCarrierGatewayIDNotFound) {
+			return nil, carrierGatewayStateNotFound, nil
+		}
+		if err != nil {
+			return nil, carrierGatewayStateUnknown, err
+		}
+
+		if carrierGateway == nil {
+			return nil, carrierGatewayStateNotFound, nil
+		}
+
+		state := aws.StringValue(carrierGateway.State)
+
+		if state == ec2.CarrierGatewayStateDeleted {
+			return nil, carrierGatewayStateNotFound, nil
+		}
+
+		return carrierGateway, state, nil
+	}
+}
 
 // LocalGatewayRouteTableVpcAssociationState fetches the LocalGatewayRouteTableVpcAssociation and its State
 func LocalGatewayRouteTableVpcAssociationState(conn *ec2.EC2, localGatewayRouteTableVpcAssociationID string) resource.StateRefreshFunc {
@@ -56,7 +89,7 @@ func ClientVpnEndpointStatus(conn *ec2.EC2, endpointID string) resource.StateRef
 		result, err := conn.DescribeClientVpnEndpoints(&ec2.DescribeClientVpnEndpointsInput{
 			ClientVpnEndpointIds: aws.StringSlice([]string{endpointID}),
 		})
-		if tfec2.ErrCodeEquals(err, tfec2.ErrCodeClientVpnEndpointIdNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeClientVpnEndpointIdNotFound) {
 			return nil, ClientVpnEndpointStatusNotFound, nil
 		}
 		if err != nil {
@@ -86,7 +119,7 @@ const (
 func ClientVpnAuthorizationRuleStatus(conn *ec2.EC2, authorizationRuleID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		result, err := finder.ClientVpnAuthorizationRuleByID(conn, authorizationRuleID)
-		if tfec2.ErrCodeEquals(err, tfec2.ErrCodeClientVpnAuthorizationRuleNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeClientVpnAuthorizationRuleNotFound) {
 			return nil, ClientVpnAuthorizationRuleStatusNotFound, nil
 		}
 		if err != nil {
@@ -123,7 +156,7 @@ func ClientVpnNetworkAssociationStatus(conn *ec2.EC2, cvnaID string, cvepID stri
 			AssociationIds:      []*string{aws.String(cvnaID)},
 		})
 
-		if tfec2.ErrCodeEquals(err, tfec2.ErrCodeClientVpnAssociationIdNotFound) || tfec2.ErrCodeEquals(err, tfec2.ErrCodeClientVpnEndpointIdNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeClientVpnAssociationIdNotFound) || tfawserr.ErrCodeEquals(err, tfec2.ErrCodeClientVpnEndpointIdNotFound) {
 			return nil, ClientVpnNetworkAssociationStatusNotFound, nil
 		}
 		if err != nil {
@@ -153,7 +186,7 @@ const (
 func ClientVpnRouteStatus(conn *ec2.EC2, routeID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		result, err := finder.ClientVpnRouteByID(conn, routeID)
-		if tfec2.ErrCodeEquals(err, tfec2.ErrCodeClientVpnRouteNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeClientVpnRouteNotFound) {
 			return nil, ClientVpnRouteStatusNotFound, nil
 		}
 		if err != nil {
@@ -189,8 +222,8 @@ const (
 func SecurityGroupStatus(conn *ec2.EC2, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		group, err := finder.SecurityGroupByID(conn, id)
-		if tfec2.ErrCodeEquals(err, tfec2.InvalidSecurityGroupIDNotFound) ||
-			tfec2.ErrCodeEquals(err, tfec2.InvalidGroupNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.InvalidSecurityGroupIDNotFound) ||
+			tfawserr.ErrCodeEquals(err, tfec2.InvalidGroupNotFound) {
 			return nil, SecurityGroupStatusNotFound, nil
 		}
 		if err != nil {
@@ -205,6 +238,64 @@ func SecurityGroupStatus(conn *ec2.EC2, id string) resource.StateRefreshFunc {
 	}
 }
 
+// SubnetMapCustomerOwnedIpOnLaunch fetches the Subnet and its MapCustomerOwnedIpOnLaunch
+func SubnetMapCustomerOwnedIpOnLaunch(conn *ec2.EC2, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		subnet, err := finder.SubnetByID(conn, id)
+
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidSubnetIDNotFound) {
+			return nil, "false", nil
+		}
+
+		if err != nil {
+			return nil, "false", err
+		}
+
+		if subnet == nil {
+			return nil, "false", nil
+		}
+
+		return subnet, strconv.FormatBool(aws.BoolValue(subnet.MapCustomerOwnedIpOnLaunch)), nil
+	}
+}
+
+const (
+	vpcPeeringConnectionStatusNotFound = "NotFound"
+	vpcPeeringConnectionStatusUnknown  = "Unknown"
+)
+
+// VpcPeeringConnectionStatus fetches the VPC peering connection and its status
+func VpcPeeringConnectionStatus(conn *ec2.EC2, vpcPeeringConnectionID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		vpcPeeringConnection, err := finder.VpcPeeringConnectionByID(conn, vpcPeeringConnectionID)
+		if tfawserr.ErrCodeEquals(err, tfec2.ErrCodeInvalidVpcPeeringConnectionIDNotFound) {
+			return nil, vpcPeeringConnectionStatusNotFound, nil
+		}
+		if err != nil {
+			return nil, vpcPeeringConnectionStatusUnknown, err
+		}
+
+		// Sometimes AWS just has consistency issues and doesn't see
+		// our peering connection yet. Return an empty state.
+		if vpcPeeringConnection == nil || vpcPeeringConnection.Status == nil {
+			return nil, vpcPeeringConnectionStatusNotFound, nil
+		}
+
+		statusCode := aws.StringValue(vpcPeeringConnection.Status.Code)
+
+		// https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html#vpc-peering-lifecycle
+		switch statusCode {
+		case ec2.VpcPeeringConnectionStateReasonCodeFailed:
+			log.Printf("[WARN] VPC Peering Connection (%s): %s: %s", vpcPeeringConnectionID, statusCode, aws.StringValue(vpcPeeringConnection.Status.Message))
+			fallthrough
+		case ec2.VpcPeeringConnectionStateReasonCodeDeleted, ec2.VpcPeeringConnectionStateReasonCodeExpired, ec2.VpcPeeringConnectionStateReasonCodeRejected:
+			return nil, vpcPeeringConnectionStatusNotFound, nil
+		}
+
+		return vpcPeeringConnection, statusCode, nil
+	}
+}
+
 const (
 	attachmentStateNotFound = "NotFound"
 	attachmentStateUnknown  = "Unknown"
@@ -214,7 +305,7 @@ const (
 func VpnGatewayVpcAttachmentState(conn *ec2.EC2, vpnGatewayID, vpcID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		vpcAttachment, err := finder.VpnGatewayVpcAttachment(conn, vpnGatewayID, vpcID)
-		if tfec2.ErrCodeEquals(err, tfec2.InvalidVpnGatewayIDNotFound) {
+		if tfawserr.ErrCodeEquals(err, tfec2.InvalidVpnGatewayIDNotFound) {
 			return nil, attachmentStateNotFound, nil
 		}
 		if err != nil {
@@ -226,5 +317,24 @@ func VpnGatewayVpcAttachmentState(conn *ec2.EC2, vpnGatewayID, vpcID string) res
 		}
 
 		return vpcAttachment, aws.StringValue(vpcAttachment.State), nil
+	}
+}
+
+const (
+	managedPrefixListStateNotFound = "NotFound"
+	managedPrefixListStateUnknown  = "Unknown"
+)
+
+func ManagedPrefixListState(conn *ec2.EC2, prefixListId string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		managedPrefixList, err := finder.ManagedPrefixListByID(conn, prefixListId)
+		if err != nil {
+			return nil, managedPrefixListStateUnknown, err
+		}
+		if managedPrefixList == nil {
+			return nil, managedPrefixListStateNotFound, nil
+		}
+
+		return managedPrefixList, aws.StringValue(managedPrefixList.State), nil
 	}
 }

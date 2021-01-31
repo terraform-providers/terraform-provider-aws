@@ -39,6 +39,8 @@ The following arguments are supported:
 * `read_only` - (Optional) Boolean to indicate write status of file share. File share does not accept writes if `true`. Defaults to `false`.
 * `requester_pays` - (Optional) Boolean who pays the cost of the request and the data download from the Amazon S3 bucket. Set this value to `true` if you want the requester to pay instead of the bucket owner. Defaults to `false`.
 * `squash` - (Optional) Maps a user to anonymous user. Defaults to `RootSquash`. Valid values: `RootSquash` (only root is mapped to anonymous user), `NoSquash` (no one is mapped to anonymous user), `AllSquash` (everyone is mapped to anonymous user)
+* `file_share_name` - (Optional) The name of the file share. Must be set if an S3 prefix name is set in `location_arn`.
+* `notification_policy` - (Optional) The notification policy of the file share. For more information see the [AWS Documentation](https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_CreateNFSFileShare.html#StorageGateway-CreateNFSFileShare-request-NotificationPolicy). Default value is `{}`.
 * `tags` - (Optional) Key-value map of resource tags
 
 ### nfs_file_share_defaults
@@ -57,7 +59,7 @@ Files and folders stored as Amazon S3 objects in S3 buckets don't, by default, h
   to first refresh that directory's contents from the Amazon S3 bucket. Valid Values: 300 to 2,592,000 seconds (5 minutes to 30 days)
 
 
-## Attribute Reference
+## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
@@ -68,7 +70,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Timeouts
 
-`aws_storagegateway_nfs_file_share` provides the following [Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+`aws_storagegateway_nfs_file_share` provides the following [Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 * `create` - (Default `10m`) How long to wait for file share creation.
 * `update` - (Default `10m`) How long to wait for file share updates.

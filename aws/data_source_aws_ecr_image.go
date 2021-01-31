@@ -3,7 +3,6 @@ package aws
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
@@ -98,7 +97,7 @@ func dataSourceAwsEcrImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	image := imageDetails[0]
 
-	d.SetId(time.Now().UTC().String())
+	d.SetId(aws.StringValue(image.ImageDigest))
 	if err = d.Set("registry_id", aws.StringValue(image.RegistryId)); err != nil {
 		return fmt.Errorf("failed to set registry_id: %s", err)
 	}

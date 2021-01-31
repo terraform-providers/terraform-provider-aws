@@ -294,7 +294,7 @@ func dataSourceAwsElasticSearchDomainRead(d *schema.ResourceData, meta interface
 
 	ds := resp.DomainStatus
 
-	d.SetId(*ds.ARN)
+	d.SetId(aws.StringValue(ds.ARN))
 
 	if ds.AccessPolicies != nil && *ds.AccessPolicies != "" {
 		policies, err := structure.NormalizeJsonString(*ds.AccessPolicies)

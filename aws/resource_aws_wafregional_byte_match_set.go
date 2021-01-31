@@ -87,7 +87,7 @@ func resourceAwsWafRegionalByteMatchSetCreate(d *schema.ResourceData, meta inter
 	}
 	resp := out.(*waf.CreateByteMatchSetOutput)
 
-	d.SetId(*resp.ByteMatchSet.ByteMatchSetId)
+	d.SetId(aws.StringValue(resp.ByteMatchSet.ByteMatchSetId))
 
 	return resourceAwsWafRegionalByteMatchSetUpdate(d, meta)
 }

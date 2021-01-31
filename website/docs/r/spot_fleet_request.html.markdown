@@ -171,6 +171,7 @@ across different markets and instance types. Conflicts with `launch_template_con
     a additional parameter `iam_instance_profile_arn` takes `aws_iam_instance_profile` attribute `arn` as input.
 
 * `launch_template_config` - (Optional) Launch template configuration block. See [Launch Template Configs](#launch-template-configs) below for more details. Conflicts with `launch_specification`. At least one of `launch_specification` or `launch_template_config` is required.
+* `spot_maintenance_strategies` - (Optional) Nested argument containing maintenance strategies for managing your Spot Instances that are at an elevated risk of being interrupted. Defined below.
 * `spot_price` - (Optional; Default: On-demand price) The maximum bid price per unit hour.
 * `wait_for_fulfillment` - (Optional; Default: false) If set, Terraform will
   wait for the Spot Request to be fulfilled, and will throw an error if the
@@ -219,6 +220,15 @@ The `launch_template_config` block supports the following:
     inputs of [`aws_launch_template`](launch_template.html).  There are limitations on
     what you can specify as spot fleet does not support all the attributes that are supported by autoscaling groups. [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#launch-templates-spot-fleet) is currently sparse, but at least `instance_initiated_shutdown_behavior` is confirmed unsupported.
 
+### spot_maintenance_strategies
+
+* `capacity_rebalance` - (Optional) Nested argument containing the capacity rebalance for your fleet request. Defined below.
+
+### capacity_rebalance
+
+* `replacement_strategy` - (Optional) The replacement strategy to use. Only available for spot fleets with `fleet_type` set to `maintain`. Valid values: `launch`.
+
+
 ### Overrides
 
 * `availability_zone` - (Optional) The availability zone in which to place the request.
@@ -230,7 +240,7 @@ The `launch_template_config` block supports the following:
 
 ### Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 mins) Used when requesting the spot instance (only valid if `wait_for_fulfillment = true`)
 * `delete` - (Defaults to 15 mins) Used when destroying the spot instance

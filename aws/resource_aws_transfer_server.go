@@ -190,7 +190,7 @@ func resourceAwsTransferServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating Transfer Server: %s", err)
 	}
 
-	d.SetId(*resp.ServerId)
+	d.SetId(aws.StringValue(resp.ServerId))
 
 	stateChangeConf := &resource.StateChangeConf{
 		Pending: []string{transfer.StateStarting},

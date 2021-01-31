@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccAWSRDSClusterInstance_basic(t *testing.T) {
@@ -858,6 +857,7 @@ func TestAccAWSRDSClusterInstance_CACertificateIdentifier(t *testing.T) {
 	var dbInstance rds.DBInstance
 	rName := acctest.RandomWithPrefix("tf-acc-test")
 	resourceName := "aws_rds_cluster_instance.test"
+	dataSourceName := "data.aws_rds_certificate.latest"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -865,10 +865,10 @@ func TestAccAWSRDSClusterInstance_CACertificateIdentifier(t *testing.T) {
 		CheckDestroy: testAccCheckAWSClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSRDSClusterInstanceConfig_CACertificateIdentifier(rName, "rds-ca-2019"),
+				Config: testAccAWSRDSClusterInstanceConfig_CACertificateIdentifier(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSClusterInstanceExists(resourceName, &dbInstance),
-					resource.TestCheckResourceAttr(resourceName, "ca_cert_identifier", "rds-ca-2019"),
+					resource.TestCheckResourceAttrPair(resourceName, "ca_cert_identifier", dataSourceName, "id"),
 				),
 			},
 			{
@@ -1640,7 +1640,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 `, n, f))
 }
 
-func testAccAWSRDSClusterInstanceConfig_CACertificateIdentifier(rName string, caCertificateIdentifier string) string {
+func testAccAWSRDSClusterInstanceConfig_CACertificateIdentifier(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_rds_cluster" "test" {
   cluster_identifier  = %[1]q
@@ -1655,12 +1655,16 @@ data "aws_rds_orderable_db_instance" "test" {
   preferred_instance_classes = ["db.t3.small", "db.t2.small", "db.t3.medium"]
 }
 
+data "aws_rds_certificate" "latest" {
+  latest_valid_till = true
+}
+
 resource "aws_rds_cluster_instance" "test" {
   apply_immediately  = true
   cluster_identifier = aws_rds_cluster.test.id
   identifier         = %[1]q
   instance_class     = data.aws_rds_orderable_db_instance.test.instance_class
-  ca_cert_identifier = %[2]q
+  ca_cert_identifier = data.aws_rds_certificate.latest.id
 }
-`, rName, caCertificateIdentifier)
+`, rName)
 }

@@ -91,10 +91,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachment_basic(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -128,10 +127,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachment_disappears(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,10 +154,9 @@ func TestAccAWSEc2TransitGatewayPeeringAttachment_Tags_sameAccount(t *testing.T)
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -210,10 +207,10 @@ func TestAccAWSEc2TransitGatewayPeeringAttachment_differentAccount(t *testing.T)
 		PreCheck: func() {
 			testAccPreCheck(t)
 			testAccPreCheckAWSEc2TransitGateway(t)
-			testAccMultipleRegionsPreCheck(t)
-			testAccAlternateRegionPreCheck(t)
+			testAccMultipleRegionPreCheck(t, 2)
+			testAccAlternateAccountPreCheck(t)
 		},
-		ProviderFactories: testAccProviderFactories(&providers),
+		ProviderFactories: testAccProviderFactoriesAlternate(&providers),
 		CheckDestroy:      testAccCheckAWSEc2TransitGatewayPeeringAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{

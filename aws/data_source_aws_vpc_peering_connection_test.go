@@ -1,136 +1,305 @@
 package aws
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDataSourceAwsVpcPeeringConnection_basic(t *testing.T) {
+func TestAccDataSourceAwsVpcPeeringConnection_CidrBlock(t *testing.T) {
+	dataSourceName := "data.aws_vpc_peering_connection.test"
+	resourceName := "aws_vpc_peering_connection.test"
+	requesterVpcResourceName := "aws_vpc.requester"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAwsVpcPeeringConnectionConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_id", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_id", "cidr_block"),
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_requester_vpc_id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_requester_vpc_id", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_requester_vpc_id", "cidr_block"),
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_accepter_vpc_id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_accepter_vpc_id", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_accepter_vpc_id", "cidr_block"),
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_requester_cidr_block"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_requester_cidr_block", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_requester_cidr_block", "cidr_block"),
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_accepter_cidr_block"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_accepter_cidr_block", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_accepter_cidr_block", "cidr_block"),
-					testAccDataSourceAwsVpcPeeringConnectionCheck("data.aws_vpc_peering_connection.test_by_owner_ids"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_owner_ids", "id"),
-					resource.TestCheckResourceAttrSet("data.aws_vpc_peering_connection.test_by_owner_ids", "cidr_block"),
+				Config: testAccDataSourceAwsVpcPeeringConnectionConfigCidrBlock(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "cidr_block", requesterVpcResourceName, "cidr_block"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
-func testAccDataSourceAwsVpcPeeringConnectionCheck(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("root module has no resource called %s", name)
-		}
+func TestAccDataSourceAwsVpcPeeringConnection_Id(t *testing.T) {
+	dataSourceName := "data.aws_vpc_peering_connection.test"
+	resourceName := "aws_vpc_peering_connection.test"
+	accepterVpcResourceName := "aws_vpc.accepter"
+	requesterVpcResourceName := "aws_vpc.requester"
 
-		pcxRs, ok := s.RootModule().Resources["aws_vpc_peering_connection.test"]
-		if !ok {
-			return fmt.Errorf("can't find aws_vpc_peering_connection.test in state")
-		}
-
-		attr := rs.Primary.Attributes
-
-		if attr["id"] != pcxRs.Primary.Attributes["id"] {
-			return fmt.Errorf(
-				"id is %s; want %s",
-				attr["id"],
-				pcxRs.Primary.Attributes["id"],
-			)
-		}
-
-		return nil
-	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsVpcPeeringConnectionConfigId(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "cidr_block", resourceName, "cidr_block"), // not in resource
+					resource.TestCheckResourceAttrPair(dataSourceName, "cidr_block", requesterVpcResourceName, "cidr_block"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "cidr_block_set.#", resourceName, "cidr_block_set.#"), // not in resource
+					resource.TestCheckResourceAttr(dataSourceName, "cidr_block_set.#", "1"),
+					resource.TestCheckTypeSetElemAttrPair(dataSourceName, "cidr_block_set.*.cidr_block", requesterVpcResourceName, "cidr_block"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "region", resourceName, "region"), // not in resource
+					// resource.TestCheckResourceAttrPair(dataSourceName, "peer_cidr_block", resourceName, "peer_cidr_block"), // not in resource
+					resource.TestCheckResourceAttrPair(dataSourceName, "peer_cidr_block", accepterVpcResourceName, "cidr_block"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "peer_cidr_block_set.#", resourceName, "peer_cidr_block_set.#"), // not in resource
+					resource.TestCheckResourceAttr(dataSourceName, "peer_cidr_block_set.#", "1"),
+					resource.TestCheckTypeSetElemAttrPair(dataSourceName, "peer_cidr_block_set.*.cidr_block", accepterVpcResourceName, "cidr_block"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "peer_owner_id", resourceName, "peer_owner_id"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "peer_region", resourceName, "peer_region"), //not in resource
+					resource.TestCheckResourceAttrPair(dataSourceName, "peer_vpc_id", resourceName, "peer_vpc_id"),
+					// resource.TestCheckResourceAttrPair(dataSourceName, "owner_id", resourceName, "owner_id"), // not in resource
+					// resource.TestCheckResourceAttrPair(dataSourceName, "region", resourceName, "region"), // not in resource
+					resource.TestCheckResourceAttrPair(dataSourceName, "tags.%", resourceName, "tags.%"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "vpc_id", resourceName, "vpc_id"),
+				),
+			},
+		},
+	})
 }
 
-const testAccDataSourceAwsVpcPeeringConnectionConfig = `
-resource "aws_vpc" "foo" {
-  cidr_block = "10.1.0.0/16"
+func TestAccDataSourceAwsVpcPeeringConnection_PeerCidrBlock(t *testing.T) {
+	dataSourceName := "data.aws_vpc_peering_connection.test"
+	resourceName := "aws_vpc_peering_connection.test"
+	accepterVpcResourceName := "aws_vpc.accepter"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsVpcPeeringConnectionConfigPeerCidrBlock(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "peer_cidr_block", accepterVpcResourceName, "cidr_block"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsVpcPeeringConnection_PeerVpcId(t *testing.T) {
+	dataSourceName := "data.aws_vpc_peering_connection.test"
+	resourceName := "aws_vpc_peering_connection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsVpcPeeringConnectionConfigPeerVpcId(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "peer_vpc_id", resourceName, "peer_vpc_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAwsVpcPeeringConnection_VpcId(t *testing.T) {
+	dataSourceName := "data.aws_vpc_peering_connection.test"
+	resourceName := "aws_vpc_peering_connection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAwsVpcPeeringConnectionConfigVpcId(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSourceName, "id", resourceName, "id"),
+					resource.TestCheckResourceAttrPair(dataSourceName, "vpc_id", resourceName, "vpc_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceAwsVpcPeeringConnectionConfigCidrBlock() string {
+	return `
+resource "aws_vpc" "requester" {
+  cidr_block = "10.250.0.0/16" # CIDR must be different than other tests
 
   tags = {
-    Name = "terraform-testacc-vpc-peering-connection-data-source-foo"
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
   }
 }
 
-resource "aws_vpc" "bar" {
-  cidr_block = "10.2.0.0/16"
+resource "aws_vpc" "accepter" {
+  cidr_block = "10.251.0.0/16" # CIDR must be different than other tests
 
   tags = {
-    Name = "terraform-testacc-vpc-peering-connection-data-source-bar"
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
   }
 }
 
 resource "aws_vpc_peering_connection" "test" {
-  vpc_id      = aws_vpc.foo.id
-  peer_vpc_id = aws_vpc.bar.id
+  vpc_id      = aws_vpc.requester.id
+  peer_vpc_id = aws_vpc.accepter.id
   auto_accept = true
 
   tags = {
-    Name = "terraform-testacc-vpc-peering-connection-data-source-foo-to-bar"
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
   }
 }
 
-data "aws_caller_identity" "current" {}
-
-data "aws_vpc_peering_connection" "test_by_id" {
-  id = aws_vpc_peering_connection.test.id
+# aws_vpc_peering_connection does not have cidr_block
+# Defer read of aws_vpc_peering_connection data source until after resource
+data "aws_vpc" "requester" {
+  id = aws_vpc_peering_connection.test.vpc_id
 }
 
-data "aws_vpc_peering_connection" "test_by_requester_vpc_id" {
-  vpc_id = aws_vpc.foo.id
-
-  depends_on = [aws_vpc_peering_connection.test]
-}
-
-data "aws_vpc_peering_connection" "test_by_accepter_vpc_id" {
-  peer_vpc_id = aws_vpc.bar.id
-
-  depends_on = [aws_vpc_peering_connection.test]
-}
-
-data "aws_vpc_peering_connection" "test_by_requester_cidr_block" {
-  cidr_block = "10.1.0.0/16"
-  status     = "active"
-
-  depends_on = [aws_vpc_peering_connection.test]
-}
-
-data "aws_vpc_peering_connection" "test_by_accepter_cidr_block" {
-  peer_cidr_block = "10.2.0.0/16"
-  status          = "active"
-
-  depends_on = [aws_vpc_peering_connection.test]
-}
-
-data "aws_vpc_peering_connection" "test_by_owner_ids" {
-  owner_id      = data.aws_caller_identity.current.account_id
-  peer_owner_id = data.aws_caller_identity.current.account_id
-  status        = "active"
-
-  depends_on = [aws_vpc_peering_connection.test]
+data "aws_vpc_peering_connection" "test" {
+  cidr_block = data.aws_vpc.requester.cidr_block
 }
 `
+}
+
+func testAccDataSourceAwsVpcPeeringConnectionConfigId() string {
+	return `
+resource "aws_vpc" "requester" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc" "accepter" {
+  cidr_block = "10.2.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc_peering_connection" "test" {
+  vpc_id      = aws_vpc.requester.id
+  peer_vpc_id = aws_vpc.accepter.id
+  auto_accept = true
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+data "aws_vpc_peering_connection" "test" {
+  id = aws_vpc_peering_connection.test.id
+}
+`
+}
+
+func testAccDataSourceAwsVpcPeeringConnectionConfigPeerCidrBlock() string {
+	return `
+resource "aws_vpc" "requester" {
+  cidr_block = "10.252.0.0/16" # CIDR must be different than other tests
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc" "accepter" {
+  cidr_block = "10.253.0.0/16" # CIDR must be different than other tests
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc_peering_connection" "test" {
+  vpc_id      = aws_vpc.requester.id
+  peer_vpc_id = aws_vpc.accepter.id
+  auto_accept = true
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+# aws_vpc_peering_connection does not have cidr_block
+# Defer read of aws_vpc_peering_connection data source until after resource
+data "aws_vpc" "accepter" {
+  id = aws_vpc_peering_connection.test.peer_vpc_id
+}
+
+data "aws_vpc_peering_connection" "test" {
+  peer_cidr_block = data.aws_vpc.accepter.cidr_block
+}
+`
+}
+
+func testAccDataSourceAwsVpcPeeringConnectionConfigPeerVpcId() string {
+	return `
+resource "aws_vpc" "requester" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc" "accepter" {
+  cidr_block = "10.2.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc_peering_connection" "test" {
+  vpc_id      = aws_vpc.requester.id
+  peer_vpc_id = aws_vpc.accepter.id
+  auto_accept = true
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+data "aws_vpc_peering_connection" "test" {
+  peer_vpc_id = aws_vpc_peering_connection.test.peer_vpc_id
+}
+`
+}
+
+func testAccDataSourceAwsVpcPeeringConnectionConfigVpcId() string {
+	return `
+resource "aws_vpc" "requester" {
+  cidr_block = "10.1.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc" "accepter" {
+  cidr_block = "10.2.0.0/16"
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+resource "aws_vpc_peering_connection" "test" {
+  vpc_id      = aws_vpc.requester.id
+  peer_vpc_id = aws_vpc.accepter.id
+  auto_accept = true
+
+  tags = {
+    Name = "terraform-testacc-vpc-peering-connection-data-source"
+  }
+}
+
+data "aws_vpc_peering_connection" "test" {
+  vpc_id = aws_vpc_peering_connection.test.vpc_id
+}
+`
+}

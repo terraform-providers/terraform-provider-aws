@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/datasync"
+	"github.com/aws/aws-sdk-go/service/fsx"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -83,7 +84,11 @@ func TestAccAWSDataSyncLocationFsxWindows_basic(t *testing.T) {
 	fsResourceName := "aws_fsx_windows_file_system.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
+			testAccPreCheckAWSDataSync(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +120,11 @@ func TestAccAWSDataSyncLocationFsxWindows_disappears(t *testing.T) {
 	resourceName := "aws_datasync_location_fsx_windows_file_system.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
+			testAccPreCheckAWSDataSync(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -136,7 +145,11 @@ func TestAccAWSDataSyncLocationFsxWindows_subdirectory(t *testing.T) {
 	resourceName := "aws_datasync_location_fsx_windows_file_system.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
+			testAccPreCheckAWSDataSync(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -163,7 +176,11 @@ func TestAccAWSDataSyncLocationFsxWindows_tags(t *testing.T) {
 	resourceName := "aws_datasync_location_fsx_windows_file_system.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSDataSync(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccPartitionHasServicePreCheck(fsx.EndpointsID, t)
+			testAccPreCheckAWSDataSync(t)
+		},
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSDataSyncLocationFsxWindowsDestroy,
 		Steps: []resource.TestStep{
@@ -269,7 +286,7 @@ func testAccWSDataSyncLocationFsxWindowsImportStateIdFunc(resourceName string) r
 }
 
 func testAccAWSDataSyncLocationFsxWindowsConfig() string {
-	return testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1() + fmt.Sprintf(`
+	return composeConfig(testAccAwsFsxWindowsFileSystemConfigSecurityGroupIds1(), `
 resource "aws_datasync_location_fsx_windows_file_system" "test" {
   fsx_filesystem_arn  = aws_fsx_windows_file_system.test.arn
   user                = "SomeUser"

@@ -106,7 +106,7 @@ func TestAccAWSS3BucketInventory_encryptWithSSEKMS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSS3BucketInventoryConfigExists(resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.0.key_id", regexp.MustCompile("^arn:aws:kms:")),
+					resource.TestMatchResourceAttr(resourceName, "destination.0.bucket.0.encryption.0.sse_kms.0.key_id", regexp.MustCompile(fmt.Sprintf("^arn:%s:kms:", testAccGetPartition()))),
 				),
 			},
 			{

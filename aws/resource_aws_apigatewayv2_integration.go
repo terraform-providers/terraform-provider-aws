@@ -119,15 +119,33 @@ func resourceAwsApiGatewayV2Integration() *schema.Resource {
 				// Length between [0-32768].
 				Elem: &schema.Schema{Type: schema.TypeString},
 			},
+			"response_parameters": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 0,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mappings": {
+							Type:     schema.TypeMap,
+							Required: true,
+							// Length between [1-512].
+							Elem: &schema.Schema{Type: schema.TypeString},
+						},
+						"status_code": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"template_selection_expression": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"timeout_milliseconds": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      29000,
-				ValidateFunc: validation.IntBetween(50, 29000),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 			"tls_config": {
 				Type:     schema.TypeList,
@@ -190,6 +208,9 @@ func resourceAwsApiGatewayV2IntegrationCreate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("request_templates"); ok {
 		req.RequestTemplates = stringMapToPointers(v.(map[string]interface{}))
 	}
+	if v, ok := d.GetOk("response_parameters"); ok && v.(*schema.Set).Len() > 0 {
+		req.ResponseParameters = expandApiGateway2IntegrationResponseParameters(v.(*schema.Set).List())
+	}
 	if v, ok := d.GetOk("template_selection_expression"); ok {
 		req.TemplateSelectionExpression = aws.String(v.(string))
 	}
@@ -247,6 +268,10 @@ func resourceAwsApiGatewayV2IntegrationRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("error setting request_templates: %s", err)
 	}
+	err = d.Set("response_parameters", flattenApiGateway2IntegrationResponseParameters(resp.ResponseParameters))
+	if err != nil {
+		return fmt.Errorf("error setting response_parameters: %s", err)
+	}
 	d.Set("template_selection_expression", resp.TemplateSelectionExpression)
 	d.Set("timeout_milliseconds", resp.TimeoutInMillis)
 	if err := d.Set("tls_config", flattenApiGateway2TlsConfig(resp.TlsConfig)); err != nil {
@@ -262,6 +287,8 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 	req := &apigatewayv2.UpdateIntegrationInput{
 		ApiId:         aws.String(d.Get("api_id").(string)),
 		IntegrationId: aws.String(d.Id()),
+		// Always specify the integration type.
+		IntegrationType: aws.String(d.Get("integration_type").(string)),
 	}
 	if d.HasChange("connection_id") {
 		req.ConnectionId = aws.String(d.Get("connection_id").(string))
@@ -281,6 +308,10 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 	if d.HasChange("integration_method") {
 		req.IntegrationMethod = aws.String(d.Get("integration_method").(string))
 	}
+	// Always specify any integration subtype.
+	if v, ok := d.GetOk("integration_subtype"); ok {
+		req.IntegrationSubtype = aws.String(v.(string))
+	}
 	if d.HasChange("integration_uri") {
 		req.IntegrationUri = aws.String(d.Get("integration_uri").(string))
 	}
@@ -292,7 +323,8 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 	}
 	if d.HasChange("request_parameters") {
 		o, n := d.GetChange("request_parameters")
-		add, del := diffStringMaps(o.(map[string]interface{}), n.(map[string]interface{}))
+		add, del, nop := diffStringMaps(o.(map[string]interface{}), n.(map[string]interface{}))
+
 		// Parameters are removed by setting the associated value to "".
 		for k := range del {
 			del[k] = aws.String("")
@@ -301,10 +333,40 @@ func resourceAwsApiGatewayV2IntegrationUpdate(d *schema.ResourceData, meta inter
 		for k, v := range add {
 			variables[k] = v
 		}
+		// Also specify any request parameters that are unchanged as for AWS service integrations some parameters are always required:
+		// https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-aws-services-reference.html
+		for k, v := range nop {
+			variables[k] = v
+		}
+
 		req.RequestParameters = variables
 	}
 	if d.HasChange("request_templates") {
 		req.RequestTemplates = stringMapToPointers(d.Get("request_templates").(map[string]interface{}))
+	}
+	if d.HasChange("response_parameters") {
+		o, n := d.GetChange("response_parameters")
+		os := o.(*schema.Set)
+		ns := n.(*schema.Set)
+		del := os.Difference(ns).List()
+
+		req.ResponseParameters = expandApiGateway2IntegrationResponseParameters(ns.List())
+
+		// Parameters are removed by setting the associated value to {}.
+		for _, tfMapRaw := range del {
+			tfMap, ok := tfMapRaw.(map[string]interface{})
+
+			if !ok {
+				continue
+			}
+
+			if v, ok := tfMap["status_code"].(string); ok && v != "" {
+				if req.ResponseParameters == nil {
+					req.ResponseParameters = map[string]map[string]*string{}
+				}
+				req.ResponseParameters[v] = map[string]*string{}
+			}
+		}
 	}
 	if d.HasChange("template_selection_expression") {
 		req.TemplateSelectionExpression = aws.String(d.Get("template_selection_expression").(string))
@@ -395,4 +457,51 @@ func flattenApiGateway2TlsConfig(config *apigatewayv2.TlsConfig) []interface{} {
 	return []interface{}{map[string]interface{}{
 		"server_name_to_verify": aws.StringValue(config.ServerNameToVerify),
 	}}
+}
+
+func expandApiGateway2IntegrationResponseParameters(tfList []interface{}) map[string]map[string]*string {
+	if len(tfList) == 0 {
+		return nil
+	}
+
+	responseParameters := map[string]map[string]*string{}
+
+	for _, tfMapRaw := range tfList {
+		tfMap, ok := tfMapRaw.(map[string]interface{})
+
+		if !ok {
+			continue
+		}
+
+		if vStatusCode, ok := tfMap["status_code"].(string); ok && vStatusCode != "" {
+			if v, ok := tfMap["mappings"].(map[string]interface{}); ok && len(v) > 0 {
+				responseParameters[vStatusCode] = stringMapToPointers(v)
+			}
+		}
+	}
+
+	return responseParameters
+}
+
+func flattenApiGateway2IntegrationResponseParameters(responseParameters map[string]map[string]*string) []interface{} {
+	if len(responseParameters) == 0 {
+		return nil
+	}
+
+	var tfList []interface{}
+
+	for statusCode, mappings := range responseParameters {
+		if len(mappings) == 0 {
+			continue
+		}
+
+		tfMap := map[string]interface{}{}
+
+		tfMap["status_code"] = statusCode
+		tfMap["mappings"] = aws.StringValueMap(mappings)
+
+		tfList = append(tfList, tfMap)
+	}
+
+	return tfList
 }

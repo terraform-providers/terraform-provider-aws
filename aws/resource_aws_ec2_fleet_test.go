@@ -683,6 +683,35 @@ func TestAccAWSEc2Fleet_SpotOptions_AllocationStrategy(t *testing.T) {
 	})
 }
 
+func TestAccAWSEc2Fleet_SpotOptions_CapacityRebalance(t *testing.T) {
+	var fleet1 ec2.FleetData
+	resourceName := "aws_ec2_fleet.test"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSEc2FleetConfig_SpotOptions_CapacityRebalance(rName, "diversified"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSEc2FleetExists(resourceName, &fleet1),
+					resource.TestCheckResourceAttr(resourceName, "spot_options.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "spot_options.0.allocation_strategy", "diversified"),
+					resource.TestCheckResourceAttr(resourceName, "spot_options.0.maintenance_strategies.0.capacity_rebalance.0.replacement_strategy", "launch"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"terminate_instances"},
+			},
+		},
+	})
+}
+
 func TestAccAWSEc2Fleet_SpotOptions_InstanceInterruptionBehavior(t *testing.T) {
 	var fleet1, fleet2 ec2.FleetData
 	resourceName := "aws_ec2_fleet.test"
@@ -988,11 +1017,11 @@ func TestAccAWSEc2Fleet_Type(t *testing.T) {
 	})
 }
 
-// Test for the bug described in https://github.com/terraform-providers/terraform-provider-aws/issues/6777
+// Test for the bug described in https://github.com/hashicorp/terraform-provider-aws/issues/6777
 func TestAccAWSEc2Fleet_TemplateMultipleNetworkInterfaces(t *testing.T) {
 	var fleet1 ec2.FleetData
 	resourceName := "aws_ec2_fleet.test"
-	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t); testAccPreCheckAWSEc2Fleet(t) },
@@ -1000,7 +1029,7 @@ func TestAccAWSEc2Fleet_TemplateMultipleNetworkInterfaces(t *testing.T) {
 		CheckDestroy: testAccCheckAWSEc2FleetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSEc2FleetConfig_multipleNetworkInterfaces(rInt),
+				Config: testAccAWSEc2FleetConfig_multipleNetworkInterfaces(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSEc2FleetExists(resourceName, &fleet1),
 					resource.TestCheckResourceAttr(resourceName, "type", "maintain"),
@@ -1009,113 +1038,6 @@ func TestAccAWSEc2Fleet_TemplateMultipleNetworkInterfaces(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccAWSEc2FleetConfig_multipleNetworkInterfaces(rInt int) string {
-	return fmt.Sprintf(`
-data "aws_ami" "test" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
-resource "aws_vpc" "test" {
-  cidr_block = "10.1.0.0/16"
-}
-
-resource "aws_internet_gateway" "test" {
-  vpc_id = aws_vpc.test.id
-}
-
-resource "aws_subnet" "test" {
-  cidr_block = "10.1.0.0/24"
-  vpc_id     = aws_vpc.test.id
-}
-
-resource "aws_security_group" "test" {
-  name        = "security-group-%d"
-  description = "Testacc SSH security group"
-  vpc_id      = aws_vpc.test.id
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 22
-    to_port     = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  egress {
-    protocol    = "-1"
-    from_port   = 0
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_network_interface" "test" {
-  subnet_id       = aws_subnet.test.id
-  security_groups = [aws_security_group.test.id]
-}
-
-resource "aws_launch_template" "test" {
-  name     = "testacc-lt-%d"
-  image_id = data.aws_ami.test.id
-
-  instance_market_options {
-    spot_options {
-      spot_instance_type = "persistent"
-    }
-    market_type = "spot"
-  }
-
-  network_interfaces {
-    device_index          = 0
-    delete_on_termination = true
-    network_interface_id  = aws_network_interface.test.id
-  }
-  network_interfaces {
-    device_index          = 1
-    delete_on_termination = true
-    subnet_id             = aws_subnet.test.id
-  }
-}
-
-resource "aws_ec2_fleet" "test" {
-  terminate_instances = true
-
-  launch_template_config {
-    launch_template_specification {
-      launch_template_id = aws_launch_template.test.id
-      version            = aws_launch_template.test.latest_version
-    }
-
-    # allow to choose from several instance types if there is no spot capacity for some type
-    override {
-      instance_type = "t2.micro"
-    }
-    override {
-      instance_type = "t3.micro"
-    }
-    override {
-      instance_type = "t3.small"
-    }
-  }
-
-  target_capacity_specification {
-    default_target_capacity_type = "spot"
-    total_target_capacity        = 1
-  }
-}
-`, rInt, rInt)
 }
 
 func testAccCheckAWSEc2FleetHistory(resourceName string, errorMsg string) resource.TestCheckFunc {
@@ -1318,6 +1240,99 @@ func testAccPreCheckAWSEc2Fleet(t *testing.T) {
 	}
 }
 
+func testAccAWSEc2FleetConfig_multipleNetworkInterfaces(rName string) string {
+	return composeConfig(
+		testAccLatestAmazonLinuxHvmEbsAmiConfig(),
+		fmt.Sprintf(`
+resource "aws_vpc" "test" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_internet_gateway" "test" {
+  vpc_id = aws_vpc.test.id
+}
+
+resource "aws_subnet" "test" {
+  cidr_block = "10.1.0.0/24"
+  vpc_id     = aws_vpc.test.id
+}
+
+resource "aws_security_group" "test" {
+  name        = %[1]q
+  description = "Testacc SSH security group"
+  vpc_id      = aws_vpc.test.id
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 22
+    to_port     = 22
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_network_interface" "test" {
+  subnet_id       = aws_subnet.test.id
+  security_groups = [aws_security_group.test.id]
+}
+
+resource "aws_launch_template" "test" {
+  name     = %[1]q
+  image_id = data.aws_ami.amzn-ami-minimal-hvm-ebs.id
+
+  instance_market_options {
+    spot_options {
+      spot_instance_type = "persistent"
+    }
+    market_type = "spot"
+  }
+
+  network_interfaces {
+    device_index          = 0
+    delete_on_termination = true
+    network_interface_id  = aws_network_interface.test.id
+  }
+  network_interfaces {
+    device_index          = 1
+    delete_on_termination = true
+    subnet_id             = aws_subnet.test.id
+  }
+}
+
+resource "aws_ec2_fleet" "test" {
+  terminate_instances = true
+
+  launch_template_config {
+    launch_template_specification {
+      launch_template_id = aws_launch_template.test.id
+      version            = aws_launch_template.test.latest_version
+    }
+
+    # allow to choose from several instance types if there is no spot capacity for some type
+    override {
+      instance_type = "t2.micro"
+    }
+    override {
+      instance_type = "t3.micro"
+    }
+    override {
+      instance_type = "t3.small"
+    }
+  }
+
+  target_capacity_specification {
+    default_target_capacity_type = "spot"
+    total_target_capacity        = 1
+  }
+}
+`, rName))
+}
+
 func testAccAWSEc2FleetConfig_BaseLaunchTemplate(rName string) string {
 	return fmt.Sprintf(`
 data "aws_ami" "test" {
@@ -1373,20 +1388,20 @@ data "aws_ami" "test" {
 resource "aws_launch_template" "test1" {
   image_id      = data.aws_ami.test.id
   instance_type = "t3.micro"
-  name          = "%s1"
+  name          = "%[1]s1"
 }
 
 resource "aws_launch_template" "test2" {
   image_id      = data.aws_ami.test.id
   instance_type = "t3.micro"
-  name          = "%s2"
+  name          = "%[1]s2"
 }
 
 resource "aws_ec2_fleet" "test" {
   launch_template_config {
     launch_template_specification {
-      launch_template_id = %s.id
-      version            = %s.latest_version
+      launch_template_id = %[2]s.id
+      version            = %[2]s.latest_version
     }
   }
 
@@ -1395,7 +1410,7 @@ resource "aws_ec2_fleet" "test" {
     total_target_capacity        = 0
   }
 }
-`, rName, rName, launchTemplateResourceName, launchTemplateResourceName)
+`, rName, launchTemplateResourceName)
 }
 
 func testAccAWSEc2FleetConfig_LaunchTemplateConfig_LaunchTemplateSpecification_LaunchTemplateName(rName, launchTemplateResourceName string) string {
@@ -1413,20 +1428,20 @@ data "aws_ami" "test" {
 resource "aws_launch_template" "test1" {
   image_id      = data.aws_ami.test.id
   instance_type = "t3.micro"
-  name          = "%s1"
+  name          = "%[1]s1"
 }
 
 resource "aws_launch_template" "test2" {
   image_id      = data.aws_ami.test.id
   instance_type = "t3.micro"
-  name          = "%s2"
+  name          = "%[1]s2"
 }
 
 resource "aws_ec2_fleet" "test" {
   launch_template_config {
     launch_template_specification {
-      launch_template_name = %s.name
-      version              = %s.latest_version
+      launch_template_name = %[2]s.name
+      version              = %[2]s.latest_version
     }
   }
 
@@ -1435,7 +1450,7 @@ resource "aws_ec2_fleet" "test" {
     total_target_capacity        = 0
   }
 }
-`, rName, rName, launchTemplateResourceName, launchTemplateResourceName)
+`, rName, launchTemplateResourceName)
 }
 
 func testAccAWSEc2FleetConfig_LaunchTemplateConfig_LaunchTemplateSpecification_Version(rName, instanceType string) string {
@@ -1746,6 +1761,33 @@ resource "aws_ec2_fleet" "test" {
 
   spot_options {
     allocation_strategy = %q
+  }
+
+  target_capacity_specification {
+    default_target_capacity_type = "spot"
+    total_target_capacity        = 0
+  }
+}
+`, allocationStrategy)
+}
+
+func testAccAWSEc2FleetConfig_SpotOptions_CapacityRebalance(rName, allocationStrategy string) string {
+	return testAccAWSEc2FleetConfig_BaseLaunchTemplate(rName) + fmt.Sprintf(`
+resource "aws_ec2_fleet" "test" {
+  launch_template_config {
+    launch_template_specification {
+      launch_template_id = aws_launch_template.test.id
+      version            = aws_launch_template.test.latest_version
+    }
+  }
+
+  spot_options {
+    allocation_strategy = %[1]q
+    maintenance_strategies {
+      capacity_rebalance {
+        replacement_strategy = "launch"
+      }
+    }
   }
 
   target_capacity_specification {

@@ -86,7 +86,7 @@ In addition to all arguments above, the following attributes are exported:
 ## Timeouts
 
 `aws_dx_hosted_private_virtual_interface_accepter` provides the following
-[Timeouts](/docs/configuration/resources.html#timeouts) configuration options:
+[Timeouts](https://www.terraform.io/docs/configuration/blocks/resources/syntax.html#operation-timeouts) configuration options:
 
 - `create` - (Default `10 minutes`) Used for creating virtual interface
 - `delete` - (Default `10 minutes`) Used for destroying virtual interface
