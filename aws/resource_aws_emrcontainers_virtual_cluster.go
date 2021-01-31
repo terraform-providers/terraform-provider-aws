@@ -1,10 +1,8 @@
 package aws
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -111,6 +109,8 @@ func resourceAwsEMRContainersVirtualClusterCreate(d *schema.ResourceData, meta i
 	if _, err := waiter.VirtualClusterCreated(conn, aws.StringValue(out.Id)); err != nil {
 		return fmt.Errorf("error waiting for EMR containers virtual cluster (%s) creation: %w", d.Id(), err)
 	}
+
+	d.SetId(aws.StringValue(out.Id))
 
 	return resourceAwsEMRContainersVirtualClusterRead(d, meta)
 }
