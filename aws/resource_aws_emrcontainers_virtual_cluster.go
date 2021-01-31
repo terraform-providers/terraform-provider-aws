@@ -108,11 +108,11 @@ func resourceAwsEMRContainersVirtualClusterCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("error creating EMR containers virtual cluster: %w", err)
 	}
 
-	if _, err := waiter.VirtualClusterCreated(conn, aws.StringValue(out.Id)); err != nil {
+	d.SetId(aws.StringValue(out.Id))
+
+	if _, err := waiter.VirtualClusterCreated(conn, d.Id()); err != nil {
 		return fmt.Errorf("error waiting for EMR containers virtual cluster (%s) creation: %w", d.Id(), err)
 	}
-
-	d.SetId(aws.StringValue(out.Id))
 
 	return resourceAwsEMRContainersVirtualClusterRead(d, meta)
 }
