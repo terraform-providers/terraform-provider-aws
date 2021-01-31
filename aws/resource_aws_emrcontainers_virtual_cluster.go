@@ -65,9 +65,9 @@ func resourceAwsEMRContainersVirtualCluster() *schema.Resource {
 							},
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(emrcontainers.ContainerProviderType_Values(), false),
 						},
 					},
@@ -78,9 +78,9 @@ func resourceAwsEMRContainersVirtualCluster() *schema.Resource {
 				Computed: true,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[.\-_/#A-Za-z0-9]+`), ""),
 			},
 			"state": {
@@ -96,7 +96,7 @@ func resourceAwsEMRContainersVirtualClusterCreate(d *schema.ResourceData, meta i
 
 	input := emrcontainers.CreateVirtualClusterInput{
 		ContainerProvider: expandEMRContainersContainerProvider(d.Get("container_provider").([]interface{})),
-		Name: aws.String(d.Get("name").(string)),
+		Name:              aws.String(d.Get("name").(string)),
 	}
 
 	log.Printf("[INFO] Creating EMR containers virtual cluster: %s", input)
@@ -174,7 +174,7 @@ func expandEMRContainersContainerProvider(l []interface{}) *emrcontainers.Contai
 	m := l[0].(map[string]interface{})
 
 	input := emrcontainers.ContainerProvider{
-		Id: aws.String(m["id"].(string)),
+		Id:   aws.String(m["id"].(string)),
 		Type: aws.String(m["type"].(string)),
 	}
 

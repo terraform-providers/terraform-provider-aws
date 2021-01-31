@@ -13,7 +13,6 @@ const (
 	// Amount of delay to check a virtual cluster
 	VirtualClusterCreatedDelay = 1 * time.Minute
 
-
 	// Maximum amount of time to wait for a virtual cluster deletion
 	VirtualClusterDeletedTimeout = 90 * time.Minute
 	// Amount of delay to check a virtual cluster status
