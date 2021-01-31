@@ -4,16 +4,12 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/emrcontainers"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/emrcontainers/finder"
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/emrcontainers/waiter"
 )
 
@@ -40,7 +36,8 @@ func resourceAwsEMRContainersVirtualCluster() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Required: true,
+							ForceNew: true,
 						},
 						"info": {
 							Type:     schema.TypeList,
@@ -118,226 +115,56 @@ func resourceAwsEMRContainersVirtualClusterCreate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsEMRContainersVirtualClusterRead(d *schema.ResourceData, meta interface{}) error {
-	emrconn := meta.(*AWSClient).emrconn
-	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
+	conn := meta.(*AWSClient).emrcontainersconn
 
-	req := &emr.DescribeClusterInput{
-		ClusterId: aws.String(d.Id()),
-	}
+	vc, err := finder.VirtualClusterById(conn, d.Id())
 
-	resp, err := emrconn.DescribeCluster(req)
 	if err != nil {
-		// After a Cluster has been terminated for an indeterminate period of time,
-		// the EMR API will return this type of error:
-		//   InvalidRequestException: Cluster id 'j-XXX' is not valid.
-		// If this causes issues with masking other legitimate request errors, the
-		// handling should be updated for deeper inspection of the special error type
-		// which includes an accurate error code:
-		//   ErrorCode: "NoSuchCluster",
-		if isAWSErr(err, emr.ErrCodeInvalidRequestException, "is not valid") {
-			log.Printf("[DEBUG] EMR Cluster (%s) not found", d.Id())
+		if isAWSErr(err, emrcontainers.ErrCodeResourceNotFoundException, "") && !d.IsNewResource() {
+			log.Printf("[WARN] EMR containers virtual cluster (%s) not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading EMR cluster: %s", err)
+
+		return fmt.Errorf("error reading EMR containers virtual cluster (%s): %w", d.Id(), err)
 	}
 
-	if resp.Cluster == nil {
-		log.Printf("[DEBUG] EMR Cluster (%s) not found", d.Id())
+	if vc == nil {
+		log.Printf("[WARN] EMR containers virtual cluster (%s) not found, removing from state", d.Id())
 		d.SetId("")
 		return nil
 	}
 
-	cluster := resp.Cluster
-
-	if cluster.Status != nil {
-		state := aws.StringValue(cluster.Status.State)
-
-		if state == emr.ClusterStateTerminated || state == emr.ClusterStateTerminatedWithErrors {
-			log.Printf("[WARN] EMR Cluster (%s) was %s already, removing from state", d.Id(), state)
-			d.SetId("")
-			return nil
-		}
-
-		d.Set("cluster_state", state)
-
-		d.Set("arn", aws.StringValue(cluster.ClusterArn))
+	d.Set("arn", vc.Arn)
+	if err := d.Set("container_provider", flattenEMRContainersContainerProvider(vc.ContainerProvider)); err != nil {
+		return fmt.Errorf("error reading EMR containers virtual cluster (%s): %w", d.Id(), err)
 	}
-
-	instanceGroups, err := fetchAllEMRInstanceGroups(emrconn, d.Id())
-
-	if err == nil { // find instance group
-
-		coreGroup := emrCoreInstanceGroup(instanceGroups)
-		masterGroup := findMasterGroup(instanceGroups)
-
-		flattenedCoreInstanceGroup, err := flattenEmrCoreInstanceGroup(coreGroup)
-
-		if err != nil {
-			return fmt.Errorf("error flattening core_instance_group: %s", err)
-		}
-
-		if err := d.Set("core_instance_group", flattenedCoreInstanceGroup); err != nil {
-			return fmt.Errorf("error setting core_instance_group: %s", err)
-		}
-
-		if err := d.Set("master_instance_group", flattenEmrMasterInstanceGroup(masterGroup)); err != nil {
-			return fmt.Errorf("error setting master_instance_group: %s", err)
-		}
-	}
-
-	instanceFleets, err := fetchAllEMRInstanceFleets(emrconn, d.Id())
-
-	if err == nil { // find instance fleets
-
-		coreFleet := findInstanceFleet(instanceFleets, emr.InstanceFleetTypeCore)
-		masterFleet := findInstanceFleet(instanceFleets, emr.InstanceFleetTypeMaster)
-
-		flattenedCoreInstanceFleet := flattenInstanceFleet(coreFleet)
-		if err := d.Set("core_instance_fleet", flattenedCoreInstanceFleet); err != nil {
-			return fmt.Errorf("error setting core_instance_fleet: %s", err)
-		}
-
-		flattenedMasterInstanceFleet := flattenInstanceFleet(masterFleet)
-		if err := d.Set("master_instance_fleet", flattenedMasterInstanceFleet); err != nil {
-			return fmt.Errorf("error setting master_instance_fleet: %s", err)
-		}
-	}
-
-	if err := d.Set("tags", keyvaluetags.EmrKeyValueTags(cluster.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
-		return fmt.Errorf("error settings tags: %s", err)
-	}
-
-	d.Set("name", cluster.Name)
-
-	d.Set("service_role", cluster.ServiceRole)
-	d.Set("security_configuration", cluster.SecurityConfiguration)
-	d.Set("autoscaling_role", cluster.AutoScalingRole)
-	d.Set("release_label", cluster.ReleaseLabel)
-	d.Set("log_uri", cluster.LogUri)
-	d.Set("master_public_dns", cluster.MasterPublicDnsName)
-	d.Set("visible_to_all_users", cluster.VisibleToAllUsers)
-	d.Set("ebs_root_volume_size", cluster.EbsRootVolumeSize)
-	d.Set("scale_down_behavior", cluster.ScaleDownBehavior)
-	d.Set("termination_protection", cluster.TerminationProtected)
-	d.Set("step_concurrency_level", cluster.StepConcurrencyLevel)
-
-	if cluster.CustomAmiId != nil {
-		d.Set("custom_ami_id", cluster.CustomAmiId)
-	}
-
-	if err := d.Set("applications", flattenApplications(cluster.Applications)); err != nil {
-		return fmt.Errorf("error setting EMR Applications for cluster (%s): %s", d.Id(), err)
-	}
-
-	if _, ok := d.GetOk("configurations_json"); ok {
-		configOut, err := flattenConfigurationJson(cluster.Configurations)
-		if err != nil {
-			return fmt.Errorf("Error reading EMR cluster configurations: %s", err)
-		}
-		if err := d.Set("configurations_json", configOut); err != nil {
-			return fmt.Errorf("Error setting EMR configurations_json for cluster (%s): %s", d.Id(), err)
-		}
-	}
-
-	if err := d.Set("ec2_attributes", flattenEc2Attributes(cluster.Ec2InstanceAttributes)); err != nil {
-		return fmt.Errorf("error setting EMR Ec2 Attributes: %s", err)
-	}
-
-	if err := d.Set("kerberos_attributes", flattenEmrKerberosAttributes(d, cluster.KerberosAttributes)); err != nil {
-		return fmt.Errorf("error setting kerberos_attributes: %s", err)
-	}
-
-	respBootstraps, err := emrconn.ListBootstrapActions(&emr.ListBootstrapActionsInput{
-		ClusterId: cluster.Id,
-	})
-	if err != nil {
-		return fmt.Errorf("error listing bootstrap actions: %s", err)
-	}
-
-	if err := d.Set("bootstrap_action", flattenBootstrapArguments(respBootstraps.BootstrapActions)); err != nil {
-		return fmt.Errorf("error setting Bootstrap Actions: %s", err)
-	}
-
-	var stepSummaries []*emr.StepSummary
-	listStepsInput := &emr.ListStepsInput{
-		ClusterId: aws.String(d.Id()),
-	}
-	err = emrconn.ListStepsPages(listStepsInput, func(page *emr.ListStepsOutput, lastPage bool) bool {
-		// ListSteps returns steps in reverse order (newest first)
-		for _, step := range page.Steps {
-			stepSummaries = append([]*emr.StepSummary{step}, stepSummaries...)
-		}
-		return !lastPage
-	})
-	if err != nil {
-		return fmt.Errorf("error listing steps: %s", err)
-	}
-	if err := d.Set("step", flattenEmrStepSummaries(stepSummaries)); err != nil {
-		return fmt.Errorf("error setting step: %s", err)
-	}
-
-	// AWS provides no other way to read back the additional_info
-	if v, ok := d.GetOk("additional_info"); ok {
-		info, err := structure.NormalizeJsonString(v)
-		if err != nil {
-			return fmt.Errorf("Additional Info contains an invalid JSON: %v", err)
-		}
-		d.Set("additional_info", info)
-	}
+	d.Set("created_at", aws.TimeValue(vc.CreatedAt).String())
+	d.Set("name", vc.Name)
+	d.Set("state", vc.State)
 
 	return nil
 }
 
 func resourceAwsEMRContainersVirtualClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).emrconn
+	conn := meta.(*AWSClient).emrcontainersconn
 
-	req := &emr.TerminateJobFlowsInput{
-		JobFlowIds: []*string{
-			aws.String(d.Id()),
-		},
-	}
-
-	_, err := conn.TerminateJobFlows(req)
-	if err != nil {
-		log.Printf("[ERROR], %s", err)
-		return err
-	}
-
-	input := &emr.ListInstancesInput{
-		ClusterId: aws.String(d.Id()),
-	}
-	var resp *emr.ListInstancesOutput
-	var count int
-	err = resource.Retry(20*time.Minute, func() *resource.RetryError {
-		var err error
-		resp, err = conn.ListInstances(input)
-
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		count = countEMRRemainingInstances(resp, d.Id())
-		if count != 0 {
-			return resource.RetryableError(fmt.Errorf("EMR Cluster (%s) has (%d) Instances remaining", d.Id(), count))
-		}
-		return nil
+	log.Printf("[INFO] EMR containers virtual cluster: %s", d.Id())
+	_, err := conn.DeleteVirtualCluster(&emrcontainers.DeleteVirtualClusterInput{
+		Id: aws.String(d.Id()),
 	})
-
-	if isResourceTimeoutError(err) {
-		resp, err = conn.ListInstances(input)
-
-		if err == nil {
-			count = countEMRRemainingInstances(resp, d.Id())
+	if err != nil {
+		if isAWSErr(err, emrcontainers.ErrCodeResourceNotFoundException, "") {
+			return nil
 		}
+
+		return fmt.Errorf("error deleting EMR containers virtual cluster (%s): %w", d.Id(), err)
 	}
 
-	if count != 0 {
-		return fmt.Errorf("EMR Cluster (%s) has (%d) Instances remaining", d.Id(), count)
-	}
+	_, err = waiter.VirtualClusterDeleted(conn, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error waiting for EMR Cluster (%s) Instances to drain: %s", d.Id(), err)
+		return fmt.Errorf("error waiting for EMR containers virtual cluster (%s) deletion: %w", d.Id(), err)
 	}
 
 	return nil
@@ -380,4 +207,49 @@ func expandEMRContainersEksInfo(l []interface{}) *emrcontainers.EksInfo {
 	}
 
 	return &input
+}
+
+func flattenEMRContainersContainerProvider(cp *emrcontainers.ContainerProvider) []interface{} {
+	if cp == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{}
+
+	m["id"] = cp.Id
+	m["type"] = cp.Type
+
+	if cp.Info != nil {
+		m["info"] = flattenEMRContainersContainerInfo(cp.Info)
+	}
+
+	return []interface{}{m}
+}
+
+func flattenEMRContainersContainerInfo(ci *emrcontainers.ContainerInfo) []interface{} {
+	if ci == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{}
+
+	if ci.EksInfo != nil {
+		m["eks_info"] = flattenEMRContainersEksInfo(ci.EksInfo)
+	}
+
+	return []interface{}{m}
+}
+
+func flattenEMRContainersEksInfo(ei *emrcontainers.EksInfo) []interface{} {
+	if ei == nil {
+		return []interface{}{}
+	}
+
+	m := map[string]interface{}{}
+
+	if ei.Namespace != nil {
+		m["namespace"] = ei.Namespace
+	}
+
+	return []interface{}{m}
 }
