@@ -7,7 +7,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -650,8 +649,7 @@ func testAccGetPartitionDNSSuffix() string {
 func testAccGetPartitionReverseDNSPrefix() string {
 	if partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), testAccGetRegion()); ok {
 		dnsParts := strings.Split(partition.DNSSuffix(), ".")
-		sort.Sort(sort.Reverse(sort.StringSlice(dnsParts)))
-		return strings.Join(dnsParts, ".")
+		return strings.Join(invertStringSlice(dnsParts), ".")
 	}
 
 	return "com.amazonaws"

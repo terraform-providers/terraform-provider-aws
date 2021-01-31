@@ -348,6 +348,7 @@ func Provider() *schema.Provider {
 			"aws_secretsmanager_secret":                      dataSourceAwsSecretsManagerSecret(),
 			"aws_secretsmanager_secret_rotation":             dataSourceAwsSecretsManagerSecretRotation(),
 			"aws_secretsmanager_secret_version":              dataSourceAwsSecretsManagerSecretVersion(),
+			"aws_service":                                    dataSourceAwsService(),
 			"aws_servicequotas_service":                      dataSourceAwsServiceQuotasService(),
 			"aws_servicequotas_service_quota":                dataSourceAwsServiceQuotasServiceQuota(),
 			"aws_sfn_activity":                               dataSourceAwsSfnActivity(),

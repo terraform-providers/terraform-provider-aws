@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -70,5 +71,37 @@ func TestJsonBytesEqualWhitespaceAndNoWhitespace(t *testing.T) {
 
 	if jsonBytesEqual([]byte(noWhitespaceDiff), []byte(whitespaceDiff)) {
 		t.Errorf("Expected jsonBytesEqual to return false for %s == %s", noWhitespaceDiff, whitespaceDiff)
+	}
+}
+
+func TestInvertStringSlice(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		Input    []string
+		Expected []string
+	}{
+		{
+			Name:     "DNS Suffix",
+			Input:    []string{"amazonaws", "com", "cn"},
+			Expected: []string{"cn", "com", "amazonaws"},
+		},
+		{
+			Name:     "Ordered List",
+			Input:    []string{"abc", "bcd", "cde", "xyz", "zzz"},
+			Expected: []string{"zzz", "xyz", "cde", "bcd", "abc"},
+		},
+		{
+			Name:     "Unordered List",
+			Input:    []string{"abc", "zzz", "bcd", "xyz", "cde"},
+			Expected: []string{"cde", "xyz", "bcd", "zzz", "abc"},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			if !reflect.DeepEqual(invertStringSlice(testCase.Input), testCase.Expected) {
+				t.Errorf("got %v, expected %v", invertStringSlice(testCase.Input), testCase.Expected)
+			}
+		})
 	}
 }

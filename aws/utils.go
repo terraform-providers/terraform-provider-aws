@@ -61,3 +61,12 @@ func appendUniqueString(slice []string, elem string) []string {
 	}
 	return append(slice, elem)
 }
+
+// invertStringSlice returns inverted string slice without sorting slice like sort.Reverse()
+func invertStringSlice(slice []string) []string {
+	inverse := make([]string, 0)
+	for i := 0; i < len(slice); i++ {
+		inverse = append(inverse, slice[len(slice)-i-1])
+	}
+	return inverse
+}
