@@ -171,6 +171,10 @@ func resourceAwsEMRContainersVirtualClusterDelete(d *schema.ResourceData, meta i
 }
 
 func expandEMRContainersContainerProvider(l []interface{}) *emrcontainers.ContainerProvider {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
 	m := l[0].(map[string]interface{})
 
 	input := emrcontainers.ContainerProvider{
@@ -186,6 +190,10 @@ func expandEMRContainersContainerProvider(l []interface{}) *emrcontainers.Contai
 }
 
 func expandEMRContainersContainerInfo(l []interface{}) *emrcontainers.ContainerInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
 	m := l[0].(map[string]interface{})
 
 	input := emrcontainers.ContainerInfo{}
@@ -198,6 +206,10 @@ func expandEMRContainersContainerInfo(l []interface{}) *emrcontainers.ContainerI
 }
 
 func expandEMRContainersEksInfo(l []interface{}) *emrcontainers.EksInfo {
+	if len(l) == 0 || l[0] == nil {
+		return nil
+	}
+
 	m := l[0].(map[string]interface{})
 
 	input := emrcontainers.EksInfo{}
