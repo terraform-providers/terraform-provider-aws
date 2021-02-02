@@ -39,17 +39,19 @@ func resourceAwsEMRContainersVirtualCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						// According to https://docs.aws.amazon.com/emr-on-eks/latest/APIReference/API_ContainerProvider.html
+						// The info and the eks_info are optional but the API raises ValidationException without the fields
 						"info": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"eks_info": {
 										Type:     schema.TypeList,
 										MaxItems: 1,
-										Optional: true,
+										Required: true,
 										ForceNew: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{

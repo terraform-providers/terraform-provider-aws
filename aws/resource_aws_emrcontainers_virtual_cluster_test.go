@@ -90,28 +90,27 @@ func TestAccAwsEMRContainersVirtualCluster_basic(t *testing.T) {
 	})
 }
 
-//func TestAccAwsEMRContainersVirtualCluster_disappears(t *testing.T) {
-//	var environment mwaa.GetEnvironmentOutput
-//
-//	rName := acctest.RandomWithPrefix("tf-acc-test")
-//	resourceName := "aws_mwaa_environment.test"
-//
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		Providers:    testAccProviders,
-//		CheckDestroy: testAccCheckAwsEMRContainersVirtualClusterDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccAWSMwssEnvironmentBasicConfig(rName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckAwsEMRContainersVirtualClusterExists(resourceName, &environment),
-//					testAccCheckResourceDisappears(testAccProvider, resourceAwsMwaaEnvironment(), resourceName),
-//				),
-//				ExpectNonEmptyPlan: true,
-//			},
-//		},
-//	})
-//}
+func TestAccAwsEMRContainersVirtualCluster_disappears(t *testing.T) {
+	var vc emrcontainers.DescribeVirtualClusterOutput
+
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_emrcontainers_virtual_cluster.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsEMRContainersVirtualClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAwsEMRContainersVirtualClusterBasicConfig(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsEMRContainersVirtualClusterExists(resourceName, &vc),
+					testAccCheckResourceDisappears(testAccProvider, resourceAwsEMRContainersVirtualCluster(), resourceName),
+				),
+			},
+		},
+	})
+}
 
 func testAccCheckAwsEMRContainersVirtualClusterExists(resourceName string, vc *emrcontainers.DescribeVirtualClusterOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -305,6 +304,25 @@ resource "aws_eks_cluster" "test" {
     "aws_main_route_table_association.test",
   ]
 }
+
+resource "aws_eks_node_group" "test" {
+  cluster_name    = aws_eks_cluster.test.name
+  node_group_name = %[1]q
+  node_role_arn   = aws_iam_role.node.arn
+  subnet_ids      = aws_subnet.test[*].id
+
+  scaling_config {
+    desired_size = 1
+    max_size     = 1
+    min_size     = 1
+  }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy",
+    "aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy",
+    "aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly",
+  ]
+}
 `, rName)
 }
 
@@ -312,17 +330,17 @@ func testAccAwsEMRContainersVirtualClusterBasicConfig(rName string) string {
 	return testAcctestAccAwsEMRContainersVirtualClusterBase(rName) + fmt.Sprintf(`
 resource "aws_emrcontainers_virtual_cluster" "test" {
   container_provider {
-    id   = aws_eks_cluster.test.name 
+    id   = aws_eks_cluster.test.name
     type = "EKS"
+
+    info {
+      eks_info {
+        namespace = "default"
+      }
+    }
   }
   
   name = %[1]q
-
-  depends_on = [
-    aws_iam_role_policy_attachment.node-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.node-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.node-AmazonEC2ContainerRegistryReadOnly,
-  ]
 }
 `, rName)
 }
