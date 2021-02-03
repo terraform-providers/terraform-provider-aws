@@ -407,6 +407,7 @@ The `s3_configuration` object supports the following:
 * `role_arn` - (Required) The ARN of the AWS credentials.
 * `bucket_arn` - (Required) The ARN of the S3 bucket
 * `prefix` - (Optional) The "YYYY/MM/DD/HH" time format prefix is automatically used for delivered S3 files. You can specify an extra prefix to be added in front of the time format prefix. Note that if the prefix ends with a slash, it appears as a folder in the S3 bucket
+* `error_output_prefix` - (Optional) Prefix added to failed records before writing them to S3. This prefix appears immediately following the bucket name. If this parameter is used in `s3_backup_configuration` of `redshift_configuration`, this parameter is ignored, because an Amazon Redshift destination requires an S3 bucket as intermediate location.
 * `buffer_size` - (Optional) Buffer incoming data to the specified size, in MBs, before delivering it to the destination. The default value is 5.
                                 We recommend setting SizeInMBs to a value greater than the amount of data you typically ingest into the delivery stream in 10 seconds. For example, if you typically ingest data at 1 MB/sec set SizeInMBs to be 10 MB or higher.
 * `buffer_interval` - (Optional) Buffer incoming data for the specified period of time, in seconds, before delivering it to the destination. The default value is 300.

@@ -361,6 +361,50 @@ func TestAccAWSKinesisFirehoseDeliveryStream_s3basicWithTags(t *testing.T) {
 	})
 }
 
+func TestAccAWSKinesisFirehoseDeliveryStream_s3basicWithErrorOutputPrefix(t *testing.T) {
+	var stream firehose.DeliveryStreamDescription
+	rInt := acctest.RandInt()
+	rName := fmt.Sprintf("terraform-kinesis-firehose-basictest-%d", rInt)
+	config := fmt.Sprintf(testAccKinesisFirehoseDeliveryStreamConfig_s3basic,
+		rInt, rInt, rInt, rInt)
+	resourceName := "aws_kinesis_firehose_delivery_stream.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisFirehoseDeliveryStreamDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisFirehoseDeliveryStreamConfig_s3basicWithErrorOutputPrefix(rName, rInt, "test/", "error/test/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
+					testAccCheckAWSKinesisFirehoseDeliveryStreamAttributes(&stream, nil, nil, nil, nil, nil, nil),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.error_output_prefix", "error/test/"),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.prefix", "test/"),
+				),
+			},
+			{
+				Config: testAccKinesisFirehoseDeliveryStreamConfig_s3basicWithErrorOutputPrefix(rName, rInt, "test/", "error/test/changed/"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
+					testAccCheckAWSKinesisFirehoseDeliveryStreamAttributes(&stream, nil, nil, nil, nil, nil, nil),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.error_output_prefix", "error/test/changed/"),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.prefix", "test/"),
+				),
+			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
+					testAccCheckAWSKinesisFirehoseDeliveryStreamAttributes(&stream, nil, nil, nil, nil, nil, nil),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.error_output_prefix", ""),
+					resource.TestCheckResourceAttr(resourceName, "s3_configuration.0.prefix", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSKinesisFirehoseDeliveryStream_s3KinesisStreamSource(t *testing.T) {
 	var stream firehose.DeliveryStreamDescription
 	ri := acctest.RandInt()
@@ -825,6 +869,44 @@ func TestAccAWSKinesisFirehoseDeliveryStream_ExtendedS3_ErrorOutputPrefix(t *tes
 					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
 					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.0.error_output_prefix", "prefix2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSKinesisFirehoseDeliveryStream_ExtendedS3_S3BackupConfigration(t *testing.T) {
+	var stream firehose.DeliveryStreamDescription
+	rInt := acctest.RandInt()
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_kinesis_firehose_delivery_stream.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKinesisFirehoseDeliveryStreamDestroy_ExtendedS3,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKinesisFirehoseDeliveryStreamConfig_ExtendedS3_S3BackupMode(rName, rInt, "prefix1", "error/prefix1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.0.s3_backup_configuration.0.prefix", "prefix1"),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.0.s3_backup_configuration.0.error_output_prefix", "error/prefix1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccKinesisFirehoseDeliveryStreamConfig_ExtendedS3_S3BackupMode(rName, rInt, "prefix2", "error/prefix2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKinesisFirehoseDeliveryStreamExists(resourceName, &stream),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.0.s3_backup_configuration.0.prefix", "prefix2"),
+					resource.TestCheckResourceAttr(resourceName, "extended_s3_configuration.0.s3_backup_configuration.0.error_output_prefix", "error/prefix2"),
 				),
 			},
 		},
@@ -2136,6 +2218,23 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
 `, rName)
 }
 
+func testAccKinesisFirehoseDeliveryStreamConfig_s3basicWithErrorOutputPrefix(rName string, rInt int, prefix string, errorOutputPrefix string) string {
+	return fmt.Sprintf(testAccKinesisFirehoseDeliveryStreamBaseConfig, rInt, rInt, rInt) +
+		fmt.Sprintf(`
+resource "aws_kinesis_firehose_delivery_stream" "test" {
+  depends_on  = ["aws_iam_role_policy.firehose"]
+  name        = "%s"
+  destination = "s3"
+  s3_configuration {
+    role_arn            = "${aws_iam_role.firehose.arn}"
+    bucket_arn          = "${aws_s3_bucket.bucket.arn}"
+    prefix              = %q
+    error_output_prefix = %q
+  }
+}
+`, rName, prefix, errorOutputPrefix)
+}
+
 var testAccKinesisFirehoseDeliveryStreamConfig_s3KinesisStreamSource = testAccKinesisFirehoseDeliveryStreamBaseConfig + testAccFirehoseKinesisStreamSource + `
 resource "aws_kinesis_firehose_delivery_stream" "test" {
   depends_on = [aws_iam_role_policy.firehose, aws_iam_role_policy.kinesis_source]
@@ -2569,6 +2668,33 @@ resource "aws_kinesis_firehose_delivery_stream" "test" {
   depends_on = [aws_iam_role_policy.firehose]
 }
 `, rName, errorOutputPrefix)
+}
+
+func testAccKinesisFirehoseDeliveryStreamConfig_ExtendedS3_S3BackupMode(rName string, rInt int, prefix string, errorOutputPrefix string) string {
+	return fmt.Sprintf(testAccKinesisFirehoseDeliveryStreamBaseConfig, rInt, rInt, rInt) + fmt.Sprintf(`
+resource "aws_kinesis_firehose_delivery_stream" "test" {
+  destination = "extended_s3"
+  name        = %q
+
+  extended_s3_configuration {
+    bucket_arn          = "${aws_s3_bucket.bucket.arn}"
+    error_output_prefix = "/error/"
+    role_arn            = "${aws_iam_role.firehose.arn}"
+    s3_backup_mode      = "Enabled"
+    s3_backup_configuration {
+      role_arn            = "${aws_iam_role.firehose.arn}"
+      bucket_arn          = "${aws_s3_bucket.bucket.arn}"
+      buffer_size         = 10
+      buffer_interval     = 300
+      compression_format  = "GZIP"
+      prefix              = %q
+      error_output_prefix = %q
+    }
+  }
+
+  depends_on = ["aws_iam_role_policy.firehose"]
+}
+`, rName, prefix, errorOutputPrefix)
 }
 
 func testAccKinesisFirehoseDeliveryStreamConfig_ExtendedS3_ProcessingConfiguration_Empty(rName string, rInt int) string {
