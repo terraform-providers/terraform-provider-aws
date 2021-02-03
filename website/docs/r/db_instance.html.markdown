@@ -124,9 +124,9 @@ set to `false`. The value must begin with a letter, only contain alphanumeric ch
 * `iam_database_authentication_enabled` - (Optional) Specifies whether or
 mappings of AWS Identity and Access Management (IAM) accounts to database
 accounts is enabled.
-* `identifier` - (Optional, Forces new resource) The name of the RDS instance,
+* `identifier` - (Optional) The name of the RDS instance,
 if omitted, Terraform will assign a random, unique identifier. Required if `restore_to_point_in_time` is specified.
-* `identifier_prefix` - (Optional, Forces new resource) Creates a unique
+* `identifier_prefix` - (Optional) Creates a unique
 identifier beginning with the specified prefix. Conflicts with `identifier`.
 * `instance_class` - (Required) The instance type of the RDS instance.
 * `iops` - (Optional) The amount of provisioned IOPS. Setting this implies a
@@ -265,8 +265,8 @@ https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Ma
 
 In addition to all arguments above, the following attributes are exported:
 
-* `address` - The hostname of the RDS instance. See also `endpoint` and `port`.
-* `arn` - The ARN of the RDS instance.
+* `address` - The hostname of the RDS instance. See also `endpoint` and `port`. It will change together with `identifier` change.
+* `arn` - The ARN of the RDS instance. It will change together with `identifier` change.
 * `allocated_storage` - The amount of allocated storage.
 * `availability_zone` - The availability zone of the instance.
 * `backup_retention_period` - The backup retention period.
@@ -275,19 +275,19 @@ In addition to all arguments above, the following attributes are exported:
 DB instance.
 * `domain` - The ID of the Directory Service Active Directory domain the instance is joined to
 * `domain_iam_role_name` - The name of the IAM role to be used when making API calls to the Directory Service.
-* `endpoint` - The connection endpoint in `address:port` format.
+* `endpoint` - The connection endpoint in `address:port` format. It will change together with `identifier` change.
 * `engine` - The database engine.
 * `engine_version` - The database engine version.
 * `hosted_zone_id` - The canonical hosted zone ID of the DB instance (to be used
 in a Route 53 Alias record).
-* `id` - The RDS instance ID.
+* `id` - The RDS Resource ID of this instance (same as `resource_id`). It is immutable.
 * `instance_class`- The RDS instance class.
 * `latest_restorable_time` - The latest time, in UTC [RFC3339 format](https://tools.ietf.org/html/rfc3339#section-5.8), to which a database can be restored with point-in-time restore.
 * `maintenance_window` - The instance maintenance window.
 * `multi_az` - If the RDS instance is multi AZ enabled.
 * `name` - The database name.
 * `port` - The database port.
-* `resource_id` - The RDS Resource ID of this instance.
+* `resource_id` - The RDS Resource ID of this instance (immutable).
 * `status` - The RDS instance status.
 * `storage_encrypted` - Specifies whether the DB instance is encrypted.
 * `username` - The master username for the database.
@@ -298,8 +298,8 @@ On Oracle and Microsoft SQL instances the following is exported additionally:
 
 ## Import
 
-DB Instances can be imported using the `identifier`, e.g.
+DB Instances can be imported using the `resource_id`, e.g.
 
 ```
-$ terraform import aws_db_instance.default mydb-rds-instance
+$ terraform import aws_db_instance.default db-L5GOU4KU6U3KKMIVY5JG54IAHQ
 ```
