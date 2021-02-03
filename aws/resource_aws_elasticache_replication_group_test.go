@@ -283,6 +283,39 @@ func TestAccAWSElasticacheReplicationGroup_updateParameterGroup(t *testing.T) {
 	})
 }
 
+func TestAccAWSElasticacheReplicationGroup_updateAuthToken(t *testing.T) {
+	var rg elasticache.ReplicationGroup
+	resourceName := "aws_elasticache_replication_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSElasticacheReplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSElasticacheReplicationGroup_EnableAuthTokenTransitEncryptionConfig(1, "one", acctest.RandString(16)),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &rg),
+					resource.TestCheckResourceAttr(
+						resourceName, "transit_encryption_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"apply_immediately", "auth_token", "availability_zones"},
+			},
+			{
+				Config: testAccAWSElasticacheReplicationGroup_EnableAuthTokenTransitEncryptionConfig(1, "one", acctest.RandString(16)),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSElasticacheReplicationGroupExists(resourceName, &rg),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSElasticacheReplicationGroup_vpc(t *testing.T) {
 	var rg elasticache.ReplicationGroup
 	resourceName := "aws_elasticache_replication_group.test"
@@ -2203,9 +2236,9 @@ resource "aws_elasticache_replication_group" "test" {
   port                          = 6379
   subnet_group_name             = aws_elasticache_subnet_group.test.name
   security_group_ids            = [aws_security_group.test.id]
-  parameter_group_name          = "default.redis3.2"
+  parameter_group_name          = "default.redis5.0"
   availability_zones            = [data.aws_availability_zones.available.names[0]]
-  engine_version                = "3.2.6"
+  engine_version                = "5.0.6"
   transit_encryption_enabled    = true
   auth_token                    = "%s"
 }

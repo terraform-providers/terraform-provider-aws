@@ -54,7 +54,7 @@ func resourceAwsElasticacheReplicationGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Sensitive:    true,
-				ForceNew:     true,
+				ForceNew:     false,
 				ValidateFunc: validateAwsElastiCacheReplicationGroupAuthToken,
 			},
 			"auto_minor_version_upgrade": {
@@ -664,6 +664,20 @@ func resourceAwsElasticacheReplicationGroupUpdate(d *schema.ResourceData, meta i
 		err := resourceAwsElasticacheReplicationGroupModify(conn, d.Timeout(schema.TimeoutUpdate), params)
 		if err != nil {
 			return fmt.Errorf("error updating ElastiCache Replication Group (%s): %w", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("auth_token") {
+		params := &elasticache.ModifyReplicationGroupInput{
+			ApplyImmediately:        aws.Bool(true),
+			ReplicationGroupId:      aws.String(d.Id()),
+			AuthTokenUpdateStrategy: aws.String("ROTATE"),
+			AuthToken:               aws.String(d.Get("auth_token").(string)),
+		}
+
+		_, err := conn.ModifyReplicationGroup(params)
+		if err != nil {
+			return fmt.Errorf("error changing auth_token for Elasticache Replication Group (%s): %w", d.Id(), err)
 		}
 	}
 
