@@ -117,12 +117,27 @@ The following arguments are supported:
 The following arguments are supported:
 
 * `endpoint` - (Required) HTTP URL.
+* `authorization_config` - (Optional) HTTP Authorization settings. See [below](#authorization_config)
 
 ### lambda_config
 
 The following arguments are supported:
 
 * `function_arn` - (Required) The ARN for the Lambda function.
+
+### authorization_config
+
+The following arguments are supported:
+
+* `authorization_type` - (Required) The type of the authorization. Valid values: `AWS_IAM`
+* `aws_iam_config` - (Optional) AWS IAM settings. See [below](#aws_iam_config)
+
+### aws_iam_config
+
+The following arguments are supported:
+
+* `signing_region` - (Optional) The signing region for AWS IAM authorization.
+* `signing_service_name` - (Optional) The signing service name for AWS IAM authorization.
 
 ## Attributes Reference
 

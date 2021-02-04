@@ -178,6 +178,37 @@ func TestAccAwsAppsyncDatasource_ElasticsearchConfig_Region(t *testing.T) {
 	})
 }
 
+func TestAccAwsAppsyncDatasource_HTTPConfig_AuthorizationConfig(t *testing.T) {
+	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
+	resourceName := "aws_appsync_datasource.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t); testAccPartitionHasServicePreCheck(appsync.EndpointsID, t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAwsAppsyncDatasourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAppsyncDatasourceConfig_HTTPConfig_AuthorizationConfig(rName, testAccGetRegion(), "s3"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsAppsyncDatasourceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "http_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.authorization_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.authorization_config.0.authorization_type", "AWS_IAM"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.authorization_config.0.aws_iam_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.authorization_config.0.aws_iam_config.0.signing_region", testAccGetRegion()),
+					resource.TestCheckResourceAttr(resourceName, "http_config.0.authorization_config.0.aws_iam_config.0.signing_service_name", "s3"),
+					resource.TestCheckResourceAttr(resourceName, "type", "HTTP"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAwsAppsyncDatasource_HTTPConfig_Endpoint(t *testing.T) {
 	rName := fmt.Sprintf("tfacctest%d", acctest.RandInt())
 	resourceName := "aws_appsync_datasource.test"
@@ -703,6 +734,52 @@ resource "aws_appsync_datasource" "test" {
   }
 }
 `, rName, rName, region)
+}
+
+func testAccAppsyncDatasourceConfig_HTTPConfig_AuthorizationConfig(rName, region string, serviceName string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_role" "test" {
+	name = %q
+
+	assume_role_policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "sts:AssumeRole",
+			"Principal": {
+				"Service": "appsync.amazonaws.com"
+			},
+			"Effect": "Allow"
+		}
+	]
+}
+EOF
+}
+
+resource "aws_appsync_graphql_api" "test" {
+	authentication_type = "API_KEY"
+	name                = %q
+}
+
+resource "aws_appsync_datasource" "test" {
+	api_id = "${aws_appsync_graphql_api.test.id}"
+	name   = %q
+	type   = "HTTP"
+	service_role_arn = "${aws_iam_role.test.arn}"
+
+	http_config {
+		endpoint = "http://example.com"
+		authorization_config {
+			authorization_type = "AWS_IAM"
+			aws_iam_config {
+				signing_region = %q
+				signing_service_name = %q
+			}
+		}
+	}
+}
+`, rName, rName, rName, region, serviceName)
 }
 
 func testAccAppsyncDatasourceConfig_HTTPConfig_Endpoint(rName, endpoint string) string {

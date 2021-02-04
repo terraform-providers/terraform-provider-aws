@@ -108,6 +108,42 @@ func resourceAwsAppsyncDatasource() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"authorization_config": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"authorization_type": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											appsync.AuthorizationTypeAwsIam,
+										}, true),
+										StateFunc: func(v interface{}) string {
+											return strings.ToUpper(v.(string))
+										},
+									},
+									"aws_iam_config": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"signing_region": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"signing_service_name": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 				ConflictsWith: []string{"dynamodb_config", "elasticsearch_config", "lambda_config"},
@@ -385,6 +421,36 @@ func flattenAppsyncElasticsearchDataSourceConfig(config *appsync.ElasticsearchDa
 	return []map[string]interface{}{result}
 }
 
+func expandAppsyncAwsIamConfig(l []interface{}) *appsync.AwsIamConfig {
+	if len(l) == 0 {
+		return nil
+	}
+
+	configured := l[0].(map[string]interface{})
+
+	result := &appsync.AwsIamConfig{
+		SigningRegion:      aws.String(configured["signing_region"].(string)),
+		SigningServiceName: aws.String(configured["signing_service_name"].(string)),
+	}
+
+	return result
+}
+
+func expandAppsyncHTTPAuthorizationConfig(l []interface{}) *appsync.AuthorizationConfig {
+	if len(l) == 0 {
+		return nil
+	}
+
+	configured := l[0].(map[string]interface{})
+
+	result := &appsync.AuthorizationConfig{
+		AuthorizationType: aws.String(configured["authorization_type"].(string)),
+		AwsIamConfig:      expandAppsyncAwsIamConfig(configured["aws_iam_config"].([]interface{})),
+	}
+
+	return result
+}
+
 func expandAppsyncHTTPDataSourceConfig(l []interface{}) *appsync.HttpDataSourceConfig {
 	if len(l) == 0 || l[0] == nil {
 		return nil
@@ -393,10 +459,37 @@ func expandAppsyncHTTPDataSourceConfig(l []interface{}) *appsync.HttpDataSourceC
 	configured := l[0].(map[string]interface{})
 
 	result := &appsync.HttpDataSourceConfig{
-		Endpoint: aws.String(configured["endpoint"].(string)),
+		Endpoint:            aws.String(configured["endpoint"].(string)),
+		AuthorizationConfig: expandAppsyncHTTPAuthorizationConfig(configured["authorization_config"].([]interface{})),
 	}
 
 	return result
+}
+
+func flattenAppsyncAwsIamConfig(config *appsync.AwsIamConfig) []map[string]interface{} {
+	if config == nil {
+		return nil
+	}
+
+	result := map[string]interface{}{
+		"signing_region":       aws.StringValue(config.SigningRegion),
+		"signing_service_name": aws.StringValue(config.SigningServiceName),
+	}
+
+	return []map[string]interface{}{result}
+}
+
+func flattenAppsyncHTTPAuthorizationConfig(config *appsync.AuthorizationConfig) []map[string]interface{} {
+	if config == nil {
+		return nil
+	}
+
+	result := map[string]interface{}{
+		"authorization_type": aws.StringValue(config.AuthorizationType),
+		"aws_iam_config":     flattenAppsyncAwsIamConfig(config.AwsIamConfig),
+	}
+
+	return []map[string]interface{}{result}
 }
 
 func flattenAppsyncHTTPDataSourceConfig(config *appsync.HttpDataSourceConfig) []map[string]interface{} {
@@ -405,7 +498,8 @@ func flattenAppsyncHTTPDataSourceConfig(config *appsync.HttpDataSourceConfig) []
 	}
 
 	result := map[string]interface{}{
-		"endpoint": aws.StringValue(config.Endpoint),
+		"endpoint":             aws.StringValue(config.Endpoint),
+		"authorization_config": flattenAppsyncHTTPAuthorizationConfig(config.AuthorizationConfig),
 	}
 
 	return []map[string]interface{}{result}
