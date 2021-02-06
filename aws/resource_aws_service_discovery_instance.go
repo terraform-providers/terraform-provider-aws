@@ -119,14 +119,20 @@ func resourceAwsServiceDiscoveryInstanceDelete(ctx context.Context, d *schema.Re
 		InstanceId: aws.String(d.Get("instance_id").(string)),
 	}
 
-	_, err := conn.DeregisterInstanceWithContext(ctx, input)
+	resp, err := conn.DeregisterInstanceWithContext(ctx, input)
 
 	if isAWSErr(err, servicediscovery.ErrCodeInstanceNotFound, "") {
 		return nil
 	}
 
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error deregistering Service Discovery Instance (%s): %w", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("Error deregistering Service Discovery Instance (%s): %w", d.Id(), err))
+	}
+
+	if resp != nil && resp.OperationId != nil {
+		if _, err := waiter.OperationSuccess(conn, aws.StringValue(resp.OperationId)); err != nil {
+			return diag.FromErr(fmt.Errorf("Error waiting for Service Discovery Service Instance (%s) delete: %w", d.Id(), err))
+		}
 	}
 
 	return nil
