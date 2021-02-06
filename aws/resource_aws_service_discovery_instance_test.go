@@ -20,7 +20,7 @@ func init() {
 	})
 }
 
-func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
+func TestAccAWSServiceDiscoveryInstance_private(t *testing.T) {
 	resourceName := "aws_service_discovery_instance.instance"
 	serviceResourceName := "aws_service_discovery_service.sd_register_instance"
 	rName := acctest.RandomWithPrefix("tf-acc-test")
@@ -33,7 +33,7 @@ func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 				Config: composeConfig(
 					testAccAWSServiceDiscoveryInstanceBaseConfig(rName),
 					testAccAWSServiceDiscoveryInstancePrivateNamespaceConfig(rName),
-					testAccAWSServiceDiscoveryInstanceConfig(rName),
+					testAccAWSServiceDiscoveryInstanceConfig(rName, "AWS_INSTANCE_IPV4 = \"10.0.0.1\" \n    AWS_INSTANCE_IPV6 = \"2001:0db8:85a3:0000:0000:abcd:0001:2345\""),
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, serviceResourceName),
@@ -41,6 +41,67 @@ func TestAccAWSServiceDiscoveryInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "instance_id", rName),
 					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV4", "10.0.0.1"),
 					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV6", "2001:0db8:85a3:0000:0000:abcd:0001:2345"),
+				),
+			},
+			{
+				Config: composeConfig(
+					testAccAWSServiceDiscoveryInstanceBaseConfig(rName),
+					testAccAWSServiceDiscoveryInstancePrivateNamespaceConfig(rName),
+					testAccAWSServiceDiscoveryInstanceConfig(rName, "AWS_INSTANCE_IPV4 = \"10.0.0.2\" \n    AWS_INSTANCE_IPV6 = \"2001:0db8:85a3:0000:0000:abcd:0001:2345\""),
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, serviceResourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "service_id"),
+					resource.TestCheckResourceAttr(resourceName, "instance_id", rName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV4", "10.0.0.2"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV6", "2001:0db8:85a3:0000:0000:abcd:0001:2345"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccAWSServiceDiscoveryInstanceImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAWSServiceDiscoveryInstance_public(t *testing.T) {
+	resourceName := "aws_service_discovery_instance.instance"
+	serviceResourceName := "aws_service_discovery_service.sd_register_instance"
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckAwsServiceDiscoveryInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: composeConfig(
+					testAccAWSServiceDiscoveryInstanceBaseConfig(rName),
+					testAccAWSServiceDiscoveryInstancePublicNamespaceConfig(rName),
+					testAccAWSServiceDiscoveryInstanceConfig(rName, "AWS_INSTANCE_IPV4 = \"52.18.0.2\" \n    CUSTOM_KEY = \"this is a custom value\""),
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, serviceResourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "service_id"),
+					resource.TestCheckResourceAttr(resourceName, "instance_id", rName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV4", "52.18.0.2"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.CUSTOM_KEY", "this is a custom value"),
+				),
+			},
+			{
+				Config: composeConfig(
+					testAccAWSServiceDiscoveryInstanceBaseConfig(rName),
+					testAccAWSServiceDiscoveryInstancePublicNamespaceConfig(rName),
+					testAccAWSServiceDiscoveryInstanceConfig(rName, "AWS_INSTANCE_IPV4 = \"52.18.0.2\" \n    CUSTOM_KEY = \"this is a custom value updated\""),
+				),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAwsServiceDiscoveryInstanceExists(resourceName, serviceResourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "service_id"),
+					resource.TestCheckResourceAttr(resourceName, "instance_id", rName),
+					resource.TestCheckResourceAttr(resourceName, "attributes.AWS_INSTANCE_IPV4", "52.18.0.2"),
+					resource.TestCheckResourceAttr(resourceName, "attributes.CUSTOM_KEY", "this is a custom value updated"),
 				),
 			},
 			{
@@ -95,17 +156,43 @@ resource "aws_service_discovery_service" "sd_register_instance" {
 `, rName)
 }
 
-func testAccAWSServiceDiscoveryInstanceConfig(instanceID string) string {
+func testAccAWSServiceDiscoveryInstancePublicNamespaceConfig(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_service_discovery_public_dns_namespace" "sd_register_instance" {
+  name        = "sd-register-instance.local"
+}
+
+resource "aws_service_discovery_service" "sd_register_instance" {
+  name = "%[1]s-service"
+
+  dns_config {
+    namespace_id = aws_service_discovery_public_dns_namespace.sd_register_instance.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+} 
+`, rName)
+}
+
+func testAccAWSServiceDiscoveryInstanceConfig(instanceID string, attributes string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_instance" "instance" {
   service_id = aws_service_discovery_service.sd_register_instance.id
   instance_id = "%s"
   attributes = {
-    AWS_INSTANCE_IPV4 = "10.0.0.1" 
-    AWS_INSTANCE_IPV6 = "2001:0db8:85a3:0000:0000:abcd:0001:2345" 
+    %s
   }
 }
-`, instanceID)
+`, instanceID, attributes)
 }
 
 func testAccCheckAwsServiceDiscoveryInstanceExists(name, rServiceName string) resource.TestCheckFunc {
