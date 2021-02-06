@@ -99,7 +99,12 @@ func resourceAwsServiceDiscoveryInstanceRead(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	err = d.Set("attributes", aws.StringValueMap(resp.Instance.Attributes))
+	attributes := resp.Instance.Attributes
+	if _, ok := attributes["AWS_EC2_INSTANCE_ID"]; ok {
+		delete(attributes, "AWS_INSTANCE_IPV4")
+	}
+
+	err = d.Set("attributes", aws.StringValueMap(attributes))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -153,146 +158,3 @@ func resourceAwsServiceDiscoveryInstanceImport(ctx context.Context, d *schema.Re
 
 	return []*schema.ResourceData{d}, nil
 }
-
-//func expandServiceDiscoveryDnsConfig(configured map[string]interface{}) *servicediscovery.DnsConfig {
-//	result := &servicediscovery.DnsConfig{}
-//
-//	result.NamespaceId = aws.String(configured["namespace_id"].(string))
-//	dnsRecords := configured["dns_records"].([]interface{})
-//	drs := make([]*servicediscovery.DnsRecord, len(dnsRecords))
-//	for i := range drs {
-//		raw := dnsRecords[i].(map[string]interface{})
-//		dr := &servicediscovery.DnsRecord{
-//			TTL:  aws.Int64(int64(raw["ttl"].(int))),
-//			Type: aws.String(raw["type"].(string)),
-//		}
-//		drs[i] = dr
-//	}
-//	result.DnsRecords = drs
-//	if v, ok := configured["routing_policy"]; ok && v != "" {
-//		result.RoutingPolicy = aws.String(v.(string))
-//	}
-//
-//	return result
-//}
-//
-//func flattenServiceDiscoveryDnsConfig(config *servicediscovery.DnsConfig) []map[string]interface{} {
-//	if config == nil {
-//		return nil
-//	}
-//
-//	result := map[string]interface{}{}
-//
-//	if config.NamespaceId != nil {
-//		result["namespace_id"] = *config.NamespaceId
-//	}
-//	if config.RoutingPolicy != nil {
-//		result["routing_policy"] = *config.RoutingPolicy
-//	}
-//	if config.DnsRecords != nil {
-//		drs := make([]map[string]interface{}, 0)
-//		for _, v := range config.DnsRecords {
-//			dr := map[string]interface{}{}
-//			dr["ttl"] = *v.TTL
-//			dr["type"] = *v.Type
-//			drs = append(drs, dr)
-//		}
-//		result["dns_records"] = drs
-//	}
-//
-//	if len(result) < 1 {
-//		return nil
-//	}
-//
-//	return []map[string]interface{}{result}
-//}
-//
-//func expandServiceDiscoveryDnsConfigChange(configured map[string]interface{}) *servicediscovery.DnsConfigChange {
-//	result := &servicediscovery.DnsConfigChange{}
-//
-//	dnsRecords := configured["dns_records"].([]interface{})
-//	drs := make([]*servicediscovery.DnsRecord, len(dnsRecords))
-//	for i := range drs {
-//		raw := dnsRecords[i].(map[string]interface{})
-//		dr := &servicediscovery.DnsRecord{
-//			TTL:  aws.Int64(int64(raw["ttl"].(int))),
-//			Type: aws.String(raw["type"].(string)),
-//		}
-//		drs[i] = dr
-//	}
-//	result.DnsRecords = drs
-//
-//	return result
-//}
-//
-//func expandServiceDiscoveryHealthCheckConfig(configured map[string]interface{}) *servicediscovery.HealthCheckConfig {
-//	if len(configured) < 1 {
-//		return nil
-//	}
-//	result := &servicediscovery.HealthCheckConfig{}
-//
-//	if v, ok := configured["failure_threshold"]; ok && v.(int) != 0 {
-//		result.FailureThreshold = aws.Int64(int64(v.(int)))
-//	}
-//	if v, ok := configured["resource_path"]; ok && v.(string) != "" {
-//		result.ResourcePath = aws.String(v.(string))
-//	}
-//	if v, ok := configured["type"]; ok && v.(string) != "" {
-//		result.Type = aws.String(v.(string))
-//	}
-//
-//	return result
-//}
-//
-//func flattenServiceDiscoveryHealthCheckConfig(config *servicediscovery.HealthCheckConfig) []map[string]interface{} {
-//	if config == nil {
-//		return nil
-//	}
-//	result := map[string]interface{}{}
-//
-//	if config.FailureThreshold != nil {
-//		result["failure_threshold"] = *config.FailureThreshold
-//	}
-//	if config.ResourcePath != nil {
-//		result["resource_path"] = *config.ResourcePath
-//	}
-//	if config.Type != nil {
-//		result["type"] = *config.Type
-//	}
-//
-//	if len(result) < 1 {
-//		return nil
-//	}
-//
-//	return []map[string]interface{}{result}
-//}
-//
-//func expandServiceDiscoveryHealthCheckCustomConfig(configured map[string]interface{}) *servicediscovery.HealthCheckCustomConfig {
-//	if len(configured) < 1 {
-//		return nil
-//	}
-//	result := &servicediscovery.HealthCheckCustomConfig{}
-//
-//	if v, ok := configured["failure_threshold"]; ok && v.(int) != 0 {
-//		result.FailureThreshold = aws.Int64(int64(v.(int)))
-//	}
-//
-//	return result
-//}
-//
-//func flattenServiceDiscoveryHealthCheckCustomConfig(config *servicediscovery.HealthCheckCustomConfig) []map[string]interface{} {
-//	if config == nil {
-//		return nil
-//	}
-//	result := map[string]interface{}{}
-//
-//	if config.FailureThreshold != nil {
-//		result["failure_threshold"] = *config.FailureThreshold
-//	}
-//
-//	if len(result) < 1 {
-//		return nil
-//	}
-//
-//	return []map[string]interface{}{result}
-//}
