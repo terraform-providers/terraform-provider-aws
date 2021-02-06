@@ -229,7 +229,7 @@ func testAccAWSServiceDiscoveryInstanceHttpNamespaceConfig(rName string) string 
 	return fmt.Sprintf(`
 resource "aws_instance" "test_instance" {
   instance_type = "t3.micro"
-  ami = data.aws_ami.amzn_linux_2018_03.id
+  ami           = data.aws_ami.amzn_linux_2018_03.id
   tags = {
     Name = "test instance"
   }
@@ -249,7 +249,7 @@ resource "aws_service_discovery_http_namespace" "sd_register_instance" {
 }
 
 resource "aws_service_discovery_service" "sd_register_instance" {
-  name = "%[1]s-service"
+  name         = "%[1]s-service"
   namespace_id = aws_service_discovery_http_namespace.sd_register_instance.id
 }`, rName)
 }
