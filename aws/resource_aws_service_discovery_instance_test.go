@@ -196,14 +196,13 @@ resource "aws_service_discovery_service" "sd_register_instance" {
   health_check_custom_config {
     failure_threshold = 1
   }
-} 
-`, rName)
+}`, rName)
 }
 
 func testAccAWSServiceDiscoveryInstancePublicNamespaceConfig(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_public_dns_namespace" "sd_register_instance" {
-  name        = "sd-register-instance.local"
+  name = "sd-register-instance.local"
 }
 
 resource "aws_service_discovery_service" "sd_register_instance" {
@@ -223,8 +222,7 @@ resource "aws_service_discovery_service" "sd_register_instance" {
   health_check_custom_config {
     failure_threshold = 1
   }
-} 
-`, rName)
+}`, rName)
 }
 
 func testAccAWSServiceDiscoveryInstanceHttpNamespaceConfig(rName string) string {
@@ -247,26 +245,24 @@ data "aws_ami" "amzn_linux_2018_03" {
 }
 
 resource "aws_service_discovery_http_namespace" "sd_register_instance" {
-  name        = "sd-register-instance.local"
+  name = "sd-register-instance.local"
 }
 
 resource "aws_service_discovery_service" "sd_register_instance" {
   name = "%[1]s-service"
   namespace_id = aws_service_discovery_http_namespace.sd_register_instance.id
-} 
-`, rName)
+}`, rName)
 }
 
 func testAccAWSServiceDiscoveryInstanceConfig(instanceID string, attributes string) string {
 	return fmt.Sprintf(`
 resource "aws_service_discovery_instance" "instance" {
-  service_id = aws_service_discovery_service.sd_register_instance.id
+  service_id  = aws_service_discovery_service.sd_register_instance.id
   instance_id = "%s"
   attributes = {
     %s
   }
-}
-`, instanceID, attributes)
+}`, instanceID, attributes)
 }
 
 func testAccCheckAwsServiceDiscoveryInstanceExists(name, rServiceName string) resource.TestCheckFunc {
