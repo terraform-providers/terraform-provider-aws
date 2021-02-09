@@ -234,6 +234,19 @@ func TestAccAWSDataSourceIAMPolicyDocument_Version_20081017(t *testing.T) {
 	})
 }
 
+func TestAccAWSDataSourceIAMPolicyDocument_ValidateSid(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAWSIAMPolicyDocumentInvalidSidConfig,
+				ExpectError: regexp.MustCompile(`must contain only alphanumeric characters`),
+			},
+		},
+	})
+}
+
 var testAccAWSIAMPolicyDocumentConfig = `
 data "aws_partition" "current" {}
 
@@ -1022,3 +1035,19 @@ func testAccAWSIAMPolicyDocumentExpectedJSONStatementPrincipalIdentifiersMultipl
   ]
 }`, testAccGetPartition())
 }
+
+//lintignore:AWSAT005
+var testAccAWSIAMPolicyDocumentInvalidSidConfig = `
+data "aws_iam_policy_document" "test" {
+  statement {
+    sid = "Invalid_SID"
+    actions = [
+      "s3:ListAllMyBuckets",
+      "s3:GetBucketLocation",
+    ]
+    resources = [
+      "arn:aws:s3:::*",
+    ]
+  }
+}
+`
