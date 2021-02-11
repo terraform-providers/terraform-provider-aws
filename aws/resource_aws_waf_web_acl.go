@@ -125,14 +125,10 @@ func resourceAwsWafWebAcl() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  waf.WafRuleTypeRegular,
-							ValidateFunc: validation.StringInSlice([]string{
-								waf.WafRuleTypeRegular,
-								waf.WafRuleTypeRateBased,
-								waf.WafRuleTypeGroup,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      waf.WafRuleTypeRegular,
+							ValidateFunc: validation.StringInSlice(waf.WafRuleType_Values(), false),
 						},
 						"rule_id": {
 							Type:     schema.TypeString,

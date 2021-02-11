@@ -87,6 +87,7 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "STORED",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"CACHED",
 					"FILE_S3",
@@ -98,6 +99,7 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"AWS-Gateway-VTL",
 					"STK-L700",
@@ -177,6 +179,7 @@ func resourceAwsStorageGatewayGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"IBM-ULT3580-TD5",
 				}, false),

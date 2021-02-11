@@ -56,17 +56,8 @@ func resourceAwsSesEventDestination() *schema.Resource {
 				ForceNew: true,
 				Set:      schema.HashString,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						ses.EventTypeSend,
-						ses.EventTypeReject,
-						ses.EventTypeBounce,
-						ses.EventTypeComplaint,
-						ses.EventTypeDelivery,
-						ses.EventTypeOpen,
-						ses.EventTypeClick,
-						ses.EventTypeRenderingFailure,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(ses.EventType_Values(), false),
 				},
 			},
 
@@ -96,13 +87,9 @@ func resourceAwsSesEventDestination() *schema.Resource {
 						},
 
 						"value_source": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ses.DimensionValueSourceMessageTag,
-								ses.DimensionValueSourceEmailHeader,
-								ses.DimensionValueSourceLinkTag,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ses.DimensionValueSource_Values(), false),
 						},
 					},
 				},

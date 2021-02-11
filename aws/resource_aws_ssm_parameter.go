@@ -43,22 +43,15 @@ func resourceAwsSsmParameter() *schema.Resource {
 				Optional: true,
 			},
 			"tier": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ssm.ParameterTierStandard,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.ParameterTierStandard,
-					ssm.ParameterTierAdvanced,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ssm.ParameterTierStandard,
+				ValidateFunc: validation.StringInSlice(ssm.ParameterTier_Values(), false),
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.ParameterTypeString,
-					ssm.ParameterTypeStringList,
-					ssm.ParameterTypeSecureString,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ssm.ParameterType_Values(), false),
 			},
 			"value": {
 				Type:      schema.TypeString,
@@ -79,6 +72,7 @@ func resourceAwsSsmParameter() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"aws:ec2:image",
 					"text",

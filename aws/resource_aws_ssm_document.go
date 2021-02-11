@@ -46,13 +46,9 @@ func resourceAwsSsmDocument() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ssm.AttachmentsSourceKeyAttachmentReference,
-								ssm.AttachmentsSourceKeySourceUrl,
-								ssm.AttachmentsSourceKeyS3fileUrl,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(ssm.AttachmentsSourceKey_Values(), false),
 						},
 						"name": {
 							Type:     schema.TypeString,
@@ -72,24 +68,15 @@ func resourceAwsSsmDocument() *schema.Resource {
 				Required: true,
 			},
 			"document_format": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ssm.DocumentFormatJson,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.DocumentFormatJson,
-					ssm.DocumentFormatYaml,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ssm.DocumentFormatJson,
+				ValidateFunc: validation.StringInSlice(ssm.DocumentFormat_Values(), false),
 			},
 			"document_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.DocumentTypeCommand,
-					ssm.DocumentTypePolicy,
-					ssm.DocumentTypeAutomation,
-					ssm.DocumentTypeSession,
-					ssm.DocumentTypePackage,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(ssm.DocumentType_Values(), false),
 			},
 			"schema_version": {
 				Type:     schema.TypeString,

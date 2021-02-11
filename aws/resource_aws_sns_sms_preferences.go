@@ -58,8 +58,9 @@ func resourceAwsSnsSmsPreferences() *schema.Resource {
 			},
 
 			"default_sms_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{"Promotional", "Transactional"}, false),
 			},
 

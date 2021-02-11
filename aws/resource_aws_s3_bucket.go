@@ -106,7 +106,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							// TypeAmazonCustomerByEmail is not currently supported
+							// lintignore:AWSV001 // TypeAmazonCustomerByEmail is not currently supported
 							ValidateFunc: validation.StringInSlice([]string{
 								s3.TypeCanonicalUser,
 								s3.TypeGroup,
@@ -355,7 +355,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 									"storage_class": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateS3BucketLifecycleTransitionStorageClass(),
+										ValidateFunc: validation.StringInSlice(s3.TransitionStorageClass_Values(), false),
 									},
 								},
 							},
@@ -374,7 +374,7 @@ func resourceAwsS3Bucket() *schema.Resource {
 									"storage_class": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateS3BucketLifecycleTransitionStorageClass(),
+										ValidateFunc: validation.StringInSlice(s3.TransitionStorageClass_Values(), false),
 									},
 								},
 							},

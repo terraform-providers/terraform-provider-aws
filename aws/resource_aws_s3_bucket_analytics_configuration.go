@@ -73,7 +73,7 @@ func resourceAwsS3BucketAnalyticsConfiguration() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      s3.StorageClassAnalysisSchemaVersionV1,
-										ValidateFunc: validation.StringInSlice([]string{s3.StorageClassAnalysisSchemaVersionV1}, false),
+										ValidateFunc: validation.StringInSlice(s3.StorageClassAnalysisSchemaVersion_Values(), false),
 									},
 									"destination": {
 										Type:     schema.TypeList,
@@ -101,7 +101,7 @@ func resourceAwsS3BucketAnalyticsConfiguration() *schema.Resource {
 																Type:         schema.TypeString,
 																Optional:     true,
 																Default:      s3.AnalyticsS3ExportFileFormatCsv,
-																ValidateFunc: validation.StringInSlice([]string{s3.AnalyticsS3ExportFileFormatCsv}, false),
+																ValidateFunc: validation.StringInSlice(s3.AnalyticsS3ExportFileFormat_Values(), false),
 															},
 															"prefix": {
 																Type:     schema.TypeString,

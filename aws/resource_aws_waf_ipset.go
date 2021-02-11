@@ -40,12 +40,9 @@ func resourceAwsWafIPSet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								waf.IPSetDescriptorTypeIpv4,
-								waf.IPSetDescriptorTypeIpv6,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(waf.IPSetDescriptorType_Values(), false),
 						},
 						"value": {
 							Type:         schema.TypeString,

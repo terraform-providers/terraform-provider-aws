@@ -47,6 +47,7 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				Description: "Type of rule, ingress (inbound) or egress (outbound).",
+				//lintignore:AWSV001 // provider-specific strings
 				ValidateFunc: validation.StringInSlice([]string{
 					"ingress",
 					"egress",

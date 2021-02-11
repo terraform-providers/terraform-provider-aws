@@ -49,13 +49,10 @@ func resourceAwsSesReceiptFilter() *schema.Resource {
 			},
 
 			"policy": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ses.ReceiptFilterPolicyBlock,
-					ses.ReceiptFilterPolicyAllow,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ses.ReceiptFilterPolicy_Values(), false),
 			},
 		},
 	}

@@ -40,6 +40,7 @@ func resourceAwsStorageGatewaySmbFileShare() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "ActiveDirectory",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"ActiveDirectory",
 					"GuestAccess",
@@ -54,6 +55,7 @@ func resourceAwsStorageGatewaySmbFileShare() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "S3_STANDARD",
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"S3_ONEZONE_IA",
 					"S3_STANDARD_IA",

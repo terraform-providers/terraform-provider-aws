@@ -175,12 +175,9 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 									},
 
 									"document_hash_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											ssm.DocumentHashTypeSha256,
-											ssm.DocumentHashTypeSha1,
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(ssm.DocumentHashType_Values(), false),
 									},
 
 									"notification_config": {
@@ -201,12 +198,9 @@ func resourceAwsSsmMaintenanceWindowTask() *schema.Resource {
 												},
 
 												"notification_type": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														ssm.NotificationTypeCommand,
-														ssm.NotificationTypeInvocation,
-													}, false),
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringInSlice(ssm.NotificationType_Values(), false),
 												},
 											},
 										},

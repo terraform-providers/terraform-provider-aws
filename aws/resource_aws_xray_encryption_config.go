@@ -28,12 +28,9 @@ func resourceAwsXrayEncryptionConfig() *schema.Resource {
 				ValidateFunc: validateArn,
 			},
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					xray.EncryptionTypeKms,
-					xray.EncryptionTypeNone,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(xray.EncryptionType_Values(), false),
 			},
 		},
 	}

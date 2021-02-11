@@ -40,13 +40,9 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								waf.WafActionTypeAllow,
-								waf.WafActionTypeBlock,
-								waf.WafActionTypeCount,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(waf.WafActionType_Values(), false),
 						},
 					},
 				},
@@ -78,17 +74,9 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 													Optional: true,
 												},
 												"type": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														waf.MatchFieldTypeAllQueryArgs,
-														waf.MatchFieldTypeBody,
-														waf.MatchFieldTypeHeader,
-														waf.MatchFieldTypeMethod,
-														waf.MatchFieldTypeQueryString,
-														waf.MatchFieldTypeSingleQueryArg,
-														waf.MatchFieldTypeUri,
-													}, false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(waf.MatchFieldType_Values(), false),
 												},
 											},
 										},
@@ -116,13 +104,9 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											waf.WafActionTypeAllow,
-											waf.WafActionTypeBlock,
-											waf.WafActionTypeCount,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.WafActionType_Values(), false),
 									},
 								},
 							},
@@ -134,12 +118,9 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											waf.WafOverrideActionTypeCount,
-											waf.WafOverrideActionTypeNone,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(waf.WafOverrideActionType_Values(), false),
 									},
 								},
 							},
@@ -149,14 +130,10 @@ func resourceAwsWafRegionalWebAcl() *schema.Resource {
 							Required: true,
 						},
 						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  waf.WafRuleTypeRegular,
-							ValidateFunc: validation.StringInSlice([]string{
-								waf.WafRuleTypeRegular,
-								waf.WafRuleTypeRateBased,
-								waf.WafRuleTypeGroup,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      waf.WafRuleTypeRegular,
+							ValidateFunc: validation.StringInSlice(waf.WafRuleType_Values(), false),
 						},
 						"rule_id": {
 							Type:     schema.TypeString,

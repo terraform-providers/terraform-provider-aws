@@ -54,7 +54,7 @@ func resourceAwsConfigConfigRule() *schema.Resource {
 			"maximum_execution_frequency": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateConfigExecutionFrequency(),
+				ValidateFunc: validation.StringInSlice(configservice.MaximumExecutionFrequency_Values(), false),
 			},
 			"scope": {
 				Type:     schema.TypeList,
@@ -119,7 +119,7 @@ func resourceAwsConfigConfigRule() *schema.Resource {
 									"maximum_execution_frequency": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validateConfigExecutionFrequency(),
+										ValidateFunc: validation.StringInSlice(configservice.MaximumExecutionFrequency_Values(), false),
 									},
 									"message_type": {
 										Type:     schema.TypeString,

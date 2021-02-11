@@ -51,7 +51,7 @@ func resourceAwsWafRegionalRule() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateWafPredicatesType(),
+							ValidateFunc: validation.StringInSlice(waf.PredicateType_Values(), false),
 						},
 					},
 				},

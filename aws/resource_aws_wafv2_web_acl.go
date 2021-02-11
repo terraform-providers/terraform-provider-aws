@@ -83,13 +83,10 @@ func resourceAwsWafv2WebACL() *schema.Resource {
 				),
 			},
 			"scope": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					wafv2.ScopeCloudfront,
-					wafv2.ScopeRegional,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(wafv2.Scope_Values(), false),
 			},
 			"rule": {
 				Type:     schema.TypeSet,

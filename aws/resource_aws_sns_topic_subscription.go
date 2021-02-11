@@ -37,6 +37,7 @@ func resourceAwsSnsTopicSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					// email and email-json not supported
 					"application",

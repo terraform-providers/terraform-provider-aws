@@ -13,9 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
-	"github.com/aws/aws-sdk-go/service/configservice"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/structure"
@@ -180,6 +177,7 @@ func validateNeptuneIdentifierPrefix(v interface{}, k string) (ws []string, erro
 }
 
 func validateRdsEngine() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"aurora",
 		"aurora-mysql",
@@ -188,6 +186,7 @@ func validateRdsEngine() schema.SchemaValidateFunc {
 }
 
 func validateNeptuneEngine() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"neptune",
 	}, false)
@@ -304,6 +303,7 @@ func validateDocDBIdentifierPrefix(v interface{}, k string) (ws []string, errors
 }
 
 func validateDocDBEngine() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"docdb",
 	}, false)
@@ -870,6 +870,7 @@ func canonicalCidrBlock(cidr string) string {
 }
 
 func validateHTTPMethod() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"ANY",
 		"DELETE",
@@ -972,16 +973,6 @@ func validateS3BucketLifecycleTimestamp(v interface{}, k string) (ws []string, e
 	return
 }
 
-func validateS3BucketLifecycleTransitionStorageClass() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		s3.TransitionStorageClassGlacier,
-		s3.TransitionStorageClassStandardIa,
-		s3.TransitionStorageClassOnezoneIa,
-		s3.TransitionStorageClassIntelligentTiering,
-		s3.TransitionStorageClassDeepArchive,
-	}, false)
-}
-
 func validateDbEventSubscriptionName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9A-Za-z-]+$`).MatchString(value) {
@@ -1023,13 +1014,6 @@ func validateStringIsJsonOrYaml(v interface{}, k string) (ws []string, errors []
 		}
 	}
 	return
-}
-
-func validateApiGatewayIntegrationContentHandling() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		apigateway.ContentHandlingStrategyConvertToBinary,
-		apigateway.ContentHandlingStrategyConvertToText,
-	}, false)
 }
 
 func validateSQSQueueName(v interface{}, k string) (ws []string, errors []error) {
@@ -1176,6 +1160,7 @@ func validateAwsEcsPlacementStrategy(stratType, stratField string) error {
 }
 
 func validateAwsEmrEbsVolumeType() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"gp2",
 		"io1",
@@ -1301,16 +1286,6 @@ func validateDmsReplicationTaskId(v interface{}, k string) (ws []string, es []er
 	}
 
 	return
-}
-
-func validateConfigExecutionFrequency() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		configservice.MaximumExecutionFrequencyOneHour,
-		configservice.MaximumExecutionFrequencyThreeHours,
-		configservice.MaximumExecutionFrequencySixHours,
-		configservice.MaximumExecutionFrequencyTwelveHours,
-		configservice.MaximumExecutionFrequencyTwentyFourHours,
-	}, false)
 }
 
 func validateAccountAlias(v interface{}, k string) (ws []string, es []error) {
@@ -1890,18 +1865,6 @@ func validateWafMetricName(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
-func validateWafPredicatesType() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		waf.PredicateTypeByteMatch,
-		waf.PredicateTypeGeoMatch,
-		waf.PredicateTypeIpmatch,
-		waf.PredicateTypeRegexMatch,
-		waf.PredicateTypeSizeConstraint,
-		waf.PredicateTypeSqlInjectionMatch,
-		waf.PredicateTypeXssMatch,
-	}, false)
-}
-
 func validateAwsSSMName(v interface{}, k string) (ws []string, errors []error) {
 	// http://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateDocument.html#EC2-CreateDocument-request-Name
 	value := v.(string)
@@ -2071,6 +2034,7 @@ func validateCognitoRoles(v map[string]interface{}) (errors []error) {
 }
 
 func validateDxConnectionBandWidth() schema.SchemaValidateFunc {
+	//lintignore:AWSV001 // no enum in AWS SDK
 	return validation.StringInSlice([]string{
 		"1Gbps",
 		"2Gbps",

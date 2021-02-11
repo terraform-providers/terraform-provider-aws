@@ -92,7 +92,6 @@ awsproviderlint:
 	@awsproviderlint \
 		-c 1 \
 		-AWSAT006=false \
-		-AWSV001=false \
 		-R001=false \
 		-R010=false \
 		-R018=false \

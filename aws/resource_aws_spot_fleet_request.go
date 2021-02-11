@@ -265,14 +265,10 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							ForceNew: true,
 						},
 						"placement_tenancy": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								ec2.TenancyDefault,
-								ec2.TenancyDedicated,
-								ec2.TenancyHost,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(ec2.Tenancy_Values(), false),
 						},
 						"spot_price": {
 							Type:     schema.TypeString,
@@ -409,15 +405,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				ForceNew: false,
 			},
 			"allocation_strategy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.AllocationStrategyLowestPrice,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.AllocationStrategyLowestPrice,
-					ec2.AllocationStrategyDiversified,
-					ec2.AllocationStrategyCapacityOptimized,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.AllocationStrategyLowestPrice,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.AllocationStrategy_Values(), false),
 			},
 			"instance_pools_to_use_count": {
 				Type:     schema.TypeInt,
@@ -427,25 +419,18 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 			},
 			// Provided constants do not have the correct casing so going with hard-coded values.
 			"excess_capacity_termination_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Default",
-				ForceNew: false,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Default",
-					"NoTermination",
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Default",
+				ForceNew:     false,
+				ValidateFunc: validation.StringInSlice(ec2.ExcessCapacityTerminationPolicy_Values(), false),
 			},
 			"instance_interruption_behaviour": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.InstanceInterruptionBehaviorTerminate,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.InstanceInterruptionBehaviorTerminate,
-					ec2.InstanceInterruptionBehaviorStop,
-					ec2.InstanceInterruptionBehaviorHibernate,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.InstanceInterruptionBehaviorTerminate,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.InstanceInterruptionBehavior_Values(), false),
 			},
 			"spot_price": {
 				Type:     schema.TypeString,
@@ -470,15 +455,11 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"fleet_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  ec2.FleetTypeMaintain,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ec2.FleetTypeMaintain,
-					ec2.FleetTypeRequest,
-					ec2.FleetTypeInstant,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ec2.FleetTypeMaintain,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(ec2.FleetType_Values(), false),
 			},
 			"spot_maintenance_strategies": {
 				Type:     schema.TypeList,
@@ -505,12 +486,10 @@ func resourceAwsSpotFleetRequest() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"replacement_strategy": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"launch",
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(ec2.ReplacementStrategy_Values(), false),
 									},
 								},
 							},

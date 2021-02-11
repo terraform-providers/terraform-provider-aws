@@ -32,6 +32,7 @@ func resourceAwsSignerSigningProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				//lintignore:AWSV001 // no enum in AWS SDK
 				ValidateFunc: validation.StringInSlice([]string{
 					"AWSLambda-SHA384-ECDSA"},
 					false),

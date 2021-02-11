@@ -106,15 +106,9 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				},
 			},
 			"compliance_severity": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.ComplianceSeverityUnspecified,
-					ssm.ComplianceSeverityLow,
-					ssm.ComplianceSeverityMedium,
-					ssm.ComplianceSeverityHigh,
-					ssm.ComplianceSeverityCritical,
-				}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(ssm.ComplianceSeverity_Values(), false),
 			},
 			"automation_target_parameter_name": {
 				Type:     schema.TypeString,

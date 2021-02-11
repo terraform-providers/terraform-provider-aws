@@ -60,7 +60,7 @@ func resourceAwsTransferUser() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      transfer.HomeDirectoryTypePath,
-				ValidateFunc: validation.StringInSlice([]string{transfer.HomeDirectoryTypePath, transfer.HomeDirectoryTypeLogical}, false),
+				ValidateFunc: validation.StringInSlice(transfer.HomeDirectoryType_Values(), false),
 			},
 
 			"policy": {

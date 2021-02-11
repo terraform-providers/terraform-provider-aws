@@ -68,13 +68,9 @@ func resourceAwsS3BucketInventory() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"format": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											s3.InventoryFormatCsv,
-											s3.InventoryFormatOrc,
-											s3.InventoryFormatParquet,
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(s3.InventoryFormat_Values(), false),
 									},
 									"bucket_arn": {
 										Type:         schema.TypeString,
@@ -138,43 +134,25 @@ func resourceAwsS3BucketInventory() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"frequency": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								s3.InventoryFrequencyDaily,
-								s3.InventoryFrequencyWeekly,
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(s3.InventoryFrequency_Values(), false),
 						},
 					},
 				},
 			},
 			// TODO: Is there a sensible default for this?
 			"included_object_versions": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.InventoryIncludedObjectVersionsCurrent,
-					s3.InventoryIncludedObjectVersionsAll,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(s3.InventoryIncludedObjectVersions_Values(), false),
 			},
 			"optional_fields": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						s3.InventoryOptionalFieldSize,
-						s3.InventoryOptionalFieldLastModifiedDate,
-						s3.InventoryOptionalFieldStorageClass,
-						s3.InventoryOptionalFieldEtag,
-						s3.InventoryOptionalFieldIsMultipartUploaded,
-						s3.InventoryOptionalFieldReplicationStatus,
-						s3.InventoryOptionalFieldEncryptionStatus,
-						s3.InventoryOptionalFieldObjectLockMode,
-						s3.InventoryOptionalFieldObjectLockRetainUntilDate,
-						s3.InventoryOptionalFieldObjectLockLegalHoldStatus,
-						s3.InventoryOptionalFieldIntelligentTieringAccessTier,
-					}, false),
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(s3.InventoryOptionalField_Values(), false),
 				},
 				Set: schema.HashString,
 			},

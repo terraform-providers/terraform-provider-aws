@@ -75,18 +75,10 @@ func resourceAwsWorkspacesWorkspace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"compute_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  workspaces.ComputeValue,
-							ValidateFunc: validation.StringInSlice([]string{
-								workspaces.ComputeValue,
-								workspaces.ComputeStandard,
-								workspaces.ComputePerformance,
-								workspaces.ComputePower,
-								workspaces.ComputePowerpro,
-								workspaces.ComputeGraphics,
-								workspaces.ComputeGraphicspro,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      workspaces.ComputeValue,
+							ValidateFunc: validation.StringInSlice(workspaces.Compute_Values(), false),
 						},
 						"root_volume_size_gib": {
 							Type:     schema.TypeInt,
@@ -98,13 +90,10 @@ func resourceAwsWorkspacesWorkspace() *schema.Resource {
 							),
 						},
 						"running_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  workspaces.RunningModeAlwaysOn,
-							ValidateFunc: validation.StringInSlice([]string{
-								workspaces.RunningModeAlwaysOn,
-								workspaces.RunningModeAutoStop,
-							}, false),
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      workspaces.RunningModeAlwaysOn,
+							ValidateFunc: validation.StringInSlice(workspaces.RunningMode_Values(), false),
 						},
 						"running_mode_auto_stop_timeout_in_minutes": {
 							Type:     schema.TypeInt,

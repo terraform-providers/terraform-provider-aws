@@ -116,7 +116,7 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 			"content_handling": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateApiGatewayIntegrationContentHandling(),
+				ValidateFunc: validation.StringInSlice(apigateway.ContentHandlingStrategy_Values(), false),
 			},
 
 			"passthrough_behavior": {

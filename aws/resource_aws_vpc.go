@@ -40,9 +40,10 @@ func resourceAwsVpc() *schema.Resource {
 			},
 
 			"instance_tenancy": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      ec2.TenancyDefault,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  ec2.TenancyDefault,
+				//lintignore:AWSV001 // The host value cannot be used with this parameter.
 				ValidateFunc: validation.StringInSlice([]string{ec2.TenancyDefault, ec2.TenancyDedicated}, false),
 			},
 

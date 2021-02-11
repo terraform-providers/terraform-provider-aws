@@ -71,13 +71,10 @@ func resourceAwsWafv2RegexPatternSet() *schema.Resource {
 				},
 			},
 			"scope": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					wafv2.ScopeCloudfront,
-					wafv2.ScopeRegional,
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(wafv2.Scope_Values(), false),
 			},
 			"tags": tagsSchema(),
 		},
