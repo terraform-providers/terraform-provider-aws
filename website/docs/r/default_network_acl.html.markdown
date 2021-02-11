@@ -144,21 +144,7 @@ Within a VPC, all Subnets must be associated with a Network ACL. In order to
 association is destroyed by replacing it with an association between the Subnet
 and the Default ACL instead.
 
-When managing the Default Network ACL, you cannot "remove" Subnets.
-Instead, they must be reassigned to another Network ACL, or the Subnet itself must be
-destroyed. Because of these requirements, removing the `subnet_ids` attribute from the
-configuration of a `aws_default_network_acl` resource may result in a reoccurring
-plan, until the Subnets are reassigned to another Network ACL or are destroyed.
-
-Because Subnets are by default associated with the Default Network ACL, any
-non-explicit association will show up as a plan to remove the Subnet. For
-example: if you have a custom `aws_network_acl` with two subnets attached, and
-you remove the `aws_network_acl` resource, after successfully destroying this
-resource future plans will show a diff on the managed `aws_default_network_acl`,
-as those two Subnets have been orphaned by the now destroyed network acl and thus
-adopted by the Default Network ACL. In order to avoid a reoccurring plan, they
-will need to be reassigned, destroyed, or added to the `subnet_ids` attribute of
-the `aws_default_network_acl` entry.
+Because AWS automatically associates Subnets with the Default Network ACL in the absence of associations with a non-default ACL, omitting Subnets from the `subnet_ids` attribute of the Default Network ACL when there is no other custom ACL associated with the Subnets will result in a reoccurring plan to remove the Subnet from the Default Network ACL. In order to avoid this, the Subnets will need to be associated to a custom `aws_network_acl`, destroyed, or explicitly added to the `aws_default_network_acl` entry via the `subnet_ids` attribute.
 
 As an alternative to the above, you can also specify the following lifecycle configuration in your `aws_default_network_acl` resource:
 
