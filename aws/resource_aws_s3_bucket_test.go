@@ -1814,6 +1814,66 @@ func TestAccAWSS3Bucket_ReplicationWithoutPrefix(t *testing.T) {
 	})
 }
 
+func TestAccAWSS3Bucket_ReplicationTimeControl(t *testing.T) {
+	rInt := acctest.RandInt()
+	region := testAccGetRegion()
+	partition := testAccGetPartition()
+	resourceName := "aws_s3_bucket.bucket"
+
+	var providers []*schema.Provider
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testAccMultipleRegionsPreCheck(t)
+			testAccAlternateRegionPreCheck(t)
+		},
+		ProviderFactories: testAccProviderFactories(&providers),
+		CheckDestroy:      testAccCheckWithProviders(testAccCheckAWSS3BucketDestroyWithProvider, &providers),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigReplicationWithTimeWithConfiguration(rInt, "STANDARD"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExistsWithProvider(resourceName, testAccAwsRegionProviderFunc(region, &providers)),
+					resource.TestCheckResourceAttr(resourceName, "replication_configuration.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "replication_configuration.0.role", regexp.MustCompile(fmt.Sprintf("^arn:aws[\\w-]*:iam::[\\d+]+:role/tf-iam-role-replication-%d", rInt))),
+					resource.TestCheckResourceAttr(resourceName, "replication_configuration.0.rules.#", "1"),
+					testAccCheckAWSS3BucketReplicationRules(
+						resourceName,
+						testAccAwsRegionProviderFunc(region, &providers),
+						[]*s3.ReplicationRule{
+							{
+								ID: aws.String("foobar"),
+								Destination: &s3.Destination{
+									Bucket:       aws.String(fmt.Sprintf("arn:%s:s3:::tf-test-bucket-destination-%d", partition, rInt)),
+									StorageClass: aws.String(s3.ObjectStorageClassStandard),
+									ReplicationTime: &s3.ReplicationTime{
+										Time: &s3.ReplicationTimeValue{
+											Minutes: aws.Int64(int64(15)),
+										},
+										Status: aws.String("Enabled"),
+									},
+									Metrics: &s3.Metrics{
+										Status: aws.String("Enabled"),
+										EventThreshold: &s3.ReplicationTimeValue{
+											Minutes: aws.Int64(int64(15)),
+										},
+									},
+								},
+								Filter:   &s3.ReplicationRuleFilter{},
+								Priority: aws.Int64(int64(0)),
+								DeleteMarkerReplication: &s3.DeleteMarkerReplication{
+									Status: aws.String(s3.DeleteMarkerReplicationStatusDisabled),
+								},
+								Status: aws.String("Enabled"),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSS3Bucket_ReplicationSchemaV2(t *testing.T) {
 	rInt := acctest.RandInt()
 	alternateRegion := testAccGetAlternateRegion()
@@ -3758,6 +3818,34 @@ resource "aws_s3_bucket" "bucket" {
       destination {
         bucket        = aws_s3_bucket.destination.arn
         storage_class = "%[2]s"
+      }
+    }
+  }
+}
+`, randInt, storageClass)
+}
+
+func testAccAWSS3BucketConfigReplicationWithTimeWithConfiguration(randInt int, storageClass string) string {
+	return testAccAWSS3BucketConfigReplicationBasic(randInt) + fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = "tf-test-bucket-%d"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  replication_configuration {
+    role = aws_iam_role.role.arn
+    rules {
+      id     = "foobar"
+      status = "Enabled"
+      destination {
+        bucket        = aws_s3_bucket.destination.arn
+        storage_class = "%s"
+        replication_time {
+          status = "Enabled"
+        }
       }
     }
   }

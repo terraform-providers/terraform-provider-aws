@@ -465,6 +465,24 @@ func resourceAwsS3Bucket() *schema.Resource {
 														},
 													},
 												},
+												"replication_time": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MinItems: 1,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"status": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	s3.ReplicationRuleStatusEnabled,
+																	s3.ReplicationRuleStatusDisabled,
+																}, false),
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -2038,6 +2056,25 @@ func resourceAwsS3BucketReplicationConfigurationUpdate(s3conn *s3.S3, d *schema.
 					ruleAclTranslation.Owner = aws.String(aclTranslationValues["owner"].(string))
 					ruleDestination.AccessControlTranslation = ruleAclTranslation
 				}
+				if replicationTimeConfig, ok := bd["replication_time"].([]interface{}); ok && len(replicationTimeConfig) > 0 {
+					rtValues := replicationTimeConfig[0].(map[string]interface{})
+					metrics := &s3.Metrics{}
+					replicationTime := &s3.ReplicationTime{}
+					replicationTimeValue := &s3.ReplicationTimeValue{}
+					// Defining metrics here since right now RTC and Metrics are a "both or none" feature
+					metricsTimeValue := &s3.ReplicationTimeValue{}
+					if status, ok := rtValues["status"]; ok && status != "" {
+						replicationTime.Status = aws.String(status.(string))
+						metrics.Status = aws.String(status.(string))
+					}
+					// Right now we can only use the value 15 for both the metric and RTC time values
+					replicationTimeValue.Minutes = aws.Int64(int64(15))
+					metricsTimeValue.Minutes = aws.Int64(int64(15))
+					metrics.EventThreshold = metricsTimeValue
+					replicationTime.Time = replicationTimeValue
+					ruleDestination.ReplicationTime = replicationTime
+					ruleDestination.Metrics = metrics
+				}
 			}
 		}
 		rcRule.Destination = ruleDestination
@@ -2065,6 +2102,9 @@ func resourceAwsS3BucketReplicationConfigurationUpdate(s3conn *s3.S3, d *schema.
 		if f, ok := rr["filter"].([]interface{}); ok && len(f) > 0 && f[0] != nil {
 			// XML schema V2.
 			rcRule.Priority = aws.Int64(int64(rr["priority"].(int)))
+			rcRule.DeleteMarkerReplication = &s3.DeleteMarkerReplication{
+				Status: aws.String(s3.DeleteMarkerReplicationStatusDisabled),
+			}
 			rcRule.Filter = &s3.ReplicationRuleFilter{}
 			filter := f[0].(map[string]interface{})
 			tags := keyvaluetags.New(filter["tags"]).IgnoreAws().S3Tags()
@@ -2076,11 +2116,20 @@ func resourceAwsS3BucketReplicationConfigurationUpdate(s3conn *s3.S3, d *schema.
 			} else {
 				rcRule.Filter.Prefix = aws.String(filter["prefix"].(string))
 			}
+		}
+
+		if rcRule.Destination != nil && rcRule.Destination.ReplicationTime != nil && rcRule.Filter == nil {
+			// If a filter wasn't defined, but we're using RTC, we still need it to be the v2 schema
+			rcRule.Filter = &s3.ReplicationRuleFilter{}
+			rcRule.Priority = aws.Int64(int64(rr["priority"].(int)))
 			rcRule.DeleteMarkerReplication = &s3.DeleteMarkerReplication{
 				Status: aws.String(s3.DeleteMarkerReplicationStatusDisabled),
 			}
-		} else {
-			// XML schema V1.
+			if rr["prefix"].(string) != "" {
+				rcRule.Filter.Prefix = aws.String(rr["prefix"].(string))
+			}
+		} else if rcRule.Filter == nil {
+			// If RTC and Filter wasn't set then we're using V1
 			rcRule.Prefix = aws.String(rr["prefix"].(string))
 		}
 
@@ -2329,6 +2378,12 @@ func flattenAwsS3BucketReplicationConfiguration(r *s3.ReplicationConfiguration) 
 					"owner": aws.StringValue(v.Destination.AccessControlTranslation.Owner),
 				}
 				rd["access_control_translation"] = []interface{}{rdt}
+			}
+			if v.Destination.ReplicationTime != nil {
+				rdt := map[string]interface{}{
+					"status": aws.StringValue(v.Destination.ReplicationTime.Status),
+				}
+				rd["replication_time"] = []interface{}{rdt}
 			}
 			t["destination"] = []interface{}{rd}
 		}
@@ -2585,6 +2640,39 @@ func destinationHash(v interface{}) int {
 	}
 	if v, ok := m["access_control_translation"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
 		buf.WriteString(fmt.Sprintf("%d-", accessControlTranslationHash(v[0])))
+	}
+	if v, ok := m["replication_time"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		buf.WriteString(fmt.Sprintf("%d-", replicationTimeHash(v[0])))
+	}
+	return hashcode.String(buf.String())
+}
+
+func replicationTimeValueHash(v interface{}) int {
+	if v == nil {
+		return 0
+	}
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	if v, ok := m["minutes"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	return hashcode.String(buf.String())
+}
+
+func replicationTimeHash(v interface{}) int {
+	if v == nil {
+		return 0
+	}
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	if v, ok := m["status"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["time"].([]interface{}); ok && len(v) > 0 && v[0] != nil {
+		buf.WriteString(fmt.Sprintf("%d-", replicationTimeValueHash(v[0])))
 	}
 	return hashcode.String(buf.String())
 }
