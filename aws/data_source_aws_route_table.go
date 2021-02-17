@@ -140,6 +140,48 @@ func dataSourceAwsRouteTable() *schema.Resource {
 	}
 }
 
+func getVpcFromSubnet(subnetId string, conn *ec2.EC2) (*string, error) {
+	log.Printf("[DEBUG] Obtaning vpcId from Subnet: %s", subnetId)
+	req := &ec2.DescribeSubnetsInput{}
+	req.SubnetIds = []*string{aws.String(subnetId)}
+	log.Printf("[DEBUG] Reading Subnet: %s", req)
+	resp, err := conn.DescribeSubnets(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil || len(resp.Subnets) == 0 {
+		return nil, fmt.Errorf("no matching subnet found")
+	}
+	subnet := resp.Subnets[0]
+	return subnet.VpcId, nil
+}
+
+func dataSourceAwsRouteTableReadFromVpc(subnetId string, conn *ec2.EC2) (*ec2.DescribeRouteTablesOutput, error) {
+	log.Printf("[DEBUG] Obtaning default route of VPC from Subnet: %s", subnetId)
+	vpcId, err := getVpcFromSubnet(subnetId, conn)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[DEBUG] Obtained VpcID: %s", *vpcId)
+
+	req := &ec2.DescribeRouteTablesInput{}
+	req.Filters = buildEC2AttributeFilterList(
+		map[string]string{
+			"vpc-id":           *vpcId,
+			"association.main": "true",
+		},
+	)
+	log.Printf("[DEBUG] Reading Route Table: %s", req)
+	resp, err := conn.DescribeRouteTables(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil || len(resp.RouteTables) == 0 {
+		return nil, fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
+	}
+	return resp, nil
+}
+
 func dataSourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 	ignoreTagsConfig := meta.(*AWSClient).IgnoreTagsConfig
@@ -175,8 +217,27 @@ func dataSourceAwsRouteTableRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
 	if resp == nil || len(resp.RouteTables) == 0 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again")
+		if subnetIdOk && !rtbOk && !vpcIdOk && !gatewayIdOk && !filterOk && !tagsOk {
+			// that means the user did send a subnet and nothing else
+
+			// it also means that the AWS API returned an empty result
+			// this edge case happens when a Subnet has no explicit route set
+			// in this case, the default VPC route is used, but the route is considered implicit
+			// and hence not returned. Somehow AWS thinks this is a good idea.
+			//
+			// source: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeRouteTables.html
+			//
+			// which means we have get the subnet's VPC and return its default route, for that's what the subnet uses.
+			log.Printf("[DEBUG] Subnet %s has no explicit route. Returning the implicit route (VPC's default route).", subnetId)
+			resp, err = dataSourceAwsRouteTableReadFromVpc(subnetId.(string), conn)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
+		}
 	}
 	if len(resp.RouteTables) > 1 {
 		return fmt.Errorf("Multiple Route Table matched; use additional constraints to reduce matches to a single Route Table")
