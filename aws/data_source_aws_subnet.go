@@ -184,6 +184,7 @@ func dataSourceAwsSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("default_for_az", subnet.DefaultForAz)
 	d.Set("state", subnet.State)
 	d.Set("outpost_arn", subnet.OutpostArn)
+	d.Set("available_ip_address_count", subnet.AvailableIpAddressCount)
 
 	if err := d.Set("tags", keyvaluetags.Ec2KeyValueTags(subnet.Tags).IgnoreAws().IgnoreConfig(ignoreTagsConfig).Map()); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
