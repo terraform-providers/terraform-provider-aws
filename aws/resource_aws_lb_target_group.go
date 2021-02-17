@@ -694,6 +694,12 @@ func flattenAwsLbTargetGroupResource(d *schema.ResourceData, meta interface{}, t
 
 	for _, attr := range attrResp.Attributes {
 		switch aws.StringValue(attr.Key) {
+		case "deregistration_delay.timeout_seconds":
+			timeout, err := strconv.Atoi(aws.StringValue(attr.Value))
+			if err != nil {
+				return fmt.Errorf("Error converting deregistration_delay.timeout_seconds to int: %s", aws.StringValue(attr.Value))
+			}
+			d.Set("deregistration_delay", timeout)
 		case "lambda.multi_value_headers.enabled":
 			enabled, err := strconv.ParseBool(aws.StringValue(attr.Value))
 			if err != nil {
@@ -753,12 +759,6 @@ func flattenAwsLbTargetGroupStickiness(d *schema.ResourceData, attributes []*elb
 				return fmt.Errorf("Error converting stickiness.lb_cookie.duration_seconds to int: %s", aws.StringValue(attr.Value))
 			}
 			stickinessMap["cookie_duration"] = duration
-		case "deregistration_delay.timeout_seconds":
-			timeout, err := strconv.Atoi(aws.StringValue(attr.Value))
-			if err != nil {
-				return fmt.Errorf("Error converting deregistration_delay.timeout_seconds to int: %s", aws.StringValue(attr.Value))
-			}
-			d.Set("deregistration_delay", timeout)
 		}
 	}
 
