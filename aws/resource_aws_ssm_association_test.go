@@ -26,6 +26,16 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSSSMAssociationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apply_only_at_cron_interval", "false"),
+					resource.TestCheckResourceAttrPair(resourceName, "instance_id", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "output_location.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "targets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "InstanceIds"),
+					resource.TestCheckResourceAttr(resourceName, "targets.0.values.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "targets.0.values.0", "aws_instance.test", "id"),
+					resource.TestCheckResourceAttr(resourceName, "target_location.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "document_version", "$DEFAULT"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "sync_compliance", "AUTO"),
 				),
 			},
 			{
@@ -853,10 +863,6 @@ resource "aws_ssm_association" "test" {
 
 func testAccAWSSSMAssociationBasicConfig(rName string) string {
 	return fmt.Sprintf(`
-variable "name" {
-  default = "%s"
-}
-
 data "aws_availability_zones" "available" {
   state = "available"
 
@@ -880,7 +886,7 @@ resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = var.name
+    Name = %[1]q
   }
 }
 
@@ -891,7 +897,7 @@ resource "aws_subnet" "first" {
 }
 
 resource "aws_security_group" "test" {
-  name        = var.name
+  name        = %[1]q
   description = "foo"
   vpc_id      = aws_vpc.main.id
 
@@ -911,12 +917,12 @@ resource "aws_instance" "test" {
   subnet_id              = aws_subnet.first.id
 
   tags = {
-    Name = var.name
+    Name = %[1]q
   }
 }
 
 resource "aws_ssm_document" "test" {
-  name          = var.name
+  name          = %[1]q
   document_type = "Command"
 
   content = <<DOC
@@ -942,7 +948,7 @@ DOC
 }
 
 resource "aws_ssm_association" "test" {
-  name        = var.name
+  name        = %[1]q
   instance_id = aws_instance.test.id
 }
 `, rName)

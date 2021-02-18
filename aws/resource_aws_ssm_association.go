@@ -34,6 +34,10 @@ func resourceAwsSsmAssociation() *schema.Resource {
 			"association_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(3, 128),
+					validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9_\-.]$`), ""),
+				),
 			},
 			"association_id": {
 				Type:     schema.TypeString,
@@ -45,9 +49,10 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Optional: true,
 			},
 			"document_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([$]LATEST|[$]DEFAULT|^[1-9][0-9]*$)$`), ""),
 			},
 			"max_concurrency": {
 				Type:         schema.TypeString,
@@ -71,8 +76,9 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"schedule_expression": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 256),
 			},
 			"output_location": {
 				Type:     schema.TypeList,
@@ -99,31 +105,77 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 163),
 						},
 						"values": {
 							Type:     schema.TypeList,
 							Required: true,
+							MaxItems: 50,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
 			},
-			"compliance_severity": {
-				Type:     schema.TypeString,
+			"target_location": {
+				Type:     schema.TypeList,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					ssm.ComplianceSeverityUnspecified,
-					ssm.ComplianceSeverityLow,
-					ssm.ComplianceSeverityMedium,
-					ssm.ComplianceSeverityHigh,
-					ssm.ComplianceSeverityCritical,
-				}, false),
+				MaxItems: 100,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"accounts": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 50,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validateAwsAccountId,
+							},
+						},
+						"execution_role_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "AWS-SystemsManager-AutomationExecutionRole",
+							ValidateFunc: validation.All(
+								validation.StringLenBetween(1, 64),
+								validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]+$`), ""),
+							),
+						},
+						"regions": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 50,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"target_location_max_concurrency": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([1-9][0-9]*|[1-9][0-9]%|[1-9]%|100%)$`), "must be a valid number (e.g. 10) or percentage including the percent sign (e.g. 10%)"),
+						},
+						"target_location_max_errors": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([1-9][0-9]*|[0]|[1-9][0-9]%|[0-9]%|100%)$`), "must be a valid number (e.g. 10) or percentage including the percent sign (e.g. 10%)"),
+						},
+					},
+				},
+			},
+			"compliance_severity": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(ssm.ComplianceSeverity_Values(), false),
 			},
 			"automation_target_parameter_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 50),
+			},
+			"sync_compliance": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      ssm.AssociationSyncComplianceAuto,
+				ValidateFunc: validation.StringInSlice(ssm.AssociationSyncCompliance_Values(), false),
 			},
 		},
 	}
@@ -135,7 +187,8 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[DEBUG] SSM association create: %s", d.Id())
 
 	associationInput := &ssm.CreateAssociationInput{
-		Name: aws.String(d.Get("name").(string)),
+		Name:           aws.String(d.Get("name").(string)),
+		SyncCompliance: aws.String(d.Get("sync_compliance").(string)),
 	}
 
 	if v, ok := d.GetOk("apply_only_at_cron_interval"); ok {
@@ -162,8 +215,12 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		associationInput.Parameters = expandSSMDocumentParameters(v.(map[string]interface{}))
 	}
 
-	if _, ok := d.GetOk("targets"); ok {
-		associationInput.Targets = expandAwsSsmTargets(d.Get("targets").([]interface{}))
+	if v, ok := d.GetOk("targets"); ok {
+		associationInput.Targets = expandAwsSsmTargets(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("target_location"); ok {
+		associationInput.TargetLocations = expandAwsSsmTargetLocations(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("output_location"); ok {
@@ -235,17 +292,22 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("max_concurrency", association.MaxConcurrency)
 	d.Set("max_errors", association.MaxErrors)
 	d.Set("automation_target_parameter_name", association.AutomationTargetParameterName)
+	d.Set("sync_compliance", association.SyncCompliance)
 
 	if err := d.Set("parameters", flattenAwsSsmParameters(association.Parameters)); err != nil {
-		return err
+		return fmt.Errorf("Error setting parameters: %w", err)
 	}
 
 	if err := d.Set("targets", flattenAwsSsmTargets(association.Targets)); err != nil {
-		return fmt.Errorf("Error setting targets error: %#v", err)
+		return fmt.Errorf("Error setting targets: %w", err)
+	}
+
+	if err := d.Set("target_location", flattenAwsSsmTargetLocations(association.TargetLocations)); err != nil {
+		return fmt.Errorf("Error setting target_location: %w", err)
 	}
 
 	if err := d.Set("output_location", flattenAwsSsmAssociationOutoutLocation(association.OutputLocation)); err != nil {
-		return fmt.Errorf("Error setting output_location error: %#v", err)
+		return fmt.Errorf("Error setting output_location: %w", err)
 	}
 
 	return nil
@@ -281,8 +343,12 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 		associationInput.Parameters = expandSSMDocumentParameters(v.(map[string]interface{}))
 	}
 
-	if _, ok := d.GetOk("targets"); ok {
-		associationInput.Targets = expandAwsSsmTargets(d.Get("targets").([]interface{}))
+	if v, ok := d.GetOk("targets"); ok {
+		associationInput.Targets = expandAwsSsmTargets(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("target_location"); ok {
+		associationInput.TargetLocations = expandAwsSsmTargetLocations(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("output_location"); ok {
@@ -303,6 +369,10 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("automation_target_parameter_name"); ok {
 		associationInput.AutomationTargetParameterName = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("sync_compliance"); ok {
+		associationInput.SyncCompliance = aws.String(v.(string))
 	}
 
 	_, err := ssmconn.UpdateAssociation(associationInput)
@@ -378,6 +448,75 @@ func flattenAwsSsmAssociationOutoutLocation(location *ssm.InstanceAssociationOut
 	}
 
 	result = append(result, item)
+
+	return result
+}
+
+func expandAwsSsmTargetLocations(in []interface{}) []*ssm.TargetLocation {
+	targets := make([]*ssm.TargetLocation, 0)
+
+	for _, tConfig := range in {
+		config := tConfig.(map[string]interface{})
+
+		target := &ssm.TargetLocation{}
+
+		if v, ok := config["execution_role_name"].(string); ok && v != "" {
+			target.ExecutionRoleName = aws.String(v)
+		}
+
+		if v, ok := config["target_location_max_concurrency"].(string); ok && v != "" {
+			target.TargetLocationMaxConcurrency = aws.String(v)
+		}
+
+		if v, ok := config["target_location_max_errors"].(string); ok && v != "" {
+			target.TargetLocationMaxErrors = aws.String(v)
+		}
+
+		if v, ok := config["accounts"].(*schema.Set); ok && v.Len() > 0 {
+			target.Accounts = expandStringSet(v)
+		}
+
+		if v, ok := config["regions"].(*schema.Set); ok && v.Len() > 0 {
+			target.Regions = expandStringSet(v)
+		}
+
+		targets = append(targets, target)
+	}
+
+	return targets
+}
+
+func flattenAwsSsmTargetLocations(targets []*ssm.TargetLocation) []map[string]interface{} {
+	if len(targets) == 0 {
+		return nil
+	}
+
+	result := make([]map[string]interface{}, 0, len(targets))
+	for _, target := range targets {
+		item := make(map[string]interface{}, 1)
+
+		if target.ExecutionRoleName != nil {
+			item["execution_role_name"] = aws.StringValue(target.ExecutionRoleName)
+		}
+
+		if target.TargetLocationMaxConcurrency != nil {
+			item["target_location_max_concurrency"] = aws.StringValue(target.TargetLocationMaxConcurrency)
+		}
+
+		if target.TargetLocationMaxErrors != nil {
+			item["target_location_max_errors"] = aws.StringValue(target.TargetLocationMaxErrors)
+		}
+
+		if target.Accounts != nil && len(target.Accounts) > 0 {
+			item["accounts"] = flattenStringSet(target.Accounts)
+		}
+
+		if target.Regions != nil && len(target.Regions) > 0 {
+			item["regions"] = flattenStringSet(target.Regions)
+		}
+
+		result = append(result, item)
+	}
 
 	return result
 }
