@@ -493,6 +493,7 @@ func Provider() *schema.Provider {
 			"aws_cloudfront_origin_request_policy":                    resourceAwsCloudFrontOriginRequestPolicy(),
 			"aws_cloudfront_public_key":                               resourceAwsCloudFrontPublicKey(),
 			"aws_cloudfront_realtime_log_config":                      resourceAwsCloudFrontRealtimeLogConfig(),
+			"aws_cloudsearch_domain":                                  resourceAwsCloudSearchDomain(),
 			"aws_cloudtrail":                                          resourceAwsCloudTrail(),
 			"aws_cloudwatch_event_bus":                                resourceAwsCloudWatchEventBus(),
 			"aws_cloudwatch_event_permission":                         resourceAwsCloudWatchEventPermission(),
