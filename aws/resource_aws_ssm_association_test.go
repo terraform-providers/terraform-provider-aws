@@ -484,6 +484,45 @@ func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
 	})
 }
 
+func TestAccAWSSSMAssociation_syncCompliance(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_ssm_association.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSSSMAssociationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSSSMAssociationSyncComplianceConfig(rName, "MANUAL"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sync_compliance", "MANUAL"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSSSMAssociationSyncComplianceConfig(rName, "AUTO"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sync_compliance", "AUTO"),
+				),
+			},
+			{
+				Config: testAccAWSSSMAssociationSyncComplianceConfig(rName, "MANUAL"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSSSMAssociationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sync_compliance", "MANUAL"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSSSMAssociationExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -1357,4 +1396,45 @@ resource "aws_ssm_association" "test" {
   }
 }
 `, rName, rate)
+}
+
+func testAccAWSSSMAssociationSyncComplianceConfig(rName, mode string) string {
+	return fmt.Sprintf(`
+resource "aws_ssm_document" "test" {
+  name          = %[1]q
+  document_type = "Command"
+
+  content = <<DOC
+{
+  "schemaVersion": "1.2",
+  "description": "Check ip configuration of a Linux instance.",
+  "parameters": {},
+  "runtimeConfig": {
+    "aws:runShellScript": {
+      "properties": [
+        {
+          "id": "0.aws:runShellScript",
+          "runCommand": [
+            "ifconfig"
+          ]
+        }
+      ]
+    }
+  }
+}
+DOC
+
+}
+
+resource "aws_ssm_association" "test" {
+  name                = aws_ssm_document.test.name
+  schedule_expression = "cron(0 16 ? * TUE *)"
+  sync_compliance     = %[2]q
+
+  targets {
+    key    = "tag:Name"
+    values = ["acceptanceTest"]
+  }
+}
+`, rName, mode)
 }
