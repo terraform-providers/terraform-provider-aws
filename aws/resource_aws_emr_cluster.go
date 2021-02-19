@@ -62,6 +62,11 @@ func resourceAwsEMRCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"log_encryption_kms_key_id": {
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Optional: true,
+			},
 			"log_uri": {
 				Type:     schema.TypeString,
 				ForceNew: true,
@@ -836,6 +841,10 @@ func resourceAwsEMRClusterCreate(d *schema.ResourceData, meta interface{}) error
 		params.AdditionalInfo = aws.String(info)
 	}
 
+	if v, ok := d.GetOk("log_encryption_kms_key_id"); ok {
+		params.LogEncryptionKmsKeyId = aws.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("log_uri"); ok {
 		params.LogUri = aws.String(v.(string))
 	}
@@ -1065,6 +1074,7 @@ func resourceAwsEMRClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("security_configuration", cluster.SecurityConfiguration)
 	d.Set("autoscaling_role", cluster.AutoScalingRole)
 	d.Set("release_label", cluster.ReleaseLabel)
+	d.Set("log_encryption_kms_key_id", cluster.LogEncryptionKmsKeyId)
 	d.Set("log_uri", cluster.LogUri)
 	d.Set("master_public_dns", cluster.MasterPublicDnsName)
 	d.Set("visible_to_all_users", cluster.VisibleToAllUsers)

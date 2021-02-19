@@ -2947,15 +2947,39 @@ resource "aws_emr_cluster" "tf-test-cluster" {
 func testAccAWSEmrClusterConfigS3Logging(r string) string {
 	return testAccAWSEmrComposeConfig(false,
 		testAccAWSEmrClusterConfigCurrentPartition(),
+		testAccAWSEmrClusterConfigIAMServiceRoleCustomAmiID(r),
+		testAccAWSEmrClusterConfigIAMInstanceProfileBase(r),
 		fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
   bucket        = "%[1]s"
   force_destroy = true
 }
 
+resource "aws_kms_key" "foo" {
+  description = "Terraform acc test %[1]s"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "kms-tf-1",
+  "Statement": [
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
 resource "aws_emr_cluster" "tf-test-cluster" {
   name          = "%[1]s"
-  release_label = "emr-4.6.0"
+  release_label = "emr-5.32.0"
   applications  = ["Spark"]
 
   termination_protection            = false
@@ -2970,16 +2994,17 @@ resource "aws_emr_cluster" "tf-test-cluster" {
     instance_type  = "c4.large"
   }
 
+  log_encryption_kms_key_id = aws_kms_key.foo.key_id
   log_uri = "s3://${aws_s3_bucket.test.bucket}/"
 
   ec2_attributes {
-    instance_profile                  = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:instance-profile/EMR_EC2_DefaultRole"
+    instance_profile                  = aws_iam_instance_profile.emr_instance_profile.arn
     emr_managed_master_security_group = aws_security_group.test.id
     emr_managed_slave_security_group  = aws_security_group.test.id
     subnet_id                         = aws_subnet.test.id
   }
 
-  service_role = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/EMR_DefaultRole"
+  service_role = aws_iam_role.emr_service.arn
 }
 
 data "aws_caller_identity" "current" {}
