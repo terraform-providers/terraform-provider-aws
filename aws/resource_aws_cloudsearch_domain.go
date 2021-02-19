@@ -254,6 +254,9 @@ func resourceAwsCloudSearchDomainUpdate(d *schema.ResourceData, meta interface{}
 		DomainName:     aws.String(d.Get("name").(string)),
 		AccessPolicies: aws.String(d.Get("service_access_policies").(string)),
 	})
+	if err != nil {
+		return err
+	}
 
 	_, err = conn.UpdateScalingParameters(&cloudsearch.UpdateScalingParametersInput{
 		DomainName: aws.String(d.Get("name").(string)),
@@ -263,13 +266,19 @@ func resourceAwsCloudSearchDomainUpdate(d *schema.ResourceData, meta interface{}
 			DesiredPartitionCount:   aws.Int64(int64(d.Get("partition_count").(int))),
 		},
 	})
+	if err != nil {
+		return err
+	}
 
 	_, err = conn.UpdateAvailabilityOptions(&cloudsearch.UpdateAvailabilityOptionsInput{
 		DomainName: aws.String(d.Get("name").(string)),
 		MultiAZ:    aws.Bool(d.Get("multi_az").(bool)),
 	})
+	if err != nil {
+		return err
+	}
 
-	updated, err := defineIndexFields(d, meta, conn)
+	updated, err := defineIndexFields(d, conn)
 	if err != nil {
 		return err
 	}
@@ -445,7 +454,7 @@ func waitForSearchDomainToBeAvailable(d *schema.ResourceData, conn *cloudsearch.
 }
 
 // Miscellaneous helper functions
-func defineIndexFields(d *schema.ResourceData, meta interface{}, conn *cloudsearch.CloudSearch) (bool, error) {
+func defineIndexFields(d *schema.ResourceData, conn *cloudsearch.CloudSearch) (bool, error) {
 	// Early return if we don't have a change.
 	if !d.HasChange("index") {
 		return false, nil
@@ -541,6 +550,7 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 		IndexFieldType: aws.String(index["type"].(string)),
 	}
 
+	// TODO: clean this up, this very likely could be written in a much cleaner way than this.
 	var facet bool
 	var returnV bool
 	var search bool
@@ -548,12 +558,36 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 	var highlight bool
 	var analysisScheme string
 
-	extractFromMapToType(index, "facet", &facet)
-	extractFromMapToType(index, "return", &returnV)
-	extractFromMapToType(index, "search", &search)
-	extractFromMapToType(index, "sort", &sort)
-	extractFromMapToType(index, "highlight", &highlight)
-	extractFromMapToType(index, "analysis_scheme", &analysisScheme)
+	err := extractFromMapToType(index, "facet", &facet)
+	if err != nil {
+		return nil, err
+	}
+
+	err = extractFromMapToType(index, "return", &returnV)
+	if err != nil {
+		return nil, err
+	}
+
+	err = extractFromMapToType(index, "search", &search)
+	if err != nil {
+		return nil, err
+	}
+
+	err = extractFromMapToType(index, "sort", &sort)
+	if err != nil {
+		return nil, err
+	}
+
+	err = extractFromMapToType(index, "highlight", &highlight)
+	if err != nil {
+		return nil, err
+	}
+
+	err = extractFromMapToType(index, "analysis_scheme", &analysisScheme)
+	if err != nil {
+		return nil, err
+	}
+
 
 	switch index["type"] {
 	case "date":
@@ -588,7 +622,7 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 		if index["default_value"].(string) != "" {
 			var defaultValue float64
 			extractFromMapToType(index, "default_value", &defaultValue)
-			input.DoubleOptions.DefaultValue = aws.Float64(float64(defaultValue))
+			input.DoubleOptions.DefaultValue = aws.Float64(defaultValue)
 		}
 	case "double-array":
 		input.DoubleArrayOptions = &cloudsearch.DoubleArrayOptions{
@@ -600,7 +634,7 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 		if index["default_value"].(string) != "" {
 			var defaultValue float64
 			extractFromMapToType(index, "default_value", &defaultValue)
-			input.DoubleArrayOptions.DefaultValue = aws.Float64(float64(defaultValue))
+			input.DoubleArrayOptions.DefaultValue = aws.Float64(defaultValue)
 		}
 	case "int":
 		input.IntOptions = &cloudsearch.IntOptions{
