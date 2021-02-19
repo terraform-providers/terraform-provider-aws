@@ -301,7 +301,7 @@ resource "aws_cloudsearch_domain" "test" {
     search = true
     return = true
   }
-  
+
   index {
     name   = "int_test"
     type   = "int"
@@ -362,7 +362,7 @@ resource "aws_cloudsearch_domain" "test" {
     return          = true
   }
 
-  wait_for_endpoints = false
+  wait_for_endpoints      = false
   service_access_policies = <<EOF
 {
   "Version": "2012-10-17",
@@ -438,7 +438,7 @@ resource "aws_cloudsearch_domain" "test" {
     type = "double"
   }
 
-  wait_for_endpoints = false
+  wait_for_endpoints      = false
   service_access_policies = <<EOF
 {
   "Version": "2012-10-17",
@@ -473,7 +473,7 @@ resource "aws_cloudsearch_domain" "test" {
     analysis_scheme = "%s"
   }
 
-  wait_for_endpoints = false
+  wait_for_endpoints      = false
   service_access_policies = <<EOF
 {
   "Version": "2012-10-17",
@@ -497,8 +497,7 @@ resource "aws_cloudsearch_domain" "test" {
 
   instance_type = "%s"
 
-  wait_for_endpoints = false
-  
+  wait_for_endpoints      = false
   service_access_policies = <<EOF
 {
   "Version": "2012-10-17",
@@ -531,8 +530,7 @@ resource "aws_cloudsearch_domain" "test" {
     analysis_scheme = "_en_default_"
   }
 
-  wait_for_endpoints = false
-  
+  wait_for_endpoints      = false
   service_access_policies = <<EOF
 {
   "Version": "2012-10-17",
