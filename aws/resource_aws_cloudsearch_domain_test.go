@@ -119,8 +119,9 @@ func TestAccAWSCloudSearchDomain_textAnalysisScheme(t *testing.T) {
 
 func TestAccAWSCloudSearchDomain_badName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_basic("-this-is-a-bad-name"),
@@ -134,8 +135,9 @@ func TestAccAWSCloudSearchDomain_badInstanceType(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withInstanceType(domainName, "nope.small"),
@@ -149,8 +151,9 @@ func TestAccAWSCloudSearchDomain_badIndexFieldNames(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "HELLO", "text"),
@@ -176,8 +179,9 @@ func TestAccAWSCloudSearchDomain_badIndexFieldType(t *testing.T) {
 	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "directory", "not-a-type"),
