@@ -6,9 +6,11 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/cloudsearch"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -21,7 +23,7 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 		Update: resourceAwsCloudSearchDomainUpdate,
 		Delete: resourceAwsCloudSearchDomainDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceAwsCloudSearchDomainImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -34,9 +36,10 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 			},
 
 			"instance_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "search.small",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "search.small",
+				ValidateFunc: validateInstanceType,
 			},
 
 			"replication_count": {
@@ -57,7 +60,7 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 				Default:  false,
 			},
 
-			"access_policy": {
+			"service_access_policies": {
 				Type:             schema.TypeString,
 				ValidateFunc:     validateIAMPolicyJson,
 				Required:         true,
@@ -83,27 +86,32 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 
 						"search": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
+							Default:  false,
 						},
 
 						"facet": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"return": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
+							Default:  false,
 						},
 
 						"sort": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"highlight": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"analysis_scheme": {
@@ -120,9 +128,10 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 			},
 
 			"wait_for_endpoints": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Default:          true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool { return true },
 			},
 
 			"id": {
@@ -145,6 +154,7 @@ func resourceAwsCloudSearchDomain() *schema.Resource {
 	}
 }
 
+// Terraform CRUD Functions
 func resourceAwsCloudSearchDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudsearchconn
 
@@ -171,9 +181,9 @@ func resourceAwsCloudSearchDomainRead(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	resp, err1 := conn.DescribeDomains(&domainlist)
-	if err1 != nil {
-		return err1
+	resp, err := conn.DescribeDomains(&domainlist)
+	if err != nil {
+		return err
 	}
 	domain := resp.DomainStatusList[0]
 	d.Set("id", domain.DomainId)
@@ -185,15 +195,54 @@ func resourceAwsCloudSearchDomainRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("search_endpoint", domain.SearchService.Endpoint)
 	}
 
-	input := cloudsearch.DescribeIndexFieldsInput{
+	// Read index fields.
+	indexResults, err := conn.DescribeIndexFields(&cloudsearch.DescribeIndexFieldsInput{
 		DomainName: aws.String(d.Get("name").(string)),
+	})
+	if err != nil {
+		return err
 	}
 
-	_, err := conn.DescribeIndexFields(&input)
-	// if err != nil {
-	// 	log.Printf("[DEBUG] Reading CloudWatch Index fields: %#v", input)
-	// 	return fmt.Errorf("%s %q", err, d.Get("domain_name").(string))
-	// }
+	result := make([]map[string]interface{}, 0, len(indexResults.IndexFields))
+
+	for _, raw := range indexResults.IndexFields {
+		// Don't read in any fields that are pending deletion.
+		if *raw.Status.PendingDeletion {
+			continue
+		}
+
+		result = append(result, readIndexField(raw.Options))
+	}
+	d.Set("index", result)
+
+	// Read service access policies.
+	policyResult, err := conn.DescribeServiceAccessPolicies(&cloudsearch.DescribeServiceAccessPoliciesInput{
+		DomainName: aws.String(d.Get("name").(string)),
+	})
+	if err != nil {
+		return err
+	}
+	d.Set("service_access_policies", policyResult.AccessPolicies.Options)
+
+	// Read availability options (i.e. multi-az).
+	availabilityResult, err := conn.DescribeAvailabilityOptions(&cloudsearch.DescribeAvailabilityOptionsInput{
+		DomainName: aws.String(d.Get("name").(string)),
+	})
+	if err != nil {
+		return err
+	}
+	d.Set("multi_az", availabilityResult.AvailabilityOptions.Options)
+
+	// Read scaling parameters.
+	scalingResult, err := conn.DescribeScalingParameters(&cloudsearch.DescribeScalingParametersInput{
+		DomainName: aws.String(d.Get("name").(string)),
+	})
+	if err != nil {
+		return err
+	}
+	d.Set("instance_type", scalingResult.ScalingParameters.Options.DesiredInstanceType)
+	d.Set("partition_count", scalingResult.ScalingParameters.Options.DesiredPartitionCount)
+	d.Set("replication_count", scalingResult.ScalingParameters.Options.DesiredReplicationCount)
 
 	return err
 }
@@ -201,15 +250,24 @@ func resourceAwsCloudSearchDomainRead(d *schema.ResourceData, meta interface{}) 
 func resourceAwsCloudSearchDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).cloudsearchconn
 
-	err := updateAccessPolicy(d, meta, conn)
-	if err != nil {
-		return err
-	}
+	_, err := conn.UpdateServiceAccessPolicies(&cloudsearch.UpdateServiceAccessPoliciesInput{
+		DomainName:     aws.String(d.Get("name").(string)),
+		AccessPolicies: aws.String(d.Get("service_access_policies").(string)),
+	})
 
-	err = updateScalingParameters(d, meta, conn)
-	if err != nil {
-		return err
-	}
+	_, err = conn.UpdateScalingParameters(&cloudsearch.UpdateScalingParametersInput{
+		DomainName: aws.String(d.Get("name").(string)),
+		ScalingParameters: &cloudsearch.ScalingParameters{
+			DesiredInstanceType:     aws.String(d.Get("instance_type").(string)),
+			DesiredReplicationCount: aws.Int64(int64(d.Get("replication_count").(int))),
+			DesiredPartitionCount:   aws.Int64(int64(d.Get("partition_count").(int))),
+		},
+	})
+
+	_, err = conn.UpdateAvailabilityOptions(&cloudsearch.UpdateAvailabilityOptionsInput{
+		DomainName: aws.String(d.Get("name").(string)),
+		MultiAZ:    aws.Bool(d.Get("multi_az").(bool)),
+	})
 
 	updated, err := defineIndexFields(d, meta, conn)
 	if err != nil {
@@ -229,14 +287,15 @@ func resourceAwsCloudSearchDomainUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if d.Get("wait_for_endpoints").(bool) {
-		domainlist := cloudsearch.DescribeDomainsInput{
+		domainsList := cloudsearch.DescribeDomainsInput{
 			DomainNames: []*string{
 				aws.String(d.Get("name").(string)),
 			},
 		}
-		err2 := waitForSearchDomainToBeAvailable(d, conn, domainlist)
-		if err2 != nil {
-			return fmt.Errorf("%s %q", err2, d.Get("name").(string))
+
+		err = waitForSearchDomainToBeAvailable(d, conn, domainsList)
+		if err != nil {
+			return fmt.Errorf("%s %q", err, d.Get("name").(string))
 		}
 	}
 	return nil
@@ -255,328 +314,49 @@ func resourceAwsCloudSearchDomainDelete(d *schema.ResourceData, meta interface{}
 	return err
 }
 
-func updateAccessPolicy(d *schema.ResourceData, meta interface{}, conn *cloudsearch.CloudSearch) error {
-	input := cloudsearch.UpdateServiceAccessPoliciesInput{
-		DomainName:     aws.String(d.Get("name").(string)),
-		AccessPolicies: aws.String(d.Get("access_policy").(string)),
-	}
+// Import Function
+func resourceAwsCloudSearchDomainImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	d.SetId(d.Id())
 
-	_, err := conn.UpdateServiceAccessPolicies(&input)
-	return err
-}
-
-func defineIndexFields(d *schema.ResourceData, meta interface{}, conn *cloudsearch.CloudSearch) (bool, error) {
-	if d.HasChange("indexes") {
-		old := make(map[string]interface{})
-		new := make(map[string]interface{})
-
-		o, n := d.GetChange("indexes")
-
-		for _, ot := range o.([]interface{}) {
-			os := ot.(map[string]interface{})
-			old[os["name"].(string)] = os
-		}
-
-		for _, nt := range n.([]interface{}) {
-			ns := nt.(map[string]interface{})
-			new[ns["name"].(string)] = ns
-		}
-
-		// Handle Removal
-		for k := range old {
-			if _, ok := new[k]; !ok {
-				deleteIndexField(d.Get("name").(string), k, conn)
-			}
-		}
-
-		for _, v := range new {
-			// Handle replaces & additions
-			err := defineIndexField(d.Get("name").(string), v.(map[string]interface{}), conn)
-			if err != nil {
-				return true, err
-			}
-		}
-		return true, nil
-	}
-	return false, nil
-}
-
-func defineIndexField(domainName string, index map[string]interface{}, conn *cloudsearch.CloudSearch) error {
-	i, err := genIndexFieldInput(index)
+	arn, err := arn.Parse(d.Id())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	input := cloudsearch.DefineIndexFieldInput{
-		DomainName: aws.String(domainName),
-		IndexField: i,
+	parts := strings.Split(arn.Resource, "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("resource component of ARN is not properly formatted")
 	}
 
-	_, err = conn.DefineIndexField(&input)
-	return err
+	d.Set("name", parts[1])
+
+	return []*schema.ResourceData{d}, nil
 }
 
-func deleteIndexField(domainName string, indexName string, conn *cloudsearch.CloudSearch) error {
-	input := cloudsearch.DeleteIndexFieldInput{
-		DomainName:     aws.String(domainName),
-		IndexFieldName: aws.String(indexName),
-	}
-
-	_, err := conn.DeleteIndexField(&input)
-	return err
-}
-
-var parseError = func(d string, t string) error {
-	return fmt.Errorf("can't convert default_value '%s' of type '%s' to int", d, t)
-}
-
-/*
-extractFromMapToType extracts a specific value from map[string]interface{} into an interface of type
-expects: map[string]interface{}, string, interface{}
-returns: error
-*/
-func extractFromMapToType(index map[string]interface{}, prop string, t interface{}) error {
-	v, ok := index[prop]
-	if !ok {
-		return fmt.Errorf("%s is not a valid property of an index", prop)
-	}
-
-	if "default_value" == prop {
-		switch t.(type) {
-		case *int:
-			{
-				d, err := strconv.Atoi(v.(string))
-				if err != nil {
-					return parseError(v.(string), "int")
-				}
-
-				reflect.ValueOf(t).Elem().Set(reflect.ValueOf(d))
-			}
-		case *float64:
-			{
-				f, err := strconv.ParseFloat(v.(string), 64)
-				if err != nil {
-					return parseError(v.(string), "double")
-				}
-
-				reflect.ValueOf(t).Elem().Set(reflect.ValueOf(f))
-			}
-		default:
-			{
-				if v.(string) != "" {
-					reflect.ValueOf(t).Elem().Set(reflect.ValueOf(v))
-				}
-			}
-		}
-		return nil
-	}
-
-	reflect.ValueOf(t).Elem().Set(reflect.ValueOf(v))
-	return nil
-}
-
-func genIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexField, error) {
-	input := &cloudsearch.IndexField{
-		IndexFieldName: aws.String(index["name"].(string)),
-		IndexFieldType: aws.String(index["type"].(string)),
-	}
-
-	var facet bool
-	var returnV bool
-	var search bool
-	var sort bool
-	var highlight bool
-	var analysisScheme string
-
-	extractFromMapToType(index, "facet", &facet)
-	extractFromMapToType(index, "return", &returnV)
-	extractFromMapToType(index, "search", &search)
-	extractFromMapToType(index, "sort", &sort)
-	extractFromMapToType(index, "highlight", &highlight)
-	extractFromMapToType(index, "analysis_scheme", &analysisScheme)
-
-	switch index["type"] {
-	case "int":
-		{
-			input.IntOptions = &cloudsearch.IntOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-				SortEnabled:   aws.Bool(sort),
-			}
-
-			if index["default_value"].(string) != "" {
-				var defaultValue int
-				extractFromMapToType(index, "default_value", &defaultValue)
-				input.IntOptions.DefaultValue = aws.Int64(int64(defaultValue))
-			}
-		}
-	case "int-array":
-		{
-			input.IntArrayOptions = &cloudsearch.IntArrayOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-			}
-
-			if index["default_value"].(string) != "" {
-				var defaultValue int
-				extractFromMapToType(index, "default_value", &defaultValue)
-				input.IntArrayOptions.DefaultValue = aws.Int64(int64(defaultValue))
-			}
-		}
-	case "double":
-		{
-			input.DoubleOptions = &cloudsearch.DoubleOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-				SortEnabled:   aws.Bool(sort),
-			}
-
-			if index["default_value"].(string) != "" {
-				var defaultValue float64
-				extractFromMapToType(index, "default_value", &defaultValue)
-				input.DoubleOptions.DefaultValue = aws.Float64(float64(defaultValue))
-			}
-		}
-	case "double-array":
-		{
-			input.DoubleArrayOptions = &cloudsearch.DoubleArrayOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-			}
-
-			if index["default_value"].(string) != "" {
-				var defaultValue float64
-				extractFromMapToType(index, "default_value", &defaultValue)
-				input.DoubleArrayOptions.DefaultValue = aws.Float64(float64(defaultValue))
-			}
-		}
-	case "literal":
-		{
-			input.LiteralOptions = &cloudsearch.LiteralOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-				SortEnabled:   aws.Bool(sort),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.LiteralOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "literal-array":
-		{
-			input.LiteralArrayOptions = &cloudsearch.LiteralArrayOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.LiteralArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "text":
-		{
-			input.TextOptions = &cloudsearch.TextOptions{
-				SortEnabled:      aws.Bool(sort),
-				ReturnEnabled:    aws.Bool(returnV),
-				HighlightEnabled: aws.Bool(highlight),
-				AnalysisScheme:   aws.String(analysisScheme),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.TextOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "text-array":
-		{
-			input.TextArrayOptions = &cloudsearch.TextArrayOptions{
-				ReturnEnabled:    aws.Bool(returnV),
-				HighlightEnabled: aws.Bool(highlight),
-				AnalysisScheme:   aws.String(analysisScheme),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.TextArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "date":
-		{
-			input.DateOptions = &cloudsearch.DateOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-				SortEnabled:   aws.Bool(sort),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.DateOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "date-array":
-		{
-			input.DateArrayOptions = &cloudsearch.DateArrayOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.DateArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	case "latlon":
-		{
-			input.LatLonOptions = &cloudsearch.LatLonOptions{
-				FacetEnabled:  aws.Bool(facet),
-				ReturnEnabled: aws.Bool(returnV),
-				SearchEnabled: aws.Bool(search),
-				SortEnabled:   aws.Bool(sort),
-			}
-
-			if index["default_value"].(string) != "" {
-				input.LatLonOptions.DefaultValue = aws.String(index["default_value"].(string))
-			}
-		}
-	default:
-		return input, fmt.Errorf("invalid index field type %s", index["type"])
-	}
-
-	return input, nil
-}
-
-func updateScalingParameters(d *schema.ResourceData, meta interface{}, conn *cloudsearch.CloudSearch) error {
-	input := cloudsearch.UpdateScalingParametersInput{
-		DomainName: aws.String(d.Get("name").(string)),
-		ScalingParameters: &cloudsearch.ScalingParameters{
-			DesiredInstanceType:     aws.String(d.Get("instance_type").(string)),
-			DesiredReplicationCount: aws.Int64(int64(d.Get("replication_count").(int))),
-		},
-	}
-
-	// TODO: check instance type
-	if d.Get("instance_type").(string) == "search.2xlarge" {
-		input.ScalingParameters.DesiredPartitionCount = aws.Int64(int64(d.Get("partition_count").(int)))
-	}
-
-	_, err := conn.UpdateScalingParameters(&input)
-	// if err != nil {
-	// 	log.Printf("[DEBUG] Updating Scaling Parameters: %#v", input)
-	// 	return fmt.Errorf("%s %q", err, d.Get("domain_name").(string))
-	// }
-	return err
-}
-
+// Validation Functions
 func validateDomainName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z]([a-z0-9-]){2,27}$`).MatchString(value) {
 		es = append(es, fmt.Errorf(
 			"%q must begin with a lower-case letter, contain only [a-z0-9-] and be at least 3 and at most 28 characters", k))
 	}
+	return
+}
+
+func validateInstanceType(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+	found := false
+	for _, t := range cloudsearch.PartitionInstanceType_Values() {
+		if t == value {
+			found = true
+			continue
+		}
+	}
+
+	if !found {
+		es = append(es, fmt.Errorf("%q is not a valid instance type", v))
+	}
+
 	return
 }
 
@@ -612,6 +392,7 @@ func validateIndexType(v interface{}, k string) (ws []string, es []error) {
 	return
 }
 
+// Waiters
 func waitForSearchDomainToBeAvailable(d *schema.ResourceData, conn *cloudsearch.CloudSearch, domainlist cloudsearch.DescribeDomainsInput) error {
 	log.Printf("[INFO] cloudsearch (%#v) waiting for domain endpoint. This usually takes 10 minutes.", domainlist.DomainNames[0])
 	stateConf := &resource.StateChangeConf{
@@ -661,4 +442,365 @@ func waitForSearchDomainToBeAvailable(d *schema.ResourceData, conn *cloudsearch.
 		return fmt.Errorf("Error waiting for CloudSearch domain (%#v) to finish processing: %s", domainlist.DomainNames[0], err)
 	}
 	return err
+}
+
+// Miscellaneous helper functions
+func defineIndexFields(d *schema.ResourceData, meta interface{}, conn *cloudsearch.CloudSearch) (bool, error) {
+	// Early return if we don't have a change.
+	if !d.HasChange("index") {
+		return false, nil
+	}
+
+	o, n := d.GetChange("index")
+
+	old := o.(*schema.Set)
+	new := n.(*schema.Set)
+
+	// Returns a set of only old fields, to be deleted.
+	toDelete := old.Difference(new)
+	for _, index := range toDelete.List() {
+		v, _ := index.(map[string]interface{})
+
+		_, err := conn.DeleteIndexField(&cloudsearch.DeleteIndexFieldInput{
+			DomainName:     aws.String(d.Get("name").(string)),
+			IndexFieldName: aws.String(v["name"].(string)),
+		})
+		if err != nil {
+			return true, err
+		}
+	}
+
+	// Returns a set of only fields that needs to be added or updated (upserted).
+	toUpsert := new.Difference(old)
+	for _, index := range toUpsert.List() {
+		v, _ := index.(map[string]interface{})
+
+		field, err := generateIndexFieldInput(v)
+		if err != nil {
+			return true, err
+		}
+
+		_, err = conn.DefineIndexField(&cloudsearch.DefineIndexFieldInput{
+			DomainName: aws.String(d.Get("name").(string)),
+			IndexField: field,
+		})
+		if err != nil {
+			return true, err
+		}
+	}
+
+	return true, nil
+}
+
+/*
+extractFromMapToType extracts a specific value from map[string]interface{} into an interface of type
+expects: map[string]interface{}, string, interface{}
+returns: error
+*/
+func extractFromMapToType(index map[string]interface{}, property string, t interface{}) error {
+	v, ok := index[property]
+	if !ok {
+		return fmt.Errorf("%s is not a valid property of an index", property)
+	}
+
+	if "default_value" == property {
+		switch t.(type) {
+		case *int:
+			d, err := strconv.Atoi(v.(string))
+			if err != nil {
+				return parseError(v.(string), "int")
+			}
+
+			reflect.ValueOf(t).Elem().Set(reflect.ValueOf(d))
+		case *float64:
+			f, err := strconv.ParseFloat(v.(string), 64)
+			if err != nil {
+				return parseError(v.(string), "double")
+			}
+
+			reflect.ValueOf(t).Elem().Set(reflect.ValueOf(f))
+		default:
+			if v.(string) != "" {
+				reflect.ValueOf(t).Elem().Set(reflect.ValueOf(v))
+			}
+		}
+		return nil
+	}
+
+	reflect.ValueOf(t).Elem().Set(reflect.ValueOf(v))
+	return nil
+}
+
+var parseError = func(d string, t string) error {
+	return fmt.Errorf("can't convert default_value '%s' of type '%s' to int", d, t)
+}
+
+func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexField, error) {
+	input := &cloudsearch.IndexField{
+		IndexFieldName: aws.String(index["name"].(string)),
+		IndexFieldType: aws.String(index["type"].(string)),
+	}
+
+	var facet bool
+	var returnV bool
+	var search bool
+	var sort bool
+	var highlight bool
+	var analysisScheme string
+
+	extractFromMapToType(index, "facet", &facet)
+	extractFromMapToType(index, "return", &returnV)
+	extractFromMapToType(index, "search", &search)
+	extractFromMapToType(index, "sort", &sort)
+	extractFromMapToType(index, "highlight", &highlight)
+	extractFromMapToType(index, "analysis_scheme", &analysisScheme)
+
+	// NOTE: only way I know of to set a default for this field since not all index fields can use it.
+	if analysisScheme == "" {
+		analysisScheme = "_en_default_"
+	}
+
+	switch index["type"] {
+	case "date":
+		input.DateOptions = &cloudsearch.DateOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+			SortEnabled:   aws.Bool(sort),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.DateOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "date-array":
+		input.DateArrayOptions = &cloudsearch.DateArrayOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.DateArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "double":
+		input.DoubleOptions = &cloudsearch.DoubleOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+			SortEnabled:   aws.Bool(sort),
+		}
+
+		if index["default_value"].(string) != "" {
+			var defaultValue float64
+			extractFromMapToType(index, "default_value", &defaultValue)
+			input.DoubleOptions.DefaultValue = aws.Float64(float64(defaultValue))
+		}
+	case "double-array":
+		input.DoubleArrayOptions = &cloudsearch.DoubleArrayOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+		}
+
+		if index["default_value"].(string) != "" {
+			var defaultValue float64
+			extractFromMapToType(index, "default_value", &defaultValue)
+			input.DoubleArrayOptions.DefaultValue = aws.Float64(float64(defaultValue))
+		}
+	case "int":
+		input.IntOptions = &cloudsearch.IntOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+			SortEnabled:   aws.Bool(sort),
+		}
+
+		if index["default_value"].(string) != "" {
+			var defaultValue int
+			extractFromMapToType(index, "default_value", &defaultValue)
+			input.IntOptions.DefaultValue = aws.Int64(int64(defaultValue))
+		}
+	case "int-array":
+		input.IntArrayOptions = &cloudsearch.IntArrayOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+		}
+
+		if index["default_value"].(string) != "" {
+			var defaultValue int
+			extractFromMapToType(index, "default_value", &defaultValue)
+			input.IntArrayOptions.DefaultValue = aws.Int64(int64(defaultValue))
+		}
+	case "latlon":
+		input.LatLonOptions = &cloudsearch.LatLonOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+			SortEnabled:   aws.Bool(sort),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.LatLonOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "literal":
+		input.LiteralOptions = &cloudsearch.LiteralOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+			SortEnabled:   aws.Bool(sort),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.LiteralOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "literal-array":
+		input.LiteralArrayOptions = &cloudsearch.LiteralArrayOptions{
+			FacetEnabled:  aws.Bool(facet),
+			ReturnEnabled: aws.Bool(returnV),
+			SearchEnabled: aws.Bool(search),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.LiteralArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "text":
+		input.TextOptions = &cloudsearch.TextOptions{
+			SortEnabled:      aws.Bool(sort),
+			ReturnEnabled:    aws.Bool(returnV),
+			HighlightEnabled: aws.Bool(highlight),
+			AnalysisScheme:   aws.String(analysisScheme),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.TextOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	case "text-array":
+		input.TextArrayOptions = &cloudsearch.TextArrayOptions{
+			ReturnEnabled:    aws.Bool(returnV),
+			HighlightEnabled: aws.Bool(highlight),
+			AnalysisScheme:   aws.String(analysisScheme),
+		}
+
+		if index["default_value"].(string) != "" {
+			input.TextArrayOptions.DefaultValue = aws.String(index["default_value"].(string))
+		}
+	default:
+		return input, fmt.Errorf("invalid index field type %s", index["type"])
+	}
+
+	return input, nil
+}
+
+func readIndexField(raw *cloudsearch.IndexField) map[string]interface{} {
+	index := map[string]interface{}{
+		"name": raw.IndexFieldName,
+		"type": raw.IndexFieldType,
+	}
+
+	switch *raw.IndexFieldType {
+	case "date":
+		index["default_value"] = raw.DateOptions.DefaultValue
+		index["facet"] = raw.DateOptions.FacetEnabled
+		index["return"] = raw.DateOptions.ReturnEnabled
+		index["search"] = raw.DateOptions.SearchEnabled
+		index["sort"] = raw.DateOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+	case "date-array":
+		index["default_value"] = raw.DateArrayOptions.DefaultValue
+		index["facet"] = raw.DateArrayOptions.FacetEnabled
+		index["return"] = raw.DateArrayOptions.ReturnEnabled
+		index["search"] = raw.DateArrayOptions.SearchEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+		index["sort"] = false
+	case "double":
+		index["default_value"] = raw.DoubleOptions.DefaultValue
+		index["facet"] = raw.DoubleOptions.FacetEnabled
+		index["return"] = raw.DoubleOptions.ReturnEnabled
+		index["search"] = raw.DoubleOptions.SearchEnabled
+		index["sort"] = raw.DoubleOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+	case "double-array":
+		index["default_value"] = raw.DoubleArrayOptions.DefaultValue
+		index["facet"] = raw.DoubleArrayOptions.FacetEnabled
+		index["return"] = raw.DoubleArrayOptions.ReturnEnabled
+		index["search"] = raw.DoubleArrayOptions.SearchEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+		index["sort"] = false
+	case "int":
+		index["default_value"] = raw.IntOptions.DefaultValue
+		index["facet"] = raw.IntOptions.FacetEnabled
+		index["return"] = raw.IntOptions.ReturnEnabled
+		index["search"] = raw.IntOptions.SearchEnabled
+		index["sort"] = raw.IntOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+	case "int-array":
+		index["default_value"] = raw.IntArrayOptions.DefaultValue
+		index["facet"] = raw.IntArrayOptions.FacetEnabled
+		index["return"] = raw.IntArrayOptions.ReturnEnabled
+		index["search"] = raw.IntArrayOptions.SearchEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+		index["sort"] = false
+	case "latlon":
+		index["default_value"] = raw.LatLonOptions.DefaultValue
+		index["facet"] = raw.LatLonOptions.FacetEnabled
+		index["return"] = raw.LatLonOptions.ReturnEnabled
+		index["search"] = raw.LatLonOptions.SearchEnabled
+		index["sort"] = raw.LatLonOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+	case "literal":
+		index["default_value"] = raw.LiteralOptions.DefaultValue
+		index["facet"] = raw.LiteralOptions.FacetEnabled
+		index["return"] = raw.LiteralOptions.ReturnEnabled
+		index["search"] = raw.LiteralOptions.SearchEnabled
+		index["sort"] = raw.LiteralOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+	case "literal-array":
+		index["default_value"] = raw.LiteralArrayOptions.DefaultValue
+		index["facet"] = raw.LiteralArrayOptions.FacetEnabled
+		index["return"] = raw.LiteralArrayOptions.ReturnEnabled
+		index["search"] = raw.LiteralArrayOptions.SearchEnabled
+
+		// Options that aren't valid for this type.
+		index["highlight"] = false
+		index["sort"] = false
+	case "text":
+		index["default_value"] = raw.TextOptions.DefaultValue
+		index["analysis_scheme"] = raw.TextOptions.AnalysisScheme
+		index["highlight"] = raw.TextOptions.HighlightEnabled
+		index["return"] = raw.TextOptions.ReturnEnabled
+		index["sort"] = raw.TextOptions.SortEnabled
+
+		// Options that aren't valid for this type.
+		index["facet"] = false
+		index["search"] = false
+	case "text-array":
+		index["default_value"] = raw.TextArrayOptions.DefaultValue
+		index["analysis_scheme"] = raw.TextArrayOptions.AnalysisScheme
+		index["highlight"] = raw.TextArrayOptions.HighlightEnabled
+		index["return"] = raw.TextArrayOptions.ReturnEnabled
+
+		// Options that aren't valid for this type.
+		index["facet"] = false
+		index["search"] = false
+		index["sort"] = false
+	}
+
+	return index
 }

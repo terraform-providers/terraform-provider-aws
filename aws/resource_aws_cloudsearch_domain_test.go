@@ -63,11 +63,23 @@ func TestAccAWSCloudSearchDomain_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", domainName),
 				),
 			},
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       false,
-			// 	ImportStateVerify: false,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAWSCloudSearchDomainConfig_basicIndexMix(domainName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
+					resource.TestCheckResourceAttr(resourceName, "name", domainName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -135,7 +147,7 @@ func TestAccAWSCloudSearchDomain_badIndexFieldType(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "name", "not-a-type"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "directory", "not-a-type"),
 				ExpectError: regexp.MustCompile(`.*is not a valid index type.*`),
 			},
 		},
@@ -220,18 +232,176 @@ resource "aws_cloudsearch_domain" "test" {
 	name = "%s"
 
 	index {
-		name            = "headline"
+		name   = "date_test"
+		type   = "date"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "date_array_test"
+		type   = "date-array"
+		facet  = true
+		search = true
+		return = true
+	}
+
+	index {
+		name   = "double_test"
+		type   = "double"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "double_array_test"
+		type   = "double-array"
+		facet  = true
+		search = true
+		return = true
+	}
+	
+	index {
+		name   = "int_test"
+		type   = "int"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "int_array_test"
+		type   = "int-array"
+		facet  = true
+		search = true
+		return = true
+	}
+
+	index {
+		name   = "latlon_test"
+		type   = "latlon"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "literal_test"
+		type   = "literal"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "literal_array_test"
+		type   = "literal-array"
+		facet  = true
+		search = true
+		return = true
+	}
+
+	index {
+		name            = "text_test"
 		type            = "text"
-		search          = true
+		analysis_scheme = "_en_default_"
+		highlight       = true
 		return          = true
 		sort            = true
-		highlight       = false
+	}
+
+	index {
+		name            = "text_array_test"
+		type            = "text-array"
 		analysis_scheme = "_en_default_"
+		highlight       = true
+		return          = true
 	}
 
 	wait_for_endpoints = false
+	service_access_policies = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Effect": "Allow",
+		"Principal": {
+			"AWS": ["*"]
+		},
+		"Action": ["cloudsearch:*"]
+	}]
+}
+	EOF
+}
+`, name)
+}
 
-	access_policy = <<EOF
+func testAccAWSCloudSearchDomainConfig_basicIndexMix(name string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudsearch_domain" "test" {
+	name = "%s"
+
+	#index {
+	#	name = "how_about_one_up_here"
+	#	type = "text"
+	#}
+#
+	#index {
+	#	name   = "date_test"
+	#	type   = "date"
+	#	facet  = true
+	#	search = true
+	#	return = true
+	#	sort   = true
+	#}
+#
+	#index {
+	#	name   = "double_test_2"
+	#	type   = "double"
+	#	facet  = true
+	#	search = true
+	#	return = true
+	#	sort   = true
+	#}
+#
+	#index {
+	#	name   = "double_array_test"
+	#	type   = "double-array"
+	#	facet  = true
+	#	search = true
+	#	return = true
+	#}
+#
+	#index {
+	#	name   = "just_another_index_name"
+	#	type   = "literal-array"
+	#	facet  = true
+	#	search = true
+	#	return = true
+	#}
+#
+	#index {
+	#	name            = "text_test"
+	#	type            = "text"
+	#	analysis_scheme = "_en_default_"
+	#	highlight       = true
+	#	return          = true
+	#	sort            = true
+	#}
+#
+	#index {
+	#	name = "captain_janeway_is_pretty_cool"
+	#	type = "double"
+	#}
+
+	wait_for_endpoints = false
+	service_access_policies = <<EOF
 {
 	"Version": "2012-10-17",
 	"Statement": [{
@@ -254,9 +424,9 @@ resource "aws_cloudsearch_domain" "test" {
 
 	instance_type = "%s"
 
-	#wait_for_endpoints = "false"
+	wait_for_endpoints = false
 	
-	access_policy = <<EOF
+	service_access_policies = <<EOF
 {
 	"Version": "2012-10-17",
 	"Statement": [{
@@ -280,16 +450,17 @@ resource "aws_cloudsearch_domain" "test" {
 	index {
 		name            = "%s"
 		type            = "%s"
-		search          = true
+		facet           = false
+		search          = false
 		return          = true
 		sort            = true
 		highlight       = false
 		analysis_scheme = "_en_default_"
 	}
 
-	#wait_for_endpoints = "false"
+	wait_for_endpoints = false
 	
-	access_policy = <<EOF
+	service_access_policies = <<EOF
 {
 	"Version": "2012-10-17",
 	"Statement": [{
