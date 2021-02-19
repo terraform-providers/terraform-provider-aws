@@ -262,115 +262,115 @@ func testAccCheckAWSCloudSearchDomainDestroy(s *terraform.State) error {
 func testAccAWSCloudSearchDomainConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudsearch_domain" "test" {
-	name = "%s"
+  name = "%s"
 
-	index {
-		name   = "date_test"
-		type   = "date"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "date_test"
+    type   = "date"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "date_array_test"
-		type   = "date-array"
-		facet  = true
-		search = true
-		return = true
-	}
+  index {
+    name   = "date_array_test"
+    type   = "date-array"
+    facet  = true
+    search = true
+    return = true
+  }
 
-	index {
-		name   = "double_test"
-		type   = "double"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "double_test"
+    type   = "double"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "double_array_test"
-		type   = "double-array"
-		facet  = true
-		search = true
-		return = true
-	}
-	
-	index {
-		name   = "int_test"
-		type   = "int"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "double_array_test"
+    type   = "double-array"
+    facet  = true
+    search = true
+    return = true
+  }
+  
+  index {
+    name   = "int_test"
+    type   = "int"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "int_array_test"
-		type   = "int-array"
-		facet  = true
-		search = true
-		return = true
-	}
+  index {
+    name   = "int_array_test"
+    type   = "int-array"
+    facet  = true
+    search = true
+    return = true
+  }
 
-	index {
-		name   = "latlon_test"
-		type   = "latlon"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "latlon_test"
+    type   = "latlon"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "literal_test"
-		type   = "literal"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "literal_test"
+    type   = "literal"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "literal_array_test"
-		type   = "literal-array"
-		facet  = true
-		search = true
-		return = true
-	}
+  index {
+    name   = "literal_array_test"
+    type   = "literal-array"
+    facet  = true
+    search = true
+    return = true
+  }
 
-	index {
-		name            = "text_test"
-		type            = "text"
-		analysis_scheme = "_en_default_"
-		highlight       = true
-		return          = true
-		sort            = true
-	}
+  index {
+    name            = "text_test"
+    type            = "text"
+    analysis_scheme = "_en_default_"
+    highlight       = true
+    return          = true
+    sort            = true
+  }
 
-	index {
-		name            = "text_array_test"
-		type            = "text-array"
-		analysis_scheme = "_en_default_"
-		highlight       = true
-		return          = true
-	}
+  index {
+    name            = "text_array_test"
+    type            = "text-array"
+    analysis_scheme = "_en_default_"
+    highlight       = true
+    return          = true
+  }
 
-	wait_for_endpoints = false
-	service_access_policies = <<EOF
+  wait_for_endpoints = false
+  service_access_policies = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-		"Effect": "Allow",
-		"Principal": {
-			"AWS": ["*"]
-		},
-		"Action": ["cloudsearch:*"]
-	}]
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": ["*"]
+    },
+    "Action": ["cloudsearch:*"]
+  }]
 }
-	EOF
+EOF
 }
 `, name)
 }
@@ -378,75 +378,75 @@ resource "aws_cloudsearch_domain" "test" {
 func testAccAWSCloudSearchDomainConfig_basicIndexMix(name string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudsearch_domain" "test" {
-	name = "%s"
+  name = "%s"
 
-	index {
-		name            = "how_about_one_up_here"
-		type            = "text"
-		analysis_scheme = "_en_default_"
-	}
+  index {
+    name            = "how_about_one_up_here"
+    type            = "text"
+    analysis_scheme = "_en_default_"
+  }
 
-	index {
-		name   = "date_test"
-		type   = "date"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "date_test"
+    type   = "date"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "double_test_2"
-		type   = "double"
-		facet  = true
-		search = true
-		return = true
-		sort   = true
-	}
+  index {
+    name   = "double_test_2"
+    type   = "double"
+    facet  = true
+    search = true
+    return = true
+    sort   = true
+  }
 
-	index {
-		name   = "double_array_test"
-		type   = "double-array"
-		facet  = true
-		search = true
-		return = true
-	}
+  index {
+    name   = "double_array_test"
+    type   = "double-array"
+    facet  = true
+    search = true
+    return = true
+  }
 
-	index {
-		name   = "just_another_index_name"
-		type   = "literal-array"
-		facet  = true
-		search = true
-		return = true
-	}
+  index {
+    name   = "just_another_index_name"
+    type   = "literal-array"
+    facet  = true
+    search = true
+    return = true
+  }
 
-	index {
-		name            = "text_test"
-		type            = "text"
-		analysis_scheme = "_en_default_"
-		highlight       = true
-		return          = true
-		sort            = true
-	}
+  index {
+    name            = "text_test"
+    type            = "text"
+    analysis_scheme = "_en_default_"
+    highlight       = true
+    return          = true
+    sort            = true
+  }
 
-	index {
-		name = "captain_janeway_is_pretty_cool"
-		type = "double"
-	}
+  index {
+    name = "captain_janeway_is_pretty_cool"
+    type = "double"
+  }
 
-	wait_for_endpoints = false
-	service_access_policies = <<EOF
+  wait_for_endpoints = false
+  service_access_policies = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-		"Effect": "Allow",
-		"Principal": {
-			"AWS": ["*"]
-		},
-		"Action": ["cloudsearch:*"]
-	}]
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": ["*"]
+    },
+    "Action": ["cloudsearch:*"]
+  }]
 }
-	EOF
+EOF
 }
 `, name)
 }
@@ -456,32 +456,32 @@ resource "aws_cloudsearch_domain" "test" {
 func testAccAWSCloudSearchDomainConfig_textAnalysisScheme(name string, scheme string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudsearch_domain" "test" {
-	name = "%s"
+  name = "%s"
 
-	#index {
-	#	name = "use_default_scheme"
-	#	type = "text"
-	#}
+  #index {
+  #  name = "use_default_scheme"
+  #  type = "text"
+  #}
 
-	index {
-		name            = "specify_scheme"
-		type            = "text"
-		analysis_scheme = "%s"
-	}
+  index {
+    name            = "specify_scheme"
+    type            = "text"
+    analysis_scheme = "%s"
+  }
 
-	wait_for_endpoints = false
-	service_access_policies = <<EOF
+  wait_for_endpoints = false
+  service_access_policies = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-		"Effect": "Allow",
-		"Principal": {
-			"AWS": ["*"]
-		},
-		"Action": ["cloudsearch:*"]
-	}]
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": ["*"]
+    },
+    "Action": ["cloudsearch:*"]
+  }]
 }
-	EOF
+EOF
 }
 `, name, scheme)
 }
@@ -489,24 +489,24 @@ resource "aws_cloudsearch_domain" "test" {
 func testAccAWSCloudSearchDomainConfig_withInstanceType(name string, instance_type string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudsearch_domain" "test" {
-	name = "%s"
+  name = "%s"
 
-	instance_type = "%s"
+  instance_type = "%s"
 
-	wait_for_endpoints = false
-	
-	service_access_policies = <<EOF
+  wait_for_endpoints = false
+  
+  service_access_policies = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-		"Effect": "Allow",
-		"Principal": {
-			"AWS": ["*"]
-		},
-		"Action": ["cloudsearch:*"]
-	}]
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": ["*"]
+    },
+    "Action": ["cloudsearch:*"]
+  }]
 }
-	EOF
+EOF
 }
 `, name, instance_type)
 }
@@ -514,33 +514,33 @@ resource "aws_cloudsearch_domain" "test" {
 func testAccAWSCloudSearchDomainConfig_withIndex(name string, index_name string, index_type string) string {
 	return fmt.Sprintf(`
 resource "aws_cloudsearch_domain" "test" {
-	name = "%s"
+  name = "%s"
 
-	index {
-		name            = "%s"
-		type            = "%s"
-		facet           = false
-		search          = false
-		return          = true
-		sort            = true
-		highlight       = false
-		analysis_scheme = "_en_default_"
-	}
+  index {
+    name            = "%s"
+    type            = "%s"
+    facet           = false
+    search          = false
+    return          = true
+    sort            = true
+    highlight       = false
+    analysis_scheme = "_en_default_"
+  }
 
-	wait_for_endpoints = false
-	
-	service_access_policies = <<EOF
+  wait_for_endpoints = false
+  
+  service_access_policies = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [{
-		"Effect": "Allow",
-		"Principal": {
-			"AWS": ["*"]
-		},
-		"Action": ["cloudsearch:*"]
-	}]
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "AWS": ["*"]
+    },
+    "Action": ["cloudsearch:*"]
+  }]
 }
-	EOF
+EOF
 }
 `, name, index_name, index_type)
 }
