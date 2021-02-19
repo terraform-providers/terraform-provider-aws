@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,11 +15,41 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("aws_cloudsearch_domain", &resource.Sweeper{
+		Name: "aws_cloudsearch_domain",
+		F: func(region string) error {
+			client, err := sharedClientForRegion(region)
+			if err != nil {
+				return fmt.Errorf("error getting client: %s", err)
+			}
+			conn := client.(*AWSClient).cloudsearchconn
+
+			domains, err := conn.DescribeDomains(&cloudsearch.DescribeDomainsInput{})
+			if err != nil {
+				return fmt.Errorf("error describing CloudSearch domains: %s", err)
+			}
+
+			for _, domain := range domains.DomainStatusList {
+				if !strings.HasPrefix(*domain.DomainName, "tf-acc-") {
+					continue
+				}
+				_, err := conn.DeleteDomain(&cloudsearch.DeleteDomainInput{
+					DomainName: domain.DomainName,
+				})
+				if err != nil {
+					return fmt.Errorf("error deleting CloudSearch domain: %s", err)
+				}
+			}
+			return nil
+		},
+	})
+}
+
 func TestAccAWSCloudSearchDomain_basic(t *testing.T) {
 	var domains cloudsearch.DescribeDomainsOutput
 	resourceName := "aws_cloudsearch_domain.test"
-	rString := acctest.RandString(8)
-	domainName := fmt.Sprintf("tf-acc-%s", rString)
+	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,37 +86,41 @@ func TestAccAWSCloudSearchDomain_badName(t *testing.T) {
 }
 
 func TestAccAWSCloudSearchDomain_badInstanceType(t *testing.T) {
+	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withInstanceType("bad-instance-type", "nope.small"),
-				ExpectError: regexp.MustCompile(`.*failed to satisfy constraint.*`),
+				Config:      testAccAWSCloudSearchDomainConfig_withInstanceType(domainName, "nope.small"),
+				ExpectError: regexp.MustCompile(`.*is not a valid instance type.*`),
 			},
 		},
 	})
 }
 
 func TestAccAWSCloudSearchDomain_badIndexFieldNames(t *testing.T) {
+	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex("bad-index-name", "HELLO", "text"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "HELLO", "text"),
 				ExpectError: regexp.MustCompile(`.*must begin with a letter and be at least 3 and no more than 64 characters long.*`),
 			},
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex("bad-index-name", "w-a", "text"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "w-a", "text"),
 				ExpectError: regexp.MustCompile(`.*must begin with a letter and be at least 3 and no more than 64 characters long.*`),
 			},
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex("bad-index-name", "jfjdbfjdhsjakhfdhsajkfhdjksahfdsbfkjchndsjkhafbjdkshafjkdshjfhdsjkahfjkdsha", "text"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "jfjdbfjdhsjakhfdhsajkfhdjksahfdsbfkjchndsjkhafbjdkshafjkdshjfhdsjkahfjkdsha", "text"),
 				ExpectError: regexp.MustCompile(`.*must begin with a letter and be at least 3 and no more than 64 characters long.*`),
 			},
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex("bad-index-name", "w", "text"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "w", "text"),
 				ExpectError: regexp.MustCompile(`.*must begin with a letter and be at least 3 and no more than 64 characters long.*`),
 			},
 		},
@@ -93,13 +128,14 @@ func TestAccAWSCloudSearchDomain_badIndexFieldNames(t *testing.T) {
 }
 
 func TestAccAWSCloudSearchDomain_badIndexFieldType(t *testing.T) {
+	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAWSCloudSearchDomainConfig_withIndex("bad-index-type", "name", "not-a-type"),
+				Config:      testAccAWSCloudSearchDomainConfig_withIndex(domainName, "name", "not-a-type"),
 				ExpectError: regexp.MustCompile(`.*is not a valid index type.*`),
 			},
 		},
