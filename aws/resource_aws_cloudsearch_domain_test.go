@@ -68,8 +68,41 @@ func TestAccAWSCloudSearchDomain_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			// {
+			// 	Config: testAccAWSCloudSearchDomainConfig_basicIndexMix(domainName),
+			// 	Check: resource.ComposeTestCheckFunc(
+			// 		testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
+			// 		resource.TestCheckResourceAttr(resourceName, "name", domainName),
+			// 	),
+			// },
+			// {
+			// 	ResourceName:      resourceName,
+			// 	ImportState:       true,
+			// 	ImportStateVerify: true,
+			// },
+		},
+	})
+}
+
+func TestAccAWSCloudSearchDomain_textAnalysisScheme(t *testing.T) {
+	var domains cloudsearch.DescribeDomainsOutput
+	resourceName := "aws_cloudsearch_domain.test"
+	domainName := fmt.Sprintf("tf-acc-%s", acctest.RandString(8))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCloudSearchDomainDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSCloudSearchDomainConfig_basicIndexMix(domainName),
+				Config: testAccAWSCloudSearchDomainConfig_textAnalysisScheme(domainName, "_en_default_"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
+					resource.TestCheckResourceAttr(resourceName, "name", domainName),
+				),
+			},
+			{
+				Config: testAccAWSCloudSearchDomainConfig_textAnalysisScheme(domainName, "_fr_default_"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
 					resource.TestCheckResourceAttr(resourceName, "name", domainName),
@@ -347,58 +380,59 @@ func testAccAWSCloudSearchDomainConfig_basicIndexMix(name string) string {
 resource "aws_cloudsearch_domain" "test" {
 	name = "%s"
 
-	#index {
-	#	name = "how_about_one_up_here"
-	#	type = "text"
-	#}
-#
-	#index {
-	#	name   = "date_test"
-	#	type   = "date"
-	#	facet  = true
-	#	search = true
-	#	return = true
-	#	sort   = true
-	#}
-#
-	#index {
-	#	name   = "double_test_2"
-	#	type   = "double"
-	#	facet  = true
-	#	search = true
-	#	return = true
-	#	sort   = true
-	#}
-#
-	#index {
-	#	name   = "double_array_test"
-	#	type   = "double-array"
-	#	facet  = true
-	#	search = true
-	#	return = true
-	#}
-#
-	#index {
-	#	name   = "just_another_index_name"
-	#	type   = "literal-array"
-	#	facet  = true
-	#	search = true
-	#	return = true
-	#}
-#
-	#index {
-	#	name            = "text_test"
-	#	type            = "text"
-	#	analysis_scheme = "_en_default_"
-	#	highlight       = true
-	#	return          = true
-	#	sort            = true
-	#}
-#
-	#index {
-	#	name = "captain_janeway_is_pretty_cool"
-	#	type = "double"
-	#}
+	index {
+		name            = "how_about_one_up_here"
+		type            = "text"
+		analysis_scheme = "_en_default_"
+	}
+
+	index {
+		name   = "date_test"
+		type   = "date"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "double_test_2"
+		type   = "double"
+		facet  = true
+		search = true
+		return = true
+		sort   = true
+	}
+
+	index {
+		name   = "double_array_test"
+		type   = "double-array"
+		facet  = true
+		search = true
+		return = true
+	}
+
+	index {
+		name   = "just_another_index_name"
+		type   = "literal-array"
+		facet  = true
+		search = true
+		return = true
+	}
+
+	index {
+		name            = "text_test"
+		type            = "text"
+		analysis_scheme = "_en_default_"
+		highlight       = true
+		return          = true
+		sort            = true
+	}
+
+	index {
+		name = "captain_janeway_is_pretty_cool"
+		type = "double"
+	}
 
 	wait_for_endpoints = false
 	service_access_policies = <<EOF
@@ -415,6 +449,41 @@ resource "aws_cloudsearch_domain" "test" {
 	EOF
 }
 `, name)
+}
+
+// NOTE: I'd like to get text and text arrays field to work properly without having to explicitly set the
+// `analysis_scheme` field, but I cannot find a way to suppress the diff Terraform ends up generating as a result.
+func testAccAWSCloudSearchDomainConfig_textAnalysisScheme(name string, scheme string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudsearch_domain" "test" {
+	name = "%s"
+
+	#index {
+	#	name = "use_default_scheme"
+	#	type = "text"
+	#}
+
+	index {
+		name            = "specify_scheme"
+		type            = "text"
+		analysis_scheme = "%s"
+	}
+
+	wait_for_endpoints = false
+	service_access_policies = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Effect": "Allow",
+		"Principal": {
+			"AWS": ["*"]
+		},
+		"Action": ["cloudsearch:*"]
+	}]
+}
+	EOF
+}
+`, name, scheme)
 }
 
 func testAccAWSCloudSearchDomainConfig_withInstanceType(name string, instance_type string) string {

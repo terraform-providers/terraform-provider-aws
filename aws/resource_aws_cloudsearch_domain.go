@@ -555,11 +555,6 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 	extractFromMapToType(index, "highlight", &highlight)
 	extractFromMapToType(index, "analysis_scheme", &analysisScheme)
 
-	// NOTE: only way I know of to set a default for this field since not all index fields can use it.
-	if analysisScheme == "" {
-		analysisScheme = "_en_default_"
-	}
-
 	switch index["type"] {
 	case "date":
 		input.DateOptions = &cloudsearch.DateOptions{
@@ -669,7 +664,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 			SortEnabled:      aws.Bool(sort),
 			ReturnEnabled:    aws.Bool(returnV),
 			HighlightEnabled: aws.Bool(highlight),
-			AnalysisScheme:   aws.String(analysisScheme),
+		}
+
+		if analysisScheme != "" {
+			input.TextOptions.AnalysisScheme = aws.String(analysisScheme)
 		}
 
 		if index["default_value"].(string) != "" {
@@ -679,7 +677,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 		input.TextArrayOptions = &cloudsearch.TextArrayOptions{
 			ReturnEnabled:    aws.Bool(returnV),
 			HighlightEnabled: aws.Bool(highlight),
-			AnalysisScheme:   aws.String(analysisScheme),
+		}
+
+		if analysisScheme != "" {
+			input.TextArrayOptions.AnalysisScheme = aws.String(analysisScheme)
 		}
 
 		if index["default_value"].(string) != "" {
