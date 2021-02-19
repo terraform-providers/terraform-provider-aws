@@ -168,7 +168,7 @@ func resourceAwsCloudSearchDomainCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("%s %q", err, d.Get("name").(string))
 	}
 
-	d.SetId(*output.DomainStatus.ARN)
+	d.SetId(aws.StringValue(output.DomainStatus.ARN))
 	return resourceAwsCloudSearchDomainUpdate(d, meta)
 }
 
