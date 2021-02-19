@@ -488,9 +488,11 @@ func waitForEmrInstanceGroupStateRunning(conn *emr.EMR, clusterID string, instan
 			emr.InstanceGroupStateBootstrapping,
 			emr.InstanceGroupStateProvisioning,
 			emr.InstanceGroupStateReconfiguring,
+		},
+		Target: []string{
+			emr.InstanceGroupStateRunning,
 			emr.InstanceGroupStateResizing,
 		},
-		Target:     []string{emr.InstanceGroupStateRunning},
 		Refresh:    instanceGroupStateRefresh(conn, clusterID, instanceGroupID),
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
