@@ -68,18 +68,18 @@ func TestAccAWSCloudSearchDomain_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// {
-			// 	Config: testAccAWSCloudSearchDomainConfig_basicIndexMix(domainName),
-			// 	Check: resource.ComposeTestCheckFunc(
-			// 		testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", domainName),
-			// 	),
-			// },
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateVerify: true,
-			// },
+			{
+				Config: testAccAWSCloudSearchDomainConfig_basicIndexMix(domainName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSCloudSearchDomainExists(resourceName, &domains),
+					resource.TestCheckResourceAttr(resourceName, "name", domainName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
