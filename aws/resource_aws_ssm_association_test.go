@@ -275,9 +275,10 @@ func TestAccAWSSSMAssociation_waitForSuccess(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
 			},
 			{
 				Config: testAccAWSSSMAssociationWaitTimeoutConfig(rName, rNameUpdated, 60),
