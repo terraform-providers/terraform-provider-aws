@@ -3,5 +3,9 @@ resource/aws_ssm_association: Add plan time validation to `association_name`, `d
 ```
 
 ```release-note:enhancement
-resource/aws_ssm_association: Add `wait_for_success_timeout_seconds`
+resource/aws_ssm_association: Add `wait_for_success_timeout_seconds` argument
+```
+
+```release-note:enhancement
+resource/aws_ssm_association: Add `arn` attribute
 ```

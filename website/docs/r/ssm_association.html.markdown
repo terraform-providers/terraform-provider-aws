@@ -56,6 +56,7 @@ Targets specify what instance IDs or tags to apply the document to and has these
 
 In addition to all arguments above, the following attributes are exported:
 
+* `arn` - The ARN of the SSM association
 * `association_id` - The ID of the SSM association.
 * `instance_id` - The instance id that the SSM document was applied to.
 * `name` - The name of the SSM document to apply.

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -29,6 +30,10 @@ func resourceAwsSsmAssociation() *schema.Resource {
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
+			"arn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"apply_only_at_cron_interval": {
 				Type:     schema.TypeBool,
 				Default:  false,
@@ -241,6 +246,14 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 		return nil
 	}
 
+	arn := arn.ARN{
+		Partition: meta.(*AWSClient).partition,
+		Service:   "ssm",
+		Region:    meta.(*AWSClient).region,
+		AccountID: meta.(*AWSClient).accountid,
+		Resource:  fmt.Sprintf("association/%s", aws.StringValue(resp.AssociationId)),
+	}.String()
+	d.Set("arn", arn)
 	d.Set("apply_only_at_cron_interval", resp.ApplyOnlyAtCronInterval)
 	d.Set("association_name", resp.AssociationName)
 	d.Set("instance_id", resp.InstanceId)
