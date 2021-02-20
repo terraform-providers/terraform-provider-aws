@@ -124,49 +124,6 @@ func resourceAwsSsmAssociation() *schema.Resource {
 					},
 				},
 			},
-			"target_location": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 100,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"accounts": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							MaxItems: 50,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validateAwsAccountId,
-							},
-						},
-						"execution_role_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "AWS-SystemsManager-AutomationExecutionRole",
-							ValidateFunc: validation.All(
-								validation.StringLenBetween(1, 64),
-								validation.StringMatch(regexp.MustCompile(`^[\w+=,.@-]+$`), ""),
-							),
-						},
-						"regions": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							MaxItems: 50,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-						"target_location_max_concurrency": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([1-9][0-9]*|[1-9][0-9]%|[1-9]%|100%)$`), "must be a valid number (e.g. 10) or percentage including the percent sign (e.g. 10%)"),
-						},
-						"target_location_max_errors": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([1-9][0-9]*|[0]|[1-9][0-9]%|[0-9]%|100%)$`), "must be a valid number (e.g. 10) or percentage including the percent sign (e.g. 10%)"),
-						},
-					},
-				},
-			},
 			"compliance_severity": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -220,10 +177,6 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("targets"); ok {
 		associationInput.Targets = expandAwsSsmTargets(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("target_location"); ok {
-		associationInput.TargetLocations = expandAwsSsmTargetLocations(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("output_location"); ok {
@@ -308,10 +261,6 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting targets: %w", err)
 	}
 
-	if err := d.Set("target_location", flattenAwsSsmTargetLocations(resp.TargetLocations)); err != nil {
-		return fmt.Errorf("Error setting target_location: %w", err)
-	}
-
 	if err := d.Set("output_location", flattenAwsSsmAssociationOutoutLocation(resp.OutputLocation)); err != nil {
 		return fmt.Errorf("Error setting output_location: %w", err)
 	}
@@ -351,10 +300,6 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("targets"); ok {
 		associationInput.Targets = expandAwsSsmTargets(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("target_location"); ok {
-		associationInput.TargetLocations = expandAwsSsmTargetLocations(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("output_location"); ok {
@@ -458,75 +403,6 @@ func flattenAwsSsmAssociationOutoutLocation(location *ssm.InstanceAssociationOut
 	}
 
 	result = append(result, item)
-
-	return result
-}
-
-func expandAwsSsmTargetLocations(in []interface{}) []*ssm.TargetLocation {
-	targets := make([]*ssm.TargetLocation, 0)
-
-	for _, tConfig := range in {
-		config := tConfig.(map[string]interface{})
-
-		target := &ssm.TargetLocation{}
-
-		if v, ok := config["execution_role_name"].(string); ok && v != "" {
-			target.ExecutionRoleName = aws.String(v)
-		}
-
-		if v, ok := config["target_location_max_concurrency"].(string); ok && v != "" {
-			target.TargetLocationMaxConcurrency = aws.String(v)
-		}
-
-		if v, ok := config["target_location_max_errors"].(string); ok && v != "" {
-			target.TargetLocationMaxErrors = aws.String(v)
-		}
-
-		if v, ok := config["accounts"].(*schema.Set); ok && v.Len() > 0 {
-			target.Accounts = expandStringSet(v)
-		}
-
-		if v, ok := config["regions"].(*schema.Set); ok && v.Len() > 0 {
-			target.Regions = expandStringSet(v)
-		}
-
-		targets = append(targets, target)
-	}
-
-	return targets
-}
-
-func flattenAwsSsmTargetLocations(targets []*ssm.TargetLocation) []map[string]interface{} {
-	if len(targets) == 0 {
-		return nil
-	}
-
-	result := make([]map[string]interface{}, 0, len(targets))
-	for _, target := range targets {
-		item := make(map[string]interface{}, 1)
-
-		if target.ExecutionRoleName != nil {
-			item["execution_role_name"] = aws.StringValue(target.ExecutionRoleName)
-		}
-
-		if target.TargetLocationMaxConcurrency != nil {
-			item["target_location_max_concurrency"] = aws.StringValue(target.TargetLocationMaxConcurrency)
-		}
-
-		if target.TargetLocationMaxErrors != nil {
-			item["target_location_max_errors"] = aws.StringValue(target.TargetLocationMaxErrors)
-		}
-
-		if target.Accounts != nil && len(target.Accounts) > 0 {
-			item["accounts"] = flattenStringSet(target.Accounts)
-		}
-
-		if target.Regions != nil && len(target.Regions) > 0 {
-			item["regions"] = flattenStringSet(target.Regions)
-		}
-
-		result = append(result, item)
-	}
 
 	return result
 }

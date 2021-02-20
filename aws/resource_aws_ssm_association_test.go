@@ -32,16 +32,15 @@ func TestAccAWSSSMAssociation_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "targets.0.key", "InstanceIds"),
 					resource.TestCheckResourceAttr(resourceName, "targets.0.values.#", "1"),
 					resource.TestCheckResourceAttrPair(resourceName, "targets.0.values.0", "aws_instance.test", "id"),
-					resource.TestCheckResourceAttr(resourceName, "target_location.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "document_version", "$DEFAULT"),
 					resource.TestCheckResourceAttr(resourceName, "name", rName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -108,10 +107,9 @@ func TestAccAWSSSMAssociation_ApplyOnlyAtCronInterval(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithApplyOnlyAtCronInterval(rName, false),
@@ -164,10 +162,9 @@ targets {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithTargets(rName, twoTargets),
@@ -211,10 +208,9 @@ func TestAccAWSSSMAssociation_withParameters(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"parameters", "wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithParametersUpdated(rName),
@@ -246,10 +242,9 @@ func TestAccAWSSSMAssociation_withAssociationName(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithAssociationName(rName, rNameUpdated),
@@ -280,10 +275,9 @@ func TestAccAWSSSMAssociation_waitForSuccess(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationWaitTimeoutConfig(rName, rNameUpdated, 60),
@@ -317,10 +311,9 @@ func TestAccAWSSSMAssociation_withAssociationNameAndScheduleExpression(t *testin
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationConfigWithAssociationNameAndScheduleExpression(rName, scheduleExpression2),
@@ -352,10 +345,9 @@ func TestAccAWSSSMAssociation_withDocumentVersion(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -381,10 +373,9 @@ func TestAccAWSSSMAssociation_withOutputLocation(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithOutPutLocationUpdateBucketName(rName, rNameUpdated),
@@ -424,10 +415,9 @@ func TestAccAWSSSMAssociation_withAutomationTargetParamName(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"parameters", "wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithAutomationTargetParamName(rName, "myWorkSpaceUpdated"),
@@ -458,10 +448,9 @@ func TestAccAWSSSMAssociation_withScheduleExpression(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithScheduleExpressionUpdated(rName),
@@ -495,10 +484,9 @@ func TestAccAWSSSMAssociation_withComplianceSeverity(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationBasicConfigWithComplianceSeverity(compSeverity2, rName),
@@ -531,10 +519,9 @@ func TestAccAWSSSMAssociation_rateControl(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_success_timeout_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAWSSSMAssociationRateControlConfig(rName, "20%"),
