@@ -588,7 +588,6 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 		return nil, err
 	}
 
-
 	switch index["type"] {
 	case "date":
 		input.DateOptions = &cloudsearch.DateOptions{
@@ -621,7 +620,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 
 		if index["default_value"].(string) != "" {
 			var defaultValue float64
-			extractFromMapToType(index, "default_value", &defaultValue)
+			err = extractFromMapToType(index, "default_value", &defaultValue)
+			if err != nil {
+				return nil, err
+			}
 			input.DoubleOptions.DefaultValue = aws.Float64(defaultValue)
 		}
 	case "double-array":
@@ -633,7 +635,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 
 		if index["default_value"].(string) != "" {
 			var defaultValue float64
-			extractFromMapToType(index, "default_value", &defaultValue)
+			err = extractFromMapToType(index, "default_value", &defaultValue)
+			if err != nil {
+				return nil, err
+			}
 			input.DoubleArrayOptions.DefaultValue = aws.Float64(defaultValue)
 		}
 	case "int":
@@ -646,7 +651,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 
 		if index["default_value"].(string) != "" {
 			var defaultValue int
-			extractFromMapToType(index, "default_value", &defaultValue)
+			err = extractFromMapToType(index, "default_value", &defaultValue)
+			if err != nil {
+				return nil, err
+			}
 			input.IntOptions.DefaultValue = aws.Int64(int64(defaultValue))
 		}
 	case "int-array":
@@ -658,7 +666,10 @@ func generateIndexFieldInput(index map[string]interface{}) (*cloudsearch.IndexFi
 
 		if index["default_value"].(string) != "" {
 			var defaultValue int
-			extractFromMapToType(index, "default_value", &defaultValue)
+			err = extractFromMapToType(index, "default_value", &defaultValue)
+			if err != nil {
+				return nil, err
+			}
 			input.IntArrayOptions.DefaultValue = aws.Int64(int64(defaultValue))
 		}
 	case "latlon":
