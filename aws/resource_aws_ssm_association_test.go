@@ -965,7 +965,7 @@ resource "aws_s3_bucket" "output_location" {
   bucket        = %[1]q
   force_destroy = true
 }
-  
+
 resource "aws_s3_bucket" "output_location_updated" {
   bucket        = %[2]q
   force_destroy = true
