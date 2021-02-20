@@ -211,7 +211,7 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 	d.SetId(aws.StringValue(resp.AssociationDescription.AssociationId))
 
 	if v, ok := d.GetOk("wait_for_success_timeout_seconds"); ok {
-		dur, err := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
+		dur, _ := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
 		_, err = waiter.AssociationSuccess(conn, d.Id(), dur)
 		if err != nil {
 			return fmt.Errorf("error waiting for SSM Association (%s) to be Success: %w", d.Id(), err)
@@ -328,7 +328,7 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("wait_for_success_timeout_seconds"); ok {
-		dur, err := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
+		dur, _ := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
 		_, err = waiter.AssociationSuccess(conn, d.Id(), dur)
 		if err != nil {
 			return fmt.Errorf("error waiting for SSM Association (%s) to be Success: %w", d.Id(), err)
