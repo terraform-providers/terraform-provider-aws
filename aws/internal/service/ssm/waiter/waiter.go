@@ -47,3 +47,21 @@ func DocumentActive(conn *ssm.SSM, name string) (*ssm.DocumentDescription, error
 
 	return nil, err
 }
+
+// AssociationSuccess waits for an Association to return Success
+func AssociationSuccess(conn *ssm.SSM, id string, timeout time.Duration) (*ssm.AssociationDescription, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{ssm.AssociationStatusNamePending},
+		Target:  []string{ssm.AssociationStatusNameSuccess},
+		Refresh: AssociationStatus(conn, id),
+		Timeout: timeout,
+	}
+
+	outputRaw, err := stateConf.WaitForState()
+
+	if output, ok := outputRaw.(*ssm.AssociationDescription); ok {
+		return output, err
+	}
+
+	return nil, err
+}

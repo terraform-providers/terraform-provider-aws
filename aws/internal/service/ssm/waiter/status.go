@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	DocumentStatusUnknown = "Unknown"
+	DocumentStatusUnknown    = "Unknown"
+	AssociationStatusUnknown = "Unknown"
 )
 
 // DocumentStatus fetches the Document and its Status
@@ -25,5 +26,22 @@ func DocumentStatus(conn *ssm.SSM, name string) resource.StateRefreshFunc {
 		}
 
 		return output, aws.StringValue(output.Status), nil
+	}
+}
+
+// AssociationStatus fetches the Association and its Status
+func AssociationStatus(conn *ssm.SSM, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		output, err := finder.AssociationByID(conn, id)
+
+		if err != nil {
+			return nil, ssm.AssociationStatusNameFailed, err
+		}
+
+		if output == nil {
+			return output, AssociationStatusUnknown, nil
+		}
+
+		return output, aws.StringValue(output.Overview.Status), nil
 	}
 }

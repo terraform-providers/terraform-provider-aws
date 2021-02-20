@@ -59,3 +59,32 @@ func PatchGroup(conn *ssm.SSM, patchGroup, baselineId string) (*ssm.PatchGroupPa
 
 	return result, err
 }
+
+// AssociationByID returns the Association corresponding to the specified ID.
+func AssociationByID(conn *ssm.SSM, id string) (*ssm.AssociationDescription, error) {
+	input := &ssm.DescribeAssociationInput{
+		AssociationId: aws.String(id),
+	}
+
+	output, err := conn.DescribeAssociation(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output == nil || output.AssociationDescription == nil {
+		return nil, fmt.Errorf("error describing SSM Association (%s): empty result", id)
+	}
+
+	assoc := output.AssociationDescription
+	status := assoc.Overview
+
+	// if status == nil {
+	// 	return nil, fmt.Errorf("error describing SSM Association (%s): empty status", id)
+	// }
+
+	if aws.StringValue(status.Status) == ssm.AssociationStatusNameFailed {
+		return nil, fmt.Errorf("Association is in a failed state: %s", aws.StringValue(status.DetailedStatus))
+	}
+
+	return output.AssociationDescription, nil
+}

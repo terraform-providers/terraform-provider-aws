@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ssm/finder"
+	"github.com/terraform-providers/terraform-provider-aws/aws/internal/service/ssm/waiter"
 )
 
 func resourceAwsSsmAssociation() *schema.Resource {
@@ -44,9 +47,10 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Computed: true,
 			},
 			"instance_id": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
+				Type:       schema.TypeString,
+				ForceNew:   true,
+				Optional:   true,
+				Deprecated: "use 'targets' argument instead. https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateAssociation.html#systemsmanager-CreateAssociation-request-InstanceId",
 			},
 			"document_version": {
 				Type:         schema.TypeString,
@@ -87,12 +91,14 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"s3_bucket_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(3, 63),
 						},
 						"s3_key_prefix": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(1, 500),
 						},
 					},
 				},
@@ -171,24 +177,21 @@ func resourceAwsSsmAssociation() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 50),
 			},
-			"sync_compliance": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      ssm.AssociationSyncComplianceAuto,
-				ValidateFunc: validation.StringInSlice(ssm.AssociationSyncCompliance_Values(), false),
+			"wait_for_success_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 		},
 	}
 }
 
 func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
 	log.Printf("[DEBUG] SSM association create: %s", d.Id())
 
 	associationInput := &ssm.CreateAssociationInput{
-		Name:           aws.String(d.Get("name").(string)),
-		SyncCompliance: aws.String(d.Get("sync_compliance").(string)),
+		Name: aws.String(d.Get("name").(string)),
 	}
 
 	if v, ok := d.GetOk("apply_only_at_cron_interval"); ok {
@@ -243,9 +246,9 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 		associationInput.AutomationTargetParameterName = aws.String(v.(string))
 	}
 
-	resp, err := ssmconn.CreateAssociation(associationInput)
+	resp, err := conn.CreateAssociation(associationInput)
 	if err != nil {
-		return fmt.Errorf("Error creating SSM association: %s", err)
+		return fmt.Errorf("Error creating SSM association: %w", err)
 	}
 
 	if resp.AssociationDescription == nil {
@@ -253,60 +256,63 @@ func resourceAwsSsmAssociationCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(aws.StringValue(resp.AssociationDescription.AssociationId))
-	d.Set("association_id", resp.AssociationDescription.AssociationId)
+
+	if v, ok := d.GetOk("wait_for_success_timeout_seconds"); ok {
+		dur, err := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
+		_, err = waiter.AssociationSuccess(conn, d.Id(), dur)
+		if err != nil {
+			return fmt.Errorf("error waiting for SSM Association (%s) to be Success: %w", d.Id(), err)
+		}
+	}
 
 	return resourceAwsSsmAssociationRead(d, meta)
 }
 
 func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
 	log.Printf("[DEBUG] Reading SSM Association: %s", d.Id())
 
-	params := &ssm.DescribeAssociationInput{
-		AssociationId: aws.String(d.Id()),
-	}
-
-	resp, err := ssmconn.DescribeAssociation(params)
-
+	resp, err := finder.AssociationByID(conn, d.Id())
 	if err != nil {
 		if isAWSErr(err, ssm.ErrCodeAssociationDoesNotExist, "") {
+			log.Printf("[WARN] SSM Association %q not found, removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading SSM association: %s", err)
+		return fmt.Errorf("Error reading SSM association: %w", err)
 	}
-	if resp.AssociationDescription == nil {
-		return fmt.Errorf("AssociationDescription was nil")
+	if resp == nil {
+		log.Printf("[WARN] SSM Association %q not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	association := resp.AssociationDescription
-	d.Set("apply_only_at_cron_interval", association.ApplyOnlyAtCronInterval)
-	d.Set("association_name", association.AssociationName)
-	d.Set("instance_id", association.InstanceId)
-	d.Set("name", association.Name)
-	d.Set("association_id", association.AssociationId)
-	d.Set("schedule_expression", association.ScheduleExpression)
-	d.Set("document_version", association.DocumentVersion)
-	d.Set("compliance_severity", association.ComplianceSeverity)
-	d.Set("max_concurrency", association.MaxConcurrency)
-	d.Set("max_errors", association.MaxErrors)
-	d.Set("automation_target_parameter_name", association.AutomationTargetParameterName)
-	d.Set("sync_compliance", association.SyncCompliance)
+	d.Set("apply_only_at_cron_interval", resp.ApplyOnlyAtCronInterval)
+	d.Set("association_name", resp.AssociationName)
+	d.Set("instance_id", resp.InstanceId)
+	d.Set("name", resp.Name)
+	d.Set("association_id", resp.AssociationId)
+	d.Set("schedule_expression", resp.ScheduleExpression)
+	d.Set("document_version", resp.DocumentVersion)
+	d.Set("compliance_severity", resp.ComplianceSeverity)
+	d.Set("max_concurrency", resp.MaxConcurrency)
+	d.Set("max_errors", resp.MaxErrors)
+	d.Set("automation_target_parameter_name", resp.AutomationTargetParameterName)
 
-	if err := d.Set("parameters", flattenAwsSsmParameters(association.Parameters)); err != nil {
+	if err := d.Set("parameters", flattenAwsSsmParameters(resp.Parameters)); err != nil {
 		return fmt.Errorf("Error setting parameters: %w", err)
 	}
 
-	if err := d.Set("targets", flattenAwsSsmTargets(association.Targets)); err != nil {
+	if err := d.Set("targets", flattenAwsSsmTargets(resp.Targets)); err != nil {
 		return fmt.Errorf("Error setting targets: %w", err)
 	}
 
-	if err := d.Set("target_location", flattenAwsSsmTargetLocations(association.TargetLocations)); err != nil {
+	if err := d.Set("target_location", flattenAwsSsmTargetLocations(resp.TargetLocations)); err != nil {
 		return fmt.Errorf("Error setting target_location: %w", err)
 	}
 
-	if err := d.Set("output_location", flattenAwsSsmAssociationOutoutLocation(association.OutputLocation)); err != nil {
+	if err := d.Set("output_location", flattenAwsSsmAssociationOutoutLocation(resp.OutputLocation)); err != nil {
 		return fmt.Errorf("Error setting output_location: %w", err)
 	}
 
@@ -314,12 +320,12 @@ func resourceAwsSsmAssociationRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
 	log.Printf("[DEBUG] SSM Association update: %s", d.Id())
 
 	associationInput := &ssm.UpdateAssociationInput{
-		AssociationId: aws.String(d.Get("association_id").(string)),
+		AssociationId: aws.String(d.Id()),
 	}
 
 	if v, ok := d.GetOk("apply_only_at_cron_interval"); ok {
@@ -371,31 +377,35 @@ func resourceAwsSsmAssociationUpdate(d *schema.ResourceData, meta interface{}) e
 		associationInput.AutomationTargetParameterName = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("sync_compliance"); ok {
-		associationInput.SyncCompliance = aws.String(v.(string))
+	_, err := conn.UpdateAssociation(associationInput)
+	if err != nil {
+		return fmt.Errorf("Error updating SSM association: %w", err)
 	}
 
-	_, err := ssmconn.UpdateAssociation(associationInput)
-	if err != nil {
-		return fmt.Errorf("Error updating SSM association: %s", err)
+	if v, ok := d.GetOk("wait_for_success_timeout_seconds"); ok {
+		dur, err := time.ParseDuration(fmt.Sprintf("%ds", v.(int)))
+		_, err = waiter.AssociationSuccess(conn, d.Id(), dur)
+		if err != nil {
+			return fmt.Errorf("error waiting for SSM Association (%s) to be Success: %w", d.Id(), err)
+		}
 	}
 
 	return resourceAwsSsmAssociationRead(d, meta)
 }
 
 func resourceAwsSsmAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	ssmconn := meta.(*AWSClient).ssmconn
+	conn := meta.(*AWSClient).ssmconn
 
 	log.Printf("[DEBUG] Deleting SSM Association: %s", d.Id())
 
 	params := &ssm.DeleteAssociationInput{
-		AssociationId: aws.String(d.Get("association_id").(string)),
+		AssociationId: aws.String(d.Id()),
 	}
 
-	_, err := ssmconn.DeleteAssociation(params)
+	_, err := conn.DeleteAssociation(params)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting SSM association: %s", err)
+		return fmt.Errorf("Error deleting SSM association: %w", err)
 	}
 
 	return nil
